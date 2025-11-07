@@ -59,7 +59,11 @@ namespace {
 // in data parallel, and should not be exposed as a user API.
 struct ReduceAdd : public autograd::Node {
   explicit ReduceAdd(const at::Device& destination_device)
+<<<<<<< HEAD
       : destination_device_(destination_device){};
+=======
+      : destination_device_(destination_device) {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ~ReduceAdd() override = default;
 
   // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)

@@ -1,6 +1,7 @@
 # ${generated_comment}
 # mypy: allow-untyped-defs
 
+<<<<<<< HEAD
 from typing import (
     Any,
     Callable,
@@ -19,6 +20,13 @@ from typing import (
 
 from torch import contiguous_format, Generator, inf, memory_format, strided, Tensor, SymInt
 from torch.types import (
+=======
+from typing import Final, NoReturn
+from typing_extensions import Self
+
+from torch import SymInt, Tensor
+from torch.types import (  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _bool,
     _device,
     _dtype,
@@ -30,6 +38,16 @@ from torch.types import (
     Number,
 )
 
+<<<<<<< HEAD
 ${structseq_defs}
 
 all_return_types: list[Type] = []
+=======
+${return_types___all__}
+
+def pytree_register_structseq(cls: type) -> None: ...
+
+${structseq_defs}
+
+all_return_types: list[type] = ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

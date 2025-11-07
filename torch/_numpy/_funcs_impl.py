@@ -941,7 +941,11 @@ def choose(
     ]
 
     idx_list[0] = a
+<<<<<<< HEAD
     return choices[idx_list].squeeze(0)
+=======
+    return choices[tuple(idx_list)].squeeze(0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ### unique et al. ###

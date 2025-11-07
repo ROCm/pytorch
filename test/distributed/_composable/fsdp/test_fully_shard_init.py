@@ -2,13 +2,17 @@
 
 import copy
 import itertools
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import cast, Optional
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
 from torch.distributed._composable import replicate
+<<<<<<< HEAD
 from torch.distributed._tensor import (
     DeviceMesh,
     distribute_tensor,
@@ -16,6 +20,8 @@ from torch.distributed._tensor import (
     Replicate,
     Shard,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.fsdp import fully_shard
 from torch.distributed.fsdp._fully_shard._fsdp_init import (
@@ -31,14 +37,29 @@ from torch.distributed.fsdp._init_utils import (
     _init_inter_node_process_group,
     _init_intra_node_process_group,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.tensor import (
+    DeviceMesh,
+    distribute_tensor,
+    DTensor,
+    Replicate,
+    Shard,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     parallelize_module,
     RowwiseParallel,
 )
 from torch.distributed.tensor.placement_types import _StridedShard
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA
 from torch.testing._internal.common_fsdp import FSDPTestMultiThread, MLP
+=======
+from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+from torch.testing._internal.common_fsdp import FSDPTestMultiThread, get_devtype, MLP
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     ModelArgs,
@@ -47,6 +68,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 )
 
 
+<<<<<<< HEAD
+=======
+device_type = torch.device(get_devtype())
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestFullyShardDeviceTensor(FSDPTestMultiThread):
     """Tests that tensor parameters are moved to the expected device."""
 
@@ -54,15 +81,42 @@ class TestFullyShardDeviceTensor(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 1
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_move_states_to_device_tensor(self):
         model = MLP(8, torch.device("cpu"), with_buffer=True)
         for tensor in itertools.chain(model.parameters(), model.buffers()):
             self.assertEqual(tensor.device, torch.device("cpu"))
         fully_shard(model)
+<<<<<<< HEAD
         cuda_device = torch.device("cuda", torch.cuda.current_device())
         for tensor in itertools.chain(model.parameters(), model.buffers()):
             self.assertEqual(tensor.device, cuda_device)
+=======
+        accelerator_device = torch.device(
+            device_type.type, torch.get_device_module(device_type).current_device()
+        )
+        for tensor in itertools.chain(model.parameters(), model.buffers()):
+            self.assertEqual(tensor.device, accelerator_device)
+
+    @skip_if_lt_x_gpu(1)
+    def test_move_states_to_device_ignored_param_device(self):
+        cpu_device = torch.device("cpu")
+        model = MLP(8, cpu_device, with_buffer=True)
+        ignored_params = [model.out_proj.weight, model.out_proj.bias]
+        fully_shard(model, ignored_params=set(ignored_params))
+        for tensor in ignored_params:
+            self.assertEqual(tensor.device, cpu_device)
+        accelerator_device = torch.device(
+            device_type.type, torch.get_device_module(device_type).current_device()
+        )
+        model.to(device_type)
+        for tensor in ignored_params:
+            self.assertEqual(tensor.device, accelerator_device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestFullyShardDeviceDTensor(FSDPTestMultiThread):
@@ -72,12 +126,22 @@ class TestFullyShardDeviceDTensor(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 4
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_move_states_to_device_dtensor_valid(self):
         assert self.world_size >= 4, f"{self.world_size}"
         dp_size = 2
         global_mesh = init_device_mesh(
+<<<<<<< HEAD
             "cuda", (dp_size, self.world_size // dp_size), mesh_dim_names=("dp", "tp")
+=======
+            device_type.type,
+            (dp_size, self.world_size // dp_size),
+            mesh_dim_names=("dp", "tp"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         dp_mesh, tp_mesh = global_mesh["dp"], global_mesh["tp"]
         model = MLP(8, torch.device("cpu"), with_buffer=True)
@@ -86,16 +150,28 @@ class TestFullyShardDeviceDTensor(FSDPTestMultiThread):
             tp_mesh,
             {"in_proj": ColwiseParallel(), "out_proj": RowwiseParallel()},
         )
+<<<<<<< HEAD
         cuda_device = torch.device("cuda", torch.cuda.current_device())
         for tensor in itertools.chain(model.parameters(), model.buffers()):
             if isinstance(tensor, DTensor):
                 # DTensor constructor moves to the mesh's device
                 self.assertEqual(tensor.device, cuda_device)
                 self.assertEqual(tensor._local_tensor.device, cuda_device)
+=======
+        accelerator_device = torch.device(
+            device_type.type, torch.get_device_module(device_type).current_device()
+        )
+        for tensor in itertools.chain(model.parameters(), model.buffers()):
+            if isinstance(tensor, DTensor):
+                # DTensor constructor moves to the mesh's device
+                self.assertEqual(tensor.device, accelerator_device)
+                self.assertEqual(tensor._local_tensor.device, accelerator_device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 self.assertEqual(tensor.device, torch.device("cpu"))
         fully_shard(model, mesh=dp_mesh)
         for tensor in itertools.chain(model.parameters(), model.buffers()):
+<<<<<<< HEAD
             self.assertEqual(tensor.device, cuda_device)
             if isinstance(tensor, DTensor):
                 self.assertEqual(tensor._local_tensor.device, cuda_device)
@@ -106,11 +182,29 @@ class TestFullyShardDeviceDTensor(FSDPTestMultiThread):
         dp_size = 2
         global_cuda_mesh = init_device_mesh(
             "cuda", (dp_size, self.world_size // dp_size), mesh_dim_names=("dp", "tp")
+=======
+            self.assertEqual(tensor.device, accelerator_device)
+            if isinstance(tensor, DTensor):
+                self.assertEqual(tensor._local_tensor.device, accelerator_device)
+
+    @skip_if_lt_x_gpu(1)
+    def test_move_states_to_device_dtensor_invalid(self):
+        assert self.world_size >= 4, f"{self.world_size}"
+        dp_size = 2
+        global_accelerator_mesh = init_device_mesh(
+            device_type.type,
+            (dp_size, self.world_size // dp_size),
+            mesh_dim_names=("dp", "tp"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         global_cpu_mesh = init_device_mesh(
             "cpu", (dp_size, self.world_size // dp_size), mesh_dim_names=("dp", "tp")
         )
+<<<<<<< HEAD
         dp_mesh = global_cuda_mesh["dp"]
+=======
+        dp_mesh = global_accelerator_mesh["dp"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tp_mesh = global_cpu_mesh["tp"]  # mismatched meshes!
         model = MLP(8, torch.device("cpu"), with_buffer=True)
         parallelize_module(
@@ -122,7 +216,14 @@ class TestFullyShardDeviceDTensor(FSDPTestMultiThread):
             self.assertEqual(tensor.device, torch.device("cpu"))
             if isinstance(tensor, DTensor):
                 self.assertEqual(tensor._local_tensor.device, torch.device("cpu"))
+<<<<<<< HEAD
         regex = r"Requires DTensor to have mesh of the same type as the FSDP mesh but got cpu for DTensor and cuda for FSDP"
+=======
+        regex = (
+            rf"Requires DTensor to have mesh of the same type as the FSDP mesh but got "
+            rf"cpu for DTensor and {device_type.type} for FSDP"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(ValueError, regex):
             fully_shard(model, mesh=dp_mesh)
 
@@ -134,17 +235,29 @@ class TestFullyShardMeshArg(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 4
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_invalid_mesh_ndim(self):
         mesh = init_device_mesh("cuda", (self.world_size, 1, 1))
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_invalid_mesh_ndim(self):
+        mesh = init_device_mesh(device_type.type, (self.world_size, 1, 1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = MLP(8)
         regex = r"fully\_shard expects a 1D or 2D DeviceMesh but got DeviceMesh"
         with self.assertRaisesRegex(ValueError, regex):
             fully_shard(model, mesh=mesh)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_2d_mesh_without_mesh_dim_names(self):
         mesh = init_device_mesh("cuda", (self.world_size // 2, 2))
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_2d_mesh_without_mesh_dim_names(self):
+        mesh = init_device_mesh(device_type.type, (self.world_size // 2, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = MLP(8)
         regex = "Please init the 2D mesh for HSDP with mesh_dim_names specified"
         with self.assertRaisesRegex(AssertionError, regex):
@@ -158,7 +271,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 1
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_modules_single(self):
         model = MLP(8)
         # Assume calling `fully_shard` on `model`
@@ -166,7 +283,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         expected_managed_modules = list(model.modules())
         self._check_managed_modules(managed_modules, expected_managed_modules)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_modules_nested(self):
         model = nn.Sequential(*[MLP(8) for _ in range(2)])
         fully_shard(model[0])
@@ -175,7 +296,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         expected_managed_modules = list(model[1].modules()) + [model]
         self._check_managed_modules(managed_modules, expected_managed_modules)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_modules_nested_fully_shard_and_replicate(self):
         model = nn.Sequential(*[MLP(8) for _ in range(3)])
         replicate(model[0])
@@ -185,7 +310,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         expected_managed_modules = list(model[1].modules()) + [model]
         self._check_managed_modules(managed_modules, expected_managed_modules)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_modules_duplicate(self):
         mlp = MLP(8)
         model = nn.Sequential(mlp, mlp)  # duplicate MLP
@@ -195,7 +324,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         expected_managed_modules = list(mlp.modules()) + [model]
         self._check_managed_modules(managed_modules, expected_managed_modules)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_modules_list_of_mlps(self):
         model = nn.Sequential(*[MLP(8) for _ in range(5)])
         # Assume calling `fully_shard` on `[model[0], model[1], model[2]]`
@@ -219,7 +352,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         # Check set comparison since we do not require anything about the order
         self.assertEqual(set(managed_modules), set(expected_managed_modules))
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_states_shared_params_and_buffers(self):
         model = nn.Sequential(*[MLP(8, with_buffer=True) for _ in range(3)])
         model[0].in_proj.weight = model[1].in_proj.weight
@@ -232,7 +369,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         expected_buffers = list(model.buffers())  # de-dups shared
         self._check_managed_states(params, buffers, expected_params, expected_buffers)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_states_nested_fully_shard(self):
         model = nn.Sequential(*[MLP(8, with_buffer=True) for _ in range(2)])
         fully_shard(model[0])
@@ -243,7 +384,11 @@ class TestFullyShardManagedModulesAndStates(FSDPTestMultiThread):
         expected_buffers = list(model[1].buffers())
         self._check_managed_states(params, buffers, expected_params, expected_buffers)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_managed_states_list_of_mlps(self):
         model = nn.Sequential(*[MLP(8, with_buffer=True) for _ in range(5)])
         # Assume calling `fully_shard` on `[model[0], model[1], model[2]]`
@@ -279,7 +424,11 @@ class TestFullyShardParamModuleInfos(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 2
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_param_module_infos_shared_params(self):
         model = nn.Sequential(*[MLP(8) for _ in range(2)])
         model[0].in_proj.weight = model[1].in_proj.weight
@@ -300,7 +449,11 @@ class TestFullyShardParamModuleInfos(FSDPTestMultiThread):
         self.assertEqual(len(param_module_infos), len(expected_param_module_infos))
         self.assertEqual(param_module_infos, expected_param_module_infos)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_param_module_infos_duplicates(self):
         mlp = MLP(8)
         model = nn.Sequential(mlp, mlp)  # shared MLP
@@ -328,7 +481,11 @@ class TestFullyShardParamModuleInfos(FSDPTestMultiThread):
             ParamModuleInfo(mlp.out_proj, "bias", [], []),
         ]
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_param_module_infos_list_of_mlps(self):
         model = nn.Sequential(*[MLP(8) for _ in range(2)])
         managed_modules = _get_managed_modules((model[0], model[1]))
@@ -354,7 +511,11 @@ class TestFullyShardShardedParameterTensor(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 2
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_shard_tensor_parameters(self):
         # Use odd dim sizes to test uneven shards
         model = nn.Sequential(*[MLP(3, dim_multiplier=3) for _ in range(3)])
@@ -374,7 +535,11 @@ class TestFullyShardShardedParameterTensor(FSDPTestMultiThread):
         self, orig_params: list[nn.Parameter], sharded_params: list[nn.Parameter]
     ):
         self.assertEqual(len(orig_params), len(sharded_params))
+<<<<<<< HEAD
         global_mesh = init_device_mesh("cuda", (self.world_size,))
+=======
+        global_mesh = init_device_mesh(device_type.type, (self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for orig_param, sharded_param in zip(orig_params, sharded_params):
             self.assertIsInstance(sharded_param, DTensor)
             self.assertEqual(sharded_param.device_mesh, global_mesh)
@@ -384,17 +549,31 @@ class TestFullyShardShardedParameterTensor(FSDPTestMultiThread):
             chunks = torch.chunk(orig_param, self.world_size, dim=0)
             self.assertEqual(sharded_param._local_tensor, chunks[self.rank])
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_raise_scalar_parameter(self):
         """Tests raising an exception when the model has scalar parameters."""
         model = nn.Sequential(*[MLP(3, dim_multiplier=3) for _ in range(3)])
         model.register_parameter("scalar_p", nn.Parameter(torch.tensor(1.0).cuda()))
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_raise_scalar_parameter(self):
+        """Tests raising an exception when the model has scalar parameters."""
+        model = nn.Sequential(*[MLP(3, dim_multiplier=3) for _ in range(3)])
+        model.register_parameter(
+            "scalar_p", nn.Parameter(torch.tensor(1.0).to(device_type))
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(
             ValueError, "Change scalar_p to a 1D tensor with numel equal to 1."
         ):
             fully_shard(model)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_raise_noncontiguous_parameter(self):
         """
         Tests raising an exception when the model has non-contiguous
@@ -412,6 +591,7 @@ class TestFullyShardShardedParameterDTensor(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 4
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_shard_dtensor_parameters(self):
         dp_size = 2 if self.world_size > 2 else 1
@@ -423,6 +603,19 @@ class TestFullyShardShardedParameterDTensor(FSDPTestMultiThread):
         # TODO: change "mlp_dim" back to 9 when uneven sharding
         # is supported for FSDP+TP
         model = MLP(8, dim_multiplier=3)
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_shard_dtensor_parameters(self):
+        dp_size = 2 if self.world_size > 2 else 1
+        global_mesh = init_device_mesh(
+            device_type.type,
+            (dp_size, self.world_size // dp_size),
+            mesh_dim_names=("dp", "tp"),
+        )
+        dp_mesh, tp_mesh = global_mesh["dp"], global_mesh["tp"]
+        # Use odd dim sizes to test uneven shards
+        model = MLP(9, dim_multiplier=3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         orig_params = [param.detach().clone() for param in model.parameters()]
         orig_param_names = [param_name for param_name, _ in model.named_parameters()]
         parallelize_module(
@@ -457,7 +650,11 @@ class TestFullyShardLazyInit(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 2
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_is_root(self):
         """
         Tests that ``_is_root`` is set correctly after lazy initialization.
@@ -486,7 +683,11 @@ class TestFullyShardLazyInit(FSDPTestMultiThread):
             all_states, [root_state, model0_in_proj_state, model0_out_proj_state]
         )
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_module_and_param_fqns(self):
         """
         Tests that the module and parameter FQNs are computed correctly after
@@ -544,7 +745,11 @@ class TestFullyShardLazyInit(FSDPTestMultiThread):
             model0_out_proj_param_fqns, {"0.out_proj.weight", "0.out_proj.bias"}
         )
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_double_lazy_init(self):
         model = nn.Sequential(MLP(8), MLP(8))
         fully_shard(model[0].in_proj)
@@ -560,7 +765,11 @@ class TestFullyShardLazyInit(FSDPTestMultiThread):
         with self.assertRaisesRegex(RuntimeError, regex):
             root_state._lazy_init()
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fully_shard_multi_module_root(self):
         model = nn.Sequential(MLP(8), MLP(8))
         fully_shard([model[0], model[1]])
@@ -569,7 +778,11 @@ class TestFullyShardLazyInit(FSDPTestMultiThread):
         with self.assertRaisesRegex(RuntimeError, regex):
             root_state._lazy_init()
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reset_sharded_param_in_lazy_init(self):
         class MyModel(nn.Module):
             def __init__(self):
@@ -596,11 +809,19 @@ class TestFullyShardLazyInit(FSDPTestMultiThread):
         fully_shard(model.layer2)
         fully_shard(model)
 
+<<<<<<< HEAD
         model.layer1.to_empty(device="cuda")
         model.layer2.to_empty(device="cuda")
         model.init_weight_norm()
 
         inp = torch.randn(3, 3, device="cuda")
+=======
+        model.layer1.to_empty(device=device_type.type)
+        model.layer2.to_empty(device=device_type.type)
+        model.init_weight_norm()
+
+        inp = torch.randn(3, 3, device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         loss = model(inp).sum()
         loss.backward()
 
@@ -610,10 +831,17 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 4
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_meta_device_1d_init(self):
         default_pg = torch.distributed.distributed_c10d._get_default_group()
         mesh = init_device_mesh("cuda", mesh_shape=(default_pg.size(),))
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_meta_device_1d_init(self):
+        default_pg = torch.distributed.distributed_c10d._get_default_group()
+        mesh = init_device_mesh(device_type.type, mesh_shape=(default_pg.size(),))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Test both even sharding (8) and uneven sharding (3)
         for mlp_dim in (8, 3):
@@ -641,12 +869,22 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
             self.assertEqual(param.device, torch.device("meta"))
         self._test_to_empty_and_reset_parameters(model, mesh, mlp_dim)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_meta_device_2d_init(self):
         assert self.world_size >= 4, f"{self.world_size}"
         dp_size = 2
         global_mesh = init_device_mesh(
+<<<<<<< HEAD
             "cuda", (dp_size, self.world_size // dp_size), mesh_dim_names=("dp", "tp")
+=======
+            device_type.type,
+            (dp_size, self.world_size // dp_size),
+            mesh_dim_names=("dp", "tp"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         dp_mesh, tp_mesh = global_mesh["dp"], global_mesh["tp"]
 
@@ -674,7 +912,13 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
         self, model: nn.Module, mesh: DeviceMesh, mlp_dim: int
     ):
         # Check that we can materialize it on GPU with empty values
+<<<<<<< HEAD
         device = torch.device("cuda", torch.cuda.current_device())
+=======
+        device = torch.device(
+            device_type.type, torch.get_device_module(device_type).current_device()
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model.to_empty(device=device)
         for param in model.parameters():
             self.assertEqual(param.device, device)
@@ -695,6 +939,7 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
             self.assertNotEqual(buffer, torch.ones_like(buffer) * const)
 
         # Check that we can run an iteration without erroring
+<<<<<<< HEAD
         inp = torch.randn((4, mlp_dim), device="cuda")
         model(inp).sum().backward()
         optim.step()
@@ -703,6 +948,16 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
     def test_invalid_meta_device_init(self):
         default_pg = torch.distributed.distributed_c10d._get_default_group()
         mesh = init_device_mesh("cuda", mesh_shape=(default_pg.size(),))
+=======
+        inp = torch.randn((4, mlp_dim), device=device_type.type)
+        model(inp).sum().backward()
+        optim.step()
+
+    @skip_if_lt_x_gpu(1)
+    def test_invalid_meta_device_init(self):
+        default_pg = torch.distributed.distributed_c10d._get_default_group()
+        mesh = init_device_mesh(device_type.type, mesh_shape=(default_pg.size(),))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mlp_dim = 8
         with torch.device("meta"):
             model = nn.Sequential(MLP(mlp_dim, with_buffer=True), MLP(mlp_dim))
@@ -711,7 +966,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
             fully_shard(model[0], mesh=mesh)
             fully_shard(model[1], mesh=mesh)
             fully_shard(model, mesh=mesh)
+<<<<<<< HEAD
         inp = torch.randn((4, mlp_dim), device="cuda")
+=======
+        inp = torch.randn((4, mlp_dim), device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         error_regex = (
             "FSDP parameters should be materialized from meta device before training, "
             "but the following were still on meta device: "
@@ -720,7 +979,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
         with self.assertRaisesRegex(RuntimeError, error_regex):
             model(inp)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_rank0_broadcast_meta_device_init(self):
         model_args = ModelArgs(dropout_p=0.0)
         # Assume we have a CPU full state dict on rank 0
@@ -732,7 +995,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
                 self.assertEqual(param.device, torch.device("cpu"))
 
         # Initialize the sharded model on meta device
+<<<<<<< HEAD
         fsdp_mesh = init_device_mesh("cuda", (self.world_size,))
+=======
+        fsdp_mesh = init_device_mesh(device_type.type, (self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch.device("meta"):
             model = Transformer(model_args)
         for module in model.modules():
@@ -752,7 +1019,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
             for (param_name, full_param), sharded_meta_param in zip(
                 full_sd.items(), meta_sharded_sd.values()
             ):
+<<<<<<< HEAD
                 full_param = full_param.detach().cuda()
+=======
+                full_param = full_param.detach().to(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mesh = sharded_meta_param.device_mesh
                 dist.broadcast(full_param, src=0, group=mesh.get_group(0))
                 sharded_tensor = distribute_tensor(
@@ -763,7 +1034,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
             for param_name, sharded_meta_param in meta_sharded_sd.items():
                 full_tensor = torch.empty(
                     sharded_meta_param.size(),
+<<<<<<< HEAD
                     device="cuda",
+=======
+                    device=device_type.type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     dtype=sharded_meta_param.dtype,
                 )
                 mesh = sharded_meta_param.device_mesh
@@ -776,7 +1051,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
         model.load_state_dict(sharded_sd, assign=True)
         for param in model.parameters():
             self.assertIsInstance(param, DTensor)
+<<<<<<< HEAD
             self.assertEqual(param.device.type, "cuda")
+=======
+            self.assertEqual(param.device.type, device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Construct the reference model on nonzero ranks by broadcasting the
         # unsharded model from rank 0 and sharding on all ranks
@@ -796,7 +1075,11 @@ class TestFullyShardMetaDeviceInit(FSDPTestMultiThread):
             self.assertEqual(param, ref_param)
 
         # Check one forward/backward for parity
+<<<<<<< HEAD
         inp = torch.randint(0, model_args.vocab_size, (2, 16), device="cuda")
+=======
+        inp = torch.randint(0, model_args.vocab_size, (2, 16), device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         loss = model(inp).sum()
         loss.backward()
         ref_loss = ref_model(inp).sum()
@@ -811,25 +1094,43 @@ class TestFullyShardProcessGroupInit(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 4
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_1d_process_group_init(self):
         assert self.world_size == 4, f"{self.world_size}"
         # For convenience, use device mesh's infra to construct the DP PG
         # (in practice, the trainer would do it manually via `new_group()`)
         dp_size = 2
         global_mesh = init_device_mesh(
+<<<<<<< HEAD
             "cuda", (dp_size, self.world_size // dp_size), mesh_dim_names=("dp", "tp")
+=======
+            device_type.type,
+            (dp_size, self.world_size // dp_size),
+            mesh_dim_names=("dp", "tp"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         ref_dp_mesh, tp_mesh = global_mesh["dp"], global_mesh["tp"]
         dp_pg = ref_dp_mesh.get_group(0)
 
         # Check the `from_group()` API for correctness
+<<<<<<< HEAD
         dp_mesh = DeviceMesh.from_group(dp_pg, "cuda", mesh_dim_names=("dp",))
+=======
+        dp_mesh = DeviceMesh.from_group(dp_pg, device_type.type, mesh_dim_names=("dp",))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Only compare the mesh tensors, not `DeviceMesh` objects themselves,
         # since the ref has a parent mesh, while the `from_group` one does not
         self.assertEqual(dp_mesh.mesh, ref_dp_mesh.mesh)
         self.assertEqual(dp_mesh._coordinate_on_dim, ref_dp_mesh._coordinate_on_dim)
+<<<<<<< HEAD
         self.assertEqual(dp_mesh._dim_group_infos, ref_dp_mesh._dim_group_infos)
+=======
+        self.assertEqual(dp_mesh._dim_group_names, ref_dp_mesh._dim_group_names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Check 1D FSDP forward/backward parity over the DP mesh
         # NOTE: We cannot use 2D DTensor-based training here because the DP
@@ -849,7 +1150,11 @@ class TestFullyShardProcessGroupInit(FSDPTestMultiThread):
             fully_shard(module, mesh=dp_mesh)
 
         # Ensure that TP ranks have the same input
+<<<<<<< HEAD
         inp = torch.randn((4, mlp_dim), device="cuda")
+=======
+        inp = torch.randn((4, mlp_dim), device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.rank in (0, 1):
             dist.broadcast(inp, src=0, group=tp_mesh.get_group(0))
         elif self.rank in (2, 3):
@@ -871,6 +1176,7 @@ class TestFullyShardProcessGroupInit(FSDPTestMultiThread):
                 param.grad.device_mesh.mesh, ref_param.grad.device_mesh.mesh
             )
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_2d_process_group_init(self):
         shard_mesh_dim_size = 2
@@ -881,6 +1187,18 @@ class TestFullyShardProcessGroupInit(FSDPTestMultiThread):
         mesh_dim_names = ("replicate", "shard")
         ref_mesh = init_device_mesh(
             "cuda",
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_2d_process_group_init(self):
+        shard_mesh_dim_size = 2
+        assert self.world_size % shard_mesh_dim_size == 0, (
+            f"Expects {self.world_size} to be divisible by {shard_mesh_dim_size}"
+        )
+        replicate_mesh_dim_size = self.world_size // shard_mesh_dim_size
+        mesh_dim_names = ("replicate", "shard")
+        ref_mesh = init_device_mesh(
+            device_type.type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (replicate_mesh_dim_size, shard_mesh_dim_size),
             mesh_dim_names=mesh_dim_names,
         )
@@ -899,18 +1217,25 @@ class TestFullyShardProcessGroupInit(FSDPTestMultiThread):
         # Check the `from_group()` API for correctness
         mesh = DeviceMesh.from_group(
             [dp_replicate_group, dp_shard_group],
+<<<<<<< HEAD
             "cuda",
+=======
+            device_type.type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mesh_dim_names=mesh_dim_names,
             mesh=mesh_tensor,
         )
         self.assertEqual(mesh.mesh, ref_mesh.mesh)
         self.assertEqual(mesh._coordinate_on_dim, ref_mesh._coordinate_on_dim)
+<<<<<<< HEAD
         for (_, ranks, _), (_, ref_ranks, _) in zip(
             mesh._dim_group_infos, ref_mesh._dim_group_infos
         ):
             # Since we manually constructed new subgroups, the test and ref
             # groups are not the same
             self.assertEqual(ranks, ref_ranks)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for mesh_dim_name in mesh_dim_names:
             child_mesh = mesh[mesh_dim_name]
             ref_child_mesh = ref_mesh[mesh_dim_name]
@@ -938,7 +1263,11 @@ class TestFullyShardProcessGroupInit(FSDPTestMultiThread):
         for module in (model.in_proj, model.out_proj, model):
             fully_shard(module, mesh=mesh)
 
+<<<<<<< HEAD
         inp = torch.randn((4, mlp_dim), device="cuda")
+=======
+        inp = torch.randn((4, mlp_dim), device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref_loss = ref_model(inp).sum()
         ref_loss.backward()
         loss = model(inp).sum()
@@ -954,11 +1283,21 @@ class TestFullyShardHSDPBroadcast(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 4
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_hsdp_broadcast_across_replicas(self):
         shard_size, replicate_size = 2, 2
         mesh = init_device_mesh(
             "cuda", (replicate_size, shard_size), mesh_dim_names=("replicate", "shard")
+=======
+    @skip_if_lt_x_gpu(1)
+    def test_hsdp_broadcast_across_replicas(self):
+        shard_size, replicate_size = 2, 2
+        mesh = init_device_mesh(
+            device_type.type,
+            (replicate_size, shard_size),
+            mesh_dim_names=("replicate", "shard"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model_args = ModelArgs()
         model = Transformer(model_args)
@@ -1012,7 +1351,11 @@ class TestFullyShardHSDPBroadcast(FSDPTestMultiThread):
                 self.assertEqual(other_local_tensor, local_tensor_list[0])
 
         # Check that we can run an iteration without erroring
+<<<<<<< HEAD
         inp = torch.randint(0, model_args.vocab_size, (2, 16), device="cuda")
+=======
+        inp = torch.randint(0, model_args.vocab_size, (2, 16), device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model(inp).sum().backward()
 
 
@@ -1023,17 +1366,30 @@ class TestHSDPWithCustomHook(FSDPTestMultiThread):
 
     def perThreadSetUp(self) -> None:
         super().perThreadSetUp()
+<<<<<<< HEAD
         torch.set_default_device("cuda")
 
     @unittest.skipIf(not TEST_CUDA, "no cuda")
     def test_custom_hook_custom_stream(self):
         hsdp_mesh = init_device_mesh(
             "cuda", (2, 2), mesh_dim_names=("replicate", "shard")
+=======
+        torch.set_default_device(device_type)
+
+    @skip_if_lt_x_gpu(1)
+    def test_custom_hook_custom_stream(self):
+        hsdp_mesh = init_device_mesh(
+            device_type.type, (2, 2), mesh_dim_names=("replicate", "shard")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model = MLP(10, bias=False)
         fully_shard(model, mesh=hsdp_mesh)
         model = cast(FSDPModule, model)
+<<<<<<< HEAD
         custom_stream = torch.cuda.Stream()
+=======
+        custom_stream = torch.get_device_module(device_type).Stream()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # native HSDP should reject
         with self.assertRaises(ValueError) as cm:
@@ -1046,7 +1402,11 @@ class TestHSDPWithCustomHook(FSDPTestMultiThread):
         intra_pg = _init_intra_node_process_group(2)
         fsdp_mesh = DeviceMesh.from_group(
             intra_pg,
+<<<<<<< HEAD
             "cuda",
+=======
+            device_type.type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dist.get_process_group_ranks(intra_pg),
             mesh_dim_names=("shard",),
         )
@@ -1054,7 +1414,11 @@ class TestHSDPWithCustomHook(FSDPTestMultiThread):
 
         def _hook(_output: torch.Tensor) -> None:
             nonlocal hook_used_stream
+<<<<<<< HEAD
             hook_used_stream = torch.cuda.current_stream()
+=======
+            hook_used_stream = torch.get_device_module(device_type).current_stream()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         model = MLP(10, bias=False)
         fully_shard(model, mesh=fsdp_mesh)
@@ -1064,17 +1428,28 @@ class TestHSDPWithCustomHook(FSDPTestMultiThread):
         inp = torch.arange(10, dtype=torch.float32, requires_grad=True).view(1, 10)
         out = model(inp)
         out.sum().backward()
+<<<<<<< HEAD
         torch.cuda.synchronize()
         self.assertEqual(hook_used_stream, custom_stream)
 
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+        torch.get_device_module(device_type).synchronize()
+        self.assertEqual(hook_used_stream, custom_stream)
+
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_custom_hsdp_all_reduce_hook(self):
         world_pg = dist.distributed_c10d._get_default_group()
         intra_pg = _init_intra_node_process_group(2)
         inter_pg = _init_inter_node_process_group(world_pg, 2)
         mesh = DeviceMesh.from_group(
             intra_pg,
+<<<<<<< HEAD
             "cuda",
+=======
+            device_type.type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dist.get_process_group_ranks(intra_pg),
             mesh_dim_names=("shard",),
         )
@@ -1101,7 +1476,11 @@ class TestHSDPWithCustomHook(FSDPTestMultiThread):
         inp = torch.arange(10, dtype=torch.float32, requires_grad=True).view(1, 10)
         out = model(inp)
         out.sum().backward()
+<<<<<<< HEAD
         torch.cuda.synchronize()
+=======
+        torch.get_device_module(device_type).synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # custom hook was fired
         self.assertTrue(hook_called)
         # within each replica, FSDP shards the weights at dim 0
@@ -1135,7 +1514,11 @@ class TestFullyShardShardPlacementFn(FSDPTestMultiThread):
         ref_model = copy.deepcopy(model)
         return model, ref_model
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_init_1d_transformer_shard_largest_dim(self):
         model, ref_model = self._init_models()
 
@@ -1163,7 +1546,11 @@ class TestFullyShardShardPlacementFn(FSDPTestMultiThread):
             full_param = param.full_tensor()
             self.assertEqual(full_param, ref_param)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_init_1d_transformer_shard_dim_neg1(self):
         model, ref_model = self._init_models()
 
@@ -1179,13 +1566,21 @@ class TestFullyShardShardPlacementFn(FSDPTestMultiThread):
             full_param = param.full_tensor()
             self.assertEqual(full_param, ref_param)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_init_2d_transformer_shard_diff_dim(self):
         model, ref_model = self._init_models()
 
         dp_size, tp_size = self.world_size // 2, 2
         global_mesh = init_device_mesh(
+<<<<<<< HEAD
             "cuda", (dp_size, tp_size), mesh_dim_names=("dp", "tp")
+=======
+            device_type.type, (dp_size, tp_size), mesh_dim_names=("dp", "tp")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model = Transformer.parallelize(model, global_mesh["tp"], use_seq_parallel=True)
 
@@ -1229,7 +1624,11 @@ class TestFullyShardShardPlacementFn(FSDPTestMultiThread):
             full_param = param.full_tensor()
             self.assertEqual(full_param, ref_param)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_init_1d_uneven_shard_largest_dim(self):
         torch.manual_seed(42)
         model = nn.Sequential(nn.Linear(16, 17), nn.Linear(17, 8))
@@ -1250,7 +1649,11 @@ class TestFullyShardShardPlacementFn(FSDPTestMultiThread):
         ):
             fully_shard(model, shard_placement_fn=shard_placement_fn)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_invalid_shard_dim(self):
         model = nn.Sequential(nn.Linear(16, 16), nn.Linear(16, 8))
 
@@ -1271,7 +1674,11 @@ class TestFullyShardOldImport(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 2
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_old_import_training(self):
         from torch.distributed._composable.fsdp import fully_shard, MixedPrecisionPolicy
         from torch.distributed._composable.fsdp.fully_shard import FSDPModule
@@ -1286,9 +1693,44 @@ class TestFullyShardOldImport(FSDPTestMultiThread):
         self.assertIsInstance(model[1], FSDPModule)
         self.assertIsInstance(model, FSDPModule)
 
+<<<<<<< HEAD
         inp = torch.randn((8, 16), device="cuda")
         model(inp).sum().backward()
 
 
+=======
+        inp = torch.randn((8, 16), device=device_type)
+        model(inp).sum().backward()
+
+
+class TestFullyShardMixedDtypeParam(FSDPTestMultiThread):
+    @property
+    def world_size(self) -> int:
+        return 2
+
+    @skip_if_lt_x_gpu(2)
+    def test_mixed_dtypes_no_grad_param(self):
+        class Model(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                # no grad params with different dtypes
+                self.w_fp8 = torch.nn.Parameter(
+                    torch.empty((256, 256), dtype=torch.float8_e4m3fn),
+                    requires_grad=False,
+                )
+                self.w_fp32 = torch.nn.Parameter(
+                    torch.empty((256, 256), dtype=torch.float32)
+                )
+
+            def forward(self, input):
+                return
+
+        mesh = init_device_mesh(device_type.type, (self.world_size,))
+        model = Model()
+        fully_shard(model, mesh=mesh)
+        model(0)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

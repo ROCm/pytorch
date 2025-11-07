@@ -37,7 +37,11 @@ def numpy_random(dtype, *shapes):
     Args:
         shapes: int or a sequence of ints to defining the shapes of the tensor
         dtype: use the dtypes from numpy
+<<<<<<< HEAD
             (https://docs.scipy.org/doc/numpy/user/basics.types.html)
+=======
+            (https://numpy.org/doc/stable/user/basics.types.html)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Return:
         numpy tensor of dtype
     """
@@ -134,14 +138,22 @@ def _validate(configs):
 def config_list(**configs):
     """Generate configs based on the list of input shapes.
     This function will take input shapes specified in a list from user. Besides
+<<<<<<< HEAD
     that, all other parameters will be cross producted first and each of the
+=======
+    that, all other parameters will be cross produced first and each of the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     generated list will be merged with the input shapes list.
 
     Reserved Args:
         attr_names(reserved): a list of names for input shapes.
         attrs(reserved): a list of values for each input shape.
         corss_product: a dictionary of attributes which will be
+<<<<<<< HEAD
                        cross producted with the input shapes.
+=======
+                       cross produced with the input shapes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tags(reserved): a tag used to filter inputs.
 
     Here is an example:

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Philox Counter based RNG implemntation for Metal
+=======
+// Philox Counter based RNG implementation for Metal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Borrowed from aten/src/ATen/core/PhiloxRNGEngine.h
 // Which in turn borrowed from
 // http://www.thesalmons.org/john/random123/papers/random123sc11.pdf

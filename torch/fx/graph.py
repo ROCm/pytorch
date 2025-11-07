@@ -12,7 +12,11 @@ import re
 import typing
 import warnings
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Iterable
+=======
+from collections.abc import Iterable, Iterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Callable, Literal, NamedTuple, Optional, TYPE_CHECKING
@@ -20,6 +24,10 @@ from typing import Any, Callable, Literal, NamedTuple, Optional, TYPE_CHECKING
 import torch
 import torch.utils._pytree as pytree
 from torch._C import _fx_map_arg as map_arg, _NodeIter
+<<<<<<< HEAD
+=======
+from torch.utils._dtype_abbrs import dtype_abbrs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from . import _pytree as fx_pytree
 from ._compatibility import compatibility
@@ -212,6 +220,7 @@ class _Namespace:
         self._used_names.add(name)
 
 
+<<<<<<< HEAD
 dtype_abbrs = {
     torch.bfloat16: "bf16",
     torch.float64: "f64",
@@ -239,6 +248,8 @@ dtype_abbrs = {
 }
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @compatibility(is_backward_compatible=True)
 @dataclass
 class PythonCode:
@@ -343,6 +354,12 @@ def _parse_stack_trace(stack_trace: str):
 
 @compatibility(is_backward_compatible=False)
 class CodeGen:
+<<<<<<< HEAD
+=======
+    # This is an override hook so we can customize the SymNode printer.
+    _sym_repr: Callable[["torch.types.PySymType"], str] = lambda x: repr(x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self):
         self._body_transformer: Optional[TransformCodeFunc] = None
         self._func_name: str = "forward"
@@ -438,7 +455,11 @@ class CodeGen:
             global_name = namespace.create_name(name_hint, obj)
 
             if global_name in globals_:
+<<<<<<< HEAD
                 assert globals_[global_name] is obj
+=======
+                assert globals_[global_name] == obj
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return global_name
             globals_[global_name] = obj
             return global_name
@@ -472,7 +493,11 @@ class CodeGen:
                         # This code-path used in Python < 3.9
                         return origin_typename
 
+<<<<<<< HEAD
                     return f'{origin_typename}[{",".join(args)}]'
+=======
+                    return f"{origin_typename}[{','.join(args)}]"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     # Bare type, such as `typing.Tuple` with no subscript
                     # This code-path used in Python 3.9+
@@ -596,7 +621,11 @@ class CodeGen:
                             summary_str = parsed_stack_trace.get_summary_str()
                         else:
                             summary_str = ""
+<<<<<<< HEAD
                         body.append(f'\n {dim(f"# {summary_str}")}\n')
+=======
+                        body.append(f"\n {dim(f'# {summary_str}')}\n")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 elif prev_stacktrace != "":
                     prev_stacktrace = ""
                     no_stacktrace_msg = "# No stacktrace found for following nodes"
@@ -635,7 +664,12 @@ class CodeGen:
                         f'{dim_blue(stride_annotation)}{dim_green(device_annotation)}"'
                     )
                 elif isinstance(meta_val, py_sym_types):
+<<<<<<< HEAD
                     maybe_type_annotation = f': "Sym({meta_val})"'
+=======
+                    val_str = CodeGen._sym_repr(meta_val)
+                    maybe_type_annotation = f': "Sym({val_str})"'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 elif isinstance(meta_val, TensorMetadata):
                     maybe_type_annotation = f': "{dtype_abbrs[meta_val.dtype]}{stringify_shape(meta_val.shape)}"'
 
@@ -864,7 +898,11 @@ class _PyTreeCodeGen(CodeGen):
             if len(has_annotation) > 0:
                 fn_definition += "\n    " + "".join(has_annotation) + "\n"
             fn_definition += f"""
+<<<<<<< HEAD
     {', '.join(without_annotation)}, = fx_pytree.tree_flatten_spec({fn_signature})"""
+=======
+    {", ".join(without_annotation)}, = fx_pytree.tree_flatten_spec({fn_signature})"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fn_definition
 
     def generate_output(self, output_args):
@@ -1443,6 +1481,10 @@ class Graph:
         args: Optional[tuple["Argument", ...]] = None,
         kwargs: Optional[dict[str, "Argument"]] = None,
         type_expr: Optional[Any] = None,
+<<<<<<< HEAD
+=======
+        name: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Node:
         """
         Insert a ``call_function`` ``Node`` into the ``Graph``. A ``call_function`` node
@@ -1463,6 +1505,11 @@ class Graph:
             type_expr (Optional[Any]): an optional type annotation representing the
                 Python type the output of this node will have.
 
+<<<<<<< HEAD
+=======
+            name (Optional[str]): The name of the node. If not specified, set to None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Returns:
 
             The newly created and inserted ``call_function`` node.
@@ -1472,7 +1519,11 @@ class Graph:
             as :meth:`Graph.create_node`.
         """
         return self.create_node(
+<<<<<<< HEAD
             "call_function", the_function, args, kwargs, type_expr=type_expr
+=======
+            "call_function", the_function, args, kwargs, name=name, type_expr=type_expr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @compatibility(is_backward_compatible=True)
@@ -1726,8 +1777,11 @@ class Graph:
 
         # Check targets are legit
         if self.owning_module:
+<<<<<<< HEAD
             num_warnings = 0
             MAX_WARNINGS = 5
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for node in self.nodes:
                 if node.op == "call_function":
                     if not callable(node.target):
@@ -1759,6 +1813,7 @@ class Graph:
                                 f"Node {node} target {node.target} {atom} of {seen_qualname} does "
                                 "not reference an nn.Module"
                             )
+<<<<<<< HEAD
                         elif (
                             node.op == "get_attr"
                             and not isinstance(new_m_itr, torch.nn.Module)
@@ -1782,6 +1837,10 @@ class Graph:
                     f"Additional {num_warnings - MAX_WARNINGS} warnings "
                     "suppressed about get_attr references"
                 )
+=======
+
+                        m_itr = new_m_itr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @compatibility(is_backward_compatible=True)
     def eliminate_dead_code(
@@ -1828,14 +1887,30 @@ class Graph:
             of functional operations or you supply your own custom
             function for detecting side-effectful nodes.
         """
+<<<<<<< HEAD
+=======
+        from torch.utils._ordered_set import OrderedSet
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Lint the graph first to make sure its topologically sorted, otherwise
         # DCE below will not behave as expected.
         self.lint()
 
+<<<<<<< HEAD
         def has_side_effect(node):
             if is_impure_node is not None:
                 return is_impure_node(node)
             return node.is_impure()
+=======
+        impure_random = True
+        if torch._guards.TracingContext.try_get():
+            impure_random = torch._inductor.config.fallback_random
+
+        def has_side_effect(node):
+            if is_impure_node is not None:
+                return is_impure_node(node)
+            return node.is_impure(impure_random)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Reverse iterate so that when we remove a node, any nodes used as an
         # input to that node have an updated user count that no longer reflects
@@ -1846,6 +1921,23 @@ class Graph:
                 self.erase_node(node)
                 changed = True
 
+<<<<<<< HEAD
+=======
+        # Call DCE on the subgraphs
+        if self.owning_module is not None:
+            subgraph_names = OrderedSet(
+                x.target for x in self.find_nodes(op="get_attr")
+            )
+            for child_name, child_module in self.owning_module.named_children():
+                # Sometimes an owning_module can have unused children. Skip them
+                # by checking them from get_attr node targets.
+                if child_name in subgraph_names and isinstance(
+                    child_module, torch.fx.GraphModule
+                ):
+                    changed |= child_module.graph.eliminate_dead_code()
+                    child_module.recompile()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return changed
 
     @compatibility(is_backward_compatible=False)
@@ -1899,7 +1991,13 @@ class Graph:
             # through `insert_pdb`:
             gm.graph.on_generate_code(
                 lambda current_trans: (
+<<<<<<< HEAD
                     lambda body: insert_pdb(current_trans(body) if current_trans else body)
+=======
+                    lambda body: insert_pdb(
+                        current_trans(body) if current_trans else body
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             )
 
@@ -1936,6 +2034,21 @@ class Graph:
         return on_generate_code_context_manager()
 
 
+<<<<<<< HEAD
+=======
+@contextmanager
+def _override_sym_repr(
+    override: Callable[["torch.types.PySymType"], str],
+) -> Iterator[None]:
+    tmp = CodeGen._sym_repr
+    try:
+        CodeGen._sym_repr = override
+        yield
+    finally:
+        CodeGen._sym_repr = tmp
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _identity(x):
     return x
 

@@ -9,7 +9,11 @@ class PostLocalSGDOptimizer(torch.optim.Optimizer):
     r"""
     Wraps an arbitrary :class:`torch.optim.Optimizer` and runs `post-local SGD <https://arxiv.org/abs/1808.07217>`_,
     This optimizer runs local optimizer at every step.
+<<<<<<< HEAD
     After the warm-up stage, it averages parameters periodically afer the local optimizer is applied.
+=======
+    After the warm-up stage, it averages parameters periodically after the local optimizer is applied.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Args:
         optim: The local optimizer.
@@ -61,7 +65,11 @@ class PostLocalSGDOptimizer(torch.optim.Optimizer):
         self.averager = averager
 
     @property
+<<<<<<< HEAD
     def state(self):
+=======
+    def state(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.optim.state
 
     def __repr__(self):

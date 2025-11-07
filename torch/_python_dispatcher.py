@@ -92,10 +92,17 @@ class PythonDispatcher:
     """
 
     def register(self, dispatchKeys):
+<<<<<<< HEAD
         # Overriden is not supported and triggers a warning in C++ dispatcher.
         if len(set(dispatchKeys)) != len(dispatchKeys):
             raise RuntimeError(
                 f"Overriden is not allowed but found duplicates in {dispatchKeys}."
+=======
+        # Overridden is not supported and triggers a warning in C++ dispatcher.
+        if len(set(dispatchKeys)) != len(dispatchKeys):
+            raise RuntimeError(
+                f"Overridden is not allowed but found duplicates in {dispatchKeys}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         # We currently forbid this in codegen instead of C++ dispatcher.
         if (

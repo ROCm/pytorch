@@ -11,7 +11,11 @@
 #include <thread>
 #include <unordered_set>
 
+<<<<<<< HEAD
 bool has_xpu() {
+=======
+static bool has_xpu() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return c10::xpu::device_count() > 0;
 }
 
@@ -98,7 +102,11 @@ TEST(XPUStreamTest, StreamBehavior) {
   EXPECT_NE(stream.device_index(), c10::xpu::current_device());
 }
 
+<<<<<<< HEAD
 void thread_fun(std::optional<c10::xpu::XPUStream>& cur_thread_stream) {
+=======
+static void thread_fun(std::optional<c10::xpu::XPUStream>& cur_thread_stream) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto new_stream = c10::xpu::getStreamFromPool();
   c10::xpu::setCurrentXPUStream(new_stream);
   cur_thread_stream = {c10::xpu::getCurrentXPUStream()};
@@ -153,7 +161,15 @@ TEST(XPUStreamTest, StreamPoolRoundRobinTest) {
   EXPECT_TRUE(result_pair.second);
 }
 
+<<<<<<< HEAD
 void asyncMemCopy(sycl::queue& queue, int* dst, int* src, size_t numBytes) {
+=======
+static void asyncMemCopy(
+    sycl::queue& queue,
+    int* dst,
+    int* src,
+    size_t numBytes) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   queue.memcpy(dst, src, numBytes);
 }
 
@@ -219,6 +235,12 @@ TEST(XPUStreamTest, ExternalTest) {
   ASSERT_TRUE(curStream == myStream);
   ASSERT_TRUE(&(curStream.queue()) == stream);
 
+<<<<<<< HEAD
+=======
+  sycl::queue* q_ptr = curStream;
+  ASSERT_TRUE(q_ptr == stream);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   delete stream;
 }
 

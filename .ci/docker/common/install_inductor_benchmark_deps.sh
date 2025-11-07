@@ -16,7 +16,11 @@ function install_timm() {
 
   pip_install "git+https://github.com/huggingface/pytorch-image-models@${commit}"
   # Clean up
+<<<<<<< HEAD
   conda_run pip uninstall -y cmake torch torchvision triton
+=======
+  conda_run pip uninstall -y torch torchvision triton
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 # Pango is needed for weasyprint which is needed for doctr

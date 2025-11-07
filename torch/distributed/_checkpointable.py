@@ -1,5 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
+<<<<<<< HEAD
 from typing import Protocol, runtime_checkable
+=======
+from typing_extensions import Protocol, runtime_checkable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 

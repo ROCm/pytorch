@@ -5,7 +5,11 @@ title: "DISABLED [WORKFLOW_NAME] / [PLATFORM_NAME] / [JOB_NAME]"
 labels: "module: ci"
 ---
 
+<<<<<<< HEAD
 > For example, DISABLED pull / win-vs2019-cpu-py3 / test (default). Once
+=======
+> For example, DISABLED pull / win-vs2022-cpu-py3 / test (default). Once
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 > created, the job will be disabled within 15 minutes. You can check the
 > list of disabled jobs at https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json
 

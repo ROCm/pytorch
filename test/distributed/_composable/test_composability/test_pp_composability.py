@@ -38,7 +38,10 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     skip_but_pass_in_sandcastle_if,
+<<<<<<< HEAD
     skipIfRocm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.distributed.checkpoint_utils import with_temp_dir
 
@@ -101,7 +104,10 @@ class ComposabilityTest(MultiProcessTestCase):
     def device(self):
         return self.rank
 
+<<<<<<< HEAD
     @skipIfRocm()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_nccl()
     @skip_if_lt_x_gpu(4)
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "Test requires 4+ GPUs")

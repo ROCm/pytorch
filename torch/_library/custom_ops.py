@@ -54,6 +54,10 @@ def custom_op(
     mutates_args: Union[str, Iterable[str]],
     device_types: device_types_t = None,
     schema: Optional[str] = None,
+<<<<<<< HEAD
+=======
+    tags: Optional[Sequence[_C.Tag]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Union[Callable[[Callable[..., object]], "CustomOpDef"], "CustomOpDef"]:
     """Wraps a function into custom operator.
 
@@ -151,7 +155,11 @@ def custom_op(
             schema_str = schema
 
         namespace, opname = name.split("::")
+<<<<<<< HEAD
         result = CustomOpDef(namespace, opname, schema_str, fn)
+=======
+        result = CustomOpDef(namespace, opname, schema_str, fn, tags)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if schema is not None:
             # Check that schema's alias annotations match those of `mutates_args`.
             expected = set()
@@ -183,11 +191,26 @@ class CustomOpDef:
     :func:`torch.library.custom_op` API.
     """
 
+<<<<<<< HEAD
     def __init__(self, namespace: str, name: str, schema: str, fn: Callable) -> None:
+=======
+    def __init__(
+        self,
+        namespace: str,
+        name: str,
+        schema: str,
+        fn: Callable,
+        tags: Optional[Sequence[_C.Tag]] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Fields used to interface with the PyTorch dispatcher
         self._namespace = namespace
         self._name = name
         self._schema = schema
+<<<<<<< HEAD
+=======
+        self._tags = tags if tags is not None else []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._init_fn = fn
 
@@ -201,7 +224,11 @@ class CustomOpDef:
         self._autocast_cpu_dtype: Optional[_dtype] = None
 
         self._lib = get_library_allowing_overwrite(self._namespace, self._name)
+<<<<<<< HEAD
         self._register_to_dispatcher()
+=======
+        self._register_to_dispatcher(self._tags)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._disabled_kernel: set = set()
         OPDEFS[self._qualname] = self
 
@@ -338,9 +365,16 @@ class CustomOpDef:
                             fn = self._backend_fns[device_type]
                             return inspect.getmodule(fn)
 
+<<<<<<< HEAD
                         utils.check_aliasing_constraint(
                             self._name,
                             utils.iter_tensors(args, kwargs),
+=======
+                        utils._c_check_aliasing_constraint(
+                            self._name,
+                            args,
+                            kwargs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             result,
                             get_module,
                         )
@@ -586,7 +620,11 @@ class CustomOpDef:
         self._backward_fn = backward
         self._setup_context_fn = setup_context
 
+<<<<<<< HEAD
     def _register_to_dispatcher(self) -> None:
+=======
+    def _register_to_dispatcher(self, tags: Sequence[_C.Tag]) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch._running_with_deploy():
             utils.warn_deploy(stacklevel=5)
             return
@@ -605,7 +643,11 @@ class CustomOpDef:
 
         lib.define(
             schema_str,
+<<<<<<< HEAD
             tags=[_C.Tag.pt2_compliant_tag, _C.Tag.needs_fixed_stride_order],
+=======
+            tags=[_C.Tag.pt2_compliant_tag, *tags],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self._opoverload = utils.lookup_op(self._qualname)
 

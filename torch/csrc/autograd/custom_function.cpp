@@ -1,4 +1,8 @@
 #include <c10/util/irange.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/autograd/VariableTypeUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/autograd.h>
 #include <torch/csrc/autograd/custom_function.h>
 #include <torch/csrc/autograd/functions/accumulate_grad.h>
@@ -309,9 +313,19 @@ static optional_variable_list _process_backward_mode_ad(
       }
       // No need to mark as modified Tensors that are not inputs.
       if (!is_input) {
+<<<<<<< HEAD
         TORCH_WARN(
             "Only input Tensors should be given to ctx.mark_dirty(). If a Tensor is not an input, there"
             " is no need to pass it to mark_dirty().");
+=======
+        const char* mark_dirty_error_msg =
+            "ctx.mark_dirty() received a tensor that was not an input. "
+            "Only input Tensors that have been mutated should be passed to "
+            "ctx.mark_dirty().";
+        // We reach this path in the view of intermediate case
+        TORCH_CHECK(!var.is_view(), mark_dirty_error_msg);
+        TORCH_WARN(mark_dirty_error_msg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       // If the input is a view, the rebase will need to rewrite the graph and
       // this only works if we have a single output to this Function.
@@ -333,14 +347,24 @@ static optional_variable_list _process_backward_mode_ad(
         auto& grad_acc = dynamic_cast<AccumulateGrad&>(*grad_acc_fn);
         grad_acc.variable.reset();
       }
+<<<<<<< HEAD
       if (cdata) {
         impl::rebase_history(var, {cdata, output_nr});
       }
+=======
+      // This repeats the mutation of leaf variables check already done above
+      check_inplace(var, true);
+      impl::rebase_history(var, {cdata, output_nr});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else if (is_input) {
       TORCH_CHECK(!is_saved_and_setup_context, error_msg_input_returned_as_is)
       var = _view_as_self_with_no_grad(var, view_as_self_fn);
       impl::set_gradient_edge(var, {cdata, output_nr});
+<<<<<<< HEAD
     } else if (cdata) {
+=======
+    } else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       impl::set_gradient_edge(var, {cdata, output_nr});
     }
   };

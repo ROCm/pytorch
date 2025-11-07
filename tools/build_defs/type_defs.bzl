@@ -83,7 +83,11 @@ def is_bool(arg):
     """Checks if provided instance is a boolean value.
 
     Args:
+<<<<<<< HEAD
       arg: An instance ot check. type: Any
+=======
+      arg: An instance to check. type: Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
       True for boolean values, False otherwise. rtype: bool
@@ -96,7 +100,11 @@ def is_number(arg):
     """Checks if provided instance is a number value.
 
     Args:
+<<<<<<< HEAD
       arg: An instance ot check. type: Any
+=======
+      arg: An instance to check. type: Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
       True for number values, False otherwise. rtype: bool
@@ -109,7 +117,11 @@ def is_struct(arg):
     """Checks if provided instance is a struct value.
 
     Args:
+<<<<<<< HEAD
       arg: An instance ot check. type: Any
+=======
+      arg: An instance to check. type: Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
       True for struct values, False otherwise. rtype: bool

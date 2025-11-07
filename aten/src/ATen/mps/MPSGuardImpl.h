@@ -36,7 +36,14 @@ struct TORCH_API MPSGuardImpl final
   // constructor
   MPSGuardImpl() {}
   explicit MPSGuardImpl(c10::DeviceType t) {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(t == c10::DeviceType::MPS);
+=======
+    TORCH_CHECK(
+        t == DeviceType::MPS,
+        "MPSGuardImpl initialized with non-MPS DeviceType: ",
+        t);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // returns the type
@@ -57,7 +64,11 @@ struct TORCH_API MPSGuardImpl final
   }
 
   void setDevice(Device d) const override {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(d.is_mps());
+=======
+    TORCH_CHECK(d.is_mps(), "Expected a MPS device, but got ", d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void uncheckedSetDevice(Device d) const noexcept override {

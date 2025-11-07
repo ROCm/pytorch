@@ -4328,7 +4328,11 @@ class TestFromBuffer(TestCase):
     @skipif(
         IS_PYPY,
         reason="PyPy's memoryview currently does not track exports. See: "
+<<<<<<< HEAD
         "https://foss.heptapod.net/pypy/pypy/-/issues/3724",
+=======
+        "https://github.com/pypy/pypy/issues/3723",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     def test_mmap_close(self):
         # The old buffer protocol was not safe for some things that the new

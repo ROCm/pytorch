@@ -21,7 +21,11 @@ class LambdaSL(BaseScheduler):
     Example:
         >>> # Assuming sparsifier has two groups.
         >>> lambda1 = lambda epoch: epoch // 30
+<<<<<<< HEAD
         >>> lambda2 = lambda epoch: 0.95 ** epoch
+=======
+        >>> lambda2 = lambda epoch: 0.95**epoch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> # xdoctest: +SKIP
         >>> scheduler = LambdaSL(sparsifier, sl_lambda=[lambda1, lambda2])
         >>> for epoch in range(100):

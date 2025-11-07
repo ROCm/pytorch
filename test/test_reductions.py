@@ -65,7 +65,11 @@ def _rand_shape(dim, min_size, max_size):
         shape.append(random.randint(min_size, max_size))
     return tuple(shape)
 
+<<<<<<< HEAD
 def _reduced_shape(shape, dim=None, keepdim=False):
+=======
+def _reduced_shape(shape, empty_dim_as_none=False, dim=None, keepdim=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Computes the expected reduced shape given dim and keepdim
 
     Args:
@@ -77,7 +81,11 @@ def _reduced_shape(shape, dim=None, keepdim=False):
     Returns:
         The reduced shape
     """
+<<<<<<< HEAD
     if dim is None:
+=======
+    if dim is None or (empty_dim_as_none and dim == []):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [1] * len(shape) if keepdim else []
 
     # Wrap negative dims
@@ -105,7 +113,12 @@ class TestReductions(TestCase):
         t = make_tensor(shape, dtype=torch.float, device=device)
         args, kwargs = next(op.generate_args_kwargs(t, **dim_keepdim))
         result = op(t, *args, **dim_keepdim, **kwargs)
+<<<<<<< HEAD
         expected_shape = _reduced_shape(shape, **dim_keepdim)
+=======
+        empty_dim_as_none = (op.name == "linalg.vector_norm" or op.name == "_refs.linalg.vector_norm")
+        expected_shape = _reduced_shape(shape, empty_dim_as_none, **dim_keepdim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(result.shape, expected_shape, f"""
         expected output shape to be {expected_shape} but got {list(result.shape)}
         for input shape {shape} and {dim_keepdim}
@@ -314,7 +327,11 @@ class TestReductions(TestCase):
         for dim in [1] + [[1, 2]] if op.supports_multiple_dims else []:
             args, kwargs = next(op.generate_args_kwargs(t, dim=dim))
             result = op(t, *args, dim=dim, **kwargs)
+<<<<<<< HEAD
             self.assertEqual(result.shape, _reduced_shape(t.shape, dim))
+=======
+            self.assertEqual(result.shape, _reduced_shape(t.shape, dim=dim))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _test_noncontiguous(self, op: ReductionOpInfo, t: torch.Tensor, **reduction_kwargs):
         """Helper method to test noncontiguous input tensors."""
@@ -1759,7 +1776,10 @@ class TestReductions(TestCase):
         # On Windows CI, the current version of `numpy` promotes all lower integers
         # dtypes to int32 while `torch` promotes them to int64. Hence we skip on checking
         # the exact dtype.
+<<<<<<< HEAD
         # Reference : https://dr.pytorch.org/api/view-log-full?build_id=122051580
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # PR : https://github.com/pytorch/pytorch/pull/38628#issuecomment-655905370
         if IS_WINDOWS and is_integral(dtype):
             exact_dtype = False
@@ -1792,7 +1812,11 @@ class TestReductions(TestCase):
     @dtypes(*complex_types())
     def test_nansum_complex(self, device, dtype):
         x = torch.randn((3, 3, 3), device=device, dtype=dtype)
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, "nansum does not support complex inputs"):
+=======
+        with self.assertRaisesRegex(RuntimeError, "nansum on CPU does not support complex inputs"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.nansum(x)
 
     @dtypes(*all_types_and(torch.half))

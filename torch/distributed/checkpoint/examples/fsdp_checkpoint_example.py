@@ -20,7 +20,11 @@ from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.fsdp.fully_sharded_data_parallel import StateDictType
 
 
+<<<<<<< HEAD
 CHECKPOINT_DIR = f"/scratch/{os.environ['LOGNAME']}/checkpoint"
+=======
+CHECKPOINT_DIR = f"/scratch/{os.environ.get('LOGNAME', '')}/checkpoint"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def opt_at(opt, idx):

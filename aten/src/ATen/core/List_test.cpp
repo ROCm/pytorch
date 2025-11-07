@@ -2,6 +2,10 @@
 #include <gtest/gtest.h>
 
 using namespace c10;
+<<<<<<< HEAD
+=======
+using std::string;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // NOLINTBEGIN(performance-move-const-arg, bugprone-use-after-move, *analyzer*Move)
 TEST(ListTestIValueBasedList, givenEmptyList_whenCallingEmpty_thenReturnsTrue) {

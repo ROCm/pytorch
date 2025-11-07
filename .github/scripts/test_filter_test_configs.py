@@ -347,26 +347,46 @@ class TestConfigFilter(TestCase):
             {
                 "job_name": "a-ci-job",
                 "test_matrix": '{include: [{config: "default", runner: "linux"}, {config: "cfg", runner: "macos"}]}',
+<<<<<<< HEAD
                 "descripion": "Replicate each periodic mode in a different config",
+=======
+                "description": "Replicate each periodic mode in a different config",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
             {
                 "job_name": "a-ci-cuda11.8-job",
                 "test_matrix": '{include: [{config: "default", runner: "linux"}, {config: "cfg", runner: "macos"}]}',
+<<<<<<< HEAD
                 "descripion": "Replicate each periodic mode in a different config for a CUDA job",
+=======
+                "description": "Replicate each periodic mode in a different config for a CUDA job",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
             {
                 "job_name": "a-ci-rocm-job",
                 "test_matrix": '{include: [{config: "default", runner: "linux"}, {config: "cfg", runner: "macos"}]}',
+<<<<<<< HEAD
                 "descripion": "Replicate each periodic mode in a different config for a ROCm job",
+=======
+                "description": "Replicate each periodic mode in a different config for a ROCm job",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
             {
                 "job_name": "",
                 "test_matrix": '{include: [{config: "default", runner: "linux"}, {config: "cfg", runner: "macos"}]}',
+<<<<<<< HEAD
                 "descripion": "Empty job name",
             },
             {
                 "test_matrix": '{include: [{config: "default", runner: "linux"}, {config: "cfg", runner: "macos"}]}',
                 "descripion": "Missing job name",
+=======
+                "description": "Empty job name",
+            },
+            {
+                "test_matrix": '{include: [{config: "default", runner: "linux"}, {config: "cfg", runner: "macos"}]}',
+                "description": "Missing job name",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
         ]
 
@@ -807,7 +827,11 @@ class TestConfigFilter(TestCase):
         # test bad things
         pr_body = (
             "fixes189 fixeshttps://github.com/pytorch/pytorch/issues/75123 "
+<<<<<<< HEAD
             "closedhttps://githubcom/pytorch/pytorch/issues/75123"
+=======
+            "closedhttps://githubcom/pytorch/pytorch/issues/75123"  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "fix 234, fixes # 45, fixing #123, close 234, closes#45, closing #123 resolve 234, "
             "resolves  #45, resolving #123"
         )

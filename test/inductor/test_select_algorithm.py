@@ -38,9 +38,15 @@ def patches(fn):
     def wrapped(*args, **kwargs):
         counters.clear()
         torch.manual_seed(12345)
+<<<<<<< HEAD
         assert (
             not torch.backends.cuda.matmul.allow_tf32
         ), "correctness testing is allergic to tf32"
+=======
+        assert not torch.backends.cuda.matmul.allow_tf32, (
+            "correctness testing is allergic to tf32"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fn(*args, **kwargs)
 
     return wrapped
@@ -357,6 +363,11 @@ class TestSelectAlgorithm(TestCase):
             extra_args=None,
             num_stages=None,
             num_warps=None,
+<<<<<<< HEAD
+=======
+            num_consumer_groups=None,
+            num_buffers_warp_spec=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input_tensor_meta=None,
             output_tensor_meta=None,
         )

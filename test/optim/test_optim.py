@@ -62,9 +62,15 @@ def _multistep_backprop_diff_hyperparams_fn(
     kwargs: dict[str, Any],
     *ignored: Any,
 ) -> tuple[Tensor, ...]:
+<<<<<<< HEAD
     assert (
         kwargs["differentiable"] is True
     ), "Only call this test function when differentiable=True"
+=======
+    assert kwargs["differentiable"] is True, (
+        "Only call this test function when differentiable=True"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     params = params.clone()
     params.grad = grad
@@ -81,9 +87,15 @@ def _multistep_backprop_diff_hyperparams_fn(
     # so they're passed in as Tensors (not a tuple) and recognized by gradcheck
     if "beta1" in kwargs or "beta2" in kwargs:
         # Prevent just one beta kwarg from being passed in
+<<<<<<< HEAD
         assert (
             "beta1" in kwargs and "beta2" in kwargs
         ), "Both betas should be defined in kwargs"
+=======
+        assert "beta1" in kwargs and "beta2" in kwargs, (
+            "Both betas should be defined in kwargs"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs.update({"betas": (kwargs.pop("beta1"), kwargs.pop("beta2"))})
 
     kwargs.update(

@@ -1787,8 +1787,12 @@ TEST(NewOperatorRegistrationTest, dispatchAutogradPrecedence) {
 }
 
 TEST(NewOperatorRegistrationTest, throwsWhenRegisterToBackendMapsToAutogradOther) {
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   bool fpga_called, math_called = false;
+=======
+  bool fpga_called = false, math_called = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto m = MAKE_TORCH_LIBRARY(test);
   m.def("fn", torch::dispatch(c10::DispatchKey::FPGA, [&](const Tensor& x) { fpga_called = true; return x; }));
   m.impl("fn", c10::DispatchKey::CompositeImplicitAutograd, [&](const Tensor& x) { math_called = true; return x; });

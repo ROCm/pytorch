@@ -16,7 +16,11 @@ target_link_libraries(simple-torch-test CUDA::cudart CUDA::cufft CUDA::cusparse 
 find_library(CUDNN_LIBRARY NAMES cudnn)
 target_link_libraries(simple-torch-test  ${CUDNN_LIBRARY} )
 if(MSVC)
+<<<<<<< HEAD
   file(GLOB TORCH_DLLS  "$ENV{CUDA_PATH}/bin/cudnn64_8.dll" "$ENV{NVTOOLSEXT_PATH}/bin/x64/*.dll")
+=======
+  file(GLOB TORCH_DLLS  "$ENV{CUDA_PATH}/bin/cudnn64_8.dll")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   message("dlls to copy "  ${TORCH_DLLS})
   add_custom_command(TARGET simple-torch-test
                      POST_BUILD

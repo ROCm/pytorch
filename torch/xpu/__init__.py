@@ -62,6 +62,7 @@ def device_count() -> int:
 
 def is_available() -> bool:
     r"""Return a bool indicating if XPU is currently available."""
+<<<<<<< HEAD
     # This function nerver throws.
     return device_count() > 0
 
@@ -69,6 +70,20 @@ def is_available() -> bool:
 def is_bf16_supported():
     r"""Return a bool indicating if the current XPU device supports dtype bfloat16."""
     return True
+=======
+    # This function never throws.
+    return device_count() > 0
+
+
+def is_bf16_supported(including_emulation: bool = True) -> bool:
+    r"""Return a bool indicating if the current XPU device supports dtype bfloat16."""
+    if not is_available():
+        return False
+    return (
+        including_emulation
+        or torch.xpu.get_device_properties().has_bfloat16_conversions
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_initialized():

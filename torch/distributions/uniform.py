@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import nan, Tensor
 from torch.distributions import constraints
@@ -27,6 +32,7 @@ class Uniform(Distribution):
         high (float or Tensor): upper range (exclusive).
     """
 
+<<<<<<< HEAD
     # TODO allow (loc,scale) parameterization to allow independent constraints.
     arg_constraints = {
         "low": constraints.dependent(is_discrete=False, event_dim=0),
@@ -35,6 +41,19 @@ class Uniform(Distribution):
     has_rsample = True
 
     @property
+=======
+    has_rsample = True
+
+    @property
+    def arg_constraints(self):
+        # TODO allow (loc,scale) parameterization to allow independent constraints.
+        return {
+            "low": constraints.less_than(self.high),
+            "high": constraints.greater_than(self.low),
+        }
+
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def mean(self) -> Tensor:
         return (self.high + self.low) / 2
 
@@ -50,7 +69,16 @@ class Uniform(Distribution):
     def variance(self) -> Tensor:
         return (self.high - self.low).pow(2) / 12
 
+<<<<<<< HEAD
     def __init__(self, low, high, validate_args=None):
+=======
+    def __init__(
+        self,
+        low: Union[Tensor, float],
+        high: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.low, self.high = broadcast_all(low, high)
 
         if isinstance(low, _Number) and isinstance(high, _Number):
@@ -59,9 +87,12 @@ class Uniform(Distribution):
             batch_shape = self.low.size()
         super().__init__(batch_shape, validate_args=validate_args)
 
+<<<<<<< HEAD
         if self._validate_args and not torch.lt(self.low, self.high).all():
             raise ValueError("Uniform is not defined when low>= high")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def expand(self, batch_shape, _instance=None):
         new = self._get_checked_instance(Uniform, _instance)
         batch_shape = torch.Size(batch_shape)

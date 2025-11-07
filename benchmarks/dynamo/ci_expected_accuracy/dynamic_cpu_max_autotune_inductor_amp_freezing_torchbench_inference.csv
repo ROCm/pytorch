@@ -290,7 +290,11 @@ soft_actor_critic,pass,0
 
 
 
+<<<<<<< HEAD
 speech_transformer,fail_to_run,5
+=======
+speech_transformer,pass,10
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

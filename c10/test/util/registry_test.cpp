@@ -16,6 +16,10 @@ class Foo {
   virtual ~Foo() = default;
 };
 
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_DECLARE_REGISTRY(FooRegistry, Foo, int);
 C10_DEFINE_REGISTRY(FooRegistry, Foo, int);
 #define REGISTER_FOO(clsname) C10_REGISTER_CLASS(FooRegistry, clsname, clsname)
@@ -48,22 +52,38 @@ TEST(RegistryTest, ReturnNullOnNonExistingCreator) {
 }
 
 // C10_REGISTER_CLASS_WITH_PRIORITY defines static variable
+<<<<<<< HEAD
 void RegisterFooDefault() {
+=======
+static void RegisterFooDefault() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_REGISTER_CLASS_WITH_PRIORITY(
       FooRegistry, FooWithPriority, c10::REGISTRY_DEFAULT, Foo);
 }
 
+<<<<<<< HEAD
 void RegisterFooDefaultAgain() {
+=======
+static void RegisterFooDefaultAgain() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_REGISTER_CLASS_WITH_PRIORITY(
       FooRegistry, FooWithPriority, c10::REGISTRY_DEFAULT, Foo);
 }
 
+<<<<<<< HEAD
 void RegisterFooBarFallback() {
+=======
+static void RegisterFooBarFallback() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_REGISTER_CLASS_WITH_PRIORITY(
       FooRegistry, FooWithPriority, c10::REGISTRY_FALLBACK, Bar);
 }
 
+<<<<<<< HEAD
 void RegisterFooBarPreferred() {
+=======
+static void RegisterFooBarPreferred() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_REGISTER_CLASS_WITH_PRIORITY(
       FooRegistry, FooWithPriority, c10::REGISTRY_PREFERRED, Bar);
 }

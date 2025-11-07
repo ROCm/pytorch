@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-decorators
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # mypy: allow-untyped-defs
 import logging
 from collections import defaultdict

@@ -38,7 +38,11 @@ verbose = os.environ.get("TORCHDYNAMO_VERBOSE", "0") == "1"
 # [@compile_ignored: runtime_behaviour] verify the correctness of optimized backend
 verify_correctness = False
 
+<<<<<<< HEAD
 # need this many ops to create an FX graph
+=======
+# need this many ops to create an FX graph (deprecated: not used)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 minimum_call_count = 1
 
 # turn on/off DCE pass (deprecated: always true)
@@ -143,7 +147,11 @@ guard_nn_modules = True
 # guard_nn_modules_using_dict_tags, the guard_nn_modules is not really required
 # but kept around for debugging and discussing unspecializing nn module
 # variables.
+<<<<<<< HEAD
 # TODO(janimesh, voz): Remove both of these flags (or atleast guard_nn_modules)
+=======
+# TODO(janimesh, voz): Remove both of these flags (or at least guard_nn_modules)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # once we have reached stability for the guard_nn_modules_using_dict_tags.
 guard_nn_modules_using_dict_tags = True
 
@@ -152,6 +160,7 @@ guard_nn_modules_using_dict_tags = True
 # Non-Inductor backends can use this list for graph freezing.
 prepare_freezing = os.environ.get("TORCHDYNAMO_PREPARE_FREEZING", "0") == "1"
 
+<<<<<<< HEAD
 
 # This feature doesn't really work.  We offer this flag for experimental
 # purposes / if you want to help us build out support.
@@ -172,6 +181,18 @@ prepare_freezing = os.environ.get("TORCHDYNAMO_PREPARE_FREEZING", "0") == "1"
 # https://github.com/pytorch/torchdynamo/issues/1952
 traceable_tensor_subclasses: set[type[Any]] = set()
 
+=======
+# NOTE this has been deprecated, it does nothing now.
+traceable_tensor_subclasses: set[type[Any]] = set()
+
+# If a tensor subclass is put into this set, Dynamo will model its instasnces in
+# a very conservative and limited way (most likely causing lots of graph breaks
+# if one apply tensor ops on these instances). This is useful if you encounter
+# internal compiler errors from Dynamo which are caused by tensor subclasses,
+# and you are willing to tolerate potential graph breaks rather than hard error.
+nontraceable_tensor_subclasses: set[type[Any]] = set()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Suppress errors in torch._dynamo.optimize, instead forcing a fallback to eager.
 # This is a good way to get your model to work one way or another, but you may
 # lose optimization opportunities this way.  Devs, if your benchmark model is failing
@@ -188,7 +209,11 @@ replay_record_enabled = os.environ.get("TORCH_COMPILE_REPLAY_RECORD", "0") == "1
 rewrite_assert_with_torch_assert = True
 
 # Disable dynamo
+<<<<<<< HEAD
 disable = os.environ.get("TORCH_COMPILE_DISABLE", False)
+=======
+disable = os.environ.get("TORCH_COMPILE_DISABLE", "0") == "1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # [@compile_ignored: runtime_behaviour] Get a cprofile trace of Dynamo
 cprofile = os.environ.get("TORCH_COMPILE_CPROFILE", False)
@@ -296,7 +321,11 @@ allow_unspec_int_on_nn_module = False
 
 # Specify how to optimize a compiled DDP module. The flag accepts a boolean
 # value or a string. There are 3 modes.
+<<<<<<< HEAD
 # 1. "ddp_optimizer" (or True): with "ddp_ptimizer", Dynamo will automatically
+=======
+# 1. "ddp_optimizer" (or True): with "ddp_optimizer", Dynamo will automatically
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # split model graph into pieces to match DDP bucket sizes to allow DDP
 # comm/compute overlap.
 # 2. "python_reducer" (experimental): this optimization requires the usage
@@ -332,6 +361,11 @@ do_not_emit_runtime_asserts: bool = (
 # Skip tracing the torchrec files added to trace_rules.FBCODE_SKIP_DIRS
 skip_torchrec = True
 
+<<<<<<< HEAD
+=======
+# Don't apply most trace_rules.py rules
+dont_skip_tracing = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # No longer used
 optimize_ddp_lazy_compile = False
@@ -405,12 +439,22 @@ use_numpy_random_stream = False
 # Use C++ guard manager (deprecated: always true)
 enable_cpp_guard_manager = True
 
+<<<<<<< HEAD
 # Use C++ guard manger for symbolic shapes
+=======
+# Use C++ guard manager for symbolic shapes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enable_cpp_symbolic_shape_guards = False
 
 # Enable tracing through contextlib.contextmanager
 enable_trace_contextlib = True
 
+<<<<<<< HEAD
+=======
+# Enable tracing through unittest
+enable_trace_unittest = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Enable tracing generator functions lazily. If False, Dynamo will exhaust
 # generators upon first execution. And if True, the generator will be accessed lazily
 enable_faithful_generator_behavior = True
@@ -421,7 +465,16 @@ inline_inbuilt_nn_modules = Config(  # type: ignore[var-annotated]
     justknob="pytorch/compiler:inline_inbuilt_nn_modules",
 )
 
+<<<<<<< HEAD
 # Use C++ FrameLocalsMapping (raw array view of Python frame fastlocals)
+=======
+# Install "free" tensor variables (globals, non-locals, nn module attributes)
+# as graph attributes.  This is useful for export, as it
+# produces a consistent number of inputs to the graph.
+install_free_tensors = False
+
+# Use C++ FrameLocalsMapping (raw array view of Python frame fastlocals) (deprecated: always True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enable_cpp_framelocals_guard_eval = True
 
 # Whether to automatically find and replace identical graph
@@ -432,6 +485,13 @@ use_graph_deduplication = False
 # This flag is ignored if use_graph_deduplication is True
 track_nodes_for_deduplication = False
 
+<<<<<<< HEAD
+=======
+# Whether to lint the graph after each region is replaced
+# (Debug)
+graph_deduplication_lint = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Issues a warning in Python 3.13.0 for possibly slower guard evaluation and
 # instructs user to attempt using 3.13.1+, where the CPython bug is fixed.
 # Should be disabled in dynamo-wrapped tests since some tests check that no warnings are issued.
@@ -489,14 +549,22 @@ only_allow_pt2_compliant_ops = False
 # This flag is ignored and maintained for backwards compatibility.
 capture_autograd_function = True
 
+<<<<<<< HEAD
 # This flag is ignored and maintained for backwards compatbility.
+=======
+# This flag is ignored and maintained for backwards compatibility.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 capture_func_transforms = True
 
 # If to log Dynamo compilation metrics into log files (for OSS) and Scuba tables (for fbcode).
 log_compilation_metrics = True
 
 # A set of logging functions which will be reordered to the end of graph breaks,
+<<<<<<< HEAD
 # allowing dynamo to construct larget graph. Note that there are some
+=======
+# allowing dynamo to construct large graph. Note that there are some
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # limitations to this, such as how it does not correctly print objects that were
 # mutated after the print statement.
 reorderable_logging_functions: set[Callable[[Any], None]] = set()
@@ -534,8 +602,24 @@ fake_tensor_cache_crosscheck_enabled = (
     os.environ.get("TORCH_FAKE_TENSOR_DISPATCH_CACHE_CROSSCHECK", "0") == "1"
 )
 
+<<<<<<< HEAD
 # Enables the Compiled Autograd engine to trace .backward() calls made under torch.compile().
 # Note: AOT Autograd will still trace joint graphs.
+=======
+# Disables inference mode for fake tensor prop during compilation. At runtime,
+# the inference_mode is still respected.
+fake_tensor_disable_inference_mode = True
+
+# Enables the Compiled Autograd engine to trace autograd calls made under torch.compile().
+# Note: AOTAutograd will still trace and partition an AOT backward graph local to that
+# compiled region. But AOTAutograd traces without knowledge of backward hooks which are
+# coordinated by the Autograd engine, and under the hood, it uses the torch.autograd.grad
+# API, so it cannot capture gradient accumulation operations (AccumulateGrad).
+#
+# Compiled Autograd will trace all autograd operations as seen by the Autograd engine.
+# This flag will also lift certain restrictions during the forward trace such as
+# registering backward hooks on tensors contained within the compiled region.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 compiled_autograd = False
 
 # Overrides torch.compile() kwargs for Compiled Autograd:
@@ -596,6 +680,17 @@ run_gc_after_compile = Config(  # type: ignore[var-annotated]
     env_name_default="TORCH_DYNAMO_RUN_GC_AFTER_COMPILE",
 )
 
+<<<<<<< HEAD
+=======
+# Takes the function/module decorated with torch.compile and passes it through a
+# wrapper. This ensures that nn.module hooks are also compiled in the same frame.
+wrap_top_frame = False
+
+# Flag to record runtime overhead in profile traces. Used for pre-graph bytecode
+# and AOTAutograd runtime wrapper.
+record_runtime_overhead = True
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # HACK: this is for testing custom ops profiling only
 _custom_ops_profile: Optional[Any] = None
 

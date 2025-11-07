@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
+import atexit
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import contextlib
 import dataclasses
 import enum
@@ -8,8 +12,15 @@ import itertools
 import logging
 import math
 import operator
+<<<<<<< HEAD
 import re
 import typing
+=======
+import os
+import re
+import tempfile
+from abc import ABC, abstractmethod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from enum import auto, Enum
 from itertools import chain
 from typing import (
@@ -23,7 +34,11 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
+<<<<<<< HEAD
 from typing_extensions import TypeVar
+=======
+from typing_extensions import Self, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -44,6 +59,10 @@ from ..utils import (
     boolean_ops,
     DeferredLineBase,
     generate_assert,
+<<<<<<< HEAD
+=======
+    get_current_backend,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IndentedBuffer,
     ir_dataclass,
     ScopedDict,
@@ -59,6 +78,12 @@ from ..virtualized import ops, OpsHandler, OpsValue, ReductionType, StoreMode, V
 if TYPE_CHECKING:
     from collections.abc import Iterator, MutableMapping, Sequence
 
+<<<<<<< HEAD
+=======
+    from torch.fx import GraphModule
+
+    from ..custom_graph_pass import CustomGraphModulePass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from ..ir import Buffer, ChoiceCaller, FixedLayout, IRNode
     from ..loop_body import LoopBody
     from ..scheduler import BaseScheduling, Scheduler, SchedulerNode
@@ -82,6 +107,41 @@ def data_type_logger(msg: str) -> None:
         schedule_log.debug("Data type propagation: %s", msg)
 
 
+<<<<<<< HEAD
+=======
+@dataclasses.dataclass
+class FileBackedGraphModule:
+    """
+    Output of FX wrapper codegen. Exposes the same methods as ModuleType, but these
+    map back to a GraphModule instead of Python source.
+    """
+
+    gm: GraphModule
+    compiled_fn: Callable[..., Any]
+
+    def __post_init__(self) -> None:
+        # Write the code to a file for compatibility with debugging utilities.
+        # The file is deleted upon program termination.
+        self.tempfile = tempfile.NamedTemporaryFile(
+            mode="w+", suffix=".py", delete=False
+        )
+        atexit.register(os.remove, self.tempfile.name)
+        with self.tempfile as f:
+            f.write(self.value)
+
+    @property
+    def __file__(self) -> str:
+        return self.tempfile.name
+
+    def call(self, args: list[Any]) -> Any:
+        return self.compiled_fn(*args)
+
+    @property
+    def value(self) -> str:
+        return self.gm.code
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class WorkspaceZeroMode(enum.Enum):
     UNINITIALIZED = 0
     ZERO_ON_CALL = 1  # kernel may leave workspace dirty
@@ -102,8 +162,27 @@ class WorkspaceZeroMode(enum.Enum):
         return WorkspaceZeroMode.UNINITIALIZED
 
 
+<<<<<<< HEAD
 @ir_dataclass(frozen=True)
 class WorkspaceArg:
+=======
+class CodegenSymbol(ABC):
+    """
+    An IR object possibly corresponding to a variable in the wrapper code.
+    """
+
+    @abstractmethod
+    def get_name(self) -> str:
+        pass
+
+    @abstractmethod
+    def get_example(self) -> Union[torch.Tensor, sympy.Symbol]:
+        pass
+
+
+@ir_dataclass(frozen=True)
+class WorkspaceArg(CodegenSymbol):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """A temporary buffer used for a single kernel, then discarded.
 
     Not registered as a traditional buffer since there are no users,
@@ -166,6 +245,12 @@ class WorkspaceArg:
     def get_dtype(self) -> torch.dtype:
         return self.dtype
 
+<<<<<<< HEAD
+=======
+    def get_example(self) -> Union[torch.Tensor, sympy.Symbol]:
+        return self.get_layout().get_example()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_layout(self) -> FixedLayout:
         from ..ir import FixedLayout
 
@@ -184,6 +269,12 @@ class WorkspaceArg:
     maybe_get_output_spec = get_layout
     maybe_get_layout = get_layout
 
+<<<<<<< HEAD
+=======
+    def get_offset(self) -> sympy.Expr:
+        return sympy.S.Zero
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_size(self) -> list[sympy.Expr]:
         return [self.count]
 
@@ -197,6 +288,18 @@ class WorkspaceArg:
         return []
 
 
+<<<<<<< HEAD
+=======
+class TritonScratchWorkspace:
+    def __init__(self, size: int, generate_dtype_str: Callable[..., str]):
+        self.size = size
+        self._generate_dtype_str = generate_dtype_str
+
+    def generate_dtype_str(self) -> str:
+        return self._generate_dtype_str()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class TensorArg:
     name: str
@@ -224,6 +327,12 @@ class ConstexprArg:
 @dataclasses.dataclass
 class TMADescriptorArg:
     name: str
+<<<<<<< HEAD
+=======
+    api_type: str  # "experimental" or "stable"
+    block_shape: Optional[list[sympy.Expr]]  # only needed for "stable"
+    dtype: Optional[torch.dtype]  # only needed for "stable"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclasses.dataclass
@@ -287,12 +396,22 @@ class DeviceOpOverrides:
     def tma_descriptor_helpers(self) -> str:
         raise NotImplementedError
 
+<<<<<<< HEAD
     def cpp_global_scratch(self, idx: int) -> Optional[tuple[str, str]]:
+=======
+    def cpp_global_scratch(
+        self, idx: int, workspace: TritonScratchWorkspace
+    ) -> Optional[tuple[list[str], str]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # optionally return (scratch definition, arg name)
         raise NotImplementedError
 
 
 device_op_overrides_dict: dict[str, DeviceOpOverrides] = {}
+<<<<<<< HEAD
+=======
+custom_backend_passes: dict[str, Optional[CustomGraphModulePass]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # The code generated by Inductor consists of two main parts: kernel code and wrapper code.
@@ -321,10 +440,18 @@ def register_backend_for_device(
     device_scheduling: SchedulingConstructor,
     device_wrapper_codegen: WrapperConstructor,
     device_cpp_wrapper_codegen: Optional[WrapperConstructor] = None,
+<<<<<<< HEAD
+=======
+    device_custom_pass: Optional[CustomGraphModulePass] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     device_codegens[device] = DeviceCodegen(
         device_scheduling, device_wrapper_codegen, device_cpp_wrapper_codegen
     )
+<<<<<<< HEAD
+=======
+    custom_backend_passes[device] = device_custom_pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class BackendFeature(Enum):
@@ -349,7 +476,11 @@ def get_backend_features(
     if isinstance(device, torch.device):
         device_type = device.type
     else:
+<<<<<<< HEAD
         assert isinstance(device, str)
+=======
+        assert isinstance(device, str), type(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device_type = device
         device = torch.device(device_type)
     scheduling_ctor = get_scheduling_for_device(device_type)
@@ -383,12 +514,24 @@ def get_wrapper_codegen_for_device(
     return None
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+def get_custom_backend_pass_for_device(device: str) -> Optional[CustomGraphModulePass]:
+    return custom_backend_passes[device] if device in custom_backend_passes else None
+
+
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def init_backend_registration() -> None:
     from .cpp import CppScheduling
     from .cpp_wrapper_cpu import CppWrapperCpu
     from .cpp_wrapper_cpu_array_ref import CppWrapperCpuArrayRef
     from .cpp_wrapper_gpu import CppWrapperGpu
+<<<<<<< HEAD
+=======
+    from .cpp_wrapper_mps import CppWrapperMps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .cuda_combined_scheduling import CUDACombinedScheduling
     from .halide import HalideScheduling
     from .mps import MetalScheduling
@@ -436,7 +579,11 @@ def init_backend_registration() -> None:
             "mps",
             MetalScheduling,
             PythonWrapperCodegen,
+<<<<<<< HEAD
             CppWrapperGpu,
+=======
+            CppWrapperMps,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     private_backend = torch._C._get_privateuse1_backend_name()
@@ -479,7 +626,11 @@ def register_device_op_overrides(
 
 
 def get_device_op_overrides(device: str) -> DeviceOpOverrides:
+<<<<<<< HEAD
     assert isinstance(device, str)
+=======
+    assert isinstance(device, str), type(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not device_op_overrides_dict:
         from . import cpu_device_op_overrides, mps_device_op_overrides  # noqa: F401
@@ -553,6 +704,34 @@ def deduce_output_dtype_by_name(
     return None
 
 
+<<<<<<< HEAD
+=======
+def check_dtype(
+    buffer: IndentedBuffer, var: CSEVariableType, dtype: torch.dtype
+) -> None:
+    backend = get_current_backend()
+    if config.test_configs.runtime_triton_dtype_assert and backend == "triton":
+        buffer.writeline(f"tl.static_assert({var}.dtype == {triton_type(dtype)})")
+    elif config.test_configs.static_cpp_dtype_assert and backend == "cpp":
+        from .cpp_utils import CppCSEVariable, DTYPE_TO_CPP
+
+        assert isinstance(var, CppCSEVariable), type(var)
+        if dtype == torch.bool:
+            if var.is_vec:
+                is_same_dt = f"IsVecMaskType<decltype({var})>::value"
+            else:
+                # operator&(bool, bool) returns int and it can be used as boolean in C++
+                is_same_dt = f"std::is_same_v<decltype({var}), bool> || std::is_same_v<decltype({var}), int>"
+        else:
+            c_var_type = f"decltype({var})"
+            if var.is_vec:
+                c_var_type = f"typename {c_var_type}::value_type"
+            is_same_dt = f"std::is_same_v<{c_var_type}, {DTYPE_TO_CPP[dtype]}>"
+
+        buffer.writeline(f"static_assert({is_same_dt});")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DataTypePropagation:
     def __init__(self, body: LoopBody) -> None:
         self.body = body
@@ -598,9 +777,17 @@ class DataTypePropagation:
             return None
 
         if node.target == operator.getitem:
+<<<<<<< HEAD
             return self.deduce_node_dtype(node.args[0])  # type: ignore[arg-type]
 
         assert isinstance(node.target, str)
+=======
+            node_arg = node.args[0]
+            assert isinstance(node_arg, torch.fx.Node), type(node_arg)
+            return self.deduce_node_dtype(node_arg)
+
+        assert isinstance(node.target, str), type(node.target)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if node.target.startswith("masked_subblock"):
             return self.deduce_node_dtype_by_subgraph(node)
@@ -646,8 +833,13 @@ class DataTypePropagation:
         from ..loop_body import LoopBody
         from ..scheduler import SchedulerNode
 
+<<<<<<< HEAD
         assert isinstance(node, SchedulerNode)
         assert isinstance(node._body, LoopBody)
+=======
+        assert isinstance(node, SchedulerNode), type(node)
+        assert isinstance(node._body, LoopBody), type(node._body)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return DataTypePropagation.propagate_loopbody(node._body)
 
 
@@ -782,6 +974,7 @@ class OpOverrides(BasicMathOpsMixin, OpDecompositions, OpsHandler[Any]):
         return repr(value)
 
     @staticmethod
+<<<<<<< HEAD
     def libdevice_sigmoid(x: OpVarT) -> OpVarT:
         one = ops.constant(1, torch.int32)
         return ops.truediv(one, ops.add(one, ops.libdevice_exp(ops.neg(x))))
@@ -811,6 +1004,8 @@ class OpOverrides(BasicMathOpsMixin, OpDecompositions, OpsHandler[Any]):
         return ops.exp(x)
 
     @staticmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def bitwise_not(x: OpVarT) -> OpVarT:
         return f"~{OpOverrides.paren(x)}"
 
@@ -1147,7 +1342,12 @@ pointwise_overrides_data: dict[str, OverridesData] = dict(
     ),
     polygamma=OverridesData(
         type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.INT_TO_FLOAT,
+<<<<<<< HEAD
         cpp=lambda x, y: f"{x} == 0 ? calc_digamma({y}) : calc_polygamma({y}, {x})",
+=======
+        cpp=lambda x,
+        y: f"{x} == 0 ? calc_digamma({y}) : ({x} == 1 ? trigamma({y}) : calc_polygamma({y}, {x}))",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name="polygamma",
     ),
     # psi - alias to digamma
@@ -1370,7 +1570,13 @@ class KernelArgs:
         return self._lookup("out_ptr", self.output_buffers, name)
 
     def make_inplace(self, input_name: str, output_name: str) -> None:
+<<<<<<< HEAD
         assert output_name not in self.inplace_buffers
+=======
+        if input_name in V.graph.unaligned_buffers:
+            V.graph.unaligned_buffers.add(output_name)
+        assert output_name not in self.inplace_buffers, output_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input_name in self.inplace_buffers:
             buf = self.inplace_buffers[input_name]
             assert not isinstance(buf, RemovedArg)
@@ -1432,7 +1638,11 @@ class KernelArgs:
             assert (
                 existing_arg.inner_name != arg.inner_name
                 and existing_arg.outer_name != arg.outer_name
+<<<<<<< HEAD
             )
+=======
+            ), existing_arg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.workspace_args.append(arg)
         return arg.inner_name, 0
 
@@ -1460,7 +1670,11 @@ class KernelArgs:
         )
         for existing_arg in self.workspace_args:
             if existing_arg.inner_name == arg.inner_name:
+<<<<<<< HEAD
                 assert arg == existing_arg
+=======
+                assert arg == existing_arg, (arg, existing_arg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.workspace_args.append(arg)
         return arg.inner_name
 
@@ -1480,7 +1694,11 @@ class KernelArgs:
     def size(self, name: sympy.Symbol) -> str:
         assert isinstance(name, sympy.Symbol), (type(name), name)
         if name.name == "seed":
+<<<<<<< HEAD
             self.sizevars[name] = "seed"  # dont' mange the name of seeds
+=======
+            self.sizevars[name] = "seed"  # don't manage the name of seeds
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return "seed"
         return self._lookup("ks", self.sizevars, name)
 
@@ -1507,8 +1725,20 @@ class KernelArgs:
     def wrap_size_arg(self, size: SymbolLike) -> str:
         return str(size)
 
+<<<<<<< HEAD
     def cpp_argdefs(self) -> tuple[list[str], list[str], list[str]]:
         from .cpp_utils import DTYPE_TO_CPP, INDEX_TYPE
+=======
+    def cpp_argdefs(
+        self, dtype_to_cpp_type: Optional[dict[torch.dtype, str]] = None
+    ) -> tuple[list[str], list[str], list[str]]:
+        from .cpp_utils import INDEX_TYPE
+
+        if dtype_to_cpp_type is None:
+            from .cpp_utils import DTYPE_TO_CPP
+
+            dtype_to_cpp_type = DTYPE_TO_CPP
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         call_args = []
         arg_defs = []
@@ -1519,7 +1749,11 @@ class KernelArgs:
             outer = inplaced.other_names[-1]
             inner = inplaced.inner_name
             dtype = V.graph.get_dtype(outer)
+<<<<<<< HEAD
             cpp_dtype = DTYPE_TO_CPP[dtype]
+=======
+            cpp_dtype = dtype_to_cpp_type[dtype]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arg_defs.append(f"{cpp_dtype}* {inner}")
             call_args.append(self.wrap_ptr_arg(outer, dtype))
             arg_types.append(f"{cpp_dtype}*")
@@ -1527,7 +1761,11 @@ class KernelArgs:
             if outer in self.inplace_buffers:
                 continue
             dtype = V.graph.get_dtype(outer)
+<<<<<<< HEAD
             cpp_dtype = DTYPE_TO_CPP[dtype]
+=======
+            cpp_dtype = dtype_to_cpp_type[dtype]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arg_defs.append(f"const {cpp_dtype}* {inner}")
             call_args.append(self.wrap_ptr_arg(outer, dtype))
             arg_types.append(f"const {cpp_dtype}*")
@@ -1535,7 +1773,11 @@ class KernelArgs:
             if outer in self.inplace_buffers or isinstance(maybe_inner, RemovedArg):
                 continue
             dtype = V.graph.get_dtype(outer)
+<<<<<<< HEAD
             cpp_dtype = DTYPE_TO_CPP[dtype]
+=======
+            cpp_dtype = dtype_to_cpp_type[dtype]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arg_defs.append(f"{cpp_dtype}* {maybe_inner}")
             call_args.append(self.wrap_ptr_arg(outer, dtype))
             arg_types.append(f"{cpp_dtype}*")
@@ -1553,7 +1795,11 @@ class KernelArgs:
     ) -> tuple[list[ArgName], list[str], list[KernelArgType], list[Any]]:
         arg_defs: list[ArgName] = []
         call_args: list[str] = []
+<<<<<<< HEAD
         arg_types: list[torch.dtype] = []
+=======
+        arg_types: list[Any] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         precompile_args: list[KernelArgType] = []
         for inplaced in unique(self.inplace_buffers.values()):
             if isinstance(inplaced, RemovedArg):
@@ -1586,7 +1832,11 @@ class KernelArgs:
         for outer, inner in self.sizevars.items():
             arg_defs.append(ArgName(inner))
             call_args.append(outer)
+<<<<<<< HEAD
             arg_types.append(type(outer))  # type: ignore[arg-type]
+=======
+            arg_types.append(type(outer))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             precompile_args.append(SizeArg(inner, outer))
             if V.graph.wrapper_code:
                 V.graph.wrapper_code.ensure_size_computed(outer)
@@ -1621,7 +1871,11 @@ class KernelArgs:
     # after you do a call into this kernel, which buffers actually contain
     # updated data?  Modeled off of python_argdefs.
     def live_output_buffers(self) -> OrderedSet[str]:
+<<<<<<< HEAD
         live_outs = OrderedSet()  # type: ignore[var-annotated]
+=======
+        live_outs: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for inplaced in unique(self.inplace_buffers.values()):
             if isinstance(inplaced, RemovedArg):
                 continue
@@ -1647,7 +1901,11 @@ class CSEVariable:
         dtype: Optional[torch.dtype] = None,
     ):
         super().__init__()
+<<<<<<< HEAD
         assert isinstance(bounds, ValueRanges)
+=======
+        assert isinstance(bounds, ValueRanges), type(bounds)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.name = name
         self.bounds = bounds
         self.use_count = 1  # track how many times this expression is used
@@ -1717,7 +1975,11 @@ class CSE(Generic[CSEVariableType, AugmentedKeyT]):
         else:
             self._cache = {}
 
+<<<<<<< HEAD
     def clone(self) -> typing.Self:
+=======
+    def clone(self) -> Self:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return type(self)(
             prefix=self.prefix,
             suffix=self.suffix,
@@ -1728,7 +1990,11 @@ class CSE(Generic[CSEVariableType, AugmentedKeyT]):
             reduction_cache=self.reduction_cache,
         )
 
+<<<<<<< HEAD
     def scoped_copy(self) -> typing.Self:
+=======
+    def scoped_copy(self) -> Self:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Return a copy of using ScopedDict so changes to *_cache aren't visible in self"""
         new_cse = self.clone()
         new_cse._cache = ScopedDict(self._cache)
@@ -1806,6 +2072,7 @@ class CSE(Generic[CSEVariableType, AugmentedKeyT]):
                         line = f"{expr}{self.suffix}"
                     buffer.writeline(line)
 
+<<<<<<< HEAD
                     if (
                         assignment
                         and config.test_configs.runtime_triton_dtype_assert
@@ -1813,6 +2080,19 @@ class CSE(Generic[CSEVariableType, AugmentedKeyT]):
                     ):
                         assert_line = f"tl.static_assert({self.prefix}{var}.dtype == {triton_type(dtype)})"
                         buffer.writeline(assert_line)
+=======
+                    # cpp backend cannot determine is_vec at this point
+                    if (
+                        assignment
+                        and (
+                            config.test_configs.runtime_triton_dtype_assert
+                            or config.test_configs.static_cpp_dtype_assert
+                        )
+                        and dtype is not None
+                        and get_current_backend() != "cpp"
+                    ):
+                        check_dtype(buffer, var, dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         else:
             var.bounds = var.bounds.tighten(bounds)
@@ -1849,7 +2129,11 @@ class CodeGen:
         super().__init__()
         self.exit_stack = contextlib.ExitStack()
 
+<<<<<<< HEAD
     def __enter__(self) -> typing.Self:
+=======
+    def __enter__(self) -> Self:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.exit_stack.__enter__()
         return self
 
@@ -1877,16 +2161,26 @@ class Kernel(CodeGen, Generic[CSEVariableType]):
         self.num_reduction = 0
 
         self.cse: CSE[CSEVariableType, Any] = CSE(self.newvar_prefix, self.suffix)
+<<<<<<< HEAD
         self.must_keep_buffers = OrderedSet[str]()
         self.store_buffer_names = OrderedSet[str]()
+=======
+        self.must_keep_buffers: OrderedSet[str] = OrderedSet()
+        self.store_buffer_names: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._load_mask: Optional[str] = None
         self._load_other: Union[None, int, float] = None
         # OrderedSet in set_current_node
         self.current_node: Optional[SchedulerNode] = None
         self.node_to_bounds: Optional[dict[torch.fx.Node, ValueRanges[Any]]] = None
 
+<<<<<<< HEAD
         self.removed_buffers = OrderedSet[str]()
         self.inplaced_to_remove = OrderedSet[str]()
+=======
+        self.removed_buffers: OrderedSet[str] = OrderedSet()
+        self.inplaced_to_remove: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # key: the buffer to write
         # value: the buffer to read and whose memory can be reused for
@@ -2015,12 +2309,20 @@ class Kernel(CodeGen, Generic[CSEVariableType]):
     ) -> str:
         if isinstance(var, CSEVariable):
             var = str(var)
+<<<<<<< HEAD
         assert isinstance(var, str)
+=======
+        assert isinstance(var, str), type(var)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert lower is None or isinstance(lower, str)
         assert upper is None or isinstance(upper, str)
         if lower and upper:
             # The conditions need to be in parens because of Python's operator precedence.
+<<<<<<< HEAD
             # It'd be less error-prone to use and/or/not, which is suported by triton
+=======
+            # It'd be less error-prone to use and/or/not, which is supported by triton
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cond = f"({lower} <= {var}) & ({var} < {upper})"
             cond_print = f"{lower} <= {var} < {upper}"
         elif lower:
@@ -2044,7 +2346,11 @@ class Kernel(CodeGen, Generic[CSEVariableType]):
     def index_to_str(self, index: sympy.Expr) -> str:
         raise NotImplementedError
 
+<<<<<<< HEAD
     def __enter__(self) -> typing.Self:
+=======
+    def __enter__(self) -> Self:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__enter__()
         assert self.overrides
         self.exit_stack.enter_context(
@@ -2073,7 +2379,11 @@ class Kernel(CodeGen, Generic[CSEVariableType]):
             for buf in self.store_buffer_names
             if buf in scheduler.name_to_buf
         )
+<<<<<<< HEAD
         names_to_remove = OrderedSet[str]()
+=======
+        names_to_remove: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for name in self.store_buffer_names:
             if (
                 name not in self.must_keep_buffers
@@ -2115,7 +2425,11 @@ class Kernel(CodeGen, Generic[CSEVariableType]):
         # adds the necessary kernel args for index expressions
         # and renames variables in index expressions to kernel arg names
         if isinstance(index, (list, tuple)):
+<<<<<<< HEAD
             return [self.rename_indexing(x) for x in index]  # type: ignore[return-value]
+=======
+            return [self.rename_indexing(x) for x in index]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         index = V.graph.sizevars.simplify(index)
         sorted_symbols = sorted(index.free_symbols, key=lambda s: s.name)
         replacements = {
@@ -2152,7 +2466,11 @@ class OptimizationContext:
     ops_name: str = ""
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def jinja2_env() -> Any:
     try:
         import jinja2
@@ -2293,6 +2611,7 @@ class CSEProxy(DefaultHandler):
     def _default(self, name: str, args: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:
         bounds = self._bound_variable(name, *args, **kwargs)
 
+<<<<<<< HEAD
         value = getattr(self.parent_handler, name)(*args, **kwargs)  # type: ignore[has-type]
         dtype_handler = DtypePropagationOpsHandler()
 
@@ -2324,6 +2643,43 @@ class CSEProxy(DefaultHandler):
             else:
                 # cpp backend doesnt track dtype yet
                 output_dtype = None
+=======
+        value = getattr(self.parent_handler, name)(*args, **kwargs)
+        dtype_handler = DtypePropagationOpsHandler()
+
+        backend = get_current_backend()
+
+        output_dtype = None
+        if name == "masked" and backend == "triton":
+            output_dtype = value.dtype
+        elif name == "masked" and backend == "cpp":
+            output_dtype = V.interpreter.current_node.meta.get(
+                OptimizationContext.key, None
+            ).dtype
+        elif backend in ("triton", "cpp", "mps"):
+            dtype_op = getattr(dtype_handler, name)
+            output_dtype = dtype_op(*args, **kwargs)
+
+        if backend in ("triton", "cpp"):
+            # maybe there are some exceptions on mps?
+            assert output_dtype is not None
+
+        output_idx = 0
+
+        def do_cse(v: str) -> CSEVariable:
+            # we tree_map over the output, so we need to fetch corresponding dtype
+            nonlocal output_idx
+            var_dtype: Optional[torch.dtype] = (
+                output_dtype[output_idx]
+                if isinstance(output_dtype, (list, tuple))
+                else output_dtype
+            )
+            output_idx += 1
+
+            # some cpp op implementations don't set the dtype
+            if backend == "cpp" and isinstance(v, CSEVariable) and v.dtype is None:
+                v.dtype = var_dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             csevar = V.kernel.cse.generate(
                 V.kernel.compute,
@@ -2332,6 +2688,7 @@ class CSEProxy(DefaultHandler):
                 dtype=output_dtype,
             )
 
+<<<<<<< HEAD
             nonlocal output_idx
             if config.test_configs.runtime_triton_dtype_assert and triton_backend:
                 from torch._inductor.codegen.triton import triton_type
@@ -2347,6 +2704,16 @@ class CSEProxy(DefaultHandler):
 
             csevar.update_on_args(name, args, kwargs)
 
+=======
+            csevar.update_on_args(name, args, kwargs)
+
+            if (
+                config.test_configs.runtime_triton_dtype_assert
+                or config.test_configs.static_cpp_dtype_assert
+            ):
+                assert var_dtype is not None
+                check_dtype(V.kernel.compute, csevar, var_dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return csevar
 
         return pytree.tree_map(do_cse, value)
@@ -2358,13 +2725,28 @@ class CSEProxy(DefaultHandler):
         """
         from ..bounds import ValueRangeAnalysis
         from ..select_algorithm import TritonTemplateKernel
+<<<<<<< HEAD
+=======
+        from .cuda.cuda_kernel import CUDATemplateKernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if isinstance(V.kernel, TritonTemplateKernel):
             return ValueRanges.unknown()
 
+<<<<<<< HEAD
         fx_node = V.interpreter.current_node
         if fx_node.target == name and self.kernel.node_to_bounds is not None:
             assert isinstance(self.kernel.node_to_bounds, dict)
+=======
+        if isinstance(V.kernel, CUDATemplateKernel):
+            return ValueRanges.unknown()
+
+        fx_node = V.interpreter.current_node
+        if fx_node.target == name and self.kernel.node_to_bounds is not None:
+            assert isinstance(self.kernel.node_to_bounds, dict), type(
+                self.kernel.node_to_bounds
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.kernel.node_to_bounds.get(fx_node, ValueRanges.unknown())
         elif config.compute_all_bounds and hasattr(ValueRangeAnalysis, name):
             # These create lots of inner strings. We would need to compute the bounds at the ops
@@ -2399,6 +2781,7 @@ class CSEProxy(DefaultHandler):
     ) -> sympy.Symbol:
         if isinstance(size, int):
             size = sympy.Integer(size)
+<<<<<<< HEAD
         assert isinstance(size, sympy.Expr), size
         # Skip CSE since this doesn't return an expression
 
@@ -2407,6 +2790,16 @@ class CSEProxy(DefaultHandler):
                 stm = ops.add(var, ops.index_expr(size, torch.long))
                 # Mixed negative and non-negative
                 if var.bounds.upper >= 0:  # type: ignore[operator]
+=======
+        assert isinstance(size, sympy.Expr), (type(size), size)
+        # Skip CSE since this doesn't return an expression
+
+        if var.bounds.lower < 0:
+            if wrap_neg:
+                stm = ops.add(var, ops.index_expr(size, torch.long))
+                # Mixed negative and non-negative
+                if var.bounds.upper >= 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     lt = ops.lt(var, 0)
                     stm = ops.where(lt, stm, var)
             else:
@@ -2423,7 +2816,11 @@ class CSEProxy(DefaultHandler):
                     neg_bounds.lower + size, neg_bounds.upper + size
                 )
                 # We don't have a good way of representing the empty range
+<<<<<<< HEAD
                 if var.bounds.upper >= 0:  # type: ignore[operator]
+=======
+                if var.bounds.upper >= 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     pos = var.bounds & ValueRanges(0, int_oo)
                     new_bounds = new_bounds | pos
 
@@ -2475,8 +2872,12 @@ class CSEProxy(DefaultHandler):
         if mode is None:
             self._update_store_cache(name, value)
         if name not in V.graph.removed_buffers:
+<<<<<<< HEAD
             return self.kernel.store(name, index, value, mode=mode)
         return None  # type: ignore[return-value]
+=======
+            self.kernel.store(name, index, value, mode=mode)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def store_reduction(self, name: str, index: sympy.Expr, value: CSEVariable) -> None:
         self.kernel.store_buffer_names.add(name)

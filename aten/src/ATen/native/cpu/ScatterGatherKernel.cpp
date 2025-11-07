@@ -167,10 +167,18 @@ template <bool is_scatter_like = true>
 struct cpu_scatter_gather_base_kernel {
   template <typename func_t>
   void operator()(const Tensor& self, int64_t dim,
+<<<<<<< HEAD
     const Tensor& index, const Scalar& value,
     const std::string& method_name, func_t& kernel_func) {
 
     Tensor buffer;
+=======
+    const Tensor& _index, const Scalar& value,
+    const std::string& method_name, func_t& kernel_func) {
+
+    Tensor buffer;
+    Tensor index = _index.to(ScalarType::Long);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool need_acc = isReducedFloatingType(self.scalar_type());
     create_acc_buffer(buffer, self, need_acc);
 
@@ -263,10 +271,18 @@ struct cpu_scatter_gather_base_kernel {
 
   template <typename func_t>
   void operator()(const Tensor& self, int64_t dim,
+<<<<<<< HEAD
     const Tensor& index, const Tensor& src,
     const std::string& method_name, func_t& kernel_func) {
 
     Tensor buffer;
+=======
+    const Tensor& _index, const Tensor& src,
+    const std::string& method_name, func_t& kernel_func) {
+
+    Tensor buffer;
+    Tensor index = _index.to(ScalarType::Long);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool need_acc = isReducedFloatingType(self.scalar_type());
     create_acc_buffer(buffer, self, need_acc);
 
@@ -358,10 +374,18 @@ struct cpu_scatter_gather_base_kernel {
   }
 
   void operator()(const Tensor& self, int64_t dim,
+<<<<<<< HEAD
     const Tensor& index, const Tensor& src,
     const std::string& method_name, ReduceMean& kernel_func) {
 
     Tensor buffer;
+=======
+    const Tensor& _index, const Tensor& src,
+    const std::string& method_name, ReduceMean& kernel_func) {
+
+    Tensor buffer;
+    Tensor index = _index.to(ScalarType::Long);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool need_acc = isReducedFloatingType(self.scalar_type());
     create_acc_buffer(buffer, self, need_acc);
 
@@ -453,9 +477,16 @@ struct cpu_scatter_gather_base_kernel {
   }
 
   void operator()(const Tensor& self, int64_t dim,
+<<<<<<< HEAD
     const Tensor& index, const Tensor& src,
     const std::string& method_name, ReduceMaximum& kernel_func) {
     Tensor buffer;
+=======
+    const Tensor& _index, const Tensor& src,
+    const std::string& method_name, ReduceMaximum& kernel_func) {
+    Tensor buffer;
+    Tensor index = _index.to(ScalarType::Long);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool need_acc = isReducedFloatingType(self.scalar_type());
     create_acc_buffer(buffer, self, need_acc);
 
@@ -547,10 +578,18 @@ struct cpu_scatter_gather_base_kernel {
   }
 
   void operator()(const Tensor& self, int64_t dim,
+<<<<<<< HEAD
     const Tensor& index, const Tensor& src,
     const std::string& method_name, ReduceMinimum& kernel_func) {
 
     Tensor buffer;
+=======
+    const Tensor& _index, const Tensor& src,
+    const std::string& method_name, ReduceMinimum& kernel_func) {
+
+    Tensor buffer;
+    Tensor index = _index.to(ScalarType::Long);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool need_acc = isReducedFloatingType(self.scalar_type());
     create_acc_buffer(buffer, self, need_acc);
 
@@ -810,7 +849,12 @@ void cpu_scatter_reduce_expanded_index(const Tensor& self, const Tensor& index, 
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void cpu_gather_expanded_index_kernel(const Tensor& result, const Tensor& index, const Tensor& self) {
+=======
+void cpu_gather_expanded_index_kernel(const Tensor& result, const Tensor& _index, const Tensor& self) {
+  Tensor index = _index.to(ScalarType::Long);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int64_t* index_data = index.const_data_ptr<int64_t>();
   scalar_t* result_data = result.data_ptr<scalar_t>();
   const scalar_t* self_data = self.const_data_ptr<scalar_t>();

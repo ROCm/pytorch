@@ -7,7 +7,10 @@
 
 namespace torch::jit {
 namespace {
+<<<<<<< HEAD
 // NOLINTNEXTLINE(clang-diagnostic-unneeded-internal-declaration)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline c10::FunctionSchema getIsAvailableSchema() {
   c10::Argument self("self", c10::AnyType::get());
   c10::Argument available("available", c10::BoolType::get());
@@ -21,7 +24,10 @@ inline c10::FunctionSchema getIsAvailableSchema() {
 
 constexpr static auto kBackendsNamespace = "__backends__";
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(clang-diagnostic-unneeded-internal-declaration)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline c10::FunctionSchema getCompileSchema() {
   c10::Argument self("self", c10::AnyType::get());
   c10::Argument mod("processed", c10::AnyType::get());
@@ -38,7 +44,10 @@ inline c10::FunctionSchema getCompileSchema() {
   return compile_schema;
 }
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(clang-diagnostic-unneeded-internal-declaration)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline c10::FunctionSchema getExecuteSchema() {
   auto any_list_ty = c10::ListType::create(c10::AnyType::get());
   c10::Argument self("self", c10::AnyType::get());

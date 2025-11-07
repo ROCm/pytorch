@@ -710,7 +710,11 @@ public:
             auto t = Tensor::wrap(run_torch_function(A, delayed_->orig, delayed_->args, true));
             tensor_ = t->tensor(A);
             delayed_.reset();
+<<<<<<< HEAD
             // don't force creation of batch tensor if it wasn't alreay provided.
+=======
+            // don't force creation of batch tensor if it wasn't already provided.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             batchtensor_ = t->batchtensor_;
             AT_ASSERT(levels() == t->levels());
         }
@@ -1739,7 +1743,11 @@ static mpy::object dot(Arena& A, TensorInfo lhs, TensorInfo rhs, Slice<DimEntry>
     if (lr_dims.dims.size() != sum.size()) {
         for (auto & d : sum) {
             if (!lhs.levels.contains(d) && !rhs.levels.contains(d)) {
+<<<<<<< HEAD
                 mpy::raise_error(DimensionBindError(), "summing over non-existant dimension %S", d.dim().ptr());
+=======
+                mpy::raise_error(DimensionBindError(), "summing over non-existent dimension %S", d.dim().ptr());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         }
     }
@@ -2206,7 +2214,11 @@ mpy::object index(Arena& A, mpy::handle self, mpy::handle dims, mpy::handle indi
         self_info.tensor = A.autorelease(rearranged->reshape(at::IntArrayRef(new_sizes.begin(), new_sizes.end())));
 
         self_info.levels = reshape_levels; // note: we are using the first level in a flattened group to represent the group for the rest of the op
+<<<<<<< HEAD
                                            // we need to be careful not to rely the dimensions size because it doesnt match the size of the whole group
+=======
+                                           // we need to be careful not to rely the dimensions size because it doesn't match the size of the whole group
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     bool has_dimpacks = false;
     for (auto idx : indices_list) {
@@ -2219,7 +2231,11 @@ mpy::object index(Arena& A, mpy::handle self, mpy::handle dims, mpy::handle indi
     return invoke_getitem(A, info);
 }
 
+<<<<<<< HEAD
 // true -- the indices were flattend out of a tuple, list or sequence...
+=======
+// true -- the indices were flattened out of a tuple, list or sequence...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Slice<mpy::handle> slice_from_sequence(Arena& A, mpy::handle value) {
     if (mpy::tuple_view::check(value)) {
@@ -2539,7 +2555,11 @@ IndexingInfo getsetitem_flat(Arena& A, TensorInfo self_info, Slice<mpy::handle> 
              }
         } else if (Dim::check_exact(inp)) {
             auto d = Dim::unchecked_wrap(inp);
+<<<<<<< HEAD
             // dimesions used once are just binding operations
+=======
+            // dimensions used once are just binding operations
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (1 == seen_dims_nuses[*seen_dims.index(d)]) {
                 flat_inputs[i] = no_slice;
                 result_levels.append(A, d);
@@ -2798,7 +2818,11 @@ PyObject* py_split(PyObject *_,
         if (!dim.ptr()) {
             dim = A.autorelease(mpy::from_int(0));
         }
+<<<<<<< HEAD
         mpy::raise_error(PyExc_TypeError, "tensor does not comtain dimension %R", dim.ptr());
+=======
+        mpy::raise_error(PyExc_TypeError, "tensor does not contain dimension %R", dim.ptr());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     Slice<int64_t> indices;
 

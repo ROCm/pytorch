@@ -28,8 +28,17 @@ class ComposableQuantizer(Quantizer):
     ```
     embedding_quantizer = EmbeddingQuantizer()
     linear_quantizer = MyLinearQuantizer()
+<<<<<<< HEAD
     xnnpack_quantizer = XNNPackQuantizer() # to handle ops not quantized by previous two quantizers
     composed_quantizer = ComposableQuantizer([embedding_quantizer, linear_quantizer, xnnpack_quantizer])
+=======
+    xnnpack_quantizer = (
+        XNNPackQuantizer()
+    )  # to handle ops not quantized by previous two quantizers
+    composed_quantizer = ComposableQuantizer(
+        [embedding_quantizer, linear_quantizer, xnnpack_quantizer]
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     prepared_m = prepare_pt2e(model, composed_quantizer)
     ```
     """

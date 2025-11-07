@@ -8,17 +8,28 @@ from typing import NamedTuple, Optional
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
+<<<<<<< HEAD
 from torch.distributed._tensor import (
+=======
+from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
+    checkpoint_wrapper,
+    CheckpointImpl,
+)
+from torch.distributed.tensor import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DeviceMesh,
     distribute_tensor,
     DTensor,
     Replicate,
     Shard,
 )
+<<<<<<< HEAD
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     checkpoint_wrapper,
     CheckpointImpl,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.debug import CommDebugMode
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
@@ -43,7 +54,10 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
     Transformer,
     with_comms,
 )
+<<<<<<< HEAD
 from unittest import skipIf
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 c10d_functional = torch.ops.c10d_functional
@@ -262,7 +276,11 @@ class DistTensorParallelExampleTest(DTensorTestBase):
         check_comms=True,
     ):
         optim.step()  # Ensure model weights are still the same after update.
+<<<<<<< HEAD
         from torch.distributed._tensor.experimental import implicit_replication
+=======
+        from torch.distributed.tensor.experimental import implicit_replication
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with implicit_replication():
             with CommDebugMode() as comm_mode:

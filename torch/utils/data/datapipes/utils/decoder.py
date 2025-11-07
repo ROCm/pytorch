@@ -243,7 +243,11 @@ def videohandler(extension, data):
     except ImportError as e:
         raise ModuleNotFoundError(
             "Package `torchvision` is required to be installed for default video file loader."
+<<<<<<< HEAD
             "Please use `pip install torchvision` or `conda install torchvision -c pytorch`"
+=======
+            "Please use `pip install torchvision`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "to install the package"
         ) from e
 
@@ -266,7 +270,11 @@ def audiohandler(extension, data):
     except ImportError as e:
         raise ModuleNotFoundError(
             "Package `torchaudio` is required to be installed for default audio file loader."
+<<<<<<< HEAD
             "Please use `pip install torchaudio` or `conda install torchaudio -c pytorch`"
+=======
+            "Please use `pip install torchaudio`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "to install the package"
         ) from e
 
@@ -287,7 +295,11 @@ class MatHandler:
         except ImportError as e:
             raise ModuleNotFoundError(
                 "Package `scipy` is required to be installed for mat file."
+<<<<<<< HEAD
                 "Please use `pip install scipy` or `conda install scipy`"
+=======
+                "Please use `pip install scipy`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "to install the package"
             ) from e
         self.sio = sio

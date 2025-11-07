@@ -7,6 +7,10 @@ import torch
 import torch.fx
 from torch._dispatch.python import enable_python_dispatcher
 from torch._guards import detect_fake_mode
+<<<<<<< HEAD
+=======
+from torch._prims_common import definitely_contiguous_for_memory_format
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._subclasses.meta_utils import is_sparse_any
 from torch.fx._compatibility import compatibility
 from torch.fx.node import map_aggregate, Node
@@ -32,6 +36,13 @@ class TensorMetadata(NamedTuple):
     qparams: dict[str, Any]
 
 
+<<<<<<< HEAD
+=======
+# When include_contiguity is True, we will set contiguity when its always true for the tensor.
+# Some tensors can represent both contiguous and non-contiguous tensors. e.g: (u0, u1) with (u2, u3).
+# In such situation contiguity is not set. We could also make it a tri-state i.e: (definitely_contiguous,
+# contiguous, and unknown).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _extract_tensor_metadata(
     result: torch.Tensor, include_contiguity=True
 ) -> TensorMetadata:
@@ -52,7 +63,13 @@ def _extract_tensor_metadata(
             torch.channels_last_3d,
         }
         for query_format in memory_formats:
+<<<<<<< HEAD
             if result.is_contiguous(memory_format=query_format):
+=======
+            if definitely_contiguous_for_memory_format(
+                result, memory_format=query_format
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 memory_format = query_format
                 break
 

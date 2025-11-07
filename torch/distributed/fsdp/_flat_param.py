@@ -593,6 +593,12 @@ class FlatParamHandle:
         )
         self._use_unsharded_views(as_params=False)
 
+<<<<<<< HEAD
+=======
+    def __repr__(self):
+        return f"FlatParamHandle(flat_param.fqns={self.flat_param._fqns})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _init_setattr_fns(self):
         use_unsafe_setattr = os.environ.get(_FSDP_USE_UNSAFE_SETATTR, "") == "1"
         self._setattr_tensor: Callable[[nn.Module, str, Tensor], None]
@@ -2746,7 +2752,11 @@ def _construct_padding_tensor(
 
 
 # Use `lru_cache(1)` to only log the warning once (assuming the fixed warning
+<<<<<<< HEAD
 # messasge is passed in)
+=======
+# message is passed in)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.lru_cache(1)
 def _warn_skip_writeback_check(log: logging.Logger, warning: str):
     logger.warning(warning)

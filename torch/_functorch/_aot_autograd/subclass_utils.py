@@ -14,6 +14,10 @@ import torch
 import torch.utils._pytree as pytree
 from torch import SymInt, Tensor
 from torch._subclasses.fake_tensor import get_plain_tensors
+<<<<<<< HEAD
+=======
+from torch.types import IntLikeType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 
 from .schemas import (
@@ -46,16 +50,28 @@ def requires_subclass_dispatch(args, fw_metadata: ViewAndMutationMeta) -> bool:
     return any_subclass_args or any_subclass_outputs
 
 
+<<<<<<< HEAD
 suggest_memory_format = torch._prims_common.suggest_memory_format
+=======
+from .schemas import MemoryFormatMeta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def maybe_suggest_memory_format(
     t, with_memory_format: bool
+<<<<<<< HEAD
 ) -> Optional[torch.memory_format]:
     if not with_memory_format:
         return None
 
     return suggest_memory_format(t)
+=======
+) -> Optional[MemoryFormatMeta]:
+    if not with_memory_format:
+        return None
+
+    return MemoryFormatMeta.from_tensor(t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_subclass_typing_container(
@@ -166,9 +182,15 @@ def create_subclass_meta(
     return infos
 
 
+<<<<<<< HEAD
 def filter_symints(lst: Iterable[Union[int, SymInt]]):
     # Capture all SymInts from the iterable.
     def symint_check(s: Union[int, SymInt]) -> bool:
+=======
+def filter_symints(lst: Iterable[IntLikeType]):
+    # Capture all SymInts from the iterable.
+    def symint_check(s: IntLikeType) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return isinstance(s, SymInt) and not s.node.is_nested_int()
 
     return [s for s in lst if symint_check(s)]

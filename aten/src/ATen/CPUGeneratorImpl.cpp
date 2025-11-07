@@ -69,7 +69,11 @@ Generator createCPUGenerator(uint64_t seed_val) {
  * Helper function to concatenate two 32 bit unsigned int
  * and return them as a 64 bit unsigned int
  */
+<<<<<<< HEAD
 inline uint64_t make64BitsFrom32Bits(uint32_t hi, uint32_t lo) {
+=======
+inline static uint64_t make64BitsFrom32Bits(uint32_t hi, uint32_t lo) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (static_cast<uint64_t>(hi) << 32) | lo;
 }
 

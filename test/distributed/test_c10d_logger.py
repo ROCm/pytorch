@@ -2,7 +2,10 @@
 
 import json
 import logging
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import sys
 from functools import partial, wraps
@@ -16,10 +19,20 @@ if not dist.is_available():
     print("Distributed not available, skipping tests", file=sys.stderr)
     sys.exit(0)
 
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import MultiProcessTestCase, TEST_SKIPS
 from torch.testing._internal.common_utils import run_tests, TEST_WITH_DEV_DBG_ASAN
 
 
+=======
+from torch.testing._internal.common_distributed import DistributedTestBase, TEST_SKIPS
+from torch.testing._internal.common_fsdp import get_devtype
+from torch.testing._internal.common_utils import run_tests, TEST_WITH_DEV_DBG_ASAN
+
+
+device_type = str(get_devtype())
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TEST_WITH_DEV_DBG_ASAN:
     print(
         "Skip dev-asan as torch + multiprocessing spawn have known issues",
@@ -27,8 +40,12 @@ if TEST_WITH_DEV_DBG_ASAN:
     )
     sys.exit(0)
 
+<<<<<<< HEAD
 BACKEND = dist.Backend.NCCL
 WORLD_SIZE = min(4, max(2, torch.cuda.device_count()))
+=======
+WORLD_SIZE = min(4, max(2, torch.get_device_module(device_type).device_count()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def with_comms(func=None):
@@ -39,15 +56,22 @@ def with_comms(func=None):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+<<<<<<< HEAD
         if BACKEND == dist.Backend.NCCL and torch.cuda.device_count() < self.world_size:
             sys.exit(TEST_SKIPS[f"multi-gpu-{self.world_size}"].exit_code)
         self.dist_init()
+=======
+        if torch.get_device_module(device_type).device_count() < self.world_size:
+            sys.exit(TEST_SKIPS[f"multi-gpu-{self.world_size}"].exit_code)
+        self.create_pg(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         func(self)
         self.destroy_comms()
 
     return wrapper
 
 
+<<<<<<< HEAD
 class C10dErrorLoggerTest(MultiProcessTestCase):
     def setUp(self):
         super().setUp()
@@ -63,6 +87,9 @@ class C10dErrorLoggerTest(MultiProcessTestCase):
             else torch.device("cpu")
         )
 
+=======
+class C10dErrorLoggerTest(DistributedTestBase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def world_size(self):
         return WORLD_SIZE
@@ -76,6 +103,7 @@ class C10dErrorLoggerTest(MultiProcessTestCase):
         dist.barrier()
         dist.destroy_process_group()
 
+<<<<<<< HEAD
     def dist_init(self):
         dist.init_process_group(
             backend=BACKEND,
@@ -88,6 +116,8 @@ class C10dErrorLoggerTest(MultiProcessTestCase):
         if BACKEND == "nccl":
             torch.cuda.set_device(self.rank)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_or_create_logger(self):
         self.assertIsNotNone(_c10d_logger)
         self.assertEqual(1, len(_c10d_logger.handlers))
@@ -117,7 +147,15 @@ class C10dErrorLoggerTest(MultiProcessTestCase):
                 re.search("({.+})", captured.output[0]).group(0).replace("'", '"')
             )
 
+<<<<<<< HEAD
             self.assertEqual(len(error_msg_dict), 9)
+=======
+            # NCCL adds additional nccl_version data to the error_msg_dict
+            if self.backend(device_type) == dist.Backend.NCCL:
+                self.assertEqual(len(error_msg_dict), 9)
+            else:
+                self.assertEqual(len(error_msg_dict), 8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.assertIn("pg_name", error_msg_dict.keys())
             self.assertEqual("None", error_msg_dict["pg_name"])
@@ -126,6 +164,7 @@ class C10dErrorLoggerTest(MultiProcessTestCase):
             self.assertEqual("broadcast", error_msg_dict["func_name"])
 
             self.assertIn("backend", error_msg_dict.keys())
+<<<<<<< HEAD
             self.assertEqual("nccl", error_msg_dict["backend"])
 
             self.assertIn("nccl_version", error_msg_dict.keys())
@@ -133,6 +172,16 @@ class C10dErrorLoggerTest(MultiProcessTestCase):
             self.assertEqual(
                 ".".join(str(v) for v in nccl_ver), error_msg_dict["nccl_version"]
             )
+=======
+            self.assertEqual(self.backend(device_type), error_msg_dict["backend"])
+
+            if self.backend(device_type) == dist.Backend.NCCL:
+                self.assertIn("nccl_version", error_msg_dict.keys())
+                nccl_ver = torch.cuda.nccl.version()
+                self.assertEqual(
+                    ".".join(str(v) for v in nccl_ver), error_msg_dict["nccl_version"]
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # In this test case, group_size = world_size, since we don't have multiple processes on one node.
             self.assertIn("group_size", error_msg_dict.keys())

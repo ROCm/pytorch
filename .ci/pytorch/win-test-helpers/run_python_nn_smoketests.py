@@ -52,7 +52,11 @@ if __name__ == "__main__":
             if os.path.exists(debugger):
                 command_args = [debugger, "-o", "-c", "~*g; q"] + command_args
                 command_string = " ".join(command_args)
+<<<<<<< HEAD
                 print("Reruning with traceback enabled")
+=======
+                print("Rerunning with traceback enabled")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 print("Command:", command_string)
                 subprocess.run(command_args, check=False)
             sys.exit(e.returncode)

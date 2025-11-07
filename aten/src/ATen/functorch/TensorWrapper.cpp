@@ -56,7 +56,12 @@ void dumpTensorCout(const Tensor& tensor) {
 
 static c10::intrusive_ptr<TensorWrapper> makeTensorWrapperPtr(const Tensor& tensor, int64_t level, const std::shared_ptr<bool>& life_handle) {
   auto keys_to_propagate = kKeysToPropagateToWrapper | DispatchKeySet({
+<<<<<<< HEAD
       DispatchKey::AutogradCPU, DispatchKey::AutogradCUDA, DispatchKey::AutogradXLA});
+=======
+      DispatchKey::AutogradCPU, DispatchKey::AutogradCUDA, DispatchKey::AutogradXLA,
+      DispatchKey::AutogradPrivateUse1});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto key_set = getKeysToPropagateToWrapper(tensor, keys_to_propagate);
   key_set = key_set.add(DispatchKey::FuncTorchGradWrapper);
   return c10::make_intrusive<TensorWrapper>(key_set, tensor, level, life_handle);
@@ -76,7 +81,12 @@ static Tensor unsafeMakeTensorWrapper(
   }
 
   auto keys_to_propagate = kKeysToPropagateToWrapper | DispatchKeySet({
+<<<<<<< HEAD
       DispatchKey::AutogradCPU, DispatchKey::AutogradCUDA, DispatchKey::AutogradXLA});
+=======
+      DispatchKey::AutogradCPU, DispatchKey::AutogradCUDA, DispatchKey::AutogradXLA,
+      DispatchKey::AutogradPrivateUse1});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto key_set = getKeysToPropagateToWrapper(tensor, keys_to_propagate);
   key_set = key_set.add(DispatchKey::FuncTorchGradWrapper);
   auto result = at::detail::make_tensor<TensorWrapper>(

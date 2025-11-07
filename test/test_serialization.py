@@ -413,6 +413,10 @@ class SerializationMixin:
     def test_serialization_sparse_safe(self):
         self._test_serialization(True)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(True, "Temporary skip due to gh-153143")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization_sparse_invalid(self):
         x = torch.zeros(3, 3)
         x[1][1] = 1
@@ -438,11 +442,19 @@ class SerializationMixin:
             torch.save({"spoofed": TensorSerializationSpoofer(x)}, f)
             for weights_only in (False, True):
                 f.seek(0)
+<<<<<<< HEAD
                 with self.assertRaisesRegex(
+=======
+                with torch.sparse.check_sparse_tensor_invariants(), self.assertRaisesRegex(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         RuntimeError,
                         "size is inconsistent with indices"):
                     y = torch.load(f, weights_only=weights_only)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(True, "Temporary skip due to gh-153143")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization_sparse_invalid_legacy_ctor(self):
         # This is set in test class setup but would not be check when running user code
         prev_invariant_check_enabled = torch.sparse.check_sparse_tensor_invariants.is_enabled()
@@ -469,14 +481,24 @@ class SerializationMixin:
                 torch.save(sd, f)
                 for weights_only in (True,):
                     f.seek(0)
+<<<<<<< HEAD
                     with self.assertRaisesRegex(
                             RuntimeError,
                             "size is inconsistent with indices"):
+=======
+                    with torch.sparse.check_sparse_tensor_invariants(), self.assertRaisesRegex(
+                            RuntimeError,
+                            "size is inconsistent with indices|found negative index"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         y = torch.load(f, weights_only=weights_only)
         finally:
             if prev_invariant_check_enabled:
                 torch.sparse.check_sparse_tensor_invariants.enable()
 
+<<<<<<< HEAD
+=======
+    @torch.sparse.check_sparse_tensor_invariants(enable=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_serialization_sparse_compressed_invalid(self,
                                                       conversion,
                                                       get_compressed_indices,
@@ -515,18 +537,34 @@ class SerializationMixin:
                     f"`{compressed_indices_name}[[]..., 0[]] == 0` is not satisfied."):
                 y = torch.load(f)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(True, "Temporary skip due to gh-153143")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization_sparse_csr_invalid(self):
         self._test_serialization_sparse_compressed_invalid(
             torch.Tensor.to_sparse_csr, torch.Tensor.crow_indices, torch.Tensor.col_indices)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(True, "Temporary skip due to gh-153143")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization_sparse_csc_invalid(self):
         self._test_serialization_sparse_compressed_invalid(
             torch.Tensor.to_sparse_csc, torch.Tensor.ccol_indices, torch.Tensor.row_indices)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(True, "Temporary skip due to gh-153143")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization_sparse_bsr_invalid(self):
         self._test_serialization_sparse_compressed_invalid(
             lambda x: x.to_sparse_bsr((1, 1)), torch.Tensor.crow_indices, torch.Tensor.col_indices)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(True, "Temporary skip due to gh-153143")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization_sparse_bsc_invalid(self):
         self._test_serialization_sparse_compressed_invalid(
             lambda x: x.to_sparse_bsc((1, 1)), torch.Tensor.ccol_indices, torch.Tensor.row_indices)

@@ -13,6 +13,10 @@ from .optimizer import (
     _get_value,
     _maximize_doc,
     _params_doc,
+<<<<<<< HEAD
+=======
+    _to_scalar,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _use_grad_for_differentiable,
     _view_as_real,
     Optimizer,
@@ -336,6 +340,13 @@ def _single_tensor_adagrad(
     has_complex: bool,
 ):
     assert grad_scale is None and found_inf is None
+<<<<<<< HEAD
+=======
+
+    if not torch.jit.is_scripting():
+        lr = _to_scalar(lr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for param, grad, state_sum, step_t in zip(params, grads, state_sums, state_steps):
         # update step
         step_t += 1
@@ -403,6 +414,11 @@ def _multi_tensor_adagrad(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
+=======
+    lr = _to_scalar(lr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grouped_tensorlists = Optimizer._group_tensors_by_device_and_dtype(
         [params, grads, state_sums, state_steps]  # type: ignore[list-item]
     )
@@ -513,6 +529,11 @@ def _fused_adagrad(
             "adagrad with fused=True does not support differentiable=True"
         )
 
+<<<<<<< HEAD
+=======
+    lr = _to_scalar(lr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grad_scale_dict = (
         {grad_scale.device: grad_scale} if grad_scale is not None else None
     )

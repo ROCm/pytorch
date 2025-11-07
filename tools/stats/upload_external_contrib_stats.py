@@ -81,7 +81,11 @@ def get_external_pr_data(
             response = cast(
                 dict[str, Any],
                 fetch_json(
+<<<<<<< HEAD
                     "https://api.github.com/search/issues",
+=======
+                    "https://api.github.com/search/issues",  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     params={
                         "q": f'repo:pytorch/pytorch is:pr is:closed \
                             label:"open source" label:Merged -label:Reverted closed:{period_begin_date}..{period_end_date}',

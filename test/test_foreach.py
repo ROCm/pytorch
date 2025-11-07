@@ -12,6 +12,7 @@ from numbers import Number
 import torch
 from torch.testing import make_tensor
 from torch.testing._comparison import default_tolerances
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import _get_torch_cuda_version, TEST_MULTIGPU
 from torch.testing._internal.common_device_type import (
     dtypes,
@@ -19,6 +20,17 @@ from torch.testing._internal.common_device_type import (
     onlyCUDA,
     OpDTypes,
     ops,
+=======
+from torch.testing._internal.common_cuda import TEST_MULTIGPU
+from torch.testing._internal.common_device_type import (
+    dtypes,
+    instantiate_device_type_tests,
+    largeTensorTest,
+    onlyCUDA,
+    OpDTypes,
+    ops,
+    skipCUDAVersionIn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.common_dtype import (
     all_types_and_complex_and,
@@ -42,6 +54,10 @@ from torch.testing._internal.common_utils import (
     TEST_WITH_ROCM,
     TestCase,
 )
+<<<<<<< HEAD
+=======
+from torch.testing._internal.triton_utils import requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _BOOL_SUB_ERR_MSG = "Subtraction, the `-` operator"
@@ -85,6 +101,11 @@ class ForeachFuncWrapper:
         ):
             with torch.profiler.profile() as p:
                 actual = self.func(*inputs, **kwargs)
+<<<<<<< HEAD
+=======
+                # synchronize within the profiler context to make sure events happen before exiting
+                torch.cuda.synchronize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             keys = tuple([e.key for e in p.key_averages()])
             mta_called = any("multi_tensor_apply_kernel" in k for k in keys)
             assert mta_called == (expect_fastpath and (not zero_size)), (
@@ -186,6 +207,12 @@ class TestForeach(TestCase):
                         zero_size=True,
                     )
 
+<<<<<<< HEAD
+=======
+    # Skip CUDA version 12.8 as the upgrade makes profiler results flaky
+    # https://github.com/pytorch/pytorch/issues/148681
+    @skipCUDAVersionIn([(12, 8)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfRocmVersionLessThan((6, 0))
     @ops(
         foreach_unary_op_db
@@ -298,6 +325,12 @@ class TestForeach(TestCase):
                 else:
                     self.assertEqual(expected, actual)
 
+<<<<<<< HEAD
+=======
+    # Skip CUDA version 12.8 as the upgrade makes profiler results flaky
+    # https://github.com/pytorch/pytorch/issues/148681
+    @skipCUDAVersionIn([(12, 8)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(filter(lambda op: op.supports_scalar_self_arg, foreach_binary_op_db))
     @parametrize("is_fastpath", (True, False))
     def test_binary_op_with_scalar_self_support(self, device, dtype, op, is_fastpath):
@@ -355,8 +388,14 @@ class TestForeach(TestCase):
 
     @ops(foreach_pointwise_op_db)
     @parametrize("is_fastpath", (True, False))
+<<<<<<< HEAD
     # TODO: Remove skip CUDA 12.6 once resolved: https://github.com/pytorch/pytorch/issues/148681
     @unittest.skipIf(_get_torch_cuda_version() >= (12, 6), "Failure on CUDA 12.6")
+=======
+    # Skip CUDA version 12.8 as the upgrade makes profiler results flaky
+    # https://github.com/pytorch/pytorch/issues/148681
+    @skipCUDAVersionIn([(12, 8)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pointwise_op_with_tensor_of_scalarlist_overload(
         self, device, dtype, op, is_fastpath
     ):
@@ -694,6 +733,12 @@ class TestForeach(TestCase):
                 ):
                     foreach_op_([tensor1], [tensor2])
 
+<<<<<<< HEAD
+=======
+    # Skip CUDA version 12.8 as the upgrade makes profiler results flaky
+    # https://github.com/pytorch/pytorch/issues/148681
+    @skipCUDAVersionIn([(12, 8)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not found")
     @ops(
         filter(lambda op: op.supports_out, foreach_binary_op_db),
@@ -809,6 +854,12 @@ class TestForeach(TestCase):
             scalar_self_arg=False,
         )
 
+<<<<<<< HEAD
+=======
+    # Skip CUDA version 12.8 as the upgrade makes profiler results flaky
+    # https://github.com/pytorch/pytorch/issues/148681
+    @skipCUDAVersionIn([(12, 8)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(
         filter(lambda op: op.supports_out, foreach_binary_op_db),
         dtypes=floating_types_and(torch.half, torch.bfloat16),
@@ -1332,11 +1383,21 @@ class TestForeach(TestCase):
                         copy_(t, s, non_blocking)
                     self.assertEqual(ref_input, sample.input)
 
+<<<<<<< HEAD
+=======
+    # Skip CUDA version 12.8 as the upgrade makes profiler results flaky
+    # https://github.com/pytorch/pytorch/issues/148681
+    @skipCUDAVersionIn([(12, 8)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCUDA
     @ops(filter(lambda op: op.name == "_foreach_copy", foreach_binary_op_db))
     def test_foreach_copy_with_multi_dtypes(self, device, dtype, op):
         # check (a) multi_tensor_apply is called and (b) numerical parity with for-loop and Tensor.copy_
         foreach_copy_ = ForeachFuncWrapper(op.inplace_variant)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for sample in op.sample_inputs(
             device, dtype, noncontiguous=False, allow_higher_dtype_scalars=True
         ):
@@ -1355,6 +1416,53 @@ class TestForeach(TestCase):
                 for t, ref_t in zip(out, ref_out):
                     self.assertTrue(torch.equal(t, ref_t))
 
+<<<<<<< HEAD
+=======
+    @onlyCUDA
+    @largeTensorTest("40GB", device="cuda")
+    def test_foreach_copy_with_multi_dtypes_large_input(self):
+        # see https://github.com/pytorch/pytorch/issues/156261
+        self_tensor = torch.empty(2**31 + 1, device="cuda", dtype=torch.float32)
+        src_tensor = torch.ones(2**31 + 1, device="cuda", dtype=torch.bfloat16)
+
+        torch._foreach_copy_([self_tensor], [src_tensor])
+        ref_out = torch.empty_like(self_tensor).copy_(src_tensor)
+        self.assertEqual(self_tensor, ref_out)
+
+    @requires_cuda
+    @ops(filter(lambda op: op.name == "_foreach_copy", foreach_binary_op_db))
+    def test_foreach_copy_with_different_device_inputs(self, device, dtype, op):
+        if dtype in (torch.complex128, torch.complex64):
+            self.skipTest("Complex dtype not supported")
+        # check foreach_copy when self and src tensorList have different device
+        foreach_copy = op.method_variant
+        copy_ = op.ref_inplace
+
+        def fn(self_tensor, src_tensor, non_blocking):
+            return foreach_copy(self_tensor, src_tensor, non_blocking)
+
+        fn = torch.compile(fn)
+        for non_blocking in (False,):
+            for sample in op.sample_inputs(
+                device, dtype, noncontiguous=False, allow_higher_dtype_scalars=True
+            ):
+                with torch.no_grad():
+                    ref_input = [t.detach().clone() for t in sample.input]
+                    ref_input_cpu = [t.detach().clone().to("cpu") for t in sample.input]
+                    rhs_tensors = [t.detach().clone().to("cpu") for t in sample.args[0]]
+                    self_tensors = [t.detach().clone().to("cpu") for t in sample.input]
+
+                output1 = fn(sample.input, rhs_tensors, non_blocking)
+                for t, s in zip(ref_input, rhs_tensors):
+                    copy_(t, s, non_blocking)
+                self.assertEqual(output1, ref_input)
+
+                output2 = fn(self_tensors, sample.args[0], non_blocking)
+                for t, s in zip(ref_input_cpu, sample.args[0]):
+                    copy_(t, s, non_blocking)
+                self.assertEqual(output2, ref_input_cpu)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Test reverse-mode & forward-mode AD if supported.
     @onlyCUDA
     @ops(

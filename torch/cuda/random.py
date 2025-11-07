@@ -5,7 +5,11 @@ from typing import Union
 import torch
 from torch import Tensor
 
+<<<<<<< HEAD
 from . import _lazy_call, _lazy_init, current_device, device_count
+=======
+from . import _lazy_call, _lazy_init, current_device, device_count, is_initialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -59,8 +63,16 @@ def set_rng_state(
         device (torch.device or int, optional): The device to set the RNG state.
             Default: ``'cuda'`` (i.e., ``torch.device('cuda')``, the current CUDA device).
     """
+<<<<<<< HEAD
     with torch._C._DisableFuncTorch():
         new_state_copy = new_state.clone(memory_format=torch.contiguous_format)
+=======
+    if not is_initialized():
+        with torch._C._DisableFuncTorch():
+            # Clone the state because the callback will be triggered
+            # later when CUDA is lazy initialized.
+            new_state = new_state.clone(memory_format=torch.contiguous_format)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(device, str):
         device = torch.device(device)
     elif isinstance(device, int):
@@ -71,7 +83,11 @@ def set_rng_state(
         if idx is None:
             idx = current_device()
         default_generator = torch.cuda.default_generators[idx]
+<<<<<<< HEAD
         default_generator.set_state(new_state_copy)
+=======
+        default_generator.set_state(new_state)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     _lazy_call(cb)
 

@@ -2,6 +2,7 @@
 
 import torch
 from torch.testing import FileCheck
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -13,13 +14,27 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestBatchMM(JitTestCase):
     @staticmethod
     def _get_test_tensors(n: int):
         return [
+<<<<<<< HEAD
             torch.tensor([[1 + x, 2 + x, 3 + x], [4 + x, 5 + x, 6 + x]])
             if x % 2 == 0
             else torch.tensor([[1 + x, 2 + x], [3 + x, 4 + x], [5 + x, 6 + x]])
+=======
+            (
+                torch.tensor([[1 + x, 2 + x, 3 + x], [4 + x, 5 + x, 6 + x]])
+                if x % 2 == 0
+                else torch.tensor([[1 + x, 2 + x], [3 + x, 4 + x], [5 + x, 6 + x]])
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for x in range(n)
         ]
 
@@ -288,3 +303,10 @@ class TestBatchMM(JitTestCase):
         FileCheck().check_count("aten::mm", 10, exactly=True).check_not(
             "prim::MMBatchSide"
         ).run(test_batch_mm.graph)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

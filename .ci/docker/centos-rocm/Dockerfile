@@ -1,7 +1,13 @@
 ARG CENTOS_VERSION
 
+<<<<<<< HEAD
 FROM quay.io/centos/centos:stream${CENTOS_VERSION}
 
+=======
+FROM centos:${CENTOS_VERSION}
+
+ARG CENTOS_VERSION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Set AMD gpu targets to build for
 ARG PYTORCH_ROCM_ARCH
@@ -13,6 +19,7 @@ ENV PYTORCH_ROCM_ARCH ${PYTORCH_ROCM_ARCH}
 COPY ./common/install_base.sh install_base.sh
 RUN bash ./install_base.sh && rm install_base.sh
 
+<<<<<<< HEAD
 #Install langpack
 RUN yum install -y glibc-langpack-en
 
@@ -28,6 +35,21 @@ ENV BASH_ENV "/etc/profile"
 # Install ninja
 RUN dnf --enablerepo=crb install -y ninja-build
 
+=======
+# Update CentOS git version
+RUN yum -y remove git
+RUN yum -y remove git-*
+RUN yum -y install https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm && \
+    sed -i 's/packages.endpoint/packages.endpointdev/' /etc/yum.repos.d/endpoint.repo
+RUN yum install -y git
+
+# Install devtoolset
+ARG DEVTOOLSET_VERSION
+COPY ./common/install_devtoolset.sh install_devtoolset.sh
+RUN bash ./install_devtoolset.sh && rm install_devtoolset.sh
+ENV BASH_ENV "/etc/profile"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (optional) Install non-default glibc version
 ARG GLIBC_VERSION
 COPY ./common/install_glibc.sh install_glibc.sh
@@ -40,7 +62,10 @@ RUN bash ./install_user.sh && rm install_user.sh
 
 # Install conda and other packages (e.g., numpy, pytest)
 ARG ANACONDA_PYTHON_VERSION
+<<<<<<< HEAD
 ARG CONDA_CMAKE
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ARG BUILD_ENVIRONMENT
 ENV ANACONDA_PYTHON_VERSION=$ANACONDA_PYTHON_VERSION
 ENV PATH /opt/conda/envs/py_$ANACONDA_PYTHON_VERSION/bin:/opt/conda/bin:$PATH
@@ -49,6 +74,7 @@ COPY ./common/install_conda.sh install_conda.sh
 COPY ./common/common_utils.sh common_utils.sh
 RUN bash ./install_conda.sh && rm install_conda.sh common_utils.sh /opt/conda/requirements-ci.txt
 
+<<<<<<< HEAD
 # (optional) Install protobuf for ONNX
 ARG PROTOBUF
 COPY ./common/install_protobuf.sh install_protobuf.sh
@@ -57,6 +83,9 @@ RUN rm install_protobuf.sh
 ENV INSTALLED_PROTOBUF ${PROTOBUF}
 
 # (optional) Install vision packages like OpenCV and ffmpeg
+=======
+# (optional) Install vision packages like OpenCV
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ARG VISION
 COPY ./common/install_vision.sh ./common/cache_vision_models.sh ./common/common_utils.sh ./
 RUN if [ -n "${VISION}" ]; then bash ./install_vision.sh; fi
@@ -69,12 +98,19 @@ COPY ./common/install_rocm.sh install_rocm.sh
 RUN bash ./install_rocm.sh
 RUN rm install_rocm.sh
 COPY ./common/install_rocm_magma.sh install_rocm_magma.sh
+<<<<<<< HEAD
 RUN bash ./install_rocm_magma.sh
+=======
+RUN bash ./install_rocm_magma.sh ${ROCM_VERSION}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 RUN rm install_rocm_magma.sh
 COPY ./common/install_amdsmi.sh install_amdsmi.sh
 RUN bash ./install_amdsmi.sh
 RUN rm install_amdsmi.sh
+<<<<<<< HEAD
 ENV ROCM_PATH /opt/rocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ENV PATH /opt/rocm/bin:$PATH
 ENV PATH /opt/rocm/hcc/bin:$PATH
 ENV PATH /opt/rocm/hip/bin:$PATH
@@ -84,12 +120,15 @@ ENV MAGMA_HOME /opt/rocm/magma
 ENV LANG en_US.utf8
 ENV LC_ALL en_US.utf8
 
+<<<<<<< HEAD
 # (optional) Install non-default CMake version
 ARG CMAKE_VERSION
 COPY ./common/install_cmake.sh install_cmake.sh
 RUN if [ -n "${CMAKE_VERSION}" ]; then bash ./install_cmake.sh; fi
 RUN rm install_cmake.sh
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (optional) Install non-default Ninja version
 ARG NINJA_VERSION
 COPY ./common/install_ninja.sh install_ninja.sh

@@ -107,7 +107,11 @@ class ParameterDictImpl : public Cloneable<ParameterDictImpl> {
     parameters_.clear();
   }
 
+<<<<<<< HEAD
   /// Check if the centain parameter with the key in the ParameterDict
+=======
+  /// Check if the certain parameter with the key in the ParameterDict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool contains(const std::string& key) const noexcept {
     return parameters_.contains(key);
   }

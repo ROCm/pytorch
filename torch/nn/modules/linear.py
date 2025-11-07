@@ -151,9 +151,15 @@ class Bilinear(Module):
     r"""Applies a bilinear transformation to the incoming data: :math:`y = x_1^T A x_2 + b`.
 
     Args:
+<<<<<<< HEAD
         in1_features: size of each first input sample
         in2_features: size of each second input sample
         out_features: size of each output sample
+=======
+        in1_features: size of each first input sample, must be > 0
+        in2_features: size of each second input sample, must be > 0
+        out_features: size of each output sample, must be > 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         bias: If set to ``False``, the layer will not learn an additive bias.
             Default: ``True``
 
@@ -202,6 +208,11 @@ class Bilinear(Module):
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__()
+<<<<<<< HEAD
+=======
+        if in1_features <= 0:
+            raise ValueError(f"in1_features must be > 0, but got {in1_features}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.in1_features = in1_features
         self.in2_features = in2_features
         self.out_features = out_features
@@ -288,6 +299,16 @@ class LazyLinear(LazyModuleMixin, Linear):
                 if self.bias is not None:
                     self.bias.materialize((self.out_features,))
                 self.reset_parameters()
+<<<<<<< HEAD
+=======
+        if self.in_features == 0:
+            assert input.shape[-1] == self.weight.shape[-1], (
+                f"The in_features inferred from input: {input.shape[-1]} "
+                f"is not equal to in_features from self.weight: "
+                f"{self.weight.shape[-1]}"
+            )
+            self.in_features = input.shape[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # TODO: PartialLinear - maybe in sparse?

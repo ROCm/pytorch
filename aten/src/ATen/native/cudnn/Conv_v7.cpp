@@ -551,8 +551,13 @@ class AlgoIterator {
       try {
         f(algoPerf);
         return;
+<<<<<<< HEAD
       } catch (c10::OutOfMemoryError& e) {
         cudaGetLastError(); // clear CUDA error
+=======
+      } catch (c10::OutOfMemoryError&) {
+        std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
 
@@ -564,10 +569,17 @@ class AlgoIterator {
         f(algoPerf);
         cache.insert(args.params, algoPerf);
         return;
+<<<<<<< HEAD
       } catch (c10::OutOfMemoryError& e) {
         cudaGetLastError(); // clear CUDA error
       } catch (c10::CuDNNError& e) {
         cudaGetLastError(); // clear CUDA error
+=======
+      } catch (c10::OutOfMemoryError&) {
+        std::ignore = cudaGetLastError(); // clear CUDA error
+      } catch (c10::CuDNNError&) {
+        std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
     TORCH_CHECK(

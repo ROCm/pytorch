@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // TODO: Make Fligth Recorder device agnostic
 #ifdef USE_C10D_NCCL
 
@@ -152,6 +153,12 @@ bool recursive_mkdir(const std::string& dir) {
   return ret == 0;
 }
 
+=======
+#include <torch/csrc/distributed/c10d/FlightRecorderDetail.hpp>
+
+namespace c10d {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void DebugInfoWriter::write(const std::string& trace) {
   // Open a file for writing. The ios::binary flag is used to write data as
   // binary.
@@ -186,6 +193,7 @@ DebugInfoWriter& DebugInfoWriter::getWriter(int rank) {
     // Attempt to write to running user's HOME directory cache folder - if it
     // exists.
     auto homeDir = getCvarString({"HOME"}, "/tmp");
+<<<<<<< HEAD
     std::string cacheDirPath = homeDir + "/.cache/torch";
     // Create the .cache directory if it doesn't exist
     recursive_mkdir(cacheDirPath);
@@ -193,6 +201,17 @@ DebugInfoWriter& DebugInfoWriter::getWriter(int rank) {
 
     std::string fileNamePrefix = getCvarString(
         {"TORCH_NCCL_DEBUG_INFO_TEMP_FILE"}, defaultLocation.c_str());
+=======
+    auto cacheDirPath = std::filesystem::path(homeDir + "/.cache/torch");
+    // Create the .cache directory if it doesn't exist
+    std::filesystem::create_directories(cacheDirPath);
+    auto defaultLocation = cacheDirPath / "nccl_trace_rank_";
+
+    // For internal bc compatibility, we keep the old the ENV check.
+    std::string fileNamePrefix = getCvarString(
+        {"TORCH_FR_DUMP_TEMP_FILE", "TORCH_NCCL_DEBUG_INFO_TEMP_FILE"},
+        defaultLocation.string().c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Using std::unique_ptr here to auto-delete the writer object
     // when the pointer itself is destroyed.
     std::unique_ptr<DebugInfoWriter> writerPtr(
@@ -203,14 +222,24 @@ DebugInfoWriter& DebugInfoWriter::getWriter(int rank) {
 }
 
 void DebugInfoWriter::registerWriter(std::unique_ptr<DebugInfoWriter> writer) {
+<<<<<<< HEAD
   TORCH_CHECK_WITH(
       DistBackendError,
       hasWriterRegistered_.load() == false,
       "debugInfoWriter already registered");
+=======
+  if (hasWriterRegistered_.load()) {
+    TORCH_WARN_ONCE(
+        "DebugInfoWriter has already been registered, and since we need the writer to stay "
+        "outside ProcessGroup, user needs to ensure that this extra registration is indeed needed. "
+        "And we will only use the last registered writer.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   hasWriterRegistered_.store(true);
   writer_ = std::move(writer);
 }
 
+<<<<<<< HEAD
 // Returns the traceback of current entry, in string form.
 // Note: `getTraceback` invokes `torch::symbolize`, which may need to acquire
 // the GIL. If you don't want to block the current thread or take the risk of a
@@ -722,3 +751,42 @@ float getDurationFromEvent(
 } // namespace c10d
 
 #endif // USE_C10D_NCCL
+=======
+std::unique_ptr<DebugInfoWriter> DebugInfoWriter::writer_ = nullptr;
+std::atomic<bool> DebugInfoWriter::hasWriterRegistered_(false);
+
+template <>
+float getDurationFromEvent<c10::Event>(
+    c10::Event& startEvent,
+    c10::Event& endEvent) {
+  TORCH_CHECK(false, "getDuration not supported by c10::Event.");
+}
+
+// For any third party library that uses the flight recorder, if one wants to
+// use an Event type other than c10::Event, one also needs to registers here to
+// avoid linking errors.
+template struct FlightRecorder<c10::Event>;
+
+std::string dump_fr_trace(
+    bool includeCollectives,
+    bool includeStackTraces,
+    bool onlyActive) {
+  return FlightRecorder<c10::Event>::get()->dump(
+      std::unordered_map<
+          std::string,
+          std::unordered_map<std::string, std::string>>{},
+      includeCollectives,
+      includeStackTraces,
+      onlyActive);
+}
+
+std::string dump_fr_trace_json(bool includeCollectives, bool onlyActive) {
+  return FlightRecorder<c10::Event>::get()->dump_json(
+      std::unordered_map<
+          std::string,
+          std::unordered_map<std::string, std::string>>{},
+      includeCollectives,
+      onlyActive);
+}
+} // namespace c10d
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

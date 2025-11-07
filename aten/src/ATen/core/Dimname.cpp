@@ -25,9 +25,16 @@ bool Dimname::isValidName(const std::string& name) {
   }
   for (auto it = name.begin(); it != name.end(); ++it) {
     // NOLINTNEXTLINE(bugprone-branch-clone)
+<<<<<<< HEAD
     if (std::isalpha(*it) || *it == '_') {
       continue;
     } else if (it != name.begin() && std::isdigit(*it)) {
+=======
+    const unsigned char ch = static_cast<unsigned char>(*it);
+    if (std::isalpha(ch) || ch == '_') {
+      continue;
+    } else if (it != name.begin() && std::isdigit(ch)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       continue;
     }
     return false;

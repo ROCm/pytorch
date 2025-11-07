@@ -54,7 +54,11 @@ When inputs are COO tensors, this function also supports backward for both input
 Supports both CSR and COO storage formats.
 
 .. note::
+<<<<<<< HEAD
     This function doesn't support computing derivaties with respect to CSR matrices.
+=======
+    This function doesn't support computing derivatives with respect to CSR matrices.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Args:
     mat (Tensor): a dense matrix to be added
@@ -79,7 +83,11 @@ mm = _add_docstr(
     Supports both CSR and COO storage formats.
 
 .. note::
+<<<<<<< HEAD
     This function doesn't support computing derivaties with respect to CSR matrices.
+=======
+    This function doesn't support computing derivatives with respect to CSR matrices.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     This function also additionally accepts an optional :attr:`reduce` argument that allows
     specification of an optional reduction operation, mathematically performs the following operation:

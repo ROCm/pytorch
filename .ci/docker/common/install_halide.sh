@@ -17,7 +17,11 @@ if [ -n "${UBUNTU_VERSION}" ];then
                   libopenblas-dev libeigen3-dev libatlas-base-dev libzstd-dev
 fi
 
+<<<<<<< HEAD
 conda_install numpy scipy imageio cmake ninja
+=======
+pip_install numpy scipy imageio cmake ninja
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 git clone --depth 1 --branch release/16.x --recursive https://github.com/llvm/llvm-project.git
 cmake -DCMAKE_BUILD_TYPE=Release \

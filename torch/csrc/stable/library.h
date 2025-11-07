@@ -1,8 +1,16 @@
+<<<<<<< HEAD
+=======
+#pragma once
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // this file can only have stable stuff! Akin to shim.h
 // but unlike shim.h, this file can contain header-only C++
 // code for better UX.
 
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/stable/tensor.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <optional>
 
@@ -10,6 +18,7 @@
 // versions of this file that may be included by different sources
 namespace {
 
+<<<<<<< HEAD
 namespace detail {
 // utility functions to detect optional
 template <typename V>
@@ -35,6 +44,54 @@ StableIValue from(std::nullopt_t val) {
 }
 
 // Specialization for std::optional
+=======
+// =============================================================================
+//  helpers for converting between StableIValue and T
+// =============================================================================
+
+// forward declare so that from/to() calls in detail work
+template <typename T>
+StableIValue from(T val);
+template <typename T>
+T to(StableIValue val);
+
+namespace detail {
+
+// =============================================================================
+// FROM CONVERSIONS (T -> StableIValue)
+// =============================================================================
+
+// Specialization for general copyable types (catch-all) => StableIValue
+template <typename T>
+struct FromImpl {
+  static StableIValue call(T val) {
+    static_assert(
+        sizeof(T) <= sizeof(StableIValue),
+        "StableLibrary stack does not support parameter types larger than 64 bits.");
+    static_assert(std::is_trivially_copyable_v<T>);
+    // Initialization should be cheap enough; let's give people well-specified
+    // reproducible behavior.
+    StableIValue result = 0;
+    // NOTE [ -Wclass-memaccess ]: reinterpret_cast to suppress
+    // overzealous -Wclass-memaccess. (see
+    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107361) We have a
+    // static_assert above that T is trivially copyable, which should be
+    // enough.
+    std::memcpy(&result, reinterpret_cast<const void*>(&val), sizeof(val));
+    return result;
+  }
+};
+
+// Specialization for std::nullopt_t => StableIValue
+template <>
+struct FromImpl<std::nullopt_t> {
+  static StableIValue call(std::nullopt_t val) {
+    return from(nullptr);
+  }
+};
+
+// Specialization for std::optional => StableIValue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // [Handling std::optional]
 // When the schema is represented by an optional type, say int?, then we
 // expect the custom extension representation to be a std::optional<int>
@@ -64,6 +121,7 @@ StableIValue from(std::nullopt_t val) {
 // The schema requests an optional (T?) so I must call `from` on a
 // std::optional<T> or a std::nullopt.
 template <typename T>
+<<<<<<< HEAD
 StableIValue from(std::optional<T> val) {
   if (!val.has_value()) {
     return from(std::nullopt);
@@ -109,6 +167,120 @@ T to(StableIValue val) {
   return std::make_optional(inner_val);
 }
 // end to helpers for converting between StableIValue and actual IValues
+=======
+struct FromImpl<std::optional<T>> {
+  static StableIValue call(const std::optional<T>& val) {
+    if (!val.has_value()) {
+      return from(std::nullopt);
+    }
+    StableIValue* heap_val = new StableIValue(from(val.value()));
+    return from(heap_val);
+  }
+};
+
+// Specialization for torch::stable::Tensor => StableIValue
+// Returns a new owning reference of the underlying Tensor.
+template <>
+struct FromImpl<torch::stable::Tensor> {
+  static StableIValue call(const torch::stable::Tensor& val) {
+    AtenTensorHandle new_ath;
+    aoti_torch_new_tensor_handle(val.get(), &new_ath);
+    return from(new_ath);
+  }
+};
+
+// =============================================================================
+// TO CONVERSIONS (StableIValue -> T)
+// =============================================================================
+
+// Specialization for StableIValue => general copyable types (catch-all)
+template <typename T>
+struct ToImpl {
+  static T call(StableIValue val) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    // T may not have a default constructor. (For example, it might be
+    // c10::Device.) However, std::memcpy implicitly creates a T at the
+    // destination. So, we can use a union to work around this lack of
+    // default constructor.
+    union Result {
+      Result() {}
+      T t;
+    };
+    Result result;
+    // See NOTE[ -Wclass-memaccess ] above.
+    std::memcpy(reinterpret_cast<void*>(&result.t), &val, sizeof(result));
+    return result.t;
+  }
+};
+
+// Specialization for StableIValue => std::nullopt_t
+template <>
+struct ToImpl<std::nullopt_t> {
+  static std::nullopt_t call(StableIValue val) {
+    // val should be equivalent to from(nullptr)
+    return std::nullopt;
+  }
+};
+
+// Specialization for StableIValue => std::optional, see [Handling
+// std::optional] as the semantic is the same but in reverse direction as we go
+// from IValue --(from_ivalue)-> StableIValue --(to<T>)-> T in custom extension
+template <typename T>
+struct ToImpl<std::optional<T>> {
+  static std::optional<T> call(StableIValue val) {
+    auto sivp = to<StableIValue*>(val);
+
+    // sivp is either nullptr or a pointer to a StableIValue
+    if (sivp == nullptr) {
+      return {};
+    }
+    auto inner_val = to<T>(*sivp);
+
+    // free the memory associated with StableIValue* sivp
+    delete sivp;
+
+    return std::make_optional(inner_val);
+  }
+};
+
+// Specialization for StableIValue => torch::stable::Tensor
+// The resulting stable::Tensor steals ownership of the input's
+// underlying AtenTensorHandle.
+template <>
+struct ToImpl<torch::stable::Tensor> {
+  static torch::stable::Tensor call(StableIValue val) {
+    return torch::stable::Tensor(to<AtenTensorHandle>(val));
+  }
+};
+
+} // namespace detail
+
+// Expose the partially templated class functions through single functions
+template <typename T>
+StableIValue from(T val) {
+  return detail::FromImpl<T>::call(val);
+}
+
+template <typename T>
+StableIValue from(const std::optional<T>& val) {
+  return detail::FromImpl<std::optional<T>>::call(val);
+}
+
+// The below overload is used! See https://godbolt.org/z/859cshxrW
+// We are suppressing the warning for versions clang12- and gcc11-
+[[maybe_unused]] StableIValue from(const torch::stable::Tensor& val) {
+  return detail::FromImpl<torch::stable::Tensor>::call(val);
+}
+
+template <typename T>
+T to(StableIValue val) {
+  return detail::ToImpl<T>::call(val);
+}
+
+// =============================================================================
+//  end to helpers for converting between StableIValue and T
+// =============================================================================
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class StableLibrary final {
  private:

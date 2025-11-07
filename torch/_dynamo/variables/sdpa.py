@@ -10,6 +10,10 @@ from .base import VariableTracker
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+=======
+    from torch._dynamo.codegen import PyCodegen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._dynamo.symbolic_convert import InstructionTranslator
 
 PARAM_NAMES = "query key value attn_mask dropout is_causal enable_gqa".split()
@@ -36,7 +40,11 @@ class SDPAParamsVariable(VariableTracker):
         self.param_vars = param_vars
         super().__init__(**kwargs)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.source is None
         assert self.param_vars is not None
         codegen.add_push_null(

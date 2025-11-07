@@ -157,7 +157,11 @@ if [ -n "${USE_VULKAN}" ]; then
   fi
 fi
 
+<<<<<<< HEAD
 # Use-specified CMake arguments go last to allow overridding defaults
+=======
+# Use-specified CMake arguments go last to allow overriding defaults
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CMAKE_ARGS+=($@)
 
 # Patch pocketfft (as Android does not have aligned_alloc even if compiled with c++17

@@ -5,7 +5,11 @@ namespace at {
 
 // See TensorGeometry.h on why this is useful now that we cache is_contiguous.
 template <typename T>
+<<<<<<< HEAD
 bool _geometry_is_contiguous(ArrayRef<T> sizes, ArrayRef<T> strides) {
+=======
+static bool _geometry_is_contiguous(ArrayRef<T> sizes, ArrayRef<T> strides) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   assert(!overflows<std::int64_t>(sizes.size()));
   auto dim = static_cast<std::int64_t>(sizes.size());
   T expected_stride = 1;

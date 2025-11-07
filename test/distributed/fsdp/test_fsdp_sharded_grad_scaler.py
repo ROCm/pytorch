@@ -19,7 +19,10 @@ from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
 from torch.distributed.fsdp.wrap import ModuleWrapPolicy
 from torch.nn import TransformerDecoderLayer, TransformerEncoderLayer
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_MEM_EFF_ATTENTION
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_fsdp import (
     DEVICEInitMode,
@@ -237,9 +240,12 @@ class TestShardedGradScalerParityWithDDP(FSDPTest):
         return model, optim, ref_model, ref_optim
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Platform does not support fused SDPA"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sharded_grad_scaler_found_inf(self):
         self.run_subtests(
             {

@@ -7,12 +7,21 @@ import torch.distributed as dist
 import torch.nn as nn
 from torch.distributed._composable.fsdp import fully_shard
 from torch.distributed._composable.fsdp.fully_shard import FSDPModule as FSDP2
+<<<<<<< HEAD
 from torch.distributed._tensor.experimental import implicit_replication
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.tensor import DTensor
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_fsdp import FSDPTest
+=======
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import DTensor
+from torch.distributed.tensor.experimental import implicit_replication
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+from torch.testing._internal.common_fsdp import FSDPTest, get_devtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     run_tests,
@@ -20,6 +29,11 @@ from torch.testing._internal.common_utils import (
 )
 
 
+<<<<<<< HEAD
+=======
+device_type = torch.device(get_devtype())
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if not dist.is_available():
     print("Distributed not available, skipping tests", file=sys.stderr)
     sys.exit(0)
@@ -72,14 +86,22 @@ class A(nn.Module):
 class Y(nn.Module):
     def __init__(self) -> None:
         super().__init__()
+<<<<<<< HEAD
         p = torch.randn(10, device="cuda")
+=======
+        p = torch.randn(10, device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.p = nn.Parameter(p)
 
 
 class X(nn.Module):
     def __init__(self) -> None:
         super().__init__()
+<<<<<<< HEAD
         q = torch.randn(10, device="cuda")
+=======
+        q = torch.randn(10, device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.q = nn.Parameter(q)
         self.y = Y()
 
@@ -95,6 +117,7 @@ def _generate_model_and_input() -> nn.Module:
     dim = 8
 
     torch.manual_seed(42)
+<<<<<<< HEAD
     addend = torch.randn((dim, dim), device="cuda")
 
     torch.manual_seed(70)
@@ -104,6 +127,17 @@ def _generate_model_and_input() -> nn.Module:
 
     torch.manual_seed(84)
     inp = torch.randn((dim, dim), device="cuda")
+=======
+    addend = torch.randn((dim, dim), device=device_type)
+
+    torch.manual_seed(70)
+    subend = torch.randn((dim, dim), device=device_type)
+
+    model = A(dim, addend, subend).to(device_type)
+
+    torch.manual_seed(84)
+    inp = torch.randn((dim, dim), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return model, inp
 
@@ -229,7 +263,11 @@ class TestFullyShardIgnoreParams(FSDPTest):
     @skip_if_lt_x_gpu(2)
     def test_ddp_A_fsdp_B_ddp_C(self):
         default_pg = dist.distributed_c10d._get_default_group()
+<<<<<<< HEAD
         mesh = init_device_mesh("cuda", mesh_shape=(default_pg.size(),))
+=======
+        mesh = init_device_mesh(device_type.type, mesh_shape=(default_pg.size(),))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ref_model, ref_inp = _generate_model_and_input()
 

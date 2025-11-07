@@ -1,8 +1,11 @@
 # mypy: allow-untyped-defs
 from typing import Optional
 
+<<<<<<< HEAD
 import numpy as np
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch.nn.functional as F
 
@@ -213,6 +216,11 @@ def conv_unfold_weight_grad_sample(
     groups,
     func,
 ):
+<<<<<<< HEAD
+=======
+    import numpy as np
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     n = input.shape[0]
     in_channels = input.shape[1]
 
@@ -314,10 +322,20 @@ def unfold3d(
     Example:
         >>> # xdoctest: +SKIP
         >>> B, C, D, H, W = 3, 4, 5, 6, 7
+<<<<<<< HEAD
         >>> tensor = torch.arange(1, B * C * D * H * W + 1.).view(B, C, D, H, W)
         >>> unfold3d(tensor, kernel_size=2, padding=0, stride=1).shape
         torch.Size([3, 32, 120])
     """
+=======
+        >>> tensor = torch.arange(1, B * C * D * H * W + 1.0).view(B, C, D, H, W)
+        >>> unfold3d(tensor, kernel_size=2, padding=0, stride=1).shape
+        torch.Size([3, 32, 120])
+    """
+
+    import numpy as np
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if len(tensor.shape) != 5:
         raise ValueError(
             f"Input tensor must be of the shape [B, C, D, H, W]. Got{tensor.shape}"

@@ -17,7 +17,12 @@ struct XPUGuardImpl final : public c10::impl::DeviceGuardImplInterface {
   XPUGuardImpl() = default;
 
   explicit XPUGuardImpl(DeviceType t) {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(t == kXPU);
+=======
+    TORCH_CHECK(
+        t == kXPU, "XPUGuardImpl initialized with non-XPU DeviceType: ", t);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   DeviceType type() const override {
@@ -25,7 +30,11 @@ struct XPUGuardImpl final : public c10::impl::DeviceGuardImplInterface {
   }
 
   Device exchangeDevice(Device d) const override {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(d.is_xpu());
+=======
+    TORCH_CHECK(d.is_xpu(), "Expected a XPU device, but got ", d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const auto old_device_index = c10::xpu::exchange_device(d.index());
     return Device(kXPU, old_device_index);
   }
@@ -36,7 +45,11 @@ struct XPUGuardImpl final : public c10::impl::DeviceGuardImplInterface {
   }
 
   void setDevice(Device d) const override {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(d.is_xpu());
+=======
+    TORCH_CHECK(d.is_xpu(), "Expected a XPU device, but got ", d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     c10::xpu::set_device(d.index());
   }
 

@@ -45,7 +45,11 @@ RpcWithProfilingReq::RpcWithProfilingReq(
       tensors_(std::move(tensors)),
       profilerConfig_(std::move(profilerConfig)),
       profilingKeyId_(profilingKeyId) {
+<<<<<<< HEAD
   TORCH_INTERNAL_ASSERT(wrappedRpc_ != nullptr, "wrappedRpc cant be null");
+=======
+  TORCH_INTERNAL_ASSERT(wrappedRpc_ != nullptr, "wrappedRpc can't be null");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 rpc::MessageType RpcWithProfilingReq::wrappedMessageType() const {

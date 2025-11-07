@@ -250,7 +250,14 @@ class TestIndexing(TestCase):
         reference = consec((10,))
         strided = torch.tensor((), dtype=dtype, device=device)
         strided.set_(
+<<<<<<< HEAD
             reference.storage(), storage_offset=0, size=torch.Size([4]), stride=[2]
+=======
+            reference.untyped_storage(),
+            storage_offset=0,
+            size=torch.Size([4]),
+            stride=[2],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self.assertEqual(strided[[0]], torch.tensor([1], dtype=dtype, device=device))
@@ -274,7 +281,14 @@ class TestIndexing(TestCase):
         # stride is [4, 8]
         strided = torch.tensor((), dtype=dtype, device=device)
         strided.set_(
+<<<<<<< HEAD
             reference.storage(), storage_offset=4, size=torch.Size([2]), stride=[4]
+=======
+            reference.untyped_storage(),
+            storage_offset=4,
+            size=torch.Size([2]),
+            stride=[4],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.assertEqual(strided[[0]], torch.tensor([5], dtype=dtype, device=device))
         self.assertEqual(
@@ -309,6 +323,7 @@ class TestIndexing(TestCase):
         self.assertEqual(reference[ri([0]), ri([0])], consec((1,)))
         self.assertEqual(reference[ri([2]), ri([1])], consec((1,), 6))
         self.assertEqual(
+<<<<<<< HEAD
             reference[[ri([0, 0]), ri([0, 1])]],
             torch.tensor([1, 2], dtype=dtype, device=device),
         )
@@ -318,6 +333,17 @@ class TestIndexing(TestCase):
         )
         self.assertEqual(
             reference[[ri([0, 0, 1, 1]), ri([0, 1, 0, 0])]],
+=======
+            reference[(ri([0, 0]), ri([0, 1]))],
+            torch.tensor([1, 2], dtype=dtype, device=device),
+        )
+        self.assertEqual(
+            reference[(ri([0, 1, 1, 0, 2]), ri([1]))],
+            torch.tensor([2, 4, 4, 2, 6], dtype=dtype, device=device),
+        )
+        self.assertEqual(
+            reference[(ri([0, 0, 1, 1]), ri([0, 1, 0, 0]))],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.tensor([1, 2, 3, 3], dtype=dtype, device=device),
         )
 
@@ -387,6 +413,7 @@ class TestIndexing(TestCase):
             reference[ri([2]), ri([1])], torch.tensor([6], dtype=dtype, device=device)
         )
         self.assertEqual(
+<<<<<<< HEAD
             reference[[ri([0, 0]), ri([0, 1])]],
             torch.tensor([0, 4], dtype=dtype, device=device),
         )
@@ -396,6 +423,17 @@ class TestIndexing(TestCase):
         )
         self.assertEqual(
             reference[[ri([0, 0, 1, 1]), ri([0, 1, 0, 0])]],
+=======
+            reference[(ri([0, 0]), ri([0, 1]))],
+            torch.tensor([0, 4], dtype=dtype, device=device),
+        )
+        self.assertEqual(
+            reference[(ri([0, 1, 1, 0, 3]), ri([1]))],
+            torch.tensor([4, 5, 5, 4, 7], dtype=dtype, device=device),
+        )
+        self.assertEqual(
+            reference[(ri([0, 0, 1, 1]), ri([0, 1, 0, 0]))],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.tensor([0, 4, 1, 1], dtype=dtype, device=device),
         )
 
@@ -446,7 +484,13 @@ class TestIndexing(TestCase):
 
         reference = torch.arange(0.0, 24, dtype=dtype, device=device).view(3, 8)
         strided = torch.tensor((), dtype=dtype, device=device)
+<<<<<<< HEAD
         strided.set_(reference.storage(), 1, size=torch.Size([2, 4]), stride=[8, 2])
+=======
+        strided.set_(
+            reference.untyped_storage(), 1, size=torch.Size([2, 4]), stride=[8, 2]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(
             strided[ri([0, 1]), ri([0])],
@@ -463,6 +507,7 @@ class TestIndexing(TestCase):
             strided[ri([1]), ri([3])], torch.tensor([15], dtype=dtype, device=device)
         )
         self.assertEqual(
+<<<<<<< HEAD
             strided[[ri([0, 0]), ri([0, 3])]],
             torch.tensor([1, 7], dtype=dtype, device=device),
         )
@@ -472,6 +517,17 @@ class TestIndexing(TestCase):
         )
         self.assertEqual(
             strided[[ri([0, 0, 1, 1]), ri([0, 1, 0, 0])]],
+=======
+            strided[(ri([0, 0]), ri([0, 3]))],
+            torch.tensor([1, 7], dtype=dtype, device=device),
+        )
+        self.assertEqual(
+            strided[(ri([1]), ri([0, 1, 1, 0, 3]))],
+            torch.tensor([9, 11, 11, 9, 15], dtype=dtype, device=device),
+        )
+        self.assertEqual(
+            strided[(ri([0, 0, 1, 1]), ri([0, 1, 0, 0]))],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.tensor([1, 3, 9, 9], dtype=dtype, device=device),
         )
 
@@ -502,7 +558,13 @@ class TestIndexing(TestCase):
 
         reference = torch.arange(0.0, 24, dtype=dtype, device=device).view(3, 8)
         strided = torch.tensor((), dtype=dtype, device=device)
+<<<<<<< HEAD
         strided.set_(reference.storage(), 10, size=torch.Size([2, 2]), stride=[7, 1])
+=======
+        strided.set_(
+            reference.untyped_storage(), 10, size=torch.Size([2, 2]), stride=[7, 1]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             strided[ri([0]), ri([1])], torch.tensor([11], dtype=dtype, device=device)
         )
@@ -513,7 +575,13 @@ class TestIndexing(TestCase):
 
         reference = torch.arange(0.0, 24, dtype=dtype, device=device).view(3, 8)
         strided = torch.tensor((), dtype=dtype, device=device)
+<<<<<<< HEAD
         strided.set_(reference.storage(), 10, size=torch.Size([2, 2]), stride=[7, 1])
+=======
+        strided.set_(
+            reference.untyped_storage(), 10, size=torch.Size([2, 2]), stride=[7, 1]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             strided[ri([0, 1]), ri([1, 0])],
             torch.tensor([11, 17], dtype=dtype, device=device),
@@ -528,7 +596,13 @@ class TestIndexing(TestCase):
 
         reference = torch.arange(0.0, 24, dtype=dtype, device=device).view(3, 8)
         strided = torch.tensor((), dtype=dtype, device=device)
+<<<<<<< HEAD
         strided.set_(reference.storage(), 10, size=torch.Size([2, 2]), stride=[7, 1])
+=======
+        strided.set_(
+            reference.untyped_storage(), 10, size=torch.Size([2, 2]), stride=[7, 1]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         rows = ri([[0], [1]])
         columns = ri([[0, 1], [0, 1]])
@@ -642,6 +716,7 @@ class TestIndexing(TestCase):
 
         indices_to_test = [
             # grab the second, fourth columns
+<<<<<<< HEAD
             [slice(None), [1, 3]],
             # first, third rows,
             [[0, 2], slice(None)],
@@ -655,6 +730,21 @@ class TestIndexing(TestCase):
 
         # only test dupes on gets
         get_indices_to_test = indices_to_test + [[slice(None), [0, 1, 1, 2, 2]]]
+=======
+            (slice(None), [1, 3]),
+            # first, third rows,
+            ([0, 2], slice(None)),
+            # weird shape
+            (slice(None), [[0, 1], [2, 3]]),
+            # negatives
+            ([-1], [0]),
+            ([0, 2], [-1]),
+            (slice(None), [-1]),
+        ]
+
+        # only test dupes on gets
+        get_indices_to_test = indices_to_test + [(slice(None), [0, 1, 1, 2, 2])]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for indexer in get_indices_to_test:
             assert_get_eq(reference, indexer)
@@ -668,6 +758,7 @@ class TestIndexing(TestCase):
         reference = torch.arange(0.0, 160, dtype=dtype, device=device).view(4, 8, 5)
 
         indices_to_test = [
+<<<<<<< HEAD
             [slice(None), slice(None), [0, 3, 4]],
             [slice(None), [2, 4, 5, 7], slice(None)],
             [[2, 3], slice(None), slice(None)],
@@ -708,6 +799,48 @@ class TestIndexing(TestCase):
             [Ellipsis, [[0, 1], [1, 0]], [[2, 1], [3, 5]], slice(None)],
             [[[0, 1], [1, 0]], [[2, 1], [3, 5]], Ellipsis, slice(None)],
             [[[0, 1], [1, 0]], [[2, 1], [3, 5]], slice(None), Ellipsis],
+=======
+            (slice(None), slice(None), (0, 3, 4)),
+            (slice(None), (2, 4, 5, 7), slice(None)),
+            ((2, 3), slice(None), slice(None)),
+            (slice(None), (0, 2, 3), (1, 3, 4)),
+            (slice(None), (0,), (1, 2, 4)),
+            (slice(None), (0, 1, 3), (4,)),
+            (slice(None), ((0, 1), (1, 0)), ((2, 3),)),
+            (slice(None), ((0, 1), (2, 3)), ((0,),)),
+            (slice(None), ((5, 6),), ((0, 3), (4, 4))),
+            ((0, 2, 3), (1, 3, 4), slice(None)),
+            ((0,), (1, 2, 4), slice(None)),
+            ((0, 1, 3), (4,), slice(None)),
+            (((0, 1), (1, 0)), ((2, 1), (3, 5)), slice(None)),
+            (((0, 1), (1, 0)), ((2, 3),), slice(None)),
+            (((0, 1), (2, 3)), ((0,),), slice(None)),
+            (((2, 1),), ((0, 3), (4, 4)), slice(None)),
+            (((2,),), ((0, 3), (4, 1)), slice(None)),
+            # non-contiguous indexing subspace
+            ((0, 2, 3), slice(None), (1, 3, 4)),
+            # [...]
+            # less dim, ellipsis
+            ((0, 2),),
+            ((0, 2), slice(None)),
+            ((0, 2), Ellipsis),
+            ((0, 2), slice(None), Ellipsis),
+            ((0, 2), Ellipsis, slice(None)),
+            ((0, 2), (1, 3)),
+            ((0, 2), (1, 3), Ellipsis),
+            (Ellipsis, (1, 3), (2, 3)),
+            (Ellipsis, (2, 3, 4)),
+            (Ellipsis, slice(None), (2, 3, 4)),
+            (slice(None), Ellipsis, (2, 3, 4)),
+            # ellipsis counts for nothing
+            (Ellipsis, slice(None), slice(None), (0, 3, 4)),
+            (slice(None), Ellipsis, slice(None), (0, 3, 4)),
+            (slice(None), slice(None), Ellipsis, (0, 3, 4)),
+            (slice(None), slice(None), (0, 3, 4), Ellipsis),
+            (Ellipsis, ((0, 1), (1, 0)), ((2, 1), (3, 5)), slice(None)),
+            (((0, 1), (1, 0)), ((2, 1), (3, 5)), Ellipsis, slice(None)),
+            (((0, 1), (1, 0)), ((2, 1), (3, 5)), slice(None), Ellipsis),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         for indexer in indices_to_test:
@@ -720,6 +853,7 @@ class TestIndexing(TestCase):
         reference = torch.arange(0.0, 1296, dtype=dtype, device=device).view(3, 9, 8, 6)
 
         indices_to_test = [
+<<<<<<< HEAD
             [slice(None), slice(None), slice(None), [0, 3, 4]],
             [slice(None), slice(None), [2, 4, 5, 7], slice(None)],
             [slice(None), [2, 3], slice(None), slice(None)],
@@ -779,6 +913,67 @@ class TestIndexing(TestCase):
             [[0, 2, 1], [3], [4], slice(None)],
             [[0, 2, 1], [3], [4], Ellipsis],
             [Ellipsis, [0, 2, 1], [3], [4]],
+=======
+            (slice(None), slice(None), slice(None), (0, 3, 4)),
+            (slice(None), slice(None), (2, 4, 5, 7), slice(None)),
+            (slice(None), (2, 3), slice(None), slice(None)),
+            ((1, 2), slice(None), slice(None), slice(None)),
+            (slice(None), slice(None), (0, 2, 3), (1, 3, 4)),
+            (slice(None), slice(None), (0,), (1, 2, 4)),
+            (slice(None), slice(None), (0, 1, 3), (4,)),
+            (slice(None), slice(None), ((0, 1), (1, 0)), ((2, 3),)),
+            (slice(None), slice(None), ((0, 1), (2, 3)), ((0,),)),
+            (slice(None), slice(None), ((5, 6),), ((0, 3), (4, 4))),
+            (slice(None), (0, 2, 3), (1, 3, 4), slice(None)),
+            (slice(None), (0,), (1, 2, 4), slice(None)),
+            (slice(None), (0, 1, 3), (4,), slice(None)),
+            (slice(None), ((0, 1), (3, 4)), ((2, 3), (0, 1)), slice(None)),
+            (slice(None), ((0, 1), (3, 4)), ((2, 3),), slice(None)),
+            (slice(None), ((0, 1), (3, 2)), ((0,),), slice(None)),
+            (slice(None), ((2, 1),), ((0, 3), (6, 4)), slice(None)),
+            (slice(None), ((2,),), ((0, 3), (4, 2)), slice(None)),
+            ((0, 1, 2), (1, 3, 4), slice(None), slice(None)),
+            ((0,), (1, 2, 4), slice(None), slice(None)),
+            ((0, 1, 2), (4,), slice(None), slice(None)),
+            (((0, 1), (0, 2)), ((2, 4), (1, 5)), slice(None), slice(None)),
+            (((0, 1), (1, 2)), ((2, 0),), slice(None), slice(None)),
+            (((2, 2),), ((0, 3), (4, 5)), slice(None), slice(None)),
+            (((2,),), ((0, 3), (4, 5)), slice(None), slice(None)),
+            (slice(None), (3, 4, 6), (0, 2, 3), (1, 3, 4)),
+            (slice(None), (2, 3, 4), (1, 3, 4), (4,)),
+            (slice(None), (0, 1, 3), (4,), (1, 3, 4)),
+            (slice(None), (6,), (0, 2, 3), (1, 3, 4)),
+            (slice(None), (2, 3, 5), (3,), (4,)),
+            (slice(None), (0,), (4,), (1, 3, 4)),
+            (slice(None), (6,), (0, 2, 3), (1,)),
+            (slice(None), ((0, 3), (3, 6)), ((0, 1), (1, 3)), ((5, 3), (1, 2))),
+            ((2, 2, 1), (0, 2, 3), (1, 3, 4), slice(None)),
+            ((2, 0, 1), (1, 2, 3), (4,), slice(None)),
+            ((0, 1, 2), (4,), (1, 3, 4), slice(None)),
+            ((0,), (0, 2, 3), (1, 3, 4), slice(None)),
+            ((0, 2, 1), (3,), (4,), slice(None)),
+            ((0,), (4,), (1, 3, 4), slice(None)),
+            ((1,), (0, 2, 3), (1,), slice(None)),
+            (((1, 2), (1, 2)), ((0, 1), (2, 3)), ((2, 3), (3, 5)), slice(None)),
+            # less dim, ellipsis
+            (Ellipsis, (0, 3, 4)),
+            (Ellipsis, slice(None), (0, 3, 4)),
+            (Ellipsis, slice(None), slice(None), (0, 3, 4)),
+            (slice(None), Ellipsis, (0, 3, 4)),
+            (slice(None), slice(None), Ellipsis, (0, 3, 4)),
+            (slice(None), (0, 2, 3), (1, 3, 4)),
+            (slice(None), (0, 2, 3), (1, 3, 4), Ellipsis),
+            (Ellipsis, (0, 2, 3), (1, 3, 4), slice(None)),
+            ((0,), (1, 2, 4)),
+            ((0,), (1, 2, 4), slice(None)),
+            ((0,), (1, 2, 4), Ellipsis),
+            ((0,), (1, 2, 4), Ellipsis, slice(None)),
+            ((1,),),
+            ((0, 2, 1), (3,), (4,)),
+            ((0, 2, 1), (3,), (4,), slice(None)),
+            ((0, 2, 1), (3,), (4,), Ellipsis),
+            (Ellipsis, (0, 2, 1), (3,), (4,)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         for indexer in indices_to_test:
@@ -786,8 +981,13 @@ class TestIndexing(TestCase):
             assert_set_eq(reference, indexer, 1333)
             assert_set_eq(reference, indexer, get_set_tensor(reference, indexer))
         indices_to_test += [
+<<<<<<< HEAD
             [slice(None), slice(None), [[0, 1], [1, 0]], [[2, 3], [3, 0]]],
             [slice(None), slice(None), [[2]], [[0, 3], [4, 4]]],
+=======
+            (slice(None), slice(None), [[0, 1], [1, 0]], [[2, 3], [3, 0]]),
+            (slice(None), slice(None), [[2]], [[0, 3], [4, 4]]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         for indexer in indices_to_test:
             assert_get_eq(reference, indexer)
@@ -866,6 +1066,24 @@ class TestIndexing(TestCase):
             )
             self.assertEqual(len(w), 1)
 
+<<<<<<< HEAD
+=======
+    def test_list_indices(self, device):
+        N = 1000
+        t = torch.randn(N, device=device)
+        # Set window size
+        W = 10
+        # Generate a list of lists, containing overlapping window indices
+        indices = [range(i, i + W) for i in range(0, N - W)]
+
+        for i in [len(indices), 100, 32]:
+            windowed_data = t[indices[:i]]
+            self.assertEqual(windowed_data.shape, (i, W))
+
+        with self.assertRaisesRegex(IndexError, "too many indices"):
+            windowed_data = t[indices[:31]]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_bool_indices_accumulate(self, device):
         mask = torch.zeros(size=(10,), dtype=torch.bool, device=device)
         y = torch.ones(size=(10, 10), device=device)
@@ -1052,6 +1270,7 @@ class TestIndexing(TestCase):
         self.assertEqual(out_cuda.cpu(), out_cpu)
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipIfTorchDynamo("Not a suitable test for TorchDynamo")
     def test_index_put_accumulate_with_optional_tensors(self, device):
         # TODO: replace with a better solution.
@@ -1062,6 +1281,17 @@ class TestIndexing(TestCase):
         def func(x, i, v):
             idx = [None, i]
             x.index_put_(idx, v, accumulate=True)
+=======
+    def test_index_put_deterministic_with_optional_tensors(self, device):
+        def func(x, i, v):
+            with DeterministicGuard(True):
+                x[..., i] = v
+            return x
+
+        def func1(x, i, v):
+            with DeterministicGuard(True):
+                x[i] = v
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return x
 
         n = 4
@@ -1071,6 +1301,7 @@ class TestIndexing(TestCase):
         indices_dev = indices.to(device)
         value0d = torch.tensor(10.0)
         value1d = torch.tensor([1.0, 2.0])
+<<<<<<< HEAD
 
         out_cuda = func(t_dev, indices_dev, value0d.cuda())
         out_cpu = func(t, indices, value0d)
@@ -1078,6 +1309,36 @@ class TestIndexing(TestCase):
 
         out_cuda = func(t_dev, indices_dev, value1d.cuda())
         out_cpu = func(t, indices, value1d)
+=======
+        values2d = torch.randn(n, 1)
+
+        for val in (value0d, value1d, values2d):
+            out_cuda = func(t_dev, indices_dev, val.to(device))
+            out_cpu = func(t, indices, val)
+            self.assertEqual(out_cuda.cpu(), out_cpu)
+
+        t = torch.zeros((5, 4))
+        t_dev = t.to(device)
+        indices = torch.tensor([1, 4, 3])
+        indices_dev = indices.to(device)
+        val = torch.randn(4)
+        out_cuda = func1(t_dev, indices_dev, val.cuda())
+        out_cpu = func1(t, indices, val)
+        self.assertEqual(out_cuda.cpu(), out_cpu)
+
+        t = torch.zeros(2, 3, 4)
+        ind = torch.tensor([0, 1])
+        val = torch.randn(6, 2)
+        with self.assertRaisesRegex(RuntimeError, "shape mismatch"):
+            func(t, ind, val)
+
+        with self.assertRaisesRegex(RuntimeError, "must match"):
+            func(t.to(device), ind.to(device), val.to(device))
+
+        val = torch.randn(2, 3, 1)
+        out_cuda = func1(t.to(device), ind.to(device), val.to(device))
+        out_cpu = func1(t, ind, val)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(out_cuda.cpu(), out_cpu)
 
     @onlyNativeDeviceTypes

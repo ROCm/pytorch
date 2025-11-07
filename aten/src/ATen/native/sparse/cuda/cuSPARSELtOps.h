@@ -21,7 +21,11 @@ namespace at::native {
 
 at::Tensor _cslt_compress(const Tensor& sparse_input);
 
+<<<<<<< HEAD
 TORCH_CUDA_CPP_API std::tuple<at::Tensor, int64_t, int64_t, bool, int64_t> _cslt_sparse_mm_impl(
+=======
+TORCH_CUDA_CPP_API std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& compressed_A,
     const Tensor& dense_B,
     const std::optional<Tensor>& bias_opt,
@@ -30,7 +34,11 @@ TORCH_CUDA_CPP_API std::tuple<at::Tensor, int64_t, int64_t, bool, int64_t> _cslt
     bool transpose_result,
     int alg_id,
     int split_k,
+<<<<<<< HEAD
     bool split_k_one_kernel,
+=======
+    int split_k_mode,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool search_alg_id
 );
 
@@ -43,7 +51,11 @@ at::Tensor _cslt_sparse_mm(
     bool transpose_result,
     int64_t alg_id,
     int64_t split_k,
+<<<<<<< HEAD
     bool split_k_one_kernel
+=======
+    int64_t split_k_mode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 );
 
 int64_t _cslt_sparse_mm_search(

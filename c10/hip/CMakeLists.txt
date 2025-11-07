@@ -33,6 +33,10 @@ file(GLOB_RECURSE C10_HIP_HEADERS *.h)
 
 if(NOT BUILD_LIBTORCHLESS)
   hip_add_library(c10_hip ${C10_HIP_SRCS} ${C10_HIP_HEADERS})
+<<<<<<< HEAD
+=======
+  torch_compile_options(c10_hip)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   # Propagate HIP_CXX_FLAGS that were set from Dependencies.cmake
   target_compile_options(c10_hip PRIVATE ${HIP_CXX_FLAGS})

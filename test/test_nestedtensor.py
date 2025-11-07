@@ -6826,7 +6826,13 @@ torch.cuda.synchronize()
         out_lp_ref = torch.ops.aten._scaled_dot_product_attention_math(
             q_d1, k_d1, v_d1
         )[0]
+<<<<<<< HEAD
         output_ref_atol, output_ref_rtol = get_tolerances(out_ref, out_lp_ref)
+=======
+        output_ref_atol, output_ref_rtol = get_tolerances(
+            out_ref, out_lp_ref, fudge_factor=2
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         attn_d1 = torch.nn.functional.scaled_dot_product_attention(
             q_d1, k_d1, v_d1
@@ -8377,6 +8383,7 @@ BACKWARD_SKIPS_AND_XFAILS = [
         sample_match_fn=lambda device, sample: ("noncontig_holes" in sample.name),
         name="broken_unflatten_backward",
     ),
+<<<<<<< HEAD
     # -> CPU device conversion backwards is broken
     XFailRule(
         error_type=RuntimeError,
@@ -8387,6 +8394,8 @@ BACKWARD_SKIPS_AND_XFAILS = [
         ),
         name="broken_to_backward",
     ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # sum() backward is not implemented for non-full reductions
     XFailRule(
         error_type=NotImplementedError,

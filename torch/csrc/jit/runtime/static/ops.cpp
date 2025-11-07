@@ -1344,7 +1344,10 @@ REGISTER_OPERATOR_FUNCTOR(aten::pow, aten_pow, [](Node* n) -> SROperator {
 
 namespace {
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct ToArgs {
   std::optional<at::ScalarType> dtype;
   c10::Layout layout;

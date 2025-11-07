@@ -49,6 +49,7 @@ remove_reshape_pass = PatternMatcherPass(
 )
 
 # based on predispatch aten IR
+<<<<<<< HEAD
 normalization_pass_aten = PatternMatcherPass()
 merge_splits_pass_aten = PatternMatcherPass()
 split_cat_pass_aten = PatternMatcherPass()
@@ -57,6 +58,22 @@ merge_getitem_cat_pass_aten = PatternMatcherPass()
 merge_stack_tahn_unbind_pass_aten = PatternMatcherPass()
 mutate_cat_pass_aten = PatternMatcherPass()
 remove_split_with_size_one_pass_aten = PatternMatcherPass()
+=======
+normalization_pass_aten = PatternMatcherPass(pass_name="normalization_pass_aten")
+merge_splits_pass_aten = PatternMatcherPass(pass_name="merge_splits_pass_aten")
+split_cat_pass_aten = PatternMatcherPass(pass_name="split_cat_pass_aten")
+unbind_stack_pass_aten = PatternMatcherPass(pass_name="unbind_stack_pass_aten")
+merge_getitem_cat_pass_aten = PatternMatcherPass(
+    pass_name="merge_getitem_cat_pass_aten"
+)
+merge_stack_tahn_unbind_pass_aten = PatternMatcherPass(
+    pass_name="merge_stack_tahn_unbind_pass_aten"
+)
+mutate_cat_pass_aten = PatternMatcherPass(pass_name="mutate_cat_pass_aten")
+remove_split_with_size_one_pass_aten = PatternMatcherPass(
+    pass_name="remove_split_with_size_one_pass_aten"
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def save_inductor_dict(pass_to_compare=None):
@@ -122,6 +139,37 @@ def fuse_split_getitem_squeeze_cat(graph):
     return None
 
 
+<<<<<<< HEAD
+=======
+def use_triton_dot_compress(graph):
+    return None
+
+
+def use_triton_lce_replace_simple_LCE_helper(gm, shape_prop):
+    return None
+
+
+def use_triton_lce_replace_simple_LCE(graph):
+    return use_triton_lce_replace_simple_LCE_helper(graph.owning_module, shape_prop)
+
+
+def use_triton_lce_replace_normal_LCE_helper(gm, shape_prop):
+    return None
+
+
+def use_triton_lce_replace_normal_LCE(graph):
+    return use_triton_lce_replace_simple_LCE_helper(graph.owning_module, shape_prop)
+
+
+def use_matmul_lce_replace_normal_LCE(graph):
+    return None
+
+
+def use_matmul_fuse_lce_replace_first_LCE(graph):
+    return None
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @init_once_fakemode
 def lazy_init():
     from . import efficient_conv_bn_eval, split_cat  # noqa: F401
@@ -135,7 +183,11 @@ def _get_pass_name_func(p):
         pass_name = p.pass_name
         pass_func = p.apply
     elif isinstance(p, types.FunctionType):
+<<<<<<< HEAD
         pass_name = p.__name__
+=======
+        pass_name = p.__name__.lstrip("_")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_func = p
     else:
         pass_name = None
@@ -172,6 +224,14 @@ def _run_pre_dispatch_passes(
 
     full_pass_list = default_pass_list + [
         fuse_split_getitem_squeeze_cat,
+<<<<<<< HEAD
+=======
+        use_triton_dot_compress,
+        use_triton_lce_replace_simple_LCE,
+        use_triton_lce_replace_normal_LCE,
+        use_matmul_fuse_lce_replace_first_LCE,
+        use_matmul_lce_replace_normal_LCE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 
     log.info(
@@ -258,6 +318,7 @@ def pre_grad_passes(
             if example_inputs is not None:
                 gm = fuse_fx(gm, example_inputs)
             numpy_compat_normalization(gm.graph)
+<<<<<<< HEAD
             trace_structured(
                 "artifact",
                 metadata_fn=lambda: {
@@ -268,6 +329,8 @@ def pre_grad_passes(
                     print_output=False, include_stride=True, include_device=True
                 ),
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # We should always do the normalization_pass first
             if "normalization_pass" in config.pre_grad_fusion_options:
                 pattern_matcher_pass = PRE_GRAD_PATTERNS["normalization_pass"]
@@ -310,6 +373,7 @@ def pre_grad_passes(
 
     gm.graph.lint()
     gm.recompile()
+<<<<<<< HEAD
     trace_structured(
         "artifact",
         metadata_fn=lambda: {
@@ -320,6 +384,8 @@ def pre_grad_passes(
             print_output=False, include_stride=True, include_device=True
         ),
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (
         config.pattern_matcher
@@ -375,7 +441,11 @@ def fetch_attr(target: str, mod):
     for i, atom in enumerate(target_atoms):
         if not hasattr(attr_itr, atom):
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Node referenced nonexistant target {'.'.join(target_atoms[:i])}"
+=======
+                f"Node referenced nonexistent target {'.'.join(target_atoms[:i])}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         attr_itr = getattr(attr_itr, atom)
     return attr_itr

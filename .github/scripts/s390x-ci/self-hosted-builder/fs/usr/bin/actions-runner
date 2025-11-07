@@ -27,6 +27,12 @@ unset ACCESS_TOKEN
 # it does one job, stops and unregisters
 registration_token=$(jq --raw-output .token "$token_file")
 
+<<<<<<< HEAD
+=======
+# workaround for https://gitlab.com/qemu-project/qemu/-/issues/2600
+export DOTNET_EnableWriteXorExecute=0
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ./config.sh \
         --unattended \
         --ephemeral \
@@ -44,8 +50,11 @@ rm -f "$token_file"
 # and it doesn't work for non-root user
 source venv/bin/activate
 
+<<<<<<< HEAD
 # workaround for https://gitlab.com/qemu-project/qemu/-/issues/2600
 export DOTNET_EnableWriteXorExecute=0
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Run one job.
 ./run.sh

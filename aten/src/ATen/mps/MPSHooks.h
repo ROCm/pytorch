@@ -18,6 +18,11 @@ struct MPSHooks : public at::MPSHooksInterface {
   bool hasMPS() const override;
   bool isOnMacOSorNewer(unsigned major, unsigned minor) const override;
 
+<<<<<<< HEAD
+=======
+  Device getDeviceFromPtr(void* data) const override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // MPSGeneratorImpl interface
   const Generator& getDefaultGenerator(
       DeviceIndex device_index = -1) const override;

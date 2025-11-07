@@ -766,9 +766,15 @@ class TestFSDPMixedPrecisionSharded(TestFSDPMixedPrecision):
                 if expect_use_full_prec_in_eval:
                     assert x.dtype == torch.float32, f"Expected fp32, got {x.dtype}"
                 else:
+<<<<<<< HEAD
                     assert (
                         x.dtype == low_prec_dtype
                     ), f"Expected {low_prec_dtype}, got {x.dtype}"
+=======
+                    assert x.dtype == low_prec_dtype, (
+                        f"Expected {low_prec_dtype}, got {x.dtype}"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return self.a(x)
 
         mp_config = MixedPrecision(

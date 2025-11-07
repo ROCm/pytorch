@@ -251,9 +251,18 @@ class DeviceCachingAllocator {
     return true;
   }
 
+<<<<<<< HEAD
   bool alloc_block(AllocParams& p) {
     auto size = p.alloc_size;
     auto device = p.device();
+=======
+  bool alloc_block(AllocParams& p, bool isRetry) {
+    auto size = p.alloc_size;
+    auto device = p.device();
+    if (isRetry) {
+      stats.num_alloc_retries += 1;
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void* ptr = sycl::aligned_alloc_device(
         kDeviceAlignment,
         size,
@@ -386,6 +395,16 @@ class DeviceCachingAllocator {
       stats.requested_bytes[stat_type].increase(block->requested_size);
     });
 
+<<<<<<< HEAD
+=======
+    c10::reportMemoryUsageToProfiler(
+        block->ptr,
+        static_cast<int64_t>(block->size),
+        stats.allocated_bytes[static_cast<size_t>(StatType::AGGREGATE)].current,
+        stats.reserved_bytes[static_cast<size_t>(StatType::AGGREGATE)].current,
+        c10::Device(c10::DeviceType::XPU, device));
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return block;
   }
 
@@ -418,8 +437,13 @@ class DeviceCachingAllocator {
     bool block_found = get_free_block(params);
     // Can't reuse an existing block, try to get a new one.
     if (!block_found) {
+<<<<<<< HEAD
       block_found = alloc_block(params) ||
           (release_cached_blocks() && alloc_block(params));
+=======
+      block_found = alloc_block(params, false) ||
+          (release_cached_blocks() && alloc_block(params, true));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     if (!block_found) {
       c10::xpu::DeviceProp device_prop;
@@ -431,6 +455,16 @@ class DeviceCachingAllocator {
       auto reserved_bytes =
           stats.reserved_bytes[static_cast<size_t>(StatType::AGGREGATE)]
               .current;
+<<<<<<< HEAD
+=======
+
+      c10::reportOutOfMemoryToProfiler(
+          static_cast<int64_t>(size),
+          allocated_bytes,
+          reserved_bytes,
+          c10::Device(c10::DeviceType::XPU, device));
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_CHECK_WITH(
           OutOfMemoryError,
           false,
@@ -455,6 +489,12 @@ class DeviceCachingAllocator {
     std::scoped_lock<std::recursive_mutex> lock(mutex);
     block->allocated = false;
 
+<<<<<<< HEAD
+=======
+    auto orig_block_ptr = block->ptr;
+    auto orig_block_size = block->size;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     StatTypes stat_types = get_stat_types_for_pool(*block->pool);
     for_each_selected_stat_type(stat_types, [&](size_t stat_type) {
       stats.allocated_bytes[stat_type].decrease(block->size);
@@ -465,6 +505,16 @@ class DeviceCachingAllocator {
     } else {
       free_block(block);
     }
+<<<<<<< HEAD
+=======
+
+    c10::reportMemoryUsageToProfiler(
+        orig_block_ptr,
+        -static_cast<int64_t>(orig_block_size),
+        stats.allocated_bytes[static_cast<size_t>(StatType::AGGREGATE)].current,
+        stats.reserved_bytes[static_cast<size_t>(StatType::AGGREGATE)].current,
+        c10::Device(c10::DeviceType::XPU, block->device));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void recordStream(Block* block, xpu::XPUStream stream) {
@@ -495,6 +545,10 @@ class DeviceCachingAllocator {
       stats.active_bytes[statType].reset_accumulated();
       stats.requested_bytes[statType].reset_accumulated();
     }
+<<<<<<< HEAD
+=======
+    stats.num_alloc_retries = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void resetPeakStats() {
@@ -510,7 +564,11 @@ class DeviceCachingAllocator {
   }
 };
 
+<<<<<<< HEAD
 void local_raw_delete(void* ptr);
+=======
+static void local_raw_delete(void* ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class XPUAllocator : public Allocator {
  private:

@@ -1,7 +1,10 @@
 """torch.ops.aten operators under the `core` module."""
 # mypy: disable-error-code="misc,arg-type,type-arg,valid-type,assignment,return-value,type-var,operator,no-untyped-def,index"
 # ruff: noqa: TCH001,TCH002
+<<<<<<< HEAD
 # flake8: noqa
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from __future__ import annotations
 

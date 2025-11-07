@@ -16,7 +16,11 @@ const static BackportManager backportManager;
 
 // Forward declare so that _backport_for_mobile() overloads can
 // call this method directly.
+<<<<<<< HEAD
 bool _backport_for_mobile_impl(
+=======
+static bool _backport_for_mobile_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::istream& oss,
     PyTorchStreamWriter& writer,
     const int64_t to_version);

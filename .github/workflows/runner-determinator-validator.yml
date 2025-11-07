@@ -20,7 +20,11 @@ jobs:
 
     steps:
     - name: Checkout repository
+<<<<<<< HEAD
       uses: actions/checkout@v2
+=======
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     - name: Run Hardcode runner-determinator script
       id: hardcode-script
@@ -38,4 +42,8 @@ jobs:
         # version embedded into .github/workflows/_runner-determinator.yml
         diff runner_determinator_workflow.py .github/scripts/runner_determinator.py
       # Fail the job if the scripts are not identical
+<<<<<<< HEAD
       continue-on-error: false
+=======
+      continue-on-error: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

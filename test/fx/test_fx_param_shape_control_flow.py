@@ -1,10 +1,16 @@
 # Owner(s): ["module: fx"]
 
+<<<<<<< HEAD
 import unittest
 
 import torch
 import torch.fx
 from torch.testing._internal.common_utils import TestCase
+=======
+import torch
+import torch.fx
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class MyModuleBase(torch.nn.Module):
@@ -158,4 +164,8 @@ class TestConstParamShapeInControlFlow(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     unittest.main()
+=======
+    raise_on_run_directly("test/test_fx.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

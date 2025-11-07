@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 """Defines bias subclasses that work with scaled_dot_product_attention"""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from enum import auto, IntEnum
 from typing import Optional
 from warnings import warn
@@ -36,14 +40,22 @@ class CausalVariant(IntEnum):
 
     Defines two types of causal biases:
 
+<<<<<<< HEAD
     `UPPER_LEFT`: Represents upper-left triangular bias for standard causal attention.
+=======
+    ``UPPER_LEFT``: Represents upper-left triangular bias for standard causal attention.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     The equivalent pytorch code for constructing this bias is:
 
     .. code-block:: python
 
         torch.tril(torch.ones(size, dtype=torch.bool))
 
+<<<<<<< HEAD
     For instance, with `shape=(3,4)`, the materialized bias tensor will be:
+=======
+    For instance, with ``shape=(3,4)``, the materialized bias tensor will be:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. code-block:: text
 
@@ -52,7 +64,11 @@ class CausalVariant(IntEnum):
          [1, 1, 1, 0]]
 
 
+<<<<<<< HEAD
     `LOWER_RIGHT`: Represents lower-right triangular bias, the include values are aligned to the lower
+=======
+    ``LOWER_RIGHT``: Represents lower-right triangular bias, the include values are aligned to the lower
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     right corner of the matrix.
 
     The equivalent pytorch code for constructing this bias is:
@@ -65,7 +81,11 @@ class CausalVariant(IntEnum):
             diagonal=diagonal_offset,
         )
 
+<<<<<<< HEAD
     For instance, with `shape=(3,4)`, the materialized bias tensor will be:
+=======
+    For instance, with ``shape=(3,4)``, the materialized bias tensor will be:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. code-block:: text
 
@@ -101,9 +121,21 @@ class CausalBias(torch.Tensor):
         # Create a lower-right causal bias
         attn_bias = causal_lower_right(seqlen_q, seqlen_kv)
 
+<<<<<<< HEAD
         q = torch.randn(bsz, num_heads, seqlen_q, head_dim, device="cuda", dtype=torch.float16)
         k = torch.randn(bsz, num_heads, seqlen_kv, head_dim, device="cuda", dtype=torch.float16)
         v = torch.randn(bsz, num_heads, seqlen_kv, head_dim, device="cuda", dtype=torch.float16)
+=======
+        q = torch.randn(
+            bsz, num_heads, seqlen_q, head_dim, device="cuda", dtype=torch.float16
+        )
+        k = torch.randn(
+            bsz, num_heads, seqlen_kv, head_dim, device="cuda", dtype=torch.float16
+        )
+        v = torch.randn(
+            bsz, num_heads, seqlen_kv, head_dim, device="cuda", dtype=torch.float16
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         out = F.scaled_dot_product_attention(q, k, v, attn_bias)
 
@@ -283,11 +315,17 @@ class CausalBias(torch.Tensor):
         """Defines the behavior of torch.nn.functional.scaled_dot_product_attention when the attn_bias is an AttnBias"""
         if kwargs is None:
             kwargs = {}
+<<<<<<< HEAD
         if func != torch.nn.functional.scaled_dot_product_attention:
             raise NotImplementedError(
                 "CausalBias only supports scaled_dot_product_attention"
             )
         return cls._dispatch(*args, **kwargs)
+=======
+        if func is torch.nn.functional.scaled_dot_product_attention:
+            return cls._dispatch(*args, **kwargs)
+        return super().__torch_function__(func, types, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self):  # type:ignore[override]
         return self._materialize().__repr__()

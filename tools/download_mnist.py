@@ -8,7 +8,11 @@ from urllib.request import urlretrieve
 
 MIRRORS = [
     "http://yann.lecun.com/exdb/mnist/",
+<<<<<<< HEAD
     "https://ossci-datasets.s3.amazonaws.com/mnist/",
+=======
+    "https://ossci-datasets.s3.amazonaws.com/mnist/",  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 RESOURCES = [

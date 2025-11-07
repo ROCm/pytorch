@@ -3,7 +3,11 @@ import sys
 from benchmark_base import BenchmarkBase
 
 import torch
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Benchmark(BenchmarkBase):
@@ -31,7 +35,11 @@ class Benchmark(BenchmarkBase):
         def f(x, y):
             return x + y
 
+<<<<<<< HEAD
         with fresh_inductor_cache():
+=======
+        with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(8):
                 f(torch.arange(3), i * 2.5)
 

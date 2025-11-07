@@ -7,6 +7,10 @@ from collections.abc import Mapping, MutableMapping
 from typing import Any, Callable, cast, NamedTuple, Optional, TYPE_CHECKING, Union
 
 import torch
+<<<<<<< HEAD
+=======
+import torch.cuda._pin_memory_utils as pin_memory_utils
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.distributed as dist
 import torch.nn.functional as F
 from torch.distributed._functional_collectives import AsyncCollectiveTensor
@@ -187,6 +191,15 @@ def _iterate_state_dict(
                     companion_obj._local_tensor.copy_(
                         ret._local_tensor, non_blocking=non_blocking
                     )
+<<<<<<< HEAD
+=======
+                elif isinstance(companion_obj, ShardedTensor):
+                    assert isinstance(ret, ShardedTensor)
+                    for idx, shard in enumerate(companion_obj.local_shards()):
+                        shard.tensor.copy_(
+                            ret.local_shards()[idx].tensor, non_blocking=non_blocking
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     companion_obj.copy_(ret, non_blocking=non_blocking)
                 ret = companion_obj
@@ -402,10 +415,23 @@ def _create_cpu_state_dict(
         if len(obj.size()) == 0:
             return torch.tensor(0, dtype=obj.dtype)
 
+<<<<<<< HEAD
+=======
+        # sometimes, a tensor might have non-zero size and 0 numel. In this case, pinning memory will fail
+        # so we take a best guess at how to replicate the tensor below to maintain symmetry in the returned
+        # state dict.
+        if obj.numel() == 0 or obj.data_ptr() == 0:
+            t = torch.zeros_like(obj, device="cpu")
+            if share_memory:
+                t = t.share_memory_()
+            return t
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if share_memory:
             t = torch.empty(*tuple(obj.size()), dtype=obj.dtype)
             t = t.share_memory_()
             if pin_memory:
+<<<<<<< HEAD
 
                 def unpin_memory(t):
                     succ = int(torch.cuda.cudart().cudaHostUnregister(t.data_ptr()))
@@ -424,6 +450,11 @@ def _create_cpu_state_dict(
                 assert succ == 0, (
                     f"Pinning shared memory failed with error-code: {succ}"
                 )
+=======
+                pin_memory_utils.pin_memory(t.data_ptr(), t.numel() * t.element_size())
+                weakref.finalize(t, pin_memory_utils.unpin_memory, t)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return t
         elif pin_memory:
             return torch.empty(*tuple(obj.size()), dtype=obj.dtype).pin_memory()
@@ -446,9 +477,34 @@ def _create_cpu_state_dict(
         ret._local_tensor = tensor_func(ret._local_tensor, pg, device, None)
         return ret
 
+<<<<<<< HEAD
     ret = _iterate_state_dict(
         state_dict,
         _identity_func,
+=======
+    def sharded_tensor_func(
+        obj: ShardedTensor,
+        pg: Optional[dist.ProcessGroup],
+        device: Optional[torch.device],
+        _: Any,
+    ) -> ShardedTensor:
+        if not obj.local_shards():
+            return obj
+
+        if obj.device != torch.device("cpu"):
+            ret = obj.to(device="cpu")
+        else:
+            ret = copy.deepcopy(obj)
+
+        for shards in ret.local_shards():
+            shards.tensor = tensor_func(shards.tensor, pg, device, None)
+
+        return ret
+
+    ret = _iterate_state_dict(
+        state_dict,
+        sharded_tensor_func,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtensor_func,
         tensor_func,
         pg=None,
@@ -514,16 +570,33 @@ def _broadcast_tensors(
     device: torch.device,
     pg: Optional[dist.ProcessGroup] = None,
 ) -> None:
+<<<<<<< HEAD
     tensors = []
+=======
+    if pg is None:
+        pg = dist.distributed_c10d._get_default_group()
+    pg_device = (
+        device
+        if device.type in {pg_device.type for pg_device in pg._device_types}
+        else pg._device_types[0]
+    )
+
+    tensors: list[torch.Tensor] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for key in keys:
         if dist.get_rank() == 0:
             full_state = full_state_dict[key]
             assert isinstance(full_state, torch.Tensor)
+<<<<<<< HEAD
             full_tensor = full_state.detach().to(device)
+=======
+            full_tensor = full_state.detach().to(pg_device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             tensor_info = full_state_dict[key]
             full_tensor = torch.empty(
                 size=tensor_info.size,
+<<<<<<< HEAD
                 device=device,
                 dtype=tensor_info.dtype,
             )
@@ -538,12 +611,43 @@ def _broadcast_tensors(
 
     if pg is None:
         pg = dist.distributed_c10d._get_default_group()
+=======
+                device=pg_device,
+                dtype=tensor_info.dtype,
+            )
+
+        tensors.append(full_tensor)
+
+        if (local_state := local_state_dict.get(key)) is None:
+            continue
+
+        local_state_dict[key] = (
+            (local_state, full_tensor)
+            if isinstance(local_state, DTensor)
+            else full_tensor
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if len(tensors) > 1:
         dist._broadcast_coalesced(pg, tensors, 500, 0)
     else:
         dist.broadcast(tensors[0], src=0, group=pg)
 
+<<<<<<< HEAD
+=======
+    if pg_device != device:
+        for key, full_tensor in zip(keys, tensors):
+            if (local_state := local_state_dict.get(key)) is not None:
+                local_state_dict[key] = (
+                    (local_state[0], full_tensor.to(device))
+                    if (
+                        isinstance(local_state, tuple)
+                        and isinstance(local_state[0], DTensor)
+                    )
+                    else full_tensor.to(device)
+                )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _distribute_tensors(local_state_dict, keys, device, pg)
 
 
@@ -572,7 +676,11 @@ def _distribute_tensors(
         ]
         if local_state.is_meta:
             # Use .clone() here rather than view to clone and return only the sliced portion, minimizing memory access and cost.
+<<<<<<< HEAD
             local_tensor = full_tensor[slices].detach().clone()
+=======
+            local_tensor = full_tensor[tuple(slices)].detach().clone()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # TODO: currently, we cannot handle strided sharding if the dp dimension is not even. For example,
             # one of the case that is not yet supported is when placements = (Shard(0), _StridedShard(0, sf=2)).
             ret = DTensor.from_local(
@@ -585,7 +693,11 @@ def _distribute_tensors(
         else:
             ret = local_state
             # Copy full_tensor[slices] into local_state.to_local() to reduce memory footprint.
+<<<<<<< HEAD
             ret.to_local().copy_(full_tensor[slices])
+=======
+            ret.to_local().copy_(full_tensor[tuple(slices)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_state_dict[key] = ret
 
 

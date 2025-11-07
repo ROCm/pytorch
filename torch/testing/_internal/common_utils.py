@@ -104,7 +104,10 @@ except ImportError:
 
 
 MI300_ARCH = ("gfx940", "gfx941", "gfx942")
+<<<<<<< HEAD
 MI350_ARCH = ("gfx950")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
@@ -124,7 +127,11 @@ def freeze_rng_state(*args, **kwargs):
 # Class to keep track of test flags configurable by environment variables.
 # Flags set here are intended to be read-only and should not be modified after
 # definition.
+<<<<<<< HEAD
 # TODO: Expand this class to handle abritrary settings in addition to boolean flags?
+=======
+# TODO: Expand this class to handle arbitrary settings in addition to boolean flags?
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestEnvironment:
     # Set of env vars to set for the repro command that is output on test failure.
     # Specifically, this includes env vars that are set to non-default values and
@@ -914,6 +921,14 @@ def prof_callable(callable, *args, **kwargs):
 
     return callable(*args, **kwargs)
 
+<<<<<<< HEAD
+=======
+def raise_on_run_directly(file_to_call):
+    raise RuntimeError("This test file is not meant to be run directly, "
+                       f"use:\n\n\tpython {file_to_call} TESTNAME\n\n"
+                       "instead.")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def prof_func_call(*args, **kwargs):
     return prof_callable(func_call, *args, **kwargs)
 
@@ -1137,8 +1152,13 @@ def lint_test_case_extension(suite):
             test_case = first_test
 
         if test_case is not None:
+<<<<<<< HEAD
             test_class = test_case.id().split('.', 1)[1].split('.')[0]
             if not isinstance(test_case, TestCase):
+=======
+            if not isinstance(test_case, TestCase):
+                test_class = test_case.id().split('.', 1)[1].split('.')[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 err = "This test class should extend from torch.testing._internal.common_utils.TestCase but it doesn't."
                 print(f"{test_class} - failed. {err}")
                 succeed = False
@@ -1243,7 +1263,11 @@ def run_tests(argv=UNITTEST_ARGS):
         if RERUN_DISABLED_TESTS:
             other_args.append("--rerun-disabled-tests")
         if TEST_SAVE_XML:
+<<<<<<< HEAD
             other_args += ['--save-xml', args.save_xml]
+=======
+            other_args += ['--save-xml', TEST_SAVE_XML]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         test_cases = (
             get_pytest_test_cases(argv) if USE_PYTEST else
@@ -1309,7 +1333,11 @@ def run_tests(argv=UNITTEST_ARGS):
         # exitcode of 5 means no tests were found, which happens since some test configs don't
         # run tests from certain files
         sys.exit(0 if exit_code == 5 else exit_code)
+<<<<<<< HEAD
     elif TEST_SAVE_XML is not None:
+=======
+    elif TEST_SAVE_XML:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # import here so that non-CI doesn't need xmlrunner installed
         import xmlrunner  # type: ignore[import]
         from xmlrunner.result import _XMLTestResult  # type: ignore[import]
@@ -1512,6 +1540,29 @@ TEST_CUDA_GRAPH = TEST_CUDA and (not TEST_SKIP_CUDAGRAPH) and (
 
 TEST_CUDA_CUDSS = TEST_CUDA and (torch.version.cuda and int(torch.version.cuda.split(".")[0]) >= 12)
 
+<<<<<<< HEAD
+=======
+TEST_CUDA_PYTHON_BINDINGS = _check_module_exists("cuda.bindings") and (
+    torch.version.cuda and int(torch.version.cuda.split(".")[0]) >= 12
+)
+
+if TEST_CUDA_PYTHON_BINDINGS:
+    def cuda_python_error_check(function_call_output):
+        """Makes calls to cuda-python's cuda runtime functions more
+        pythonic by throwing an exception if they return a status
+        which is not cudaSuccess
+        """
+        import cuda.bindings  # type: ignore[import]
+
+        error, *others = function_call_output
+        if error != cuda.bindings.runtime.cudaError_t.cudaSuccess:
+            raise ValueError(f"CUDA failure! {error}")
+        else:
+            return tuple(others)
+else:
+    cuda_python_error_check = None  # type: ignore[assignment]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def allocator_option_enabled_fn(allocator_config, _, option):
     if allocator_config is None:
         return False
@@ -1567,6 +1618,13 @@ TEST_WITH_TORCHDYNAMO: bool = TestEnvironment.def_flag(
     env_var="PYTORCH_TEST_WITH_DYNAMO",
     implied_by_fn=lambda: TEST_WITH_TORCHINDUCTOR or TEST_WITH_AOT_EAGER,
 )
+<<<<<<< HEAD
+=======
+TEST_WITHOUT_COMPILED_AUTOGRAD: bool = TestEnvironment.def_flag(
+    "TEST_WITHOUT_COMPILED_AUTOGRAD",
+    env_var="PYTORCH_TEST_WITHOUT_COMPILED_AUTOGRAD",
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TEST_WITH_TORCHDYNAMO:
     import torch._dynamo
@@ -1579,6 +1637,12 @@ if TEST_WITH_TORCHDYNAMO:
     if TEST_WITH_TORCHINDUCTOR:
         import torch._inductor.config
         torch._inductor.config.fallback_random = True
+<<<<<<< HEAD
+=======
+    else:
+        # only dynamo for now
+        torch._dynamo.config.compiled_autograd = not TEST_WITHOUT_COMPILED_AUTOGRAD
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # seems like this is only used in test/torch_np
@@ -1654,6 +1718,27 @@ def skipIfTorchInductor(msg="test doesn't currently work with torchinductor",
 
     return decorator
 
+<<<<<<< HEAD
+=======
+def runWithoutCompiledAutograd(msg="test doesn't currently work with compiled autograd"):
+    """
+    Usage:
+    @runWithoutCompiledAutograd(msg)
+    def test_blah(self):
+        ...
+    """
+    assert isinstance(msg, str)
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with torch._dynamo.compiled_autograd._disable():
+                func(*args, **kwargs)
+        return wrapper
+
+    return decorator
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def serialTest(condition=True):
     """
     Decorator for running tests serially.  Requires pytest
@@ -1774,6 +1859,7 @@ TEST_WITH_TV = os.getenv('PYTORCH_TEST_WITH_TV') == '1'
 if TEST_WITH_TV:
     torch.fx.experimental._config.translation_validation = True
 
+<<<<<<< HEAD
 # Some tests take too long when dynamic_shapes is combined with
 # translation_validation. Whenever that happens, we solve that by
 # disabling translation_validation.
@@ -1787,6 +1873,8 @@ def disable_translation_validation_if_dynamic_shapes(fn):
     return wrapper
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Determine whether to enable cuda memory leak check.
 # CUDA mem leak check is expensive and thus we don't want to execute it on every
 # test case / configuration.
@@ -2425,7 +2513,11 @@ class CudaNonDefaultStream:
                                      device_type=deviceStream.device_type)
         torch._C._cuda_setDevice(beforeDevice)
 
+<<<<<<< HEAD
     def __exit__(self, exec_type, exec_value, traceback):
+=======
+    def __exit__(self, exc_type, exc_value, traceback):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # After completing CUDA test load previously active streams on all
         # CUDA devices.
         beforeDevice = torch.cuda.current_device()
@@ -2473,9 +2565,15 @@ class CudaMemoryLeakCheck:
             driver_mem_allocated = bytes_total - bytes_free
             self.driver_befores.append(driver_mem_allocated)
 
+<<<<<<< HEAD
     def __exit__(self, exec_type, exec_value, traceback):
         # Don't check for leaks if an exception was thrown
         if exec_type is not None:
+=======
+    def __exit__(self, exc_type, exc_value, traceback):
+        # Don't check for leaks if an exception was thrown
+        if exc_type is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
 
         # Compares caching allocator before/after statistics
@@ -2842,7 +2940,14 @@ class RelaxedNumberPair(NumberPair):
         elif isinstance(number_like, Enum):
             return int(number_like)  # type: ignore[call-overload]
         else:
+<<<<<<< HEAD
             return super()._to_number(number_like, id=id)
+=======
+            number = super()._to_number(number_like, id=id)
+            if type(number) not in self._TYPE_TO_DTYPE.keys():
+                self._inputs_not_supported()
+            return number
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TensorOrArrayPair(TensorLikePair):
@@ -3062,9 +3167,13 @@ class TestCase(expecttest.TestCase):
                         # The path isn't strictly correct but it's arguably better than nothing.
                         return os.path.split(abs_test_path)[1]
 
+<<<<<<< HEAD
                     # NB: In Python 3.8, the getfile() call will return a path relative
                     # to the working directory, so convert that to absolute.
                     abs_test_path = os.path.abspath(inspect.getfile(type(self)))
+=======
+                    abs_test_path = inspect.getfile(type(self))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     test_filename = _get_rel_test_path(abs_test_path)
                     class_name = type(self).__name__
                     test_run_cmd = f"python {test_filename} {class_name}.{method_name}"
@@ -3185,6 +3294,16 @@ class TestCase(expecttest.TestCase):
     def wrap_with_cuda_memory_check(self, method):
         return self.wrap_method_with_policy(method, self.assertLeaksNoCudaTensors)
 
+<<<<<<< HEAD
+=======
+    def _dynamo_test_key(self):
+        return f"{self.__class__.__name__}.{self._testMethodName}"
+
+    def compile_fn(self, fn, backend, nopython):
+        # Allows subclasses to control compilation
+        return torch._dynamo.optimize(backend, nopython=nopython)(fn)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _run_custom(self, result=None):
         using_unittest = isinstance(result, unittest.TestResult)
 
@@ -3260,6 +3379,7 @@ class TestCase(expecttest.TestCase):
 
         with unittest.mock.patch("torch._dynamo.config.suppress_errors", suppress_errors), maybe_disable_size_asserts:
             if TEST_WITH_AOT_EAGER:
+<<<<<<< HEAD
                 super_run = torch._dynamo.optimize("aot_eager_decomp_partition")(super_run)
             elif TEST_WITH_TORCHDYNAMO or TEST_WITH_TORCHINDUCTOR:
                 if TEST_WITH_TORCHINDUCTOR:
@@ -3270,6 +3390,18 @@ class TestCase(expecttest.TestCase):
                     super_run = torch._dynamo.optimize("eager_noexcept", nopython=nopython)(super_run)
 
                 key = f"{self.__class__.__name__}.{self._testMethodName}"
+=======
+                super_run = self.compile_fn(super_run, "aot_eager_decomp_partition", nopython)
+            elif TEST_WITH_TORCHDYNAMO or TEST_WITH_TORCHINDUCTOR:
+                if TEST_WITH_TORCHINDUCTOR:
+                    super_run = self.compile_fn(super_run, "inductor", nopython)
+                else:
+                    # Assume eager-generated GraphModules will not error out.
+                    # If we do, this is probably a Dynamo bug!
+                    super_run = self.compile_fn(super_run, "eager_noexcept", nopython)
+
+                key = self._dynamo_test_key()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 def expect_failure(f, file_name):
                     @wraps(f)
@@ -3319,6 +3451,14 @@ class TestCase(expecttest.TestCase):
                     file_name = os.path.join(subdir, key)
                     setattr(self, self._testMethodName, ignore_failure(method, file_name))
 
+<<<<<<< HEAD
+=======
+                from .dynamo_test_failures import compiled_autograd_skips
+                if torch._dynamo.config.compiled_autograd and key in compiled_autograd_skips:
+                    # Still run the test, but with compiled autograd disabled
+                    super_run = runWithoutCompiledAutograd()(super_run)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             super_run(result=result)
 
         if strict_mode or should_reset_dynamo:
@@ -3781,14 +3921,22 @@ class TestCase(expecttest.TestCase):
                         if target is None:
                             target = batch_data[layout] = (ext_coo_indices1, d[1])
                         else:
+<<<<<<< HEAD
                             target[0].set_(torch.cat((target[0], ext_coo_indices1), 1))
+=======
+                            target[0].set_(torch.cat((target[0], ext_coo_indices1), 1))  # type: ignore[call-overload]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             target[1].set_(torch.cat((target[1], d[1])))
                     else:
                         if target is None:
                             target = batch_data[layout] = tuple(d[j].unsqueeze(0) for j in range(len(d)))
                         else:
                             for j in range(len(d)):
+<<<<<<< HEAD
                                 target[j].set_(torch.cat((target[j], d[j].unsqueeze(0))))
+=======
+                                target[j].set_(torch.cat((target[j], d[j].unsqueeze(0))))  # type: ignore[call-overload]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return batch_data
 
         def generate_values(base, densesize):
@@ -3929,7 +4077,11 @@ class TestCase(expecttest.TestCase):
                     ((0, 0), [(1, 2)], [()]),
             ]:
                 for blocksize in blocksizes:
+<<<<<<< HEAD
                     for densesize in densesizes:
+=======
+                    for densesize in densesizes:  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         if layout == torch.strided:
                             indices = ()  # type: ignore[assignment]
                             values = torch.empty((basesize + densesize), device=device, dtype=dtype)
@@ -4525,7 +4677,11 @@ def find_free_port():
 
     NOTE: If this function is being used to allocate a port to Store (or
     indirectly via init_process_group or init_rpc), it should be used
+<<<<<<< HEAD
     in conjuction with the `retry_on_connect_failures` decorator as there is a potential
+=======
+    in conjunction with the `retry_on_connect_failures` decorator as there is a potential
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     race condition where the allocated port may become unavailable before it can be used
     """
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -5251,6 +5407,7 @@ def dtype_name(dtype):
     return str(dtype).split('.')[1]
 
 
+<<<<<<< HEAD
 dtype_abbrs = {
     torch.bfloat16: 'bf16',
     torch.float64: 'f64',
@@ -5268,6 +5425,8 @@ dtype_abbrs = {
 }
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.lru_cache
 def get_cycles_per_ms() -> float:
     """Measure and return approximate number of cycles per millisecond for torch.cuda._sleep
@@ -5587,6 +5746,10 @@ def munge_exc(e, *, suppress_suffix=True, suppress_prefix=True, file=None, skip=
     s = re.sub(r'  File "([^"]+)", line \d+, in (.+)\n(    .+\n( +[~^]+ *\n)?)+', repl_frame, s)
     s = re.sub(r"line \d+", "line N", s)
     s = re.sub(r".py:\d+", ".py:N", s)
+<<<<<<< HEAD
+=======
+    s = re.sub(r'https:/([a-zA-Z0-9_.-]+)', r'https://\1', s)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     s = re.sub(file, _as_posix_path(os.path.basename(file)), s)
     s = re.sub(_as_posix_path(os.path.join(os.path.dirname(torch.__file__), "")), "", s)
     if suppress_suffix:
@@ -5629,7 +5792,11 @@ def check_leaked_tensors(limit=1, matched_type=torch.Tensor):
                 f"{num_garbage_objs} tensors were found in the garbage. Did you introduce a reference cycle?"
             )
             try:
+<<<<<<< HEAD
                 import objgraph  # type: ignore[import-not-found]
+=======
+                import objgraph  # type: ignore[import-not-found,import-untyped]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 warnings.warn(
                     f"Dumping first {limit} objgraphs of leaked {matched_type}s rendered to png"
                 )
@@ -5655,6 +5822,39 @@ def remove_cpp_extensions_build_root():
         else:
             shutil.rmtree(default_build_root, ignore_errors=True)
 
+<<<<<<< HEAD
+=======
+
+def install_cpp_extension(extension_root):
+    # Wipe the build / install dirs if they exist
+    build_dir = os.path.join(extension_root, "build")
+    install_dir = os.path.join(extension_root, "install")
+    for d in (build_dir, install_dir):
+        if os.path.exists(d):
+            shutil.rmtree(d)
+
+    # Build the extension
+    setup_py_path = os.path.join(extension_root, "setup.py")
+    cmd = [sys.executable, setup_py_path, "install", "--root", install_dir]
+    return_code = shell(cmd, cwd=extension_root, env=os.environ)
+    if return_code != 0:
+        raise RuntimeError(f"build failed for cpp extension at {extension_root}")
+
+    mod_install_dir = None
+    # install directory is the one that is named site-packages
+    for root, directories, _ in os.walk(install_dir):
+        for directory in directories:
+            if "-packages" in directory:
+                mod_install_dir = os.path.join(root, directory)
+
+    if mod_install_dir is None:
+        raise RuntimeError(f"installation failed for cpp extension at {extension_root}")
+
+    if mod_install_dir not in sys.path:
+        sys.path.insert(0, mod_install_dir)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Decorator to provide a helper to load inline extensions to a temp directory
 def scoped_load_inline(func):
 

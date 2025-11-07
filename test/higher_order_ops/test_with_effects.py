@@ -67,9 +67,15 @@ def get_fw_bw_graph(
     out = aot_function(
         f,
         fw_compiler=partial(extract_graph, graph_cell=fw_graph_cell),
+<<<<<<< HEAD
         bw_compiler=partial(extract_graph, graph_cell=bw_graph_cell)
         if requires_grad
         else nop,
+=======
+        bw_compiler=(
+            partial(extract_graph, graph_cell=bw_graph_cell) if requires_grad else nop
+        ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         partition_fn=partitioner,
         decompositions=default_decompositions,
         dynamic=dynamic,

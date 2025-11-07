@@ -17,6 +17,7 @@ import torch
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 from torch.jit.mobile import _load_for_lite_interpreter
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -28,6 +29,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestSaveLoadForOpVersion(JitTestCase):
     # Helper that returns the module after saving and loading
     def _save_load_module(self, m):
@@ -617,3 +624,10 @@ class TestSaveLoadForOpVersion(JitTestCase):
             self.assertTrue(output.size(dim=0) == 100)
             # "Upgraded" model should match the new version output
             self.assertEqual(output, output_current)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

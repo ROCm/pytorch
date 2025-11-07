@@ -20,9 +20,12 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 template<typename scalar_t>
 void gemv(char trans, int64_t m, int64_t n, scalar_t alpha, scalar_t *a, int64_t lda, scalar_t *x, int64_t incx, scalar_t beta, scalar_t *y, int64_t incy);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 
 static inline void slow_conv_transpose3d_shape_check(
@@ -299,7 +302,11 @@ void slow_conv_transpose3d_out_cpu_template(
         int64_t elt;
         // For each elt in batch, do:
         for (elt = 0; elt < batch_size; ++elt) {
+<<<<<<< HEAD
           // Matrix mulitply per output:
+=======
+          // Matrix multiply per output:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           input_n = input.select(0, elt);
           output_n = output.select(0, elt);
 
@@ -523,7 +530,11 @@ void slow_conv_transpose3d_backward_out_cpu_template(
         int64_t elt;
         // For each elt in batch, do:
         for (elt = 0; elt < batch_size; ++elt) {
+<<<<<<< HEAD
           // Matrix mulitply per sample:
+=======
+          // Matrix multiply per sample:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           grad_input_n = grad_input.select(0, elt);
           grad_output_n = grad_output.select(0, elt);
 
@@ -739,12 +750,20 @@ void slow_conv_transpose3d_acc_grad_parameters_cpu(
         int64_t elt;
         // For each elt in batch, do:
         for (elt = 0; elt < batch_size; ++elt) {
+<<<<<<< HEAD
           // Matrix mulitply per output:
+=======
+          // Matrix multiply per output:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           grad_output_n = grad_output.select(0, elt);
 
           // Do Weight:
           if (grad_weight.defined()) {
+<<<<<<< HEAD
             // Matrix mulitply per output:
+=======
+            // Matrix multiply per output:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input_n = input.select(0, elt);
 
             if (need_columns) {

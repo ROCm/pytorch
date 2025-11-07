@@ -12,6 +12,10 @@
 #include <torch/csrc/jit/passes/dead_code_elimination.h>
 #include <torch/csrc/jit/passes/inliner.h>
 #include <torch/csrc/jit/runtime/instruction.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/serialization/export.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/serialization/import_export_constants.h>
 #include <torch/csrc/jit/serialization/import_export_functions.h>
 #include <torch/csrc/jit/serialization/import_export_helpers.h>
@@ -86,8 +90,13 @@ namespace {
 namespace onnx_torch = ::torch::onnx;
 namespace onnx = ::ONNX_NAMESPACE;
 
+<<<<<<< HEAD
 const static int kInvalidOpsetVersion = -1;
 const static int kMainOpsetVersion = 20;
+=======
+constexpr int kInvalidOpsetVersion = -1;
+constexpr int kMainOpsetVersion = 23;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Based on OP_SET_ID_VERSION_MAP in
 // https://github.com/onnx/onnx/blob/master/onnx/helper.py.
 constexpr static std::array<int64_t, kMainOpsetVersion + 1>
@@ -113,6 +122,12 @@ constexpr static std::array<int64_t, kMainOpsetVersion + 1>
         8, // opset 18
         9, // opset 19
         9, // opset 20
+<<<<<<< HEAD
+=======
+        10, // opset 21
+        10, // opset 22
+        11, // opset 23
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 std::string getNodeStackTraceString(const Node* n) {

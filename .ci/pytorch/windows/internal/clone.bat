@@ -8,7 +8,11 @@ goto submodule
 
 :clone_pytorch
 
+<<<<<<< HEAD
 git clone https://github.com/%PYTORCH_REPO%/%MODULE_NAME%
+=======
+git clone https://github.com/%PYTORCH_REPO%/%MODULE_NAME% & REM @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 cd %MODULE_NAME%
 

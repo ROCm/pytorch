@@ -271,7 +271,11 @@ void ts_eager_fallback(
   // the temporary eager output tensor that we created.
   //
   // Note [Eager Fallback Does Not Handle View Operators]
+<<<<<<< HEAD
   // Also note that we are incapable of handling immutable alises properly.
+=======
+  // Also note that we are incapable of handling immutable aliases properly.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Why?
   // Schemas with an immutable alias'd tensor outputs correspond to view
   // operators. For example, the `view_as` schema from native_functions.yaml:
@@ -340,7 +344,11 @@ void ts_eager_fallback(
             // We should never hit this for a view op,
             // because LazyTensor should provide a lowering for the
             // corresponding view_copy operator. The functionalization pass will
+<<<<<<< HEAD
             // take care of calling the view_copy operator intead of the view.
+=======
+            // take care of calling the view_copy operator instead of the view.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             TORCH_CHECK(
                 false,
                 "The operator ",

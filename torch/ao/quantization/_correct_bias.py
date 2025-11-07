@@ -119,10 +119,18 @@ def bias_correction(
         float_model, quantized_model, _supported_modules, MeanShadowLogger
     )
 
+<<<<<<< HEAD
     uncorrected_modules = {}
     for name, submodule in quantized_model.named_modules():
         if type(submodule) in target_modules:
             uncorrected_modules[name] = submodule
+=======
+    uncorrected_modules = {
+        name: submodule
+        for name, submodule in quantized_model.named_modules()
+        if type(submodule) in target_modules
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for uncorrected_module in uncorrected_modules:
         quantized_submodule = get_module(quantized_model, uncorrected_module)

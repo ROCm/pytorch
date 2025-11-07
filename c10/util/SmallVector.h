@@ -370,9 +370,15 @@ class SmallVectorTemplateCommon
 /// note
 template <
     typename T,
+<<<<<<< HEAD
     bool = (std::is_trivially_copy_constructible_v<T>)&&(
         std::is_trivially_move_constructible_v<
             T>)&&std::is_trivially_destructible_v<T>>
+=======
+    bool = (std::is_trivially_copy_constructible_v<T>) &&
+        (std::is_trivially_move_constructible_v<T>) &&
+        std::is_trivially_destructible_v<T>>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SmallVectorTemplateBase : public SmallVectorTemplateCommon<T> {
   friend class SmallVectorTemplateCommon<T>;
 

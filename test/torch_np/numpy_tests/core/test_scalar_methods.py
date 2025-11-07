@@ -5,7 +5,10 @@ Test the scalar constructors, which also do type-coercion
 """
 import fractions
 import functools
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import types
 from typing import Any
 from unittest import skipIf as skipif, SkipTest
@@ -222,6 +225,7 @@ class TestClassGetItem(TestCase):
         assert np.number[Any]
 
 
+<<<<<<< HEAD
 @instantiate_parametrized_tests
 class TestClassGetitemMisc(TestCase):
     @skipif(sys.version_info >= (3, 9), reason="Requires python 3.8")
@@ -231,6 +235,8 @@ class TestClassGetitemMisc(TestCase):
             cls[Any]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @skip(reason="scalartype(...).bit_count() not implemented")
 @instantiate_parametrized_tests
 class TestBitCount(TestCase):

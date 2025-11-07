@@ -240,7 +240,11 @@ Node* transformToONNXConcatNode(
   return concat_node;
 }
 
+<<<<<<< HEAD
 void ONNXLintGraph(
+=======
+static void ONNXLintGraph(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Block* b,
     std::vector<NodeKind>& n_miss_source_range,
     std::vector<NodeKind>& n_miss_scope) {

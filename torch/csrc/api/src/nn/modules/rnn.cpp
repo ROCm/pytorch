@@ -21,7 +21,11 @@ using namespace torch::nn::utils::rnn;
 namespace torch::nn {
 
 /// These must line up with the CUDNN mode codes:
+<<<<<<< HEAD
 /// https://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#cudnnRNNMode_t
+=======
+/// https://docs.nvidia.com/deeplearning/cudnn/backend/latest/api/cudnn-adv-library.html#cudnnrnnmode-t
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enum class CuDNNMode { RNN_RELU = 0, RNN_TANH = 1, LSTM = 2, GRU = 3 };
 
 static CuDNNMode get_cudnn_mode_for_rnn(
@@ -852,7 +856,11 @@ void RNNCellImplBase<Derived>::pretty_print(std::ostream& stream) const {
 template <typename Derived>
 void RNNCellImplBase<Derived>::check_forward_input(
     const Tensor& input,
+<<<<<<< HEAD
     const string& name) const {
+=======
+    const std::string& name) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       input.dim() == 1 || input.dim() == 2,
       "Expected ",

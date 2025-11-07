@@ -20,12 +20,17 @@ sys.path.append(pytorch_test_dir)
 from typing import List, Optional, Tuple
 
 from torch.testing import FileCheck
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import (
     disable_autodiff_subgraph_inlining,
     JitTestCase,
 )
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -34,6 +39,8 @@ if __name__ == "__main__":
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @unittest.skipIf(
     GRAPH_EXECUTOR == ProfilingMode.SIMPLE, "Simple Executor doesn't support gradients"
 )
@@ -589,3 +596,10 @@ class TestAutodiffSubgraphSlicing(JitTestCase):
         FileCheck().check("= prim::DifferentiableGraph").check(
             "with prim::DifferentiableGraph"
         ).check(" = aten::relu").check("requires_grad=0").check("aten::relu").run(graph)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

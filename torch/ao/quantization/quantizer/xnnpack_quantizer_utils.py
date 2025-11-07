@@ -165,9 +165,15 @@ def get_bias_qspec(quantization_config: Optional[QuantizationConfig]):
     if quantization_config.bias is None:
         return None
     quantization_spec: QuantizationSpec = quantization_config.bias
+<<<<<<< HEAD
     assert (
         quantization_spec.dtype == torch.float
     ), "Only float dtype for bias is supported for bias right now"
+=======
+    assert quantization_spec.dtype == torch.float, (
+        "Only float dtype for bias is supported for bias right now"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return quantization_spec
 
 

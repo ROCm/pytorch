@@ -20,6 +20,10 @@ from .flex_attention import (
     create_indices_fake,
     create_num_blocks_fake_generator,
     get_bounded_indices_func,
+<<<<<<< HEAD
+=======
+    get_fwd_subgraph_outputs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     load_checked_2d,
     load_checked_block,
     maybe_realize,
@@ -195,11 +199,19 @@ flex_decoding_template = TritonTemplate(
 
     acc, l_i, m_i = forward_inner(
         {{gen_argdefs()}},
+<<<<<<< HEAD
         q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
+=======
+        q, K_block_ptr, V_block_ptr, None, None, Q_LEN, KV_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # accumulatd values
         acc, l_i, m_i,
         #offsets
         off_z, offs_hq[:, None], offs_m[:, None], offs_n[None, :],
+<<<<<<< HEAD
+=======
+        None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #block sparse data
         kv_indices, kv_num_blocks,
         block_n_start, block_n_end if block_n_end <= block_n_last_valid else block_n_last_valid,
@@ -244,11 +256,19 @@ flex_decoding_template = TritonTemplate(
 
         acc, l_i, m_i = forward_inner(
             {{gen_argdefs()}},
+<<<<<<< HEAD
             q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
+=======
+            q, K_block_ptr, V_block_ptr, None, None, Q_LEN, KV_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # accumulatd values
             acc, l_i, m_i,
             #offsets
             off_z, offs_hq[:, None], offs_m[:, None], offs_n[None, :],
+<<<<<<< HEAD
+=======
+            None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             #block sparse data
             kv_indices, kv_num_blocks,
             block_n_start, block_n_end if block_n_end <= block_n_last_valid else block_n_last_valid,
@@ -587,6 +607,17 @@ def create_flex_decoding_kernel(*args, **kwargs):
         input_gen_fns=input_gen_fns,
     )
 
+<<<<<<< HEAD
+=======
+    # need subgraph inputs and outputs to analyze all symints used in flex attention
+    buf_ACC.data.data.subgraph_inps = list(score_mod_other_buffers) + list(
+        mask_mod_other_buffers
+    )
+    buf_ACC.data.data.subgraph_outs = get_fwd_subgraph_outputs(
+        score_mod_subgraph, mask_mod_subgraph
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Reduction
 
     g_M = lowerings[aten.max](buf_M, dim=1, keepdim=True)[0]

@@ -258,19 +258,32 @@ static int getLRUCacheLimit() {
   // 0 is used to indicate no limit
   // negative values are used to indicate no caching
   static int limit = [&] {
+<<<<<<< HEAD
     const char* val = getenv("TORCH_CUDNN_V8_API_LRU_CACHE_LIMIT");
+=======
+    const auto val = c10::utils::get_env("TORCH_CUDNN_V8_API_LRU_CACHE_LIMIT");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!val) {
       return DEFAULT_LIMIT;
     }
     try {
+<<<<<<< HEAD
       return std::stoi(val);
     } catch (std::invalid_argument const& e) {
+=======
+      return std::stoi(val.value());
+    } catch (std::invalid_argument const&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_WARN(
           "invalid TORCH_CUDNN_V8_API_LRU_CACHE_LIMIT,",
           " using default LRU cache limit of ",
           DEFAULT_LIMIT,
           " entries.");
+<<<<<<< HEAD
     } catch (std::out_of_range const& e) {
+=======
+    } catch (std::out_of_range const&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_WARN(
           "invalid TORCH_CUDNN_V8_API_LRU_CACHE_LIMIT,",
           " using default LRU cache limit of ",
@@ -347,7 +360,11 @@ struct BenchmarkCache {
 
 // @eqy: use thread local caches as cuDNN Execution Plans are not guaranteed to
 // be thread safe across all engines see Limitations in
+<<<<<<< HEAD
 // https://docs.nvidia.com/deeplearning/cudnn/release-notes/index.html
+=======
+// https://docs.nvidia.com/deeplearning/cudnn/backend/latest/release-notes.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 thread_local BenchmarkCache<cudnn_frontend::ExecutionPlan, CacheKeyWrapper>
     benchmark_cache;
 thread_local BenchmarkCache<cudnn_frontend::ExecutionPlan, CacheKeyFusedWrapper>
@@ -676,9 +693,15 @@ void generate_and_filter_plans(
       workspace_ptr =
           c10::cuda::CUDACachingAllocator::get()->allocate(max_workspace_size);
       break;
+<<<<<<< HEAD
     } catch (c10::OutOfMemoryError& e) {
       max_workspace_size /= 2;
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (c10::OutOfMemoryError&) {
+      max_workspace_size /= 2;
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       remove_invalid = true;
     }
   }
@@ -876,10 +899,17 @@ void try_plans(
       run_conv_plan(handle, x, y, w, plan, operation);
       benchmark_cache.update(key, plan);
       return;
+<<<<<<< HEAD
     } catch (cudnn_frontend::cudnnException& e) {
     } catch (CuDNNError& e) {
     } catch (c10::OutOfMemoryError& e) {
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (cudnn_frontend::cudnnException&) {
+    } catch (CuDNNError&) {
+    } catch (c10::OutOfMemoryError&) {
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   TORCH_CHECK(
@@ -900,10 +930,17 @@ void try_plans_fused(
       run_conv_plan_fused(handle, x, y, w, z, b, plan);
       benchmark_cache_fused.update(key, plan);
       return;
+<<<<<<< HEAD
     } catch (cudnn_frontend::cudnnException& e) {
     } catch (CuDNNError& e) {
     } catch (c10::OutOfMemoryError& e) {
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (cudnn_frontend::cudnnException&) {
+    } catch (CuDNNError&) {
+    } catch (c10::OutOfMemoryError&) {
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   TORCH_CHECK(
@@ -931,10 +968,17 @@ bool try_configs(
       run_conv_plan(handle, x, y, w, plan, operation);
       benchmark_cache.update(key, plan);
       return true;
+<<<<<<< HEAD
     } catch (cudnn_frontend::cudnnException& e) {
     } catch (CuDNNError& e) {
     } catch (c10::OutOfMemoryError& e) {
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (cudnn_frontend::cudnnException&) {
+    } catch (CuDNNError&) {
+    } catch (c10::OutOfMemoryError&) {
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   return false;
@@ -962,10 +1006,17 @@ bool try_configs_fused(
       run_conv_plan_fused(handle, x, y, w, z, b, plan);
       benchmark_cache_fused.update(key, plan);
       return true;
+<<<<<<< HEAD
     } catch (cudnn_frontend::cudnnException& e) {
     } catch (CuDNNError& e) {
     } catch (c10::OutOfMemoryError& e) {
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (cudnn_frontend::cudnnException&) {
+    } catch (CuDNNError&) {
+    } catch (c10::OutOfMemoryError&) {
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   return false;
@@ -1001,8 +1052,13 @@ void run_single_conv(
     try {
       run_conv_plan(handle, x, y, w, *search, operation);
       return;
+<<<<<<< HEAD
     } catch (c10::OutOfMemoryError& e) {
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (c10::OutOfMemoryError&) {
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   if (!benchmark) {
@@ -1101,8 +1157,13 @@ void run_fused_conv(
     try {
       run_conv_plan_fused(handle, x, y, w, z, b, *search);
       return;
+<<<<<<< HEAD
     } catch (c10::OutOfMemoryError& e) {
       (void)cudaGetLastError(); // clear CUDA error
+=======
+    } catch (c10::OutOfMemoryError&) {
+      std::ignore = cudaGetLastError(); // clear CUDA error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   if (!benchmark) {
@@ -1183,6 +1244,12 @@ void raw_cudnn_convolution_forward_out(
   if (output.numel() == 0) {
     return;
   }
+<<<<<<< HEAD
+=======
+  for (auto it = dilation.begin(); it != dilation.end(); it++) {
+    TORCH_CHECK_VALUE(*it > 0, "Expected positive dilation in convolution.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (at::native::cudnnv8_enabled_check_debug()) {
     run_single_conv(
         CUDNN_BACKEND_OPERATION_CONVOLUTION_FORWARD_DESCRIPTOR,

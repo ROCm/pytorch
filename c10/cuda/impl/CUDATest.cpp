@@ -7,7 +7,11 @@
 
 namespace c10::cuda::impl {
 
+<<<<<<< HEAD
 bool has_cuda_gpu() {
+=======
+static bool has_cuda_gpu() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int count = 0;
   C10_CUDA_IGNORE_ERROR(cudaGetDeviceCount(&count));
 
@@ -22,9 +26,12 @@ int c10_cuda_test() {
   return r;
 }
 
+<<<<<<< HEAD
 // This function is not exported
 int c10_cuda_private_test() {
   return 2;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10::cuda::impl

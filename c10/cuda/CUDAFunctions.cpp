@@ -130,8 +130,13 @@ DeviceIndex current_device() {
   return cur_device;
 }
 
+<<<<<<< HEAD
 void set_device(DeviceIndex device) {
   C10_CUDA_CHECK(c10::cuda::SetDevice(device));
+=======
+void set_device(DeviceIndex device, const bool force) {
+  C10_CUDA_CHECK(c10::cuda::SetDevice(device, force));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void device_synchronize() {
@@ -178,6 +183,10 @@ static bool dummyHasPrimaryContext([[maybe_unused]] DeviceIndex device_index) {
 static bool (*hasPrimaryContext)(DeviceIndex) = dummyHasPrimaryContext;
 
 // Private api to be called from CUDAHooks.cpp
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_CUDA_API void setHasPrimaryContext(bool (*func)(DeviceIndex)) {
   hasPrimaryContext = func ? func : dummyHasPrimaryContext;
 }
@@ -230,9 +239,18 @@ cudaError_t GetDevice(DeviceIndex* device) {
   return err;
 }
 
+<<<<<<< HEAD
 cudaError_t SetDevice(DeviceIndex device) {
   TORCH_CHECK(device >= 0, "device id must be positive!", device);
   targetDeviceIndex = -1;
+=======
+cudaError_t SetDevice(DeviceIndex device, const bool force) {
+  TORCH_CHECK(device >= 0, "device id must be non-negative!", device);
+  targetDeviceIndex = -1;
+  if (force) {
+    return cudaSetDevice(device);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int cur_device = -1;
   C10_CUDA_CHECK(cudaGetDevice(&cur_device));
   if (device == cur_device) {
@@ -308,8 +326,16 @@ cudaError_t GetDevice(DeviceIndex* device) {
   return err;
 }
 
+<<<<<<< HEAD
 cudaError_t SetDevice(DeviceIndex device) {
   TORCH_CHECK(device >= 0, "device id must be positive!", device);
+=======
+cudaError_t SetDevice(DeviceIndex device, const bool force) {
+  TORCH_CHECK(device >= 0, "device id must be non-negative!", device);
+  if (force) {
+    return cudaSetDevice(device);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int cur_device = -1;
   C10_CUDA_CHECK(cudaGetDevice(&cur_device));
   if (device == cur_device) {

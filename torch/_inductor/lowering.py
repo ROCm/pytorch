@@ -40,6 +40,7 @@ from torch._prims_common import (
     Number,
 )
 from torch.fx.experimental.sym_node import magic_methods, method_to_operator
+<<<<<<< HEAD
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.functions import (
     CeilDiv,
@@ -48,6 +49,11 @@ from torch.utils._sympy.functions import (
     IntTrueDiv,
     ModularIndexing,
 )
+=======
+from torch.fx.experimental.symbolic_shapes import free_unbacked_symbols
+from torch.utils._ordered_set import OrderedSet
+from torch.utils._sympy.functions import CeilDiv, FloorDiv, Identity, ModularIndexing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .._dynamo.utils import import_submodule
 from . import config, inductor_prims, ir, test_operators  # NOQA: F401
@@ -78,6 +84,10 @@ from .utils import (
     needs_fallback_due_to_atomic_add_limitations,
     pad_listlike,
     register_op_dtype_propagation_rules,
+<<<<<<< HEAD
+=======
+    register_op_requires_libdevice_fp64,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sympy_product,
     use_scatter_fallback,
 )
@@ -162,6 +172,7 @@ def maybe_layout_constraints(fn: Callable[..., Any]) -> Optional[Callable[..., A
         return None
     if fn in _maybe_layout_constraints:
         return _maybe_layout_constraints[fn]
+<<<<<<< HEAD
     # OpOverload with custom lowerings override tag-based layout constraints
     if fn in lowerings:
         _maybe_layout_constraints[fn] = None
@@ -193,6 +204,21 @@ def get_layout_constraint_tag(fn):
     if torch._library.utils.is_builtin(fn):
         return torch._C.Tag.flexible_layout
     return getattr(torch._C.Tag, config.custom_op_default_layout_constraint)
+=======
+    return None
+
+
+def tag_to_layout_constraint(tag):
+    if tag == torch._C.Tag.needs_exact_strides:
+        return constrain_to_fake_tensors
+    if tag == torch._C.Tag.needs_contiguous_strides:
+        return require_contiguous_strides
+    if tag == torch._C.Tag.needs_fixed_stride_order:
+        return constrain_to_fx_strides
+    if tag == torch._C.Tag.flexible_layout:
+        return None
+    raise AssertionError(f"Unknown layout constraint tag: {tag}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def assert_nyi(cond, msg):
@@ -228,6 +254,10 @@ add_needs_realized_inputs(
         aten.convolution,
         aten.convolution_backward,
         aten.max_pool2d_with_indices,
+<<<<<<< HEAD
+=======
+        aten.max_pool3d_with_indices,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aten.max_pool2d_with_indices_backward,
         aten.mm,
         aten.upsample_nearest2d,
@@ -426,6 +456,10 @@ def _register_lowering(
     broadcast,
     type_promotion_kind: Optional[ELEMENTWISE_TYPE_PROMOTION_KIND],
     convert_input_to_bool,
+<<<<<<< HEAD
+=======
+    lowering_dict,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Add a lowering to lowerings dict
@@ -470,7 +504,11 @@ def _register_lowering(
 
     aten_fn = get_overloads(aten_fn)
 
+<<<<<<< HEAD
     lowerings.update(dict.fromkeys(aten_fn, wrapped))
+=======
+    lowering_dict.update(dict.fromkeys(aten_fn, wrapped))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return wrapped
 
 
@@ -481,6 +519,10 @@ def register_lowering(
         ELEMENTWISE_TYPE_PROMOTION_KIND
     ] = ELEMENTWISE_TYPE_PROMOTION_KIND.DEFAULT,
     convert_input_to_bool=False,
+<<<<<<< HEAD
+=======
+    lowering_dict=lowerings,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
     """
     Shim to support decorator syntax.
@@ -491,6 +533,10 @@ def register_lowering(
         broadcast=broadcast,
         type_promotion_kind=type_promotion_kind,
         convert_input_to_bool=convert_input_to_bool,
+<<<<<<< HEAD
+=======
+        lowering_dict=lowering_dict,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -576,7 +622,10 @@ def make_pointwise(
     override_return_dtype=None,
     override_device=None,
     override_fn_when_input_bool=None,
+<<<<<<< HEAD
     override_fn_when_gpu_float64=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     allow_alpha=False,
     triton_fallback=None,
 ):
@@ -597,7 +646,10 @@ def make_pointwise(
         loaders = [x.make_loader() for x in inputs]
         ranges = inputs[0].get_size()
         dtype = override_return_dtype or inputs[0].get_dtype()
+<<<<<<< HEAD
         is_gpu_device = is_gpu(decode_device(inputs[0].get_device()).type)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for other in inputs[1:]:
             assert isinstance(other, ir.BaseConstant) or len(ranges) == len(
@@ -620,12 +672,15 @@ def make_pointwise(
             assert len(index) == len(ranges), f"wrong ndim {index} {ranges}"
             if dtype == torch.bool and override_fn_when_input_bool is not None:
                 return override_fn_when_input_bool(*[load(index) for load in loaders])
+<<<<<<< HEAD
             elif (
                 override_fn_when_gpu_float64
                 and is_gpu_device
                 and dtype == torch.float64
             ):
                 return override_fn_when_gpu_float64(*[load(index) for load in loaders])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 inputs_loaded = []
                 for inp_index, load in enumerate(loaders):
@@ -845,17 +900,23 @@ def register_pointwise(
     override_return_dtype=None,
     override_fn_when_input_bool=None,
     allow_alpha=False,
+<<<<<<< HEAD
     use_libdevice_for_f64=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     triton_fallback=None,
 ):
     """A pointwise function that maps ops.{name} to inputs"""
     name = name or aten_fn.__name__
     fn = ops_wrapper(name)
+<<<<<<< HEAD
     if use_libdevice_for_f64:
         fn_libdevice = ops_wrapper("libdevice_" + name)
         register_op_dtype_propagation_rules(
             "libdevice_" + name, type_promotion_kind, override_return_dtype
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     register_op_dtype_propagation_rules(
         name, type_promotion_kind, override_return_dtype
@@ -868,7 +929,10 @@ def register_pointwise(
         fn,
         override_return_dtype=override_return_dtype,
         override_fn_when_input_bool=override_fn_when_input_bool,
+<<<<<<< HEAD
         override_fn_when_gpu_float64=fn_libdevice if use_libdevice_for_f64 else None,  # type: ignore[possibly-undefined]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         allow_alpha=allow_alpha,
         triton_fallback=triton_fallback,
     )
@@ -1093,8 +1157,11 @@ def trunc(x):
 
 @register_lowering(aten.expand, type_promotion_kind=None)
 def expand(x, sizes):
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import free_unbacked_symbols
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     (x,) = promote_constants([x])
     if isinstance(x, ir.BaseConstant):
         return ExpandView.create(x, tuple(sizes))
@@ -1104,7 +1171,13 @@ def expand(x, sizes):
         return x
 
     if not free_unbacked_symbols(x.get_size()):
+<<<<<<< HEAD
         x_size_product = V.graph.sizevars.size_hint(sympy_product(x.get_size()))
+=======
+        x_size_product = V.graph.sizevars.size_hint_or_throw(
+            sympy_product(x.get_size())
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: It would be better to realize the input if any of its sizes
         # are unbacked, because typically the size will be non-zero.  However,
         # this cannot be done directly as below as we'll choke on the size_hint
@@ -1112,7 +1185,12 @@ def expand(x, sizes):
         if x_size_product > 0 and not free_unbacked_symbols(sizes):
             # maybe realize input before broadcasting it
             x.mark_reuse(
+<<<<<<< HEAD
                 V.graph.sizevars.size_hint(sympy_product(sizes)) // x_size_product
+=======
+                V.graph.sizevars.size_hint_or_throw(sympy_product(sizes))
+                // x_size_product
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
     return TensorBox(ExpandView.create(x.data, tuple(sizes)))
 
@@ -1170,12 +1248,24 @@ def repeat(x, repeats):
                     index[i] = ModularIndexing(index[i], 1, old_size[i])
         return x_loader(index)
 
+<<<<<<< HEAD
     old_size_product = V.graph.sizevars.size_hint(sympy_product(old_size))
     if old_size_product > 0:
         # maybe realize the input
         x.mark_reuse(
             V.graph.sizevars.size_hint(sympy_product(new_size)) // old_size_product
         )
+=======
+    if not free_unbacked_symbols(old_size) and not free_unbacked_symbols(new_size):
+        old_size_product = V.graph.sizevars.size_hint_or_throw(sympy_product(old_size))
+        if old_size_product > 0:
+            # maybe realize the input but skip for unbacked symints since it'll
+            # choke on the size hint.
+            x.mark_reuse(
+                V.graph.sizevars.size_hint_or_throw(sympy_product(new_size))
+                // old_size_product
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     x_loader = x.make_loader()
     return Pointwise.create(
@@ -1846,8 +1936,15 @@ def unfold(x, dimension, size, step):
     sizevars.guard_lt(0, step)  # type: ignore[arg-type]
 
     new_dim_size = FloorDiv(dim_size - size, step) + 1
+<<<<<<< HEAD
     if sizevars.size_hint(dim_size) > 0:
         x.mark_reuse(sizevars.size_hint(CeilDiv(new_dim_size * size, dim_size)))
+=======
+    if sizevars.size_hint_or_throw(dim_size) > 0:
+        x.mark_reuse(
+            sizevars.size_hint_or_throw(CeilDiv(new_dim_size * size, dim_size))
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     out_size = [*sizes[:dim], new_dim_size, *sizes[dim + 1 :], size]
 
@@ -1912,7 +2009,11 @@ def fallback_handler(kernel, add_to_fallback_set=True):
     return handler
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _warn_complex_not_supported():
     warnings.warn(
         "Torchinductor does not support code generation for complex operators. Performance may be worse than eager."
@@ -1921,6 +2022,7 @@ def _warn_complex_not_supported():
 
 # There are some types (CPU) which we accept as input but not as
 # output.
+<<<<<<< HEAD
 def unsupported_input_tensor(t: torch.Tensor, parent=None, node=None):
     "Do not support reading or writing to this tensor"
     if t.is_complex():
@@ -1933,6 +2035,18 @@ def unsupported_input_tensor(t: torch.Tensor, parent=None, node=None):
         _warn_complex_not_supported()
         return True
 
+=======
+def unsupported_input_tensor(t: torch.Tensor, node=None):
+    "Do not support reading or writing to this tensor"
+    if t.is_complex():
+        # Complex views are supported with IR ComplexView
+        _warn_complex_not_supported()
+        return True
+
+    if t.is_meta:
+        return True
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if t.dtype == torch.float8_e8m0fnu:
         if not node:
             return True
@@ -1940,20 +2054,44 @@ def unsupported_input_tensor(t: torch.Tensor, parent=None, node=None):
         # allow bitcast, views, memory movement, but not arithmetic
         # TODO: delete once triton adds native support
         return not (
+<<<<<<< HEAD
             node.target
             in (
                 aten.view.dtype,
                 aten.cat.default,
             )
             or is_view(node.target)
+=======
+            isinstance(node.target, torch._ops.OpOverload)
+            and node.target
+            in (
+                aten.view.dtype,
+                aten.cat.default,
+                aten.clone.default,
+                aten._scaled_mm.default,
+            )
+            or (isinstance(node.target, torch._ops.OpOverload) and is_view(node.target))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     return False
 
 
+<<<<<<< HEAD
 def unsupported_output_tensor(t: torch.Tensor, parent=None, node=None):
     "Do not support writing tensor but can read from it"
     if unsupported_input_tensor(t, parent):
+=======
+def unsupported_output_tensor(t: torch.Tensor, node=None):
+    "Do not support writing tensor but can read from it"
+    supported_complex_views = (
+        aten.view.dtype,
+        torch.ops.prims.convert_element_type.default,
+    )
+    if node is not None and node.target in supported_complex_views and t.is_complex():
+        return False
+    if unsupported_input_tensor(t, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
     return t.is_cpu and config.disable_cpp_codegen
 
@@ -1963,10 +2101,17 @@ def fallback_node_due_to_unsupported_type(node: torch.fx.Node, allow_cpu_inputs=
     if node.target is aten.view_as_complex.default:
         return False
 
+<<<<<<< HEAD
+=======
+    if node.op == "placeholder":
+        return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # We should be able to remove this special case once `disable_cpp_codegen` is killed.
     if node.target is aten.lift_fresh_copy.default:
         return False
 
+<<<<<<< HEAD
     def check_skip_condition(node, parent, is_output):
         if not isinstance(node, torch.fx.Node):
             return False
@@ -1975,24 +2120,48 @@ def fallback_node_due_to_unsupported_type(node: torch.fx.Node, allow_cpu_inputs=
             return False
 
         for meta in pytree.tree_leaves(node.meta["val"]):
+=======
+    def check_skip_condition(inp_out_node, is_output):
+        if not isinstance(inp_out_node, torch.fx.Node):
+            return False
+
+        if "val" not in inp_out_node.meta:
+            return False
+
+        for meta in pytree.tree_leaves(inp_out_node.meta["val"]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not isinstance(meta, torch._subclasses.FakeTensor):
                 continue
 
             if is_output:
+<<<<<<< HEAD
                 if unsupported_output_tensor(meta, parent, node):
                     return True
             else:
                 if unsupported_input_tensor(meta, parent, node):
+=======
+                if unsupported_output_tensor(meta, node):
+                    return True
+            else:
+                if unsupported_input_tensor(meta, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return True
 
         return False
 
     # only skip codegen if there is a cpu output, not input
     for arg in pytree.arg_tree_leaves(*node.args, **node.kwargs):
+<<<<<<< HEAD
         if check_skip_condition(arg, node, is_output=False):
             return True
 
     return check_skip_condition(node, node, is_output=True)
+=======
+        if check_skip_condition(arg, is_output=False):
+            return True
+
+    return check_skip_condition(node, is_output=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def make_fallback(op, layout_constraint=None, warn=True, override_decomp=False):
@@ -2359,15 +2528,31 @@ def searchsorted(
             )
 
     device = self.get_device()
+<<<<<<< HEAD
     return Pointwise.create(
+=======
+    result = Pointwise.create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=device,
         dtype=index_dtype,
         inner_fn=inner_fn,
         ranges=self.shape,
     )
+<<<<<<< HEAD
 
 
 @register_lowering(aten.bucketize, type_promotion_kind=None)
+=======
+    # see [NOTE: inductor bucketize realize]
+    result.realize()
+
+    return result
+
+
+@register_lowering(
+    aten.bucketize, type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.NO_OPMATH
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def bucketize(
     input: TensorBox,
     boundaries: TensorBox,
@@ -2407,13 +2592,31 @@ def bucketize(
 
         return indices
 
+<<<<<<< HEAD
     return Pointwise.create(
+=======
+    result = Pointwise.create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=device,
         dtype=index_dtype,
         inner_fn=inner_fn,
         ranges=input.get_size(),
     )
 
+<<<<<<< HEAD
+=======
+    # [NOTE: inductor bucketize realize]
+    # bucketize_binary_search is relatively expensive, so we don't want to re-compute
+    # it unnecessarily. If we run bucketize() and then broadcast the result, we don't
+    # want this to be fused into a large number of duplicate bucketize() computations
+    # for each of the elements in the result.
+    #
+    # If no broadcasting occurs, fusions can still occur in scheduler.py
+    result.realize()
+
+    return result
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def require_dense(_, *args, **kwargs):
     args, kwargs = pytree.tree_map_only(
@@ -2429,6 +2632,18 @@ def require_contiguous(_, *args, **kwargs):
     return args, kwargs
 
 
+<<<<<<< HEAD
+=======
+def require_contiguous_strides(_, *args, **kwargs):
+    # TODO: combine this with require_contiguous after
+    # https://github.com/pytorch/pytorch/pull/148235 lands.
+    args, kwargs = pytree.tree_map_only(
+        ir.IRNode, ir.ExternKernel.require_contiguous_strides, (args, kwargs)
+    )
+    return args, kwargs
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def require_channels_last(_, *args, **kwargs):
     args, kwargs = pytree.tree_map_only(
         ir.IRNode, ir.ExternKernel.require_channels_last, (args, kwargs)
@@ -2436,6 +2651,7 @@ def require_channels_last(_, *args, **kwargs):
     return args, kwargs
 
 
+<<<<<<< HEAD
 def constrain_to_fake_tensors(args, kwargs, fake_args, fake_kwargs):
     def apply_constraint(arg, fake_arg):
         if isinstance(arg, ir.IRNode):
@@ -2458,6 +2674,31 @@ def constrain_to_fake_tensors(args, kwargs, fake_args, fake_kwargs):
         apply_constraint(arg, fake_arg) for arg, fake_arg in zip(args, fake_args)
     )
     kwargs = {k: apply_constraint(v, fake_kwargs[k]) for k, v in kwargs.items()}
+=======
+def constrain_to_fake_tensor(arg, fake_arg):
+    if isinstance(arg, ir.IRNode):
+        meta_stride_expr = [
+            s.node.expr if isinstance(s, torch.SymInt) else s for s in fake_arg.stride()
+        ]
+        return ir.ExternKernel.require_exact_strides(arg, meta_stride_expr)
+    if isinstance(arg, dict):
+        return {
+            key: constrain_to_fake_tensor(arg[key], fake_arg[key]) for key in arg.keys()
+        }
+    elif isinstance(arg, (tuple, list)):
+        return type(arg)(
+            constrain_to_fake_tensor(a, f_a) for (a, f_a) in zip(arg, fake_arg)
+        )
+    return arg
+
+
+def constrain_to_fake_tensors(args, kwargs, fake_args, fake_kwargs):
+    args = tuple(
+        constrain_to_fake_tensor(arg, fake_arg)
+        for arg, fake_arg in zip(args, fake_args)
+    )
+    kwargs = {k: constrain_to_fake_tensor(v, fake_kwargs[k]) for k, v in kwargs.items()}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return args, kwargs
 
 
@@ -2616,8 +2857,12 @@ def sdpa_constraint(fx_node, *args, **kwargs):
 # WIP
 make_fallback(aten._adaptive_avg_pool3d)  # @isuruf
 make_fallback(aten.adaptive_max_pool3d)  # @isuruf
+<<<<<<< HEAD
 make_fallback(aten.fractional_max_pool3d)  # @isuruf
 make_fallback(aten.max_pool3d_with_indices)  # @isuruf (can this one be implemented?)
+=======
+make_fallback(aten._scaled_dot_product_attention_math_for_mps)  # @malfet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # 1) Easy
@@ -2625,6 +2870,14 @@ make_fallback(aten.uniform, warn=False)
 make_fallback(aten.exponential.default, warn=False)  # (fails accuracy on test_torch.py)
 make_fallback(aten._pdist_forward)  # Has decomp. Needs benchmarks
 make_fallback(aten.soft_margin_loss_backward, warn=False)  # py_impl?
+<<<<<<< HEAD
+=======
+make_fallback(aten._fused_rms_norm, warn=False)  # (MPS-only and faster than decomp)
+if torch.xpu.is_available():
+    make_fallback(
+        aten.embedding_dense_backward, warn=False
+    )  # (XPU-only and faster than decomp)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # 1.5) Easy or Impossible
@@ -2652,6 +2905,11 @@ make_fallback(aten._histogramdd_from_bin_cts.default)
 make_fallback(aten.addbmm)
 make_fallback(aten._addmm_activation, warn=False)
 
+<<<<<<< HEAD
+=======
+make_fallback(aten._grouped_mm, require_dense)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Need templated kernel. Probably impossible to write efficiently
 make_fallback(aten.convolution_backward, constrain_to_fx_strides)
 make_fallback(aten._cudnn_rnn, require_dense)
@@ -2737,7 +2995,11 @@ make_fallback(torch._prims.rng_prims.run_with_rng_state)
 make_fallback(torch._prims.rng_prims.graphsafe_run_with_rng_state)
 
 
+<<<<<<< HEAD
 # Implmented / Half implemented
+=======
+# Implemented / Half implemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Scans. Implemented for CUDA, missing CPU
 make_fallback(aten.masked_scatter)
 make_fallback(aten.masked_scatter_backward)
@@ -3118,6 +3380,10 @@ def _assert_scalar(data, msg):
     # NB: These will be handled at codegen time
     # Not sure if we are guaranteed to be able to serve out truth from the
     # deferred_runtime_asserts, TODO: try this assert out
+<<<<<<< HEAD
+=======
+    # See [NOTE] Codegen runtime asserts in Inductor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # assert bool(data.scalar), data
     return None
 
@@ -3326,7 +3592,11 @@ def new_empty_strided(
 
 @register_lowering(prims.copy_strided.default)
 def copy_strided(x, stride):
+<<<<<<< HEAD
     stride = [V.graph.sizevars.size_hint(s) for s in stride]
+=======
+    stride = [V.graph.sizevars.size_hint_or_throw(s) for s in stride]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stride_order = sorted(range(len(stride)), key=stride.__getitem__)
     return ir.ExternKernel.require_stride_order(x, stride_order)
 
@@ -3346,7 +3616,10 @@ def gather(x, dim, index, sparse_grad=False):
         # Empty index case. Return an empty array with the same shape
         return new_empty(x, index.get_size())
 
+<<<<<<< HEAD
     assert index.get_dtype() == torch.int64
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size = x.get_size()
     offset = len(size) == 0
     dim = _validate_dim(x, dim, offset)
@@ -3377,6 +3650,14 @@ def gather(x, dim, index, sparse_grad=False):
 
 @register_lowering(aten.embedding, type_promotion_kind=None)
 def embedding(weight, indices, padding_idx=-1, scale_grad_by_freq=False, sparse=False):
+<<<<<<< HEAD
+=======
+    if sparse:
+        return fallback_handler(aten.embedding.default)(
+            weight, indices, padding_idx, scale_grad_by_freq, sparse
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert not sparse
     assert isinstance(weight, TensorBox)
     assert isinstance(indices, TensorBox)
@@ -3576,7 +3857,11 @@ def _unsafe_index(x, indices):
 # https://github.com/pytorch/torchdynamo/issues/1235
 # and
 # https://github.com/pytorch/torchdynamo/issues/1863
+<<<<<<< HEAD
 @register_lowering(aten.index_put)
+=======
+@register_lowering(aten.index_put, type_promotion_kind=None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def index_put(x, indices, values, accumulate=False):
     return index_put_impl_(
         clone(x), indices, values, accumulate, check=True, may_realize=False
@@ -3599,6 +3884,7 @@ def index_put_as_masked_fill(self, indices, value, accumulate):
 
 
 def index_put_fallback(self, indices, values, accumulate):
+<<<<<<< HEAD
     deterministic = torch.are_deterministic_algorithms_enabled()
     if is_triton(values) and (accumulate or deterministic):
         msg = (
@@ -3610,6 +3896,8 @@ def index_put_fallback(self, indices, values, accumulate):
             msg = f"{msg} Found from : \n {stack_trace}"
         V.graph.disable_cudagraphs_reason = msg
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ir.IndexPutFallback(V.graph.current_node.target, self, indices, values, accumulate)
     return self
 
@@ -4319,14 +4607,32 @@ def constant_boundary_condition(
     return load
 
 
+<<<<<<< HEAD
 def pooling_size(x, i, kernel_size, stride, padding, ceil_mode):
     x_out = FloorDiv(
         x + 2 * padding[i] - (kernel_size[i] - 1) + (stride[i] - 1), stride[i]
+=======
+def pooling_size(x, i, kernel_size, stride, padding, ceil_mode, *, dilation=None):
+    if dilation is None:
+        dilation = [1] * len(padding)
+
+    x_out = FloorDiv(
+        x + 2 * padding[i] - dilation[i] * (kernel_size[i] - 1) + (stride[i] - 1),
+        stride[i],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     if ceil_mode:
         x_alt = FloorDiv(
+<<<<<<< HEAD
             x + 2 * padding[i] - (kernel_size[i] - 1) + 2 * (stride[i] - 1), stride[i]
+=======
+            x
+            + 2 * padding[i]
+            - dilation[i] * (kernel_size[i] - 1)
+            + 2 * (stride[i] - 1),
+            stride[i],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         if V.graph.sizevars.size_hint((x_alt - 1) * stride[i] - x - padding[i]) >= 0:
             # Sliding windows must start within the input or left padding
@@ -4341,6 +4647,7 @@ def pooling_size(x, i, kernel_size, stride, padding, ceil_mode):
     return x_out, ceil_mode
 
 
+<<<<<<< HEAD
 def should_fallback_max_pool2d_with_indices(kernel_size, dilation):
     kernel_size = pad_listlike(kernel_size, 2)
     window_size = kernel_size[0] * kernel_size[1]
@@ -4370,18 +4677,54 @@ def max_pool2d_checks(
     assert len(x.get_size()) in (3, 4)
 
     use_fallback = should_fallback_max_pool2d_with_indices(kernel_size, dilation)
+=======
+def should_fallback_max_pool_with_indices(kernel_size, *, n_dim):
+    kernel_size = pad_listlike(kernel_size, n_dim)
+    window_size = functools.reduce(operator.mul, kernel_size)
+    return window_size > 25
+
+
+def max_pool_checks(
+    x, kernel_size, stride, padding, dilation, n_dim, *, assert_fallback=None
+):
+    if padding == 0:
+        padding = [0] * n_dim
+    if dilation == 1:
+        dilation = [1] * n_dim
+    if not stride:
+        stride = kernel_size
+
+    kernel_size = pad_listlike(kernel_size, n_dim)
+    stride = pad_listlike(stride, n_dim)
+    padding = pad_listlike(padding, n_dim)
+    dilation = pad_listlike(dilation, n_dim)
+
+    assert isinstance(x, TensorBox)
+    assert len(kernel_size) == n_dim
+    assert len(stride) == n_dim
+    assert len(padding) == n_dim
+    assert len(dilation) == n_dim
+    assert len(x.get_size()) in (n_dim + 1, n_dim + 2)
+
+    use_fallback = should_fallback_max_pool_with_indices(kernel_size, n_dim=n_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if assert_fallback is not None:
         assert use_fallback == assert_fallback
 
     return kernel_size, stride, padding, dilation, use_fallback
 
 
+<<<<<<< HEAD
 def _max_pool2d_with_offsets(
+=======
+def _max_pool_with_offsets(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     x,
     kernel_size,
     stride,
     padding,
     dilation,
+<<<<<<< HEAD
     ceil_mode=False,
 ):
     x.realize_hint()
@@ -4389,6 +4732,24 @@ def _max_pool2d_with_offsets(
 
     h_out, ceil_mode1 = pooling_size(h, 0, kernel_size, stride, padding, ceil_mode)
     w_out, ceil_mode2 = pooling_size(w, 1, kernel_size, stride, padding, ceil_mode)
+=======
+    ceil_mode,
+    *,
+    n_dim,
+):
+    x.realize_hint()
+    batch = x.shape[:-n_dim]
+    dhw = x.shape[-n_dim:]
+
+    dhw_out, ceil_mode = zip(
+        *[
+            pooling_size(
+                dhw[d], d, kernel_size, stride, padding, ceil_mode, dilation=dilation
+            )
+            for d in range(n_dim)
+        ]
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     dtype = x.dtype
     min_value = (
@@ -4397,6 +4758,7 @@ def _max_pool2d_with_offsets(
         else (float("-inf") if dtype.is_floating_point else torch.iinfo(dtype).min)
     )
 
+<<<<<<< HEAD
     new_size = list(batch) + [h_out, w_out]
     if padding[0] or padding[1] or ceil_mode1 or ceil_mode2:
         x_loader = constant_boundary_condition(x, min_value, dim=2)
@@ -4409,6 +4771,21 @@ def _max_pool2d_with_offsets(
         prefix = idx[:-dim]
         bh = idx[-dim:]
         ih = [bh[i] * stride[i] + reduction_idx[i] - padding[i] for i in range(dim)]
+=======
+    new_size = list(batch) + list(dhw_out)
+    if any(padding) or any(ceil_mode) or any(d > 1 for d in dilation):
+        x_loader = constant_boundary_condition(x, min_value, dim=n_dim)
+    else:
+        x_loader = x.make_loader()
+
+    def fn_inner(idx, reduction_idx):
+        prefix = idx[:-n_dim]
+        bh = idx[-n_dim:]
+        ih = [
+            (bh[i] * stride[i]) + (reduction_idx[i] * dilation[i]) - padding[i]
+            for i in range(n_dim)
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x_loader([*prefix, *ih])
 
     result = Reduction.create(
@@ -4441,8 +4818,13 @@ def _max_pool2d_with_offsets(
     return result, offsets
 
 
+<<<<<<< HEAD
 @register_lowering(prims._low_memory_max_pool2d_with_offsets, type_promotion_kind=None)
 def _low_memory_max_pool2d_with_offsets(
+=======
+@register_lowering(prims._low_memory_max_pool_with_offsets, type_promotion_kind=None)
+def _low_memory_max_pool_with_offsets(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     x,
     kernel_size,
     stride,
@@ -4450,28 +4832,48 @@ def _low_memory_max_pool2d_with_offsets(
     dilation,
     ceil_mode=False,
 ):
+<<<<<<< HEAD
     # assert we are not on a fallback path, the inductor decomp should have guaranteed this
     kernel_size, stride, padding, dilation, _ = max_pool2d_checks(
+=======
+    n_dim = len(kernel_size)
+
+    # assert we are not on a fallback path, the inductor decomp should have guaranteed this
+    kernel_size, stride, padding, dilation, _ = max_pool_checks(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x,
         kernel_size,
         stride,
         padding,
         dilation,
+<<<<<<< HEAD
+=======
+        n_dim,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert_fallback=False,
     )
 
     with config.patch(unroll_reductions_threshold=25):
+<<<<<<< HEAD
         result, offsets = _max_pool2d_with_offsets(
+=======
+        result, offsets = _max_pool_with_offsets(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x,
             kernel_size,
             stride,
             padding,
             dilation,
             ceil_mode,
+<<<<<<< HEAD
+=======
+            n_dim=n_dim,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return result, to_dtype(offsets, torch.int8)
 
 
+<<<<<<< HEAD
 @register_lowering(
     prims._low_memory_max_pool2d_offsets_to_indices, type_promotion_kind=None
 )
@@ -4497,6 +4899,29 @@ def _low_memory_max_pool2d_offsets_to_indices(
         h_inc = offset // kw_const
         w_inc = offset - (h_inc * kw_const)
         return increments_to_index(h_inc, w_inc, bh, bw)
+=======
+def _pool_offsets_to_indices(
+    offsets: TensorBox,
+    kernel_size: Sequence[Union[int, torch.SymInt]],
+    input_size: Sequence[Union[int, torch.SymInt]],
+    increments_to_index: Callable[
+        [Sequence[Union[int, torch.SymInt]], Sequence[Union[int, torch.SymInt]]],
+        torch._inductor.virtualized.OpsValue,
+    ],
+) -> TensorBox:
+    n_dim = len(kernel_size)
+    offsets_loader = offsets.make_loader()
+    window_size = sympy.sympify(functools.reduce(operator.mul, kernel_size))
+
+    def offsets_to_indices(idx):
+        offset = offsets_loader(idx)
+        offset_sympy = ops.indirect_indexing(offset, window_size)
+        reduction_idx = inductor_prims._flattened_index_to_nd(offset_sympy, kernel_size)
+        idhw = increments_to_index(idx, reduction_idx)
+        return ops.index_expr(
+            inductor_prims._flatten_index(idhw, input_size[-n_dim:]), torch.int64
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     indices = Pointwise.create(
         device=offsets.get_device(),
@@ -4507,10 +4932,61 @@ def _low_memory_max_pool2d_offsets_to_indices(
     return indices
 
 
+<<<<<<< HEAD
 fallback_max_pool2d_with_indices = fallback_handler(
     aten.max_pool2d_with_indices.default,
     add_to_fallback_set=False,
 )
+=======
+@register_lowering(
+    prims._low_memory_max_pool_offsets_to_indices, type_promotion_kind=None
+)
+def _low_memory_max_pool_offsets_to_indices(
+    offsets, kernel_size, input_size, stride, padding, dilation
+):
+    # TODO: Generalize to other max pooling flavors
+    n_dim = len(kernel_size)
+
+    def increments_to_index(idx, reduction_idx):
+        bh = idx[-n_dim:]
+        return [
+            (bh[i] * stride[i]) + (reduction_idx[i] * dilation[i]) - padding[i]
+            for i in range(n_dim)
+        ]
+
+    return _pool_offsets_to_indices(
+        offsets, kernel_size, input_size, increments_to_index
+    )
+
+
+def _max_pool_with_indices(
+    x,
+    kernel_size,
+    stride,
+    padding,
+    dilation,
+    ceil_mode,
+    n_dim,
+):
+    kernel_size, stride, padding, dilation, _ = max_pool_checks(
+        x, kernel_size, stride, padding, dilation, n_dim=n_dim
+    )
+
+    out, offsets = _max_pool_with_offsets(
+        x, kernel_size, stride, padding, dilation, ceil_mode, n_dim=n_dim
+    )
+
+    indices = _low_memory_max_pool_offsets_to_indices(
+        offsets,
+        kernel_size,
+        x.shape[-n_dim:],
+        stride,
+        padding,
+        dilation,
+    )
+
+    return out, indices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Fallback when we do not decompose to the low-memory path.
@@ -4523,6 +4999,7 @@ def max_pool2d_with_indices(
     dilation=1,
     ceil_mode=False,
 ):
+<<<<<<< HEAD
     kernel_size, stride, padding, dilation, _ = max_pool2d_checks(
         x, kernel_size, stride, padding, dilation
     )
@@ -4542,6 +5019,27 @@ def max_pool2d_with_indices(
 
     return out, indices
 
+=======
+    return _max_pool_with_indices(
+        x, kernel_size, stride, padding, dilation, ceil_mode, n_dim=2
+    )
+
+
+# Fallback when we do not decompose to the low-memory path.
+@register_lowering(aten.max_pool3d_with_indices, type_promotion_kind=None)
+def max_pool3d_with_indices(
+    x,
+    kernel_size,
+    stride=None,
+    padding=0,
+    dilation=1,
+    ceil_mode=False,
+):
+    return _max_pool_with_indices(
+        x, kernel_size, stride, padding, dilation, ceil_mode, n_dim=3
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 fallback_max_pool2d_with_indices_backward = fallback_handler(
     aten.max_pool2d_with_indices_backward.default,
@@ -4987,21 +5485,28 @@ def adaptive_max_pool2d(x, output_size):
     return rv, ri
 
 
+<<<<<<< HEAD
 fallback_fractional_max_pool2d = fallback_handler(
     aten.fractional_max_pool2d.default, add_to_fallback_set=False
 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _fractional_pooling_offsets(samples, in_sz, out_sz, kernel_sz, dim, ndims):
     out_sz = out_sz[dim]
     in_sz = in_sz[dim]
     kernel_sz = kernel_sz[dim]
+<<<<<<< HEAD
     alpha = IntTrueDiv(in_sz - kernel_sz, out_sz - 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     samples_loader = samples.make_loader()
 
     def load(prefix, i):
         sample = samples_loader([*prefix, ndims - 1 - dim])
         i_expr = ops.index_expr(i, samples.get_dtype())
+<<<<<<< HEAD
         alpha_expr = ops.index_expr(alpha, samples.get_dtype())
         seq_i = ops.trunc((i_expr + sample) * alpha_expr) - ops.trunc(
             sample * alpha_expr
@@ -5013,12 +5518,25 @@ def _fractional_pooling_offsets(samples, in_sz, out_sz, kernel_sz, dim, ndims):
             ops.index_expr(out_sz - 1, torch.int64),
         )
         return ops.where(mask, seq_i, ops.index_expr(in_sz - kernel_sz, torch.int64))
+=======
+        diff = ops.index_expr(in_sz - kernel_sz, torch.int64)
+        out_sz_expr = ops.index_expr(out_sz - 1, torch.int64)
+        alpha = ops.truediv(
+            ops.to_dtype(diff, torch.float64), ops.to_dtype(out_sz_expr, torch.float64)
+        )
+        alpha = ops.where(ops.eq(out_sz_expr, 0), 0, alpha)
+        seq_i = ops.trunc((i_expr + sample) * alpha) - ops.trunc(sample * alpha)
+        seq_i = ops.to_dtype(seq_i, torch.int64)
+        mask = ops.lt(i_expr, out_sz_expr)
+        return ops.indirect_indexing(ops.where(mask, seq_i, diff), sympy.sympify(in_sz))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return load
 
 
 @register_lowering(aten.fractional_max_pool2d)
 def fractional_max_pool2d(x, kernel_size, output_size, random_samples):
+<<<<<<< HEAD
     x.realize_hint()
     *batch, inp_h, inp_w = x.get_size()
     kernel_h, kernel_w = kernel_size
@@ -5086,6 +5604,80 @@ def fractional_max_pool2d(x, kernel_size, output_size, random_samples):
         ranges=new_size,
     )
     return rv, ri
+=======
+    return _fractional_max_pool(x, kernel_size, output_size, random_samples, n_dim=2)
+
+
+@register_lowering(aten.fractional_max_pool3d)
+def fractional_max_pool3d(x, kernel_size, output_size, random_samples):
+    return _fractional_max_pool(x, kernel_size, output_size, random_samples, n_dim=3)
+
+
+def _fractional_max_pool(x, kernel_size, output_size, random_samples, n_dim):
+    x.realize_hint()
+    batch, inp_dhw = x.shape[:-n_dim], x.shape[-n_dim:]
+
+    with config.patch(unroll_reductions_threshold=25):
+        dhw_index_fn = [
+            _fractional_pooling_offsets(
+                samples=random_samples,
+                in_sz=inp_dhw,
+                out_sz=output_size,
+                kernel_sz=kernel_size,
+                ndims=n_dim,
+                dim=d,
+            )
+            for d in range(n_dim)
+        ]
+
+        x_loader = x.make_loader()
+
+        def fn_inner(idx, reduction_idx):
+            prefix = idx[:-n_dim]
+            return x_loader([*prefix, *increments_to_index(idx, reduction_idx)])
+
+        def increments_to_index(idx, reduction_idx):
+            prefix = idx[:-n_dim]
+            bdhw = idx[-n_dim:]
+            return [
+                dhw_index_fn[d](prefix, bdhw[d]) + reduction_idx[d]
+                for d in range(n_dim)
+            ]
+
+        new_size = list(batch) + list(output_size)
+        dtype = x.get_dtype()
+        result = Reduction.create(
+            reduction_type="max",
+            input_node=x,
+            device=x.get_device(),
+            dst_dtype=dtype,
+            src_dtype=dtype,
+            inner_fn=fn_inner,
+            ranges=new_size,
+            reduction_ranges=kernel_size,
+        )
+        offsets = Reduction.create(
+            reduction_type="argmax",
+            input_node=x,
+            device=x.get_device(),
+            dst_dtype=torch.int64,
+            src_dtype=dtype,
+            inner_fn=fn_inner,
+            ranges=new_size,
+            reduction_ranges=kernel_size,
+        )
+        if isinstance(result.data.data, Reduction):  # type: ignore[attr-defined]
+            # Only realize if reduction isn't unrolled
+            result.realize()
+        if isinstance(offsets.data.data, Reduction):  # type: ignore[attr-defined]
+            # Only realize if reduction isn't unrolled
+            offsets.realize()
+
+        indices = _pool_offsets_to_indices(
+            offsets, kernel_size, x.shape, increments_to_index
+        )
+        return result, indices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_lowering(aten.upsample_nearest2d_backward.default)
@@ -6065,7 +6657,11 @@ def div_mode(a, b, rounding_mode=None):
     both_boolean = is_boolean_type(a) and is_boolean_type(b)
 
     # floordiv and truncdiv need special handling for integer tensors on Triton,
+<<<<<<< HEAD
     # see the discussion at https://github.com/openai/triton/issues/605
+=======
+    # see the discussion at https://github.com/triton-lang/triton/issues/605
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if rounding_mode == "floor":
         assert not both_boolean, "floordiv operands can not be boolean at the same time"
         return floordiv(a, b) if both_integer else floor(div(a, b))
@@ -6268,7 +6864,14 @@ def cummax(x, axis=None):
 
     kwargs = _make_scan_inner(x, axis=axis, dtype=dtype)
     kwargs["dtypes"] = (dtype, torch.int64)
+<<<<<<< HEAD
     kwargs["inner_fns"] = (x.make_loader(), lambda _: "rindex")
+=======
+    kwargs["inner_fns"] = (
+        x.make_loader(),
+        lambda idx: ops.index_expr(idx[axis], torch.int64),
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     values, indices = ir.Scan.create(**kwargs, combine_fn=combine_fn)  # type: ignore[arg-type]
     if values is None:
         return fallback_cummax(x, dim=axis)
@@ -6288,7 +6891,14 @@ def cummin(x, axis=None):
 
     kwargs = _make_scan_inner(x, axis=axis, dtype=dtype)
     kwargs["dtypes"] = (dtype, torch.int64)
+<<<<<<< HEAD
     kwargs["inner_fns"] = (x.make_loader(), lambda _: "rindex")
+=======
+    kwargs["inner_fns"] = (
+        x.make_loader(),
+        lambda idx: ops.index_expr(idx[axis], torch.int64),
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     values, indices = ir.Scan.create(**kwargs, combine_fn=combine_fn)  # type: ignore[arg-type]
     if values is None:
         return fallback_cummin(x, dim=axis)
@@ -6405,11 +7015,19 @@ def register_pointwise_numeric(op, name=None, triton_fallback=None):
     )
 
 
+<<<<<<< HEAD
 def register_pointwise_numeric_ldf64(op):
     return register_pointwise(
         op,
         type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.INT_TO_FLOAT,
         use_libdevice_for_f64=True,
+=======
+def register_pointwise_numeric_ldf64(op: torch._ops.OpOverloadPacket):
+    register_op_requires_libdevice_fp64(op.__name__)
+    return register_pointwise(
+        op,
+        type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.INT_TO_FLOAT,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -6860,6 +7478,7 @@ def while_loop(cond_fn, body_fn, carried_inputs, additional_inputs):
             msg = f"{msg} Found from : \n {stack_trace}"
         V.graph.disable_cudagraphs_reason = msg
 
+<<<<<<< HEAD
     result = ir.WhileLoop.create(cond_fn, body_fn, carried_inputs, additional_inputs)
     return list(map(TensorBox.create, result))
 
@@ -6867,6 +7486,25 @@ def while_loop(cond_fn, body_fn, carried_inputs, additional_inputs):
 @register_lowering(torch.ops.higher_order.invoke_subgraph, type_promotion_kind=None)
 def invoke_subgraph(subgraph_fn: ir.Subgraph, identifier: str, operands):
     result = ir.InvokeSubgraph.create(subgraph_fn, operands)
+=======
+    def _map_output(out: Any):
+        if isinstance(out, TensorBox):
+            return out
+        elif isinstance(out, ir.StorageBox):
+            return TensorBox(out)
+        elif isinstance(out, ir.MultiOutput):
+            return TensorBox.create(out)
+        else:
+            raise RuntimeError(f"NYI unsupported output type: {type(out)}")
+
+    result = ir.WhileLoop.create(cond_fn, body_fn, carried_inputs, additional_inputs)
+    return list(map(_map_output, result))
+
+
+@register_lowering(torch.ops.higher_order.invoke_subgraph, type_promotion_kind=None)
+def invoke_subgraph(subgraph_fn: ir.Subgraph, identifier: str, *operands):
+    result = ir.InvokeSubgraph.create(subgraph_fn, *operands)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return list(map(TensorBox.create, result))
 
 
@@ -6954,7 +7592,13 @@ def with_effects(token, op, *args, **kwargs):
         return (effectful_kernel,)
 
     result = pytree.tree_map_only(ir.MultiOutput, TensorBox.create, result)
+<<<<<<< HEAD
     if not isinstance(result, (list, tuple)):
+=======
+    # See [NOTE: with_effects return type]
+    # Only return `result` if it is a tuple, not list.
+    if not isinstance(result, tuple):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (effectful_kernel, result)
     else:
         return (effectful_kernel, *result)
@@ -6995,7 +7639,11 @@ def prepare_softmax_online(x, dim):
         # Note: [Split online_softmax_reduce]
         # We don't split reduction for online_softmax_reduce for now.
         # On one hand, supporting split reduction makes things complex since
+<<<<<<< HEAD
         # the splitted out reuctions requires 2 inputs rather than one.
+=======
+        # the split out reuctions requires 2 inputs rather than one.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # On the other hand, during training the online_softmax_reduce should
         # usually don't requires a split due to large batch size
         # (more specifically batch size times sequence length).

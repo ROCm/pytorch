@@ -30,20 +30,32 @@ from torch.testing._internal.common_utils import (
     skipIfRocm,
     skipIfWindows,
     skipIfXpu,
+<<<<<<< HEAD
     TEST_WITH_ROCM,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA, HAS_GPU, HAS_XPU
 from torch.testing._internal.logging_utils import log_settings, logs_to_string
 
 # Defines all the kernels for tests
 from torch.testing._internal.triton_utils import *  # noqa: F403
+<<<<<<< HEAD
 from torch.utils._triton import has_triton_package, has_triton_tma
+=======
+from torch.utils._triton import (
+    has_triton_experimental_host_tma,
+    has_triton_package,
+    has_triton_tensor_descriptor_host_tma,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if HAS_GPU:
     import triton
     from triton import language as tl
 
+<<<<<<< HEAD
     if not TEST_WITH_ROCM:
         if HAS_CUDA:
             try:
@@ -61,6 +73,24 @@ if HAS_GPU:
                 fast_dividef,
                 fast_dividef as my_fast_dividef,
             )
+=======
+    if HAS_CUDA:
+        try:
+            from triton.language.extra.libdevice import (  # @manual
+                fast_dividef,
+                fast_dividef as my_fast_dividef,
+            )
+        except ImportError:
+            from triton.language.extra.cuda.libdevice import (  # @manual
+                fast_dividef,
+                fast_dividef as my_fast_dividef,
+            )
+    elif HAS_XPU:
+        from triton.language.extra.intel.libdevice import (  # @manual
+            fast_dividef,
+            fast_dividef as my_fast_dividef,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _triton_get_ast_equal_to_str(params):
         try:
@@ -456,7 +486,11 @@ def forward(self, x_1, output_1):
                 self.assertIn("output_handles[0] = ", code)
                 self.assertIn("output_handles[1] = ", code)
             else:
+<<<<<<< HEAD
                 self.assertIn("return (buf0, s0, )", code)
+=======
+                self.assertIn("return (buf0, s92, )", code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             self.assertIn(
                 "output_handles[0] = "
@@ -806,7 +840,16 @@ def forward(self, x_1, output_1):
     @common_utils.parametrize("dynamic", [False, True])
     @common_utils.parametrize("backend", ["eager", "aot_eager", "inductor"])
     @common_utils.parametrize("grid_type", [1, 2, 3])
+<<<<<<< HEAD
     def test_triton_kernel_2d_autotune(self, grad, dynamic, backend, grid_type):
+=======
+    @common_utils.parametrize("tdlp", ["0", "1"])
+    def test_triton_kernel_2d_autotune(self, grad, dynamic, backend, grid_type, tdlp):
+        import os
+
+        os.environ["TORCHINDUCTOR_DUMP_LAUNCH_PARAMS"] = tdlp
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def call_triton(x: torch.Tensor, y: torch.Tensor, output: torch.Tensor):
             x_elements = output.size()[0]
             y_elements = output.size()[1]
@@ -1341,7 +1384,10 @@ def forward(self, x_1, output_1):
         self.assertEqual(compiled_out, eager_out)
 
     @requires_gpu
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_with_imported_symbol(self):
         @triton.jit
         def add_kernel_with_imported_symbol(
@@ -1373,7 +1419,10 @@ def forward(self, x_1, output_1):
         self.assertEqual(compiled_out, eager_out)
 
     @requires_gpu
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_with_imported_symbol_with_custom_name(self):
         @triton.jit
         def add_kernel_with_imported_symbol(
@@ -1647,6 +1696,68 @@ def forward(self, x_1, output_1):
 
     @requires_gpu
     @common_utils.parametrize("dynamic", [False, True])
+<<<<<<< HEAD
+=======
+    @common_utils.parametrize("tma_version", ["new", "old"])
+    def test_on_device_tma(self, dynamic, tma_version):
+        if tma_version == "new" and not has_triton_tensor_descriptor_host_tma():
+            self.skipTest("requires triton.tools.tensor_descriptor TMA support")
+        if tma_version == "old" and not has_triton_experimental_host_tma():
+            self.skipTest("requires triton.tools.experimental_descriptor TMA support")
+
+        kernel = (
+            add_kernel_on_device_tma_new_api
+            if tma_version == "new"
+            else add_kernel_on_device_tma_old_api
+        )
+
+        def f(a, b):
+            BLOCK_SIZE = 32
+            out = torch.zeros_like(a)
+            m, n = out.size()
+
+            # Allocate workspace for on-device TMA descriptors
+            # Need 128 bytes per descriptor, 3 descriptors total
+            if tma_version == "old":
+                workspace = torch.zeros(3 * 128, dtype=torch.uint8, device=a.device)
+            else:
+                workspace = None
+
+            grid = lambda meta: (
+                triton.cdiv(m, meta["BLOCK_SIZE"]),
+                triton.cdiv(n, meta["BLOCK_SIZE"]),
+            )
+
+            kernel[grid](
+                a,
+                b,
+                out,
+                m,
+                n,
+                workspace,
+                BLOCK_SIZE=BLOCK_SIZE,
+            )
+
+            return out
+
+        a = torch.randn((32, 32), device=GPU_TYPE)
+        b = torch.randn((32, 32), device=GPU_TYPE)
+
+        expected_out = a + b
+        triton.set_allocator(
+            lambda size, align, stream: torch.empty(
+                size, dtype=torch.int8, device=GPU_TYPE
+            )
+        )
+        eager_out = f(a, b)
+        compiled_out = torch.compile(f, fullgraph=True, dynamic=dynamic)(a, b)
+
+        self.assertEqual(eager_out, expected_out)
+        self.assertEqual(compiled_out, expected_out)
+
+    @requires_gpu
+    @common_utils.parametrize("dynamic", [False, True])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @common_utils.parametrize("backend", ["eager", "aot_eager", "inductor"])
     def test_triton_kernel_multiple_outputs(self, dynamic, backend):
         @triton.jit
@@ -1687,12 +1798,31 @@ def forward(self, x_1, output_1):
         self.assertEqual(out3, z**2)
 
     @requires_gpu
+<<<<<<< HEAD
     @unittest.skipIf(not has_triton_tma(), "requires Triton TMA support")
     @common_utils.parametrize("dynamic", [False, True])
     def test_tma_capture_and_functionalize(self, dynamic):
         from torch._higher_order_ops.triton_kernel_wrap import kernel_side_table
 
         kernel_side_table.reset_table()
+=======
+    @common_utils.parametrize("dynamic", [False, True])
+    @common_utils.parametrize("tma_version", ["new", "old"])
+    def test_tma_capture_and_functionalize(self, dynamic, tma_version):
+        if tma_version == "new" and not has_triton_tensor_descriptor_host_tma():
+            self.skipTest("requires triton.tools.tensor_descriptor TMA support")
+        if tma_version == "old" and not has_triton_experimental_host_tma():
+            self.skipTest("requires triton.tools.experimental_descriptor TMA support")
+
+        from torch._higher_order_ops.triton_kernel_wrap import kernel_side_table
+
+        kernel_side_table.reset_table()
+        kernel = (
+            add_kernel_with_tma_1d_new_api
+            if tma_version == "new"
+            else add_kernel_with_tma_1d_old_api
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def f(a, b):
             BLOCK_SIZE = 256
@@ -1700,17 +1830,26 @@ def forward(self, x_1, output_1):
             n_elements = out.numel()
 
             desc_a, desc_b, desc_out = (
+<<<<<<< HEAD
                 triton.tools.experimental_descriptor.create_1d_tma_descriptor(
                     t.data_ptr(),
                     n_elements,
                     BLOCK_SIZE,
                     t.element_size(),
+=======
+                create_tensor_descriptor_shim(
+                    t, [BLOCK_SIZE], new_api=(tma_version == "new")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for t in (a, b, out)
             )
 
             grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+<<<<<<< HEAD
             add_kernel_with_tma_1d[grid](
+=======
+            kernel[grid](
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 desc_a,
                 desc_b,
                 desc_out,
@@ -1723,6 +1862,10 @@ def forward(self, x_1, output_1):
         b = torch.randn(301, device=GPU_TYPE)
 
         backend = torch._dynamo.testing.AotEagerAndRecordGraphs()
+<<<<<<< HEAD
+=======
+        _ = f(a, b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.compile(
             f,
             fullgraph=True,
@@ -1731,14 +1874,35 @@ def forward(self, x_1, output_1):
         )(a, b)
 
         if dynamic:
+<<<<<<< HEAD
             self.assertExpectedInline(
                 backend.fw_graphs[0].code.strip(),
                 """\
+=======
+            if tma_version == "new":
+                self.assertExpectedInline(
+                    backend.fw_graphs[0].code.strip(),
+                    """\
+def forward(self, arg0_1, arg1_1, arg2_1):
+    zeros_like = torch.ops.aten.zeros_like.default(arg1_1, pin_memory = False)
+    add_2 = arg0_1 + 256;  arg0_1 = None
+    sub_1 = add_2 - 1;  add_2 = None
+    floordiv = sub_1 // 256;  sub_1 = None
+    triton_kernel_wrapper_functional_proxy = torch.ops.higher_order.triton_kernel_wrapper_functional(kernel_idx = 0, constant_args_idx = 0, grid = [(floordiv, 1, 1)], tma_descriptor_metadata = {'in_desc_ptr0': ('stable', ([256],)), 'in_desc_ptr1': ('stable', ([256],)), 'out_desc_ptr': ('stable', ([256],))}, kwargs = {'in_desc_ptr0': arg1_1, 'in_desc_ptr1': arg2_1, 'out_desc_ptr': zeros_like}, tensors_to_clone = ['out_desc_ptr']);  floordiv = arg1_1 = arg2_1 = zeros_like = None
+    getitem = triton_kernel_wrapper_functional_proxy['out_desc_ptr'];  triton_kernel_wrapper_functional_proxy = None
+    return (getitem,)""",
+                )
+            elif tma_version == "old":
+                self.assertExpectedInline(
+                    backend.fw_graphs[0].code.strip(),
+                    """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def forward(self, arg0_1, arg1_1, arg2_1):
     zeros_like = torch.ops.aten.zeros_like.default(arg1_1, pin_memory = False)
     add_2 = arg0_1 + 256
     sub_1 = add_2 - 1;  add_2 = None
     floordiv = sub_1 // 256;  sub_1 = None
+<<<<<<< HEAD
     triton_kernel_wrapper_functional_proxy = torch.ops.higher_order.triton_kernel_wrapper_functional(kernel_idx = 0, constant_args_idx = 0, grid = [(floordiv, 1, 1)], tma_descriptor_metadata = {'in_desc_ptr0': ([arg0_1], [256], 4), 'in_desc_ptr1': ([arg0_1], [256], 4), 'out_desc_ptr': ([arg0_1], [256], 4)}, kwargs = {'in_desc_ptr0': arg1_1, 'in_desc_ptr1': arg2_1, 'out_desc_ptr': zeros_like}, tensors_to_clone = ['out_desc_ptr']);  floordiv = arg0_1 = arg1_1 = arg2_1 = zeros_like = None
     getitem = triton_kernel_wrapper_functional_proxy['out_desc_ptr'];  triton_kernel_wrapper_functional_proxy = None
     return (getitem,)""",
@@ -1759,6 +1923,50 @@ def forward(self, arg0_1, arg1_1):
     @common_utils.parametrize("after_data_ptr", [False, True])
     @common_utils.parametrize("after_create_desc", [False, True])
     def test_tma_graph_breaks(self, after_data_ptr, after_create_desc):
+=======
+    triton_kernel_wrapper_functional_proxy = torch.ops.higher_order.triton_kernel_wrapper_functional(kernel_idx = 0, constant_args_idx = 0, grid = [(floordiv, 1, 1)], tma_descriptor_metadata = {'in_desc_ptr0': ('experimental', ([arg0_1], [256], 4)), 'in_desc_ptr1': ('experimental', ([arg0_1], [256], 4)), 'out_desc_ptr': ('experimental', ([arg0_1], [256], 4))}, kwargs = {'in_desc_ptr0': arg1_1, 'in_desc_ptr1': arg2_1, 'out_desc_ptr': zeros_like}, tensors_to_clone = ['out_desc_ptr']);  floordiv = arg0_1 = arg1_1 = arg2_1 = zeros_like = None
+    getitem = triton_kernel_wrapper_functional_proxy['out_desc_ptr'];  triton_kernel_wrapper_functional_proxy = None
+    return (getitem,)""",
+                )
+        else:
+            if tma_version == "new":
+                self.assertExpectedInline(
+                    backend.fw_graphs[0].code.strip(),
+                    """\
+def forward(self, arg0_1, arg1_1):
+    zeros_like = torch.ops.aten.zeros_like.default(arg0_1, pin_memory = False)
+    triton_kernel_wrapper_functional_proxy = torch.ops.higher_order.triton_kernel_wrapper_functional(kernel_idx = 0, constant_args_idx = 0, grid = [(2, 1, 1)], tma_descriptor_metadata = {'in_desc_ptr0': ('stable', ([256],)), 'in_desc_ptr1': ('stable', ([256],)), 'out_desc_ptr': ('stable', ([256],))}, kwargs = {'in_desc_ptr0': arg0_1, 'in_desc_ptr1': arg1_1, 'out_desc_ptr': zeros_like}, tensors_to_clone = ['out_desc_ptr']);  arg0_1 = arg1_1 = zeros_like = None
+    getitem = triton_kernel_wrapper_functional_proxy['out_desc_ptr'];  triton_kernel_wrapper_functional_proxy = None
+    return (getitem,)""",
+                )
+            elif tma_version == "old":
+                self.assertExpectedInline(
+                    backend.fw_graphs[0].code.strip(),
+                    """\
+def forward(self, arg0_1, arg1_1):
+    zeros_like = torch.ops.aten.zeros_like.default(arg0_1, pin_memory = False)
+    triton_kernel_wrapper_functional_proxy = torch.ops.higher_order.triton_kernel_wrapper_functional(kernel_idx = 0, constant_args_idx = 0, grid = [(2, 1, 1)], tma_descriptor_metadata = {'in_desc_ptr0': ('experimental', ([301], [256], 4)), 'in_desc_ptr1': ('experimental', ([301], [256], 4)), 'out_desc_ptr': ('experimental', ([301], [256], 4))}, kwargs = {'in_desc_ptr0': arg0_1, 'in_desc_ptr1': arg1_1, 'out_desc_ptr': zeros_like}, tensors_to_clone = ['out_desc_ptr']);  arg0_1 = arg1_1 = zeros_like = None
+    getitem = triton_kernel_wrapper_functional_proxy['out_desc_ptr'];  triton_kernel_wrapper_functional_proxy = None
+    return (getitem,)""",
+                )
+
+    @requires_gpu
+    @common_utils.parametrize("after_data_ptr", [False, True])
+    @common_utils.parametrize("after_create_desc", [False, True])
+    @common_utils.parametrize("tma_version", ["new", "old"])
+    def test_tma_graph_breaks(self, after_data_ptr, after_create_desc, tma_version):
+        if tma_version == "new" and not has_triton_tensor_descriptor_host_tma():
+            self.skipTest("requires triton.tools.tensor_descriptor TMA support")
+        if tma_version == "old" and not has_triton_experimental_host_tma():
+            self.skipTest("requires triton.tools.experimental_descriptor TMA support")
+
+        kernel = (
+            add_kernel_with_tma_1d_new_api
+            if tma_version == "new"
+            else add_kernel_with_tma_1d_old_api
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def f(a, b):
             BLOCK_SIZE = 256
             out = torch.zeros_like(a)
@@ -1768,11 +1976,16 @@ def forward(self, arg0_1, arg1_1):
                 torch._dynamo.graph_break()
 
             descs = [
+<<<<<<< HEAD
                 triton.tools.experimental_descriptor.create_1d_tma_descriptor(
                     t.data_ptr(),
                     n_elements,
                     BLOCK_SIZE,
                     t.element_size(),
+=======
+                create_tensor_descriptor_shim(
+                    t, [BLOCK_SIZE], new_api=(tma_version == "new")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for t in (a, b, out)
             ]
@@ -1781,7 +1994,11 @@ def forward(self, arg0_1, arg1_1):
                 torch._dynamo.graph_break()
 
             grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+<<<<<<< HEAD
             add_kernel_with_tma_1d[grid](
+=======
+            kernel[grid](
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *descs,
                 BLOCK_SIZE=BLOCK_SIZE,
             )
@@ -1804,27 +2021,54 @@ def forward(self, arg0_1, arg1_1):
         self.assertEqual(compiled_out, expected_out)
 
     @requires_gpu
+<<<<<<< HEAD
     @unittest.skipIf(not has_triton_tma(), "requires Triton TMA support")
     @common_utils.parametrize("dynamic", [False, True])
     @common_utils.parametrize("backend", ["eager", "aot_eager", "inductor"])
     def test_tma_descriptor_1d(self, dynamic, backend):
+=======
+    @common_utils.parametrize("dynamic", [False, True])
+    @common_utils.parametrize("backend", ["eager", "aot_eager", "inductor"])
+    @common_utils.parametrize("tma_version", ["new", "old"])
+    def test_tma_descriptor_1d(self, dynamic, backend, tma_version):
+        if tma_version == "new" and not has_triton_tensor_descriptor_host_tma():
+            self.skipTest("requires triton.tools.tensor_descriptor TMA support")
+        if tma_version == "old" and not has_triton_experimental_host_tma():
+            self.skipTest("requires triton.tools.experimental_descriptor TMA support")
+
+        kernel = (
+            add_kernel_with_tma_1d_new_api
+            if tma_version == "new"
+            else add_kernel_with_tma_1d_old_api
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def f(a, b):
             BLOCK_SIZE = 256
             out = torch.zeros_like(a)
             n_elements = out.numel()
 
             desc_a, desc_b, desc_out = (
+<<<<<<< HEAD
                 triton.tools.experimental_descriptor.create_1d_tma_descriptor(
                     t.data_ptr(),
                     n_elements,
                     BLOCK_SIZE,
                     t.element_size(),
+=======
+                create_tensor_descriptor_shim(
+                    t, [BLOCK_SIZE], new_api=(tma_version == "new")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for t in (a, b, out)
             )
 
             grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+<<<<<<< HEAD
             add_kernel_with_tma_1d[grid](
+=======
+            kernel[grid](
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 desc_a,
                 desc_b,
                 desc_out,
@@ -1849,25 +2093,50 @@ def forward(self, arg0_1, arg1_1):
         self.assertEqual(compiled_out, expected_out)
 
     @requires_gpu
+<<<<<<< HEAD
     @unittest.skipIf(not has_triton_tma(), "requires Triton TMA support")
     def test_tma_descriptor_dedup(self):
+=======
+    @common_utils.parametrize("tma_version", ["new", "old"])
+    def test_tma_descriptor_dedup(self, tma_version):
+        if tma_version == "new" and not has_triton_tensor_descriptor_host_tma():
+            self.skipTest("requires triton.tools.tensor_descriptor TMA support")
+        if tma_version == "old" and not has_triton_experimental_host_tma():
+            self.skipTest("requires triton.tools.experimental_descriptor TMA support")
+
+        kernel = (
+            add_kernel_with_tma_1d_new_api
+            if tma_version == "new"
+            else add_kernel_with_tma_1d_old_api
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def f(a):
             BLOCK_SIZE = 256
             out = torch.zeros_like(a)
             n_elements = out.numel()
 
             desc_a, desc_out = (
+<<<<<<< HEAD
                 triton.tools.experimental_descriptor.create_1d_tma_descriptor(
                     t.data_ptr(),
                     n_elements,
                     BLOCK_SIZE,
                     t.element_size(),
+=======
+                create_tensor_descriptor_shim(
+                    t, [BLOCK_SIZE], new_api=(tma_version == "new")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for t in (a, out)
             )
 
             grid = lambda meta: (triton.cdiv(n_elements, meta["BLOCK_SIZE"]),)
+<<<<<<< HEAD
             add_kernel_with_tma_1d[grid](
+=======
+            kernel[grid](
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 desc_a,
                 desc_a,
                 desc_out,
@@ -1894,6 +2163,7 @@ def forward(self, arg0_1, arg1_1):
         self.assertEqual(compiled_out, expected_out)
 
         # 2 calls: one for two inputs (dedupped), one for the output
+<<<<<<< HEAD
         self.assertEqual(code.count("create_1d_tma_descriptor("), 2)
 
     @requires_gpu
@@ -1901,6 +2171,29 @@ def forward(self, arg0_1, arg1_1):
     @common_utils.parametrize("dynamic", [False, True])
     @common_utils.parametrize("backend", ["eager", "aot_eager"])
     def test_tma_descriptor_2d(self, dynamic, backend):
+=======
+        if tma_version == "new":
+            self.assertEqual(code.count("TensorDescriptor.from_tensor("), 2)
+        else:
+            self.assertEqual(code.count("create_1d_tma_descriptor("), 2)
+
+    @requires_gpu
+    @common_utils.parametrize("dynamic", [False, True])
+    @common_utils.parametrize("backend", ["eager", "aot_eager"])
+    @common_utils.parametrize("tma_version", ["new", "old"])
+    def test_tma_descriptor_2d(self, dynamic, backend, tma_version):
+        if tma_version == "new" and not has_triton_tensor_descriptor_host_tma():
+            self.skipTest("requires triton.tools.tensor_descriptor TMA support")
+        if tma_version == "old" and not has_triton_experimental_host_tma():
+            self.skipTest("requires triton.tools.experimental_descriptor TMA support")
+
+        kernel = (
+            add_kernel_with_tma_2d_new_api
+            if tma_version == "new"
+            else add_kernel_with_tma_2d_old_api
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def f(a, b):
             BLOCK_SIZE_X = 16
             BLOCK_SIZE_Y = 32
@@ -1908,6 +2201,7 @@ def forward(self, arg0_1, arg1_1):
             x_size, y_size = out.size()
 
             desc_a, desc_b, desc_out = (
+<<<<<<< HEAD
                 triton.tools.experimental_descriptor.create_2d_tma_descriptor(
                     t.data_ptr(),
                     x_size,
@@ -1915,6 +2209,10 @@ def forward(self, arg0_1, arg1_1):
                     BLOCK_SIZE_X,
                     BLOCK_SIZE_Y,
                     t.element_size(),
+=======
+                create_tensor_descriptor_shim(
+                    t, [BLOCK_SIZE_X, BLOCK_SIZE_Y], new_api=(tma_version == "new")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for t in (a, b, out)
             )
@@ -1923,7 +2221,11 @@ def forward(self, arg0_1, arg1_1):
                 triton.cdiv(x_size, meta["BLOCK_SIZE_X"]),
                 triton.cdiv(y_size, meta["BLOCK_SIZE_Y"]),
             )
+<<<<<<< HEAD
             add_kernel_with_tma_2d[grid](
+=======
+            kernel[grid](
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 desc_a,
                 desc_b,
                 desc_out,
@@ -2341,15 +2643,72 @@ def forward(self, arg0_1, arg1_1):
             "'BLOCK_SIZE': 'constexpr'"
         ).run(code[0])
 
+<<<<<<< HEAD
+=======
+    @requires_gpu
+    @inductor_config.patch({"triton.autotune_at_compile_time": True})
+    @parametrize("quotes", ["single", "double"])
+    def test_kernel_with_docstring(self, quotes):
+        kernel = (
+            kernel_with_docstring_single_quotes
+            if quotes == "single"
+            else kernel_with_docstring_double_quotes
+        )
+
+        # https://github.com/pytorch/pytorch/issues/155006
+        def fn(sz):
+            x = torch.empty(sz, device=GPU_TYPE)
+            BLOCK_SIZE = 32
+            grid = (triton.cdiv(sz, BLOCK_SIZE),)
+            kernel[grid](x, sz, BLOCK_SIZE)
+            return x
+
+        actual = fn(345)
+        expected = torch.compile(fn, fullgraph=True)(345)
+        self.assertEqual(actual, expected)
+
+    @requires_gpu
+    @skipIfRocm
+    @skipIfXpu
+    @inductor_config.patch({"triton.autotune_at_compile_time": True})
+    @parametrize("quotes", ["single", "double"])
+    def test_kernel_inline_asm(self, quotes):
+        kernel = (
+            kernel_inline_asm_single_quotes
+            if quotes == "single"
+            else kernel_inline_asm_double_quotes
+        )
+
+        # https://github.com/pytorch/pytorch/issues/155006
+        def fn(inp):
+            sz = inp.size(0)
+            x = torch.empty(sz, device=GPU_TYPE)
+            BLOCK_SIZE = 32
+            grid = (triton.cdiv(sz, BLOCK_SIZE),)
+            kernel[grid](inp, x, sz, BLOCK_SIZE)
+            return x
+
+        inp = torch.randn(345, device=GPU_TYPE)
+        actual = fn(inp)
+        expected = torch.compile(fn, fullgraph=True)(inp)
+        self.assertEqual(actual, expected)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def make_mutation_test(fn):
     @requires_gpu
     def test_fn(self):
         from torch._higher_order_ops.triton_kernel_wrap import identify_mutated_tensors
 
+<<<<<<< HEAD
         kernel, inputs, outputs = fn()
         self.assertListEqual(
             identify_mutated_tensors(kernel, inputs),
+=======
+        kernel, inputs, tma_descriptor_metadata, outputs = fn()
+        self.assertListEqual(
+            identify_mutated_tensors(kernel, inputs, tma_descriptor_metadata),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputs,
         )
 
@@ -2401,6 +2760,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "out_ptr": t,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2432,6 +2795,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "out_ptr": t,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2462,7 +2829,11 @@ class MutationTests(torch._inductor.test_case.TestCase):
         # old TTIR string parsing-based one). remove this gating
         # and use ["c_ptr"] as `expected` after the new Triton
         # pin lands both in OSS and internally.
+<<<<<<< HEAD
         ttir_module, _ = generate_ttir(kernel, kwargs)
+=======
+        ttir_module, _ = generate_ttir(kernel, kwargs, tma_descriptor_metadata={})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if hasattr(ttir_module, "walk"):
             # with MLIR-based Triton analysis pass
             expected = ["c_ptr"]
@@ -2473,6 +2844,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
         return (
             kernel,
             kwargs,
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected,
         )
 
@@ -2503,7 +2878,11 @@ class MutationTests(torch._inductor.test_case.TestCase):
         # old TTIR string parsing-based one). remove this gating
         # and use ["c_ptr"] as `expected` after the new Triton
         # pin lands both in OSS and internally.
+<<<<<<< HEAD
         ttir_module, _ = generate_ttir(kernel, kwargs)
+=======
+        ttir_module, _ = generate_ttir(kernel, kwargs, tma_descriptor_metadata={})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if hasattr(ttir_module, "walk"):
             # with MLIR-based Triton analysis pass
             expected = ["c_ptr"]
@@ -2514,6 +2893,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
         return (
             kernel,
             kwargs,
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected,
         )
 
@@ -2559,7 +2942,11 @@ class MutationTests(torch._inductor.test_case.TestCase):
         # old TTIR string parsing-based one). remove this gating
         # and use ["out_ptr"] as `expected` after the new Triton
         # pin lands both in OSS and internally.
+<<<<<<< HEAD
         ttir_module, _ = generate_ttir(kernel, kwargs)
+=======
+        ttir_module, _ = generate_ttir(kernel, kwargs, tma_descriptor_metadata={})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if hasattr(ttir_module, "walk"):
             # with MLIR-based Triton analysis pass
             expected = ["out_ptr"]
@@ -2570,6 +2957,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
         return (
             kernel,
             kwargs,
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected,
         )
 
@@ -2603,6 +2994,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "out_ptr": t,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2635,6 +3030,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "out_ptr": t,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2671,6 +3070,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2705,6 +3108,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2739,6 +3146,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2774,6 +3185,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2812,6 +3227,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2846,6 +3265,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         )
 
@@ -2905,6 +3328,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "BLOCK_SIZE_M": 64,
                 "BLOCK_SIZE_C2": 64,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["O_ptr"],
         )
 
@@ -2964,6 +3391,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "BLOCK_M": M,
                 "BLOCK_N": N,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["o_ptr"],
         )
 
@@ -3025,6 +3456,10 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "BLOCK_M": M,
                 "BLOCK_N": N,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["o_ptr"],
         )
 
@@ -3070,9 +3505,117 @@ class MutationTests(torch._inductor.test_case.TestCase):
                 "n_elements": 14,
                 "BLOCK_SIZE": 16,
             },
+<<<<<<< HEAD
             ["out_ptr"],
         )
 
+=======
+            {},
+            ["out_ptr"],
+        )
+
+    def test_get_tma_stores(self):
+        from torch._higher_order_ops.triton_kernel_wrap import (
+            get_tma_stores,
+            Intermediate,
+            Op,
+            Param,
+        )
+
+        functions = {
+            "helper": {
+                Intermediate(idx=0): [
+                    Op(
+                        "tt.reinterpret_tensor_descriptor",
+                        None,
+                        [Param(idx=0)],
+                        Intermediate(idx=0),
+                    )
+                ],
+            },
+            "main": {
+                Intermediate(idx=-1): [
+                    Op(
+                        "tt.call",
+                        "helper",
+                        [Param(idx=0), Param(idx=1)],
+                        Intermediate(idx=-1),
+                    )
+                ],
+            },
+        }
+
+        self.assertEqual(get_tma_stores(functions, "helper"), set())
+        self.assertEqual(get_tma_stores(functions, "main"), set())
+
+        functions["helper"][Intermediate(idx=-1)] = [
+            Op(
+                "tt.experimental_descriptor_store",
+                None,
+                [Intermediate(idx=0), Param(idx=1)],
+                Intermediate(idx=-1),
+            )
+        ]
+        get_tma_stores.reset()
+
+        self.assertEqual(
+            get_tma_stores(functions, "helper"), {Param(idx=0), Intermediate(idx=0)}
+        )
+        self.assertEqual(get_tma_stores(functions, "main"), {Param(idx=0)})
+
+    @unittest.skipIf(
+        not has_triton_experimental_host_tma(),
+        "requires experimental TMA descriptor API",
+    )
+    @make_mutation_test
+    def test_add_kernel_on_device_tma_old_api():
+        a = torch.randn(1024, 1024)
+        b = torch.randn(1024, 1024)
+        c = torch.empty(1024, 1024)
+        workspace = torch.empty(128 * 3, dtype=torch.int8)
+        return (
+            add_kernel_on_device_tma_old_api,
+            {
+                "a_ptr": a,
+                "b_ptr": b,
+                "c_ptr": c,
+                "m": 1024,
+                "n": 1024,
+                "workspace": workspace,
+                "BLOCK_SIZE": 32,
+            },
+            {},
+            ["c_ptr", "workspace"],
+        )
+
+    @unittest.skipIf(
+        not has_triton_tensor_descriptor_host_tma(),
+        "requires TensorDescriptor API in Triton",
+    )
+    @make_mutation_test
+    def test_add_kernel_on_device_tma_new_api():
+        a = torch.randn(1024, 1024)
+        b = torch.randn(1024, 1024)
+        c = torch.empty(1024, 1024)
+        workspace = torch.empty(
+            128 * 3, dtype=torch.int8
+        )  # Not used by the new API but kept for consistency
+        return (
+            add_kernel_on_device_tma_new_api,
+            {
+                "a_ptr": a,
+                "b_ptr": b,
+                "c_ptr": c,
+                "m": 1024,
+                "n": 1024,
+                "workspace": workspace,
+                "BLOCK_SIZE": 32,
+            },
+            {},
+            ["c_ptr"],
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if HAS_GPU:
     t = torch.randn(4)
@@ -3087,6 +3630,10 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         ],
         [
@@ -3098,6 +3645,10 @@ if HAS_GPU:
                 "x_elements": 4,
                 "y_elements": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         ],
         [
@@ -3109,6 +3660,10 @@ if HAS_GPU:
                 "BLOCK_SIZE": 4,
                 "ACTIVATION": "mul2_inplace_kernel",
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["in_ptr0", "out_ptr"],
         ],
         [
@@ -3120,21 +3675,37 @@ if HAS_GPU:
                 "BLOCK_SIZE": 4,
                 "ACTIVATION": "add_kernel",
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         ],
         [
             mul2_inplace_kernel,
             {"ptr": t, "n_elements": 4, "BLOCK_SIZE": 4},
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["ptr"],
         ],
         [
             inline_asm_kernel_is_pure_true,
             {"X": t, "Y": t, "Z": t, "n": 4, "BLOCK": 4},
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["Z"],
         ],
         [
             inline_asm_kernel_is_pure_false,
             {"X": t, "Y": t, "Z": t, "n": 4, "BLOCK": 4},
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["X", "Y", "Z"],
         ],
         [
@@ -3146,6 +3717,10 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["output_ptr"],
         ],
         [
@@ -3156,6 +3731,10 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["output_ptr"],
         ],
         [
@@ -3167,6 +3746,10 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         ],
         [
@@ -3178,6 +3761,10 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         ],
         [
@@ -3189,6 +3776,10 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["out_ptr"],
         ],
         [
@@ -3200,6 +3791,7 @@ if HAS_GPU:
                 "n_elements": 4,
                 "BLOCK_SIZE": 4,
             },
+<<<<<<< HEAD
             ["out_ptr"],
         ],
     ]
@@ -3210,6 +3802,23 @@ if HAS_GPU:
             lambda kernel=kernel, inputs=inputs, outputs=outputs: (
                 kernel,
                 inputs,
+=======
+            {},
+            ["out_ptr"],
+        ],
+    ]
+    for kernel, inputs, tma_descriptor_metadata, outputs in tests:
+        fn = make_mutation_test(
+            # Add default arguments to avoid Python lambda capture pitfall
+            # This forces the capture at lambda creation
+            lambda kernel=kernel,
+            inputs=inputs,
+            tma_descriptor_metadata=tma_descriptor_metadata,
+            outputs=outputs: (
+                kernel,
+                inputs,
+                tma_descriptor_metadata,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 outputs,
             )
         )
@@ -3385,7 +3994,14 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
         self.assertEqual(z, (x + y) * 2)
 
     @requires_gpu
+<<<<<<< HEAD
     def test_preserves_strides(self):
+=======
+    @common_utils.parametrize(
+        "variant", ["triton_kernel", "custom_op", "mutable_custom_op"]
+    )
+    def test_preserves_strides(self, variant):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import triton
         import triton.language as tl
 
@@ -3409,12 +4025,19 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
         x = torch.randn(4, 4, 2, 2, device=GPU_TYPE)
         other = torch.randn(4, 4, 2, 2, device=GPU_TYPE)
 
+<<<<<<< HEAD
         def f(x, other):
             y = x.transpose(2, 3).contiguous().transpose(2, 3)
             z = y.sin().transpose(2, 3)
             grid = (z.numel(),)
             out = torch.empty_like(other)
             add_kernel[grid](z, other, out, z.numel(), BLOCK_SIZE=16)
+=======
+        def add_triton(y, z):
+            grid = (z.numel(),)
+            out = torch.empty_like(z, memory_format=torch.contiguous_format)
+            add_kernel[grid](y, z, out, z.numel(), BLOCK_SIZE=16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return out
 
         class _CustomPass(PatternMatcherPass):
@@ -3436,8 +4059,13 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
 
             def decomp(*flat_args):
                 args, kwargs = pytree.tree_unflatten(flat_args, spec)
+<<<<<<< HEAD
                 return torch.ops.aten.permute(*args, **kwargs).clone(
                     memory_format=torch.channels_last
+=======
+                return torch.ops.mylib.force_channels_last(
+                    torch.ops.aten.permute(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             nonlocal called
@@ -3446,12 +4074,70 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
 
         from torch._inductor import config
 
+<<<<<<< HEAD
         with config.patch(
             post_grad_custom_post_pass=g,
         ):
             f_compile = torch.compile(f)
             self.assertEqual(f(x, other), f_compile(x, other))
             self.assertTrue(called)
+=======
+        with torch.library._scoped_library("mylib", "FRAGMENT") as lib:
+            lib.define(
+                "force_channels_last(Tensor x) -> Tensor",
+                tags=[torch._C.Tag.flexible_layout],
+            )
+
+            def impl2(x):
+                return x.clone(memory_format=torch.channels_last)
+
+            lib.impl("force_channels_last", impl2, "CompositeExplicitAutograd")
+
+            lib.define(
+                "add_op(Tensor x, Tensor y) -> Tensor",
+            )
+
+            def impl(x, y):
+                return add_triton(x, y)
+
+            def meta(x, y):
+                return torch.empty_like(y, memory_format=torch.contiguous_format)
+
+            lib.impl("add_op", impl, "CompositeExplicitAutograd")
+            lib.impl("add_op", meta, "Meta")
+
+            lib.define(
+                "add_out_op(Tensor x, Tensor y, Tensor(a!) out) -> ()",
+            )
+
+            def impl_out(x, y, out):
+                grid = (y.numel(),)
+                add_kernel[grid](x, y, out, y.numel(), BLOCK_SIZE=16)
+
+            lib.impl("add_out_op", impl_out, "CompositeExplicitAutograd")
+            lib.impl("add_out_op", lambda x, y, out: None, "Meta")
+
+            def f(x, other):
+                y = x.transpose(2, 3).contiguous().transpose(2, 3)
+                z = y.sin().transpose(2, 3)
+                if variant == "triton_kernel":
+                    return add_triton(y, z)
+                elif variant == "custom_op":
+                    return torch.ops.mylib.add_op.default(y, z)
+                elif variant == "mutable_custom_op":
+                    out = torch.empty_like(y, memory_format=torch.contiguous_format)
+                    torch.ops.mylib.add_out_op(y, z, out)
+                    return out
+                else:
+                    raise AssertionError("should not be hit")
+
+            with config.patch(
+                post_grad_custom_post_pass=g,
+            ):
+                f_compile = torch.compile(f, fullgraph=True)
+                self.assertEqual(f(x, other), f_compile(x, other))
+                self.assertTrue(called)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @requires_gpu
     @common_utils.parametrize("dynamic", [False, True])
@@ -3627,9 +4313,16 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
 
         torch._dynamo.decorators.mark_unbacked(x, 0)
 
+<<<<<<< HEAD
         with log_settings("+output_code"), self.assertLogs(
             logger="torch._inductor", level=logging.DEBUG
         ) as log:
+=======
+        with (
+            log_settings("+output_code"),
+            self.assertLogs(logger="torch._inductor", level=logging.DEBUG) as log,
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo(x, w)
 
         output = "\n".join(record.getMessage() for record in log.records)

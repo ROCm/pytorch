@@ -1066,7 +1066,10 @@ TEST(Reductions, ReduceOverSplitRfactor) {
   Tensor c = Reduce("sum", {}, Sum(), b, {N, K});
   LoopNest loop({c});
   std::vector<ForPtr> loops = loop.getLoopStmtsFor(c);
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr i, t;
   LoopNest::splitWithTail(loops[1], SPLIT_FACTOR, &i, &t);
   LoopNest::reorderAxis(loops[0], i);
@@ -1573,7 +1576,10 @@ TEST(Reductions, ReductionSplitCacheConsumerAccess) {
 
   LoopNest l({e}, {c, d, e});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr inner;
 
   // Split outer reduction axis.
@@ -1623,7 +1629,10 @@ TEST(Reductions, ReductionReorderCacheConsumerAccess) {
 
   LoopNest l({e}, {c, d, e});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr inner;
 
   // reorder outer reduction axes.
@@ -1678,7 +1687,10 @@ TEST(Reductions, ReductionRfactorCacheTempOuter) {
   LoopNest::reorderAxis(loops.at(0), loops.at(1));
   loops = loop.getLoopStmtsFor(c);
   auto c_body = loop.getAllWritesToBuf(c.buf())[1];
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   BufPtr rfac_buf;
   ASSERT_TRUE(loop.rfactor(c_body, loops.at(0), &rfac_buf));
   loop.distributeLoop(loops.at(0));
@@ -1744,7 +1756,10 @@ TEST(Reductions, ReductionRfactorCacheTempInner) {
 
   LoopNest::reorderAxis(loops.at(0), loops.at(1));
   loops = loop.getLoopStmtsFor(c);
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   BufPtr rfac_buf;
   ASSERT_TRUE(loop.rfactor(c_body, loops.at(0), &rfac_buf));
   loop.distributeLoop(loops.at(0));

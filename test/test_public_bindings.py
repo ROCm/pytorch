@@ -59,6 +59,10 @@ class TestPublicBindings(TestCase):
         #
         #   {elem for elem in dir(torch._C) if not elem.startswith("_")}
         torch_C_allowlist_superset = {
+<<<<<<< HEAD
+=======
+            "AcceleratorError",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "AggregationType",
             "AliasDb",
             "AnyType",

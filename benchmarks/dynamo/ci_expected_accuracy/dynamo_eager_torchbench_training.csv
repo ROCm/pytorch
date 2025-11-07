@@ -114,7 +114,11 @@ hf_Reformer,pass,23
 
 
 
+<<<<<<< HEAD
 hf_Roberta_base,fail_accuracy,6
+=======
+hf_Roberta_base,pass,6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -286,7 +290,11 @@ vgg16,pass,6
 
 
 
+<<<<<<< HEAD
 vision_maskrcnn,pass,35
+=======
+vision_maskrcnn,pass,39
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

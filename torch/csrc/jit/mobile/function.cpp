@@ -10,7 +10,10 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 char const* toString(OpCode op);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace mobile {
 Function::Function(c10::QualifiedName name) : name_(std::move(name)) {}
 

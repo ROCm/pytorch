@@ -37,11 +37,18 @@
 // handle the temporary storage and 'twice' calls for cub API
 #define CUB_WRAPPER(func, ...) do {                                       \
   size_t temp_storage_bytes = 0;                                          \
+<<<<<<< HEAD
   func(nullptr, temp_storage_bytes, __VA_ARGS__);                         \
   auto& caching_allocator = *::c10::cuda::CUDACachingAllocator::get();    \
   auto temp_storage = caching_allocator.allocate(temp_storage_bytes);     \
   func(temp_storage.get(), temp_storage_bytes, __VA_ARGS__);              \
   AT_CUDA_CHECK(cudaGetLastError());                                      \
+=======
+  AT_CUDA_CHECK(func(nullptr, temp_storage_bytes, __VA_ARGS__));          \
+  auto& caching_allocator = *::c10::cuda::CUDACachingAllocator::get();    \
+  auto temp_storage = caching_allocator.allocate(temp_storage_bytes);     \
+  AT_CUDA_CHECK(func(temp_storage.get(), temp_storage_bytes, __VA_ARGS__));\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } while (false)
 
 #ifdef USE_ROCM
@@ -292,7 +299,11 @@ inline void inclusive_scan(InputIteratorT input, OutputIteratorT output, ScanOpT
 #endif
 }
 
+<<<<<<< HEAD
 # if (defined(CUDA_VERSION) && CUDA_VERSION > 11040) || defined(USE_ROCM)
+=======
+# if defined(CUDA_VERSION) || defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template<typename T>
 struct BlockPrefixCallbackOp

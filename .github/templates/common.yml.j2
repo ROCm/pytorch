@@ -32,7 +32,11 @@ concurrency:
 {%- macro setup_ec2_windows() -%}
       !{{ display_ec2_information() }}
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}

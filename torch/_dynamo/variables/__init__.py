@@ -26,6 +26,10 @@ from .ctx_manager import (
     DeterministicAlgorithmsVariable,
     DisabledSavedTensorsHooksVariable,
     DualLevelContextManager,
+<<<<<<< HEAD
+=======
+    DynamoConfigPatchVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FSDPParamGroupUseTrainingStateVariable,
     GradIncrementNestingCtxManagerVariable,
     GradInplaceRequiresGradCtxManagerVariable,
@@ -53,7 +57,12 @@ from .distributed import BackwardHookVariable, DistributedVariable, PlacementVar
 from .functions import (
     BuiltinMethodVariable,
     CollectionsNamedTupleFunction,
+<<<<<<< HEAD
     CreateTMADescriptorVariable,
+=======
+    CreateTMADescriptorExperimentalVariable,
+    CreateTMADescriptorStableVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FunctionDecoratedByContextlibContextManagerVariable,
     FunctoolsPartialVariable,
     FunctoolsWrapsVariable,
@@ -62,9 +71,18 @@ from .functions import (
     NestedUserFunctionVariable,
     PolyfilledFunctionVariable,
     SkipFunctionVariable,
+<<<<<<< HEAD
     TMADescriptorVariable,
     UserFunctionVariable,
     UserMethodVariable,
+=======
+    TMADescriptorExperimentalVariable,
+    TMADescriptorStableVariable,
+    UserFunctionVariable,
+    UserMethodVariable,
+    WrapperUserFunctionVariable,
+    WrapperUserMethodVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from .higher_order_ops import (
     FunctionalCallVariable,
@@ -156,7 +174,12 @@ __all__ = [
     "ConstDictVariable",
     "ContextWrappingVariable",
     "CountIteratorVariable",
+<<<<<<< HEAD
     "CreateTMADescriptorVariable",
+=======
+    "CreateTMADescriptorExperimentalVariable",
+    "CreateTMADescriptorStableVariable",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "CUDADeviceVariable",
     "CycleIteratorVariable",
     "DataPtrVariable",
@@ -164,6 +187,10 @@ __all__ = [
     "DeletedVariable",
     "DeterministicAlgorithmsVariable",
     "DictKeySetVariable",
+<<<<<<< HEAD
+=======
+    "DynamoConfigPatchVariable",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "EnumVariable",
     "FakeItemVariable",
     "GetAttrVariable",
@@ -196,7 +223,12 @@ __all__ = [
     "SuperVariable",
     "TemporarilyPopInterpreterStackCtxManagerVariable",
     "TensorVariable",
+<<<<<<< HEAD
     "TMADescriptorVariable",
+=======
+    "TMADescriptorExperimentalVariable",
+    "TMADescriptorStableVariable",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "TorchCtxManagerClassVariable",
     "TorchInGraphFunctionVariable",
     "TorchVersionVariable",

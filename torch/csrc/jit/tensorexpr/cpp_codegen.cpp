@@ -77,7 +77,11 @@ void CppPrinter::printPrologue() {
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::enable_if_t<!std::is_floating_point_v<T>, void> visit_mod(
+=======
+static inline std::enable_if_t<!std::is_floating_point_v<T>, void> visit_mod(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::ostream& os,
     const ExprPtr& lhs,
     const ExprPtr& rhs) {
@@ -85,7 +89,11 @@ inline std::enable_if_t<!std::is_floating_point_v<T>, void> visit_mod(
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::enable_if_t<std::is_floating_point_v<T>, void> visit_mod(
+=======
+static inline std::enable_if_t<std::is_floating_point_v<T>, void> visit_mod(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::ostream& os,
     const ExprPtr& lhs,
     const ExprPtr& rhs) {
@@ -93,35 +101,55 @@ inline std::enable_if_t<std::is_floating_point_v<T>, void> visit_mod(
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::
+=======
+static inline std::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     enable_if_t<std::is_floating_point_v<T> || std::is_integral_v<T>, void>
     visit_max(std::ostream& os, const ExprPtr& lhs, const ExprPtr& rhs) {
   os << "std::max(" << *lhs << ", " << *rhs << ")";
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::
+=======
+static inline std::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     enable_if_t<!std::is_floating_point_v<T> && !std::is_integral_v<T>, void>
     visit_max(std::ostream& os, const ExprPtr& lhs, const ExprPtr& rhs) {
   os << "(" << *lhs << " < " << *rhs << ") ? " << *rhs << " : " << *lhs;
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::
+=======
+static inline std::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     enable_if_t<std::is_floating_point_v<T> || std::is_integral_v<T>, void>
     visit_min(std::ostream& os, const ExprPtr& lhs, const ExprPtr& rhs) {
   os << "std::min(" << *lhs << ", " << *rhs << ")";
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::
+=======
+static inline std::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     enable_if_t<!std::is_floating_point_v<T> && !std::is_integral_v<T>, void>
     visit_min(std::ostream& os, const ExprPtr& lhs, const ExprPtr& rhs) {
   os << *lhs << " < " << *rhs << " ? " << *lhs << " : " << *rhs;
 }
 
 template <typename T>
+<<<<<<< HEAD
 void visit_binary_op(
+=======
+static void visit_binary_op(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::ostream& os,
     const ExprPtr& lhs,
     const ExprPtr& rhs,
@@ -142,7 +170,11 @@ void visit_binary_op(
 }
 
 template <typename Op>
+<<<<<<< HEAD
 void dispatch_binary_op(std::ostream& os, const BinaryOpNode<Op>* v) {
+=======
+static void dispatch_binary_op(std::ostream& os, const BinaryOpNode<Op>* v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   switch (v->lhs()->dtype().scalar_type()) {
 #define TYPE_CASE(Type, Name)                                      \
   case ScalarType::Name:                                           \
@@ -400,6 +432,10 @@ void CppCodeGen::call_raw(const std::vector<void*>& args) {
   os() << "int main() {}" << '\n';
 }
 
+<<<<<<< HEAD
 RegisterCodeGen<CppCodeGen> cpp_codegen_reg("cpp_codegen");
+=======
+static RegisterCodeGen<CppCodeGen> cpp_codegen_reg("cpp_codegen");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::jit::tensorexpr

@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 #include <c10/core/Allocator.h>
+=======
+#pragma once
+
+#include <c10/core/Allocator.h>
+#include <c10/core/Stream.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/thread_pool.h>
 #include <c10/util/flat_hash_map.h>
 #include <c10/util/llvmMathExtras.h>
@@ -46,7 +53,11 @@ namespace {
 }
 
 // Struct containing memory allocator summary statistics for host.
+<<<<<<< HEAD
 struct HostStats {
+=======
+struct TORCH_API HostStats {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // COUNT: allocations requested by client code. Note that active
   // count can be extracted by looking at current allocations
   Stat allocation;
@@ -174,7 +185,16 @@ template <
     typename E,
     typename B = HostBlock<S>>
 struct CachingHostAllocatorImpl {
+<<<<<<< HEAD
   virtual ~CachingHostAllocatorImpl() = default;
+=======
+  virtual ~CachingHostAllocatorImpl() {
+    active_ = false;
+    if (pinned_use_background_threads()) {
+      getBackgroundThreadPool()->waitWorkComplete();
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  public:
   // return data_ptr and block pair.
@@ -211,7 +231,11 @@ struct CachingHostAllocatorImpl {
       // Launch the background thread and process events in a loop.
       static bool background_thread_flag [[maybe_unused]] = [this] {
         getBackgroundThreadPool()->run([&]() {
+<<<<<<< HEAD
           while (true) {
+=======
+          while (active_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             process_events();
             std::this_thread::sleep_for(std::chrono::microseconds(100));
           }
@@ -274,7 +298,12 @@ struct CachingHostAllocatorImpl {
     }
   }
 
+<<<<<<< HEAD
   virtual bool record_event(void* ptr, void* ctx, S stream) {
+=======
+  virtual bool record_event(void* ptr, void* ctx, c10::Stream s) {
+    S stream = S(s);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto* block = reinterpret_cast<B*>(ctx);
 
     // Note: we need to check if the passed-in `ctx` is valid. This is because
@@ -467,7 +496,11 @@ struct CachingHostAllocatorImpl {
   virtual B* get_free_block(size_t size) {
     auto index = size_index(size);
     std::lock_guard<std::mutex> g(free_list_[index].mutex_);
+<<<<<<< HEAD
     if (free_list_[index].list_.size() > 0) {
+=======
+    if (!free_list_[index].list_.empty()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       B* block = free_list_[index].list_.back();
       free_list_[index].list_.pop_back();
       block->allocated_ = true;
@@ -616,28 +649,78 @@ struct CachingHostAllocatorImpl {
 
   alignas(64) std::mutex events_mutex_;
   std::deque<std::pair<E, B*>> events_; // event queue paired with block
+<<<<<<< HEAD
+=======
+
+  // Indicates whether the object is active.
+  // Set to false in the destructor to signal background threads to stop.
+  std::atomic<bool> active_{true};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 protected:
   alignas(64) HostStatsStaged stats_;
 };
 
+<<<<<<< HEAD
 template <typename T>
 struct CachingHostAllocatorInterface : public at::Allocator {
   CachingHostAllocatorInterface() : impl_(std::make_unique<T>()) {}
 
   at::DataPtr allocate(size_t size) override {
     TORCH_CHECK_NOT_IMPLEMENTED(false, "Not implemented for allocate");
+=======
+struct TORCH_API HostAllocator : public at::Allocator {
+  // Associates the pinned memory allocation with a stream to track
+  // dependencies. This ensures the memory won't be reused until the stream's
+  // operations complete
+  virtual bool record_event(void* ptr, void* ctx, c10::Stream stream) = 0;
+
+  // Frees all cached pinned memory and returns it to the system, clearing the
+  // allocator's internal cache
+  virtual void empty_cache() = 0;
+
+  // Returns comprehensive statistics about the allocator's memory usage,
+  // allocation patterns, and timing metrics
+  virtual HostStats get_stats() = 0;
+
+  // Resets the cumulative allocation statistics
+  virtual void reset_accumulated_stats() = 0;
+
+  // Resets the peak memory usage metrics
+  virtual void reset_peak_stats() = 0;
+};
+
+template <typename T, c10::DeleterFnPtr deleteFunc>
+struct CachingHostAllocatorInterface : public HostAllocator {
+  CachingHostAllocatorInterface() : impl_(std::make_unique<T>()) {}
+
+  at::DataPtr allocate(size_t size) override {
+    auto ptr_and_ctx = impl_->allocate(size);
+    return {
+        ptr_and_ctx.first,
+        ptr_and_ctx.second,
+        deleteFunc, // Use the template parameter deleter function
+        at::DeviceType::CPU};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void free(void* ctx) {
     impl_->free(ctx);
   }
 
+<<<<<<< HEAD
   template <typename S>
   bool record_event(void* ptr, void* ctx, S stream) {
     return impl_->record_event(ptr, ctx, stream);
   }
 
   void empty_cache() {
+=======
+  bool record_event(void* ptr, void* ctx, c10::Stream stream) override {
+    return impl_->record_event(ptr, ctx, stream);
+  }
+
+  void empty_cache() override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     impl_->empty_cache();
   }
 
@@ -646,6 +729,7 @@ struct CachingHostAllocatorInterface : public at::Allocator {
     impl_->copy_data(dest, src, count);
   }
 
+<<<<<<< HEAD
   HostStats getStats() {
     return impl_->getStats();
   }
@@ -655,11 +739,59 @@ struct CachingHostAllocatorInterface : public at::Allocator {
   }
 
   void resetPeakStats() {
+=======
+  HostStats get_stats() override {
+    return impl_->getStats();
+  }
+
+  void reset_accumulated_stats() override {
+    impl_->resetAccumulatedStats();
+  }
+
+  void reset_peak_stats() override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     impl_->resetPeakStats();
   }
 
   std::unique_ptr<T> impl_;
 };
 
+<<<<<<< HEAD
+=======
+#define DECLARE_HOST_ALLOCATOR(name, impl, deleter, instance)       \
+  void deleter(void* ptr);                                          \
+  struct name final                                                 \
+      : public at::CachingHostAllocatorInterface<impl, deleter> {}; \
+  static name instance;                                                    \
+  void deleter(void* ptr) {                                         \
+    instance.free(ptr);                                             \
+  }
+
+/**
+ * Set the host allocator for DeviceType `device_type`. This allocator manages
+ * pinned memory on the host that can be accessed efficiently by the specified
+ * device type. Note that this function is not thread-safe.
+ */
+TORCH_API void setHostAllocator(
+    at::DeviceType device_type,
+    at::HostAllocator* allocator,
+    uint8_t priority = 0);
+
+TORCH_API at::HostAllocator* getHostAllocator(at::DeviceType device_type);
+
+template <DeviceType device_type>
+struct HostAllocatorRegistry {
+  explicit HostAllocatorRegistry(HostAllocator* allocator) {
+    at::setHostAllocator(device_type, allocator);
+  }
+};
+
+#define REGISTER_HOST_ALLOCATOR(device_type, allocator) \
+  namespace {                                           \
+  static at::HostAllocatorRegistry<device_type>         \
+      g_host_allocator_registry_instance(allocator);    \
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at
 C10_DIAGNOSTIC_POP()

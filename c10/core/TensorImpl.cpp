@@ -102,7 +102,11 @@ TensorImpl::TensorImpl(
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 TensorImpl::TensorImpl(
+<<<<<<< HEAD
     ImplType type,
+=======
+    ImplType /*type*/,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Storage&& storage,
     DispatchKeySet key_set,
     const caffe2::TypeMeta data_type)
@@ -160,7 +164,11 @@ TensorImpl::TensorImpl(
   if (inference_mode) {
     // See Note [Expected TLS state in InferenceMode] for why we exclude
     // Autograd & ADInplaceOrView keys. Normally key_set only contains backend
+<<<<<<< HEAD
     // keys but we do the substraction here to make sure.
+=======
+    // keys but we do the subtraction here to make sure.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     key_set_ = key_set - c10::autograd_dispatch_keyset_with_ADInplaceOrView;
   } else {
     // TODO: Ideally we only add AutogradBackend key when the tensor requires
@@ -218,7 +226,11 @@ void TensorImpl::HandleResize() {
   }
 }
 
+<<<<<<< HEAD
 bool TensorImpl::compute_contiguous(identity<bool>) const {
+=======
+bool TensorImpl::compute_contiguous() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_sparse()) {
     return false;
   }
@@ -228,7 +240,11 @@ bool TensorImpl::compute_contiguous(identity<bool>) const {
       numel_);
 }
 
+<<<<<<< HEAD
 bool TensorImpl::compute_channels_last_contiguous_2d(identity<bool>) const {
+=======
+bool TensorImpl::compute_channels_last_contiguous_2d() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_sparse()) {
     return false;
   }
@@ -237,7 +253,11 @@ bool TensorImpl::compute_channels_last_contiguous_2d(identity<bool>) const {
       sizes_and_strides_.strides_arrayref());
 }
 
+<<<<<<< HEAD
 bool TensorImpl::compute_channels_last_contiguous_3d(identity<bool>) const {
+=======
+bool TensorImpl::compute_channels_last_contiguous_3d() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_sparse()) {
     return false;
   }
@@ -246,7 +266,11 @@ bool TensorImpl::compute_channels_last_contiguous_3d(identity<bool>) const {
       sizes_and_strides_.strides_arrayref());
 }
 
+<<<<<<< HEAD
 bool TensorImpl::compute_strides_like_channels_last_2d(identity<bool>) const {
+=======
+bool TensorImpl::compute_strides_like_channels_last_2d() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_sparse()) {
     return false;
   }
@@ -255,7 +279,11 @@ bool TensorImpl::compute_strides_like_channels_last_2d(identity<bool>) const {
       sizes_and_strides_.strides_arrayref());
 }
 
+<<<<<<< HEAD
 bool TensorImpl::compute_strides_like_channels_last_3d(identity<bool>) const {
+=======
+bool TensorImpl::compute_strides_like_channels_last_3d() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_sparse()) {
     return false;
   }
@@ -264,7 +292,11 @@ bool TensorImpl::compute_strides_like_channels_last_3d(identity<bool>) const {
       sizes_and_strides_.strides_arrayref());
 }
 
+<<<<<<< HEAD
 bool TensorImpl::compute_non_overlapping_and_dense(identity<bool>) const {
+=======
+bool TensorImpl::compute_non_overlapping_and_dense() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_sparse()) {
     return false;
   }

@@ -301,6 +301,11 @@ class TestDecomposeMemMM(TestCase):
         )
         counters.clear()
 
+<<<<<<< HEAD
+=======
+    # (1, 64, 32, False) vesrion fails
+    @unittest.skip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "m,k,n, should_decompose",
         [(1, 64, 16, True), (2, 64, 16, False), (1, 64, 32, False)],
@@ -369,6 +374,10 @@ class TestDecomposeMemMM(TestCase):
             )
             counters.clear()
 
+<<<<<<< HEAD
+=======
+    @unittest.skip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("m,k,n, should_decompose", [(20480, 5, 2, True)])
     @parametrize("has_bias", [True, False])
     def test_dynamic_shape(self, m, n, k, has_bias, should_decompose):

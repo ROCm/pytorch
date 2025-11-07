@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from typing import Any, runtime_checkable, TypeVar
 from typing_extensions import Protocol
+=======
+from typing import Any, TypeVar
+from typing_extensions import Protocol, runtime_checkable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["Stateful", "StatefulT"]

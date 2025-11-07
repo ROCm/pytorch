@@ -99,7 +99,12 @@ auto sum(int64_t N, Func f) {
   return partial_sums[0];
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename opmath_t>
+=======
+template <typename scalar_t, typename opmath_t, typename out_t>
+__ubsan_ignore_signed_int_overflow__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::enable_if_t<std::is_same_v<scalar_t, opmath_t>, void>
 gemm_notrans_(
     int64_t m,
@@ -111,31 +116,52 @@ gemm_notrans_(
     const scalar_t* b,
     int64_t ldb,
     opmath_t beta,
+<<<<<<< HEAD
     scalar_t* c,
+=======
+    out_t* c,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t ldc) {
   // c *= beta
   scale_(m, n, beta, c, ldc);
 
   // c += alpha * (a @ b)
+<<<<<<< HEAD
   for (const auto l : c10::irange(k)) {
     for (const auto j : c10::irange(n)) {
       opmath_t val = b[l + j * ldb] * alpha;
       int64_t i_m = m / 4;
+=======
+  const uint64_t unsigned_m = static_cast<int64_t>(m);
+  const uint64_t i_m = unsigned_m / 4;
+  for (const uint64_t l : c10::irange(k)) {
+    for (const uint64_t j : c10::irange(n)) {
+      opmath_t val = b[l + j * ldb] * alpha;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       for (const auto i_i : c10::irange(i_m)) {
         c[j * ldc + i_i * 4 + 0] += a[i_i * 4 + 0 + l * lda] * val;
         c[j * ldc + i_i * 4 + 1] += a[i_i * 4 + 1 + l * lda] * val;
         c[j * ldc + i_i * 4 + 2] += a[i_i * 4 + 2 + l * lda] * val;
         c[j * ldc + i_i * 4 + 3] += a[i_i * 4 + 3 + l * lda] * val;
       }
+<<<<<<< HEAD
       int64_t i = i_m * 4;
       for (; i < m; i++)
+=======
+      uint64_t i = i_m * 4;
+      for (; i < unsigned_m; i++)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         c[j * ldc + i] += a[i + l * lda] * val;
     }
   }
 }
 
 // std::is_same<scalar_t, at::BFloat16> || std::is_same<scalar_t, at::Half>
+<<<<<<< HEAD
 template <typename scalar_t, typename opmath_t>
+=======
+template <typename scalar_t, typename opmath_t, typename out_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::enable_if_t<!std::is_same_v<scalar_t, opmath_t>, void>
 gemm_notrans_(
     int64_t m,
@@ -147,7 +173,11 @@ gemm_notrans_(
     const scalar_t* b,
     int64_t ldb,
     opmath_t beta,
+<<<<<<< HEAD
     scalar_t* c,
+=======
+    out_t* c,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t ldc) {
   // c += alpha * (a @ b)
   for (const auto i : c10::irange(m)) {
@@ -165,7 +195,11 @@ gemm_notrans_(
   }
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename opmath_t>
+=======
+template <typename scalar_t, typename opmath_t, typename out_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void gemm_transa_(
     TransposeType transa,
     int64_t m, int64_t n, int64_t k,
@@ -173,7 +207,11 @@ void gemm_transa_(
     const scalar_t *a, int64_t lda,
     const scalar_t *b, int64_t ldb,
     opmath_t beta,
+<<<<<<< HEAD
     scalar_t *c, int64_t ldc) {
+=======
+    out_t *c, int64_t ldc) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // c = alpha * (a.T @ b) + beta * c
   const scalar_t *a_ = a;
   for (const auto i : c10::irange(m)) {
@@ -225,6 +263,10 @@ void gemm_transb_impl(
   }
 }
 
+<<<<<<< HEAD
+=======
+// in this case, scalar_t == opmath_t == out_t so out_t template param is not needed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename scalar_t, typename opmath_t>
 std::enable_if_t<std::is_same_v<scalar_t, opmath_t>, void>
 gemm_transb_(
@@ -247,7 +289,11 @@ gemm_transb_(
 }
 
 // std::is_same<scalar_t, at::BFloat16> || std::is_same<scalar_t, at::Half>
+<<<<<<< HEAD
 template <typename scalar_t, typename opmath_t>
+=======
+template <typename scalar_t, typename opmath_t, typename out_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::enable_if_t<!std::is_same_v<scalar_t, opmath_t>, void>
 gemm_transb_(
     TransposeType transb,
@@ -260,7 +306,11 @@ gemm_transb_(
     const scalar_t* b,
     int64_t ldb,
     opmath_t beta,
+<<<<<<< HEAD
     scalar_t* c,
+=======
+    out_t* c,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t ldc) {
   // We need to calculate full-precision dot products for correctness;
   // users notice error accumulation with reduced-width types (e.g.,
@@ -304,7 +354,11 @@ gemm_transb_(
   }
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename opmath_t>
+=======
+template <typename scalar_t, typename opmath_t, typename out_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void gemm_transab_(
     TransposeType transa, TransposeType transb,
     int64_t m, int64_t n, int64_t k,
@@ -312,7 +366,11 @@ void gemm_transab_(
     const scalar_t *a, int64_t lda,
     const scalar_t *b, int64_t ldb,
     opmath_t beta,
+<<<<<<< HEAD
     scalar_t *c, int64_t ldc) {
+=======
+    out_t *c, int64_t ldc) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // c = beta * c + alpha * (a.T @ b.T)
   for (const auto i : c10::irange(m)) {
     for (const auto j : c10::irange(n)) {
@@ -436,7 +494,11 @@ void gemm_transa_(
 }
 #endif // !defined(C10_MOBILE)
 
+<<<<<<< HEAD
 template <typename scalar_t, typename opmath_t>
+=======
+template <typename scalar_t, typename opmath_t, typename out_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void gemm_core_(
     TransposeType transa, TransposeType transb,
     int64_t m, int64_t n, int64_t k,
@@ -444,7 +506,11 @@ void gemm_core_(
     const scalar_t *a, int64_t lda,
     const scalar_t *b, int64_t ldb,
     opmath_t beta,
+<<<<<<< HEAD
     scalar_t *c, int64_t ldc) {
+=======
+    out_t *c, int64_t ldc) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (transa == TransposeType::NoTranspose &&
       transb == TransposeType::NoTranspose) {
     return gemm_notrans_(m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
@@ -493,6 +559,30 @@ void cpublas_gemm_impl(
       });
 }
 
+<<<<<<< HEAD
+=======
+void cpublas_gemm_no_downcast_impl(
+  at::ScalarType type,
+  TransposeType transa, TransposeType transb,
+  int64_t m, int64_t n, int64_t k,
+  const Scalar& alpha,
+  const void *a, int64_t lda,
+  const void *b, int64_t ldb,
+  const Scalar& beta,
+  void *c, int64_t ldc) {
+_AT_DISPATCH_GEMM_TYPES(type, "cpublas_gemm_no_downcast_impl", [&]{
+      using opmath_t = at::opmath_type<scalar_t>;
+      gemm_core_(
+          transa, transb, m, n, k,
+          alpha.to<opmath_t>(),
+          static_cast<const scalar_t *>(a), lda,
+          static_cast<const scalar_t *>(b), ldb,
+          beta.to<opmath_t>(),
+          static_cast<opmath_t *>(c), ldc);
+    });
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void cpublas_axpy_impl(at::ScalarType type, int64_t n, const Scalar& _a, const void *_x, int64_t incx, void *_y, int64_t incy){
   if (type == at::kBool) {
       auto a = _a.to<bool>();
@@ -530,6 +620,10 @@ void cpublas_copy_impl(at::ScalarType type, int64_t n, const void *_x, int64_t i
 
 
 REGISTER_DISPATCH(cpublas::gemm_stub, &cpublas::cpublas_gemm_impl)
+<<<<<<< HEAD
+=======
+REGISTER_DISPATCH(cpublas::gemm_no_downcast_stub, &cpublas::cpublas_gemm_no_downcast_impl)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_DISPATCH(cpublas::axpy_stub, &cpublas::cpublas_axpy_impl)
 REGISTER_DISPATCH(cpublas::copy_stub, &cpublas::cpublas_copy_impl)
 

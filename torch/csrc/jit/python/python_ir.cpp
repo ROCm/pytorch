@@ -26,13 +26,21 @@
 namespace torch::jit {
 
 // Controls whether graph source ranges are printed by default
+<<<<<<< HEAD
 bool global_print_source_ranges = true;
+=======
+static bool global_print_source_ranges = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Symbol ConcretePythonOp::Kind = prim::PythonOp;
 
 using c10::Type;
 
+<<<<<<< HEAD
 std::string getPythonName(const PyObject* obj_) {
+=======
+static std::string getPythonName(const PyObject* obj_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   pybind11::gil_scoped_acquire gil;
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
   PyObject* obj = const_cast<PyObject*>(obj_);
@@ -41,7 +49,11 @@ std::string getPythonName(const PyObject* obj_) {
   return py::str(v);
 }
 
+<<<<<<< HEAD
 std::ostream& printPyObject(std::ostream& out, const THPObjectPtr& obj) {
+=======
+static std::ostream& printPyObject(std::ostream& out, const THPObjectPtr& obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   pybind11::gil_scoped_acquire gil;
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
   auto pyobj = py::handle(const_cast<PyObject*>(obj.get()));
@@ -81,7 +93,11 @@ std::ostream& printPyObject(std::ostream& out, const THPObjectPtr& obj) {
   }
 }
 
+<<<<<<< HEAD
 Node* findNode(
+=======
+static Node* findNode(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     c10::ArrayRef<torch::jit::Block*> blocks,
     Symbol kind,
     bool recurse = true) {
@@ -101,7 +117,11 @@ Node* findNode(
   return nullptr;
 }
 
+<<<<<<< HEAD
 Node* findNode(Block* block, Symbol kind, bool recurse = true) {
+=======
+static Node* findNode(Block* block, Symbol kind, bool recurse = true) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<Block*> blocks = {block};
   return findNode(blocks, kind, recurse);
 }

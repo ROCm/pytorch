@@ -82,9 +82,13 @@ Example:
     >>> t = torch.tensor([0.+1.j, 2.+3.j, 4.+5.j, 6.+7.j])
     >>> torch.fft.fft(t)
     tensor([12.+16.j, -8.+0.j, -4.-4.j,  0.-8.j])
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ifft = _add_docstr(
@@ -125,9 +129,13 @@ Example:
     >>> t = torch.tensor([ 6.+0.j, -2.+2.j, -2.+0.j, -2.-2.j])
     >>> torch.fft.ifft(t)
     tensor([0.+0.j, 1.+0.j, 2.+0.j, 3.+0.j])
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 fft2 = _add_docstr(
@@ -188,9 +196,13 @@ Example:
     >>> two_ffts = torch.fft.fft(torch.fft.fft(x, dim=0), dim=1)
     >>> torch.testing.assert_close(fft2, two_ffts, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ifft2 = _add_docstr(
@@ -243,9 +255,13 @@ Example:
     >>> two_iffts = torch.fft.ifft(torch.fft.ifft(x, dim=0), dim=1)
     >>> torch.testing.assert_close(ifft2, two_iffts, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 fftn = _add_docstr(
@@ -305,9 +321,13 @@ Example:
     >>> two_ffts = torch.fft.fft(torch.fft.fft(x, dim=0), dim=1)
     >>> torch.testing.assert_close(fftn, two_ffts, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ifftn = _add_docstr(
@@ -359,9 +379,13 @@ Example:
     >>> two_iffts = torch.fft.ifft(torch.fft.ifft(x, dim=0), dim=1)
     >>> torch.testing.assert_close(ifftn, two_iffts, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 rfft = _add_docstr(
@@ -417,9 +441,13 @@ Example:
     Notice that the symmetric element ``T[-1] == T[1].conj()`` is omitted.
     At the Nyquist frequency ``T[-2] == T[2]`` is it's own symmetric pair,
     and therefore must always be real-valued.
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 irfft = _add_docstr(
@@ -496,9 +524,13 @@ Example:
     >>> roundtrip = torch.fft.irfft(T, t.numel())
     >>> torch.testing.assert_close(roundtrip, t, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 rfft2 = _add_docstr(
@@ -565,9 +597,13 @@ Example:
     >>> two_ffts = torch.fft.fft(torch.fft.rfft(t, dim=1), dim=0)
     >>> torch.testing.assert_close(rfft2, two_ffts, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 irfft2 = _add_docstr(
@@ -649,9 +685,13 @@ Example:
     torch.Size([10, 9])
     >>> torch.testing.assert_close(roundtrip, t, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 rfftn = _add_docstr(
@@ -718,9 +758,13 @@ Example:
     >>> two_ffts = torch.fft.fft(torch.fft.rfft(t, dim=1), dim=0)
     >>> torch.testing.assert_close(rfftn, two_ffts, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 irfftn = _add_docstr(
@@ -801,9 +845,13 @@ Example:
     torch.Size([10, 9])
     >>> torch.testing.assert_close(roundtrip, t, check_stride=False)
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 hfft = _add_docstr(
@@ -894,9 +942,13 @@ Example:
 
     >>> torch.fft.hfft(T[:3])
     tensor([0.1250, 0.2809, 0.6250, 0.9691])
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ihfft = _add_docstr(
@@ -951,9 +1003,13 @@ Example:
     >>> torch.fft.ifft(t)
     tensor([ 2.0000-0.0000j, -0.5000-0.6882j, -0.5000-0.1625j, -0.5000+0.1625j,
             -0.5000+0.6882j])
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 hfft2 = _add_docstr(
@@ -1025,9 +1081,13 @@ Example:
     >>> torch.allclose(roundtrip, T)
     True
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ihfft2 = _add_docstr(
@@ -1092,9 +1152,13 @@ Example:
     >>> torch.allclose(t, two_ffts)
     True
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 hfftn = _add_docstr(
@@ -1187,9 +1251,13 @@ Example:
     >>> torch.allclose(roundtrip, T)
     True
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 ihfftn = _add_docstr(
@@ -1259,9 +1327,13 @@ Example:
     >>> torch.allclose(ihfftn, two_iffts)
     True
 
+<<<<<<< HEAD
 """.format(
         **common_args
     ),
+=======
+""".format(**common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 fftfreq = _add_docstr(
@@ -1310,9 +1382,13 @@ Example:
     >>> torch.fft.fftfreq(4)
     tensor([ 0.0000,  0.2500, -0.5000, -0.2500])
 
+<<<<<<< HEAD
 """.format(
         **factory_common_args
     ),
+=======
+""".format(**factory_common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 rfftfreq = _add_docstr(
@@ -1361,9 +1437,13 @@ Example:
     >>> torch.fft.fftfreq(4)
     tensor([ 0.0000,  0.2500, -0.5000, -0.2500])
 
+<<<<<<< HEAD
 """.format(
         **factory_common_args
     ),
+=======
+""".format(**factory_common_args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 fftshift = _add_docstr(

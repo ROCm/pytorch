@@ -13,7 +13,11 @@
 
 
 namespace {
+<<<<<<< HEAD
 // Thin wrapper around https://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE_1g57a3c8313f570282a1a7bcc78743b08e,
+=======
+// Thin wrapper around https://docs.nvidia.com/cuda/cuda-math-api/cuda_math_api/group__CUDA__MATH__SINGLE.html,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // to ensure the Cuda math library's isfinite is actually what gets called in
 // _amp_non_finite_check_and_unscale_cuda_'s gpu_kernel lambda.
 //

@@ -184,7 +184,11 @@ def barrier(
 
     Optionally, passing rank will enable tracing of missing ranks on timeouts.
     `rank_tracing_decoder` lambda arg can be used to convert rank data
+<<<<<<< HEAD
     into a more meaninful information at an app level (e.g. hostname).
+=======
+    into a more meaningful information at an app level (e.g. hostname).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Note: Since the data is not removed from the store, the barrier can be used
         once per unique ``key_prefix``.

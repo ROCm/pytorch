@@ -16,7 +16,15 @@ test_classes = {}
 
 
 def mocked_serder_export_strict(*args, **kwargs):
+<<<<<<< HEAD
     ep = export(*args, **kwargs)
+=======
+    if "strict" not in kwargs:
+        ep = export(*args, **kwargs, strict=True)
+    else:
+        ep = export(*args, **kwargs)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     buffer = io.BytesIO()
     save(ep, buffer)
     buffer.seek(0)
@@ -25,10 +33,14 @@ def mocked_serder_export_strict(*args, **kwargs):
 
 
 def mocked_serder_export_non_strict(*args, **kwargs):
+<<<<<<< HEAD
     if "strict" in kwargs:
         ep = export(*args, **kwargs)
     else:
         ep = export(*args, **kwargs, strict=False)
+=======
+    ep = export(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     buffer = io.BytesIO()
     save(ep, buffer)
     buffer.seek(0)
@@ -41,7 +53,11 @@ def make_dynamic_cls(cls, strict):
         test_class = testing.make_test_cls_with_mocked_export(
             cls,
             "SerDesExport",
+<<<<<<< HEAD
             test_export.SERDES_SUFFIX,
+=======
+            test_export.SERDES_STRICT_SUFFIX,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mocked_serder_export_strict,
             xfail_prop="_expected_failure_serdes",
         )

@@ -42,7 +42,11 @@ if TYPE_CHECKING:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # NB: not bothering to generate dispatch stub forward declaration in header,
+<<<<<<< HEAD
 # we can just paste it whereever necessary
+=======
+# we can just paste it wherever necessary
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: use BackendIndex
 # dispatch_key: DispatchKey  # only CPU/CUDA right now

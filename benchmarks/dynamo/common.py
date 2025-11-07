@@ -14,6 +14,10 @@ import itertools
 import json
 import logging
 import os
+<<<<<<< HEAD
+=======
+import random
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import shutil
 import signal
 import subprocess
@@ -49,6 +53,7 @@ from torch._logging.scribe import open_source_signpost
 
 
 try:
+<<<<<<< HEAD
     from torch._dynamo.utils import (
         clone_inputs,
         graph_break_reasons,
@@ -61,6 +66,12 @@ except ImportError:
         graph_break_reasons,
         maybe_enable_compiled_autograd,
     )
+=======
+    from torch._dynamo.utils import clone_inputs, graph_break_reasons
+    from torch._inductor.utils import fresh_cache
+except ImportError:
+    from _dynamo.utils import clone_inputs, graph_break_reasons
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._functorch.config
 from torch._functorch.aot_autograd import set_model_name
@@ -74,7 +85,11 @@ try:
     import torch_xla
     import torch_xla.core.xla_model as xm
 
+<<<<<<< HEAD
     # This is to woraround the backward issue https://github.com/pytorch/xla/issues/4174
+=======
+    # This is to workaround the backward issue https://github.com/pytorch/xla/issues/4174
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch_xla._XLAC._init_computation_client()
 except ImportError:
     # ignore the error if torch_xla is not installed
@@ -89,6 +104,10 @@ log = logging.getLogger(__name__)
 
 # We are primarily interested in TF32
 torch.backends.cuda.matmul.allow_tf32 = True
+<<<<<<< HEAD
+=======
+torch.backends.cuda.allow_fp16_bf16_reduction_math_sdp(True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Suppress torch.profiler spam
 os.environ["KINETO_LOG_LEVEL"] = "5"
@@ -276,7 +295,11 @@ DO_NOT_CAST_INPUTS = {"stable_diffusion"}
 
 
 # Maps a benchmark model name to a list of status codes. For any listed entry, we'll
+<<<<<<< HEAD
 # capture TORCH_COMPILE_DEBUG logs in CI runs and preseve them (i.e., for upload) if
+=======
+# capture TORCH_COMPILE_DEBUG logs in CI runs and preserve them (i.e., for upload) if
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # the result status matches one listed.
 CI_PRESERVE_COMPILE_DEBUG = {
     # For example:
@@ -350,7 +373,11 @@ def load_model_from_path(path_and_class_str):
     return model, inputs
 
 
+<<<<<<< HEAD
 def write_outputs(filename, headers, row):
+=======
+def write_outputs(filename, headers, row, upload_to_benchmark_db: bool = True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Write both CSV and JSON outputs using the original CSV output interface
     """
@@ -359,7 +386,12 @@ def write_outputs(filename, headers, row):
         return
 
     output_csv(filename, headers, row)
+<<<<<<< HEAD
     output_json(filename, headers, row)
+=======
+    if upload_to_benchmark_db:
+        output_json(filename, headers, row)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def output_csv(filename, headers, row):
@@ -565,7 +597,11 @@ def nothing(f):
     return f
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def patch_torch_manual_seed():
     """Make torch manual seed deterministic. Helps with accuracy testing."""
 
@@ -593,17 +629,25 @@ def empty_gpu_cache(device):
     Explicitly empty gpu cache to avoid OOM in subsequent run.
     """
 
+<<<<<<< HEAD
     if device not in ["cuda", "xpu"]:
+=======
+    if device not in ["cuda", "xpu", "mps"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.warning(
             "Trying to call the empty_gpu_cache for device: %s, which is not in list [cuda, xpu]",
             device,
         )
         return
 
+<<<<<<< HEAD
     if device == "cuda":
         torch.cuda.empty_cache()
     elif device == "xpu":
         torch.xpu.empty_cache()
+=======
+    getattr(torch, device).empty_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def synchronize():
@@ -699,17 +743,64 @@ def timed(
     times=1,
     return_result=False,
     collect_outputs=False,
+<<<<<<< HEAD
+=======
+    batch_size=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     use_xla = tensor_is_on_xla(example_inputs)
     synchronize()
 
+<<<<<<< HEAD
+=======
+    if batch_size:
+        patch_torch_manual_seed()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if use_xla:
         xm.mark_step()
         xm.wait_device_ops()
 
+<<<<<<< HEAD
     time_total = 0
     # Dont collect outputs to correctly measure timing
     for _ in range(times):
+=======
+    def vary_batch(t: torch.Tensor, new_batch_size) -> torch.Tensor:
+        for i, s in enumerate(t.size()):
+            if s == batch_size:
+                # If new batch is smaller, we truncate
+                if new_batch_size < batch_size:
+                    indexer = [slice(None)] * t.ndim
+                    indexer[i] = slice(0, new_batch_size)
+                    t = t[tuple(indexer)]
+                # If new batch is greater, we just duplicate the last row
+                # over and over until we hit the desired batch size
+                elif new_batch_size > batch_size:
+                    indexer = [slice(None)] * t.ndim
+                    indexer[i] = -1
+                    last_slice = t[tuple(indexer)].unsqueeze(i)
+                    repeat_shape = list(t.shape)
+                    repeat_shape[i] = new_batch_size - batch_size
+                    padding = last_slice.expand(*repeat_shape)
+                    t = torch.cat([t, padding], dim=i)
+                break
+        return t
+
+    time_total = 0
+    # Dont collect outputs to correctly measure timing
+    for _ in range(times):
+        # If batch_size is 1, it too often collides with other non batch size
+        # dimensions resulting in errors.
+        if batch_size and batch_size > 1:
+            # Calculate new batch size by varying the original batch size by up to 20%
+            # Ensure it's at least greater than 1
+            variation = random.uniform(0.8, 1.2)
+            new_batch_size = max(2, int(batch_size * variation))
+            example_inputs = tree_map_only(
+                torch.Tensor, lambda x: vary_batch(x, new_batch_size), example_inputs
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Put this call inside the loop to reset the seed for each iteration.
         # Don't include reset_rng_state() to correctly measure timing
         reset_rng_state(use_xla)
@@ -916,6 +1007,7 @@ def latency_experiment(args, model_iter_fn, model, example_inputs, mark, **kwarg
             # inputs will incur high penalty then the next one.
             maybe_mark_step(args)
 
+<<<<<<< HEAD
             with (
                 maybe_mark_profile(p=p, mark=mark),
                 maybe_enable_compiled_autograd(
@@ -924,6 +1016,9 @@ def latency_experiment(args, model_iter_fn, model, example_inputs, mark, **kwarg
                     dynamic=args.dynamic_shapes,
                 ),
             ):
+=======
+            with maybe_mark_profile(p=p, mark=mark):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 timings[rep], actual_output = timed(
                     model,
                     model_iter_fn,
@@ -1034,9 +1129,12 @@ def speedup_experiment(args, model_iter_fn, model, example_inputs, **kwargs):
 
     Writes to ./speedups.csv
     """
+<<<<<<< HEAD
     # if args.dynamic_shapes:
     #     return speedup_experiment_ds(args, model_iter_fn, model, example_inputs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     timings = np.zeros((args.repeat, 2), np.float64)
     # if we randomize the input, we should also check the result is correct
     should_randomize_input = args.randomize_input
@@ -1057,14 +1155,24 @@ def speedup_experiment(args, model_iter_fn, model, example_inputs, **kwargs):
 
     times = args.iterations_per_run
 
+<<<<<<< HEAD
     # Use higher tolerance for XLA since XLA cause numerical unstability when
+=======
+    # Use higher tolerance for XLA since XLA cause numerical instability when
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # graph size changes
     tolerance = args.xla_tolerance if args.trace_on_xla else 1e-4
     torch._dynamo.config.repro_tolerance = tolerance
 
     with maybe_profile(args.export_profiler_trace, **args.profile_details) as p:
         if args.export_aot_inductor:
+<<<<<<< HEAD
             frozen_model_iter_fn = export_aot_inductor(model, example_inputs)
+=======
+            frozen_model_iter_fn = export_aot_inductor(
+                model, example_inputs, args.inductor_compile_mode
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             frozen_model_iter_fn = torch._dynamo.run(model_iter_fn)
 
@@ -1088,11 +1196,16 @@ def speedup_experiment(args, model_iter_fn, model, example_inputs, **kwargs):
                     return_result=True,
                     times=times,
                     collect_outputs=args.collect_outputs,
+<<<<<<< HEAD
+=======
+                    batch_size=kwargs.get("batch_size"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             # call mark_step between the 2 calls to make the comparison fair.
             maybe_mark_step(args)
 
+<<<<<<< HEAD
             with (
                 maybe_mark_profile(p=p, mark="actual"),
                 maybe_enable_compiled_autograd(
@@ -1101,6 +1214,9 @@ def speedup_experiment(args, model_iter_fn, model, example_inputs, **kwargs):
                     dynamic=args.dynamic_shapes,
                 ),
             ):
+=======
+            with maybe_mark_profile(p=p, mark="actual"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 timings[rep, 1], actual_output = timed(
                     model,
                     frozen_model_iter_fn,
@@ -1200,6 +1316,7 @@ def speedup_experiment(args, model_iter_fn, model, example_inputs, **kwargs):
     return msg
 
 
+<<<<<<< HEAD
 # WARNING: This code is currently dead
 def speedup_experiment_ds(args, model_iter_fn, model, example_inputs):
     """
@@ -1276,6 +1393,8 @@ def speedup_experiment_ds(args, model_iter_fn, model, example_inputs):
     return output_str
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def overhead_experiment(*args, model_iter_fn):
     """
     Measure overheads of TorchDynamo by running with no backend (only
@@ -1398,6 +1517,7 @@ def _produce_dynamic_shapes_for_export(path, x):
 
     if not isinstance(x, torch.Tensor):
         return None
+<<<<<<< HEAD
     return {i: Dim.AUTO for i in getattr(x, "_dynamo_dynamic_indices", {})}
 
 
@@ -1409,6 +1529,18 @@ class AOTInductorModelCache:
         import torch._inductor
         import torch.export._trace
         from torch.export.dynamic_shapes import _tree_map_with_path
+=======
+    return dict.fromkeys(getattr(x, "_dynamo_dynamic_indices", {}), Dim.AUTO)
+
+
+class AOTInductorModelCache:
+    cache: dict[weakref.ref, tuple[Any, float]] = {}
+
+    @classmethod
+    def load(cls, model, example_inputs, mode):
+        import torch._inductor
+        from torch.export.dynamic_shapes import _combine_args, _tree_map_with_path
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         key = weakref.ref(model)
         if key not in cls.cache:
@@ -1417,9 +1549,17 @@ class AOTInductorModelCache:
             with torch.no_grad():
                 # copy.deepcopy is required to prevent any surprising side-effect,
                 # see https://github.com/pytorch/pytorch/issues/113029
+<<<<<<< HEAD
                 example_outputs = copy.deepcopy(model)(*example_args, **example_kwargs)
 
             if pytree._is_namedtuple_instance(example_outputs):
+=======
+                # This will cause memory stats to be overshadowed by this eager run.
+                # To fix that, memory stats will be reset later.
+                example_outputs = copy.deepcopy(model)(*example_args, **example_kwargs)
+
+            if pytree.is_namedtuple_instance(example_outputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 typ = type(example_outputs)
                 pytree._register_namedtuple(
                     typ,
@@ -1428,19 +1568,64 @@ class AOTInductorModelCache:
             else:
                 _register_dataclass_output_as_pytree(example_outputs)
 
+<<<<<<< HEAD
             combined_args = tuple(example_args) + tuple(example_kwargs.values())
+=======
+            combined_args = _combine_args(model, example_args, example_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dynamic_shapes = _tree_map_with_path(
                 _produce_dynamic_shapes_for_export, combined_args
             )
 
+<<<<<<< HEAD
             ep = torch.export.export(
                 model,
+=======
+            # delete example_outputs and reset memory stats here
+            del example_outputs
+            if current_device == "cuda":
+                empty_gpu_cache(current_device)
+                torch.cuda.reset_peak_memory_stats()
+                pre_clone_memory_used = torch.cuda.max_memory_allocated()
+            elif current_device == "hpu":
+                torch.hpu.reset_peak_memory_stats()
+                pre_clone_memory_used = torch.hpu.max_memory_allocated()
+
+            # Clone the model pre-exporting.  This prevents scenarios observed in a few
+            # models, where the forward pass modifies model state while exporting, and
+            # FakeTensors are thus saved as model data members.  This invalidates model
+            # reuse in eager mode, so it's safest to export a model clone.
+            model_clone = copy.deepcopy(model)
+
+            # Since CPU doesn't monitor max memory allocation, anything measuring peak
+            # memory will miss our transient model clone on CPU anyway.
+            #
+            # The justification for tracking this value (in order to remove it from the
+            # AOTInductor memory measurements) is that normal usage of AOTInductor would
+            # not clone the model, since the eager model would be unused post-export.
+            clone_memory_used = 0.0
+            if current_device == "cuda":
+                clone_memory_used = (
+                    torch.cuda.max_memory_allocated() - pre_clone_memory_used
+                ) / 1e9
+            elif current_device == "hpu":
+                clone_memory_used = (
+                    torch.hpu.max_memory_allocated() - pre_clone_memory_used
+                ) / 1e9
+
+            inductor_configs = {}
+            if mode == "max-autotune":
+                inductor_configs["max_autotune"] = True
+            ep = torch.export.export(
+                model_clone,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 example_args,
                 example_kwargs,
                 dynamic_shapes=dynamic_shapes,
                 strict=False,
             )
             with torch.no_grad():
+<<<<<<< HEAD
                 package_path = torch._inductor.aoti_compile_and_package(ep)  # type: ignore[arg-type]
 
             cls.cache[key] = torch._inductor.aoti_load_package(package_path)
@@ -1450,16 +1635,46 @@ class AOTInductorModelCache:
 
 def export(model, example_inputs):
     from torch.export.dynamic_shapes import _tree_map_with_path
+=======
+                package_path = torch._inductor.aoti_compile_and_package(
+                    ep, inductor_configs=inductor_configs
+                )  # type: ignore[arg-type]
+
+            cls.cache[key] = (
+                torch._inductor.aoti_load_package(package_path),
+                clone_memory_used,
+            )
+
+        return cls.cache[key][0]
+
+    @classmethod
+    def get_excess_memory(cls, model) -> float:
+        return cls.cache.get(weakref.ref(model), (None, 0.0))[1]
+
+
+def export(model, example_inputs):
+    from torch.export.dynamic_shapes import _combine_args, _tree_map_with_path
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     example_args, example_kwargs = _normalize_bench_inputs(example_inputs)
     example_outputs = model(*example_args, **example_kwargs)
     _register_dataclass_output_as_pytree(example_outputs)
 
+<<<<<<< HEAD
     combined_args = tuple(example_args) + tuple(example_kwargs.values())
+=======
+    combined_args = _combine_args(model, example_args, example_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dynamic_shapes = _tree_map_with_path(
         _produce_dynamic_shapes_for_export, combined_args
     )
 
+<<<<<<< HEAD
+=======
+    # NOTE: if args.export is ever enabled for --performance mode (rather than solely
+    # --accuracy), we'll need to clone the model and subtract out extra memory usage, as
+    # done in AOTInductorModelCache.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ep = torch.export.export(
         model, example_args, example_kwargs, dynamic_shapes=dynamic_shapes, strict=True
     )
@@ -1471,8 +1686,13 @@ def export(model, example_inputs):
     return opt_export
 
 
+<<<<<<< HEAD
 def export_aot_inductor(model, example_inputs):
     optimized = AOTInductorModelCache.load(model, example_inputs)
+=======
+def export_aot_inductor(model, example_inputs, mode):
+    optimized = AOTInductorModelCache.load(model, example_inputs, mode)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def opt_aot_inductor(_, example_inputs, collect_outputs=False):
         example_args, example_kwargs = _normalize_bench_inputs(example_inputs)
@@ -1675,7 +1895,11 @@ def maybe_snapshot_memory(should_snapshot_memory, suffix):
                     )
                 )
             except Exception as e:
+<<<<<<< HEAD
                 logging.error("Failed to save memory snapshot, %s", e)
+=======
+                log.error("Failed to save memory snapshot, %s", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             torch.cuda.memory._record_memory_history(enabled=None)
 
@@ -1695,7 +1919,11 @@ class BenchmarkRunner:
 
         devices = [current_device] if current_device else self.args.devices
         if self.args.amp:
+<<<<<<< HEAD
             # AMP training can lead to small loss values which can undeflow
+=======
+            # AMP training can lead to small loss values which can underflow
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # gradient values returning in zero gradients. To solve this
             # problem, PyTorch introduces GradScaler. GradScaler is a stateful
             # structure, that scales the loss values to prevent underflow. Loss
@@ -1733,7 +1961,11 @@ class BenchmarkRunner:
                 self.optimizer = torch.optim.SGD(params, lr=0.01, foreach=True)
                 # Disable multi_tensor_sgd for benchmarking, there isn't a large performance benefit (~1%) to compiling
                 # this optimizer because it is a single foreach add, and increases compile time.
+<<<<<<< HEAD
                 # After autotuning and fake tensor caching lands, we can enable, becuase the compile time impact will be lower.
+=======
+                # After autotuning and fake tensor caching lands, we can enable, because the compile time impact will be lower.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Fake Tensor caching: https://github.com/pytorch/pytorch/pull/113873
                 # Autotuning: https://github.com/pytorch/pytorch/issues/117447
                 self.optimizer.step = torch._dynamo.disable(self.optimizer.step)
@@ -2234,6 +2466,7 @@ class BenchmarkRunner:
                         new_result = optimized_model_iter_fn(model_copy, example_inputs)
                 else:
                     optimized_model_iter_fn = optimize_ctx(self.model_iter_fn)
+<<<<<<< HEAD
                     with maybe_enable_compiled_autograd(
                         self.args.compiled_autograd,
                         fullgraph=self.args.nopython,
@@ -2242,6 +2475,11 @@ class BenchmarkRunner:
                         new_result = self.run_n_iterations(
                             model_copy, example_inputs, optimized_model_iter_fn
                         )
+=======
+                    new_result = self.run_n_iterations(
+                        model_copy, example_inputs, optimized_model_iter_fn
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             except Exception as e:
                 log.exception("")
                 print(
@@ -2463,6 +2701,7 @@ class BenchmarkRunner:
             else:
                 optimized_model_iter_fn = optimize_ctx(self.model_iter_fn)
 
+<<<<<<< HEAD
             with (
                 maybe_enable_compiled_autograd(
                     self.args.compiled_autograd,
@@ -2472,6 +2711,10 @@ class BenchmarkRunner:
                 maybe_snapshot_memory(
                     self.args.snapshot_memory, f"compiled_{self.args.only}"
                 ),
+=======
+            with maybe_snapshot_memory(
+                self.args.snapshot_memory, f"compiled_{self.args.only}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 dynamo_latency, dynamo_peak_mem, dynamo_stats = warmup(
                     optimized_model_iter_fn, model, example_inputs, "dynamo"
@@ -2484,17 +2727,29 @@ class BenchmarkRunner:
                         "dynamo",
                         niters=1,
                     )
+<<<<<<< HEAD
+=======
+                # If we use warm peak memory, the AOT model loading transient memory
+                # won't be present on the warm measurement.  We only have to account for
+                # it when using cold memory.
+                elif self.args.export_aot_inductor:
+                    dynamo_peak_mem -= AOTInductorModelCache.get_excess_memory(model)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if self.args.profile_dynamo_cache_lookup:
                 with torch.profiler.profile(
                     activities=[torch.profiler.ProfilerActivity.CPU]
                 ) as prof:
+<<<<<<< HEAD
                     with maybe_enable_compiled_autograd(
                         self.args.compiled_autograd,
                         fullgraph=self.args.nopython,
                         dynamic=self.args.dynamic_shapes,
                     ):
                         warmup(optimized_model_iter_fn, model, example_inputs, "dynamo")
+=======
+                    warmup(optimized_model_iter_fn, model, example_inputs, "dynamo")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 events = list(
                     filter(
@@ -2542,7 +2797,18 @@ class BenchmarkRunner:
             return " ".join(map(str, results))
 
     def run_performance_test(
+<<<<<<< HEAD
         self, name, model, example_inputs, optimize_ctx, experiment, tag=None
+=======
+        self,
+        name,
+        model,
+        example_inputs,
+        optimize_ctx,
+        experiment,
+        tag=None,
+        batch_size=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         if self.args.xla:
             with self.pick_grad(name, self.args.training):
@@ -2600,6 +2866,10 @@ class BenchmarkRunner:
         with self.pick_grad(name, self.args.training), ctx:
             ok, total = Stats.reset_counters()
             experiment_kwargs = {}
+<<<<<<< HEAD
+=======
+            experiment_kwargs["batch_size"] = batch_size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if tag is not None:
                 experiment_kwargs["tag"] = tag
             results = []
@@ -2623,6 +2893,7 @@ class BenchmarkRunner:
             else:
                 optimized_model_iter_fn = optimize_ctx(self.model_iter_fn)
 
+<<<<<<< HEAD
             with (
                 maybe_enable_compiled_autograd(
                     self.args.compiled_autograd,
@@ -2632,6 +2903,10 @@ class BenchmarkRunner:
                 maybe_snapshot_memory(
                     self.args.snapshot_memory, f"compiled_{self.args.only}"
                 ),
+=======
+            with maybe_snapshot_memory(
+                self.args.snapshot_memory, f"compiled_{self.args.only}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 dynamo_latency, dynamo_peak_mem, dynamo_stats = warmup(
                     optimized_model_iter_fn, model, example_inputs, "dynamo"
@@ -2644,17 +2919,29 @@ class BenchmarkRunner:
                         "dynamo",
                         niters=1,
                     )
+<<<<<<< HEAD
+=======
+                # If we use warm peak memory, the AOT model loading transient memory
+                # won't be present on the warm measurement.  We only have to account for
+                # it when using cold memory.
+                elif self.args.export_aot_inductor:
+                    dynamo_peak_mem -= AOTInductorModelCache.get_excess_memory(model)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if self.args.profile_dynamo_cache_lookup:
                 with torch.profiler.profile(
                     activities=[torch.profiler.ProfilerActivity.CPU]
                 ) as prof:
+<<<<<<< HEAD
                     with maybe_enable_compiled_autograd(
                         self.args.compiled_autograd,
                         fullgraph=self.args.nopython,
                         dynamic=self.args.dynamic_shapes,
                     ):
                         warmup(optimized_model_iter_fn, model, example_inputs, "dynamo")
+=======
+                    warmup(optimized_model_iter_fn, model, example_inputs, "dynamo")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 events = list(
                     filter(
@@ -2720,7 +3007,11 @@ class BenchmarkRunner:
         experiment,
         tag,
     ):
+<<<<<<< HEAD
         logging.info("Minifying %s...", name)
+=======
+        log.info("Minifying %s...", name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         os.environ["TORCH_COMPILE_DEBUG"] = "1"
         os.environ["TORCHDYNAMO_REPRO_AFTER"] = "dynamo"
         os.environ["TORCHDYNAMO_REPRO_LEVEL"] = "4"
@@ -2735,9 +3026,15 @@ class BenchmarkRunner:
         try:
             shutil.move("repro.py", f"{repro_dir}/{name}_repro.py")
         except OSError:
+<<<<<<< HEAD
             logging.error("Could not find repro script for model %s", name)
         else:
             logging.info(
+=======
+            log.error("Could not find repro script for model %s", name)
+        else:
+            log.info(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "Repro script for model %s with minified graph saved to %s",
                 name,
                 repro_dir,
@@ -2770,6 +3067,10 @@ class BenchmarkRunner:
         experiment,
         explain=False,
         tag=None,
+<<<<<<< HEAD
+=======
+        batch_size=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         mode = "train" if self.args.training else "eval"
         msg = f"{current_device:4} {mode:5} {current_name:34} "
@@ -2798,7 +3099,17 @@ class BenchmarkRunner:
                 )
             else:
                 status = self.run_performance_test(
+<<<<<<< HEAD
                     name, model, example_inputs, optimize_ctx, experiment, tag
+=======
+                    name,
+                    model,
+                    example_inputs,
+                    optimize_ctx,
+                    experiment,
+                    tag,
+                    batch_size=batch_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             print(status)
         empty_gpu_cache(current_device)
@@ -2840,10 +3151,21 @@ class BenchmarkRunner:
                 user_stack = add_double_quotes(
                     ", ".join([str(x) for x in graph_break.user_stack])
                 )
+<<<<<<< HEAD
+=======
+
+                # NB: Don't upload them to the benchmark database as they are debugging
+                # information. There are also around a million records a day which is
+                # wasteful to store
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 write_outputs(
                     filename,
                     ["model", "reason", "user_stack"],
                     [current_name, reason, user_stack],
+<<<<<<< HEAD
+=======
+                    False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         if self.args.stats:
@@ -2895,7 +3217,11 @@ def parse_args(args=None):
     iterations_per_run_help = """
         Run this may iterations for each time measurement. This is mainly used for
         XLA training. We want to run multiple iterations per measurement so the
+<<<<<<< HEAD
         tracing and computation for different iteartions can overlap with each
+=======
+        tracing and computation for different iterations can overlap with each
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         other. This makes sure we have an accurate xla baseline.
     """
     parser.add_argument(
@@ -3054,7 +3380,11 @@ def parse_args(args=None):
     parser.add_argument(
         "--generate-aot-autograd-stats",
         action="store_true",
+<<<<<<< HEAD
         help="Generates AOT Autograd stats like how mnay graphs are sent to AOT",
+=======
+        help="Generates AOT Autograd stats like how many graphs are sent to AOT",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     parser.add_argument(
         "--inductor-settings",
@@ -3275,7 +3605,11 @@ def parse_args(args=None):
         "--warm-start-latency",
         "--warm_start_latency",
         action="store_true",
+<<<<<<< HEAD
         help="Run model(s) twice and preseve caches in between to enable a 'warm start' on the 2nd run",
+=======
+        help="Run model(s) twice and preserve caches in between to enable a 'warm start' on the 2nd run",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     group_fuser = parser.add_mutually_exclusive_group()
@@ -3430,7 +3764,11 @@ def maybe_fresh_cache(args):
     if not cache_dir_assigned and (
         args.cold_start_latency or args.warm_start_latency or args.ci
     ):
+<<<<<<< HEAD
         return fresh_inductor_cache()
+=======
+        return fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return contextlib.nullcontext()
 
@@ -3532,6 +3870,11 @@ def run(runner, args, original_dir=None):
     if args.dynamic_shapes:
         if not args.dynamic_batch_only:
             torch._dynamo.config.assume_static_by_default = False
+<<<<<<< HEAD
+=======
+    if args.compiled_autograd:
+        torch._dynamo.config.compiled_autograd = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if args.propagate_real_tensors:
         # TODO: Separate flag for data dependent
         torch._dynamo.config.capture_scalar_outputs = True
@@ -3588,6 +3931,7 @@ def run(runner, args, original_dir=None):
             "sam_fast",
             "resnet50_quantized_qat",
             "mobilenet_v2_quantized_qat",
+<<<<<<< HEAD
         }:
             # some of the models do not support use_deterministic_algorithms
             torch.use_deterministic_algorithms(True)
@@ -3602,14 +3946,50 @@ def run(runner, args, original_dir=None):
         #     # These seem unhappy with numerics of larger cuBLASLt workspace
         #     # sizes following #145130 (due to enabling split-k?)
         #     torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+=======
+            "detectron2_maskrcnn",
+            "detectron2_maskrcnn_r_101_c4",
+            "detectron2_maskrcnn_r_101_fpn",
+            "detectron2_maskrcnn_r_50_c4",
+            "detectron2_maskrcnn_r_50_fpn",
+            "detectron2_fasterrcnn_r_101_c4",
+            "detectron2_fasterrcnn_r_101_dc5",
+            "detectron2_fasterrcnn_r_101_fpn",
+            "detectron2_fasterrcnn_r_50_c4",
+            "detectron2_fasterrcnn_r_50_dc5",
+            "detectron2_fasterrcnn_r_50_fpn",
+        }:
+            # some of the models do not support use_deterministic_algorithms
+            torch.use_deterministic_algorithms(True)
+        if args.devices == ["xpu"]:
+            torch.use_deterministic_algorithms(True, warn_only=True)
+        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+        if args.only is not None and args.only in {
+            "DebertaForQuestionAnswering",
+            "nvidia_deeprecommender",
+            "crossvit_9_240",
+        }:
+            # These seem unhappy with numerics of larger cuBLASLt workspace
+            torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = False
+            torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.allow_tf32 = False
         torch.backends.cudnn.benchmark = False
         torch.backends.cuda.matmul.allow_tf32 = False
+<<<<<<< HEAD
 
         torch.backends.mkldnn.deterministic = True
 
         # Remove randomeness when torch manual seed is called
+=======
+        torch.backends.cuda.allow_fp16_bf16_reduction_math_sdp(False)
+
+        torch.backends.mkldnn.deterministic = True
+
+        # Remove randomness when torch manual seed is called
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         patch_torch_manual_seed()
 
         # Some models e.g. yolov3 assert batch size on n_gpus
@@ -3787,7 +4167,13 @@ def run(runner, args, original_dir=None):
     elif args.backend or args.export_aot_inductor:
         if args.export_aot_inductor:
             assert not args.training, "AOTInductor only supports inference"
+<<<<<<< HEAD
             optimize_ctx = functools.partial(export_aot_inductor)
+=======
+            optimize_ctx = functools.partial(
+                export_aot_inductor, mode=args.inductor_compile_mode
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # AOTInductor doesn't support control flow yet
             runner.skip_models.update(runner.skip_models_due_to_control_flow)
@@ -4113,6 +4499,10 @@ def run(runner, args, original_dir=None):
                         experiment,
                         explain=args.explain,
                         tag=args.tag,
+<<<<<<< HEAD
+=======
+                        batch_size=batch_size if args.dynamic_batch_only else None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
         if args.generate_aot_autograd_stats:
             stats_file = output_filename.split(".csv")[0] + "_stats.csv"

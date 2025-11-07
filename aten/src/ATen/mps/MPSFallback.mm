@@ -2,6 +2,10 @@
 
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/CPUFallback.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <caffe2/core/common.h>
 
 namespace at {
@@ -76,8 +80,13 @@ static Tensor slow_conv2d_forward_mps(const Tensor& self,
 }
 
 TORCH_LIBRARY_IMPL(_, MPS, m) {
+<<<<<<< HEAD
   static const char* enable_mps_fallback = getenv("PYTORCH_ENABLE_MPS_FALLBACK");
   if (!enable_mps_fallback || std::stoi(enable_mps_fallback) == 0) {
+=======
+  static const auto enable_mps_fallback = c10::utils::get_env("PYTORCH_ENABLE_MPS_FALLBACK");
+  if (!enable_mps_fallback || enable_mps_fallback == "0") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     m.fallback(torch::CppFunction::makeFromBoxedFunction<&mps_error_fallback>());
   } else {
     m.fallback(torch::CppFunction::makeFromBoxedFunction<&mps_fallback>());
@@ -91,9 +100,13 @@ TORCH_LIBRARY_IMPL(aten, MPS, m) {
   m.impl("embedding_renorm_", torch::CppFunction::makeFromBoxedFunction<&mps_fallback>());
   m.impl("linalg_svd", torch::CppFunction::makeFromBoxedFunction<&mps_fallback>());
   m.impl("linalg_svd.U", torch::CppFunction::makeFromBoxedFunction<&mps_fallback>());
+<<<<<<< HEAD
   m.impl("col2im", torch::CppFunction::makeFromBoxedFunction<&mps_fallback>());
   m.impl("_slow_conv2d_forward", slow_conv2d_forward_mps);
   m.impl("upsample_nearest3d.vec", torch::CppFunction::makeFromBoxedFunction<&mps_fallback>());
+=======
+  m.impl("_slow_conv2d_forward", slow_conv2d_forward_mps);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace at

@@ -8,13 +8,20 @@ import pickle
 import sys
 import warnings
 from inspect import signature
+<<<<<<< HEAD
 from typing import Any, Literal, Optional, Union
+=======
+from typing import Any, Literal, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
 from torch import _C
 from torch._utils import _dummy_type
+<<<<<<< HEAD
 from torch.types import Device
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from . import (
     _get_amdsmi_device_index,
@@ -26,6 +33,13 @@ from . import (
 from ._memory_viz import memory as _memory, segments as _segments
 
 
+<<<<<<< HEAD
+=======
+if TYPE_CHECKING:
+    from torch.types import Device
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     "caching_allocator_alloc",
     "caching_allocator_delete",
@@ -57,7 +71,10 @@ __all__ = [
     "CUDAPluggableAllocator",
     "change_current_allocator",
     "MemPool",
+<<<<<<< HEAD
     "MemPoolContext",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "use_mem_pool",
 ]
 
@@ -70,22 +87,42 @@ if not hasattr(torch._C, "_cuda_CUDAAllocator"):
 if not hasattr(torch._C, "_MemPool"):
     # Define dummy base classes
     torch._C.__dict__["_MemPool"] = _dummy_type("_MemPool")
+<<<<<<< HEAD
     torch._C.__dict__["_MemPoolContext"] = _dummy_type("_MemPoolContext")
     torch._C.__dict__["_cuda_beginAllocateToPool"] = _dummy_type(
         "_cuda_beginAllocateToPool"
     )
     torch._C.__dict__["_cuda_endAllocateCurrentStreamToPool"] = _dummy_type(
         "_cuda_endAllocateCurrentStreamToPool"
+=======
+    torch._C.__dict__["_cuda_beginAllocateToPool"] = _dummy_type(
+        "_cuda_beginAllocateToPool"
+    )
+    torch._C.__dict__["_cuda_beginAllocateCurrentThreadToPool"] = _dummy_type(
+        "_cuda_beginAllocateCurrentThreadToPool"
+    )
+    torch._C.__dict__["_cuda_endAllocateToPool"] = _dummy_type(
+        "_cuda_endAllocateToPool"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     torch._C.__dict__["_cuda_releasePool"] = _dummy_type("_cuda_releasePool")
 
 from torch._C import (  # noqa: F401
+<<<<<<< HEAD
     _cuda_beginAllocateToPool,
     _cuda_CUDAAllocator,
     _cuda_endAllocateCurrentStreamToPool,
     _cuda_releasePool,
     _MemPool,
     _MemPoolContext,
+=======
+    _cuda_beginAllocateCurrentThreadToPool,
+    _cuda_beginAllocateToPool,
+    _cuda_CUDAAllocator,
+    _cuda_endAllocateToPool,
+    _cuda_releasePool,
+    _MemPool,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -103,7 +140,11 @@ def _free_mutex():
         torch._C._cuda_unlock_mutex()
 
 
+<<<<<<< HEAD
 def caching_allocator_alloc(size, device: Union[Device, int] = None, stream=None):
+=======
+def caching_allocator_alloc(size, device: "Device" = None, stream=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Perform a memory allocation using the CUDA memory allocator.
 
     Memory is allocated for a given device and a stream, this
@@ -162,9 +203,13 @@ def caching_allocator_enable(value: bool = True) -> None:
         torch._C._cuda_cudaCachingAllocator_enable(value)
 
 
+<<<<<<< HEAD
 def set_per_process_memory_fraction(
     fraction, device: Union[Device, int] = None
 ) -> None:
+=======
+def set_per_process_memory_fraction(fraction, device: "Device" = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Set memory fraction for a process.
 
     The fraction is used to limit an caching allocator to allocated memory on a CUDA device.
@@ -191,7 +236,11 @@ def set_per_process_memory_fraction(
     torch._C._cuda_setMemoryFraction(fraction, device)
 
 
+<<<<<<< HEAD
 def get_per_process_memory_fraction(device: Union[Device, int] = None) -> float:
+=======
+def get_per_process_memory_fraction(device: "Device" = None) -> float:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Get memory fraction for a process.
 
     Args:
@@ -222,7 +271,11 @@ def empty_cache() -> None:
         torch._C._cuda_emptyCache()
 
 
+<<<<<<< HEAD
 def memory_stats(device: Union[Device, int] = None) -> dict[str, Any]:
+=======
+def memory_stats(device: "Device" = None) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return a dictionary of CUDA memory allocator statistics for a given device.
 
     The return value of this function is a dictionary of statistics, each of
@@ -327,7 +380,11 @@ def memory_stats(device: Union[Device, int] = None) -> dict[str, Any]:
     return collections.OrderedDict(result)
 
 
+<<<<<<< HEAD
 def memory_stats_as_nested_dict(device: Union[Device, int] = None) -> dict[str, Any]:
+=======
+def memory_stats_as_nested_dict(device: "Device" = None) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return the result of :func:`~torch.cuda.memory_stats` as a nested dictionary."""
     if not is_initialized():
         return {}
@@ -335,7 +392,11 @@ def memory_stats_as_nested_dict(device: Union[Device, int] = None) -> dict[str, 
     return torch._C._cuda_memoryStats(device)
 
 
+<<<<<<< HEAD
 def reset_accumulated_memory_stats(device: Union[Device, int] = None) -> None:
+=======
+def reset_accumulated_memory_stats(device: "Device" = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Reset the "accumulated" (historical) stats tracked by the CUDA memory allocator.
 
     See :func:`~torch.cuda.memory_stats` for details. Accumulated stats correspond to
@@ -355,7 +416,11 @@ def reset_accumulated_memory_stats(device: Union[Device, int] = None) -> None:
     return torch._C._cuda_resetAccumulatedMemoryStats(device)
 
 
+<<<<<<< HEAD
 def reset_peak_memory_stats(device: Union[Device, int] = None) -> None:
+=======
+def reset_peak_memory_stats(device: "Device" = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Reset the "peak" stats tracked by the CUDA memory allocator.
 
     See :func:`~torch.cuda.memory_stats` for details. Peak stats correspond to the
@@ -468,7 +533,11 @@ def reset_peak_host_memory_stats() -> None:
     return torch._C._cuda_resetPeakHostMemoryStats()
 
 
+<<<<<<< HEAD
 def reset_max_memory_allocated(device: Union[Device, int] = None) -> None:
+=======
+def reset_max_memory_allocated(device: "Device" = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Reset the starting point in tracking maximum GPU memory occupied by tensors for a given device.
 
     See :func:`~torch.cuda.max_memory_allocated` for details.
@@ -494,7 +563,11 @@ def reset_max_memory_allocated(device: Union[Device, int] = None) -> None:
     return reset_peak_memory_stats(device=device)
 
 
+<<<<<<< HEAD
 def reset_max_memory_cached(device: Union[Device, int] = None) -> None:
+=======
+def reset_max_memory_cached(device: "Device" = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Reset the starting point in tracking maximum GPU memory managed by the caching allocator for a given device.
 
     See :func:`~torch.cuda.max_memory_cached` for details.
@@ -520,7 +593,11 @@ def reset_max_memory_cached(device: Union[Device, int] = None) -> None:
     return reset_peak_memory_stats(device=device)
 
 
+<<<<<<< HEAD
 def memory_allocated(device: Union[Device, int] = None) -> int:
+=======
+def memory_allocated(device: "Device" = None) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return the current GPU memory occupied by tensors in bytes for a given device.
 
     Args:
@@ -537,7 +614,11 @@ def memory_allocated(device: Union[Device, int] = None) -> int:
     return memory_stats(device=device).get("allocated_bytes.all.current", 0)
 
 
+<<<<<<< HEAD
 def max_memory_allocated(device: Union[Device, int] = None) -> int:
+=======
+def max_memory_allocated(device: "Device" = None) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return the maximum GPU memory occupied by tensors in bytes for a given device.
 
     By default, this returns the peak allocated memory since the beginning of
@@ -558,7 +639,11 @@ def max_memory_allocated(device: Union[Device, int] = None) -> int:
     return memory_stats(device=device).get("allocated_bytes.all.peak", 0)
 
 
+<<<<<<< HEAD
 def memory_reserved(device: Union[Device, int] = None) -> int:
+=======
+def memory_reserved(device: "Device" = None) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return the current GPU memory managed by the caching allocator in bytes for a given device.
 
     Args:
@@ -573,7 +658,11 @@ def memory_reserved(device: Union[Device, int] = None) -> int:
     return memory_stats(device=device).get("reserved_bytes.all.current", 0)
 
 
+<<<<<<< HEAD
 def max_memory_reserved(device: Union[Device, int] = None) -> int:
+=======
+def max_memory_reserved(device: "Device" = None) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return the maximum GPU memory managed by the caching allocator in bytes for a given device.
 
     By default, this returns the peak cached memory since the beginning of this
@@ -598,7 +687,11 @@ def max_memory_reserved(device: Union[Device, int] = None) -> int:
     "`torch.cuda.memory_cached` has been renamed to `torch.cuda.memory_reserved`",
     category=FutureWarning,
 )
+<<<<<<< HEAD
 def memory_cached(device: Union[Device, int] = None) -> int:
+=======
+def memory_cached(device: "Device" = None) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Deprecated; see :func:`~torch.cuda.memory_reserved`."""
     return memory_reserved(device=device)
 
@@ -607,12 +700,20 @@ def memory_cached(device: Union[Device, int] = None) -> int:
     "`torch.cuda.max_memory_cached` has been renamed to `torch.cuda.max_memory_reserved`",
     category=FutureWarning,
 )
+<<<<<<< HEAD
 def max_memory_cached(device: Union[Device, int] = None) -> int:
+=======
+def max_memory_cached(device: "Device" = None) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Deprecated; see :func:`~torch.cuda.max_memory_reserved`."""
     return max_memory_reserved(device=device)
 
 
+<<<<<<< HEAD
 def memory_snapshot():
+=======
+def memory_snapshot(mempool_id=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return a snapshot of the CUDA memory allocator state across all devices.
 
     Interpreting the output of this function requires familiarity with the
@@ -622,10 +723,17 @@ def memory_snapshot():
         See :ref:`cuda-memory-management` for more details about GPU memory
         management.
     """
+<<<<<<< HEAD
     return torch._C._cuda_memorySnapshot()["segments"]
 
 
 def memory_summary(device: Union[Device, int] = None, abbreviated: bool = False) -> str:
+=======
+    return torch._C._cuda_memorySnapshot(mempool_id)["segments"]
+
+
+def memory_summary(device: "Device" = None, abbreviated: bool = False) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return a human-readable printout of the current memory allocator statistics for a given device.
 
     This can be useful to display periodically during training, or when
@@ -752,7 +860,11 @@ def memory_summary(device: Union[Device, int] = None, abbreviated: bool = False)
     return "|" + "|\n|".join(lines).format(**fmt_dict) + "|\n"
 
 
+<<<<<<< HEAD
 def list_gpu_processes(device: Union[Device, int] = None) -> str:
+=======
+def list_gpu_processes(device: "Device" = None) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return a human-readable printout of the running processes and their GPU memory use for a given device.
 
     This can be useful to display periodically during training, or when
@@ -817,7 +929,11 @@ def list_gpu_processes(device: Union[Device, int] = None) -> str:
     return "\n".join(lines)
 
 
+<<<<<<< HEAD
 def mem_get_info(device: Union[Device, int] = None) -> tuple[int, int]:
+=======
+def mem_get_info(device: "Device" = None) -> tuple[int, int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return the global free and total GPU memory for a given device using cudaMemGetInfo.
 
     Args:
@@ -841,15 +957,31 @@ def _record_memory_history_legacy(
     record_context=True,
     trace_alloc_max_entries=1,
     trace_alloc_record_context=False,
+<<<<<<< HEAD
     device: Union[Device, int] = None,
     record_context_cpp=False,
 ):
     _C._cuda_record_memory_history_legacy(
+=======
+    device: "Device" = None,
+    record_context_cpp=False,
+    clear_history=False,
+    compile_context=False,
+    global_record_annotations=False,
+):
+    _C._cuda_record_memory_history_legacy(  # type: ignore[call-arg]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         enabled,
         record_context,
         trace_alloc_max_entries,
         trace_alloc_record_context,
         record_context_cpp,
+<<<<<<< HEAD
+=======
+        clear_history,
+        compile_context,
+        global_record_annotations,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -860,12 +992,49 @@ def _record_memory_history(
     allocations, so you can tell what allocated any piece of memory in
     :func:`torch.cuda.memory._snapshot()`.
 
+<<<<<<< HEAD
     In addition too keeping stack traces with each current allocation and free,
+=======
+    In addition to keeping stack traces with each current allocation and free,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     this will also enable recording of a history of all alloc/free events.
 
     Use :func:`torch.cuda.memory._snapshot()` to retrieve this information,
     and the tools in `_memory_viz.py` to visualize snapshots.
 
+<<<<<<< HEAD
+=======
+    Buffer behavior
+    ---------------
+
+    This will store up to `max_entries` instances of `TraceEntry` when enabled.
+    Python trace collection defaults to `sys.maxsize`, meaning long-running
+    or indefinitely running jobs should set a reasonable limit to avoid excessive
+    memory use. Expect each entry to be several KB.
+
+    Longer running workflows or those with smaller `max_entries` values will only
+    store the last accumulated `max_entries` entries, meaning new entries overwrite
+    older entries.
+
+    C++ implementation for reference to ring buffer implemenation:
+
+    .. code-block:: cpp
+
+        if (record_history) {
+          if (alloc_trace->size() < alloc_trace_max_entries_) {
+            alloc_trace->emplace_back(te);
+          } else {
+            (*alloc_trace)[alloc_trace_next++] = te;
+            if (alloc_trace_next == alloc_trace_max_entries_) {
+              alloc_trace_next = 0;
+            }
+          }
+        }
+
+    Latency impact
+    --------------
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     The Python trace collection is fast (2us per trace), so you may consider
     enabling this on production jobs if you anticipate ever having to debug
     memory issues.
@@ -903,15 +1072,36 @@ def _record_memory_history_impl(
     context: Optional[str] = "all",
     stacks: str = "all",
     max_entries: int = sys.maxsize,
+<<<<<<< HEAD
     device: Union[Device, int] = None,
 ):
     _C._cuda_record_memory_history(enabled, context, stacks, max_entries)
+=======
+    device: "Device" = None,
+    clear_history: bool = False,
+    compile_context: bool = False,
+    global_record_annotations: bool = False,
+):
+    _C._cuda_record_memory_history(  # type: ignore[call-arg]
+        enabled,
+        context,
+        stacks,
+        max_entries,
+        clear_history,
+        compile_context,
+        global_record_annotations,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _record_memory_history.__signature__ = signature(_record_memory_history_impl)  # type: ignore[attr-defined]
 
 
+<<<<<<< HEAD
 def _snapshot(device: Union[Device, int] = None):
+=======
+def _snapshot(device: "Device" = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Save a snapshot of CUDA memory state at the time it was called.
 
     The state is represented as a dictionary with the following structure.
@@ -985,7 +1175,11 @@ def _snapshot(device: Union[Device, int] = None):
     Returns:
         The Snapshot dictionary object
     """
+<<<<<<< HEAD
     return _C._cuda_memorySnapshot()
+=======
+    return _C._cuda_memorySnapshot(None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _dump_snapshot(filename="dump_snapshot.pickle"):
@@ -994,6 +1188,13 @@ def _dump_snapshot(filename="dump_snapshot.pickle"):
 
     This file can be opened by the interactive snapshot viewer at pytorch.org/memory_viz
 
+<<<<<<< HEAD
+=======
+    Snapshot file sizes scale with `max_entries` and stack trace depth per entry,
+    with several KB per entry. These can easily be in the GB range for longer running
+    workflows with large `max_entries`.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Args:
         filename (str, optional): Name of the file to create. Defaults to "dump_snapshot.pickle".
     """
@@ -1097,6 +1298,7 @@ def _get_current_allocator() -> _CUDAAllocator:
     return _CUDAAllocator(torch._C._cuda_getAllocator())
 
 
+<<<<<<< HEAD
 class MemPoolContext(_MemPoolContext):
     r"""MemPoolContext holds the currently active pool and stashes the previous
     pool. On deletion it makes the previous pool active.
@@ -1116,6 +1318,8 @@ class MemPoolContext(_MemPoolContext):
         return _MemPoolContext.active_pool()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class MemPool(_MemPool):
     r"""MemPool represents a pool of memory in a caching allocator. Currently,
     it's just the ID of the pool object maintained in the CUDACachingAllocator.
@@ -1126,11 +1330,28 @@ class MemPool(_MemPool):
             define how memory gets allocated in the pool. If :attr:`allocator`
             is ``None`` (default), memory allocation follows the default/
             current configuration of the CUDACachingAllocator.
+<<<<<<< HEAD
 
     """
 
     def __init__(self, allocator: Optional[_cuda_CUDAAllocator] = None):
         super().__init__(allocator, True)
+=======
+        use_on_oom(bool): a bool that indicates if this pool can be used
+            as a last resort if a memory allocation outside of the pool fails due
+            to Out Of Memory. This is False by default.
+        symmetric(bool): a bool that indicates if this pool is symmetrical
+            across ranks. This is False by default.
+    """
+
+    def __init__(
+        self,
+        allocator: Optional[_cuda_CUDAAllocator] = None,
+        use_on_oom: bool = False,
+        symmetric: bool = False,
+    ):
+        super().__init__(allocator, True, use_on_oom, symmetric)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def id(self) -> tuple[int, int]:
@@ -1138,6 +1359,14 @@ class MemPool(_MemPool):
         return super().id
 
     @property
+<<<<<<< HEAD
+=======
+    def is_symmetric(self) -> bool:
+        r"""Returns whether this pool is used for NCCL's symmetric memory."""
+        return super().is_symmetric
+
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def allocator(self) -> Optional[_cuda_CUDAAllocator]:
         r"""Returns the allocator this MemPool routes allocations to."""
         return super().allocator
@@ -1157,16 +1386,24 @@ class MemPool(_MemPool):
             See :ref:`cuda-memory-management` for more details about GPU memory
             management.
         """
+<<<<<<< HEAD
         try:
             ctx = MemPoolContext(self)
             snapshot = torch.cuda.memory_snapshot()
         finally:
             del ctx
+=======
+        snapshot = torch.cuda.memory_snapshot(self.id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return snapshot
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def use_mem_pool(pool: MemPool, device: Union[Device, int] = None):
+=======
+def use_mem_pool(pool: MemPool, device: "Device" = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""A context manager that routes allocations to a given pool.
 
     Args:
@@ -1176,6 +1413,7 @@ def use_mem_pool(pool: MemPool, device: Union[Device, int] = None):
             the current device, given by :func:`~torch.cuda.current_device`,
             if :attr:`device` is ``None`` (default).
 
+<<<<<<< HEAD
     """
     ctx = MemPoolContext(pool)
     device_index = (
@@ -1188,3 +1426,20 @@ def use_mem_pool(pool: MemPool, device: Union[Device, int] = None):
         _cuda_endAllocateCurrentStreamToPool(device_index, pool.id)
         _cuda_releasePool(device_index, pool.id)
         del ctx
+=======
+    .. note::
+        This context manager makes only current thread's allocations route to
+        the given pool. If a new thread is spawned inside the context manager
+        (e.g. by calling backward) the allocations in that thread will not
+        route to the given pool.
+    """
+    device_index = (
+        torch.cuda.current_device() if device is None else _get_device_index(device)
+    )
+    _cuda_beginAllocateCurrentThreadToPool(device_index, pool.id)
+    try:
+        yield
+    finally:
+        _cuda_endAllocateToPool(device_index, pool.id)
+        _cuda_releasePool(device_index, pool.id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

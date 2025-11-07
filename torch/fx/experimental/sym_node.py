@@ -149,9 +149,15 @@ class SymNode:
                 # This is technically not TV, but this assert is expensive so
                 # let's only do it when we're already doing expensive things
                 computed_hint = compute_hint()
+<<<<<<< HEAD
                 assert (
                     hint == computed_hint
                 ), f"{hint} != {computed_hint} (for {self.expr})"
+=======
+                assert hint == computed_hint, (
+                    f"{hint} != {computed_hint} (for {self.expr})"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             hint = compute_hint()
         self._hint = hint
@@ -460,7 +466,13 @@ class SymNode:
         return self.float_pow(other)
 
     def is_non_overlapping_and_dense(self, sizes, strides):
+<<<<<<< HEAD
         return self.is_non_overlapping_and_dense_indicator(sizes, strides).eq(to_node(self, 1))  # type: ignore[attr-defined]
+=======
+        return self.is_non_overlapping_and_dense_indicator(sizes, strides).eq(
+            to_node(self, 1)
+        )  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def int_(self):
         return self.guard_int("", 0)  # NB: uses Python backtrace
@@ -554,7 +566,11 @@ class SymNode:
         # a regular guard if we can!)
         # TODO: file/line here is very important, because the assert has been
         # deferred so you can't backtrace easily
+<<<<<<< HEAD
         return self.shape_env.defer_runtime_assert(
+=======
+        return self.shape_env.guard_or_defer_runtime_assert(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.expr, f"{file}:{line}", fx_node=self.fx_node
         )
 
@@ -572,6 +588,15 @@ class SymNode:
             _advise_is_size(SymInt(self))
         return r
 
+<<<<<<< HEAD
+=======
+    def statically_known_true(self, file, line):
+        from torch.fx.experimental.symbolic_shapes import statically_known_true
+
+        assert self.is_bool()
+        return statically_known_true(SymBool(self))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def guard_size_oblivious(self, file, line):
         """
         Like guard_bool, but if we encounter unbacked symbols, if those symbols
@@ -592,6 +617,21 @@ class SymNode:
             log.warning("Failed to convert to bool: %s", r)
             raise
 
+<<<<<<< HEAD
+=======
+    def guard_or_false(self, file, line):
+        from torch.fx.experimental.symbolic_shapes import guard_or_false
+
+        assert self.is_bool()
+        return guard_or_false(SymBool(self))
+
+    def guard_or_true(self, file, line):
+        from torch.fx.experimental.symbolic_shapes import guard_or_true
+
+        assert self.is_bool()
+        return guard_or_true(SymBool(self))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def bool_(self):
         return self.guard_bool("", 0)
 
@@ -853,6 +893,10 @@ def _optimized_add(
     from sympy.core.basic import _args_sortkey as sortkey
 
     def make_optimized(ordered_args):
+<<<<<<< HEAD
+=======
+        assert ordered_args is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = sympy.Add(*ordered_args, evaluate=False)
         return (True, result)
 
@@ -869,15 +913,37 @@ def _optimized_add(
         if sortkey(lhs._args[0]) > sortkey(rhs._args[-1]):
             return make_optimized(rhs._args + lhs._args)
 
+<<<<<<< HEAD
     # (a0+a2) + a1 => (a0+a1+a2)
     if lhs_is_optimized_summation and rhs.is_symbol:
         new_args = _binary_search_insert_arg(list(lhs._args), rhs)
+=======
+        #  (a1+a3) + (a0+a2) => (a0+a1+a2+a3)
+        if len(lhs._args) <= 2 and len(rhs._args) <= 2:
+            new_args = list(lhs._args)
+            for a in rhs._args:
+                new_args = _binary_search_insert_arg(new_args, a)
+                if new_args is None:
+                    break
+            # None means an element already exists.
+            if new_args is not None:
+                return make_optimized(new_args)
+
+    # (a0+a2) + a1 => (a0+a1+a2)
+    if lhs_is_optimized_summation and rhs.is_symbol:
+        new_args = _binary_search_insert_arg(list(lhs._args), rhs)
+        # None means an element already exists.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if new_args is not None:
             return make_optimized(new_args)
 
     # a1 + (a0+a2)=> (a0+a1+a2)
     if rhs_is_optimized_summation and lhs.is_symbol:
         new_args = _binary_search_insert_arg(list(rhs._args), lhs)
+<<<<<<< HEAD
+=======
+        # None means an element already exists.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if new_args is not None:
             return make_optimized(new_args)
 
@@ -1193,11 +1259,14 @@ sizes_strides_methods = {
     "is_non_overlapping_and_dense_indicator": _sympy_is_non_overlapping_and_dense_indicator,
 }
 
+<<<<<<< HEAD
 alternate_impl_if_hinted_methods = {
     "sym_min": builtins.min,
     "sym_max": builtins.max,
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def to_node(self, num):
     if isinstance(num, SymTypes):
@@ -1316,10 +1385,13 @@ def _make_node_magic(method, func):
         if self.hint is not None and other.hint is not None:
             out_hint = op(self.hint, other.hint)
 
+<<<<<<< HEAD
         alternate_impl = alternate_impl_if_hinted_methods.get(method)
         if alternate_impl and out_hint is not None:
             return to_node(self, alternate_impl(wrap_node(self), wrap_node(other)))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if get_proxy_mode():
             return to_node(
                 self, handle_sym_dispatch(op, (wrap_node(self), wrap_node(other)), {})
@@ -1392,7 +1464,11 @@ def _make_node_magic(method, func):
             out,
             self.shape_env,
             pytype,
+<<<<<<< HEAD
             out_hint,
+=======
+            out_hint,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fx_node=fx_node,
             optimized_summation=optimized_summation,  # see Note [optimized_summation]
         )

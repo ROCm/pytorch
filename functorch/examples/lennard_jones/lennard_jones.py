@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # This example was adapated from https://github.com/muhrin/milad
+=======
+# This example was adapted from https://github.com/muhrin/milad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # It is licensed under the GLPv3 license. You can find a copy of it
 # here: https://www.gnu.org/licenses/gpl-3.0.en.html .
 

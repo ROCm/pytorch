@@ -53,8 +53,13 @@ TEST(LazyTest, OptimisticLazy) {
   EXPECT_EQ(sCopy.ensure(factory), kLongString);
   EXPECT_EQ(invocations.load(), 0);
 
+<<<<<<< HEAD
   auto sMove = std::move(s);
   EXPECT_EQ(sMove.ensure(factory), kLongString);
+=======
+  auto sMove = std::move(s); // codespell:ignore smove
+  EXPECT_EQ(sMove.ensure(factory), kLongString); // codespell:ignore smove
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   EXPECT_EQ(invocations.load(), 0);
   // NOLINTNEXTLINE(bugprone-use-after-move)
   EXPECT_EQ(s.ensure(factory), kLongString);

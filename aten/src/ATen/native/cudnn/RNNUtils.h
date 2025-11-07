@@ -6,9 +6,14 @@
 #include <ATen/cudnn/cudnn-wrapper.h>
 
 // Declares utilities used by RNN.cpp and also needed by external consumers
+<<<<<<< HEAD
 namespace at {
 namespace native {
 namespace cudnn_rnn {
+=======
+
+namespace at::native::cudnn_rnn {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TORCH_CUDA_CPP_API std::tuple<Tensor, std::vector<Tensor>>
 copy_weights_to_flat_buf_views(
@@ -27,6 +32,10 @@ copy_weights_to_flat_buf_views(
     bool allow_type_change = false,
     bool include_bias = true);
 
+<<<<<<< HEAD
 } // namespace cudnn_rnn
 } // namespace native
 } // namespace at
+=======
+} // namespace at::native::cudnn_rnn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

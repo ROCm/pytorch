@@ -2,7 +2,11 @@ name: inductor-perf-nightly-h100
 
 on:
   schedule:
+<<<<<<< HEAD
     - cron: 0 7 * * 1-6
+=======
+    - cron: 15 0,4,8,12,16,20 * * 1-6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - cron: 0 7 * * 0
   # NB: GitHub has an upper limit of 10 inputs here, so before we can sort it
   # out, let try to run torchao cudagraphs_low_precision as part of cudagraphs
@@ -68,23 +72,40 @@ permissions: read-all
 jobs:
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
+<<<<<<< HEAD
 
   # NB: Keep this in sync with trunk.yml
   build:
     name: cuda12.6-py3.10-gcc9-sm90
+=======
+      opt_out_experiments: lf
+
+  # NB: Keep this in sync with trunk.yml
+  build:
+    name: cuda12.8-py3.10-gcc9-sm90
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-focal-cuda12.6-py3.10-gcc9-sm90
       docker-image-name: pytorch-linux-focal-cuda12.6-cudnn9-py3-gcc9-inductor-benchmarks
+=======
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm90
+      docker-image-name: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc9-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       cuda-arch-list: '9.0'
       test-matrix: |
         { include: [
@@ -93,6 +114,7 @@ jobs:
           { config: "inductor_huggingface_perf_cuda_h100", shard: 3, num_shards: 5, runner: "linux.aws.h100" },
           { config: "inductor_huggingface_perf_cuda_h100", shard: 4, num_shards: 5, runner: "linux.aws.h100" },
           { config: "inductor_huggingface_perf_cuda_h100", shard: 5, num_shards: 5, runner: "linux.aws.h100" },
+<<<<<<< HEAD
           { config: "inductor_timm_perf_cuda_h100", shard: 1, num_shards: 6, runner: "linux.aws.h100" },
           { config: "inductor_timm_perf_cuda_h100", shard: 2, num_shards: 6, runner: "linux.aws.h100" },
           { config: "inductor_timm_perf_cuda_h100", shard: 3, num_shards: 6, runner: "linux.aws.h100" },
@@ -105,10 +127,29 @@ jobs:
           { config: "inductor_torchbench_perf_cuda_h100", shard: 4, num_shards: 6, runner: "linux.aws.h100" },
           { config: "inductor_torchbench_perf_cuda_h100", shard: 5, num_shards: 6, runner: "linux.aws.h100" },
           { config: "inductor_torchbench_perf_cuda_h100", shard: 6, num_shards: 6, runner: "linux.aws.h100" },
+=======
+          { config: "inductor_timm_perf_cuda_h100", shard: 1, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_timm_perf_cuda_h100", shard: 2, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_timm_perf_cuda_h100", shard: 3, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_timm_perf_cuda_h100", shard: 4, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_timm_perf_cuda_h100", shard: 5, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_timm_perf_cuda_h100", shard: 6, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_timm_perf_cuda_h100", shard: 7, num_shards: 7, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 1, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 2, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 3, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 4, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 5, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 6, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 7, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 8, num_shards: 9, runner: "linux.aws.h100" },
+          { config: "inductor_torchbench_perf_cuda_h100", shard: 9, num_shards: 9, runner: "linux.aws.h100" },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]}
       selected-test-configs: ${{ inputs.benchmark_configs }}
     secrets: inherit
 
+<<<<<<< HEAD
   test-nightly:
     name: cuda12.6-py3.10-gcc9-sm90
     uses: ./.github/workflows/_linux-test.yml
@@ -116,40 +157,85 @@ jobs:
     if: github.event.schedule == '0 7 * * 1-6'
     with:
       build-environment: linux-focal-cuda12.6-py3.10-gcc9-sm90
+=======
+  test-periodically:
+    name: cuda12.8-py3.10-gcc9-sm90
+    uses: ./.github/workflows/_linux-test.yml
+    needs: build
+    if: github.event.schedule == '15 0,4,8,12,16,20 * * 1-6'
+    with:
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm90
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       dashboard-tag: training-true-inference-true-default-true-dynamic-true-cudagraphs-true-cppwrapper-true-aotinductor-true-freezing_cudagraphs-true-cudagraphs_low_precision-true
       docker-image: ${{ needs.build.outputs.docker-image }}
       test-matrix: ${{ needs.build.outputs.test-matrix }}
       timeout-minutes: 720
+<<<<<<< HEAD
       # disable monitor in perf tests for more investigation
       disable-monitor: true
     secrets: inherit
 
   test-weekly:
     name: cuda12.6-py3.10-gcc9-sm90
+=======
+      # disable monitor in perf tests, next step is to enable it
+      disable-monitor: false
+      monitor-log-interval: 15
+      monitor-data-collect-interval: 4
+    secrets: inherit
+
+  test-weekly:
+    name: cuda12.8-py3.10-gcc9-sm90
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-test.yml
     needs: build
     if: github.event.schedule == '0 7 * * 0'
     with:
+<<<<<<< HEAD
       build-environment: linux-focal-cuda12.6-py3.10-gcc9-sm90
+=======
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm90
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       dashboard-tag: training-true-inference-true-default-true-dynamic-true-cudagraphs-true-cppwrapper-true-aotinductor-true-freezing_cudagraphs-true-maxautotune-true-freeze_autotune_cudagraphs-true-cudagraphs_low_precision-true
       docker-image: ${{ needs.build.outputs.docker-image }}
       test-matrix: ${{ needs.build.outputs.test-matrix }}
       timeout-minutes: 1440
+<<<<<<< HEAD
       # disable monitor in perf tests for more investigation
       disable-monitor: true
     secrets: inherit
 
   test:
     name: cuda12.6-py3.10-gcc9-sm90
+=======
+      # disable monitor in perf tests, next step is to enable it
+      disable-monitor: false
+      monitor-log-interval: 15
+      monitor-data-collect-interval: 4
+    secrets: inherit
+
+  test:
+    name: cuda12.8-py3.10-gcc9-sm90
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-test.yml
     needs: build
     if: github.event_name == 'workflow_dispatch'
     with:
+<<<<<<< HEAD
       build-environment: linux-focal-cuda12.6-py3.10-gcc9-sm90
+=======
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm90
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       dashboard-tag: training-${{ inputs.training }}-inference-${{ inputs.inference }}-default-${{ inputs.default }}-dynamic-${{ inputs.dynamic }}-cudagraphs-${{ inputs.cudagraphs }}-cppwrapper-${{ inputs.cppwrapper }}-aotinductor-${{ inputs.aotinductor }}-maxautotune-${{ inputs.maxautotune }}-freezing_cudagraphs-${{ inputs.freezing_cudagraphs }}-cudagraphs_low_precision-${{ inputs.cudagraphs }}
       docker-image: ${{ needs.build.outputs.docker-image }}
       test-matrix: ${{ needs.build.outputs.test-matrix }}
       timeout-minutes: 720
       # disable monitor in perf tests for more investigation
+<<<<<<< HEAD
       disable-monitor: true
+=======
+      disable-monitor: false
+      monitor-log-interval: 15
+      monitor-data-collect-interval: 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit

@@ -30,6 +30,13 @@ if is_available() and not torch._C._rpc_init():
 
 
 if is_available():
+<<<<<<< HEAD
+=======
+    _is_tensorpipe_available = hasattr(
+        torch._C._distributed_rpc, "_TensorPipeRpcBackendOptionsBase"
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import numbers
 
     import torch.distributed.autograd as dist_autograd
@@ -37,7 +44,10 @@ if is_available():
     from torch._C._distributed_rpc import (  # noqa: F401
         _cleanup_python_rpc_handler,
         _DEFAULT_INIT_METHOD,
+<<<<<<< HEAD
         _DEFAULT_NUM_WORKER_THREADS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _DEFAULT_RPC_TIMEOUT_SEC,
         _delete_all_user_and_unforked_owner_rrefs,
         _destroy_rref_context,
@@ -58,7 +68,10 @@ if is_available():
         _set_and_start_rpc_agent,
         _set_profiler_node_id,
         _set_rpc_timeout,
+<<<<<<< HEAD
         _TensorPipeRpcBackendOptionsBase,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _UNSET_RPC_TIMEOUT,
         enable_gil_profiling,
         get_rpc_timeout,
@@ -66,10 +79,23 @@ if is_available():
         RemoteProfilerManager,
         RpcAgent,
         RpcBackendOptions,
+<<<<<<< HEAD
         TensorPipeAgent,
         WorkerInfo,
     )
 
+=======
+        WorkerInfo,
+    )
+
+    if _is_tensorpipe_available:
+        from torch._C._distributed_rpc import (  # noqa: F401
+            _DEFAULT_NUM_WORKER_THREADS,
+            _TensorPipeRpcBackendOptionsBase,
+            TensorPipeAgent,
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from . import api, backend_registry, functions
     from .api import *  # noqa: F401,F403
     from .backend_registry import BackendType

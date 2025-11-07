@@ -72,6 +72,33 @@ bool SymBool::guard_size_oblivious(const char* file, int64_t line) const {
   return a->guard_size_oblivious(file, line);
 }
 
+<<<<<<< HEAD
+=======
+bool SymBool::guard_or_false(const char* file, int64_t line) const {
+  if (auto ma = maybe_as_bool()) {
+    return *ma;
+  }
+  SymNode a = toSymNodeImpl();
+  return a->guard_or_false(file, line);
+}
+
+bool SymBool::statically_known_true(const char* file, int64_t line) const {
+  if (auto ma = maybe_as_bool()) {
+    return *ma;
+  }
+  SymNode a = toSymNodeImpl();
+  return a->statically_known_true(file, line);
+}
+
+bool SymBool::guard_or_true(const char* file, int64_t line) const {
+  if (auto ma = maybe_as_bool()) {
+    return *ma;
+  }
+  SymNode a = toSymNodeImpl();
+  return a->guard_or_true(file, line);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool SymBool::expect_true(const char* file, int64_t line) const {
   if (auto ma = maybe_as_bool()) {
     return *ma;

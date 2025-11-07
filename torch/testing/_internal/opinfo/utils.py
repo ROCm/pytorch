@@ -156,7 +156,11 @@ def np_unary_ufunc_integer_promotion_wrapper(fn):
     # Wrapper that passes PyTorch's default scalar
     #   type as an argument to the wrapped NumPy
     #   unary ufunc when given an integer input.
+<<<<<<< HEAD
     #   This mimicks PyTorch's integer->floating point
+=======
+    #   This mimics PyTorch's integer->floating point
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #   type promotion.
     #
     # This is necessary when NumPy promotes

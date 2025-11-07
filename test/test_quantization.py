@@ -38,12 +38,20 @@ from quantization.core.test_workflow_module import TestDistributed  # noqa: F401
 from quantization.core.test_workflow_module import TestFusedObsFakeQuantModule  # noqa: F401
 from quantization.core.test_backend_config import TestBackendConfig  # noqa: F401
 from quantization.core.test_utils import TestUtils  # noqa: F401
+<<<<<<< HEAD
+=======
+log = logging.getLogger(__name__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 try:
     # This test has extra data dependencies, so in some environments, e.g. Meta internal
     # Buck, it has its own test runner.
     from quantization.core.test_docs import TestQuantizationDocs  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Eager Mode Workflow. Tests for the functionality of APIs and different features implemented
 # using eager mode.
@@ -77,7 +85,11 @@ try:
 except ImportError as e:
     # In FBCode we separate FX out into a separate target for the sake of dev
     # velocity. These are covered by a separate test target `quantization_fx`
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # PyTorch 2 Export Quantization
 try:
@@ -99,7 +111,11 @@ try:
 except ImportError as e:
     # In FBCode we separate PT2 out into a separate target for the sake of dev
     # velocity. These are covered by a separate test target `quantization_pt2e`
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 try:
     from quantization.fx.test_numeric_suite_fx import TestFXGraphMatcher  # noqa: F401
@@ -108,7 +124,11 @@ try:
     from quantization.fx.test_numeric_suite_fx import TestFXNumericSuiteNShadows  # noqa: F401
     from quantization.fx.test_numeric_suite_fx import TestFXNumericSuiteCoreAPIsModels  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Test the model report module
 try:
@@ -120,19 +140,31 @@ try:
     from quantization.fx.test_model_report_fx import TestFxDetectOutliers  # noqa: F401
     from quantization.fx.test_model_report_fx import TestFxModelReportVisualizer  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Equalization for FX mode
 try:
     from quantization.fx.test_equalize_fx import TestEqualizeFx  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Backward Compatibility. Tests serialization and BC for quantized modules.
 try:
     from quantization.bc.test_backward_compatibility import TestSerialization  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # JIT Graph Mode Quantization
 from quantization.jit.test_quantize_jit import TestQuantizeJit  # noqa: F401
@@ -151,12 +183,17 @@ from quantization.ao_migration.test_ao_migration import TestAOMigrationNNIntrins
 try:
     from quantization.ao_migration.test_quantization_fx import TestAOMigrationQuantizationFx  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
+=======
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Experimental functionality
 try:
     from quantization.core.experimental.test_bits import TestBitsCPU  # noqa: F401
 except ImportError as e:
+<<<<<<< HEAD
     logging.warning(e)
 try:
     from quantization.core.experimental.test_bits import TestBitsCUDA  # noqa: F401
@@ -174,6 +211,25 @@ try:
     from quantization.core.experimental.test_float8 import TestFloat8DtypeCPUOnlyCPU  # noqa: F401
 except ImportError as e:
     logging.warning(e)
+=======
+    log.warning(e)
+try:
+    from quantization.core.experimental.test_bits import TestBitsCUDA  # noqa: F401
+except ImportError as e:
+    log.warning(e)
+try:
+    from quantization.core.experimental.test_floatx import TestFloat8DtypeCPU  # noqa: F401
+except ImportError as e:
+    log.warning(e)
+try:
+    from quantization.core.experimental.test_floatx import TestFloat8DtypeCUDA  # noqa: F401
+except ImportError as e:
+    log.warning(e)
+try:
+    from quantization.core.experimental.test_floatx import TestFloat8DtypeCPUOnlyCPU  # noqa: F401
+except ImportError as e:
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == '__main__':
     run_tests()

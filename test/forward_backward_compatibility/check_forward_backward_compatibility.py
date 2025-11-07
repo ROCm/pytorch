@@ -10,7 +10,20 @@ from torch._C import parse_schema, Tag
 
 
 FORMAT = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+<<<<<<< HEAD
 logging.basicConfig(level=logging.INFO, format=FORMAT)
+=======
+
+log = logging.getLogger("log")
+log.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter(FORMAT)
+handler.setFormatter(formatter)
+
+log.addHandler(handler)
+log.propagate = False  # Avoid double logging if root logger has handlers
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # How to run this test locally:
 # 1 Have two virtual environments (eg conda env), one without PyTorch installed (venv_nightly)
@@ -61,6 +74,10 @@ ALLOW_LIST = [
     ("profiler::_call_end_callbacks_on_jit_fut*", datetime.date(9999, 1, 1)),
     ("profiler::_record_function_enter", datetime.date(9999, 1, 1)),
     ("aten::_cholesky_helper", datetime.date(9999, 1, 1)),
+<<<<<<< HEAD
+=======
+    ("aten::_cslt_sparse_mm", datetime.date(9999, 1, 1)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ("aten::_lstsq_helper", datetime.date(9999, 1, 1)),
     ("aten::_syevd_helper", datetime.date(9999, 1, 1)),
     ("aten::_linalg_solve_out_helper_", datetime.date(9999, 1, 1)),
@@ -126,6 +143,12 @@ ALLOW_LIST = [
     ("aten::reduce_scatter_tensor", datetime.date(9999, 1, 30)),
     ("aten::all_gather_into_tensor", datetime.date(9999, 1, 30)),
     ("aten::all_reduce", datetime.date(9999, 1, 30)),
+<<<<<<< HEAD
+=======
+    # These ops are defined in torch/csrc/distributed/c10d/Ops.cpp
+    # TODO: add back restriction when c10d ops can be exported
+    ("c10d::.*", datetime.date(9999, 1, 1)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 ALLOW_LIST_COMPILED = [
@@ -256,10 +279,17 @@ def check_bc(existing_schemas):
         is_allow_list, trust_not_core_aten = allow_listed(existing_schema)
         if is_allow_list:
             if trust_not_core_aten or not is_core_aten_op(existing_schema):
+<<<<<<< HEAD
                 logging.info("schema: %s found on allowlist, skipping", existing_schema)
                 continue
             else:
                 logging.info(
+=======
+                log.info("schema: %s found on allowlist, skipping", existing_schema)
+                continue
+            else:
+                log.info(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "schema: %s found on allowlist, but is a core ATen op, checking BC. "
                     "NOTE: If you have removed an operator we will conservatively assume that "
                     "it is a core ATen op. If the operator you removed is not a core ATen op, "
@@ -269,6 +299,7 @@ def check_bc(existing_schemas):
                 )
         if has_valid_upgraders(existing_schema, version_map):
             if not is_core_aten_op(existing_schema):
+<<<<<<< HEAD
                 logging.info("schema: %s has valid upgrader, skipping", existing_schema)
                 continue
             else:
@@ -276,6 +307,15 @@ def check_bc(existing_schemas):
                     "schema: %s has a valid upgrader, but is a core ATen op, checking BC"
                 )
         logging.debug("processing existing schema: %s", existing_schema)
+=======
+                log.info("schema: %s has valid upgrader, skipping", existing_schema)
+                continue
+            else:
+                log.info(
+                    "schema: %s has a valid upgrader, but is a core ATen op, checking BC"
+                )
+        log.debug("processing existing schema: %s", existing_schema)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         matching_new_schemas = new_schema_dict.get(existing_schema.name, [])
         found = False
         for matching_new_schema in matching_new_schemas:
@@ -283,7 +323,11 @@ def check_bc(existing_schemas):
                 found = True
                 break
         if not found:
+<<<<<<< HEAD
             logging.warning(
+=======
+            log.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "Can NOT find backward compatible schemas after changes "
                 "for schema %s from the following candidates:\n[\n%s\n]",
                 str(existing_schema),
@@ -293,9 +337,15 @@ def check_bc(existing_schemas):
             broken_ops.append(str(existing_schema))
             is_bc = False
     if is_bc:
+<<<<<<< HEAD
         logging.info("Found backward compatible schemas for all existing schemas")
     else:
         logging.warning(
+=======
+        log.info("Found backward compatible schemas for all existing schemas")
+    else:
+        log.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "The PR is introducing backward incompatible changes to the "
             "operator library. Please contact PyTorch team to confirm "
             "whether this change is wanted or not. \n\nBroken ops: "
@@ -312,9 +362,15 @@ def check_fc(existing_schemas):
     for existing_schema in existing_schemas:
         is_allow_list, _ = allow_listed(existing_schema)
         if is_allow_list:
+<<<<<<< HEAD
             logging.info("schema: %s found on allowlist, skipping", existing_schema)
             continue
         logging.info("processing existing schema: %s", existing_schema)
+=======
+            log.info("schema: %s found on allowlist, skipping", existing_schema)
+            continue
+        log.info("processing existing schema: %s", existing_schema)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         matching_new_schemas = new_schema_dict.get(existing_schema.name, [])
         found = False
         possible_failure_reasons = []
@@ -328,23 +384,38 @@ def check_fc(existing_schemas):
             if reason != "":
                 possible_failure_reasons.append(reason)
         if not found:
+<<<<<<< HEAD
             logging.warning(
+=======
+            log.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "Can NOT find forward compatible schemas after changes "
                 "for schema %s from the following candidates:\n[\n\t%s\n]",
                 str(existing_schema),
                 "\n\t".join(str(s) for s in matching_new_schemas),
             )
+<<<<<<< HEAD
             logging.warning(
                 "Refer to following reasons for failure "
                 "to find FC schema:\n[\n%s\n]",
+=======
+            log.warning(
+                "Refer to following reasons for failure to find FC schema:\n[\n%s\n]",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "\n\t".join(str(r) for r in possible_failure_reasons),
             )
             broken_ops.append(str(existing_schema))
             is_fc = False
     if is_fc:
+<<<<<<< HEAD
         logging.info("Found forward compatible schemas for all existing schemas")
     else:
         logging.warning(
+=======
+        log.info("Found forward compatible schemas for all existing schemas")
+    else:
+        log.warning(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "The PR is introducing a potentially forward incompatible changes to the "
             "operator library. Please contact PyTorch team to confirm "
             "whether this change is wanted or not. \n\nBroken ops: "
@@ -371,7 +442,11 @@ if __name__ == "__main__":
                 break
 
             if dont_parse(line.strip()):
+<<<<<<< HEAD
                 logging.info("Not parsing schema line: %s", line.strip())
+=======
+                log.info("Not parsing schema line: %s", line.strip())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             s = parse_schema(line.strip())
             slist.append(s)

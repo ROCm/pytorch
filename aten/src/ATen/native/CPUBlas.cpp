@@ -15,7 +15,11 @@
 #if AT_BUILD_WITH_BLAS()
 #if C10_IOS
 #include <Accelerate/Accelerate.h>
+<<<<<<< HEAD
 #else
+=======
+#elif !defined(_ARMPL_H)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 extern "C" void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, const double *a, int *lda, const double *b, int *ldb, double *beta, double *c, int *ldc);
 extern "C" void sgemm_(char *transa, char *transb, int *m, int *n, int *k, float *alpha, const float *a, int *lda, const float *b, int *ldb, float *beta, float *c, int *ldc);
 extern "C" void cgemm_(char *transa, char *transb, int *m, int *n, int *k, void *alpha, const void *a, int *lda, const void *b, int *ldb, void *beta, void *c, int *ldc);
@@ -135,6 +139,10 @@ CBLAS_TRANSPOSE to_apple_accelerate_transpose(TransposeType trans) {
 }  // namespace (anonymous)
 
 DEFINE_DISPATCH(gemm_stub);
+<<<<<<< HEAD
+=======
+DEFINE_DISPATCH(gemm_no_downcast_stub);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void gemm(
     TransposeType transa, TransposeType transb,
@@ -179,6 +187,21 @@ void gemm(
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
 }
 
+<<<<<<< HEAD
+=======
+#ifndef armpl_doublecomplex_t
+#define COMPLEX_DBL(a) a
+#define COMPLEX_DBL_CONST(a) a
+#define COMPLEX_FLOAT(a) a
+#define COMPLEX_FLOAT_CONST(a) a
+#else
+#define COMPLEX_DBL(a) ((armpl_doublecomplex_t*)a)
+#define COMPLEX_DBL_CONST(a) ((const armpl_doublecomplex_t*)a)
+#define COMPLEX_FLOAT(a) ((armpl_singlecomplex_t*)a)
+#define COMPLEX_FLOAT_CONST(a) ((const armpl_singlecomplex_t*)a)
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void gemm(
     TransposeType transa, TransposeType transb,
     int64_t m, int64_t n, int64_t k,
@@ -256,11 +279,19 @@ void gemm(
     zgemm_(
         &transa_, &transb_,
         &m_, &n_, &k_,
+<<<<<<< HEAD
         &alpha_,
         a, &lda_,
         b, &ldb_,
         &beta_,
         c, &ldc_);
+=======
+        COMPLEX_DBL_CONST(&alpha_),
+        COMPLEX_DBL_CONST(a), &lda_,
+        COMPLEX_DBL_CONST(b), &ldb_,
+        COMPLEX_DBL_CONST(&beta_),
+        COMPLEX_DBL(c), &ldc_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #endif
     return;
   }
@@ -299,11 +330,19 @@ void gemm(
     cgemm_(
         &transa_, &transb_,
         &m_, &n_, &k_,
+<<<<<<< HEAD
         &alpha_,
         a, &lda_,
         b, &ldb_,
         &beta_,
         c, &ldc_);
+=======
+        COMPLEX_FLOAT_CONST(&alpha_),
+        COMPLEX_FLOAT_CONST(a), &lda_,
+        COMPLEX_FLOAT_CONST(b), &ldb_,
+        COMPLEX_FLOAT_CONST(&beta_),
+        COMPLEX_FLOAT(c), &ldc_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #endif
     return;
   }
@@ -322,6 +361,27 @@ void gemm(
    const float beta,
    at::BFloat16 *c, int64_t ldc) {
    internal::normalize_last_dims(transa, transb, m, n, k, &lda, &ldb, &ldc);
+<<<<<<< HEAD
+=======
+#if AT_MKLDNN_ENABLED()
+#ifdef __aarch64__
+   // MKLDNN also supports ARM for bf16, and the bypass is only
+   // currently intended for x86/x86_64.
+   const bool use_bf16_gemv_trans = false;
+#elif defined(__powerpc__)
+   const bool use_bf16_gemv_trans = false;
+#else
+   const bool bf16_gemv_trans_would_be_faster = cpuinfo_initialize() &&
+     !cpuinfo_has_x86_avx512bf16();
+   const bool use_bf16_gemv_trans = bf16_gemv_trans_would_be_faster &&
+     transa == TransposeType::Transpose &&
+     transb == TransposeType::NoTranspose && n == 1 && alpha == 1.0;
+#endif
+   if (!use_bf16_gemv_trans && mkldnn_bf16_gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)) {
+     return;
+   }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if AT_BUILD_WITH_BLAS() && defined(BLAS_HAS_SBGEMM)
    if (use_blas_gemm(transa, transb, m, n, k, lda, ldb, ldc)) {
       int m_ = m, n_ = n, k_ = k, lda_ = lda, ldb_ = ldb, ldc_ = ldc;
@@ -343,6 +403,7 @@ void gemm(
       return;
    }
 #endif
+<<<<<<< HEAD
 #if AT_MKLDNN_ENABLED()
 #ifdef __aarch64__
    // MKLDNN also supports ARM for bf16, and the bypass is only
@@ -361,6 +422,8 @@ void gemm(
      return;
    }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    gemm_stub(
       at::kCPU, at::kBFloat16,
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
@@ -423,6 +486,16 @@ void gemm(
       return;
    }
 #endif
+<<<<<<< HEAD
+=======
+#if AT_MKLDNN_ACL_ENABLED()
+// add heuristic based on shape to dispatch to sbgemm_ vs MKLDNN
+   if (mkldnn_bf16f32_gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)) {
+     return;
+   }
+#endif //AT_MKLDNN_ACL_ENABLED
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef MKL_HAS_SBGEMM
   if (use_blas_gemm(transa, transb, m, n, k, lda, ldb, ldc)) {
     int m_ = m, n_ = n, k_ = k, lda_ = lda, ldb_ = ldb, ldc_ = ldc;
@@ -433,18 +506,31 @@ void gemm(
   // for the fallback path, first compute gemm with beta = 0,
   // and then add c in full precision.
   int64_t c_size = n * m;
+<<<<<<< HEAD
   std::vector<at::BFloat16> bfloat_c(c_size, 0.f);
   gemm_stub(
       at::kCPU, at::kBFloat16,
       transa, transb, m, n, k, alpha, a, lda, b, ldb, 0.f, bfloat_c.data(), m);
+=======
+  std::vector<float> float_c(c_size, 0.f);
+  gemm_no_downcast_stub(
+      at::kCPU, at::kBFloat16,
+      transa, transb, m, n, k, alpha, a, lda, b, ldb, 0.f, float_c.data(), m);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto j : c10::irange(n)) {
     for (const auto i : c10::irange(m)) {
       auto offset = j * ldc + i;
       // beta == 0 won't propagate NaN from C
       if (beta == 0.f) {
+<<<<<<< HEAD
         c[offset] = c10::convert<float>(bfloat_c[j * m + i]);
       } else {
         c[offset] = beta * c[offset] + c10::convert<float>(bfloat_c[j * m + i]);
+=======
+        c[offset] = float_c[j * m + i];
+      } else {
+        c[offset] = beta * c[offset] + float_c[j * m + i];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -554,7 +640,11 @@ using is_blas_library_type = std::integral_constant<bool,
     std::is_same_v<scalar_t, c10::complex<float>>>;
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void gemm_batched_generic(
+=======
+static void gemm_batched_generic(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TransposeType transa, TransposeType transb,
     int64_t batch_size, int64_t m, int64_t n, int64_t k,
     scalar_t alpha,
@@ -568,7 +658,11 @@ void gemm_batched_generic(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void gemm_batched(
+=======
+static void gemm_batched(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TransposeType transa, TransposeType transb,
     int64_t batch_size, int64_t m, int64_t n, int64_t k,
     scalar_t alpha,
@@ -596,7 +690,11 @@ void gemm_batched(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void gemm_batched_with_stride_generic(
+=======
+static void gemm_batched_with_stride_generic(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TransposeType transa, TransposeType transb,
     int64_t batch_size, int64_t m, int64_t n, int64_t k,
     scalar_t alpha,
@@ -739,7 +837,11 @@ void axpy(int64_t n, c10::complex<double> a, const c10::complex<double> *x, int6
     #if C10_IOS
     cblas_zaxpy(i_n, &a, x, i_incx, y, i_incy);
     #else
+<<<<<<< HEAD
     zaxpy_(&i_n, &a, x, &i_incx, y, &i_incy);
+=======
+    zaxpy_(&i_n, COMPLEX_DBL(&a), COMPLEX_DBL_CONST(x), &i_incx, COMPLEX_DBL(y), &i_incy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #endif
     return;
   }
@@ -764,7 +866,11 @@ void axpy(int64_t n, c10::complex<float> a, const c10::complex<float> *x, int64_
     #if C10_IOS
     cblas_caxpy(i_n, &a, x, i_incx, y, i_incy);
     #else
+<<<<<<< HEAD
     caxpy_(&i_n, &a, x, &i_incx, y, &i_incy);
+=======
+    caxpy_(&i_n, COMPLEX_FLOAT(&a), COMPLEX_FLOAT_CONST(x), &i_incx, COMPLEX_FLOAT(y), &i_incy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #endif
     return;
   }
@@ -838,7 +944,11 @@ void copy(int64_t n, const c10::complex<double> *x, int64_t incx, c10::complex<d
     #if C10_IOS
     cblas_zcopy(i_n, x, i_incx, y, i_incy);
     #else
+<<<<<<< HEAD
     zcopy_(&i_n, x, &i_incx, y, &i_incy);
+=======
+    zcopy_(&i_n, COMPLEX_DBL_CONST(x), &i_incx, COMPLEX_DBL(y), &i_incy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #endif
     return;
   }
@@ -862,7 +972,11 @@ void copy(int64_t n, const c10::complex<float> *x, int64_t incx, c10::complex<fl
     #if C10_IOS
     cblas_ccopy(i_n, &x, i_incx, y, i_incy);
     #else
+<<<<<<< HEAD
     ccopy_(&i_n, x, &i_incx, y, &i_incy);
+=======
+    ccopy_(&i_n, COMPLEX_FLOAT(x), &i_incx, COMPLEX_FLOAT(y), &i_incy);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #endif
     return;
   }
@@ -945,7 +1059,11 @@ struct PackKey {
   }
 };
 
+<<<<<<< HEAD
 inline dnnl::memory::data_type get_dnnl_dtype(ScalarType dtype) {
+=======
+static inline dnnl::memory::data_type get_dnnl_dtype(ScalarType dtype) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (dtype == ScalarType::Float) {
     return dnnl::memory::data_type::f32;
   } else if (dtype == ScalarType::BFloat16) {
@@ -1347,6 +1465,33 @@ void brgemm(
     "I8 Brgemm is only supported on X64 when oneDNN ukernel is enabled and `amx` is supported");
 }
 
+<<<<<<< HEAD
+=======
+void brgemm(
+    int64_t M,
+    int64_t N,
+    int64_t K,
+    int64_t ld_a,
+    int64_t ld_b,
+    int64_t ld_c,
+    const bool add_C,
+    const signed char* A,
+    const signed char* B,
+    int32_t* C,
+    bool is_vnni) {
+#if defined(ONEDNN_UKERNEL_ENABLED)
+  if (is_vnni && Brgemm::device_check(ScalarType::Char)) {
+    Brgemm::call<signed char, signed char, int32_t>(
+      M, N, K, ld_a, ld_b, ld_c, add_C, A, B, C);
+    return;
+  }
+#endif
+  // raise an error if the path is not supported
+  TORCH_CHECK(false,
+    "I8 Brgemm is only supported on X64 when oneDNN ukernel is enabled and `amx` is supported");
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void brgemm_release(bool is_vnni) {
 #if defined(ONEDNN_UKERNEL_ENABLED)
   if (is_vnni) {

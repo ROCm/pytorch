@@ -54,17 +54,27 @@ bool setFallbackAllowed(bool value) {
 }
 
 bool fallbackAllowed() {
+<<<<<<< HEAD
   static const char* enable_c_str = std::getenv("PYTORCH_TENSOREXPR_FALLBACK");
   if (!enable_c_str) {
     return fallback_allowed;
   }
   if (std::string(enable_c_str) == "0") {
+=======
+  static const auto enable_opt =
+      c10::utils::get_env("PYTORCH_TENSOREXPR_FALLBACK");
+  if (!enable_opt.has_value()) {
+    return fallback_allowed;
+  }
+  if (enable_opt == "0") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return false;
   }
   return true;
 }
 
 static bool fallbackEnforced() {
+<<<<<<< HEAD
   static const char* enable_c_str = std::getenv("PYTORCH_TENSOREXPR_FALLBACK");
   if (tensorexpr::getTEGenerateBlockCode()) {
     return false;
@@ -73,28 +83,57 @@ static bool fallbackEnforced() {
     return fallback_allowed;
   }
   if (std::string(enable_c_str) == "2") {
+=======
+  static const auto enable_opt =
+      c10::utils::get_env("PYTORCH_TENSOREXPR_FALLBACK");
+  if (tensorexpr::getTEGenerateBlockCode()) {
+    return false;
+  }
+  if (!enable_opt.has_value()) {
+    return fallback_allowed;
+  }
+  if (enable_opt == "2") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return true;
   }
   return false;
 }
 
 static int64_t randomTransformsRequested() {
+<<<<<<< HEAD
   const char* enable_c_str =
       std::getenv("PYTORCH_TENSOREXPR_RANDOM_TRANSFORM_SEED");
   if (!enable_c_str) {
     return 0;
   }
   return std::stoi(std::string(enable_c_str));
+=======
+  const auto enable_opt =
+      c10::utils::get_env("PYTORCH_TENSOREXPR_RANDOM_TRANSFORM_SEED");
+  if (!enable_opt.has_value()) {
+    return 0;
+  }
+  return std::stoi(enable_opt.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #ifdef TORCH_ENABLE_LLVM
 static bool dontUseLLVMFlag() {
+<<<<<<< HEAD
   static const char* enable_c_str =
       std::getenv("PYTORCH_TENSOREXPR_DONT_USE_LLVM");
   if (!enable_c_str) {
     return false;
   }
   return std::string(enable_c_str) == "1";
+=======
+  static const auto enable_opt =
+      c10::utils::get_env("PYTORCH_TENSOREXPR_DONT_USE_LLVM");
+  if (!enable_opt) {
+    return false;
+  }
+  return enable_opt == "1";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 #endif
 
@@ -226,7 +265,11 @@ bool isContiguous(const torch::jit::Value* v, at::MemoryFormat memory_format) {
   }
 
   // Check dimension size first
+<<<<<<< HEAD
   int ndims = (*sizes).size();
+=======
+  auto ndims = (*sizes).size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if ((memory_format == at::MemoryFormat::ChannelsLast && ndims != 4) ||
       (memory_format == at::MemoryFormat::ChannelsLast3d && ndims != 5)) {
     return false;
@@ -483,7 +526,15 @@ ExprHandle TensorExprKernel::getVarForShape(const c10::ShapeSymbol& ss) {
   if (it == shapeSymbolToVar_.end()) {
     VarHandle var("ss" + std::to_string(-value), kLong);
     shapeSymbolToVar_.emplace(value, var);
+<<<<<<< HEAD
     return std::move(var);
+=======
+#if C10_RETURN_MOVE_IF_OLD_COMPILER
+    return std::move(var);
+#else
+    return var;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return it->second;
 }
@@ -754,7 +805,11 @@ static void pruneByThreadCount(std::vector<ForPtr>& loops) {
 // in the inner loop, and a maximum level of thread-level parallelism in the
 // outer loops.
 template <typename Bufs>
+<<<<<<< HEAD
 static void parallelizeOuterLoops(LoopNest& l, Bufs&& bufs) {
+=======
+static void parallelizeOuterLoops(LoopNest& l, const Bufs& bufs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto const& buf : bufs) {
     auto loops = l.getLoopStmtsFor(buf);
     pruneByGrainSize(loops);
@@ -1020,7 +1075,15 @@ ExprHandle TensorExprKernel::getStrideArg(
         kLong);
     strideArgToVar_[std::pair<size_t, size_t>(
         tensor_input_index, stride_index)] = var;
+<<<<<<< HEAD
     return std::move(var);
+=======
+#if C10_RETURN_MOVE_IF_OLD_COMPILER
+    return std::move(var);
+#else
+    return var;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return it->second;
 }
@@ -1058,10 +1121,14 @@ std::vector<ExprHandle> TensorExprKernel::getInputStrides(
   }
 
   inputTensorStrides.resize(rank);
+<<<<<<< HEAD
   std::vector<bool> stride_set;
   for (size_t i = 0; i < rank; ++i) {
     stride_set.push_back(false);
   }
+=======
+  std::vector<bool> stride_set(rank, false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // first, generate non-dependent values
   size_t generated_strides = 0;
   for (const auto i : c10::irange(rank)) {
@@ -1234,7 +1301,11 @@ NNCLoweringFunction TensorExprKernel::getCustomLoweringFor(
 }
 
 template <typename T>
+<<<<<<< HEAD
 std::vector<size_t> reverse_sort_indices(const std::vector<T>& v) {
+=======
+static std::vector<size_t> reverse_sort_indices(const std::vector<T>& v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // initialize original index locations
   std::vector<size_t> idx(v.size());
   iota(idx.begin(), idx.end(), 0);
@@ -1283,8 +1354,12 @@ Tensor TensorExprKernel::convertSymbolicOutputToCorrectStrides(
         auto absolute_position = ExprHandle(immLike(axes[0], 0));
         for (size_t i = 0; i < axes.size(); ++i) {
           ExprHandle stride(default_strides[i]);
+<<<<<<< HEAD
           ExprHandle axis = axes[i];
           absolute_position = absolute_position + (stride * axis);
+=======
+          absolute_position = absolute_position + (stride * axes[i]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         std::vector<ExprHandle> new_axes(
             sorted_stride_indices_descending.size());
@@ -2075,7 +2150,11 @@ void TensorExprKernel::runWithAllocatedOutputs(Stack& stack) const {
 
   std::vector<int64_t> int_inputs(nInputs_);
   for (auto i : c10::irange(nInputs_)) {
+<<<<<<< HEAD
     auto inp = stack_inputs[i];
+=======
+    const auto& inp = stack_inputs[i];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (inp.isInt()) {
       int_inputs[i] = inp.toInt();
       args.emplace_back(&int_inputs[i]);

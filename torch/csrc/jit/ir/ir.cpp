@@ -100,7 +100,13 @@ void findAllNodes(
 // NB: This overload will become ambiguous with the one Caffe2 provides in its
 // logging, if they ever intersect.
 template <typename T>
+<<<<<<< HEAD
 std::ostream& operator<<(std::ostream& out, const std::vector<T>& nodes) {
+=======
+static std::ostream& operator<<(
+    std::ostream& out,
+    const std::vector<T>& nodes) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   out << at::ArrayRef<T>{nodes};
   return out;
 }
@@ -1671,7 +1677,11 @@ size_t Node::blocksFromGraphBlock() {
   return dist;
 }
 
+<<<<<<< HEAD
 inline const SourceRange& fakeRange() {
+=======
+static inline const SourceRange& fakeRange() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static SourceRange range(std::make_shared<Source>(std::string("")), 0, 1);
   return range;
 }
@@ -2038,7 +2048,11 @@ at::ArrayRef<Value*> createTupleUnpack(Value* v) {
   return g.insertNode(g.createTupleUnpack(v))->outputs();
 }
 
+<<<<<<< HEAD
 void inlineCallStackOfNode(
+=======
+static void inlineCallStackOfNode(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Node* n,
     std::unordered_map<InlinedCallStack*, InlinedCallStackPtr>& new_cs_entries,
     Function* callee,

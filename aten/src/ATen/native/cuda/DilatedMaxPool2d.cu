@@ -152,7 +152,11 @@ __global__ void max_pool_forward_nhwc(const scalar_t* bottom_data, const int nba
       if (kernel_h<=MAXh &&
           kernel_w<=MAXw &&
           channels<=MAXc*(blockDim.x*kernel_stride_C)) {
+<<<<<<< HEAD
         scalar_t val [MAXh][MAXw][MAXc] = {0};
+=======
+        scalar_t val [MAXh][MAXw][MAXc] = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for (int ih = 0; ih < MAXh; ih++) {
           int ih_ = ih*dilation_h+hstart;
           for (int iw = 0; iw < MAXw; iw++) {

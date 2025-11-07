@@ -105,9 +105,13 @@ def make_autograd_impl(op: _ops.OpOverload, info: InfoProtocol) -> Callable:
     # The dispatcher passes any keyword-only-args as kwargs and the
     # rest of the args (even if specified as kwargs) as args.
     def autograd_impl(keyset, *args, **keyword_only_args):
+<<<<<<< HEAD
         if _C.is_grad_enabled() and _pytree.tree_any_only(
             Tensor, lambda x: x.requires_grad, args, not_list_of_tensor
         ):
+=======
+        if _C.is_grad_enabled() and _C._any_requires_grad(*args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = Generated.apply(*args, Metadata(keyset, keyword_only_args))  # type: ignore[attr-defined]
         else:
             result = forward_no_grad(*args, Metadata(keyset, keyword_only_args))

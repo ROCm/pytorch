@@ -2,9 +2,13 @@
 from __future__ import annotations
 
 import inspect
+<<<<<<< HEAD
 import logging
 import operator
 import re
+=======
+import operator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Callable, TYPE_CHECKING
 
 import onnxscript
@@ -17,7 +21,10 @@ import torch.fx
 from torch.onnx import _type_utils as jit_type_utils
 from torch.onnx._internal.fx import (
     _pass,
+<<<<<<< HEAD
     diagnostics,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     onnxfunction_dispatcher,
     type_utils as fx_type_utils,
 )
@@ -48,6 +55,7 @@ def _fx_graph_to_onnx_message_formatter(
     return f"FX Graph: {fx_graph_module._get_name()}. "
 
 
+<<<<<<< HEAD
 def _location_from_fx_stack_trace(
     node_stack_trace: str,
 ) -> diagnostics.infra.Location | None:
@@ -86,6 +94,8 @@ def _location_from_fx_stack_trace(
     return None
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _retrieve_or_adapt_input_to_graph_set(
     fx_node_arg: fx_type_utils.Argument,
     fx_name_to_onnxscript_value: dict[
@@ -379,6 +389,7 @@ class FxOnnxInterpreter:
     Each operator's implementation returns either an `onnxscript.OnnxFunction` or
     `onnxscript.TracedOnnxFunction` instance based on the dispatch algorithm. They can
     also raise RuntimeError: If there are no overloaded functions available for the given FX node.
+<<<<<<< HEAD
 
     TODO: Convert methods to @staticmethod when the diagnostic system supports it
           DO NOT ADD NEW ATTRIBUTES TO THIS CLASS!
@@ -397,6 +408,10 @@ class FxOnnxInterpreter:
         diagnostics.rules.fx_node_to_onnx,
         diagnostic_message_formatter=_fx_node_to_onnx_message_formatter,
     )
+=======
+    """
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run_node(
         self,
         node,
@@ -423,6 +438,7 @@ class FxOnnxInterpreter:
         Raises:
             RuntimeError: When a node.op is not supported.
         """
+<<<<<<< HEAD
         # Record stack trace of node in diagnostic.
         node_stack_trace = node.stack_trace
         if node_stack_trace:
@@ -435,6 +451,8 @@ class FxOnnxInterpreter:
             if location is not None:
                 diagnostic.with_location(location)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if node.op == "placeholder":
             self.placeholder(node, onnxscript_graph, fx_name_to_onnxscript_value)
         elif node.op == "get_attr":
@@ -468,10 +486,13 @@ class FxOnnxInterpreter:
         else:
             raise RuntimeError(f"Found node type not defined in torch.fx: {node.op}")
 
+<<<<<<< HEAD
     @diagnostics.diagnose_call(
         diagnostics.rules.fx_graph_to_onnx,
         diagnostic_message_formatter=_fx_graph_to_onnx_message_formatter,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run(
         self,
         fx_graph_module: torch.fx.GraphModule,
@@ -488,6 +509,7 @@ class FxOnnxInterpreter:
                 `fx_graph_module` is a submodule. If not provided,
                 `fx_graph_module` is assumed to be the root module.
         """
+<<<<<<< HEAD
         diagnostic = self.diagnostic_context.inflight_diagnostic()
         with diagnostic.log_section(logging.DEBUG, "FX Graph:"):
             diagnostic.debug(
@@ -495,6 +517,8 @@ class FxOnnxInterpreter:
                 diagnostics.LazyString(fx_graph_module.print_readable, False),
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if parent_onnxscript_graph is not None:
             # If parent_onnxscript_graph is provided, we assume fx_graph_module is a
             # submodule representing a forward call of an nn.Module.
@@ -551,9 +575,12 @@ class FxOnnxInterpreter:
                     fx_name_to_onnxscript_value,
                 )
 
+<<<<<<< HEAD
         with diagnostic.log_section(logging.DEBUG, "ONNX Graph:"):
             diagnostic.debug("```\n%s\n```", onnxscript_graph.torch_graph)  # type: ignore[attr-defined]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return onnxscript_graph
 
     def placeholder(
@@ -655,7 +682,10 @@ class FxOnnxInterpreter:
             node=node,
             onnx_args=onnx_args,  # type: ignore[arg-type]
             onnx_kwargs=onnx_kwargs,
+<<<<<<< HEAD
             diagnostic_context=self.diagnostic_context,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         with onnxscript.evaluator.default_as(onnxscript_tracer):
             output: (

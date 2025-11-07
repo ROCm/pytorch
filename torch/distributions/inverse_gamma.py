@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions import constraints
@@ -38,8 +43,19 @@ class InverseGamma(TransformedDistribution):
     }
     support = constraints.positive
     has_rsample = True
+<<<<<<< HEAD
 
     def __init__(self, concentration, rate, validate_args=None):
+=======
+    base_dist: Gamma
+
+    def __init__(
+        self,
+        concentration: Union[Tensor, float],
+        rate: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         base_dist = Gamma(concentration, rate, validate_args=validate_args)
         neg_one = -base_dist.rate.new_ones(())
         super().__init__(

@@ -385,9 +385,17 @@ namespace {
     // next broadcast all index tensors together
     try {
       indices = at::expand_outplace(indices);
+<<<<<<< HEAD
     } catch (std::exception &e) {
       TORCH_CHECK_INDEX(false, "shape mismatch: indexing tensors could not be broadcast together"
                                " with shapes ");
+=======
+    } catch (std::exception&) {
+      TORCH_CHECK_INDEX(
+          false,
+          "shape mismatch: indexing tensors could not be broadcast together"
+          " with shapes ");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     // add missing null Tensors so that it matches self.dim()
     while (indices.size() < static_cast<size_t>(self.dim())) {
@@ -771,6 +779,18 @@ std::tuple<Tensor, std::optional<int64_t>> scatter_add_batch_rule(
                             self, self_bdim, dim, index, index_bdim, src, src_bdim);
 }
 
+<<<<<<< HEAD
+=======
+std::tuple<Tensor, std::optional<int64_t>> scatter_add__batch_rule(
+    const Tensor& self, std::optional<int64_t> self_bdim,
+    int64_t dim,
+    const Tensor& index, std::optional<int64_t> index_bdim,
+    const Tensor& src, std::optional<int64_t> src_bdim) {
+  return scatter_batch_rule(ATEN_FN(scatter_add_),
+                            self, self_bdim, dim, index, index_bdim, src, src_bdim);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::tuple<Tensor, std::optional<int64_t>> scatter_reduce_batch_rule(
     const Tensor& self, std::optional<int64_t> self_bdim,
     int64_t dim,
@@ -1276,6 +1296,10 @@ TORCH_LIBRARY_IMPL(aten, FuncTorchBatched, m) {
   VMAP_SUPPORT2(scatter, value, scatter_value_batch_rule);
   VMAP_SUPPORT2(scatter, src, scatter_src_batch_rule);
   VMAP_SUPPORT(scatter_add, scatter_add_batch_rule);
+<<<<<<< HEAD
+=======
+  VMAP_SUPPORT(scatter_add_, scatter_add__batch_rule);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   VMAP_SUPPORT2(scatter, reduce, scatter_reduce_batch_rule);
   VMAP_SUPPORT2(scatter, value_reduce, scatter_value_reduce_batch_rule);
   VMAP_SUPPORT2(scatter_reduce, two, scatter_reduce_two_batch_rule);

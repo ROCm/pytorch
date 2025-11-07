@@ -9,6 +9,10 @@
 #include <mutex>
 #include <vector>
 
+<<<<<<< HEAD
+=======
+#include "c10/util/Flags.h"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include "caffe2/core/common.h"
 
 //
@@ -65,4 +69,17 @@ class TORCH_API /*alignas(kCacheLineSize)*/ ThreadPool {
 size_t getDefaultNumThreads();
 } // namespace caffe2
 
+<<<<<<< HEAD
+=======
+C10_DECLARE_bool(caffe2_threadpool_force_inline);
+
+// Whether or not threadpool caps apply to Android
+C10_DECLARE_int(caffe2_threadpool_android_cap);
+
+// Whether or not threadpool caps apply to iOS and MacOS
+C10_DECLARE_int(caffe2_threadpool_ios_cap);
+C10_DECLARE_int(caffe2_threadpool_macos_cap);
+
+C10_DECLARE_int(pthreadpool_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // CAFFE2_UTILS_THREADPOOL_H_

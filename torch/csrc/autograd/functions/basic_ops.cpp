@@ -21,7 +21,11 @@ variable_list Error::apply(variable_list&& inputs) const {
 }
 
 void Error::compiled_args(CompiledNodeArgs& args) const {
+<<<<<<< HEAD
   // throw the error durring collect, the graph won't get compiled
+=======
+  // throw the error during collect, the graph won't get compiled
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   apply(variable_list());
 }
 

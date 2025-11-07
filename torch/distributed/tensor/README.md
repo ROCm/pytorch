@@ -49,7 +49,11 @@ We offer both a lower level DistributedTensor API and a module level API to crea
 Here are some basic DTensor API examples that showcase:
 1. How to construct a DTensor directly, to represent different types of sharding, replication, sharding + replication strategies.
 2. How to create DTensor from a local `torch.Tensor`.
+<<<<<<< HEAD
 3. How to “reshard” an existing DTensor to a different DTensor with modified placement strategy or world size.
+=======
+3. How to “reshard” an existing DTensor to a different DTensor with a new DTensor Layout.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ```python
 # torchrun --standalone --nnodes=1 --nproc-per-node=4 dtensor_example.py

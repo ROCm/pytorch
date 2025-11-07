@@ -2,6 +2,10 @@
 import argparse
 import os
 import re
+<<<<<<< HEAD
+=======
+import subprocess
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from pathlib import Path
 
 
@@ -80,7 +84,13 @@ def add_launch_params(
     return remove_inductor_wrappers
 
 
+<<<<<<< HEAD
 def process_file(input_filename: str, output_filename: str) -> str:
+=======
+def process_file(
+    input_filename: str, output_filename: str, auto_generate_params: bool = True
+) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with open(input_filename) as file:
         source_code = file.read()
 
@@ -94,9 +104,47 @@ def process_file(input_filename: str, output_filename: str) -> str:
     transformed_code = remove_async_compile(transformed_code)
 
     launch_params_filename = f"{input_filename}.launch_params"
+<<<<<<< HEAD
     if not os.path.exists(launch_params_filename):
         raise RuntimeError(
             f"Missing {launch_params_filename}. Run `TORCHINDUCTOR_DUMP_LAUNCH_PARAMS=1 python {input_filename} first."
+=======
+
+    # Auto-generate launch_params if they don't exist and auto_generate_params is True
+    if not os.path.exists(launch_params_filename) and auto_generate_params:
+        print(f"Launch params file {launch_params_filename} not found. Generating...")
+        try:
+            # Set environment variable and run the input file
+            env = os.environ.copy()
+            env["TORCHINDUCTOR_DUMP_LAUNCH_PARAMS"] = "1"
+
+            result = subprocess.run(
+                ["python", input_filename],
+                env=env,
+                capture_output=True,
+                text=True,
+                cwd=os.path.dirname(input_filename) or ".",
+            )
+
+            if result.returncode != 0:
+                print(f"Error running {input_filename}:")
+                print(f"stdout: {result.stdout}")
+                print(f"stderr: {result.stderr}")
+                raise RuntimeError(
+                    f"Failed to generate launch params. Command failed with return code {result.returncode}"
+                )
+
+            print(f"Successfully generated {launch_params_filename}")
+
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to generate launch params by running {input_filename}: {str(e)}"
+            ) from e
+
+    if not os.path.exists(launch_params_filename):
+        raise RuntimeError(
+            f"Missing {launch_params_filename}. Run `TORCHINDUCTOR_DUMP_LAUNCH_PARAMS=1 python {input_filename}` first."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     with open(launch_params_filename) as f:
@@ -108,25 +156,48 @@ def process_file(input_filename: str, output_filename: str) -> str:
 
     with open(output_filename, "w") as file:
         file.write(transformed_code)
+<<<<<<< HEAD
+=======
+    print(f"Successfully generated {output_filename}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return transformed_code
 
 
 def get_clean_triton(
+<<<<<<< HEAD
     input_path: Path, output_path: Path = Path("triton_only_repro.py")
+=======
+    input_path: Path,
+    output_path: Path = Path("triton_only_repro.py"),
+    auto_generate_params: bool = True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """Run experiments and output results to file
 
     Args:
         input_path (Optional[Path]): Path to inductor generated output codede
         output_path (Optional[Path]): Path to write out the new python file
+<<<<<<< HEAD
     """
     return process_file(str(input_path), str(output_path))
+=======
+        auto_generate_params (bool): Whether to automatically generate launch_params if missing
+    """
+    return process_file(str(input_path), str(output_path), auto_generate_params)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":
     """Sample usage:
     # Running sweep
+<<<<<<< HEAD
     python inputcode.py
+=======
+    python _get_clean_triton.py output_code.py
+
+    # To disable auto-generation of launch params:
+    python _get_clean_triton.py output_code.py --no-auto-generate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     parser = argparse.ArgumentParser(
         description="Clean Inductor generated code to remove Inductor dependencies"
@@ -142,9 +213,23 @@ if __name__ == "__main__":
         default=Path("triton_only_repro.py"),
         help="Path to write out the clean triton output",
     )
+<<<<<<< HEAD
+=======
+    parser.add_argument(
+        "--no-auto-generate",
+        action="store_true",
+        help="Disable automatic generation of launch_params file",
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Parse the arguments
     args = parser.parse_args()
 
     # Call the function with parsed arguments
+<<<<<<< HEAD
     result = get_clean_triton(args.input_path, args.output_path)
+=======
+    result = get_clean_triton(
+        args.input_path, args.output_path, not args.no_auto_generate
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

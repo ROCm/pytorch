@@ -32,7 +32,12 @@ struct ITTThreadLocalState : ProfilerStateBase {
 };
 
 template <bool report_input_shapes>
+<<<<<<< HEAD
 std::unique_ptr<at::ObserverContext> enterITT(const at::RecordFunction& fn) {
+=======
+static std::unique_ptr<at::ObserverContext> enterITT(
+    const at::RecordFunction& fn) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (ITTThreadLocalState::getTLS() != nullptr) {
     torch::profiler::impl::ittStubs()->rangePush(fn.name());
   }

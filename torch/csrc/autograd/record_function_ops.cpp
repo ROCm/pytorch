@@ -75,7 +75,11 @@ static void record_function_exit_new(
 }
 
 template <typename Func>
+<<<<<<< HEAD
 c10::intrusive_ptr<c10::ivalue::Future> _call_end_callbacks_on_fut(
+=======
+static c10::intrusive_ptr<c10::ivalue::Future> _call_end_callbacks_on_fut(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Func get_record,
     const c10::intrusive_ptr<c10::ivalue::Future>& fut) {
   // Profiling callback that ends the associated record_function

@@ -1060,6 +1060,7 @@ class TestDeviceUtils(TestCase):
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")
     def test_get_default_device_more(self):
+<<<<<<< HEAD
         torch.set_default_device("cuda")
         self.assertEqual(torch.get_default_device(), torch.tensor([]).device)
         torch.set_default_device(None)
@@ -1072,6 +1073,35 @@ class TestDeviceUtils(TestCase):
         torch.set_default_device("cuda:1")
         self.assertEqual(torch.get_default_device(), torch.tensor([]).device)
         torch.set_default_device(None)
+=======
+        try:
+            torch.set_default_device("cuda")
+            self.assertEqual(torch.get_default_device(), torch.tensor([]).device)
+            torch.set_default_device(None)
+
+            torch.set_default_device("cuda")
+            torch.cuda.set_device("cuda:1")
+            self.assertEqual(torch.get_default_device(), torch.tensor([]).device)
+            torch.set_default_device(None)
+
+            torch.set_default_device("cuda:1")
+            self.assertEqual(torch.get_default_device(), torch.tensor([]).device)
+            torch.set_default_device(None)
+
+            torch.set_default_device("cuda:1")
+            with torch.device("cuda:0"):
+                self.assertEqual(torch.get_default_device(), torch.device("cuda", 0))
+
+            torch.set_default_device("cpu")
+            self.assertEqual(torch.get_default_device(), torch.device("cpu"))
+            with torch.device("cuda:0"):
+                self.assertEqual(torch.get_default_device(), torch.device("cuda", 0))
+
+            self.assertEqual(torch.get_default_device(), torch.device("cpu"))
+        finally:
+            # Reset the device at the end.
+            torch.set_default_device(None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @onlyCPU
     @ops(op_db)

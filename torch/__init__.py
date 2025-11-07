@@ -12,6 +12,10 @@ on an NVIDIA GPU with compute capability >= 3.0.
 
 import builtins
 import ctypes
+<<<<<<< HEAD
+=======
+import functools
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import glob
 import importlib
 import inspect
@@ -35,7 +39,11 @@ from typing_extensions import ParamSpec as _ParamSpec
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from .types import IntLikeType
+=======
+    from .types import Device, IntLikeType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # multipy/deploy is setting this import before importing torch, this is the most
@@ -53,6 +61,10 @@ from torch._utils import (
 from torch._utils_internal import (
     get_file_path,
     prepare_multiprocessing_environment,
+<<<<<<< HEAD
+=======
+    profiler_allow_cudagraph_cupti_lazy_reinit_cuda12,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     USE_GLOBAL_DEPS,
     USE_RTLD_GLOBAL_WITH_LIBTORCH,
 )
@@ -181,6 +193,10 @@ if sys.platform == "win32":
         usebase_path = os.path.join(
             sysconfig.get_config_var("userbase"), "Library", "bin"
         )
+<<<<<<< HEAD
+=======
+        py_root_bin_path = os.path.join(sys.exec_prefix, "bin")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # When users create a virtualenv that inherits the base environment,
         # we will need to add the corresponding library directory into
@@ -193,6 +209,7 @@ if sys.platform == "win32":
 
         dll_paths = [
             p
+<<<<<<< HEAD
             for p in (th_dll_path, py_dll_path, base_py_dll_path, usebase_path)
             if os.path.exists(p)
         ]
@@ -211,6 +228,18 @@ if sys.platform == "win32":
         else:
             nvtoolsext_dll_path = ""
 
+=======
+            for p in (
+                th_dll_path,
+                py_dll_path,
+                base_py_dll_path,
+                usebase_path,
+                py_root_bin_path,
+            )
+            if os.path.exists(p)
+        ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if cuda_version and builtins.all(
             not glob.glob(os.path.join(p, "cudart64*.dll")) for p in dll_paths
         ):
@@ -223,9 +252,13 @@ if sys.platform == "win32":
         else:
             cuda_path = ""
 
+<<<<<<< HEAD
         dll_paths.extend(
             p for p in (nvtoolsext_dll_path, cuda_path) if os.path.exists(p)
         )
+=======
+        dll_paths.extend(p for p in (cuda_path,) if os.path.exists(p))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kernel32 = ctypes.WinDLL("kernel32.dll", use_last_error=True)
         with_load_library_flags = hasattr(kernel32, "AddDllDirectory")
@@ -362,7 +395,10 @@ def _load_global_deps() -> None:
             "cusparselt": "libcusparseLt.so.*[0-9]",
             "cusolver": "libcusolver.so.*[0-9]",
             "nccl": "libnccl.so.*[0-9]",
+<<<<<<< HEAD
             "nvtx": "libnvToolsExt.so.*[0-9]",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         # cufiile is only available on cuda 12+
         # TODO: Remove once CUDA 11.8 binaries are deprecated
@@ -623,7 +659,11 @@ class SymInt:
 
 class SymFloat:
     """
+<<<<<<< HEAD
     Like an float (including magic methods), but redirects all operations on the
+=======
+    Like a float (including magic methods), but redirects all operations on the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wrapped node. This is used in particular to symbolically record operations
     in the symbolic shape workflow.
     """
@@ -742,7 +782,11 @@ class SymFloat:
 
 class SymBool:
     """
+<<<<<<< HEAD
     Like an bool (including magic methods), but redirects all operations on the
+=======
+    Like a bool (including magic methods), but redirects all operations on the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wrapped node. This is used in particular to symbolically record operations
     in the symbolic shape workflow.
 
@@ -983,6 +1027,10 @@ __all__.append("sym_sqrt")
 
 
 def sym_ite(b, t, f):
+<<<<<<< HEAD
+=======
+    """SymInt-aware utility for ternary operator (``t if b else f``.)"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if overrides.has_torch_function((b, t, f)):
         return overrides.handle_torch_function(sym_ite, (b, t, f), b, t, f)
     assert isinstance(b, (SymBool, builtins.bool)) and type(t) == type(f)
@@ -1148,21 +1196,51 @@ def get_default_device() -> "torch.device":
     r"""Gets the default ``torch.Tensor`` to be allocated on ``device``"""
     global _GLOBAL_DEVICE_CONTEXT
 
+<<<<<<< HEAD
     if hasattr(_GLOBAL_DEVICE_CONTEXT, "device_context"):
         device = _GLOBAL_DEVICE_CONTEXT.device_context.device
+=======
+    from torch.overrides import _get_current_function_mode_stack
+    from torch.utils._device import DeviceContext
+
+    def _get_device_with_index(device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if device.index is not None:
             return device
         else:
             # TODO: Call like get_device_index() method corresponding to
             # each device type
             return torch.tensor([]).device
+<<<<<<< HEAD
+=======
+
+    # Get device from any active DeviceContext.
+    device_mode = next(
+        filter(
+            lambda mode: isinstance(mode, DeviceContext),
+            reversed(_get_current_function_mode_stack()),
+        ),
+        None,
+    )
+    if device_mode:
+        device = device_mode.device
+        return _get_device_with_index(device)
+
+    if hasattr(_GLOBAL_DEVICE_CONTEXT, "device_context"):
+        device = _GLOBAL_DEVICE_CONTEXT.device_context.device
+        return _get_device_with_index(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return torch.device("cpu")
 
 
+<<<<<<< HEAD
 def set_default_device(
     device: _Optional[_Union["torch.device", str, builtins.int]],
 ) -> None:
+=======
+def set_default_device(device: "Device") -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Sets the default ``torch.Tensor`` to be allocated on ``device``.  This
     does not affect factory function calls which are called with an explicit
     ``device`` argument.  Factory calls will be performed as if they
@@ -1335,7 +1413,13 @@ def use_deterministic_algorithms(
         * :class:`torch.nn.ConvTranspose1d` when called on CUDA tensor
         * :class:`torch.nn.ConvTranspose2d` when called on CUDA tensor
         * :class:`torch.nn.ConvTranspose3d` when called on CUDA tensor
+<<<<<<< HEAD
         * :class:`torch.nn.ReplicationPad2d` when attempting to differentiate a CUDA tensor
+=======
+        * :class:`torch.nn.ReplicationPad1d` when attempting to differentiate a CUDA tensor
+        * :class:`torch.nn.ReplicationPad2d` when attempting to differentiate a CUDA tensor
+        * :class:`torch.nn.ReplicationPad3d` when attempting to differentiate a CUDA tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         * :func:`torch.bmm` when called on sparse-dense CUDA tensors
         * :func:`torch.Tensor.__getitem__` when attempting to differentiate a CPU tensor
           and the index is a list of tensors
@@ -1377,8 +1461,11 @@ def use_deterministic_algorithms(
         * :class:`torch.nn.ReflectionPad1d` when attempting to differentiate a CUDA tensor
         * :class:`torch.nn.ReflectionPad2d` when attempting to differentiate a CUDA tensor
         * :class:`torch.nn.ReflectionPad3d` when attempting to differentiate a CUDA tensor
+<<<<<<< HEAD
         * :class:`torch.nn.ReplicationPad1d` when attempting to differentiate a CUDA tensor
         * :class:`torch.nn.ReplicationPad3d` when attempting to differentiate a CUDA tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         * :class:`torch.nn.NLLLoss` when called on a CUDA tensor
         * :class:`torch.nn.CTCLoss` when attempting to differentiate a CUDA tensor
         * :class:`torch.nn.EmbeddingBag` when attempting to differentiate a CUDA tensor when
@@ -2106,7 +2193,11 @@ for __name in dir(_C._VariableFunctions):
     __obj.__module__ = __name__  # "torch"
     # Hide some APIs that should not be public
     if __name == "segment_reduce":
+<<<<<<< HEAD
         # TODO: Once the undocumented FC window is passed, remove the line bellow
+=======
+        # TODO: Once the undocumented FC window is passed, remove the line below
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         globals()[__name] = __obj
         __name = "_" + __name
     globals()[__name] = __obj
@@ -2237,7 +2328,11 @@ del _torch_docs, _tensor_docs, _storage_docs, _size_docs
 
 def compiled_with_cxx11_abi() -> builtins.bool:
     r"""Returns whether PyTorch was built with _GLIBCXX_USE_CXX11_ABI=1"""
+<<<<<<< HEAD
     return _C._GLIBCXX_USE_CXX11_ABI
+=======
+    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 from torch import _library as _library, _ops as _ops
@@ -2308,7 +2403,20 @@ class _TorchCompileInductorWrapper:
         self.apply_options(options)
         self.apply_options(CompilerBisector.get_config_change("inductor"))
 
+<<<<<<< HEAD
         if self.config.get("triton.cudagraphs", False):
+=======
+        cuda_version = None
+        if hasattr(torch, "version"):
+            from torch.torch_version import TorchVersion
+
+            cuda_version = TorchVersion(getattr(torch.version, "cuda", "0.0"))
+
+        if self.config.get("triton.cudagraphs", False) and (
+            (cuda_version and cuda_version < "12.6")
+            or not profiler_allow_cudagraph_cupti_lazy_reinit_cuda12()
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             os.environ["DISABLE_CUPTI_LAZY_REINIT"] = "1"
             # FIXME: CUDA Graph does not work well with CUPTI teardown.
             #   1) crashes on 1st lazy CUPTI re-init after teardown (CUDA 11)
@@ -2423,7 +2531,13 @@ def compile(
     dynamic: _Optional[builtins.bool] = None,
     backend: _Union[str, _Callable] = "inductor",
     mode: _Union[str, None] = None,
+<<<<<<< HEAD
     options: _Optional[dict[str, _Union[str, builtins.int, builtins.bool]]] = None,
+=======
+    options: _Optional[
+        dict[str, _Union[str, builtins.int, builtins.bool, _Callable]]
+    ] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     disable: builtins.bool = False,
 ) -> _Callable[_InputT, _RetT]: ...
 
@@ -2436,19 +2550,35 @@ def compile(
     dynamic: _Optional[builtins.bool] = None,
     backend: _Union[str, _Callable] = "inductor",
     mode: _Union[str, None] = None,
+<<<<<<< HEAD
     options: _Optional[dict[str, _Union[str, builtins.int, builtins.bool]]] = None,
+=======
+    options: _Optional[
+        dict[str, _Union[str, builtins.int, builtins.bool, _Callable]]
+    ] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     disable: builtins.bool = False,
 ) -> _Callable[[_Callable[_InputT, _RetT]], _Callable[_InputT, _RetT]]: ...
 
 
 def compile(
+<<<<<<< HEAD
     model: _Optional[_Callable] = None,
+=======
+    model: _Optional[_Callable[_InputT, _RetT]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     *,
     fullgraph: builtins.bool = False,
     dynamic: _Optional[builtins.bool] = None,
     backend: _Union[str, _Callable] = "inductor",
     mode: _Union[str, None] = None,
+<<<<<<< HEAD
     options: _Optional[dict[str, _Union[str, builtins.int, builtins.bool]]] = None,
+=======
+    options: _Optional[
+        dict[str, _Union[str, builtins.int, builtins.bool, _Callable]]
+    ] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     disable: builtins.bool = False,
 ) -> _Union[
     _Callable[[_Callable[_InputT, _RetT]], _Callable[_InputT, _RetT]],
@@ -2471,7 +2601,11 @@ def compile(
     function, they will all share the same code cache.
 
     Args:
+<<<<<<< HEAD
        model (Callable): Module/function to optimize
+=======
+       model (Callable or None): Module/function to optimize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        fullgraph (bool): If False (default), torch.compile attempts to discover compileable regions
         in the function that it will optimize. If True, then we require that the entire function be
         capturable into a single graph. If this is not possible (that is, if there are graph breaks),
@@ -2529,6 +2663,17 @@ def compile(
 
         - `trace.graph_diagram` which will show you a picture of your graph after fusion
 
+<<<<<<< HEAD
+=======
+        - `guard_filter_fn` that controls which dynamo guards are saved with compilations.
+          This is an unsafe feature and there is no backward compatibility guarantee provided
+          for dynamo guards as data types.
+          For stable helper functions to use, see the documentations in `torch.compiler`, for example:
+          - `torch.compiler.skip_guard_on_inbuilt_nn_modules_unsafe`
+          - `torch.compiler.skip_guard_on_all_nn_modules_unsafe`
+          - `torch.compiler.keep_tensor_guards_unsafe`
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         - For inductor you can see the full list of configs that it supports by calling `torch._inductor.list_options()`
        disable (bool): Turn torch.compile() into a no-op for testing
 
@@ -2544,9 +2689,20 @@ def compile(
     _C._log_api_usage_once("torch.compile")
     if sys.version_info >= (3, 14):
         raise RuntimeError("torch.compile is not supported on Python 3.14+")
+<<<<<<< HEAD
     elif sysconfig.get_config_var("Py_GIL_DISABLED") == 1:
         raise RuntimeError(
             "torch.compile is not supported on Python built with GIL disabled"
+=======
+    elif sysconfig.get_config_var("Py_GIL_DISABLED") == 1 and sys.version_info < (
+        3,
+        13,
+        3,
+    ):
+        raise RuntimeError(
+            "torch.compile is not supported on Python < 3.13.3 built with GIL disabled. "
+            "Please use Python 3.13.3+."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     # Decorator mode
@@ -2579,6 +2735,13 @@ def compile(
     if bisect_backend := CompilerBisector.get_backend():
         backend = bisect_backend
 
+<<<<<<< HEAD
+=======
+    guard_filter_fn = None
+    if options and isinstance(options, dict):
+        guard_filter_fn = options.pop("guard_filter_fn", None)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if backend == "inductor":
         backend = _TorchCompileInductorWrapper(mode, options, dynamic)
     else:
@@ -2589,6 +2752,10 @@ def compile(
         nopython=fullgraph,
         dynamic=dynamic,
         disable=disable,
+<<<<<<< HEAD
+=======
+        guard_filter_fn=guard_filter_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )(model)  # type: ignore[return-value]
 
 
@@ -2703,6 +2870,10 @@ else:
         raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
+<<<<<<< HEAD
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_device_module(device: _Optional[_Union[torch.device, str]] = None):
     """
     Returns the module associated with a given device(e.g., torch.device('cuda'), "mtia:0", "xpu", ...).

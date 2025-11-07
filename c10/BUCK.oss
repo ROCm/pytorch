@@ -15,6 +15,10 @@ cxx_library(
         "//third_party:cpuinfo",
         "//third_party:fmt",
         "//third_party:glog",
+<<<<<<< HEAD
+=======
+        "//third_party:moodycamel",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ],
     exported_deps = [],
     compiler_flags = [

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+<<<<<<< HEAD
+=======
+# ruff: noqa: LOG015
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import json
 import logging
@@ -39,9 +43,15 @@ SUPPORTED_PERIODICAL_MODES: dict[str, Callable[[Optional[str]], bool]] = {
 }
 
 # The link to the published list of disabled jobs
+<<<<<<< HEAD
 DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=n.FT07XR3dLMwOLBwmRNquyYSeGk8Het"
 # and unstable jobs
 UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=.Ox7WAXa21I1PVqadHyPfhMRPhl0aCnD"
+=======
+DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=HnkH0xQWnnsoeMsSIVf9291NE5c4jWSa"
+# and unstable jobs
+UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=iP_F8gBs60PfOMAJ8gnn1paVrzM1WYsK"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Some constants used to handle disabled and unstable jobs
 JOB_NAME_SEP = "/"
@@ -79,7 +89,11 @@ def parse_args() -> Any:
     parser.add_argument(
         "--job-name",
         type=str,
+<<<<<<< HEAD
         help="the name of the current job, i.e. linux-focal-py3.8-gcc7 / build",
+=======
+        help="the name of the current job, i.e. linux-jammy-py3.8-gcc7 / build",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     parser.add_argument("--pr-number", type=str, help="the pull request number")
     parser.add_argument("--tag", type=str, help="the associated tag if it exists")

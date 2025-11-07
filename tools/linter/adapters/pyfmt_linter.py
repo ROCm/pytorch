@@ -11,7 +11,11 @@ import subprocess
 import sys
 from enum import Enum
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, NamedTuple
+=======
+from typing import NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import black
 import isort
@@ -38,6 +42,7 @@ USE_BLACK_FILELIST = re.compile(
                     # torchgen/**
                     # test/**
                     # test/[a-h]*/**
+<<<<<<< HEAD
                     "test/[a-h]*/**",
                     # test/[i-j]*/**
                     "test/[i-j]*/**",
@@ -45,6 +50,13 @@ USE_BLACK_FILELIST = re.compile(
                     "test/[k-n]*/**",
                     # test/optim/**
                     "test/optim/**",
+=======
+                    # test/[i-j]*/**
+                    "test/j*/**",
+                    # test/[k-m]*/**
+                    "test/[k-m]*/**",
+                    # test/optim/**
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # "test/[p-z]*/**",
                     "test/[p-z]*/**",
                     # torch/**
@@ -56,12 +68,21 @@ USE_BLACK_FILELIST = re.compile(
                     # torch/_[j-z]*/**
                     "torch/_[j-z]*/**",
                     # torch/[a-c]*/**
+<<<<<<< HEAD
                     "torch/[a-c]*/**",
                     # torch/d*/**
                     # torch/[e-n]*/**
                     "torch/[e-n]*/**",
                     # torch/optim/**
                     "torch/optim/**",
+=======
+                    "torch/a[a-n]*/**",
+                    "torch/a[p-z]*/**",
+                    "torch/[b-c]*/**",
+                    # torch/d*/**
+                    # torch/[e-m]*/**
+                    # torch/optim/**
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # torch/[p-z]*/**
                     "torch/[p-z]*/**",
                 ],
@@ -71,10 +92,13 @@ USE_BLACK_FILELIST = re.compile(
 )
 
 
+<<<<<<< HEAD
 def eprint(*args: Any, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, flush=True, **kwargs)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LintSeverity(str, Enum):
     ERROR = "error"
     WARNING = "warning"

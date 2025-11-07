@@ -6,7 +6,11 @@ import torch
 import torch.utils._pytree as pytree
 from torch._inductor.kernel.mm_common import mm_args
 
+<<<<<<< HEAD
 from . import ir
+=======
+from . import config, ir
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .codegen.cpp_gemm_template import CppGemmTemplate
 from .codegen.cpp_grouped_gemm_template import CppGroupedGemmTemplate
 from .codegen.cpp_utils import create_epilogue_with_attr
@@ -25,8 +29,108 @@ from .select_algorithm import (
     ChoiceCaller,
     ExternKernelChoice,
 )
+<<<<<<< HEAD
 from .utils import use_aten_gemm_kernels, use_cpp_gemm_template, use_max_autotune
 from .virtualized import ops, V
+=======
+from .utils import use_aten_gemm_kernels, use_cpp_gemm_template
+from .virtualized import ops, OpsValue, V
+
+
+def create_int8_compensation(
+    W_tensor: torch.Tensor,
+    packed_weight: ir.TensorBox,
+    x_scale: ir.TensorBox,
+    x_zp: ir.TensorBox,
+    w_scale: ir.TensorBox,
+) -> tuple[bool, ir.TensorBox, Optional[ir.TensorBox]]:
+    use_int8_fast_compensation_path = False
+    weight_compens = None
+    x_w_scale = None
+    if all(
+        isinstance(item, ir.TensorBox)
+        and item.get_name() in V.graph.constants
+        and hasattr(item.data, "data")
+        and isinstance(item.data.data, ir.ConstantBuffer)
+        for item in [x_scale, x_zp, w_scale]
+    ):
+        use_int8_fast_compensation_path = True
+        x_w_scale_tensor = (
+            V.graph.constants[x_scale.get_name()]
+            * V.graph.constants[w_scale.get_name()]
+        )
+        x_w_scale = V.graph.add_tensor_constant(
+            x_w_scale_tensor,
+            name=packed_weight.get_name() + "_x_w_compens",
+        )
+        weight_compens_tensor = torch.sum(W_tensor.to(torch.float), dim=0)
+        x_zp_tensor = V.graph.constants[x_zp.get_name()]
+        weight_compens_tensor = weight_compens_tensor * x_w_scale_tensor * x_zp_tensor
+        weight_compens = V.graph.add_tensor_constant(
+            weight_compens_tensor,
+            name=packed_weight.get_name() + "_BMatrixCompens",
+        )
+    else:
+        weight_compens_tensor = torch.sum(W_tensor.to(torch.float), dim=0)
+        weight_compens = V.graph.add_tensor_constant(
+            weight_compens_tensor,
+            name=packed_weight.get_name() + "_BMatrixCompens",
+        )
+    return (
+        use_int8_fast_compensation_path,
+        weight_compens,
+        x_w_scale,
+    )
+
+
+def codegen_int8_gemm_template_compensation(
+    use_int8_fast_compensation_path: bool,
+    input: OpsValue,
+    _weight_compo: OpsValue,
+    _x_scale: Optional[OpsValue],
+    _x_zp: Optional[OpsValue],
+    _w_scale: Optional[OpsValue],
+    _x_w_scale: Optional[OpsValue],
+) -> OpsValue:
+    if use_int8_fast_compensation_path:
+        temp = ops.sub(
+            ops.mul(
+                input,
+                _x_w_scale,
+            ),
+            _weight_compo,
+        )
+    else:
+        temp = ops.mul(
+            ops.mul(
+                input,
+                _x_scale,
+            ),
+            _w_scale,
+        )
+        # NOTE: We will apply compensation even if the x_zp is 0 for int8 quantization.
+        # That's because when torch.compile is invoked for dynamic quantization,
+        # x might coincidentally have such values that x_zp might be zero despite
+        # asymmetric quantization.
+        # Besides, if x_zp is dummy for int8 x, or if x is statically quantized,
+        # we'd still perform that redundant compute to avoid making the code messy
+        # because we discovered that redundant computation of compensation did not
+        # lead to performance degradation with the input shapes tested.
+        temp = ops.sub(
+            temp,
+            ops.mul(
+                ops.mul(
+                    ops.mul(
+                        _x_scale,
+                        _w_scale,
+                    ),
+                    _x_zp,
+                ),
+                _weight_compo,
+            ),
+        )
+    return temp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def grouped_gemm_lowering(
@@ -44,7 +148,11 @@ def grouped_gemm_lowering(
         x = view(x, [-1, x_size[-1]])
     num_gemm = len(w)
 
+<<<<<<< HEAD
     assert use_max_autotune()
+=======
+    assert config.max_autotune or config.max_autotune_gemm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     b = [bias if bias is None else ir.ExternKernel.realize_input(bias) for bias in b]
 
     choices: list[ChoiceCaller] = []
@@ -54,7 +162,11 @@ def grouped_gemm_lowering(
         has_bias=[bias is not None for bias in b],
         trans_w=True,
         epilogue_creator=None,
+<<<<<<< HEAD
         act_mapping={num: x for num in range(num_gemm)},
+=======
+        act_mapping=dict.fromkeys(range(num_gemm), x),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     input_nodes = [x, *w]
@@ -130,7 +242,11 @@ def register_onednn_fusion_ops():
             torch.ops.mkldnn._convolution_transpose_pointwise,
             torch.ops.mkldnn._linear_pointwise,
             aten.mkldnn_rnn_layer.default,
+<<<<<<< HEAD
             torch.ops.onednn.qconv2d_pointwise,
+=======
+            torch.ops.onednn.qconv_pointwise,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         @register_lowering(torch.ops.mkldnn._convolution_pointwise)
@@ -246,7 +362,11 @@ def register_onednn_fusion_ops():
             if b is not None:
                 b = ir.ExternKernel.realize_input(b)
             choices: list[ChoiceCaller] = []
+<<<<<<< HEAD
             if use_max_autotune():
+=======
+            if config.max_autotune or config.max_autotune_gemm:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 transposed_w = permute(w, [1, 0])
                 *_, layout, x, transposed_w = mm_args(x, transposed_w, layout=layout)
                 if use_cpp_gemm_template(layout, x, transposed_w):
@@ -309,7 +429,11 @@ def register_onednn_fusion_ops():
             if b is not None:
                 b = ir.ExternKernel.realize_input(b)
             choices: list[ChoiceCaller] = []
+<<<<<<< HEAD
             if use_max_autotune():
+=======
+            if config.max_autotune or config.max_autotune_gemm:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 transposed_w = permute(w, [1, 0])
                 *_, layout, x, transposed_w, y = mm_args(
                     x, transposed_w, y, layout=layout
@@ -428,7 +552,11 @@ def register_onednn_fusion_ops():
                 ),
             )
 
+<<<<<<< HEAD
         @register_lowering(torch.ops.onednn.qconv2d_pointwise, type_promotion_kind=None)
+=======
+        @register_lowering(torch.ops.onednn.qconv_pointwise, type_promotion_kind=None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def qconvolution_unary(
             x: TensorBox,
             x_scale,
@@ -529,7 +657,11 @@ def register_onednn_fusion_ops():
                 # For int8-mixed-bf16 quantization and inplace add,
                 # there is case when accum dtype is float32 but output dtype is bfloat16.
                 # Since the accum will be inplaced changed with post op sum,
+<<<<<<< HEAD
                 # we will do accum dtype convertion here.
+=======
+                # we will do accum dtype conversion here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 accum = to_dtype(accum, output_dtype)
             return TensorBox.create(
                 mkldnn_ir.QConvPointWiseBinaryPT2E.create(
@@ -615,8 +747,13 @@ def register_onednn_fusion_ops():
             assert x_zp.get_numel() == 1, "x_zp is incompatible with oneDNN qlinear"
 
             # When channels less than 8, w_scale/w_zp is Pointwise instead of ConstantBuffer
+<<<<<<< HEAD
             # Refer to https://github.com/pytorch/pytorch/blob
             # /f353d17755ed23b02924c962a86ff99a3405fe10/torch/_inductor/graph.py#L570-L577
+=======
+            # Refer to
+            # https://github.com/pytorch/pytorch/blob/f353d17755ed23b02924c962a86ff99a3405fe10/torch/_inductor/graph.py#L570-L577  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if w_zp is None:
                 # If w_zp is None, then it's a dummy tensor created to denote the
                 # absence of a zero point, and thus w is int8 symmetrically quantized.
@@ -639,7 +776,11 @@ def register_onednn_fusion_ops():
             bias_dtype = None if bias is None else bias.get_dtype()
             choices: list[ChoiceCaller] = []
 
+<<<<<<< HEAD
             if use_max_autotune():
+=======
+            if config.max_autotune or config.max_autotune_gemm:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *_, layout, x, packed_weight = mm_args(
                     x, packed_weight, layout=layout, out_dtype=output_dtype
                 )
@@ -656,10 +797,24 @@ def register_onednn_fusion_ops():
                     )
                 ) and use_cpp_gemm_template(layout, x, packed_weight):
                     W_tensor = V.graph.constants[packed_weight.get_name()].to_dense()
+<<<<<<< HEAD
                     weight_compens_tensor = torch.sum(W_tensor.to(torch.float), dim=0)
                     weight_compens = V.graph.add_tensor_constant(
                         weight_compens_tensor,
                         name=packed_weight.get_name() + "_BMatrixCompens",
+=======
+
+                    (
+                        use_int8_fast_compensation_path,
+                        weight_compens,
+                        x_w_scale,
+                    ) = create_int8_compensation(
+                        W_tensor,
+                        packed_weight,
+                        x_scale,
+                        x_zp,
+                        w_scale,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
                     def epilogue_creator(input_buffer):
@@ -672,6 +827,13 @@ def register_onednn_fusion_ops():
                         ]
                         input_loader = input_buffer.make_loader()
                         weight_compens_loader = weight_compens.make_loader()
+<<<<<<< HEAD
+=======
+                        x_w_scale_loader = None
+                        if use_int8_fast_compensation_path:
+                            assert x_w_scale is not None
+                            x_w_scale_loader = x_w_scale.make_loader()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         x_scale_loader = x_scale.make_loader()
                         w_scale_loader = w_scale.make_loader()
                         x_zp_loader = x_zp.make_loader()
@@ -687,6 +849,7 @@ def register_onednn_fusion_ops():
                             # cvt to FP32 before doing compensation
                             input = ops.to_dtype(input, torch.float32)
                             weight_compens_index = (index[-1],)
+<<<<<<< HEAD
                             _x_scale = x_scale_loader(())
                             _x_zp = x_zp_loader(())
                             _w_scale = w_scale_loader(weight_compens_index)
@@ -721,6 +884,30 @@ def register_onednn_fusion_ops():
                                     ),
                                     _weight_compo,
                                 ),
+=======
+
+                            _x_scale = None
+                            _x_zp = None
+                            _w_scale = None
+                            if not use_int8_fast_compensation_path:
+                                _x_scale = x_scale_loader(())
+                                _x_zp = x_zp_loader(())
+                                _w_scale = w_scale_loader(weight_compens_index)
+                            _weight_compo = weight_compens_loader(weight_compens_index)
+                            _x_w_scale = None
+                            if use_int8_fast_compensation_path:
+                                assert x_w_scale_loader is not None
+                                _x_w_scale = x_w_scale_loader(weight_compens_index)
+                            # Step 1: Compute s8s8->s32 or u8s8->s32 GEMM & then apply compensation
+                            temp = codegen_int8_gemm_template_compensation(
+                                use_int8_fast_compensation_path,
+                                input,
+                                _weight_compo,
+                                _x_scale,
+                                _x_zp,
+                                _w_scale,
+                                _x_w_scale,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             )
                             # Step 2: add Bias if applicable
                             if bias is not None:
@@ -927,8 +1114,13 @@ def register_onednn_fusion_ops():
                 x_zp.realize()
 
             # When channels less than 8, w_scale/w_zp is Pointwise instead of ConstantBuffer
+<<<<<<< HEAD
             # Refer to https://github.com/pytorch/pytorch/blob
             # /f353d17755ed23b02924c962a86ff99a3405fe10/torch/_inductor/graph.py#L570-L577
+=======
+            # Refer to
+            # https://github.com/pytorch/pytorch/blob/f353d17755ed23b02924c962a86ff99a3405fe10/torch/_inductor/graph.py#L570-L577  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             w_scale.realize()
             w_zp.realize()
             if w_zp.get_dtype() != torch.int32 and isinstance(
@@ -948,7 +1140,11 @@ def register_onednn_fusion_ops():
                         # For int8-mixed-bf16 quantization and inplace add,
                         # there is case when accum dtype is float32 but output dtype is bfloat16.
                         # Since the accum will be inplaced changed with post op sum,
+<<<<<<< HEAD
                         # we will do accum dtype convertion here.
+=======
+                        # we will do accum dtype conversion here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         x2 = to_dtype(x2, output_dtype)
                 else:
                     assert x2.get_dtype() == output_dtype, (
@@ -958,8 +1154,13 @@ def register_onednn_fusion_ops():
             bias_dtype = bias.get_dtype() if bias is not None else None
             choices: list[ChoiceCaller] = []
             if (
+<<<<<<< HEAD
                 use_max_autotune() and binary_attr == "add"
             ):  # <TODO> Support inplace sum fusion
+=======
+                config.max_autotune or config.max_autotune_gemm
+            ) and binary_attr == "add":  # <TODO> Support inplace sum fusion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *_, layout, x, packed_weight, x2 = mm_args(
                     x, packed_weight, x2, layout=layout, out_dtype=output_dtype
                 )
@@ -981,10 +1182,23 @@ def register_onednn_fusion_ops():
                 ):
                     W_tensor = V.graph.constants[packed_weight.get_name()]
                     W_tensor = W_tensor.to_dense()
+<<<<<<< HEAD
                     weight_compens_tensor = torch.sum(W_tensor.to(torch.float), dim=0)
                     weight_compens = V.graph.add_tensor_constant(
                         weight_compens_tensor,
                         name=packed_weight.get_name() + "_BMatrixCompens",
+=======
+                    (
+                        use_int8_fast_compensation_path,
+                        weight_compens,
+                        x_w_scale,
+                    ) = create_int8_compensation(
+                        W_tensor,
+                        packed_weight,
+                        x_scale,
+                        x_zp,
+                        w_scale,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
                     def epilogue_creator(input_buffer):
@@ -999,6 +1213,13 @@ def register_onednn_fusion_ops():
                         input_loader = input_buffer.make_loader()
                         x2_loader = x2.make_loader()
                         weight_compens_loader = weight_compens.make_loader()
+<<<<<<< HEAD
+=======
+                        x_w_scale_loader = None
+                        if use_int8_fast_compensation_path:
+                            assert x_w_scale is not None
+                            x_w_scale_loader = x_w_scale.make_loader()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         x_scale_loader = x_scale.make_loader()
                         w_scale_loader = w_scale.make_loader()
                         x_zp_loader = x_zp.make_loader()
@@ -1011,6 +1232,7 @@ def register_onednn_fusion_ops():
                             nonlocal bias
                             input = input_loader(index)
                             _x2 = x2_loader(index)
+<<<<<<< HEAD
                             _x_scale = x_scale_loader(())
                             _x_zp = x_zp_loader(())
 
@@ -1044,6 +1266,33 @@ def register_onednn_fusion_ops():
                                 ),
                             )
 
+=======
+                            _x_scale = None
+                            _x_zp = None
+                            _w_scale = None
+                            weight_compens_index = (index[-1],)
+                            if not use_int8_fast_compensation_path:
+                                _x_scale = x_scale_loader(())
+                                _x_zp = x_zp_loader(())
+                                _w_scale = w_scale_loader(weight_compens_index)
+                            # MicroKernel Output is with int32: cvt to FP32 before doing compensation
+                            input = ops.to_dtype(input, torch.float32)
+                            _weight_compo = weight_compens_loader(weight_compens_index)
+                            _x_w_scale = None
+                            if use_int8_fast_compensation_path:
+                                assert x_w_scale_loader is not None
+                                _x_w_scale = x_w_scale_loader(weight_compens_index)
+                            # Step 1: Doing compensation to cvt fp32
+                            temp = codegen_int8_gemm_template_compensation(
+                                use_int8_fast_compensation_path,
+                                input,
+                                _weight_compo,
+                                _x_scale,
+                                _x_zp,
+                                _w_scale,
+                                _x_w_scale,
+                            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             # Step 2: add Bias if applicable
                             if bias is not None:
                                 _bias = bias_loader(weight_compens_index)
@@ -1206,7 +1455,11 @@ def register_onednn_fusion_ops():
                 layout=None,
             ):
                 choices: list[ChoiceCaller] = []
+<<<<<<< HEAD
                 if use_max_autotune():
+=======
+                if config.max_autotune or config.max_autotune_gemm:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     transposed_w = permute(orig_w, [1, 0])
                     *_, layout, x, transposed_w = mm_args(
                         x, transposed_w, layout=layout

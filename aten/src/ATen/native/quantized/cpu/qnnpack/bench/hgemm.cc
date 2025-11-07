@@ -40,7 +40,11 @@ class HGEMM : public benchmark::Fixture {
 
    void SetUp(const benchmark::State&) override {
     const uint_fast32_t seed =
+<<<<<<< HEAD
         std::chrono::system_clock::now().time_since_epoch().count();
+=======
+        std::chrono::steady_clock::now().time_since_epoch().count();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto rng = std::bind(
         fp16_ieee_from_fp32_value,
         std::bind(std::uniform_real_distribution<float>(), std::mt19937(seed)));

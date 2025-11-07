@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+=======
+cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # cmake_policy(SET CMP0022 NEW) cmake_policy(SET CMP0023 NEW)
 
 # Use compiler ID "AppleClang" instead of "Clang" for XCode. Not setting this
@@ -6,6 +10,10 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 # one is detected as "AppleClang".
 cmake_policy(SET CMP0010 NEW)
 cmake_policy(SET CMP0025 NEW)
+<<<<<<< HEAD
+=======
+cmake_policy(SET CMP0126 OLD)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Enables CMake to set LTO on compilers other than Intel.
 cmake_policy(SET CMP0069 NEW)
@@ -16,6 +24,11 @@ cmake_policy(SET CMP0069 NEW)
 # we do this (and we don't if cmake is old), but it's nice when it's possible,
 # and it's possible on our Windows configs.
 cmake_policy(SET CMP0092 NEW)
+<<<<<<< HEAD
+=======
+# Don't remove the FindCUDA module
+cmake_policy(SET CMP0146 OLD)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Prohibit in-source builds
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -54,21 +67,34 @@ set(CMAKE_C_STANDARD
 # ---[ Utils
 include(cmake/public/utils.cmake)
 
+<<<<<<< HEAD
 # --- [ Check that minimal gcc version is 9.2+
 if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.2)
   message(
     FATAL_ERROR
       "GCC-9.2 or newer is required to compile PyTorch, but found ${CMAKE_CXX_COMPILER_VERSION}"
+=======
+# --- [ Check that minimal gcc version is 9.3+
+if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3)
+  message(
+    FATAL_ERROR
+      "GCC-9.3 or newer is required to compile PyTorch, but found ${CMAKE_CXX_COMPILER_VERSION}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   )
 endif()
 
 # This define is needed to preserve behavior given anticpated changes to
 # cccl/thrust
+<<<<<<< HEAD
 # https://nvidia.github.io/libcudacxx/standard_api/numerics_library/complex.html
+=======
+# https://nvidia.github.io/cccl/libcudacxx/standard_api/numerics_library/complex.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 string(APPEND CMAKE_CUDA_FLAGS
        " -DLIBCUDACXX_ENABLE_SIMPLIFIED_COMPLEX_OPERATIONS")
 
 if(LINUX)
+<<<<<<< HEAD
   include(cmake/CheckAbi.cmake)
   string(APPEND CMAKE_CXX_FLAGS
          " -D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI}")
@@ -82,6 +108,9 @@ if(LINUX)
     # compiled by the same toolchain again
     append_cxx_flag_if_supported("-fabi-version=11" CMAKE_CXX_FLAGS)
   endif()
+=======
+  set(CXX_STANDARD_REQUIRED ON)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -271,6 +300,11 @@ option(USE_NATIVE_ARCH "Use -march=native" OFF)
 cmake_dependent_option(USE_MPS "Use MPS for macOS build" ON "MPS_FOUND" OFF)
 cmake_dependent_option(USE_NCCL "Use NCCL" ON
                        "USE_CUDA OR USE_ROCM;UNIX;NOT APPLE" OFF)
+<<<<<<< HEAD
+=======
+cmake_dependent_option(USE_XCCL "Use XCCL" ON
+                       "USE_XPU;UNIX;NOT APPLE" OFF)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 cmake_dependent_option(USE_RCCL "Use RCCL" ON USE_NCCL OFF)
 cmake_dependent_option(USE_STATIC_NCCL "Use static NCCL" OFF "USE_NCCL" OFF)
 cmake_dependent_option(USE_SYSTEM_NCCL "Use system-wide NCCL" OFF "USE_NCCL"
@@ -344,10 +378,21 @@ cmake_dependent_option(
   USE_GLOO_WITH_OPENSSL "Use Gloo with OpenSSL. Only available if USE_GLOO is on." OFF
     "USE_GLOO AND LINUX AND NOT INTERN_BUILD_MOBILE" OFF)
 cmake_dependent_option(
+<<<<<<< HEAD
+=======
+  USE_GLOO_IBVERBS "Use Gloo with ibverbs backend. Only available if USE_GLOO is on." OFF
+    "USE_GLOO AND LINUX AND NOT INTERN_BUILD_MOBILE" OFF)
+cmake_dependent_option(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     USE_C10D_GLOO "USE C10D GLOO" ON "USE_DISTRIBUTED;USE_GLOO" OFF)
 cmake_dependent_option(
     USE_C10D_NCCL "USE C10D NCCL" ON "USE_DISTRIBUTED;USE_NCCL" OFF)
 cmake_dependent_option(
+<<<<<<< HEAD
+=======
+    USE_C10D_XCCL "USE C10D XCCL" ON "USE_DISTRIBUTED;USE_XCCL" OFF)
+cmake_dependent_option(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     USE_C10D_MPI "USE C10D MPI" ON "USE_DISTRIBUTED;USE_MPI" OFF)
 cmake_dependent_option(
     USE_TENSORPIPE "Use TensorPipe. Only available if USE_DISTRIBUTED is on." ON
@@ -531,7 +576,10 @@ if(USE_LIGHTWEIGHT_DISPATCH AND NOT STATIC_DISPATCH_BACKEND)
 endif()
 option(TRACING_BASED
        "Master flag to build Lite Interpreter with tracing build option" OFF)
+<<<<<<< HEAD
 option(BUILD_EXECUTORCH "Master flag to build Executorch" ON)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This is a fix for a rare build issue on Ubuntu: symbol lookup error:
 # miniconda3/envs/pytorch-py3.7/lib/libmkl_intel_lp64.so: undefined symbol:
 # mkl_blas_dsyrk
@@ -563,6 +611,13 @@ if(MSVC)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler  /Zc:__cplusplus")
 
   set(CMAKE_NINJA_CMCLDEPS_RC OFF)
+<<<<<<< HEAD
+=======
+  if(MSVC_Z7_OVERRIDE)
+    # CMake set debug flags to use /Z7
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+  endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   foreach(
     flag_var
     CMAKE_C_FLAGS
@@ -575,12 +630,15 @@ if(MSVC)
     CMAKE_CXX_FLAGS_RELEASE
     CMAKE_CXX_FLAGS_MINSIZEREL
     CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+<<<<<<< HEAD
     # Replace /Zi and /ZI with /Z7
     if(MSVC_Z7_OVERRIDE)
       if(${flag_var} MATCHES "/Z[iI]")
         string(REGEX REPLACE "/Z[iI]" "/Z7" ${flag_var} "${${flag_var}}")
       endif(${flag_var} MATCHES "/Z[iI]")
     endif(MSVC_Z7_OVERRIDE)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if(${CAFFE2_USE_MSVC_STATIC_RUNTIME})
       if(${flag_var} MATCHES "/MD")
@@ -703,7 +761,11 @@ endif()
 if(USE_KLEIDIAI AND CMAKE_C_COMPILER_VERSION)
     if(CMAKE_C_COMPILER_VERSION VERSION_LESS 11)
       set(USE_KLEIDIAI OFF)
+<<<<<<< HEAD
       message(WARNING "Disabling KleidiAI: Requires atleast GCC 11 or Clang 11")
+=======
+      message(WARNING "Disabling KleidiAI: Requires at least GCC 11 or Clang 11")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     endif()
 endif()
 
@@ -872,7 +934,11 @@ cmake_dependent_option(
   "Whether to build the flash_attention kernel for scaled dot product attention.\
   Will be disabled if not supported by the platform"
   ON
+<<<<<<< HEAD
   "USE_CUDA OR USE_ROCM;NOT MSVC"
+=======
+  "(USE_CUDA AND NOT MSVC) OR USE_ROCM"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   OFF)
 
 # CAVEAT: Again, Flash Attention2 will error while building for sm52 while Mem
@@ -888,7 +954,11 @@ cmake_dependent_option(
 # USE_FLASH_ATTENTION -> USE_ROCM -> Dependencies.cmake -> aotriton.cmake
 #
 if(USE_ROCM)
+<<<<<<< HEAD
   if(UNIX AND (USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION))
+=======
+  if(USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     include(cmake/External/aotriton.cmake)
   endif()
 endif()
@@ -988,8 +1058,22 @@ endif()
 # ---[ Build flags Re-include to override append_cxx_flag_if_supported from
 # third_party/FBGEMM
 include(cmake/public/utils.cmake)
+<<<<<<< HEAD
 if(NOT MSVC)
   string(APPEND CMAKE_CXX_FLAGS " -O2 -fPIC")
+=======
+if(USE_COLORIZE_OUTPUT)
+  set(CMAKE_COLOR_DIAGNOSTICS ON)
+endif()
+if(NOT MSVC)
+  string(APPEND CMAKE_CXX_FLAGS " -O2 -fPIC")
+
+  # This prevents use of `c10::optional`, `c10::nullopt` etc within the codebase
+  string(APPEND CMAKE_CXX_FLAGS " -DC10_NODEPRECATED")
+  string(APPEND CMAKE_CUDA_FLAGS " -DC10_NODEPRECATED")
+  string(APPEND CMAKE_OBJCXX_FLAGS " -DC10_NODEPRECATED")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Eigen fails to build with some versions, so convert this to a warning
   # Details at http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1459
   string(APPEND CMAKE_CXX_FLAGS " -Wall")
@@ -1057,6 +1141,7 @@ if(NOT MSVC)
                                CMAKE_CXX_FLAGS)
   append_cxx_flag_if_supported("-Qunused-arguments" CMAKE_CXX_FLAGS)
 
+<<<<<<< HEAD
   if(${USE_COLORIZE_OUTPUT})
     # Why compiler checks are necessary even when `try_compile` is used Because
     # of the bug in ccache that can incorrectly identify `-fcolor-diagnostics`
@@ -1070,6 +1155,8 @@ if(NOT MSVC)
     endif()
   endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   append_cxx_flag_if_supported("-faligned-new" CMAKE_CXX_FLAGS)
 
   if(WERROR)
@@ -1096,7 +1183,10 @@ if(NOT MSVC)
   if(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
     append_cxx_flag_if_supported("-Wno-dangling-reference" CMAKE_CXX_FLAGS)
     append_cxx_flag_if_supported("-Wno-error=dangling-reference" CMAKE_CXX_FLAGS)
+<<<<<<< HEAD
     append_cxx_flag_if_supported("-Wno-error=redundant-move" CMAKE_CXX_FLAGS)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif()
 else()
   # Define export functions for AOTI.
@@ -1256,7 +1346,11 @@ endif()
 add_subdirectory(c10)
 add_subdirectory(caffe2)
 
+<<<<<<< HEAD
 # ---[ CMake related files Uninistall option.
+=======
+# ---[ CMake related files Uninstall option.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if(NOT TARGET caffe2_uninstall)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in

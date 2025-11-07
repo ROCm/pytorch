@@ -11,6 +11,7 @@ import torch
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 from torch.jit.frontend import _IS_ASTUNPARSE_INSTALLED
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -22,6 +23,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestIgnoreContextManager(JitTestCase):
     @unittest.skipUnless(_IS_ASTUNPARSE_INSTALLED, "astunparse package is required")
     def test_with_ignore_context_manager_with_inp_out(self):
@@ -103,3 +110,10 @@ class TestIgnoreContextManager(JitTestCase):
         s = torch.jit.script(model)
         self.assertEqual(s(), 5)
         self.assertEqual(s(), model())
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

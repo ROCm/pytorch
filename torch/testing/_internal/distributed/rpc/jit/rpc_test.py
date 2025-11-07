@@ -1,7 +1,12 @@
 # mypy: allow-untyped-defs
 
+<<<<<<< HEAD
 import time
 import io
+=======
+import io
+import time
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 
 import torch
@@ -9,8 +14,14 @@ import torch.distributed as dist
 import torch.distributed.rpc as rpc
 from torch import Tensor
 from torch.autograd.profiler import record_function
+<<<<<<< HEAD
 from torch.distributed.rpc import RRef
 from torch.distributed.rpc.internal import RPCExecMode, _build_rpc_profiling_key
+=======
+from torch.autograd.profiler_legacy import profile as _profile
+from torch.distributed.rpc import RRef
+from torch.distributed.rpc.internal import _build_rpc_profiling_key, RPCExecMode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.futures import Future
 from torch.testing._internal.common_utils import TemporaryFileName
 from torch.testing._internal.dist_utils import (
@@ -23,11 +34,18 @@ from torch.testing._internal.distributed.rpc.rpc_agent_test_fixture import (
     RpcAgentTestFixture,
 )
 
+<<<<<<< HEAD
 from torch.autograd.profiler_legacy import profile as _profile
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def rref_isinstance(rref, cls_to_check):
     return isinstance(rref.local_value(), cls_to_check)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def sleep(t):
     time.sleep(t)
 
@@ -140,10 +158,18 @@ def no_arg():
 def one_arg(value):
     return value + 1
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.jit.script
 def script_add_ones(x):
     return torch.add(x, torch.ones(1))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.jit.script
 def script_add_ones_with_record_function(x, block: str):
     with record_function(block):
@@ -154,16 +180,27 @@ def script_add_ones_with_record_function(x, block: str):
 def record_function_on_caller_rpc_async(dst_worker_name: str, block: str) -> Tensor:
     t: Tensor = torch.ones(1)
     with record_function(block):
+<<<<<<< HEAD
         fut1 = rpc.rpc_async(dst_worker_name, script_add_ones, (t, ))
         # Extra operator call to avoid de-duplication of the next async call
         # see https://github.com/pytorch/pytorch/pull/62710#discussion_r694680279
         zero = torch.zeros_like(t)
         fut2 = rpc.rpc_async(dst_worker_name, script_add_ones, (t, ))
+=======
+        fut1 = rpc.rpc_async(dst_worker_name, script_add_ones, (t,))
+        # Extra operator call to avoid de-duplication of the next async call
+        # see https://github.com/pytorch/pytorch/pull/62710#discussion_r694680279
+        zero = torch.zeros_like(t)
+        fut2 = rpc.rpc_async(dst_worker_name, script_add_ones, (t,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res = fut1.wait() + fut2.wait() + zero
     return res
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.jit.script
 def script_fork_wait_udf(tensor):
     fut = torch.jit._fork(script_add_ones, tensor)
@@ -196,7 +233,13 @@ def script_fork_wait_throw(invalue):
 
 
 @torch.jit.script
+<<<<<<< HEAD
 def call_rpc_with_profiling(record: torch.classes.profiler._RecordFunction, dst_worker_name: str) -> Tensor:
+=======
+def call_rpc_with_profiling(
+    record: torch.classes.profiler._RecordFunction, dst_worker_name: str
+) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Call rpc_async from within ScriptFunction and ensure that we can attach
     # profiling callbacks. Note that handle here is a Tensor representation of
     # RecordFunction.
@@ -205,9 +248,20 @@ def call_rpc_with_profiling(record: torch.classes.profiler._RecordFunction, dst_
     ret = fut.wait()
     return ret
 
+<<<<<<< HEAD
 @torch.jit.script
 def call_rpc_torchscript_with_record_function(dst_worker_name: str, block: str) -> Tensor:
     fut = rpc.rpc_async(dst_worker_name, script_add_ones_with_record_function, (torch.tensor(1), block))
+=======
+
+@torch.jit.script
+def call_rpc_torchscript_with_record_function(
+    dst_worker_name: str, block: str
+) -> Tensor:
+    fut = rpc.rpc_async(
+        dst_worker_name, script_add_ones_with_record_function, (torch.tensor(1), block)
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return fut.wait()
 
 
@@ -311,9 +365,13 @@ class FutureTypingTest:
         def future_return_to_python(
             dst_rank: int, inputs: tuple[Tensor, Tensor]
         ) -> Future[Tensor]:
+<<<<<<< HEAD
             return rpc.rpc_async(
                 f"worker{dst_rank}", two_args_two_kwargs, inputs
             )
+=======
+            return rpc.rpc_async(f"worker{dst_rank}", two_args_two_kwargs, inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         fut_res = future_return_to_python(dst_rank, inputs)
         self.assertEqual(fut_res.wait(), expected_res)
@@ -524,6 +582,10 @@ def script_rpc_async_call(
     ret = fut.wait()
     return ret
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.jit.script
 def script_rpc_sync_call(
     dst_worker_name: str, args: tuple[Tensor, Tensor], kwargs: dict[str, Tensor]
@@ -531,6 +593,10 @@ def script_rpc_sync_call(
     res = rpc.rpc_sync(dst_worker_name, two_args_two_kwargs, args, kwargs)
     return res
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.jit.script
 def script_rpc_remote_call(
     dst_worker_name: str, args: tuple[Tensor, Tensor], kwargs: dict[str, Tensor]
@@ -538,6 +604,10 @@ def script_rpc_remote_call(
     rref_res = rpc.remote(dst_worker_name, two_args_two_kwargs, args, kwargs)
     return rref_res.to_here()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class JitRpcOpTest:
     # Call functions remotely from Script.
     @dist_init
@@ -550,10 +620,19 @@ class JitRpcOpTest:
         args = (torch.tensor([1, 1]), torch.tensor([2, 2]))
         kwargs = {}
 
+<<<<<<< HEAD
         for script_op in [script_rpc_async_call, script_rpc_sync_call, script_rpc_remote_call]:
             ret = script_op(
                 dst_worker_name, args, kwargs
             )
+=======
+        for script_op in [
+            script_rpc_async_call,
+            script_rpc_sync_call,
+            script_rpc_remote_call,
+        ]:
+            ret = script_op(dst_worker_name, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ret, torch.tensor([10, 10]))
 
     @dist_init
@@ -566,10 +645,19 @@ class JitRpcOpTest:
         args = (torch.tensor([1, 1]), torch.tensor([2, 2]))
         kwargs = {"first_kwarg": torch.tensor([2, 2])}
 
+<<<<<<< HEAD
         for script_op in [script_rpc_async_call, script_rpc_sync_call, script_rpc_remote_call]:
             ret = script_op(
                 dst_worker_name, args, kwargs
             )
+=======
+        for script_op in [
+            script_rpc_async_call,
+            script_rpc_sync_call,
+            script_rpc_remote_call,
+        ]:
+            ret = script_op(dst_worker_name, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ret, torch.tensor([9, 9]))
 
     @dist_init
@@ -584,10 +672,19 @@ class JitRpcOpTest:
             "first_kwarg": torch.tensor([2, 2]),
             "second_kwarg": torch.tensor([3, 3]),
         }
+<<<<<<< HEAD
         for script_op in [script_rpc_async_call, script_rpc_sync_call, script_rpc_remote_call]:
             ret = script_op(
                 dst_worker_name, args, kwargs
             )
+=======
+        for script_op in [
+            script_rpc_async_call,
+            script_rpc_sync_call,
+            script_rpc_remote_call,
+        ]:
+            ret = script_op(dst_worker_name, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ret, torch.tensor([8, 8]))
 
     @dist_init
@@ -618,9 +715,13 @@ class JitRpcOpTest:
             ret = fut.wait()
             return ret
 
+<<<<<<< HEAD
         ret = script_rpc_async_call_with_assorted_types(
             dst_worker_name
         )
+=======
+        ret = script_rpc_async_call_with_assorted_types(dst_worker_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ret, (torch.tensor([4, 4]), "str_arg_str_kwarg", 4))
 
     @dist_init
@@ -639,9 +740,13 @@ class JitRpcOpTest:
             ret = fut.wait()
             return ret
 
+<<<<<<< HEAD
         ret = script_rpc_async_call_without_kwargs_passed(
             dst_worker_name
         )
+=======
+        ret = script_rpc_async_call_without_kwargs_passed(dst_worker_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ret, 0)
 
     @dist_init
@@ -659,9 +764,13 @@ class JitRpcOpTest:
             ret = fut.wait()
             return ret
 
+<<<<<<< HEAD
         ret = script_rpc_async_call_without_args_kwargs_passed(
             dst_worker_name
         )
+=======
+        ret = script_rpc_async_call_without_args_kwargs_passed(dst_worker_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ret, 0)
 
     @dist_init
@@ -730,9 +839,13 @@ class JitRpcOpTest:
         with self.assertRaisesRegex(
             RuntimeError, "Unknown keyword argument 'third_kwarg'"
         ):
+<<<<<<< HEAD
             ret = script_rpc_async_call_with_unexpected_kwarg(
                 dst_worker_name
             )
+=======
+            ret = script_rpc_async_call_with_unexpected_kwarg(dst_worker_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ret, 0)
 
     @dist_init
@@ -915,9 +1028,13 @@ class JitRpcTest(
         # Python 3.5 and Python 3.6 throw different error message, the only
         # common word can be greped is "pickle".
         with self.assertRaisesRegex(TypeError, "pickle"):
+<<<<<<< HEAD
             rpc.rpc_async(
                 dst_worker_name, my_local_script_module.forward, args=()
             )
+=======
+            rpc.rpc_async(dst_worker_name, my_local_script_module.forward, args=())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @dist_init
     def test_remote_script_module(self):
@@ -1005,9 +1122,13 @@ class JitRpcTest(
         rpc._disable_jit_rref_pickle()
 
         out1 = rpc.rpc_sync(
+<<<<<<< HEAD
             dst_name,
             load_script_module_with_pickled_rref,
             args=(f.getvalue(),)
+=======
+            dst_name, load_script_module_with_pickled_rref, args=(f.getvalue(),)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         out2 = m2()
         self.assertEqual(out1, out2)
@@ -1150,7 +1271,13 @@ class JitRpcTest(
             # After that, this test should be modified to validate the function time.
             events = prof.function_events
             function_event = get_function_event(events, prof_key)
+<<<<<<< HEAD
             self.assertTrue(torch._jit_internal._qualified_name(one_arg) in function_event.name)
+=======
+            self.assertTrue(
+                torch._jit_internal._qualified_name(one_arg) in function_event.name
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @dist_init
     def test_rpc_async_jit_profiled(self):
@@ -1162,9 +1289,13 @@ class JitRpcTest(
             args = (torch.tensor([1, 1]), torch.tensor([2, 2]))
             kwargs = {}
             with _profile() as prof:
+<<<<<<< HEAD
                 script_rpc_async_call(
                     dst_worker_name, args, kwargs
                 )
+=======
+                script_rpc_async_call(dst_worker_name, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Ensure rpc_async call is profiled
             function_events = prof.function_events
@@ -1358,10 +1489,16 @@ class JitRpcTest(
         num = 20
         rrefs = [
             rpc.remote(
+<<<<<<< HEAD
                 dst1,
                 async_add,
                 args=(dst2, torch.ones(2, 2), torch.ones(2, 2) * i)
             ) for i in range(num)
+=======
+                dst1, async_add, args=(dst2, torch.ones(2, 2), torch.ones(2, 2) * i)
+            )
+            for i in range(num)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         for i in range(num):

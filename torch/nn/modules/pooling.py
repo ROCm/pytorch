@@ -108,11 +108,30 @@ class MaxPool1d(_MaxPoolNd):
 
     Shape:
         - Input: :math:`(N, C, L_{in})` or :math:`(C, L_{in})`.
+<<<<<<< HEAD
         - Output: :math:`(N, C, L_{out})` or :math:`(C, L_{out})`, where
 
           .. math::
               L_{out} = \left\lfloor \frac{L_{in} + 2 \times \text{padding} - \text{dilation}
                     \times (\text{kernel\_size} - 1) - 1}{\text{stride}} + 1\right\rfloor
+=======
+        - Output: :math:`(N, C, L_{out})` or :math:`(C, L_{out})`,
+
+          where ``ceil_mode = False``
+
+          .. math::
+              L_{out} = \left\lfloor \frac{L_{in} + 2 \times \text{padding} - \text{dilation}
+                   \times (\text{kernel\_size} - 1) - 1}{\text{stride}}\right\rfloor + 1
+
+          where ``ceil_mode = True``
+
+          .. math::
+              L_{out} = \left\lceil \frac{L_{in} + 2 \times \text{padding} - \text{dilation}
+                    \times (\text{kernel\_size} - 1) - 1 + (stride - 1)}{\text{stride}}\right\rceil + 1
+
+        - Ensure that the last pooling starts inside the image, make :math:`L_{out} = L_{out} - 1`
+          when :math:`(L_{out} - 1) * \text{stride} >= L_{in} + \text{padding}`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Examples::
 
@@ -596,6 +615,12 @@ class AvgPool1d(_AvgPoolNd):
         When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
         or the input. Sliding windows that would start in the right padded region are ignored.
 
+<<<<<<< HEAD
+=======
+    .. note::
+        pad should be at most half of effective kernel size.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding` can each be
     an ``int`` or a one-element tuple.
 
@@ -677,9 +702,18 @@ class AvgPool2d(_AvgPoolNd):
         When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
         or the input. Sliding windows that would start in the right padded region are ignored.
 
+<<<<<<< HEAD
     The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding` can either be:
 
         - a single ``int`` -- in which case the same value is used for the height and width dimension
+=======
+    .. note::
+        pad should be at most half of effective kernel size.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding` can either be:
+
+        - a single ``int`` or a single-element tuple -- in which case the same value is used for the height and width dimension
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         - a ``tuple`` of two ints -- in which case, the first `int` is used for the height dimension,
           and the second `int` for the width dimension
 
@@ -786,6 +820,12 @@ class AvgPool3d(_AvgPoolNd):
         When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
         or the input. Sliding windows that would start in the right padded region are ignored.
 
+<<<<<<< HEAD
+=======
+    .. note::
+        pad should be at most half of effective kernel size.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     The parameters :attr:`kernel_size`, :attr:`stride` can either be:
 
         - a single ``int`` -- in which case the same value is used for the depth, height and width dimension

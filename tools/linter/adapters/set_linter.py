@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
 import dataclasses as dc
 import sys
 import token
 from functools import cached_property
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -17,12 +21,20 @@ else:
     import _linter
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Iterator, Sequence
     from tokenize import TokenInfo
 
 
 ERROR = "Builtin `set` is deprecated"
 IMPORT_LINE = "from torch.utils._ordered_set import OrderedSet\n"
+=======
+    from collections.abc import Iterator
+
+
+ERROR = "Builtin `set` is deprecated"
+IMPORT_LINE = "from torch.utils._ordered_set import OrderedSet\n\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 DESCRIPTION = """`set_linter` is a lintrunner linter which finds usages of the
 Python built-in class `set` in Python code, and optionally replaces them with
@@ -80,6 +92,7 @@ class SetLinter(_linter.FileLinter):
     report_column_numbers = True
 
     def _lint(self, pf: _linter.PythonFile) -> Iterator[_linter.LintResult]:
+<<<<<<< HEAD
         pl = PythonLines(pf)
         for b in pl.braced_sets:
             yield _linter.LintResult(ERROR, *b[0].start, "OrderedSet([", 1)
@@ -188,6 +201,18 @@ class PythonLines:
             self.insert_import_line = pf.token_lines[section[-1]][-1].start[0] + 1
         else:
             self.insert_import_line = 0
+=======
+        if (pf.sets or pf.braced_sets) and (ins := pf.insert_import_line) is not None:
+            yield _linter.LintResult(
+                "Add import for OrderedSet", ins, 0, IMPORT_LINE, 0
+            )
+        for b in pf.braced_sets:
+            yield _linter.LintResult(ERROR, *b[0].start, "OrderedSet([", 1)
+            yield _linter.LintResult(ERROR, *b[-1].start, "])", 1)
+
+        for s in pf.sets:
+            yield _linter.LintResult(ERROR, *s.start, "OrderedSet", 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

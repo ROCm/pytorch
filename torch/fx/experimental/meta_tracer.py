@@ -126,7 +126,11 @@ class MetaAttribute(MetaProxy):
         self._node = None
 
     @property
+<<<<<<< HEAD
     def node(self):
+=======
+    def node(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # the node for attributes is added lazily, since most will just be method calls
         # which do not rely on the getitem call
         if self._node is None:

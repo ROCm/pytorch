@@ -341,7 +341,11 @@ inline int64_t nearest_idx(
     int64_t input_size,
     int64_t output_size,
     std::optional<double> scales) {
+<<<<<<< HEAD
   // This method specificly treats cases: output_size == input_size or
+=======
+  // This method specifically treats cases: output_size == input_size or
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // output_size == 2 * input_size, that we would like to get rid of
   // We keep this method for BC and consider as deprecated.
   // See nearest_exact_idx as replacement

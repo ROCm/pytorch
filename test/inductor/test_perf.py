@@ -31,6 +31,12 @@ from torch._inductor.utils import run_and_get_code
 from torch.testing._internal.triton_utils import HAS_CUDA, requires_cuda
 
 
+<<<<<<< HEAD
+=======
+# set so that metrics appear
+torch._logging.set_logs(inductor_metrics=True)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if HAS_CUDA:
     import triton  # @manual
     import triton.language as tl  # @manual

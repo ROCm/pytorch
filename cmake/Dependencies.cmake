@@ -92,7 +92,11 @@ endif()
 if(USE_XPU)
   include(${CMAKE_CURRENT_LIST_DIR}/public/xpu.cmake)
   if(NOT PYTORCH_FOUND_XPU)
+<<<<<<< HEAD
     message(WARNING "Not compiling with XPU. Could NOT find SYCL."
+=======
+    message(WARNING "Not compiling with XPU. Could NOT find SYCL. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "Suppress this warning with -DUSE_XPU=OFF.")
     caffe2_update_option(USE_XPU OFF)
   endif()
@@ -279,7 +283,11 @@ if(NOT AT_MKL_ENABLED)
   set(POCKETFFT_INCLUDE_DIR "${Torch_SOURCE_DIR}/third_party/pocketfft/")
   if(NOT EXISTS "${POCKETFFT_INCLUDE_DIR}")
     message(FATAL_ERROR "pocketfft directory not found, expected ${POCKETFFT_INCLUDE_DIR}")
+<<<<<<< HEAD
   elif(NOT EXISTS "${POCKETFFT_INCLUDE_DIR}/pocketfft_hdronly.h")
+=======
+  elseif(NOT EXISTS "${POCKETFFT_INCLUDE_DIR}/pocketfft_hdronly.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     message(FATAL_ERROR "pocketfft headers not found in ${POCKETFFT_INCLUDE_DIR}")
   endif()
 
@@ -620,6 +628,7 @@ if(BUILD_TEST OR BUILD_MOBILE_BENCHMARK OR BUILD_MOBILE_TEST)
   # need to install it.
   set(INSTALL_GTEST OFF CACHE BOOL "Install gtest." FORCE)
   set(BUILD_GMOCK ON CACHE BOOL "Build gmock." FORCE)
+<<<<<<< HEAD
   # For Windows, we will check the runtime used is correctly passed in.
   if(NOT CAFFE2_USE_MSVC_STATIC_RUNTIME)
       set(gtest_force_shared_crt ON CACHE BOOL "force shared crt on gtest" FORCE)
@@ -653,6 +662,10 @@ if(BUILD_TEST OR BUILD_MOBILE_BENCHMARK OR BUILD_MOBILE_TEST)
   add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest)
   set_property(DIRECTORY PROPERTY INCLUDE_DIRECTORIES ${INC_DIR_temp})
 
+=======
+
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest/googletest/include)
   include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR}/../third_party/googletest/googlemock/include)
 
@@ -671,6 +684,7 @@ if(BUILD_TEST OR BUILD_MOBILE_BENCHMARK OR BUILD_MOBILE_TEST)
     message("-- Found benchmark: ${BENCHMARK_LIBRARY}")
     set_property(TARGET benchmark PROPERTY IMPORTED_LOCATION ${BENCHMARK_LIBRARY})
   endif()
+<<<<<<< HEAD
   include_directories(${CMAKE_CURRENT_LIST_DIR}/../third_party/benchmark/include)
 
   # Recover build options.
@@ -699,6 +713,11 @@ if(BUILD_TEST OR BUILD_MOBILE_BENCHMARK OR BUILD_MOBILE_TEST)
       set(RUN_HAVE_STD_REGEX 0 CACHE INTERNAL "Cache RUN_HAVE_STD_REGEX output for cross-compile.")
     endif()
   endif()
+=======
+
+  # Recover build options.
+  set(BUILD_SHARED_LIBS ${TEMP_BUILD_SHARED_LIBS} CACHE BOOL "Build shared libs" FORCE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 # ---[ FBGEMM
@@ -737,6 +756,16 @@ if(USE_FBGEMM)
     set_property(TARGET fbgemm_avx2 PROPERTY POSITION_INDEPENDENT_CODE ON)
     set_property(TARGET fbgemm_avx512 PROPERTY POSITION_INDEPENDENT_CODE ON)
     set_property(TARGET fbgemm PROPERTY POSITION_INDEPENDENT_CODE ON)
+<<<<<<< HEAD
+=======
+
+    # Disabling autovec in fbgemm due to large library size causing symbol relocation issues, which is only allowed in static builds.
+    # Long-term solution involves modularizing fbgemm targets.
+    target_compile_definitions(fbgemm_generic PUBLIC DISABLE_FBGEMM_AUTOVEC)
+    target_compile_definitions(fbgemm_avx2 PUBLIC DISABLE_FBGEMM_AUTOVEC)
+    target_compile_definitions(fbgemm_avx512 PUBLIC DISABLE_FBGEMM_AUTOVEC)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 13.0.0)
       # See https://github.com/pytorch/pytorch/issues/74352
       target_compile_options_if_supported(asmjit -Wno-deprecated-copy)
@@ -747,8 +776,13 @@ if(USE_FBGEMM)
       target_compile_options_if_supported(fbgemm -Wno-extra-semi)
     endif()
   endif()
+<<<<<<< HEAD
 
   if(USE_FBGEMM)
+=======
+  if(USE_FBGEMM)
+    target_compile_definitions(fbgemm PUBLIC DISABLE_FBGEMM_AUTOVEC)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     list(APPEND Caffe2_DEPENDENCY_LIBS fbgemm)
   endif()
 endif()
@@ -784,6 +818,7 @@ if(USE_NUMA)
 endif()
 
 if(USE_ITT)
+<<<<<<< HEAD
     if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
       message(WARNING "ITT is only cmake-2.8 compatible")
       set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
@@ -792,6 +827,9 @@ if(USE_ITT)
     else()
       find_package(ITT)
     endif()
+=======
+  find_package(ITT)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if(ITT_FOUND)
     include_directories(SYSTEM ${ITT_INCLUDE_DIR})
     list(APPEND Caffe2_DEPENDENCY_LIBS ${ITT_LIBRARIES})
@@ -834,6 +872,7 @@ elseif(NOT TARGET fp16 AND USE_SYSTEM_FP16)
 endif()
 list(APPEND Caffe2_DEPENDENCY_LIBS fp16)
 
+<<<<<<< HEAD
 # ---[ EIGEN
 # Due to license considerations, we will only use the MPL2 parts of Eigen.
 set(EIGEN_MPL2_ONLY 1)
@@ -853,6 +892,8 @@ endif()
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # ---[ Python Interpreter
 # If not given a Python installation, then use the current active Python
 if(NOT Python_EXECUTABLE)
@@ -866,6 +907,32 @@ if(NOT Python_EXECUTABLE)
   endif()
 endif()
 
+<<<<<<< HEAD
+=======
+
+# ---[ EIGEN
+# Due to license considerations, we will only use the MPL2 parts of Eigen.
+set(EIGEN_MPL2_ONLY 1)
+if(USE_SYSTEM_EIGEN_INSTALL)
+  find_package(Eigen3)
+  if(EIGEN3_FOUND)
+    message(STATUS "Found system Eigen at " ${EIGEN3_INCLUDE_DIR})
+  else()
+    message(STATUS "Did not find system Eigen. Using third party subdirectory.")
+    execute_process(COMMAND ${Python_EXECUTABLE} ../tools/optional_modules.py checkout_eigen
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+
+    set(EIGEN3_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../third_party/eigen)
+    caffe2_update_option(USE_SYSTEM_EIGEN_INSTALL OFF)
+  endif()
+else()
+  message(STATUS "Using third party subdirectory Eigen.")
+  set(EIGEN3_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../third_party/eigen)
+endif()
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if(BUILD_PYTHON)
   set(PYTHON_COMPONENTS Development.Module)
   if(USE_NUMPY)
@@ -1017,6 +1084,26 @@ if(USE_CUDNN)
   target_include_directories(torch::cudnn INTERFACE ${CUDNN_FRONTEND_INCLUDE_DIR})
 endif()
 
+<<<<<<< HEAD
+=======
+# ---[ nvtx
+if(USE_SYSTEM_NVTX)
+  find_path(nvtx3_dir NAMES nvtx3 PATHS ${CUDA_INCLUDE_DIRS})
+  find_package_handle_standard_args(nvtx3 DEFAULT_MSG nvtx3_dir)
+  if(NOT nvtx3_FOUND)
+    message(WARNING "Cannot find system NVTX3, find shipped NVTX3 instead")
+  endif()
+endif()
+if(NOT TARGET CUDA::nvtx3)
+  add_library(CUDA::nvtx3 INTERFACE IMPORTED)
+endif()
+if(NOT nvtx3_dir)
+  find_path(nvtx3_dir NAMES nvtx3 PATHS "${PROJECT_SOURCE_DIR}/third_party/NVTX/c/include" NO_DEFAULT_PATH)
+  target_include_directories(CUDA::nvtx3 INTERFACE "${nvtx3_dir}")
+endif()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # ---[ HIP
 if(USE_ROCM)
   include(${CMAKE_CURRENT_LIST_DIR}/public/LoadHIP.cmake)
@@ -1059,6 +1146,10 @@ if(USE_ROCM)
     list(APPEND HIP_CXX_FLAGS -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_HIP)
     list(APPEND HIP_CXX_FLAGS -std=c++17)
     list(APPEND HIP_CXX_FLAGS -DHIPBLAS_V2)
+<<<<<<< HEAD
+=======
+    list(APPEND HIP_CXX_FLAGS -DHIP_ENABLE_WARP_SYNC_BUILTINS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if(HIPBLASLT_OUTER_VEC)
       list(APPEND HIP_CXX_FLAGS -DHIPBLASLT_OUTER_VEC)
     endif()
@@ -1068,9 +1159,16 @@ if(USE_ROCM)
     list(APPEND HIP_HIPCC_FLAGS --offload-compress)
     if(WIN32)
       add_definitions(-DROCM_ON_WINDOWS)
+<<<<<<< HEAD
     endif()
     list(APPEND HIP_CXX_FLAGS -D_GLIBCXX_USE_CXX11_ABI=${GLIBCXX_USE_CXX11_ABI})
     list(APPEND HIP_CXX_FLAGS -DHIP_ENABLE_WARP_SYNC_BUILTINS)
+=======
+      list(APPEND HIP_CXX_FLAGS -fms-extensions)
+      # Suppress warnings about dllexport.
+      list(APPEND HIP_CXX_FLAGS -Wno-ignored-attributes)
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add_definitions(-DROCM_VERSION=${ROCM_VERSION_DEV_INT})
     add_definitions(-DTORCH_HIP_VERSION=${TORCH_HIP_VERSION})
     message("TORCH_HIP_VERSION=${TORCH_HIP_VERSION} is added as a compiler defines")
@@ -1118,7 +1216,17 @@ if(USE_ROCM)
 
     # Math libraries
     list(APPEND Caffe2_PUBLIC_HIP_DEPENDENCY_LIBS
+<<<<<<< HEAD
       roc::hipblas roc::rocblas hip::hipfft hip::hiprand roc::hipsparse roc::hipsolver roc::hipblaslt)
+=======
+      roc::hipblas roc::rocblas hip::hipfft hip::hiprand roc::hipsparse roc::hipsolver roc::hipblaslt roc::rocsolver)
+    # hipsparselt is an optional component that will eventually be enabled by default.
+    if(hipsparselt_FOUND)
+      list(APPEND Caffe2_PUBLIC_HIP_DEPENDENCY_LIBS
+        roc::hipsparselt
+      )
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # ---[ Kernel asserts
     # Kernel asserts is disabled for ROCm by default.
@@ -1153,6 +1261,17 @@ if(USE_NCCL)
   endif()
 endif()
 
+<<<<<<< HEAD
+=======
+# ---[ XCCL
+if(USE_XCCL)
+  if(NOT USE_XPU)
+    message(WARNING "Not using XPU, so disabling USE_XCCL. Suppress this warning with -DUSE_XCCL=OFF.")
+    caffe2_update_option(USE_XCCL OFF)
+  endif()
+endif()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # ---[ UCC
 if(USE_UCC)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -1192,7 +1311,11 @@ if(USE_DISTRIBUTED AND USE_TENSORPIPE)
       set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
     endif()
     add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/tensorpipe)
+<<<<<<< HEAD
     # Suppress warning to unblock libnop comiplation by clang-17
+=======
+    # Suppress warning to unblock libnop compilation by clang-17
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # See https://github.com/pytorch/pytorch/issues/151316
     target_compile_options_if_supported(tensorpipe -Wno-missing-template-arg-list-after-template-kw)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
@@ -1201,6 +1324,10 @@ if(USE_DISTRIBUTED AND USE_TENSORPIPE)
 
     list(APPEND Caffe2_DEPENDENCY_LIBS tensorpipe)
     list(APPEND Caffe2_DEPENDENCY_LIBS nlohmann)
+<<<<<<< HEAD
+=======
+    list(APPEND Caffe2_DEPENDENCY_LIBS moodycamel)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if(USE_CUDA)
       list(APPEND Caffe2_CUDA_DEPENDENCY_LIBS tensorpipe_cuda)
     elseif(USE_ROCM)
@@ -1220,6 +1347,17 @@ if(USE_GLOO)
     set(GLOO_INSTALL OFF CACHE BOOL "" FORCE)
     set(GLOO_STATIC_OR_SHARED STATIC CACHE STRING "" FORCE)
 
+<<<<<<< HEAD
+=======
+    if(USE_GLOO_IBVERBS)
+      set(USE_IBVERBS ON)
+    endif()
+
+    # Build BFloat16 cuda kernels
+    set(GLOO_USE_TORCH_DTYPES 1)
+    set(GLOO_TORCH_DIR ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Temporarily override variables to avoid building Gloo tests/benchmarks
     set(__BUILD_TEST ${BUILD_TEST})
     set(__BUILD_BENCHMARK ${BUILD_BENCHMARK})
@@ -1233,6 +1371,7 @@ if(USE_GLOO)
         get_target_property(_include_dirs uv_a INCLUDE_DIRECTORIES)
         set_target_properties(uv_a PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${_include_dirs}")
       endif()
+<<<<<<< HEAD
       if(USE_NCCL AND NOT USE_SYSTEM_NCCL)
         # Tell Gloo build system to use bundled NCCL, see
         # https://github.com/facebookincubator/gloo/blob/950c0e23819779a9e0c70b861db4c52b31d1d1b2/cmake/Dependencies.cmake#L123
@@ -1251,6 +1390,22 @@ if(USE_GLOO)
       # Here is a little bit hacky. We have to put PROJECT_BINARY_DIR in front
       # of PROJECT_SOURCE_DIR with/without conda system. The reason is that
       # gloo generates a new config.h in the binary diretory.
+=======
+      set(GLOO_USE_CUDA_TOOLKIT ON CACHE BOOL "" FORCE)
+
+      # Disable NCCL/RCCL since we don't use Gloo+NCCL, make sure to re-enable it!
+      set(USE_NCCL_SAVED ${USE_NCCL})
+      set(USE_RCCL_SAVED ${USE_RCCL})
+      set(USE_NCCL OFF)
+      set(USE_RCCL OFF)
+      add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../third_party/gloo)
+      set(USE_NCCL ${USE_NCCL_SAVED})
+      set(USE_RCCL ${USE_RCCL_SAVED})
+
+      # Here is a little bit hacky. We have to put PROJECT_BINARY_DIR in front
+      # of PROJECT_SOURCE_DIR with/without conda system. The reason is that
+      # gloo generates a new config.h in the binary directory.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR}/../third_party/gloo)
       include_directories(BEFORE SYSTEM ${PROJECT_BINARY_DIR}/third_party/gloo)
     else()
@@ -1332,16 +1487,25 @@ if(CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO AND NOT INTERN_DISABLE_ONNX)
     add_definitions(-DONNX_ML=1)
   endif()
   add_definitions(-DONNXIFI_ENABLE_EXT=1)
+<<<<<<< HEAD
   if(NOT USE_SYSTEM_ONNX)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../third_party/onnx EXCLUDE_FROM_ALL)
     if(NOT MSVC)
       set_target_properties(onnx_proto PROPERTIES CXX_STANDARD 17)
     endif()
+=======
+  set(Python3_EXECUTABLE "${Python_EXECUTABLE}")
+  if(NOT USE_SYSTEM_ONNX)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../third_party/onnx EXCLUDE_FROM_ALL)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   endif()
 
   add_definitions(-DONNX_NAMESPACE=${ONNX_NAMESPACE})
   if(NOT USE_SYSTEM_ONNX)
+<<<<<<< HEAD
     include_directories(${ONNX_INCLUDE_DIRS})
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # In mobile build we care about code size, and so we need drop
     # everything (e.g. checker) in onnx but the pb definition.
     if(ANDROID OR IOS)
@@ -1536,18 +1700,22 @@ if(NOT INTERN_BUILD_MOBILE)
   endif()
 
   if(USE_KLEIDIAI)
+<<<<<<< HEAD
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_LESS "11" )
         message(WARNING "KleidiAI: Using non-supported Clang version. Expected 11 or newer, received ${CMAKE_C_COMPILER_VERSION}.")
     endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS "11" )
         message(WARNING "KleidiAI: Using non-supported GCC version. Expected 11 or newer, received ${CMAKE_C_COMPILER_VERSION}.")
     endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set(TEMP_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libs" FORCE)
     set(AT_KLEIDIAI_ENABLED 1)
     set(KLEIDIAI_BUILD_TESTS OFF) # Disable building KLEIDIAI tests
     set(KLEIDIAI_SRC "${PROJECT_SOURCE_DIR}/third_party/kleidiai")
     add_subdirectory(${KLEIDIAI_SRC})
+<<<<<<< HEAD
     set(KLEIDIAI_INCLUDE_DIRS
     ${KLEIDIAI_SRC}/
     ${KLEIDIAI_SRC}/kai/
@@ -1559,6 +1727,8 @@ if(NOT INTERN_BUILD_MOBILE)
     ${KLEIDIAI_SRC}/kai/ukernels/matmul/pack/
     )
     include_directories(SYSTEM INTERFACE ${KLEIDIAI_INCLUDE_DIRS})
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     list(APPEND Caffe2_DEPENDENCY_LIBS kleidiai)
     # Recover build options.
     set(BUILD_SHARED_LIBS ${TEMP_BUILD_SHARED_LIBS} CACHE BOOL "Build shared libs" FORCE)
@@ -1726,7 +1896,14 @@ if(USE_KINETO)
   }" EXCEPTIONS_WORK)
         set(CMAKE_REQUIRED_LINK_OPTIONS "")
         if(NOT EXCEPTIONS_WORK)
+<<<<<<< HEAD
           message(FATAL_ERROR "Detected that statically linking against CUPTI causes exceptions to stop working.  See https://github.com/pytorch/pytorch/issues/57744 for more details.  Perhaps try: USE_CUPTI_SO=1 python setup.py develop --cmake")
+=======
+          message(FATAL_ERROR
+            "Detected that statically linking against CUPTI causes exceptions to stop working. "
+            "See https://github.com/pytorch/pytorch/issues/57744 for more details. "
+            "Perhaps try: USE_CUPTI_SO=1 CMAKE_FRESH=1 python setup.py develop")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         endif()
       endif()
 
@@ -1776,3 +1953,10 @@ target_include_directories(httplib SYSTEM INTERFACE ${PROJECT_SOURCE_DIR}/third_
 # Include nlohmann-json
 add_library(nlohmann INTERFACE IMPORTED)
 include_directories(nlohmann SYSTEM INTERFACE ${PROJECT_SOURCE_DIR}/third_party/nlohmann/include)
+<<<<<<< HEAD
+=======
+
+# Include moodycamel
+add_library(moodycamel INTERFACE IMPORTED)
+include_directories(moodycamel SYSTEM INTERFACE ${PROJECT_SOURCE_DIR}/third_party/concurrentqueue)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

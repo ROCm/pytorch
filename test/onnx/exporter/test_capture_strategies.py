@@ -13,9 +13,15 @@ class ExportStrategiesTest(common_utils.TestCase):
     @common_utils.parametrize(
         "strategy_cls",
         [
+<<<<<<< HEAD
             _capture_strategies.TorchExportStrategy,
             _capture_strategies.TorchExportNonStrictStrategy,
             _capture_strategies.JitTraceConvertStrategy,
+=======
+            _capture_strategies.TorchExportStrictStrategy,
+            _capture_strategies.TorchExportNonStrictStrategy,
+            _capture_strategies.TorchExportDraftExportStrategy,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
         name_fn=lambda strategy_cls: strategy_cls.__name__,
     )
@@ -35,6 +41,7 @@ class ExportStrategiesTest(common_utils.TestCase):
         assert ep is not None
         torch.testing.assert_close(ep.module()(a, b), model(a, b))
 
+<<<<<<< HEAD
     def test_jit_trace_supports_dynamic_shapes_as_tuple(self):
         class Model(torch.nn.Module):
             def forward(self, a, b):
@@ -80,6 +87,28 @@ class ExportStrategiesTest(common_utils.TestCase):
         a_size = next(iter(ep.graph.nodes)).meta["val"].size()
         batch_dim_val = a_size[0]
         self.assertIsInstance(batch_dim_val, torch.SymInt)
+=======
+    def test_draft_export_on_data_dependent_model(self):
+        class Model(torch.nn.Module):
+            def forward(self, a, b):
+                if a.sum() > 0:
+                    return a.cos()
+                # The branch is expected to be specialized and a warning is logged
+                return b.sin()
+
+        model = Model()
+        a = torch.tensor(0.0)
+        b = torch.tensor(1.0)
+
+        strategy = _capture_strategies.TorchExportDraftExportStrategy()
+        with self.assertLogs("torch.export", level="WARNING") as cm:
+            result = strategy(model, (a, b), kwargs=None, dynamic_shapes=None)
+            expected_warning = "1 issue(s) found during export, and it was not able to soundly produce a graph."
+            self.assertIn(expected_warning, str(cm.output))
+        ep = result.exported_program
+        assert ep is not None
+        torch.testing.assert_close(ep.module()(a, b), model(a, b))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

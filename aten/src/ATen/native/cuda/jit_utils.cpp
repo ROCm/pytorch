@@ -912,10 +912,13 @@ void codegenOutputQuery(
     compile_to_sass = true;
   }
 
+<<<<<<< HEAD
   #if defined(CUDA_VERSION) && CUDA_VERSION < 11010
     // compile to sass is not allowed prior to CUDA 11.1
     compile_to_sass = false;
   #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 }
 
@@ -1624,7 +1627,11 @@ NvrtcFunction jit_pwise_function(
 
   size_t ptx_size = 0;
   std::vector<char> ptx;
+<<<<<<< HEAD
   #if defined(CUDA_VERSION) && CUDA_VERSION >= 11010
+=======
+  #if !defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // compile_to_sass determines whether we are generating SASS or PTX, hence
     // the different API.
     const auto getSize = compile_to_sass

@@ -90,12 +90,19 @@ def _get_supported_activation_modules():
     return SUPPORTED_ACTIVATION_MODULES
 
 
+<<<<<<< HEAD
 def _get_default_structured_pruning_patterns() -> (
     dict[
         tuple[Union[type[nn.Module], Callable, MatchAllNode, str], ...],
         Callable[..., None],
     ]
 ):
+=======
+def _get_default_structured_pruning_patterns() -> dict[
+    tuple[Union[type[nn.Module], Callable, MatchAllNode, str], ...],
+    Callable[..., None],
+]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Returns the patterns for conv2d / linear conversion for each element in the activation functions/modules defined above.
     """

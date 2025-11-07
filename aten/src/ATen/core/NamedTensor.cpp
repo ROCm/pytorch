@@ -5,7 +5,11 @@
 
 namespace at {
 
+<<<<<<< HEAD
 thread_local bool NamesMode_enabled = true;
+=======
+thread_local static bool NamesMode_enabled = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool NamesMode::is_enabled() {
   return NamesMode_enabled;

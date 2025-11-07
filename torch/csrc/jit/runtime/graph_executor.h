@@ -43,7 +43,10 @@ struct ExecutionPlan {
 // They are only valid only right after you call getDebugState() and should
 // never be used again once another GraphExecutor function is called.
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct GraphExecutorState {
   const Graph* graph = nullptr;
   ExecutionPlan fallback; // XXX: members of this field are optional

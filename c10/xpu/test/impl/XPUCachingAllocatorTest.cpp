@@ -4,10 +4,13 @@
 #include <c10/xpu/XPUCachingAllocator.h>
 #include <c10/xpu/XPUException.h>
 
+<<<<<<< HEAD
 bool has_xpu() {
   return c10::xpu::device_count() > 0;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(XPUCachingAllocatorTest, GetXPUAllocator) {
   auto* allocator = c10::xpu::XPUCachingAllocator::get();
 
@@ -102,7 +105,11 @@ TEST(XPUCachingAllocatorTest, DeviceCachingAllocateByExternalStream) {
   void* tmp = sycl::aligned_alloc_device(
       512, _10mb, c10::xpu::get_raw_device(0), c10::xpu::get_device_context());
   void* ptr1 = c10::xpu::XPUCachingAllocator::raw_alloc(_10mb);
+<<<<<<< HEAD
   // We have reserved 500M of memory for resue. When allocating `ptr0` and
+=======
+  // We have reserved 500M of memory for reuse. When allocating `ptr0` and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // `ptr1` through the device caching allocator, they should be allocated from
   // the same block. Specifically, `ptr1` should follow immediately after `ptr0`
   // in the block, forming a sequence like [ptr0, ptr1]. This behavior occurs

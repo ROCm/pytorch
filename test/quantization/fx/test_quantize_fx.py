@@ -6666,6 +6666,10 @@ class TestQuantizeFx(QuantizationTestCase):
                 setattr(self, 'submodule|2', SubModule(hidden_dim, hidden_dim))
                 setattr(self, 'submodule/3', SubModule(hidden_dim, hidden_dim))
                 setattr(self, 'submodule:4', SubModule(hidden_dim, hidden_dim))
+<<<<<<< HEAD
+=======
+                setattr(self, 'submodule: 5', SubModule(hidden_dim, hidden_dim))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._w = nn.Parameter(torch.randn(output_dim, hidden_dim))
 
             def forward(self, x):
@@ -6673,8 +6677,14 @@ class TestQuantizeFx(QuantizationTestCase):
                 x2 = getattr(self, 'submodule|2')(x1)
                 x3 = getattr(self, 'submodule/3')(x2)
                 x4 = getattr(self, 'submodule:4')(x3)
+<<<<<<< HEAD
                 x5 = F.linear(x4, self._w)
                 return x5
+=======
+                x5 = getattr(self, 'submodule: 5')(x4)
+                x6 = F.linear(x5, self._w)
+                return x6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         input_dim = 10
         hidden_dim = 20
@@ -6688,7 +6698,11 @@ class TestQuantizeFx(QuantizationTestCase):
         prepared_model(example_inputs)
         quantized_model = convert_fx(prepared_model, keep_original_weights=True)
 
+<<<<<<< HEAD
         self.assertTrue(len(quantized_model.original_weights_lookup) == 5)
+=======
+        self.assertTrue(len(quantized_model.original_weights_lookup) == 6)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue("submodule_1_packed_weight_0" in quantized_model.original_weights_lookup)
         torch.testing.assert_close(
             quantized_model.original_weights_lookup["submodule_1_packed_weight_0"][0],
@@ -6725,6 +6739,18 @@ class TestQuantizeFx(QuantizationTestCase):
             quantized_model.original_weights_lookup["submodule_4_packed_weight_0"][1],
             getattr(model, "submodule:4").b
         )
+<<<<<<< HEAD
+=======
+        self.assertTrue("submodule_5_packed_weight_0" in quantized_model.original_weights_lookup)
+        torch.testing.assert_close(
+            quantized_model.original_weights_lookup["submodule_5_packed_weight_0"][0],
+            getattr(model, "submodule: 5").w
+        )
+        torch.testing.assert_close(
+            quantized_model.original_weights_lookup["submodule_5_packed_weight_0"][1],
+            getattr(model, "submodule: 5").b
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue("_packed_weight_0" in quantized_model.original_weights_lookup)
         torch.testing.assert_close(
             quantized_model.original_weights_lookup["_packed_weight_0"][0],

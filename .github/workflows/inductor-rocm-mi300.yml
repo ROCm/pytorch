@@ -28,22 +28,38 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
+<<<<<<< HEAD
 
   linux-focal-rocm6_3-py3_10-inductor-build:
     name: rocm6.3-py3.10-inductor
+=======
+      opt_out_experiments: lf
+
+  linux-jammy-rocm-py3_10-inductor-build:
+    name: rocm-py3.10-inductor-mi300
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-focal-rocm6.3-py3.10
       docker-image-name: pytorch-linux-focal-rocm-n-py3
+=======
+      build-environment: linux-jammy-rocm-py3.10-mi300
+      docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "inductor", shard: 1, num_shards: 2, runner: "linux.rocm.gpu.mi300.2" },
@@ -51,6 +67,7 @@ jobs:
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-focal-rocm6_3-py3_10-inductor-test:
     permissions:
       id-token: write
@@ -62,4 +79,17 @@ jobs:
       build-environment: linux-focal-rocm6.3-py3.10
       docker-image: ${{ needs.linux-focal-rocm6_3-py3_10-inductor-build.outputs.docker-image }}
       test-matrix:  ${{ needs.linux-focal-rocm6_3-py3_10-inductor-build.outputs.test-matrix }}
+=======
+  linux-jammy-rocm-py3_10-inductor-test:
+    permissions:
+      id-token: write
+      contents: read
+    name: rocm-py3.10-inductor-mi300
+    uses: ./.github/workflows/_rocm-test.yml
+    needs: linux-jammy-rocm-py3_10-inductor-build
+    with:
+      build-environment: linux-jammy-rocm-py3.10-mi300
+      docker-image: ${{ needs.linux-jammy-rocm-py3_10-inductor-build.outputs.docker-image }}
+      test-matrix:  ${{ needs.linux-jammy-rocm-py3_10-inductor-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit

@@ -17,6 +17,10 @@
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/autograd/python_cpp_function.h>
 #include <torch/csrc/autograd/python_hook.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/autograd/python_torch_functions.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/python_variable_indexing.h>
 #include <torch/csrc/autograd/utils/error_messages.h>
 #include <torch/csrc/autograd/utils/wrap_outputs.h>
@@ -237,7 +241,11 @@ void registerPythonTensorClass(
   c10::Device dev(device);
 
   TORCH_CHECK(
+<<<<<<< HEAD
       dev.type() == kXLA, "Only the python class for XLA can be overriden");
+=======
+      dev.type() == kXLA, "Only the python class for XLA can be overridden");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (device_to_py_class_[static_cast<size_t>(dev.type())] != nullptr) {
     TORCH_WARN(
         "Overriding a previously registered python class for ", dev.str());
@@ -317,7 +325,11 @@ PyObject* THPVariable_Wrap(const at::TensorBase& var) {
   return THPVariable_NewWithVar((PyTypeObject*)THPVariableClass, var, status);
 }
 
+<<<<<<< HEAD
 bool isResurrectable(THPVariable* self) {
+=======
+static bool isResurrectable(THPVariable* self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We want to divide this check into 2 cases.
 
   // 1. C++ owns PyObject (in this case, self->cdata.unsafeIsBorrowed() is
@@ -406,6 +418,7 @@ static bool THPVariable_tryResurrect(THPVariable* self) {
   return true;
 }
 
+<<<<<<< HEAD
 int THPFake_traverse(THPVariable* self, visitproc visit, void* arg) {
   TORCH_INTERNAL_ASSERT(
       false, "TensorBase tp_traverse function was not overriden properly");
@@ -419,6 +432,21 @@ int THPFake_clear(THPVariable* self) {
 }
 
 PyObject* THPVariable_pynew(
+=======
+static int THPFake_traverse(THPVariable* self, visitproc visit, void* arg) {
+  TORCH_INTERNAL_ASSERT(
+      false, "TensorBase tp_traverse function was not overridden properly");
+  return 0;
+}
+
+static int THPFake_clear(THPVariable* self) {
+  TORCH_INTERNAL_ASSERT(
+      false, "TensorBase tp_clear function was not overridden properly");
+  return 0;
+}
+
+static PyObject* THPVariable_pynew(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyTypeObject* type,
     PyObject* args,
     PyObject* kwargs);
@@ -799,7 +827,13 @@ static PyObject* THPVariable_make_wrapper_subclass(
 using getter = PyObject* (*)(PyObject*, void*);
 using setter = int (*)(PyObject*, PyObject*, void*);
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_python_dispatch(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_python_dispatch(
+    THPVariable* self,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   const auto& var = THPVariable_Unpack(self);
   return torch::autograd::utils::wrap(
@@ -814,6 +848,10 @@ PyObject* THPVariable_get_python_dispatch(THPVariable* self, void* unused) {
 // - static Tensor fn(const Tensor&);
 //   - This function calls the relevant ATen on the tensor
 template <typename T>
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(bugprone-crtp-constructor-accessibility)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct GetterBase {
   static PyObject* getter(THPVariable* self, void* /*unused*/) {
     HANDLE_TH_ERRORS
@@ -881,7 +919,11 @@ struct PropertyImag : GetterBase<PropertyImag> {
   }
 };
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_cdata(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_cdata(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "_cdata");
@@ -891,7 +933,11 @@ PyObject* THPVariable_get_cdata(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_version(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_version(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "_version");
@@ -901,7 +947,11 @@ PyObject* THPVariable_get_version(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_grad_fn(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_grad_fn(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "grad_fn");
@@ -938,7 +988,14 @@ static PyObject* THPVariable_is_leaf(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 int THPVariable_set_data(THPVariable* self, PyObject* data, void* unused) {
+=======
+static int THPVariable_set_data(
+    THPVariable* self,
+    PyObject* data,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_setter(self, "data", data);
@@ -955,7 +1012,14 @@ int THPVariable_set_data(THPVariable* self, PyObject* data, void* unused) {
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 int THPVariable_set_grad(THPVariable* self, PyObject* py_grad, void* unused) {
+=======
+static int THPVariable_set_grad(
+    THPVariable* self,
+    PyObject* py_grad,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_setter(self, "grad", py_grad);
@@ -1013,7 +1077,11 @@ int THPVariable_set_grad(THPVariable* self, PyObject* py_grad, void* unused) {
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_volatile(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_volatile(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "volatile");
@@ -1026,7 +1094,14 @@ PyObject* THPVariable_get_volatile(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 int THPVariable_set_volatile(THPVariable* self, PyObject* obj, void* unused) {
+=======
+static int THPVariable_set_volatile(
+    THPVariable* self,
+    PyObject* obj,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_setter(self, "volatile", obj);
@@ -1038,7 +1113,11 @@ int THPVariable_set_volatile(THPVariable* self, PyObject* obj, void* unused) {
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_output_nr(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_output_nr(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "output_nr");
@@ -1049,7 +1128,13 @@ PyObject* THPVariable_get_output_nr(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_requires_grad(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_requires_grad(
+    THPVariable* self,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "requires_grad");
@@ -1062,7 +1147,11 @@ PyObject* THPVariable_get_requires_grad(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_retains_grad(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_retains_grad(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "retains_grad");
@@ -1075,7 +1164,11 @@ PyObject* THPVariable_retains_grad(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_ndim(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_ndim(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "ndim");
@@ -1084,7 +1177,11 @@ PyObject* THPVariable_get_ndim(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_names(PyObject* self, void* unused) {
+=======
+static PyObject* THPVariable_get_names(PyObject* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function(self)) {
     return handle_torch_function_getter((THPVariable*)self, "names");
@@ -1122,7 +1219,14 @@ PyObject* THPVariable_get_names(PyObject* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 int THPVariable_set_names(PyObject* self, PyObject* names, void* unused) {
+=======
+static int THPVariable_set_names(
+    PyObject* self,
+    PyObject* names,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function(self)) {
     return handle_torch_function_setter((THPVariable*)self, "names", names);
@@ -1140,7 +1244,11 @@ int THPVariable_set_names(PyObject* self, PyObject* names, void* unused) {
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 int THPVariable_set_requires_grad(
+=======
+static int THPVariable_set_requires_grad(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     THPVariable* self,
     PyObject* obj,
     void* unused) {
@@ -1167,7 +1275,11 @@ int THPVariable_set_requires_grad(
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_name(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_name(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (check_has_torch_function((PyObject*)self)) {
     HANDLE_TH_ERRORS
     return handle_torch_function_getter(self, "name");
@@ -1179,7 +1291,13 @@ PyObject* THPVariable_get_name(THPVariable* self, void* unused) {
   return THPUtils_packString(tensor.name().c_str());
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_backwards_hooks(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_backwards_hooks(
+    THPVariable* self,
+    void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "_backward_hooks");
@@ -1192,7 +1310,11 @@ PyObject* THPVariable_get_backwards_hooks(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 int THPVariable_set_backwards_hooks(
+=======
+static int THPVariable_set_backwards_hooks(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     THPVariable* self,
     PyObject* obj,
     void* unused) {
@@ -1217,7 +1339,11 @@ int THPVariable_set_backwards_hooks(
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_post_accumulate_grad_hooks(
+=======
+static PyObject* THPVariable_get_post_accumulate_grad_hooks(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     THPVariable* self,
     void* unused) {
   HANDLE_TH_ERRORS
@@ -1232,7 +1358,11 @@ PyObject* THPVariable_get_post_accumulate_grad_hooks(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 int THPVariable_set_post_accumulate_grad_hooks(
+=======
+static int THPVariable_set_post_accumulate_grad_hooks(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     THPVariable* self,
     PyObject* obj,
     void* unused) {
@@ -1257,7 +1387,11 @@ int THPVariable_set_post_accumulate_grad_hooks(
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_base(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_base(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "_base");
@@ -1270,7 +1404,11 @@ PyObject* THPVariable_get_base(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_get_shape(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_get_shape(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "shape");
@@ -1279,7 +1417,11 @@ PyObject* THPVariable_get_shape(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_cpu(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_cpu(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_cpu");
@@ -1289,7 +1431,11 @@ PyObject* THPVariable_is_cpu(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_cuda(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_cuda(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_cuda");
@@ -1299,7 +1445,11 @@ PyObject* THPVariable_is_cuda(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_mtia(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_mtia(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_mtia");
@@ -1309,7 +1459,11 @@ PyObject* THPVariable_is_mtia(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_xla(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_xla(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_xla");
@@ -1319,7 +1473,11 @@ PyObject* THPVariable_is_xla(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_ipu(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_ipu(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_ipu");
@@ -1329,7 +1487,11 @@ PyObject* THPVariable_is_ipu(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_xpu(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_xpu(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_xpu");
@@ -1339,7 +1501,11 @@ PyObject* THPVariable_is_xpu(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_sparse(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_sparse(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_sparse");
@@ -1349,7 +1515,11 @@ PyObject* THPVariable_is_sparse(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_sparse_csr(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_sparse_csr(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_sparse_csr");
@@ -1359,7 +1529,11 @@ PyObject* THPVariable_is_sparse_csr(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_mkldnn(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_mkldnn(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_mkldnn");
@@ -1369,7 +1543,11 @@ PyObject* THPVariable_is_mkldnn(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_mps(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_mps(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_mps");
@@ -1379,7 +1557,11 @@ PyObject* THPVariable_is_mps(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_maia(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_maia(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_maia");
@@ -1389,7 +1571,11 @@ PyObject* THPVariable_is_maia(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_vulkan(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_vulkan(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_vulkan");
@@ -1399,7 +1585,11 @@ PyObject* THPVariable_is_vulkan(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_quantized(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_quantized(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_quantized");
@@ -1409,7 +1599,11 @@ PyObject* THPVariable_is_quantized(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_meta(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_meta(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_meta");
@@ -1419,7 +1613,11 @@ PyObject* THPVariable_is_meta(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_complex(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_complex(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_complex");
@@ -1429,7 +1627,11 @@ PyObject* THPVariable_is_complex(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_is_nested(THPVariable* self, void* unused) {
+=======
+static PyObject* THPVariable_is_nested(THPVariable* self, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (check_has_torch_function((PyObject*)self)) {
     return handle_torch_function_getter(self, "is_nested");
@@ -1439,7 +1641,11 @@ PyObject* THPVariable_is_nested(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable_has_symbolic_sizes_strides(
+=======
+static PyObject* THPVariable_has_symbolic_sizes_strides(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     THPVariable* self,
     void* unused) {
   HANDLE_TH_ERRORS
@@ -1496,7 +1702,11 @@ static PyObject* THPVariable_get_itemsize(THPVariable* self, void* unused) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 int THPVariable_set_real(PyObject* self, PyObject* real, void* unused) {
+=======
+static int THPVariable_set_real(PyObject* self, PyObject* real, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   auto& self_ = THPVariable_Unpack(self);
   auto self_real = at::real(self_);
@@ -1509,7 +1719,11 @@ int THPVariable_set_real(PyObject* self, PyObject* real, void* unused) {
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 int THPVariable_set_imag(PyObject* self, PyObject* imag, void* unused) {
+=======
+static int THPVariable_set_imag(PyObject* self, PyObject* imag, void* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   auto& self_ = THPVariable_Unpack(self);
   auto self_imag = at::imag(self_);
@@ -1522,7 +1736,11 @@ int THPVariable_set_imag(PyObject* self, PyObject* imag, void* unused) {
   END_HANDLE_TH_ERRORS_RET(-1)
 }
 
+<<<<<<< HEAD
 PyObject* THPVariable__use_count(PyObject* self, PyObject* noargs) {
+=======
+static PyObject* THPVariable__use_count(PyObject* self, PyObject* noargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   const auto& t = THPVariable_Unpack(self);
   return THPUtils_packUInt64(t.use_count());
@@ -1687,9 +1905,18 @@ struct THPVariableMeta {
   PyHeapTypeObject base;
 };
 
+<<<<<<< HEAD
 int THPVariableMetaType_init(PyObject* cls, PyObject* args, PyObject* kwargs);
 
 PyTypeObject THPVariableMetaType = {
+=======
+static int THPVariableMetaType_init(
+    PyObject* cls,
+    PyObject* args,
+    PyObject* kwargs);
+
+static PyTypeObject THPVariableMetaType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0)
     "torch._C._TensorMeta", /* tp_name */
     sizeof(THPVariableMeta), /* tp_basicsize */
@@ -1731,7 +1958,11 @@ PyTypeObject THPVariableMetaType = {
     nullptr, /* tp_new */
 };
 
+<<<<<<< HEAD
 PyTypeObject THPVariableType = {
+=======
+static PyTypeObject THPVariableType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(&THPVariableMetaType, 0)
     "torch._C.TensorBase", /* tp_name */
     sizeof(THPVariable), /* tp_basicsize */
@@ -1928,7 +2159,11 @@ static int THPVariable_subclass_clear(THPVariable* self) {
 // NB: this is not the tp_dealloc on THPVariable; instead, its the dealloc
 // on subclasses.  It's never valid to construct a THPVariable so it's not
 // necessary to implement the dealloc for that case
+<<<<<<< HEAD
 void THPVariable_subclass_dealloc(PyObject* self) {
+=======
+static void THPVariable_subclass_dealloc(PyObject* self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (THPVariable_tryResurrect((THPVariable*)self))
     return;
 
@@ -2308,7 +2543,11 @@ int THPVariableMetaType_init(PyObject* cls, PyObject* args, PyObject* kwargs) {
   if (PyType_Type.tp_init(cls, args, kwargs) < 0) {
     return -1;
   }
+<<<<<<< HEAD
   // It is important for all three of these to be overriden correctly for the
+=======
+  // It is important for all three of these to be overridden correctly for the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // resurrection checks to properly happen. In particular, an older version
   // was not overriding tp_clear here. This lead to the default subtype_clear
   // running on the Tensor object (as only TensorBase tp_clear was custom),
@@ -2375,9 +2614,14 @@ namespace torch::autograd {
 
 // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
 extern PyMethodDef variable_methods[];
+<<<<<<< HEAD
 extern void initTorchFunctions(PyObject* module);
 
 void initTensorImplConversion(PyObject* module) {
+=======
+
+static void initTensorImplConversion(PyObject* module) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto m = py::handle(module).cast<py::module>();
   m.def("_wrap_tensor_impl", [](void* ptr) {
     auto p = c10::intrusive_ptr<c10::TensorImpl, at::UndefinedTensorImpl>::

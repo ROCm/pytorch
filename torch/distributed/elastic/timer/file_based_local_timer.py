@@ -13,7 +13,12 @@ import signal
 import sys
 import threading
 import time
+<<<<<<< HEAD
 from typing import Callable, Optional
+=======
+from typing import Callable, Optional, TypeVar
+from typing_extensions import ParamSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed.elastic.timer.api import TimerClient, TimerRequest
 from torch.distributed.elastic.timer.debug_info_logging import (
@@ -22,6 +27,12 @@ from torch.distributed.elastic.timer.debug_info_logging import (
 from torch.distributed.elastic.utils.logging import get_logger
 
 
+<<<<<<< HEAD
+=======
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = ["FileTimerClient", "FileTimerRequest", "FileTimerServer"]
 
 logger = get_logger(__name__)
@@ -36,8 +47,13 @@ def _retry(max_retries: int, sleep_time: float) -> Callable:
         sleep_time: float, the time to sleep between retries.
     """
 
+<<<<<<< HEAD
     def wrapper(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
+=======
+    def wrapper(func: Callable[_P, _R]) -> Callable[_P, _R]:
+        def wrapper(*args: _P.args, **kwargs: _P.kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(max_retries):
                 try:
                     return func(*args, **kwargs)

@@ -1125,6 +1125,7 @@ NodeAttrNameMap ONNXFunctionExtraction(
   return fe.run();
 }
 
+<<<<<<< HEAD
 Node* ONNXGetPreviousScope(std::shared_ptr<Graph>& graph) {
   auto* last_node = graph->nodes().back()->prev();
   auto* scope_node = NodeOfMostRecentScope(last_node);
@@ -1139,6 +1140,8 @@ Node* ONNXGetPreviousScope(std::shared_ptr<Graph>& graph) {
   return attr_node;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void ONNXClearScopeRecords() {
   scope_attr_map_.clear();
   scope_attr_graph_ = std::make_shared<Graph>();

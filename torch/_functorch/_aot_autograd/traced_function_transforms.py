@@ -29,7 +29,11 @@ from torch.fx.experimental.proxy_tensor import (
     maybe_enable_thunkify,
 )
 from torch.fx.experimental.symbolic_shapes import (
+<<<<<<< HEAD
     definitely_false,
+=======
+    guard_or_true,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PropagateUnbackedSymInts,
     sym_eq,
 )
@@ -221,12 +225,24 @@ def create_joint(fn: Callable, *, aot_config: AOTConfig) -> Any:
                 # A bit sketchy, but fixes e.g. test_aot_autograd_exhaustive_matmul_cpu_float32
                 # The issue is that we are sensitive to decomps that don't accurately maintain
                 # their output's _base.shape compared to eager mode, and this helps mitigate a bit.
+<<<<<<< HEAD
                 # The not definitely_false is also sketchy; if unbacked
                 # symints are involved, we're just going to assume that the
                 # decomps setup the base shape correctly
                 needed_outs.append(
                     out
                     if not definitely_false(sym_eq(out.shape, tangent.shape))
+=======
+                # The guard_or_true also sketchy; if unbacked
+                # symints are involved, we're just going to assume that the
+                # decomps setup the base shape correctly
+
+                # Return out if the result of out.shape==tangent.shape is unknown or known to be true.
+                # otherwise if its a known false return out.view(tangent.shape).
+                needed_outs.append(
+                    out
+                    if guard_or_true(sym_eq(out.shape, tangent.shape))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     else out.view(tangent.shape)
                 )
                 needed_tangents.append(tangent)

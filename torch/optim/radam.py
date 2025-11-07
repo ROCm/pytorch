@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 r"""Implementation for the RAdam algorithm."""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import cast, Optional, Union
 
 import torch
@@ -16,6 +20,10 @@ from .optimizer import (
     _get_value,
     _maximize_doc,
     _params_doc,
+<<<<<<< HEAD
+=======
+    _to_scalar,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _use_grad_for_differentiable,
     _view_as_real,
     Optimizer,
@@ -269,6 +277,12 @@ def _single_tensor_radam(
     capturable: bool,
     has_complex: bool,
 ):
+<<<<<<< HEAD
+=======
+    if not torch.jit.is_scripting():
+        lr = _to_scalar(lr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for i, param in enumerate(params):
         grad = grads[i] if not maximize else -grads[i]
         exp_avg = exp_avgs[i]
@@ -281,7 +295,13 @@ def _single_tensor_radam(
             assert (
                 param.device.type == step_t.device.type
                 and param.device.type in capturable_supported_devices
+<<<<<<< HEAD
             ), f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+            ), (
+                f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if torch.is_complex(param):
             param = torch.view_as_real(param)
@@ -382,7 +402,15 @@ def _multi_tensor_radam(
             p.device.type == step.device.type
             and p.device.type in capturable_supported_devices
             for p, step in zip(params, state_steps)
+<<<<<<< HEAD
         ), f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+        ), (
+            f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+
+    lr = _to_scalar(lr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     grouped_tensors = Optimizer._group_tensors_by_device_and_dtype(
         [params, grads, exp_avgs, exp_avg_sqs, state_steps]  # type: ignore[list-item]

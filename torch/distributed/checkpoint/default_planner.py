@@ -1,7 +1,10 @@
 # mypy: allow-untyped-defs
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import dataclasses
 import io
 import logging
@@ -40,6 +43,10 @@ from torch.distributed.checkpoint.planner import (
 )
 from torch.distributed.checkpoint.planner_helpers import (
     _compare_save_plans,
+<<<<<<< HEAD
+=======
+    _contains_usable_plan,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _create_default_metadata_only_plan,
     _create_read_items,
     _create_write_items,
@@ -126,12 +133,24 @@ class DefaultSavePlanner(SavePlanner):
 
         return self.plan
 
+<<<<<<< HEAD
     def _create_global_plan(
         self, all_plans: list[SavePlan]
     ) -> tuple[list[SavePlan], Metadata]:
         all_plans = dedup_save_plans(all_plans, self.dedup_save_to_lowest_rank)
 
         global_plan, metadata = create_default_global_save_plan(all_plans)
+=======
+    def _dedup_save_plans(self, all_plans: list[SavePlan]) -> list[SavePlan]:
+        return dedup_save_plans(all_plans, self.dedup_save_to_lowest_rank)
+
+    def _create_global_plan(
+        self, all_plans: list[SavePlan]
+    ) -> tuple[list[SavePlan], Metadata]:
+        deduped_plans = self._dedup_save_plans(all_plans)
+
+        global_plan, metadata = create_default_global_save_plan(deduped_plans)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.flatten_state_dict:
             # | does not work for Python 3.8 or older version.
@@ -157,6 +176,7 @@ class DefaultSavePlanner(SavePlanner):
         global_plan_delta: list[SavePlan] = []
 
         if self._cached_plans_key not in SavePlanner._cached_all_plans:
+<<<<<<< HEAD
             # Make a deepcopy of all_plans to avoid caching the modified plans post de-dupe
             SavePlanner._cached_all_plans[self._cached_plans_key] = copy.deepcopy(
                 all_plans
@@ -191,6 +211,55 @@ class DefaultSavePlanner(SavePlanner):
 
         # If the plans are cached, global_plan delta will be the delta
         # of new global plan and cached global plan.
+=======
+            # Case 1: If the plans are not cached, the cache will be hydrated with the
+            # all_plans, global_plans (Deduped), and metadata.
+
+            # Cache the original all_plans
+            SavePlanner._cached_all_plans[self._cached_plans_key] = all_plans
+            global_plan, metadata = self._create_global_plan(all_plans)
+            # Cache the deduped and validated global_plan
+            SavePlanner._cached_global_plan[self._cached_plans_key] = global_plan
+            # Cache the metadata
+            SavePlanner._cached_metadata[self._cached_plans_key] = metadata
+            # If plans are not cached, global_plan delta will be the same as global plan.
+            return global_plan, global_plan, metadata
+
+        # Case 2: Plans are cached
+        if not _contains_usable_plan(all_plans):
+            # Case 2.1: Plans are cached and the local plans have NOT changed (No usable plans).
+            # Global plan delta will be empty plans to avoid the collective overhead.
+            # We can reuse the deduped global plan and metadata from the cache directly.
+            global_plan_delta = [SavePlan([], usable=False)] * len(all_plans)
+            global_plan = SavePlanner._cached_global_plan[self._cached_plans_key]
+            metadata = SavePlanner._cached_metadata[self._cached_plans_key]
+        else:
+            # Case 2.2: Plans are cached but the local plans have changed.
+            # We will merge the changed local plans with the cached local plans.
+            # Updated plans will overwrite the cached plans. New global plan and metadata will be created and cached.
+            # Global plan delta will be created by comparing the new global plan with the cached global plan.
+            # Only the global plan delta (updated ones) will be sent to the coordinator to avoid the collective overhead.
+            merged_plans = _merge_delta_local_plans(
+                SavePlanner._cached_all_plans[self._cached_plans_key], all_plans
+            )
+            # Cache the updated local plans
+            SavePlanner._cached_all_plans[self._cached_plans_key] = merged_plans
+            global_plan, metadata = self._create_global_plan(merged_plans)
+
+            if self._cached_plans_key in self._cached_global_plan:
+                for cached_plan, new_plan in zip(
+                    SavePlanner._cached_global_plan[self._cached_plans_key], global_plan
+                ):
+                    if _compare_save_plans(cached_plan, new_plan):
+                        global_plan_delta.append(SavePlan([], usable=False))
+                    else:
+                        global_plan_delta.append(new_plan)
+
+            # Cache the new global plan and the metadata
+            SavePlanner._cached_global_plan[self._cached_plans_key] = global_plan
+            SavePlanner._cached_metadata[self._cached_plans_key] = metadata
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return global_plan_delta, global_plan, metadata
 
     def create_global_plan(
@@ -426,7 +495,11 @@ class _EmptyStateDictLoadPlanner(DefaultLoadPlanner):
 
             if isinstance(v, TensorStorageMetadata):
                 v = torch.empty(v.size, dtype=v.properties.dtype)  # type: ignore[assignment]
+<<<<<<< HEAD
             if k in metadata.planner_data:
+=======
+            if metadata.planner_data is not None and k in metadata.planner_data:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 set_element(state_dict, metadata.planner_data[k], v)
             else:
                 state_dict[k] = v

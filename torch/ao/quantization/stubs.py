@@ -1,6 +1,17 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
 
 from torch import nn
+=======
+from typing import Any, Optional
+
+import torch
+from torch import nn
+from torch.ao.quantization import QConfig
+
+
+__all__ = ["QuantStub", "DeQuantStub", "QuantWrapper"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class QuantStub(nn.Module):
@@ -12,12 +23,20 @@ class QuantStub(nn.Module):
             if qconfig is not provided, we will get qconfig from parent modules
     """
 
+<<<<<<< HEAD
     def __init__(self, qconfig=None):
+=======
+    def __init__(self, qconfig: Optional[QConfig] = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         if qconfig:
             self.qconfig = qconfig
 
+<<<<<<< HEAD
     def forward(self, x):
+=======
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x
 
 
@@ -30,12 +49,20 @@ class DeQuantStub(nn.Module):
             if qconfig is not provided, we will get qconfig from parent modules
     """
 
+<<<<<<< HEAD
     def __init__(self, qconfig=None):
+=======
+    def __init__(self, qconfig: Optional[Any] = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         if qconfig:
             self.qconfig = qconfig
 
+<<<<<<< HEAD
     def forward(self, x):
+=======
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x
 
 
@@ -50,11 +77,19 @@ class QuantWrapper(nn.Module):
     will be swapped to `nnq.Quantize` which does actual quantization. Similarly
     for `DeQuantStub`.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     quant: QuantStub
     dequant: DeQuantStub
     module: nn.Module
 
+<<<<<<< HEAD
     def __init__(self, module):
+=======
+    def __init__(self, module: nn.Module):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         qconfig = getattr(module, "qconfig", None)
         self.add_module("quant", QuantStub(qconfig))
@@ -62,7 +97,11 @@ class QuantWrapper(nn.Module):
         self.add_module("module", module)
         self.train(module.training)
 
+<<<<<<< HEAD
     def forward(self, X):
+=======
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         X = self.quant(X)
         X = self.module(X)
         return self.dequant(X)

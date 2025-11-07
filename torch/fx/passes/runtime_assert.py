@@ -28,7 +28,11 @@ from torch.fx.graph_module import GraphModule
 __all__ = ["insert_deferred_runtime_asserts"]
 
 log = logging.getLogger(__name__)
+<<<<<<< HEAD
 graph_code_log = torch._logging.getArtifactLogger(__name__, "graph_code")
+=======
+graph_code_log = torch._logging.getArtifactLogger(__name__, "graph_code_verbose")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_example_value(node: fx.Node) -> Optional[str]:
@@ -95,6 +99,10 @@ def insert_deferred_runtime_asserts(
 
     from torch._export.passes._node_metadata_hook import _set_node_metadata_hook
     from torch.fx.experimental.symbolic_shapes import (
+<<<<<<< HEAD
+=======
+        _get_placeholder_expr,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _has_uninterpretable_sympy_function,
         CallMethodKey,
         cast_symbool_to_symint_guardless,
@@ -258,6 +266,10 @@ def insert_deferred_runtime_asserts(
                 # nodes
                 with _set_node_metadata_hook(gm, _node_metadata_hook):
                     res = _sympy_interp(expr_to_proxy, ra.expr).node
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     graph.call_function(
                         torch.ops.aten._assert_scalar.default,
                         # TODO: use ra.msg here, but it's pretty
@@ -290,7 +302,13 @@ def insert_deferred_runtime_asserts(
                     if (
                         isinstance(symint, torch.SymInt)
                         and isinstance(symint.node, SymNode)
+<<<<<<< HEAD
                         and isinstance(s := symint.node.expr, sympy.Symbol)
+=======
+                        and isinstance(
+                            s := _get_placeholder_expr(symint.node), sympy.Symbol
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         and s not in expr_to_proxy
                     ):
                         with _set_node_metadata_hook(gm, _node_metadata_hook):
@@ -328,7 +346,11 @@ def insert_deferred_runtime_asserts(
             if node == first_non_placeholder:
                 add_runtime_asserts(ras_by_symbol.pop(None, []))  # type: ignore[call-overload]
 
+<<<<<<< HEAD
             # deduplicate asserts already present in graph
+=======
+            # deduplicate asserts already present in graph, and remove trivial asserts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if node.target in (
                 torch._check,
                 torch.ops.aten._assert_scalar.default,
@@ -336,10 +358,14 @@ def insert_deferred_runtime_asserts(
                 if (
                     node.args[0] == True  # noqa: E712
                     or (assert_expr := _get_sym_val(node.args[0])) in expr_to_proxy
+<<<<<<< HEAD
                     or (
                         assert_expr is not None
                         and _is_bound_expr_for_symbol(assert_expr)
                     )
+=======
+                    and assert_expr in added_asserts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     arg = node.args[0]
                     gm.graph.erase_node(node)
@@ -396,7 +422,13 @@ def insert_deferred_runtime_asserts(
                                 nn_module_stack=node.meta.get("nn_module_stack"),
                             ),
                         ):
+<<<<<<< HEAD
                             expr_to_proxy[sym_expr] = _sympy_interp(expr_to_proxy, sym_expr)  # type: ignore[arg-type]
+=======
+                            expr_to_proxy[sym_expr] = _sympy_interp(
+                                expr_to_proxy, sym_expr
+                            )  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         # won't try DCE-ing tensor compute here
                     hash_node = expr_to_proxy[sym_expr].node  # type: ignore[arg-type]
                     node.replace_all_uses_with(hash_node)

@@ -7,7 +7,11 @@ if(USE_DISTRIBUTED AND NOT WIN32)
 
   add_executable(test_dist_autograd ${DIST_AUTOGRAD_TEST_SOURCES})
   target_include_directories(test_dist_autograd PRIVATE ${ATen_CPU_INCLUDE})
+<<<<<<< HEAD
   target_link_libraries(test_dist_autograd PRIVATE torch gtest)
+=======
+  target_link_libraries(test_dist_autograd PRIVATE torch gtest_main)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if(USE_CUDA)
     target_compile_definitions(test_dist_autograd PRIVATE "USE_CUDA")

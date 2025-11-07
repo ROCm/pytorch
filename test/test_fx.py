@@ -1,5 +1,9 @@
 # Owner(s): ["module: fx"]
 # ruff: noqa: F841
+<<<<<<< HEAD
+=======
+# flake8: noqa: E221
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import builtins
 import collections
@@ -180,7 +184,11 @@ class Pair(NamedTuple):
 
 
 # for testing pytrees
+<<<<<<< HEAD
 class Foo:  # noqa: B209
+=======
+class Foo:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -708,15 +716,30 @@ class TestFX(JitTestCase):
             seen_names.add(node.name)
 
     def test_stack_traces(self):
+<<<<<<< HEAD
         class M(torch.nn.Module):
             def forward(self, a, b):
                 return a + b
+=======
+        def foo(a, b):
+            return a * b
+
+        class M(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, a, b):
+                c = a + b
+                c = foo(a, c)
+                return c
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         tracer = torch.fx.Tracer()
         tracer.record_stack_traces = True
 
         graph = tracer.trace(M())
         # saving the original list because we will insert new nodes as a part of a test
+<<<<<<< HEAD
         orig_graph_nodes = list(graph.nodes)
         for node in orig_graph_nodes:
             if node.op == "output":
@@ -728,6 +751,18 @@ class TestFX(JitTestCase):
             new_node = graph.node_copy(node)
             self.assertTrue(new_node.stack_trace is not None)
             assert "test_fx.py" in new_node.stack_trace
+=======
+        stack_traces = "\n".join([node.meta.get("stack_trace", "") for node in graph.nodes])
+        FileCheck().check_count(
+            "c = a + b", 1, exactly=True
+        ).run(stack_traces.strip())
+        FileCheck().check_count(
+            "c = foo(a, c)", 1, exactly=True
+        ).run(stack_traces.strip())
+        FileCheck().check_count(
+            "return a * b", 1, exactly=True
+        ).run(stack_traces.strip())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_stack_traces_with_transformer(self):
         class M(torch.nn.Module):
@@ -1271,6 +1306,26 @@ class TestFX(JitTestCase):
             "call_module"
         ).check("clamp").check("call_method").run(all_formatted)
 
+<<<<<<< HEAD
+=======
+    def test_print_graph(self):
+        op: torch._ops.OpOverload = torch.ops.aten.relu.default
+        type_name: str = torch.typename(op)
+
+        graph: torch.fx.Graph = torch.fx.Graph()
+        a: torch.fx.Node = graph.create_node("placeholder", "x")
+        b: torch.fx.Node = graph.create_node("call_function", op, (a,), type_expr=type_name)
+        c: torch.fx.Node = graph.create_node("call_function", op, (b,), type_expr=type_name)
+        graph.output((b, c))
+
+        gm: torch.fx.GraphModule = torch.fx.GraphModule(
+            torch.nn.Module(), graph
+        )
+        gm.graph.lint()
+        text = gm.print_readable(False)
+        assert 2 == text.count("_torch__ops_aten_aten_relu_")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_script_tensor_constant(self):
         # TorchScript seems to ignore attributes that start with `__`.
         # We used to call anonymous Tensor values `__tensor_constant*`, but
@@ -2324,9 +2379,13 @@ class TestFX(JitTestCase):
 
         copied_graph = copy.deepcopy(g)
 
+<<<<<<< HEAD
         val_map = {}
         for orig_node, new_node in zip(g.nodes, copied_graph.nodes):
             val_map[orig_node] = new_node
+=======
+        val_map = dict(zip(g.nodes, copied_graph.nodes))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for orig_node, new_node in zip(g.nodes, copied_graph.nodes):
             orig_users = set(orig_node.users.keys())

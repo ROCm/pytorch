@@ -25,7 +25,11 @@ static bool is_mkldnn_fp16_supported() {
   return mkldnn_fp16_device_check();
 }
 
+<<<<<<< HEAD
 constexpr bool is_mkldnn_acl_supported() {
+=======
+static constexpr bool is_mkldnn_acl_supported() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return AT_MKLDNN_ACL_ENABLED();
 }
 

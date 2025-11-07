@@ -1,9 +1,15 @@
 #include <ATen/core/dispatch/Dispatcher.h>
 #include <ATen/core/PythonOpRegistrationTrampoline.h>
+<<<<<<< HEAD
 #include <chrono>
 #include <list>
 #include <sstream>
 #include <utility>
+=======
+#include <list>
+#include <utility>
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifdef FBCODE_CAFFE2
 #include <c10/util/static_tracepoint.h>
@@ -17,6 +23,7 @@ TORCH_SDT_DEFINE_SEMAPHORE(operator_end)
 #endif
 
 bool show_dispatch_trace() {
+<<<<<<< HEAD
   static auto envar = std::getenv("TORCH_SHOW_DISPATCH_TRACE");
 
   if (envar) {
@@ -24,6 +31,15 @@ bool show_dispatch_trace() {
       return false;
     }
     if (strcmp(envar, "1") == 0) {
+=======
+  static auto envar = c10::utils::get_env("TORCH_SHOW_DISPATCH_TRACE");
+
+  if (envar.has_value()) {
+    if (envar == "0") {
+      return false;
+    }
+    if (envar == "1") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return true;
     }
     TORCH_WARN(
@@ -180,6 +196,21 @@ const std::vector<OperatorName> Dispatcher::getAllOpNames() {
   });
 }
 
+<<<<<<< HEAD
+=======
+const std::vector<OperatorName> Dispatcher::getAllOpNamesForDispatchKey(DispatchKey k) {
+  return operatorLookupTable_.read([&] (const ska::flat_hash_map<OperatorName, OperatorHandle>& operatorLookupTable) -> std::vector<OperatorName> {
+    std::vector<OperatorName> allOpNames;
+    for (const auto& op : operatorLookupTable) {
+      if (op.second.hasKernelForDispatchKey(k)) {
+        allOpNames.push_back(op.first);
+      }
+    }
+    return allOpNames;
+  });
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Postcondition: caller is responsible for disposing of registration when they
 // are done
 OperatorHandle Dispatcher::findOrRegisterName_(const OperatorName& op_name) {

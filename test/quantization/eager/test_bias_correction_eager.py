@@ -1,5 +1,6 @@
 # Owner(s): ["oncall: quantization"]
 
+<<<<<<< HEAD
 import torch
 import torch.nn as nn
 from torch.testing._internal.common_quantization import QuantizationTestCase
@@ -9,16 +10,34 @@ from torch.ao.quantization import default_qconfig
 from torch.ao.quantization import QuantWrapper
 import torch.ao.ns._numeric_suite as ns
 
+=======
+import copy
+
+import torch
+import torch.ao.ns._numeric_suite as ns
+import torch.nn as nn
+from torch.ao.quantization import default_qconfig, QuantWrapper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization._correct_bias import (
     _supported_modules,
     _supported_modules_quantized,
     bias_correction,
     get_module,
     get_param,
+<<<<<<< HEAD
     parent_child_names
 )
 
 import copy
+=======
+    parent_child_names,
+)
+from torch.testing._internal.common_quantization import (
+    QuantizationTestCase,
+    skipIfNoFBGEMM,
+)
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestBiasCorrectionEager(QuantizationTestCase):
@@ -28,9 +47,15 @@ class TestBiasCorrectionEager(QuantizationTestCase):
         return 20 * torch.log10(Ps / Pn)
 
     def correct_artificial_bias_quantize(self, float_model, img_data):
+<<<<<<< HEAD
         ''' Adding artificial bias and testing if bias persists after bias
             correction. This test case changes the bias of a quantized submodule
         '''
+=======
+        """Adding artificial bias and testing if bias persists after bias
+        correction. This test case changes the bias of a quantized submodule
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         artificial_model = copy.deepcopy(float_model)
         artificial_model.qconfig = default_qconfig
         torch.ao.quantization.prepare(artificial_model, inplace=True)
@@ -41,12 +66,26 @@ class TestBiasCorrectionEager(QuantizationTestCase):
         # manually changing bias
         for name, submodule in artificial_model.named_modules():
             if type(submodule) in _supported_modules:
+<<<<<<< HEAD
                 x = get_param(submodule, 'bias')
                 weight = get_param(submodule, 'weight')
                 if x is not None:
                     submodule.set_weight_bias(weight, x.data * 3)
 
         bias_correction(float_model, artificial_model, img_data, target_modules=_supported_modules_quantized)
+=======
+                x = get_param(submodule, "bias")
+                weight = get_param(submodule, "weight")
+                if x is not None:
+                    submodule.set_weight_bias(weight, x.data * 3)
+
+        bias_correction(
+            float_model,
+            artificial_model,
+            img_data,
+            target_modules=_supported_modules_quantized,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Trims off the shadow module,
         for name, submodule in artificial_model.named_modules():
@@ -58,11 +97,21 @@ class TestBiasCorrectionEager(QuantizationTestCase):
         for name, artificial_submodule in artificial_model.named_modules():
             if type(artificial_submodule) in _supported_modules_quantized:
                 submodule = get_module(float_model, name)
+<<<<<<< HEAD
                 float_bias = get_param(submodule, 'bias')
                 artificial_bias = get_param(artificial_submodule, 'bias')
 
                 self.assertTrue(self.compute_sqnr(float_bias, artificial_bias) > 30,
                                 "Correcting quantized bias produced too much noise, sqnr score too low")
+=======
+                float_bias = get_param(submodule, "bias")
+                artificial_bias = get_param(artificial_submodule, "bias")
+
+                self.assertTrue(
+                    self.compute_sqnr(float_bias, artificial_bias) > 30,
+                    "Correcting quantized bias produced too much noise, sqnr score too low",
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNoFBGEMM
     def test_linear_chain(self):
@@ -78,9 +127,21 @@ class TestBiasCorrectionEager(QuantizationTestCase):
                 x = self.linear2(x)
                 x = self.linear3(x)
                 return x
+<<<<<<< HEAD
         float_model = QuantWrapper(LinearChain())
         img_data = [(torch.rand(10, 3, dtype=torch.float), torch.randint(0, 1, (2,), dtype=torch.long))
                     for _ in range(50)]
+=======
+
+        float_model = QuantWrapper(LinearChain())
+        img_data = [
+            (
+                torch.rand(10, 3, dtype=torch.float),
+                torch.randint(0, 1, (2,), dtype=torch.long),
+            )
+            for _ in range(50)
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.correct_artificial_bias_quantize(float_model, img_data)
 
     @skipIfNoFBGEMM
@@ -97,7 +158,24 @@ class TestBiasCorrectionEager(QuantizationTestCase):
                 x = self.conv2d2(x)
                 x = self.conv2d3(x)
                 return x
+<<<<<<< HEAD
         float_model = QuantWrapper(ConvChain())
         img_data = [(torch.rand(10, 3, 125, 125, dtype=torch.float), torch.randint(0, 1, (2,), dtype=torch.long))
                     for _ in range(50)]
         self.correct_artificial_bias_quantize(float_model, img_data)
+=======
+
+        float_model = QuantWrapper(ConvChain())
+        img_data = [
+            (
+                torch.rand(10, 3, 125, 125, dtype=torch.float),
+                torch.randint(0, 1, (2,), dtype=torch.long),
+            )
+            for _ in range(50)
+        ]
+        self.correct_artificial_bias_quantize(float_model, img_data)
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

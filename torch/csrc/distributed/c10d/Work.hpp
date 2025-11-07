@@ -118,7 +118,11 @@ class TORCH_API Work : public torch::CustomClassHolder {
 
   // Get a Future object that would be marked as either success or failure
   // This API can be used by the user to track the completion of the work
+<<<<<<< HEAD
   // and hanlde the exception if any.
+=======
+  // and handle the exception if any.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual c10::intrusive_ptr<c10::ivalue::Future> getFutureResult();
 
   virtual float getDuration() const;

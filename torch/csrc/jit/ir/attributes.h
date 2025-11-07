@@ -86,7 +86,10 @@ template <typename T, AttributeKind Kind>
 struct VectorAttributeValue : public AttributeValue {
   using ConstructorType = std::vector<T>;
   using ValueType = std::vector<T>;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   VectorAttributeValue(Symbol name, ConstructorType value_)
       : AttributeValue(name), value_(std::move(value_)) {}
   ValueType& value() {
@@ -144,7 +147,10 @@ struct TORCH_API GraphAttr : public AttributeValue {
 struct TORCH_API GraphsAttr : public AttributeValue {
   using ConstructorType = std::vector<std::shared_ptr<Graph>>;
   using ValueType = std::vector<std::shared_ptr<Graph>>;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   GraphsAttr(Symbol name, ConstructorType value_)
       : AttributeValue(name), value_(std::move(value_)) {}
   ValueType& value() {

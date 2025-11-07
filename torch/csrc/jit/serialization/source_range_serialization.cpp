@@ -13,7 +13,11 @@ namespace torch::jit {
 // "Whether to emit compact debug_pkl when saving a model to .pt file."
 // "Compact file is smaller but cannot be loaded by old torch binaries."
 // TODO(qihan) remove when all binaries are using string table.
+<<<<<<< HEAD
 thread_local bool should_use_format_with_string_table_ = true;
+=======
+static thread_local bool should_use_format_with_string_table_ = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class SourceRangeSerializer {
  public:

@@ -44,7 +44,11 @@ struct TORCH_API TypeFactoryBase<c10::DynamicType> {
         c10::DynamicType::Arguments{});
   }
   template <typename T>
+<<<<<<< HEAD
   C10_ERASE static c10::DynamicTypePtr get() {
+=======
+  C10_ERASE static decltype(auto) get() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return DynamicTypeTrait<T>::getBaseType();
   }
   static const std::unordered_map<std::string, c10::TypePtr>& basePythonTypes();

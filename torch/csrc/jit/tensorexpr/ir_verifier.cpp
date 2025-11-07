@@ -19,7 +19,11 @@ template <
     std::enable_if_t<
         std::is_same_v<decltype(detail::deducer(std::declval<D>())), void>>* =
         nullptr>
+<<<<<<< HEAD
 void verifyBitwiseOp(NodePtr<D> v, IRVerifier* verifier) {
+=======
+static void verifyBitwiseOp(NodePtr<D> v, IRVerifier* verifier) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!v->lhs()->dtype().is_integral()) {
     throw unsupported_dtype();
   }

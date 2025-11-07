@@ -57,9 +57,16 @@ if python_pytree._cxx_pytree_dynamo_traceable:
         "structseq_fields",
     ):
         __func = getattr(optree, __name)
+<<<<<<< HEAD
         substitute_in_graph(__func, can_constant_fold_through=True)(
             __func.__python_implementation__
         )
+=======
+        globals()[__name] = substitute_in_graph(__func, can_constant_fold_through=True)(
+            __func.__python_implementation__
+        )
+        __all__ += [__name]  # noqa: PLE0604
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         del __func
     del __name
 

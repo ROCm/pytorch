@@ -26,9 +26,15 @@ def _get_getitem_users(node: torch.fx.Node) -> set[torch.fx.Node]:
         if user.op == "output":
             continue
 
+<<<<<<< HEAD
         assert (
             user.op == "call_function" and user.target == operator.getitem
         ), f"Expected getitem node as user for {node}, instead got {user}"
+=======
+        assert user.op == "call_function" and user.target == operator.getitem, (
+            f"Expected getitem node as user for {node}, instead got {user}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         getitem_users.update(list(user.users.keys()))
     return getitem_users
 
@@ -63,9 +69,15 @@ def _try_remove_connecting_pytrees(curr_module_node: torch.fx.Node) -> None:
     log.debug("Trying to remove pytrees for module call %s", curr_module_node)
 
     curr_module_users = list(curr_module_node.users.keys())
+<<<<<<< HEAD
     assert (
         len(curr_module_users) == 1
     ), f"Expected only one user for module node, instead got {list(curr_module_users)}"
+=======
+    assert len(curr_module_users) == 1, (
+        f"Expected only one user for module node, instead got {list(curr_module_users)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     flatten_node = curr_module_users[0]
     assert (
         flatten_node.op == "call_function"

@@ -279,7 +279,11 @@ Tensor _fft_c2r_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, 
 
 
 Tensor _fft_r2c_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, bool onesided) {
+<<<<<<< HEAD
   TORCH_CHECK(self.is_floating_point());
+=======
+  TORCH_CHECK(self.is_floating_point(), "Only supports floating-point dtypes, but found: ", self.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto input_sizes = self.sizes();
   DimVector out_sizes(input_sizes.begin(), input_sizes.end());
   auto last_dim = dim.back();
@@ -307,7 +311,11 @@ Tensor _fft_r2c_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, 
 }
 
 Tensor _fft_c2c_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, bool forward) {
+<<<<<<< HEAD
   TORCH_CHECK(self.is_complex());
+=======
+  TORCH_CHECK(self.is_complex(), "Only supports complex dtypes, but found: ", self.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (dim.empty()) {
     return self.clone();
   }
@@ -516,7 +524,11 @@ static DimVector _sort_dims(const Tensor& self, IntArrayRef dim, bool exclude_la
 
 // n-dimensional complex to real IFFT
 Tensor _fft_c2r_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, int64_t last_dim_size) {
+<<<<<<< HEAD
   TORCH_CHECK(self.is_complex());
+=======
+  TORCH_CHECK(self.is_complex(), "Only supports complex dtypes, but found: ", self.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOTE: Multi-dimensional C2R transforms don't agree with numpy in cases
   // where the input isn't strictly Hermitian-symmetric. Instead, we use a
   // multi-dim C2C transform followed by a 1D C2R transform.
@@ -539,7 +551,11 @@ Tensor _fft_c2r_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, 
 
 // n-dimensional real to complex FFT
 Tensor _fft_r2c_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, bool onesided) {
+<<<<<<< HEAD
   TORCH_CHECK(self.is_floating_point());
+=======
+  TORCH_CHECK(self.is_floating_point(), "Only supports floating-point dtypes, but found: ", self.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto input_sizes = self.sizes();
   DimVector out_sizes(input_sizes.begin(), input_sizes.end());
   auto last_dim = dim.back();
@@ -560,7 +576,11 @@ Tensor _fft_r2c_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, 
 
 // n-dimensional complex to complex FFT/IFFT
 Tensor _fft_c2c_mkl(const Tensor& self, IntArrayRef dim, int64_t normalization, bool forward) {
+<<<<<<< HEAD
   TORCH_CHECK(self.is_complex());
+=======
+  TORCH_CHECK(self.is_complex(), "Only supports complex dtypes, but found: ", self.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (dim.empty()) {
     return self.clone();
   }

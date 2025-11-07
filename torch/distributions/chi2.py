@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch import Tensor
 from torch.distributions import constraints
 from torch.distributions.gamma import Gamma
@@ -25,7 +30,15 @@ class Chi2(Gamma):
 
     arg_constraints = {"df": constraints.positive}
 
+<<<<<<< HEAD
     def __init__(self, df, validate_args=None):
+=======
+    def __init__(
+        self,
+        df: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(0.5 * df, 0.5, validate_args=validate_args)
 
     def expand(self, batch_shape, _instance=None):

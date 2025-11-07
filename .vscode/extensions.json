@@ -1,5 +1,17 @@
 {
+<<<<<<< HEAD
   "recommendations": [
     "ms-python.python",
   ]
+=======
+    "recommendations": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.flake8",
+        "ms-python.mypy-type-checker",
+        "ms-vscode.cmake-tools",
+        "EditorConfig.EditorConfig",
+        "streetsidesoftware.code-spell-checker",
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }

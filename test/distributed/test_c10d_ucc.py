@@ -42,7 +42,10 @@ from torch.testing._internal.common_utils import (
     run_tests,
     skip_but_pass_in_sandcastle,
     TestCase,
+<<<<<<< HEAD
     xfailIfLinux,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -674,7 +677,10 @@ class DistributedDataParallelTest(
             vanilla_parameter.grad.coalesce(), ddp_parameter.grad.coalesce()
         )
 
+<<<<<<< HEAD
     @xfailIfLinux
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_ucc()
     @skip_if_lt_x_gpu(2)
     def test_save_load_checkpoint(self):
@@ -1092,8 +1098,14 @@ class UccProcessGroupWithDispatchedCollectivesTests(
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     assert (
         not torch.cuda._initialized
     ), "test_distributed must not have initialized CUDA context on main process"
+=======
+    assert not torch.cuda._initialized, (
+        "test_distributed must not have initialized CUDA context on main process"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     run_tests()

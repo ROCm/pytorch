@@ -53,8 +53,12 @@ inline size_t DictKeyHash::operator()(const IValue& ivalue) const {
   } else if (ivalue.isDevice()) {
     return std::hash<Device>()(ivalue.toDevice());
   } else {
+<<<<<<< HEAD
     throw std::runtime_error(
         "Can't hash IValues with tag '" + ivalue.tagKind() + "'");
+=======
+    TORCH_CHECK(false, "Can't hash IValues with tag '", ivalue.tagKind(), "'");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

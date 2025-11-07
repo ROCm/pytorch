@@ -3,16 +3,34 @@
 {
   "name": "PyTorch - CUDA",
   "build": {
+<<<<<<< HEAD
     "context": "../..",
+=======
+    "context": "./",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "dockerfile": "../Dockerfile",
     "args": {
       "USERNAME": "vscode",
       "BUILDKIT_INLINE_CACHE": "0",
+<<<<<<< HEAD
       "CUDA_VERSION": "11.8.0",
       "CLANG_VERSION": ""
     }
   },
   "runArgs": ["--gpus", "all"],
+=======
+      "CUDA_VERSION": "12.8.0",
+      "CLANG_VERSION": ""
+    }
+  },
+  "runArgs": ["--runtime", "nvidia", "--gpus", "all"],
+  // Mount the full repo only after the container starts
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/pytorch,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace/pytorch",
+  "containerEnv": {
+    "PIP_USER": "0" // <‑‑ disable implicit --user
+  },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 

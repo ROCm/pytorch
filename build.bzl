@@ -72,13 +72,22 @@ def define_targets(rules):
         "--install_dir=$(RULEDIR)",
         "--source-path aten/src/ATen",
         "--aoti_install_dir=$(RULEDIR)/torch/csrc/inductor/aoti_torch/generated"
+<<<<<<< HEAD
     ] + (["--static_dispatch_backend CPU"] if rules.is_cpu_static_dispatch_build() else []))
+=======
+    ] + (["--static_dispatch_backend CPU"] if rules.is_cpu_static_dispatch_build() else []) + ["--mtia"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     gen_aten_outs_cuda = (
         GENERATED_H_CUDA + GENERATED_CPP_CUDA + GENERATED_AOTI_CUDA_CPP +
         aten_ufunc_generated_cuda_sources()
     )
 
+<<<<<<< HEAD
+=======
+    gen_aten_outs_mtia = GENERATED_H_MTIA + GENERATED_CPP_MTIA
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gen_aten_outs = (
         GENERATED_H + GENERATED_H_CORE +
         GENERATED_CPP + GENERATED_CPP_CORE +
@@ -86,7 +95,11 @@ def define_targets(rules):
         aten_ufunc_generated_cpu_sources() +
         aten_ufunc_generated_cpu_kernel_sources() + [
             "Declarations.yaml",
+<<<<<<< HEAD
         ] + gen_aten_outs_cuda
+=======
+        ] + gen_aten_outs_cuda + gen_aten_outs_mtia
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     rules.genrule(
@@ -208,6 +221,18 @@ GENERATED_CPP_CUDA = [
     "RegisterQuantizedCUDA_0.cpp",
 ]
 
+<<<<<<< HEAD
+=======
+GENERATED_H_MTIA = [
+    "MTIAFunctions.h",
+    "MTIAFunctions_inl.h",
+]
+
+GENERATED_CPP_MTIA = [
+    "RegisterMTIA_0.cpp",
+]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 GENERATED_CPP = [
     "Functions.cpp",
     "RegisterBackendSelect.cpp",

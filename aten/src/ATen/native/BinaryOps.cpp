@@ -1383,35 +1383,59 @@ Tensor bitwise_right_shift(const Scalar& self, const Tensor& other) {
 }
 
 template <typename Stub>
+<<<<<<< HEAD
 Tensor& comparison_op_out(Tensor& result, const Tensor& self, const Tensor& other, Stub& stub) {
+=======
+static Tensor& comparison_op_out(Tensor& result, const Tensor& self, const Tensor& other, Stub& stub) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto iter = TensorIterator::comparison_op(result, self, other);
   stub(iter.device_type(), iter);
   return result;
 }
 
 template <typename OutImpl>
+<<<<<<< HEAD
 Tensor comparison_op(const Tensor& self, const Tensor& other, OutImpl& out_impl) {
+=======
+static Tensor comparison_op(const Tensor& self, const Tensor& other, OutImpl& out_impl) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor result = at::empty({0}, self.options().dtype(kBool));
   return out_impl(result, self, other);
 }
 
 template <typename OutImpl>
+<<<<<<< HEAD
 Tensor& comparison_op_(Tensor& self, const Tensor& other, OutImpl& out_impl) {
+=======
+static Tensor& comparison_op_(Tensor& self, const Tensor& other, OutImpl& out_impl) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return out_impl(self, self, other);
 }
 
 template <typename OutImpl>
+<<<<<<< HEAD
 Tensor& comparison_op_out(Tensor& result, const Tensor& self, const Scalar& other, OutImpl& out_impl) {
+=======
+static Tensor& comparison_op_out(Tensor& result, const Tensor& self, const Scalar& other, OutImpl& out_impl) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return out_impl(result, self, wrapped_scalar_tensor(other));
 }
 
 template <typename OutImpl>
+<<<<<<< HEAD
 Tensor comparison_op(const Tensor& self, const Scalar& other, OutImpl& out_impl) {
+=======
+static Tensor comparison_op(const Tensor& self, const Scalar& other, OutImpl& out_impl) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return comparison_op(self, wrapped_scalar_tensor(other), out_impl);
 }
 
 template <typename OutImpl>
+<<<<<<< HEAD
 Tensor& comparison_op_(Tensor& self, const Scalar& other, OutImpl& out_impl) {
+=======
+static Tensor& comparison_op_(Tensor& self, const Scalar& other, OutImpl& out_impl) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return out_impl(self, self, wrapped_scalar_tensor(other));
 }
 

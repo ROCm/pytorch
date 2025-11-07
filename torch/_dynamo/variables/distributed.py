@@ -49,7 +49,11 @@ class DistributedVariable(VariableTracker):
     Concrete distributed objects could inherit this class and add object
     specific logic.
 
+<<<<<<< HEAD
     i.e. It provides the check on the distributed package existance
+=======
+    i.e. It provides the check on the distributed package existence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     and hold the tracking value for the corresponding distributed object.
     """
 
@@ -59,7 +63,11 @@ class DistributedVariable(VariableTracker):
             unimplemented_v2(
                 gb_type="torch.distributed package is not available!",
                 context="",
+<<<<<<< HEAD
                 explanation="The PyTorch package doesn't include torch.distributed when builing from source.",
+=======
+                explanation="The PyTorch package doesn't include torch.distributed when building from source.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 hints=[
                     "Set USE_DISTRIBUTED=1 to enable it when building PyTorch from source."
                 ],

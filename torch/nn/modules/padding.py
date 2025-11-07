@@ -58,6 +58,10 @@ class CircularPad1d(_CircularPadNd):
         padding (int, tuple): the size of the padding. If is `int`, uses the same
             padding in all boundaries. If a 2-`tuple`, uses
             (:math:`\text{padding\_left}`, :math:`\text{padding\_right}`)
+<<<<<<< HEAD
+=======
+            Note that padding size should be less than or equal to the corresponding input dimension.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(C, W_{in})` or :math:`(N, C, W_{in})`.
@@ -107,6 +111,10 @@ class CircularPad2d(_CircularPadNd):
         padding (int, tuple): the size of the padding. If is `int`, uses the same
             padding in all boundaries. If a 4-`tuple`, uses (:math:`\text{padding\_left}`,
             :math:`\text{padding\_right}`, :math:`\text{padding\_top}`, :math:`\text{padding\_bottom}`)
+<<<<<<< HEAD
+=======
+            Note that padding size should be less than or equal to the corresponding input dimension.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(N, C, H_{in}, W_{in})` or :math:`(C, H_{in}, W_{in})`.
@@ -168,6 +176,10 @@ class CircularPad3d(_CircularPadNd):
             (:math:`\text{padding\_left}`, :math:`\text{padding\_right}`,
             :math:`\text{padding\_top}`, :math:`\text{padding\_bottom}`,
             :math:`\text{padding\_front}`, :math:`\text{padding\_back}`)
+<<<<<<< HEAD
+=======
+            Note that padding size should be less than or equal to the corresponding input dimension.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
@@ -380,6 +392,10 @@ class ReflectionPad1d(_ReflectionPadNd):
         padding (int, tuple): the size of the padding. If is `int`, uses the same
             padding in all boundaries. If a 2-`tuple`, uses
             (:math:`\text{padding\_left}`, :math:`\text{padding\_right}`)
+<<<<<<< HEAD
+=======
+            Note that padding size should be less than the corresponding input dimension.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(C, W_{in})` or :math:`(N, C, W_{in})`.
@@ -476,6 +492,10 @@ class ReflectionPad3d(_ReflectionPadNd):
             (:math:`\text{padding\_left}`, :math:`\text{padding\_right}`,
             :math:`\text{padding\_top}`, :math:`\text{padding\_bottom}`,
             :math:`\text{padding\_front}`, :math:`\text{padding\_back}`)
+<<<<<<< HEAD
+=======
+            Note that padding size should be less than the corresponding input dimension.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
@@ -539,6 +559,10 @@ class ReplicationPad1d(_ReplicationPadNd):
         padding (int, tuple): the size of the padding. If is `int`, uses the same
             padding in all boundaries. If a 2-`tuple`, uses
             (:math:`\text{padding\_left}`, :math:`\text{padding\_right}`)
+<<<<<<< HEAD
+=======
+            Note that the output dimensions must remain positive.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(C, W_{in})` or :math:`(N, C, W_{in})`.
@@ -580,6 +604,10 @@ class ReplicationPad2d(_ReplicationPadNd):
         padding (int, tuple): the size of the padding. If is `int`, uses the same
             padding in all boundaries. If a 4-`tuple`, uses (:math:`\text{padding\_left}`,
             :math:`\text{padding\_right}`, :math:`\text{padding\_top}`, :math:`\text{padding\_bottom}`)
+<<<<<<< HEAD
+=======
+            Note that the output dimensions must remain positive.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(N, C, H_{in}, W_{in})` or :math:`(C, H_{in}, W_{in})`.
@@ -634,6 +662,10 @@ class ReplicationPad3d(_ReplicationPadNd):
             (:math:`\text{padding\_left}`, :math:`\text{padding\_right}`,
             :math:`\text{padding\_top}`, :math:`\text{padding\_bottom}`,
             :math:`\text{padding\_front}`, :math:`\text{padding\_back}`)
+<<<<<<< HEAD
+=======
+            Note that the output dimensions must remain positive.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Shape:
         - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.

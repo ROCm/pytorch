@@ -18,6 +18,10 @@ class Linear(torch.nn.Module):
     r"""
     A dynamically quantized sparse linear module with float tensor as inputs and outputs.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _version = 1
     _op_type = "sparse_dynamic"
     _FLOAT_MODULE = torch.nn.Linear
@@ -83,9 +87,15 @@ class Linear(torch.nn.Module):
         error_msgs,
     ):
         op_type = int(state_dict[prefix + "op_type"])
+<<<<<<< HEAD
         assert (
             op_type == "sparse"
         ), f"Cannot load from op_type [{op_type}], expecting [{self._op_type}]"
+=======
+        assert op_type == "sparse", (
+            f"Cannot load from op_type [{op_type}], expecting [{self._op_type}]"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state_dict.pop(prefix + "op_type")
 
         version = local_metadata.get("version", None)

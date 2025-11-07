@@ -68,7 +68,16 @@ struct VecMaskTo {
   }
 };
 
+<<<<<<< HEAD
 template <typename dst_t, int dst_n, typename src_t, int src_n, typename Enabled = void>
+=======
+template <
+    typename dst_t,
+    int dst_n,
+    typename src_t,
+    int src_n,
+    typename Enabled = void>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct VecMaskCast {
   static inline VecMask<dst_t, dst_n> apply(
       const VecMask<src_t, src_n>& vec_mask) {
@@ -88,15 +97,27 @@ struct VecMaskCheck {
   static inline bool all_zero(const VectorizedN<T, N>& vec_mask) {
     __at_align__ T mask[VectorizedN<T, N>::size()];
     vec_mask.store(mask);
+<<<<<<< HEAD
     return std::all_of(
         mask, mask + VectorizedN<T, N>::size(), [](T m) { return m == static_cast<T>(0); });
+=======
+    return std::all_of(mask, mask + VectorizedN<T, N>::size(), [](T m) {
+      return m == static_cast<T>(0);
+    });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   static inline bool all_masked(const VectorizedN<T, N>& vec_mask) {
     __at_align__ T mask[VectorizedN<T, N>::size()];
     vec_mask.store(mask);
+<<<<<<< HEAD
     return std::all_of(
         mask, mask + VectorizedN<T, N>::size(), [](T m) { return m != static_cast<T>(0); });
+=======
+    return std::all_of(mask, mask + VectorizedN<T, N>::size(), [](T m) {
+      return m != static_cast<T>(0);
+    });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   static inline bool is_masked(const VectorizedN<T, N>& vec_mask, int i) {
@@ -159,6 +180,7 @@ class VecMask {
   }
 
   static VecMask<T, N> blendv(
+<<<<<<< HEAD
     const VecMask<T, N>& c,
     const VecMask<T, N>& b,
     const VecMask<T, N>& a) {
@@ -166,6 +188,13 @@ class VecMask {
       VectorizedN<T, N>(c),
       VectorizedN<T, N>(b),
       VectorizedN<T, N>(a));
+=======
+      const VecMask<T, N>& c,
+      const VecMask<T, N>& b,
+      const VecMask<T, N>& a) {
+    VectorizedN<T, N> result = VectorizedN<T, N>::blendv(
+        VectorizedN<T, N>(c), VectorizedN<T, N>(b), VectorizedN<T, N>(a));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return result;
   }
 
@@ -174,14 +203,24 @@ class VecMask {
       const VecMask<T, N>& b,
       int64_t count = size()) {
     VectorizedN<T, N> result = VectorizedN<T, N>::set(
+<<<<<<< HEAD
       VectorizedN<T, N>(a),
       VectorizedN<T, N>(b),
       count);
+=======
+        VectorizedN<T, N>(a), VectorizedN<T, N>(b), count);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return result;
   }
 
   void store(bool* b, int count = size()) {
+<<<<<<< HEAD
     constexpr int L = (VectorizedN<T, N>::size() + Vectorized<bool>::size() - 1)/ Vectorized<bool>::size();
+=======
+    constexpr int L =
+        (VectorizedN<T, N>::size() + Vectorized<bool>::size() - 1) /
+        Vectorized<bool>::size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto res = this->to<bool, L>();
     res.store(b, count);
     return;

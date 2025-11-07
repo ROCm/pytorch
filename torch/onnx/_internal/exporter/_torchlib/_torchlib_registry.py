@@ -30,6 +30,10 @@ def onnx_impl(
     *,
     trace_only: bool = False,
     complex: bool = False,
+<<<<<<< HEAD
+=======
+    opset_introduced: int = 18,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     no_compile: bool = False,
     private: bool = False,
 ) -> Callable[[_T], _T]:
@@ -74,6 +78,10 @@ def onnx_impl(
                         fx_target=t,
                         signature=None,
                         is_complex=complex,
+<<<<<<< HEAD
+=======
+                        opset_introduced=opset_introduced,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         skip_signature_inference=no_compile,
                     )
                 )

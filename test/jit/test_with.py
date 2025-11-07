@@ -6,7 +6,14 @@ import sys
 from typing import Any, List
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchDynamo
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase, make_global
 
 
@@ -14,6 +21,7 @@ from torch.testing._internal.jit_utils import JitTestCase, make_global
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -21,6 +29,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestWith(JitTestCase):
     """
@@ -647,3 +657,10 @@ class TestWith(JitTestCase):
         # Nested record function should have child "aten::add"
         nested_child_events = nested_function_event.cpu_children
         self.assertTrue("aten::add" in (child.name for child in nested_child_events))
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -3,8 +3,15 @@
 import glob
 import locale
 import os
+<<<<<<< HEAD
 import re
 import shutil
+=======
+import random
+import re
+import shutil
+import string
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import subprocess
 import sys
 import tempfile
@@ -116,6 +123,7 @@ class TestCppExtensionJIT(common.TestCase):
         # 2 * sigmoid(0) = 2 * 0.5 = 1
         self.assertEqual(z, torch.ones_like(z))
 
+<<<<<<< HEAD
     @unittest.skipIf(not (TEST_XPU), "XPU not found")
     def test_jit_xpu_extension(self):
         # NOTE: The name of the extension must equal the name of the module.
@@ -135,6 +143,88 @@ class TestCppExtensionJIT(common.TestCase):
 
         # 2 * sigmoid(0) = 2 * 0.5 = 1
         self.assertEqual(z, torch.ones_like(z))
+=======
+    def _test_jit_xpu_extension(self, extra_sycl_cflags):
+        # randomizing extension name and names of extension methods
+        # for the case when we test building few extensions in a row
+        # using this function
+        rand = "".join(random.sample(string.ascii_letters, 5))
+        name = f"torch_test_xpu_extension_{rand}"
+        temp_dir = tempfile.mkdtemp()
+        try:
+            with open("cpp_extensions/xpu_extension.sycl") as f:
+                text = f.read()
+                for fn in ["sigmoid_add", "SigmoidAddKernel"]:
+                    text = text.replace(fn, f"{fn}_{rand}")
+
+            sycl_file = f"{temp_dir}/xpu_extension.sycl"
+            with open(sycl_file, "w") as f:
+                f.write(text)
+
+            module = torch.utils.cpp_extension.load(
+                name=name,
+                sources=[sycl_file],
+                extra_sycl_cflags=extra_sycl_cflags,
+                verbose=True,
+                keep_intermediates=True,
+                build_directory=temp_dir,
+            )
+
+            x = torch.zeros(100, device="xpu", dtype=torch.float32)
+            y = torch.zeros(100, device="xpu", dtype=torch.float32)
+
+            method = f"sigmoid_add_{rand}"
+            self.assertTrue(hasattr(module, method))
+            z = getattr(module, method)(x, y).cpu()
+
+            # 2 * sigmoid(0) = 2 * 0.5 = 1
+            self.assertEqual(z, torch.ones_like(z))
+        finally:
+            shutil.rmtree(temp_dir)
+
+    @unittest.skipIf(not (TEST_XPU), "XPU not found")
+    def test_jit_xpu_extension(self):
+        # NOTE: this test can be affected by setting TORCH_XPU_ARCH_LIST
+        self._test_jit_xpu_extension(extra_sycl_cflags=[])
+
+    @unittest.skipIf(not (TEST_XPU), "XPU not found")
+    def test_jit_xpu_archlists(self):
+        # NOTE: in this test we explicitly test few different options
+        # for TORCH_XPU_ARCH_LIST. Setting TORCH_XPU_ARCH_LIST in the
+        # environment before the test won't affect it.
+        cases = [
+            {
+                # Testing JIT compilation
+                "archlist": "",
+                "extra_sycl_cflags": [],
+            },
+            {
+                # Testing JIT + AOT (full torch AOT arch list)
+                # NOTE: default cpp extension AOT arch list might be reduced
+                # from the full list
+                "archlist": ",".join(torch.xpu.get_arch_list()),
+                "extra_sycl_cflags": [],
+            },
+            {
+                # Testing AOT (full torch AOT arch list)
+                # NOTE: default cpp extension AOT arch list might be reduced
+                # from the full list
+                "archlist": ",".join(torch.xpu.get_arch_list()),
+                # below excludes spir64 target responsible for JIT
+                "extra_sycl_cflags": ["-fsycl-targets=spir64_gen"],
+            },
+        ]
+        old_envvar = os.environ.get("TORCH_XPU_ARCH_LIST", None)
+        try:
+            for c in cases:
+                os.environ["TORCH_XPU_ARCH_LIST"] = c["archlist"]
+                self._test_jit_xpu_extension(extra_sycl_cflags=c["extra_sycl_cflags"])
+        finally:
+            if old_envvar is None:
+                os.environ.pop("TORCH_XPU_ARCH_LIST")
+            else:
+                os.environ["TORCH_XPU_ARCH_LIST"] = old_envvar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not TEST_MPS, "MPS not found")
     def test_mps_extension(self):
@@ -180,7 +270,13 @@ class TestCppExtensionJIT(common.TestCase):
                 )
 
             actual_arches = sorted(re.findall(r"sm_\d+", output))
+<<<<<<< HEAD
             expected_arches = sorted(["sm_" + xx for xx in expected_values])
+=======
+            expected_arches = sorted(
+                ["sm_" + xx.replace("121", "120") for xx in expected_values]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(
                 actual_arches,
                 expected_arches,

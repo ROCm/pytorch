@@ -4,7 +4,11 @@ from benchmark_base import BenchmarkBase
 
 import torch
 import torch.nn as nn
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ListOfLinears(nn.Module):
@@ -54,12 +58,18 @@ class Benchmark(BenchmarkBase):
         torch._dynamo.reset()
 
     def _work(self):
+<<<<<<< HEAD
         # enable_cpp_symbolic_shape_guards has impact on this benchmark
         # Keep using False value for consistency.
         with (
             fresh_inductor_cache(),
             torch._inductor.config.patch(force_shape_pad=self._force_shape_pad),
             torch._dynamo.config.patch("enable_cpp_symbolic_shape_guards", False),
+=======
+        with (
+            fresh_cache(),
+            torch._inductor.config.patch(force_shape_pad=self._force_shape_pad),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             opt_m = torch.compile(backend=self.backend(), dynamic=self.is_dynamic())(
                 self.m.cuda() if self._is_gpu else self.m

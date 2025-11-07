@@ -200,7 +200,11 @@ PyObject* THPCppFunction_sequence_nr(PyObject* self, PyObject* noargs) {
   return THPUtils_packUInt64(fn.sequence_nr());
 }
 
+<<<<<<< HEAD
 PyObject* THPCppFunction_set_sequence_nr(
+=======
+static PyObject* THPCppFunction_set_sequence_nr(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* sequence_nr) {
   HANDLE_TH_ERRORS
@@ -278,7 +282,11 @@ struct DefaultFunctionType {
   PyTypeObject type;
 };
 
+<<<<<<< HEAD
 PyTypeObject* get_default_type() {
+=======
+static PyTypeObject* get_default_type() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static DefaultFunctionType default_type;
   return &(default_type.type);
 }
@@ -339,7 +347,11 @@ bool THPCppFunction_Check(PyObject* obj) {
   }
 }
 
+<<<<<<< HEAD
 PyObject* callRegisterFn(PyObject* dict, PyObject* hook) {
+=======
+static PyObject* callRegisterFn(PyObject* dict, PyObject* hook) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   THPObjectPtr register_fn(
       PyObject_GetAttrString(THPFunctionClass, "_register_hook"));
   if (!register_fn) {

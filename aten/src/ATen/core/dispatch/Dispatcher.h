@@ -165,6 +165,13 @@ class TORCH_API Dispatcher final {
   // Returns a list of all operator names present in the operatorLookupTable_
   const std::vector<OperatorName> getAllOpNames();
 
+<<<<<<< HEAD
+=======
+  // Returns a list of all operator names present in the operatorLookupTable_
+  // for a given dispatch key
+  const std::vector<OperatorName> getAllOpNamesForDispatchKey(DispatchKey k);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // ------------------------------------------------------------------------
   //
   // Invoking operators

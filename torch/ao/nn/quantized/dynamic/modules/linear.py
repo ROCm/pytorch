@@ -35,6 +35,10 @@ class Linear(nnq.Linear):
         >>> print(output.size())
         torch.Size([128, 30])
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # version used in this class is different from the parent class nnq.Linear
     _version = 4
 
@@ -111,10 +115,16 @@ class Linear(nnq.Linear):
             torch.ao.nn.qat.dynamic.Linear,
         ]
 
+<<<<<<< HEAD
         assert (
             type(mod) in float_modules
         ), "nn.quantized.dynamic.Linear.from_float only works for one of" + str(
             [float_mod.__name__ for float_mod in float_modules]
+=======
+        assert type(mod) in float_modules, (
+            "nn.quantized.dynamic.Linear.from_float only works for one of"
+            + str([float_mod.__name__ for float_mod in float_modules])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         assert hasattr(mod, "qconfig"), "Input float module must have qconfig defined"
         if type(mod) == nni.LinearReLU:
@@ -147,7 +157,11 @@ class Linear(nnq.Linear):
         return qlinear
 
     @classmethod
+<<<<<<< HEAD
     def from_reference(cls, ref_qlinear):
+=======
+    def from_reference(cls, ref_qlinear):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Create a (fbgemm/qnnpack) dynamic quantized module from a reference quantized
         module
         Args:

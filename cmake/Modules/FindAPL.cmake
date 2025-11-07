@@ -29,7 +29,11 @@ IF(NOT APL_LIB_DIR)
 ENDIF()
 
 # Check bin file
+<<<<<<< HEAD
 FIND_PATH(APL_BIN_DIR NAMES armpl_lp64.dll libarmpl_lp64.a PATHS ${APL_BIN_SEARCH_PATHS})
+=======
+FIND_PATH(APL_BIN_DIR NAMES armpl_lp64.dll armpl-info PATHS ${APL_BIN_SEARCH_PATHS})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 IF(NOT APL_BIN_DIR)
     SET(APL_FOUND OFF)
     MESSAGE(STATUS "Could not verify APL bin directory. Turning APL_FOUND off")

@@ -148,7 +148,11 @@ _SKIP_PYTHON_BINDINGS = [
     "mH",  # these need to be an attributes in Python, not functions
     "nonzero(_(out|numpy))?",
     "set_data",
+<<<<<<< HEAD
     ".*_overrideable",  # overrideable functions for backend extension
+=======
+    ".*_overrideable",  # overridable functions for backend extension
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "data",
     "is_leaf",
     "output_nr",
@@ -617,7 +621,11 @@ def load_deprecated_signatures(
         schema_args_by_name = {a.name: a for a in schema.arguments.flat_all}
         for name in call_args:
             assert name in schema_args_by_name or name in known_constants, (
+<<<<<<< HEAD
                 f"deprecation definiton: Unrecognized value {name}"
+=======
+                f"deprecation definition: Unrecognized value {name}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # Map deprecated signature arguments to their aten signature and test

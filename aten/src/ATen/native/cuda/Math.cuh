@@ -766,7 +766,11 @@ const auto sinc_string = jiterator_stringify(
 ); // sinc_string
 
 const auto erfcx_string = jiterator_stringify(
+<<<<<<< HEAD
   /* The next function is taken from http://ab-initio.mit.edu/Faddeev */
+=======
+  /* The next function is taken from http://ab-initio.mit.edu/faddeeva */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /* Copyright (c) 2012 Massachusetts Institute of Technology
   *

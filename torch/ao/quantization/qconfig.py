@@ -98,7 +98,12 @@ class QConfig(namedtuple("QConfig", ["activation", "weight"])):
 
       my_qconfig = QConfig(
           activation=MinMaxObserver.with_args(dtype=torch.qint8),
+<<<<<<< HEAD
           weight=default_observer.with_args(dtype=torch.qint8))
+=======
+          weight=default_observer.with_args(dtype=torch.qint8),
+      )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     """
 
@@ -561,9 +566,15 @@ def _assert_valid_qconfig(qconfig: Optional[QConfig], mod: torch.nn.Module) -> N
                 torch.ao.quantization.MovingAveragePerChannelMinMaxObserver,
             ),
         )
+<<<<<<< HEAD
         assert (
             not is_per_channel
         ), "Per channel weight observer is not supported yet for ConvTranspose{n}d."
+=======
+        assert not is_per_channel, (
+            "Per channel weight observer is not supported yet for ConvTranspose{n}d."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 QConfigAny = Optional[QConfig]

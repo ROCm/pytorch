@@ -108,3 +108,13 @@ class TestShapeInference(unittest.TestCase):
         gm = generate_graph_module(m)
         input_tensors = [torch.randn(1, 1)]
         infer_shape(gm, input_tensors)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

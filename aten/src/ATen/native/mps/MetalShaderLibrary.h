@@ -13,6 +13,10 @@ typedef void* MTLComputePipelineState_t;
 typedef void* MTLComputeCommandEncoder_t;
 #endif
 
+<<<<<<< HEAD
+=======
+#include <c10/core/Scalar.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/OptionalArrayRef.h>
 #include <functional>
 #include <optional>
@@ -46,9 +50,18 @@ constexpr bool has_size_type_v = has_size_type<T>::value;
 
 } // namespace detail
 
+<<<<<<< HEAD
 class MetalKernelFunction {
  public:
   MetalKernelFunction(MTLComputePipelineState_t cps_);
+=======
+// Returns `gpuAddress` of respective `id<MTLBuffer>` plus storage offset
+void* get_tensor_gpu_address(const at::TensorBase&);
+
+class MetalKernelFunction {
+ public:
+  MetalKernelFunction(MTLComputePipelineState_t cps_, MTLFunction_t f_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ~MetalKernelFunction();
   MetalKernelFunction(MetalKernelFunction&) = delete;
   // Shader properties
@@ -56,7 +69,11 @@ class MetalKernelFunction {
   uint64_t getThreadExecutionWidth() const;
   uint64_t getStaticThreadGroupMemoryLength() const;
   void runCommandBlock(std::function<void(void)> f);
+<<<<<<< HEAD
   // Methods below should be called from runCommandBlock functionT
+=======
+  // Methods below should be called from runCommandBlock function
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void startEncoding();
   void setArg(unsigned idx, const at::TensorBase& t);
   void setArg(unsigned idx, const void* ptr, uint64_t size);
@@ -88,6 +105,10 @@ class MetalKernelFunction {
 
  private:
   MTLComputePipelineState_t cps;
+<<<<<<< HEAD
+=======
+  MTLFunction_t func;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   MTLComputeCommandEncoder_t encoder = nullptr;
 };
 
@@ -132,7 +153,17 @@ class MetalShaderLibrary {
   void exec_unary_kernel(
       TensorIteratorBase& iter,
       const std::string& name,
+<<<<<<< HEAD
       std::optional<int64_t> extra = std::nullopt);
+=======
+      const std::optional<c10::Scalar> alpha = std::nullopt,
+      const std::optional<c10::ScalarType> scalar_arg_type = std::nullopt);
+  void exec_binary_kernel(
+      TensorIteratorBase& iter,
+      const std::string& name,
+      const std::optional<c10::Scalar> alpha = std::nullopt,
+      const std::optional<c10::ScalarType> scalar_arg_type = std::nullopt);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  protected:
   virtual MTLLibrary_t getLibrary();

@@ -1,4 +1,8 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -49,7 +53,16 @@ class TransformedDistribution(Distribution):
 
     arg_constraints: dict[str, constraints.Constraint] = {}
 
+<<<<<<< HEAD
     def __init__(self, base_distribution, transforms, validate_args=None):
+=======
+    def __init__(
+        self,
+        base_distribution: Distribution,
+        transforms: Union[Transform, list[Transform]],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(transforms, Transform):
             self.transforms = [
                 transforms,

@@ -2,7 +2,11 @@
 
 namespace c10::impl {
 
+<<<<<<< HEAD
 thread_local std::atomic<bool> hermeticPyObjectState{false};
+=======
+thread_local static std::atomic<bool> hermeticPyObjectState{false};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 std::atomic<bool> HermeticPyObjectTLS::haveState_{false};
 

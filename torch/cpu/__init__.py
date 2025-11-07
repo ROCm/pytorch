@@ -15,6 +15,10 @@ from . import amp
 
 __all__ = [
     "is_available",
+<<<<<<< HEAD
+=======
+    "is_initialized",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "synchronize",
     "current_device",
     "current_stream",
@@ -193,3 +197,14 @@ def current_device() -> str:
     N.B. This function only exists to facilitate device-agnostic code
     """
     return "cpu"
+<<<<<<< HEAD
+=======
+
+
+def is_initialized() -> bool:
+    r"""Returns True if the CPU is initialized. Always True.
+
+    N.B. This function only exists to facilitate device-agnostic code
+    """
+    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

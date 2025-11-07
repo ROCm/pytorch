@@ -6,6 +6,7 @@
 #include <ATen/cpu/vec/intrinsics.h>
 
 #include <ATen/cpu/vec/vec_base.h>
+<<<<<<< HEAD
 #if !(defined(__VSX__)  || defined(CPU_CAPABILITY_VSX) || defined(CPU_CAPABILITY_ZVECTOR))
 #if defined(CPU_CAPABILITY_SVE256)
 #include <ATen/cpu/vec/sve/vec_common_sve.h>
@@ -24,6 +25,35 @@
 #include <ATen/cpu/vec/vec256/zarch/vec256_zarch.h>
 #include <ATen/cpu/vec/vec256/vec256_bfloat16.h>
 #include <ATen/cpu/vec/vec256/vec256_half.h>
+=======
+#if !(                                                 \
+    defined(__VSX__) || defined(CPU_CAPABILITY_VSX) || \
+    defined(CPU_CAPABILITY_ZVECTOR))
+#if defined(CPU_CAPABILITY_SVE256)
+#include <ATen/cpu/vec/sve/vec_common_sve.h>
+#else
+// clang-format off
+#include <ATen/cpu/vec/vec256/vec256_float.h>
+#include <ATen/cpu/vec/vec256/vec256_double.h>
+#include <ATen/cpu/vec/vec256/vec256_int.h>
+#include <ATen/cpu/vec/vec256/vec256_qint.h>
+#endif
+#if !defined(CPU_CAPABILITY_SVE256) || !defined(__ARM_FEATURE_BF16)
+#include <ATen/cpu/vec/vec256/vec256_bfloat16.h>
+#endif
+#include <ATen/cpu/vec/vec256/vec256_half.h>
+#include <ATen/cpu/vec/vec256/vec256_complex_float.h>
+#include <ATen/cpu/vec/vec256/vec256_complex_double.h>
+// clang-format on
+#elif defined(__VSX__) || defined(CPU_CAPABILITY_VSX)
+#include <ATen/cpu/vec/vec256/vsx/vec256_common_vsx.h>
+#else
+// clang-format off
+#include <ATen/cpu/vec/vec256/zarch/vec256_zarch.h>
+#include <ATen/cpu/vec/vec256/vec256_bfloat16.h>
+#include <ATen/cpu/vec/vec256/vec256_half.h>
+// clang-format on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 #include <ATen/cpu/vec/vec256/vec256_convert.h>
@@ -75,34 +105,56 @@ std::ostream& operator<<(std::ostream& stream, const Vectorized<T>& vec) {
   return stream;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if defined(CPU_CAPABILITY_AVX2)
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CAST (AVX2) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+<<<<<<< HEAD
 template<>
+=======
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Vectorized<float> cast<float, double>(const Vectorized<double>& src) {
   return _mm256_castpd_ps(src);
 }
 
+<<<<<<< HEAD
 template<>
+=======
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Vectorized<double> cast<double, float>(const Vectorized<float>& src) {
   return _mm256_castps_pd(src);
 }
 
+<<<<<<< HEAD
 template<>
+=======
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Vectorized<float> cast<float, int32_t>(const Vectorized<int32_t>& src) {
   return _mm256_castsi256_ps(src);
 }
 
+<<<<<<< HEAD
 template<>
 inline Vectorized<double> cast<double, int64_t>(const Vectorized<int64_t>& src) {
+=======
+template <>
+inline Vectorized<double> cast<double, int64_t>(
+    const Vectorized<int64_t>& src) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_castsi256_pd(src);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GATHER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifndef _MSC_VER
 // MSVC is not working well on complex function overload.
+<<<<<<< HEAD
 template<int64_t scale = 1>
 std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vectorized<double>>
 inline gather(const double* base_addr, const Vectorized<int64_t>& vindex) {
@@ -112,12 +164,28 @@ inline gather(const double* base_addr, const Vectorized<int64_t>& vindex) {
 template<int64_t scale = 1>
 std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vectorized<float>>
 inline gather(const float* base_addr, const Vectorized<int32_t>& vindex) {
+=======
+template <int64_t scale = 1>
+std::enable_if_t<
+    scale == 1 || scale == 2 || scale == 4 || scale == 8,
+    Vectorized<
+        double>> inline gather(const double* base_addr, const Vectorized<int64_t>& vindex) {
+  return _mm256_i64gather_pd(base_addr, vindex, scale);
+}
+
+template <int64_t scale = 1>
+std::enable_if_t<
+    scale == 1 || scale == 2 || scale == 4 || scale == 8,
+    Vectorized<
+        float>> inline gather(const float* base_addr, const Vectorized<int32_t>& vindex) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_i32gather_ps(base_addr, vindex, scale);
 }
 #endif
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MASK GATHER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifndef _MSC_VER
 // MSVC is not working well on complex function overload.
+<<<<<<< HEAD
 template<int64_t scale = 1>
 std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vectorized<double>>
 inline mask_gather(const Vectorized<double>& src, const double* base_addr,
@@ -129,6 +197,25 @@ template<int64_t scale = 1>
 std::enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vectorized<float>>
 inline mask_gather(const Vectorized<float>& src, const float* base_addr,
                    const Vectorized<int32_t>& vindex, Vectorized<float>& mask) {
+=======
+template <int64_t scale = 1>
+std::
+    enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vectorized<double>> inline mask_gather(
+        const Vectorized<double>& src,
+        const double* base_addr,
+        const Vectorized<int64_t>& vindex,
+        Vectorized<double>& mask) {
+  return _mm256_mask_i64gather_pd(src, base_addr, vindex, mask, scale);
+}
+
+template <int64_t scale = 1>
+std::
+    enable_if_t<scale == 1 || scale == 2 || scale == 4 || scale == 8, Vectorized<float>> inline mask_gather(
+        const Vectorized<float>& src,
+        const float* base_addr,
+        const Vectorized<int32_t>& vindex,
+        Vectorized<float>& mask) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_mask_i32gather_ps(src, base_addr, vindex, mask, scale);
 }
 #endif
@@ -136,6 +223,7 @@ inline mask_gather(const Vectorized<float>& src, const float* base_addr,
 
 // Only works for inputs in the range: [-2^51, 2^51]
 // From: https://stackoverflow.com/a/41148578
+<<<<<<< HEAD
 template<>
 Vectorized<int64_t>
 inline convert_to_int_of_same_size<double>(const Vectorized<double> &src) {
@@ -149,10 +237,25 @@ inline convert_to_int_of_same_size<double>(const Vectorized<double> &src) {
 template<>
 Vectorized<int32_t>
 inline convert_to_int_of_same_size<float>(const Vectorized<float> &src) {
+=======
+template <>
+Vectorized<int64_t> inline convert_to_int_of_same_size<double>(
+    const Vectorized<double>& src) {
+  auto x = _mm256_add_pd(src, _mm256_set1_pd(0x0018000000000000));
+  return _mm256_sub_epi64(
+      _mm256_castpd_si256(x),
+      _mm256_castpd_si256(_mm256_set1_pd(0x0018000000000000)));
+}
+
+template <>
+Vectorized<int32_t> inline convert_to_int_of_same_size<float>(
+    const Vectorized<float>& src) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_cvttps_epi32(src);
 }
 
 // From: https://stackoverflow.com/a/41148578
+<<<<<<< HEAD
 template<>
 Vectorized<double>
 inline convert_to_fp_of_same_size<double>(const Vectorized<int64_t> &src) {
@@ -173,27 +276,69 @@ inline convert_to_fp_of_same_size<double>(const Vectorized<int64_t> &src) {
 template<>
 Vectorized<float>
 inline convert_to_fp_of_same_size<float>(const Vectorized<int32_t> &src) {
+=======
+template <>
+Vectorized<double> inline convert_to_fp_of_same_size<double>(
+    const Vectorized<int64_t>& src) {
+  __m256i magic_i_lo = _mm256_set1_epi64x(0x4330000000000000); /* 2^52 */
+  __m256i magic_i_hi32 =
+      _mm256_set1_epi64x(0x4530000080000000); /* 2^84 + 2^63 */
+  __m256i magic_i_all =
+      _mm256_set1_epi64x(0x4530000080100000); /* 2^84 + 2^63 + 2^52 */
+  __m256d magic_d_all = _mm256_castsi256_pd(magic_i_all);
+
+  __m256i v_lo = _mm256_blend_epi32(
+      magic_i_lo, src, 0b01010101); /* v_low = low32 + 2^52 */
+  __m256i v_hi = _mm256_srli_epi64(src, 32);
+  v_hi = _mm256_xor_si256(
+      v_hi, magic_i_hi32); /* v_hi = high32*2^32 + 2^84 + 2^63 */
+  /* int64 = low32 + high32*2^32 = v_hi + v_lo - 2^52 - 2^63 - 2^84 */
+  __m256d v_hi_dbl = _mm256_sub_pd(_mm256_castsi256_pd(v_hi), magic_d_all);
+  __m256d result = _mm256_add_pd(v_hi_dbl, _mm256_castsi256_pd(v_lo));
+  return result;
+}
+
+template <>
+Vectorized<float> inline convert_to_fp_of_same_size<float>(
+    const Vectorized<int32_t>& src) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_cvtepi32_ps(src);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INTERLEAVE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 template <>
+<<<<<<< HEAD
 std::pair<Vectorized<double>, Vectorized<double>>
 inline interleave2<double>(const Vectorized<double>& a, const Vectorized<double>& b) {
   // inputs:
   //   a = {a0, a1, a3, a3}
+=======
+std::pair<Vectorized<double>, Vectorized<double>> inline interleave2<double>(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+  // inputs:
+  //   a = {a0, a1, a2, a3}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //   b = {b0, b1, b2, b3}
 
   // swap lanes:
   //   a_swapped = {a0, a1, b0, b1}
   //   b_swapped = {a2, a3, b2, b3}
+<<<<<<< HEAD
   auto a_swapped = _mm256_permute2f128_pd(a, b, 0b0100000);  // 0, 2.   4 bits apart
   auto b_swapped = _mm256_permute2f128_pd(a, b, 0b0110001);  // 1, 3.   4 bits apart
+=======
+  auto a_swapped =
+      _mm256_permute2f128_pd(a, b, 0b0100000); // 0, 2.   4 bits apart
+  auto b_swapped =
+      _mm256_permute2f128_pd(a, b, 0b0110001); // 1, 3.   4 bits apart
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // group cols crossing lanes:
   //   return {a0, b0, a1, b1}
   //          {a2, b2, a3, b3}
+<<<<<<< HEAD
   return std::make_pair(_mm256_permute4x64_pd(a_swapped, 0b11011000),  // 0, 2, 1, 3
                         _mm256_permute4x64_pd(b_swapped, 0b11011000)); // 0, 2, 1, 3
 }
@@ -201,6 +346,17 @@ inline interleave2<double>(const Vectorized<double>& a, const Vectorized<double>
 template <>
 std::pair<Vectorized<float>, Vectorized<float>>
 inline interleave2<float>(const Vectorized<float>& a, const Vectorized<float>& b) {
+=======
+  return std::make_pair(
+      _mm256_permute4x64_pd(a_swapped, 0b11011000), // 0, 2, 1, 3
+      _mm256_permute4x64_pd(b_swapped, 0b11011000)); // 0, 2, 1, 3
+}
+
+template <>
+std::pair<Vectorized<float>, Vectorized<float>> inline interleave2<float>(
+    const Vectorized<float>& a,
+    const Vectorized<float>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // inputs:
   //   a = {a0, a1, a2, a3, a4, a5, a6, a7}
   //   b = {b0, b1, b2, b3, b4, b5, b6, b7}
@@ -209,22 +365,41 @@ inline interleave2<float>(const Vectorized<float>& a, const Vectorized<float>& b
   //   a_swapped = {a0, a1, a2, a3, b0, b1, b2, b3}
   //   b_swapped = {a4, a5, a6, a7, b4, b5, b6, b7}
   // TODO: can we support caching this?
+<<<<<<< HEAD
   auto a_swapped = _mm256_permute2f128_ps(a, b, 0b0100000);  // 0, 2.   4 bits apart
   auto b_swapped = _mm256_permute2f128_ps(a, b, 0b0110001);  // 1, 3.   4 bits apart
+=======
+  auto a_swapped =
+      _mm256_permute2f128_ps(a, b, 0b0100000); // 0, 2.   4 bits apart
+  auto b_swapped =
+      _mm256_permute2f128_ps(a, b, 0b0110001); // 1, 3.   4 bits apart
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // group cols crossing lanes:
   //   return {a0, b0, a1, b1, a2, b2, a3, b3}
   //          {a4, b4, a5, b5, a6, b6, a7, b7}
   const __m256i group_ctrl = _mm256_setr_epi32(0, 4, 1, 5, 2, 6, 3, 7);
+<<<<<<< HEAD
   return std::make_pair(_mm256_permutevar8x32_ps(a_swapped, group_ctrl),
                         _mm256_permutevar8x32_ps(b_swapped, group_ctrl));
+=======
+  return std::make_pair(
+      _mm256_permutevar8x32_ps(a_swapped, group_ctrl),
+      _mm256_permutevar8x32_ps(b_swapped, group_ctrl));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEINTERLEAVE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 template <>
+<<<<<<< HEAD
 std::pair<Vectorized<double>, Vectorized<double>>
 inline deinterleave2<double>(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+std::pair<Vectorized<double>, Vectorized<double>> inline deinterleave2<double>(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // inputs:
   //   a = {a0, b0, a1, b1}
   //   b = {a2, b2, a3, b3}
@@ -232,12 +407,18 @@ inline deinterleave2<double>(const Vectorized<double>& a, const Vectorized<doubl
   // group cols crossing lanes:
   //   a_grouped = {a0, a1, b0, b1}
   //   b_grouped = {a2, a3, b2, b3}
+<<<<<<< HEAD
   auto a_grouped = _mm256_permute4x64_pd(a, 0b11011000);  // 0, 2, 1, 3
   auto b_grouped = _mm256_permute4x64_pd(b, 0b11011000);  // 0, 2, 1, 3
+=======
+  auto a_grouped = _mm256_permute4x64_pd(a, 0b11011000); // 0, 2, 1, 3
+  auto b_grouped = _mm256_permute4x64_pd(b, 0b11011000); // 0, 2, 1, 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // swap lanes:
   //   return {a0, a1, a2, a3}
   //          {b0, b1, b2, b3}
+<<<<<<< HEAD
   return std::make_pair(_mm256_permute2f128_pd(a_grouped, b_grouped, 0b0100000),  // 0, 2.   4 bits apart
                         _mm256_permute2f128_pd(a_grouped, b_grouped, 0b0110001)); // 1, 3.   4 bits apart
 }
@@ -245,6 +426,19 @@ inline deinterleave2<double>(const Vectorized<double>& a, const Vectorized<doubl
 template <>
 std::pair<Vectorized<float>, Vectorized<float>>
 inline deinterleave2<float>(const Vectorized<float>& a, const Vectorized<float>& b) {
+=======
+  return std::make_pair(
+      _mm256_permute2f128_pd(
+          a_grouped, b_grouped, 0b0100000), // 0, 2.   4 bits apart
+      _mm256_permute2f128_pd(
+          a_grouped, b_grouped, 0b0110001)); // 1, 3.   4 bits apart
+}
+
+template <>
+std::pair<Vectorized<float>, Vectorized<float>> inline deinterleave2<float>(
+    const Vectorized<float>& a,
+    const Vectorized<float>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // inputs:
   //   a = {a0, b0, a1, b1, a2, b2, a3, b3}
   //   b = {a4, b4, a5, b5, a6, b6, a7, b7}
@@ -260,18 +454,32 @@ inline deinterleave2<float>(const Vectorized<float>& a, const Vectorized<float>&
   // swap lanes:
   //   return {a0, a1, a2, a3, a4, a5, a6, a7}
   //          {b0, b1, b2, b3, b4, b5, b6, b7}
+<<<<<<< HEAD
   return std::make_pair(_mm256_permute2f128_ps(a_grouped, b_grouped, 0b0100000),  // 0, 2.   4 bits apart
                         _mm256_permute2f128_ps(a_grouped, b_grouped, 0b0110001)); // 1, 3.   4 bits apart
+=======
+  return std::make_pair(
+      _mm256_permute2f128_ps(
+          a_grouped, b_grouped, 0b0100000), // 0, 2.   4 bits apart
+      _mm256_permute2f128_ps(
+          a_grouped, b_grouped, 0b0110001)); // 1, 3.   4 bits apart
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FLIP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+<<<<<<< HEAD
 template<>
 inline Vectorized<float> flip(const Vectorized<float> & v) {
+=======
+template <>
+inline Vectorized<float> flip(const Vectorized<float>& v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const __m256i mask_float = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);
   return _mm256_permutevar8x32_ps(v, mask_float);
 }
 
+<<<<<<< HEAD
 template<>
 inline Vectorized<double> flip(const Vectorized<double> & v) {
   return _mm256_permute4x64_pd(v, 27);  // 27 == _MM_SHUFFLE(0, 1, 2, 3)
@@ -284,29 +492,119 @@ inline Vectorized<int64_t> flip(const Vectorized<int64_t> & v) {
 
 template<>
 inline Vectorized<int32_t> flip(const Vectorized<int32_t> & v) {
+=======
+template <>
+inline Vectorized<double> flip(const Vectorized<double>& v) {
+  return _mm256_permute4x64_pd(v, 27); // 27 == _MM_SHUFFLE(0, 1, 2, 3)
+}
+
+template <>
+inline Vectorized<int64_t> flip(const Vectorized<int64_t>& v) {
+  return _mm256_permute4x64_epi64(v, 27); // 27 == _MM_SHUFFLE(0, 1, 2, 3)
+}
+
+template <>
+inline Vectorized<int32_t> flip(const Vectorized<int32_t>& v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const __m256i mask_int32 = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);
   return _mm256_permutevar8x32_epi32(v, mask_int32);
 }
 
+<<<<<<< HEAD
 template<>
 inline Vectorized<int16_t> flip(const Vectorized<int16_t> & v) {
   const __m256i mask = _mm256_set_epi8(
     1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14,
     1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14
   );
+=======
+template <>
+inline Vectorized<int16_t> flip(const Vectorized<int16_t>& v) {
+  const __m256i mask = _mm256_set_epi8(
+      1,
+      0,
+      3,
+      2,
+      5,
+      4,
+      7,
+      6,
+      9,
+      8,
+      11,
+      10,
+      13,
+      12,
+      15,
+      14,
+      1,
+      0,
+      3,
+      2,
+      5,
+      4,
+      7,
+      6,
+      9,
+      8,
+      11,
+      10,
+      13,
+      12,
+      15,
+      14);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto reversed = _mm256_shuffle_epi8(v, mask);
   return _mm256_permute2x128_si256(reversed, reversed, 1);
 }
 
+<<<<<<< HEAD
 inline __m256i flip8(const __m256i & v) {
   const __m256i mask_int8 = _mm256_set_epi8(
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
   );
+=======
+inline __m256i flip8(const __m256i& v) {
+  const __m256i mask_int8 = _mm256_set_epi8(
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto reversed = _mm256_shuffle_epi8(v, mask_int8);
   return _mm256_permute2x128_si256(reversed, reversed, 1);
 }
 
+<<<<<<< HEAD
 template<>
 inline Vectorized<int8_t> flip(const Vectorized<int8_t> & v) {
   return flip8(v);
@@ -314,6 +612,15 @@ inline Vectorized<int8_t> flip(const Vectorized<int8_t> & v) {
 
 template<>
 inline Vectorized<uint8_t> flip(const Vectorized<uint8_t> & v) {
+=======
+template <>
+inline Vectorized<int8_t> flip(const Vectorized<int8_t>& v) {
+  return flip8(v);
+}
+
+template <>
+inline Vectorized<uint8_t> flip(const Vectorized<uint8_t>& v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return flip8(v);
 }
 
@@ -330,4 +637,9 @@ inline Vectorized<bool> operator&&(
 
 #endif // (defined(CPU_CAPABILITY_AVX2)
 
+<<<<<<< HEAD
 }} // namepsace at::vec::CPU_CAPABILITY
+=======
+} // namespace CPU_CAPABILITY
+} // namespace at::vec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

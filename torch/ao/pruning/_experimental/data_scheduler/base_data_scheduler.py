@@ -98,7 +98,13 @@ class BaseDataScheduler:
             >>> def get_schedule_param(self):
             ...     new_param = {}
             ...     for name in self.sparsifier.data_groups.keys():
+<<<<<<< HEAD
             ...         new_param[name] = self.sparsifier.data_groups[name][self.schedule_param] * 0.5
+=======
+            ...         new_param[name] = (
+            ...             self.sparsifier.data_groups[name][self.schedule_param] * 0.5
+            ...         )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ...     return new_param
 
         When the step() function is called, the value in self.sparsifier.data_groups[name][self.schedule_param]

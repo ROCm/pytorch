@@ -212,7 +212,13 @@ headers = {"Authorization": f"token {token}"}
 
 def run_query(query):
     request = requests.post(
+<<<<<<< HEAD
         "https://api.github.com/graphql", json={"query": query}, headers=headers
+=======
+        "https://api.github.com/graphql",  # @lint-ignore
+        json={"query": query},
+        headers=headers,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     if request.status_code == 200:
         return request.json()

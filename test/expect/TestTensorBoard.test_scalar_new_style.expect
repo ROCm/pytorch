@@ -2,7 +2,11 @@ value {
   tag: "test_scalar"
   tensor {
     dtype: DT_FLOAT
+<<<<<<< HEAD
     float_val: 1.0
+=======
+    float_val: 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   metadata {
     plugin_data {

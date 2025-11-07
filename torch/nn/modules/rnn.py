@@ -253,7 +253,12 @@ class RNNBase(Module):
         # alias would break the assumptions of the uniqueness check in
         # Module.named_parameters().
         unique_data_ptrs = {
+<<<<<<< HEAD
             p.data_ptr() for p in self._flat_weights  # type: ignore[union-attr]
+=======
+            p.data_ptr()  # type: ignore[union-attr]
+            for p in self._flat_weights
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         if len(unique_data_ptrs) != len(self._flat_weights):
             return
@@ -484,11 +489,18 @@ class RNN(RNNBase):
     .. code-block:: python
 
         # Efficient implementation equivalent to the following with bidirectional=False
+<<<<<<< HEAD
         def forward(x, hx=None):
+=======
+        rnn = nn.RNN(input_size, hidden_size, num_layers)
+        params = dict(rnn.named_parameters())
+        def forward(x, hx=None, batch_first=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if batch_first:
                 x = x.transpose(0, 1)
             seq_len, batch_size, _ = x.size()
             if hx is None:
+<<<<<<< HEAD
                 hx = torch.zeros(num_layers, batch_size, hidden_size)
             h_t_minus_1 = hx
             h_t = hx
@@ -503,6 +515,23 @@ class RNN(RNNBase):
                     )
                 output.append(h_t[-1])
                 h_t_minus_1 = h_t
+=======
+                hx = torch.zeros(rnn.num_layers, batch_size, rnn.hidden_size)
+            h_t_minus_1 = hx.clone()
+            h_t = hx.clone()
+            output = []
+            for t in range(seq_len):
+                for layer in range(rnn.num_layers):
+                    input_t = x[t] if layer == 0 else h_t[layer - 1]
+                    h_t[layer] = torch.tanh(
+                        input_t @ params[f"weight_ih_l{layer}"].T
+                        + h_t_minus_1[layer] @ params[f"weight_hh_l{layer}"].T
+                        + params[f"bias_hh_l{layer}"]
+                        + params[f"bias_ih_l{layer}"]
+                    )
+                output.append(h_t[-1].clone())
+                h_t_minus_1 = h_t.clone()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output = torch.stack(output)
             if batch_first:
                 output = output.transpose(0, 1)
@@ -608,12 +637,19 @@ class RNN(RNNBase):
         bidirectional: bool = False,
         device=None,
         dtype=None,
+<<<<<<< HEAD
     ) -> None:
         ...
 
     @overload
     def __init__(self, *args, **kwargs):
         ...
+=======
+    ) -> None: ...
+
+    @overload
+    def __init__(self, *args, **kwargs): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, *args, **kwargs):
         if "proj_size" in kwargs:
@@ -966,12 +1002,19 @@ class LSTM(RNNBase):
         proj_size: int = 0,
         device=None,
         dtype=None,
+<<<<<<< HEAD
     ) -> None:
         ...
 
     @overload
     def __init__(self, *args, **kwargs):
         ...
+=======
+    ) -> None: ...
+
+    @overload
+    def __init__(self, *args, **kwargs): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, *args, **kwargs):
         super().__init__("LSTM", *args, **kwargs)
@@ -1301,12 +1344,19 @@ class GRU(RNNBase):
         bidirectional: bool = False,
         device=None,
         dtype=None,
+<<<<<<< HEAD
     ) -> None:
         ...
 
     @overload
     def __init__(self, *args, **kwargs):
         ...
+=======
+    ) -> None: ...
+
+    @overload
+    def __init__(self, *args, **kwargs): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, *args, **kwargs):
         if "proj_size" in kwargs:

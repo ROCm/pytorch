@@ -28,6 +28,10 @@ class LinearReLU(nnqat.Linear, nni._FusedModule):
         >>> print(output.size())
         torch.Size([128, 30])
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _FLOAT_MODULE = nni.LinearReLU  # type: ignore[assignment]
 
     def __init__(self, in_features, out_features, bias=True, qconfig=None):

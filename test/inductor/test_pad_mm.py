@@ -13,7 +13,11 @@ from torch._inductor.fx_passes.pad_mm import (
     should_pad_mm_bf16,
 )
 from torch._inductor.test_case import run_tests, TestCase
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache, is_big_gpu, run_and_get_code
+=======
+from torch._inductor.utils import fresh_cache, is_big_gpu, run_and_get_code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import skipIfRocm
 from torch.testing._internal.inductor_utils import HAS_CUDA
@@ -362,7 +366,11 @@ class PadMMTest(TestCase):
         self.assertEqual(out, inps[0] @ inps[1])
 
     @inductor_config.patch(force_shape_pad=True)
+<<<<<<< HEAD
     @fresh_inductor_cache()
+=======
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pad_addmm_2d_bias(self):
         @torch.compile()
         def foo(input, x, y):
@@ -400,9 +408,15 @@ class PadMMTest(TestCase):
         expected_alignment = get_alignment_size(mat1)
 
         assert expected_alignment == 8, "Alignment for float16 should be 8"
+<<<<<<< HEAD
         assert should_pad_common(
             mat1, mat2
         ), "This should pass the common padding criteria"
+=======
+        assert should_pad_common(mat1, mat2), (
+            "This should pass the common padding criteria"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile()
         def bmm(mat1, mat2):
@@ -415,11 +429,19 @@ class PadMMTest(TestCase):
             ".run(", 2, exactly=True
         ).check("empty_strided_cuda((3, 8, 16)").run(code)
 
+<<<<<<< HEAD
         assert torch.allclose(
             res2, bmm_expected_result
         ), "BMM results are not identical"
 
     @fresh_inductor_cache()
+=======
+        assert torch.allclose(res2, bmm_expected_result), (
+            "BMM results are not identical"
+        )
+
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_exclude_padding(self):
         @torch.compile()
         def mm(a, b):
@@ -448,7 +470,11 @@ class PadMMTest(TestCase):
             repr(local_cache)
         )
 
+<<<<<<< HEAD
     @fresh_inductor_cache()
+=======
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @inductor_config.patch(max_pointwise_cat_inputs=2)
     def test_exclude_cat_padding(self):
         @torch.compile()
@@ -475,7 +501,11 @@ class PadMMTest(TestCase):
         "No perf regression on H100+ with BF16",
     )
     @skipIfRocm
+<<<<<<< HEAD
     @fresh_inductor_cache()
+=======
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @inductor_config.patch(
         post_grad_fusion_options={"pad_aten_mm_pass": {"k_threshold_to_pad": 8388608}}
     )
@@ -488,12 +518,21 @@ class PadMMTest(TestCase):
         expected_alignment = get_alignment_size(mat1)
 
         assert expected_alignment == 8, "Alignment for bfloat16 should be 8"
+<<<<<<< HEAD
         assert should_pad_common(
             mat1, mat2
         ), "This should pass the common padding criteria"
         assert should_pad_mm_bf16(
             mat1.dtype, m, n, k
         ), "This should pass the should_pad_mm_bf16 padding criteria"
+=======
+        assert should_pad_common(mat1, mat2), (
+            "This should pass the common padding criteria"
+        )
+        assert should_pad_mm_bf16(mat1.dtype, m, n, k), (
+            "This should pass the should_pad_mm_bf16 padding criteria"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile()
         def mm(mat1, mat2):
@@ -508,7 +547,11 @@ class PadMMTest(TestCase):
 
         assert torch.allclose(res2, mm_expected_result), "MM results are not identical"
 
+<<<<<<< HEAD
     @fresh_inductor_cache()
+=======
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @inductor_config.patch(
         {
             "triton.unique_kernel_names": "original_aten",
@@ -521,8 +564,13 @@ class PadMMTest(TestCase):
             return x @ y
 
         args = [
+<<<<<<< HEAD
             torch.randn(2**4, 2**14 - 1, device="cuda", dtype=torch.float16),
             torch.randn(2**14 - 1, 2**4, device="cuda", dtype=torch.float16),
+=======
+            torch.randn(2**4, 2**8 - 1, device="cuda", dtype=torch.float16),
+            torch.randn(2**8 - 1, 2**4, device="cuda", dtype=torch.float16),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         counters.clear()
@@ -534,6 +582,10 @@ class PadMMTest(TestCase):
             ret, code = run_and_get_code(opt_fn, *args)
         self.assertEqual(counters["inductor"]["pattern_matcher_count"], 1)
 
+<<<<<<< HEAD
+=======
+        code = [c for c in code if "decompose_k" not in c]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # The mm kernel should use a template (because we set max_autotune_gemm_backends = TRITON).
         # Its name should contain `mm` because `mm` was the original aten op where the mm came from.
         FileCheck().check("def triton_tem_fused_mm").run(code[0])

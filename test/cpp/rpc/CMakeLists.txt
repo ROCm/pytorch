@@ -5,7 +5,11 @@ set(TORCH_RPC_TEST_SOURCES
   ${TORCH_RPC_TEST_DIR}/test_wire_serialization.cpp
 )
 set(TORCH_RPC_TEST_DEPENDENCY_LIBS
+<<<<<<< HEAD
   torch gtest
+=======
+  torch gtest_main
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 if(USE_GLOO)

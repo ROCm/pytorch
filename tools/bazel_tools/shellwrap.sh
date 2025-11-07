@@ -54,5 +54,9 @@ echo "Entering interactive shell at the execution root:"
 # quote escape all the arguments to use as a single input string
 cmd="'$shell' --noprofile --rcfile '$rcfile'"
 
+<<<<<<< HEAD
 # run the command in a script psuedo terminal and dump to null
+=======
+# run the command in a script pseudo terminal and dump to null
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /usr/bin/script -c "$cmd" -q /dev/null

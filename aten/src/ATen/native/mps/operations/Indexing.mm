@@ -34,6 +34,10 @@
 #include <ATen/ops/flip_native.h>
 #include <ATen/ops/index.h>
 #include <ATen/ops/index_add_native.h>
+<<<<<<< HEAD
+=======
+#include <ATen/ops/index_copy_native.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/index_fill_native.h>
 #include <ATen/ops/index_put.h>
 #include <ATen/ops/index_select_native.h>
@@ -66,7 +70,13 @@ id<MTLBuffer> generateKernelDataOffsets(id<MTLComputeCommandEncoder> commandEnco
   std::vector<uint32_t> iterShapeData(iterShape.size());
   std::vector<std::array<uint32_t, nOffsets>> strides(nDim);
   TORCH_INTERNAL_ASSERT(iter.ntensors() >= nOffsets);
+<<<<<<< HEAD
   TORCH_CHECK(use_64bit_index || iter.can_use_32bit_indexing(), "Can't be indexed using 32-bit iterator");
+=======
+  TORCH_CHECK(use_64bit_index || iter.can_use_32bit_indexing(),
+              "kernel data offsets can't be computed using 32-bit iterator of shape ",
+              iterShape);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   for (const auto i : c10::irange(iterShape.size())) {
     iterShapeData[i] = static_cast<uint32_t>(iterShape[i]);
@@ -99,6 +109,7 @@ static std::string getBitSizeString(ScalarType scalar_type) {
   TORCH_CHECK(scalarBitSize <= 64, "Unsupported data type: ", getMPSTypeString(scalar_type));
   return std::to_string(scalarBitSize) + "bit";
 }
+<<<<<<< HEAD
 static std::string getIndexFunctionName(ScalarType scalar_type,
                                         bool index_select,
                                         bool accumulate,
@@ -187,6 +198,11 @@ static bool dispatchIndexKernel(TensorIteratorBase& iter,
   });
 
   return true;
+=======
+
+static std::string getBitSizeString(const TensorBase& t) {
+  return getBitSizeString(t.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static void validateInputData(const TensorIteratorBase& iter,
@@ -206,8 +222,12 @@ static void validateInputData(const TensorIteratorBase& iter,
 
   if (accumulate) {
     // No atomic support for the rest of dtypes
+<<<<<<< HEAD
     TORCH_CHECK(scalar_type == ScalarType::Float || inputTensor.scalar_type() == ScalarType::Int ||
                 scalar_type == ScalarType::Bool);
+=======
+    TORCH_CHECK(supportedFloatingType(scalar_type) || scalar_type == kInt || scalar_type == kBool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(c10::isIntegralType(scalar_type, /*includesBool=*/true) || supportedFloatingType(scalar_type) ||
                     scalar_type == ScalarType::ComplexFloat || scalar_type == ScalarType::ComplexHalf,
@@ -238,11 +258,64 @@ static Tensor& masked_select_out_mps_impl(Tensor& result, const Tensor& self, co
   return result;
 }
 
+<<<<<<< HEAD
 static void index_kernel_mps(TensorIteratorBase& iter, IntArrayRef index_size, IntArrayRef index_stride) {
   @autoreleasepool {
     validateInputData(iter, index_size, index_stride, "index.Tensor_out", /*accumulate=*/false);
     dispatchIndexKernel(iter, index_size, index_stride, /*index_select=*/true, /*accumulate=*/false);
   }
+=======
+static void dispatch_index_kernel(TensorIteratorBase& iter,
+                                  IntArrayRef index_size,
+                                  IntArrayRef index_stride,
+                                  const std::string& kernel_name,
+                                  const bool serial = false) {
+  validateInputData(iter, index_size, index_stride, "index.Tensor_out", /*accumulate=*/false);
+  if (iter.numel() == 0)
+    return;
+  if (!iter.can_use_32bit_indexing()) {
+    for (auto& sub_iter : iter.with_32bit_indexing()) {
+      dispatch_index_kernel(sub_iter, index_size, index_stride, kernel_name);
+    }
+    return;
+  }
+  const auto mpsStream = getCurrentMPSStream();
+  dispatch_sync_with_rethrow(mpsStream->queue(), ^() {
+    const int64_t num_indices = index_size.size();
+    auto indexSelectPSO = lib.getPipelineStateForFunc(kernel_name);
+    auto computeEncoder = mpsStream->commandEncoder();
+    size_t argumentBufferLength = sizeof(uint64_t) * num_indices;
+    std::vector<uint64_t> indexAB;
+    std::array<uint32_t, 4> ndim_nindiees = {static_cast<uint32_t>(iter.ndim()),
+                                             static_cast<uint32_t>(index_size.size()),
+                                             static_cast<uint32_t>(iter.numel()),
+                                             0};
+    for (uint32_t idx = 0; idx < num_indices; idx++) {
+      const auto& indexTensor = iter.tensor_base(idx + 2);
+      indexAB.push_back(getMTLBufferStorage(indexTensor).gpuAddress + iter_tensor_offset(iter, idx + 2));
+      TORCH_CHECK(indexTensor.scalar_type() == ScalarType::Long, "index(): Expected dtype int64 for Index");
+      [computeEncoder useResource:getMTLBufferStorage(indexTensor) usage:MTLResourceUsageRead];
+    }
+    [computeEncoder setComputePipelineState:indexSelectPSO];
+    bind_iter_tensors(computeEncoder, iter, 2);
+    mtl_setArgs<2>(computeEncoder,
+                   indexAB,
+                   iter.shape(),
+                   iter.strides(0),
+                   iter.strides(1),
+                   iter.strides(2),
+                   index_size,
+                   index_stride,
+                   ndim_nindiees);
+    mtl_dispatch1DJob(computeEncoder, indexSelectPSO, serial ? 1 : iter.numel());
+  });
+}
+
+static void index_kernel_mps(TensorIteratorBase& iter, IntArrayRef index_size, IntArrayRef index_stride) {
+  validateInputData(iter, index_size, index_stride, "index.Tensor_out", /*accumulate=*/false);
+  dispatch_index_kernel(
+      iter, index_size, index_stride, fmt::format("index_select_{}", getBitSizeString(iter.tensor_base(0))));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static void index_put_kernel_mps(TensorIterator& iter,
@@ -251,11 +324,104 @@ static void index_put_kernel_mps(TensorIterator& iter,
                                  bool accumulate) {
   @autoreleasepool {
     validateInputData(iter, index_size, index_stride, "index_put_impl", accumulate);
+<<<<<<< HEAD
     dispatchIndexKernel(iter, index_size, index_stride, /*index_select=*/false, accumulate);
+=======
+    if (accumulate) {
+      dispatch_index_kernel(iter,
+                            index_size,
+                            index_stride,
+                            fmt::format("index_put_accumulate_{}", scalarToMetalTypeString(iter.tensor_base(0))));
+    } else if (at::globalContext().deterministicAlgorithms()) {
+      dispatch_index_kernel(iter,
+                            index_size,
+                            index_stride,
+                            fmt::format("index_put_serial_{}", getBitSizeString(iter.tensor_base(0))),
+                            true);
+    } else {
+      dispatch_index_kernel(
+          iter, index_size, index_stride, fmt::format("index_put_{}", getBitSizeString(iter.tensor_base(0))));
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 } // namespace mps
 
+<<<<<<< HEAD
+=======
+TORCH_IMPL_FUNC(index_copy_out_mps)(const Tensor& self,
+                                    int64_t dim,
+                                    const Tensor& index,
+                                    const Tensor& source,
+                                    const Tensor& result) {
+  using namespace mps;
+
+  // special-case for 0-dim tensors
+  if (self.dim() == 0) {
+    TORCH_CHECK(index.numel() == 1,
+                "index_copy_(): attempting to index a 0-dim tensor with an index tensor of size ",
+                index.numel());
+    int64_t idx = index.item<int64_t>();
+    TORCH_CHECK(idx == 0, "index_copy_(): the only valid index for a 0-dim tensor is 0, but got ", idx);
+    result.copy_(source);
+    return;
+  }
+
+  dim = maybe_wrap_dim(dim, self.dim());
+
+  // early return for empty index
+  if (index.numel() == 0) {
+    result.copy_(self);
+    return;
+  }
+
+  for (int64_t i = 0; i < self.dim(); i++) {
+    if (i != dim) {
+      TORCH_CHECK(self.size(i) == source.size(i),
+                  "index_copy_(): self and source must have same size at dimension ",
+                  i,
+                  "; self has size ",
+                  self.size(i),
+                  ", source has size ",
+                  source.size(i));
+    }
+  }
+
+  TORCH_CHECK(source.size(dim) == index.numel(),
+              "index_copy_(): Number of indices (",
+              index.numel(),
+              ") should be equal to source.size(dim) (",
+              source.size(dim),
+              ")");
+
+  auto stream = getCurrentMPSStream();
+  auto device = MPSDevice::getInstance()->device();
+
+  const bool is_dense =
+      self.is_contiguous() && source.is_contiguous() && result.is_contiguous() && index.is_contiguous();
+
+  auto dense_or_strided = is_dense ? "dense" : "strided";
+  auto long_or_int = (index.scalar_type() == ScalarType::Long) ? "long" : "int";
+  auto indexCopyPSO = lib.getPipelineStateForFunc(
+      fmt::format("index_copy_{}_{}_{}", dense_or_strided, scalarToMetalTypeString(result), long_or_int));
+
+  dispatch_sync_with_rethrow(stream->queue(), ^() {
+    @autoreleasepool {
+      auto computeEncoder = stream->commandEncoder();
+      uint32_t dim_arg = static_cast<uint32_t>(dim);
+      uint32_t ndim = self.dim();
+      uint32_t indices_numel = index.numel();
+      [computeEncoder setComputePipelineState:indexCopyPSO];
+      mtl_setArgs(computeEncoder, result, self, source, index, dim_arg, self.sizes(), ndim, indices_numel);
+      if (!is_dense) {
+        mtl_setArgs<8>(computeEncoder, self.strides(), result.strides(), source.strides());
+      }
+      mtl_dispatch1DJob(computeEncoder, indexCopyPSO, result.numel());
+    }
+  });
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static Tensor nonzero_fallback(const Tensor& self) {
   return at::nonzero(self.to("cpu")).to("mps");
 }
@@ -283,7 +449,11 @@ static Tensor& nonzero_out_native_mps(const Tensor& self, Tensor& out_) {
   }
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "nonzero_out_native_mps" + getTensorsStringKey(self);
+=======
+    std::string key = "nonzero_out_native_mps" + getTensorsStringKey(self);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
 
@@ -375,7 +545,11 @@ Tensor& nonzero_out_mps(const Tensor& self, Tensor& out_) {
   }
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "nonzero_out_native_mps" + getTensorsStringKey(self);
+=======
+    std::string key = "nonzero_out_native_mps" + getTensorsStringKey(self);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
 
@@ -456,7 +630,11 @@ Tensor flip_mps(const Tensor& self, IntArrayRef dims) {
     NSString* ns_dims_key = [[ns_dims valueForKey:@"description"] componentsJoinedByString:@","];
     // A key is used to identify the MPSGraph which was created once, and can be reused if the parameters, data types
     // etc match the earlier created MPSGraph
+<<<<<<< HEAD
     string key = "flip_mps:" + getTensorsStringKey({self}) + ":" + string([ns_dims_key UTF8String]);
+=======
+    std::string key = "flip_mps:" + getTensorsStringKey({self}) + ":" + std::string([ns_dims_key UTF8String]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, inputDataType, getMPSShape(self));
       MPSGraphTensor* outputTensor = [mpsGraph reverseTensor:inputTensor axes:ns_dims name:nil];
@@ -504,7 +682,11 @@ TORCH_IMPL_FUNC(index_add_mps_out)
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "index_add_mps_out" + getTensorsStringKey({self, index, source}) + ":" + std::to_string(dim);
+=======
+    std::string key = "index_add_mps_out" + getTensorsStringKey({self, index, source}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       MPSGraphTensor* indexTensor = mpsGraphRankedPlaceHolder(mpsGraph, index);
@@ -653,7 +835,11 @@ Tensor& index_select_out_mps(const Tensor& self, int64_t dim, const Tensor& inde
   }
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "index_select_out_mps" + getTensorsStringKey({self, index}) + ":" + std::to_string(dim);
+=======
+    std::string key = "index_select_out_mps" + getTensorsStringKey({self, index}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, inputType, getMPSShape(self));
       MPSGraphTensor* indexTensor = mpsGraphRankedPlaceHolder(mpsGraph, index);
@@ -790,8 +976,14 @@ Tensor embedding_dense_backward_mps(const Tensor& grad_,
   auto stream = at::mps::getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "edb_mps:" + getTensorsStringKey({grad_, indices}) + ":num_weights" + std::to_string(num_weights) +
         ":padding_idx" + std::to_string(padding_idx) + ":scaled" + std::to_string(scale_grad_by_freq);
+=======
+    std::string key = "edb_mps:" + getTensorsStringKey({grad_, indices}) + ":num_weights" +
+        std::to_string(num_weights) + ":padding_idx" + std::to_string(padding_idx) + ":scaled" +
+        std::to_string(scale_grad_by_freq);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* incomingGradTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(grad_));
 
@@ -930,7 +1122,12 @@ Tensor& index_fill_mps_(Tensor& self, int64_t dim, const Tensor& index, const Te
   auto expanded_source = source.expand(source_shape);
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "index_fill_mps_" + getTensorsStringKey({self, index, expanded_source}) + ":" + std::to_string(dim);
+=======
+    std::string key =
+        "index_fill_mps_" + getTensorsStringKey({self, index, expanded_source}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, inputType, getMPSShape(self));
       MPSGraphTensor* indexTensor = mpsGraphRankedPlaceHolder(mpsGraph, index);

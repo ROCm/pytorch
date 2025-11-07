@@ -12,6 +12,12 @@ def define_targets(rules):
         linkstatic = True,
         local_defines = ["C10_BUILD_MAIN_LIB"],
         visibility = ["//visibility:public"],
+<<<<<<< HEAD
+=======
+        deps = [
+            "//torch/headeronly:torch_headeronly",
+        ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     rules.cmake_configure_file(

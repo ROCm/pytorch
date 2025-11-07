@@ -125,11 +125,19 @@
 // linear algebra function uses that routine
 #if AT_BUILD_WITH_LAPACK()
 
+<<<<<<< HEAD
+=======
+#ifndef _ARMPL_H  // ArmPL's `cblas.h` pulls in these prototypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // getrf
 extern "C" void zgetrf_(int *m, int *n, std::complex<double> *a, int *lda, int *ipiv, int *info);
 extern "C" void cgetrf_(int *m, int *n, std::complex<float> *a, int *lda, int *ipiv, int *info);
 extern "C" void dgetrf_(int *m, int *n, double *a, int *lda, int *ipiv, int *info);
 extern "C" void sgetrf_(int *m, int *n, float *a, int *lda, int *ipiv, int *info);
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // potrs
 #if defined(_WIN32) && defined(_M_ARM64)
@@ -165,13 +173,25 @@ static inline void spotrs_(char *uplo, int *n, int *nrhs, float *a, int *lda, fl
 
 #else
 
+<<<<<<< HEAD
+=======
+#ifndef _ARMPL_H  // ArmPL's `cblas.h` pulls in these prototypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 extern "C" void zpotrs_(char *uplo, int *n, int *nrhs, std::complex<double> *a, int *lda, std::complex<double> *b, int *ldb, int *info);
 extern "C" void cpotrs_(char *uplo, int *n, int *nrhs, std::complex<float> *a, int *lda, std::complex<float> *b, int *ldb, int *info);
 extern "C" void dpotrs_(char *uplo, int *n, int *nrhs, double *a, int *lda, double *b, int *ldb, int *info);
 extern "C" void spotrs_(char *uplo, int *n, int *nrhs, float *a, int *lda, float *b, int *ldb, int *info);
+<<<<<<< HEAD
 
 #endif
 
+=======
+#endif
+
+#endif
+
+#ifndef _ARMPL_H  // ArmPL's `cblas.h` pulls in these prototypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // potrf
 extern "C" void zpotrf_(char *uplo, int *n, std::complex<double> *a, int *lda, int *info);
 extern "C" void cpotrf_(char *uplo, int *n, std::complex<float> *a, int *lda, int *info);
@@ -317,6 +337,10 @@ extern "C" void zungqr_(int *m, int *n, int *k, std::complex<double> *a, int *ld
 extern "C" void cungqr_(int *m, int *n, int *k, std::complex<float> *a, int *lda, std::complex<float> *tau, std::complex<float> *work, int *lwork, int *info);
 extern "C" void dorgqr_(int *m, int *n, int *k, double *a, int *lda, double *tau, double *work, int *lwork, int *info);
 extern "C" void sorgqr_(int *m, int *n, int *k, float *a, int *lda, float *tau, float *work, int *lwork, int *info);
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // ormqr
 #if defined(_WIN32) && defined(_M_ARM64)
@@ -347,11 +371,20 @@ static inline void sormqr_(char *side, char *trans, int *m, int *n, int *k, floa
     *info = LAPACKE_sormqr_work(LAPACK_COL_MAJOR, *side, *trans, *m, *n, *k, a, *lda, tau, c, *ldc, work, *lwork);
 }
 #else
+<<<<<<< HEAD
+=======
+#ifndef _ARMPL_H  // ArmPL's `cblas.h` pulls in these prototypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 extern "C" void zunmqr_(char *side, char *trans, int *m, int *n, int *k, std::complex<double> *a, int *lda, std::complex<double> *tau, std::complex<double> *c, int *ldc, std::complex<double> *work, int *lwork, int *info);
 extern "C" void cunmqr_(char *side, char *trans, int *m, int *n, int *k, std::complex<float> *a, int *lda, std::complex<float> *tau, std::complex<float> *c, int *ldc, std::complex<float> *work, int *lwork, int *info);
 extern "C" void dormqr_(char *side, char *trans, int *m, int *n, int *k, double *a, int *lda, double *tau, double *c, int *ldc, double *work, int *lwork, int *info);
 extern "C" void sormqr_(char *side, char *trans, int *m, int *n, int *k, float *a, int *lda, float *tau, float *c, int *ldc, float *work, int *lwork, int *info);
 #endif
+<<<<<<< HEAD
+=======
+#endif
+#ifndef _ARMPL_H  // ArmPL's `cblas.h` pulls in these prototypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // syevd
 extern "C" void zheevd_(char *jobz, char *uplo, int *n, std::complex<double> *a, int *lda, double *w, std::complex<double> *work, int *lwork, double *rwork, int *lrwork, int *iwork, int *liwork, int *info);
 extern "C" void cheevd_(char *jobz, char *uplo, int *n, std::complex<float> *a, int *lda, float *w, std::complex<float> *work, int *lwork, float *rwork, int *lrwork, int *iwork, int *liwork, int *info);
@@ -466,14 +499,26 @@ extern "C" void sgelss_(int *m, int *n, int *nrhs,
     float *s, float *rcond, int *rank,
     float *work, int *lwork, int *info);
 #endif
+<<<<<<< HEAD
 
 #if AT_BUILD_WITH_BLAS()
 // trsm
+=======
+#endif
+
+#if AT_BUILD_WITH_BLAS()
+// trsm
+#ifndef _ARMPL_H  // ArmPL's `cblas.h` pulls in these prototypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 extern "C" void ztrsm_(char *side, char *uplo, char *trans, char *diag, int *n, int *nrhs, std::complex<double> *alpha, std::complex<double> *a, int *lda, std::complex<double> *b, int *ldb);
 extern "C" void ctrsm_(char *side, char *uplo, char *trans, char *diag, int *n, int *nrhs, std::complex<float> *alpha, std::complex<float> *a, int *lda, std::complex<float> *b, int *ldb);
 extern "C" void dtrsm_(char *side, char *uplo, char *trans, char *diag, int *n, int *nrhs, double *alpha, double *a, int *lda, double *b, int *ldb);
 extern "C" void strsm_(char *side, char *uplo, char *trans, char *diag, int *n, int *nrhs, float *alpha, float *a, int *lda, float *b, int *ldb);
 #endif
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::meta {
 
@@ -685,7 +730,11 @@ TORCH_META_FUNC(linalg_cholesky_ex)(const Tensor& A,
   auto ndim = A_shape.size();
 
   // L
+<<<<<<< HEAD
   auto L_strides = at::native::batched_matrix_contiguous_strides(A_shape, /*f-contig*=*/A.device().type() != at::kMPS);
+=======
+  auto L_strides = at::native::batched_matrix_contiguous_strides(A_shape, /*f-contig*=*/true);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   set_output_strided(0, A_shape, L_strides, A.options(), {});
 
   // info
@@ -849,10 +898,14 @@ namespace at::native {
 // linear algebra operations
 
 template<class scalar_t>
+<<<<<<< HEAD
 void lapackCholeskySolve(char uplo, int n, int nrhs, scalar_t *a, int lda, scalar_t *b, int ldb, int *info);
 
 template<class scalar_t, class value_t=scalar_t>
 void lapackSymeig(char jobz, char uplo, int n, scalar_t *a, int lda, value_t *w, scalar_t *work, int lwork, value_t *rwork, int *info);
+=======
+static void lapackCholeskySolve(char uplo, int n, int nrhs, scalar_t *a, int lda, scalar_t *b, int ldb, int *info);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template<> void lapackLu<c10::complex<double>>(int m, int n, c10::complex<double> *a, int lda, int *ipiv, int *info) {
   zgetrf_(&m, &n, reinterpret_cast<std::complex<double>*>(a), &lda, ipiv, info);
@@ -2694,20 +2747,30 @@ Tensor& ormqr_out(const Tensor& input, const Tensor& tau, const Tensor& other, b
 
   int64_t left_size_condition = left ? -2 : -1;
   TORCH_CHECK(
+<<<<<<< HEAD
       other.size(left_size_condition) >= tau.size(-1),
       "torch.ormqr: other.shape[",
       left_size_condition,
       "] must be greater than or equal to tau.shape[-1]");
 
   TORCH_CHECK(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       other.size(left_size_condition) == input.size(-2),
       "torch.ormqr: other.shape[",
       left_size_condition,
       "] must be equal to input.shape[-2]");
 
   TORCH_CHECK(
+<<<<<<< HEAD
       tau.size(-1) <= input.size(-1),
       "torch.ormqr: tau.shape[-1] must be less than or equal to input.shape[-1]");
+=======
+      std::min(other.size(left_size_condition), input.size(-1)) == tau.size(-1),
+      "torch.ormqr: tau.shape[-1] must be equal to min(other.shape[",
+      left_size_condition,
+      "], input.shape[-1])");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(
       input.dim() - tau.dim() == 1,
@@ -2716,6 +2779,10 @@ Tensor& ormqr_out(const Tensor& input, const Tensor& tau, const Tensor& other, b
       tau.dim(),
       " and input.ndim is equal to ",
       input.dim());
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       input.dim() == other.dim(),
       "torch.ormqr: ",

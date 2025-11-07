@@ -3,6 +3,10 @@ import _operator
 import itertools
 from collections import defaultdict
 from enum import Enum
+<<<<<<< HEAD
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._subclasses.fake_tensor import FakeTensor, FakeTensorMode
@@ -187,7 +191,11 @@ def _maybe_get_inplace_op(op):
     return inplace_op
 
 
+<<<<<<< HEAD
 _VIEW_INVERSE_MAP = {
+=======
+_VIEW_INVERSE_MAP: dict[Callable[..., Any], Callable[..., Any]] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.ops.aten.diagonal_scatter.default: torch.ops.aten.diagonal.default,
     torch.ops.aten.select_scatter.default: torch.ops.aten.select.int,
     torch.ops.aten.slice_scatter.default: torch.ops.aten.slice.Tensor,
@@ -252,6 +260,10 @@ def _get_view_inverse_node_usages(
         assert isinstance(base.meta["fake_result"], FakeTensor)
         assert isinstance(mutated_view, Node)
         assert isinstance(mutated_view.meta["fake_result"], FakeTensor)
+<<<<<<< HEAD
+=======
+        assert not isinstance(n.target, str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Check that this view_inverse op actually corresponds to taking doing the inverse
         # of one of our existing self_alias nodes.
         original_view = _VIEW_INVERSE_MAP[n.target]

@@ -1,5 +1,9 @@
 #pragma once
 
+<<<<<<< HEAD
+=======
+#include <torch/csrc/inductor/aoti_runtime/mini_array_ref.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/inductor/aoti_runtime/utils.h>
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
 
@@ -9,6 +13,7 @@
 
 namespace torch::aot_inductor {
 
+<<<<<<< HEAD
 // Can't use c10::ArrayRef because it's not truly header-only and
 // pulls in other c10 headers. This is (sadly) copy-pasted and
 // adapted.
@@ -158,6 +163,8 @@ class MiniArrayRef final {
       std::initializer_list<U>) = delete;
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using MiniIntArrayRef = MiniArrayRef<int64_t>;
 
 static_assert(

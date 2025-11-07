@@ -48,7 +48,11 @@ static void copy_cast_mps(at::Tensor& dst,
 
   @autoreleasepool {
     const bool needs_conj = src.is_conj() != dst.is_conj();
+<<<<<<< HEAD
     string key = "copy_cast_mps" + getTensorsStringKey({src, dst}, true, /*exclude_shape*/ true) + ":" +
+=======
+    std::string key = "copy_cast_mps" + getTensorsStringKey({src, dst}, true, /*exclude_shape*/ true) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(needs_conj);
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, srcDType);

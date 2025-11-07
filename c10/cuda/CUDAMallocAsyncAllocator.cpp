@@ -14,7 +14,11 @@ namespace c10::cuda::CUDACachingAllocator::CudaMallocAsync {
 using namespace c10::CachingAllocator;
 using namespace c10::CachingDeviceAllocator;
 
+<<<<<<< HEAD
 #if CUDA_VERSION >= 11040
+=======
+#if CUDA_VERSION >= 11040 || defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // CUDA device allocator that uses cudaMallocAsync to implement
 // the same interface as CUDACachingAllocator.cpp.
 
@@ -496,7 +500,11 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
     // introduces performance nondeterminism.
   }
 
+<<<<<<< HEAD
   void emptyCache() override {
+=======
+  void emptyCache(/*unused*/ MempoolId_t mempool_id) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::lock_guard<std::mutex> lk(general_mutex);
 
     for (int dev = 0; dev < device_count; dev++) {
@@ -504,9 +512,15 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
         CUDAGuard g(static_cast<c10::DeviceIndex>(dev));
 
         cudaMemPool_t mempool = nullptr;
+<<<<<<< HEAD
         cudaDeviceGetDefaultMemPool(&mempool, dev);
         cudaDeviceSynchronize();
         cudaMemPoolTrimTo(mempool, 0);
+=======
+        C10_CUDA_CHECK(cudaDeviceGetDefaultMemPool(&mempool, dev));
+        C10_CUDA_CHECK(cudaDeviceSynchronize());
+        C10_CUDA_CHECK(cudaMemPoolTrimTo(mempool, 0));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -582,7 +596,11 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
       }
 
       if (err == cudaSuccess) {
+<<<<<<< HEAD
         cudaFreeAsync(dummy, stream);
+=======
+        C10_CUDA_CHECK(cudaFreeAsync(dummy, stream));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *maxWorkspaceGuess = guess;
         return;
       } else if (err == cudaErrorMemoryAllocation) {
@@ -648,7 +666,12 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
       bool enabled,
       CreateContextFn context_recorder,
       size_t alloc_trace_max_entries,
+<<<<<<< HEAD
       RecordContext when) override {
+=======
+      RecordContext when,
+      bool clearHistory) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         false,
         "cudaMallocAsync does not yet support recordHistory. "
@@ -777,7 +800,11 @@ struct CudaMallocAsyncAllocator : public CUDAAllocator {
         cudaMemPoolSetAttribute(mempool, cudaMemPoolAttrUsedMemHigh, &zero));
   }
 
+<<<<<<< HEAD
   SnapshotInfo snapshot() override {
+=======
+  SnapshotInfo snapshot(MempoolId_t mempool_id) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         false,
         "Calling snapshot with backend:cudaMallocAsync is not meaningful. "
@@ -920,11 +947,19 @@ static CudaMallocAsyncAllocator device_allocator;
 void local_raw_delete(void* ptr) {
   freeAsync(ptr);
 }
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDAAllocator* allocator() {
   return &device_allocator;
 }
 
 #else
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDAAllocator* allocator() {
   TORCH_CHECK(false, "Cannot use CudaMallocAsyncAllocator with cuda < 11.4.");
   return nullptr;

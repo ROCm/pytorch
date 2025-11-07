@@ -78,6 +78,12 @@ struct TORCH_API MPSHooksInterface : AcceleratorHooksInterface {
   virtual uint32_t acquireEvent(bool enable_timing) const {
     FAIL_MPSHOOKS_FUNC(__func__);
   }
+<<<<<<< HEAD
+=======
+  Device getDeviceFromPtr(void* data) const override {
+    TORCH_CHECK(false, "Cannot get device of pointer on MPS without ATen_mps library. ");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void releaseEvent(uint32_t event_id) const {
     FAIL_MPSHOOKS_FUNC(__func__);
   }

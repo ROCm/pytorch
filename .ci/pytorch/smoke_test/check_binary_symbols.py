@@ -80,7 +80,11 @@ def grep_symbols(lib: str, patterns: list[Any]) -> list[str]:
         return functools.reduce(list.__add__, (x.result() for x in tasks), [])
 
 
+<<<<<<< HEAD
 def check_lib_symbols_for_abi_correctness(lib: str, pre_cxx11_abi: bool = True) -> None:
+=======
+def check_lib_symbols_for_abi_correctness(lib: str) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     print(f"lib: {lib}")
     cxx11_symbols = grep_symbols(lib, LIBTORCH_CXX11_PATTERNS)
     pre_cxx11_symbols = grep_symbols(lib, LIBTORCH_PRE_CXX11_PATTERNS)
@@ -88,6 +92,7 @@ def check_lib_symbols_for_abi_correctness(lib: str, pre_cxx11_abi: bool = True) 
     num_pre_cxx11_symbols = len(pre_cxx11_symbols)
     print(f"num_cxx11_symbols: {num_cxx11_symbols}")
     print(f"num_pre_cxx11_symbols: {num_pre_cxx11_symbols}")
+<<<<<<< HEAD
     if pre_cxx11_abi:
         if num_cxx11_symbols > 0:
             raise RuntimeError(
@@ -110,6 +115,14 @@ def check_lib_symbols_for_abi_correctness(lib: str, pre_cxx11_abi: bool = True) 
             )
         if num_cxx11_symbols < 100:
             raise RuntimeError("Didn't find enought cxx11 symbols")
+=======
+    if num_pre_cxx11_symbols > 0:
+        raise RuntimeError(
+            f"Found pre-cxx11 symbols, but there shouldn't be any, see: {pre_cxx11_symbols[:100]}"
+        )
+    if num_cxx11_symbols < 100:
+        raise RuntimeError("Didn't find enough cxx11 symbols")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def main() -> None:
@@ -121,9 +134,14 @@ def main() -> None:
         else:
             install_root = Path(distutils.sysconfig.get_python_lib()) / "torch"
 
+<<<<<<< HEAD
     libtorch_cpu_path = install_root / "lib" / "libtorch_cpu.so"
     pre_cxx11_abi = "cxx11-abi" not in os.getenv("DESIRED_DEVTOOLSET", "")
     check_lib_symbols_for_abi_correctness(libtorch_cpu_path, pre_cxx11_abi)
+=======
+    libtorch_cpu_path = str(install_root / "lib" / "libtorch_cpu.so")
+    check_lib_symbols_for_abi_correctness(libtorch_cpu_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

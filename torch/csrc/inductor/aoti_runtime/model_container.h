@@ -13,6 +13,32 @@
 #include <torch/csrc/inductor/aoti_runtime/model.h>
 
 namespace torch::aot_inductor {
+<<<<<<< HEAD
+=======
+// The state transition is done by:
+// (1) NONE state: The default state when created. This state should only exist
+// when model_container is created and no constants are being loaded or updated.
+// (2) INITIALIZED state: This state get set whenever we load the constants into
+// the buffer. This could be done by load_constants or update_constants_buffer.
+// (3) FOLDED state: This state should transition from INITIALIZED after
+// const_fold is being invoked.
+enum class ConstantState : uint8_t { NONE, INITIALIZED, FOLDED, UNKNOWN };
+
+inline std::string toStringConstantState(ConstantState state) {
+  switch (state) {
+    case ConstantState::NONE:
+      return "ConstantState::NONE";
+    case ConstantState::INITIALIZED:
+      return "ConstantState::INITIALIZED";
+    case ConstantState::FOLDED:
+      return "ConstantState::FOLDED";
+    case ConstantState::UNKNOWN:
+      return "ConstantState::UNKNOWN";
+    default:
+      return "Unknown enum class state for ConstantState";
+  }
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class AOTInductorModelContainer {
  public:
@@ -53,8 +79,15 @@ class AOTInductorModelContainer {
     }
     model->load_constants();
     constant_blob_ = model->release_constant_blob();
+<<<<<<< HEAD
     constants_internal_offset_.resize(model->num_constants());
     model->compute_constant_blob(blob_size_, constants_internal_offset_);
+=======
+    constants_internal_offset_.resize(
+        model->num_constants() - model->num_folded_constants());
+    model->compute_constant_blob(blob_size_, constants_internal_offset_);
+    constant_folded_ = ConstantState::INITIALIZED;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for (auto& model : models_) {
       model->update_constants_map(constants_map_);
@@ -77,24 +110,44 @@ class AOTInductorModelContainer {
     std::shared_lock model_lk(model_exec_mutex_);
     auto* model = get_available_model();
 
+<<<<<<< HEAD
     if (!constant_folded_) {
+=======
+    ConstantState& const_folded =
+        use_secondary_ ? constant_folded_secondary_ : constant_folded_;
+    if (const_folded == ConstantState::INITIALIZED) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // At this point, constant is not ready yet. We need to call constant
       // folding before we execute the model. We obtain a unique lock at this
       // point to make sure constant is ready for all.
       model_lk.unlock();
       std::unique_lock constants_folding_lk(model_exec_mutex_);
       // Double locking to make sure constant folding is only ran once.
+<<<<<<< HEAD
       if (!constant_folded_) {
+=======
+      if (const_folded == ConstantState::INITIALIZED) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         auto folded_const_map = model->run_const_fold(
             stream, proxy_executor, /* initialization = */ true);
         update_constant_buffer(
             std::move(folded_const_map),
             /* use_inactive = */ false,
             /* validate_full_update = */ false);
+<<<<<<< HEAD
         constant_folded_ = true;
       }
       constants_folding_lk.unlock();
       model_lk.lock();
+=======
+        const_folded = ConstantState::FOLDED;
+      }
+      constants_folding_lk.unlock();
+      model_lk.lock();
+    } else if (const_folded != ConstantState::FOLDED) {
+      throw std::runtime_error(
+          "Unknown constant state: " + toStringConstantState(constant_folded_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     try {
@@ -126,20 +179,62 @@ class AOTInductorModelContainer {
       AOTIProxyExecutorHandle proxy_executor) {
     auto* model = available_models_[0];
 
+<<<<<<< HEAD
     if (!constant_folded_) {
+=======
+    ConstantState& const_folded =
+        use_secondary_ ? constant_folded_secondary_ : constant_folded_;
+    if (const_folded == ConstantState::INITIALIZED) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto folded_const_map = model->run_const_fold(
           stream, proxy_executor, /* initialization = */ true);
       update_constant_buffer(
           std::move(folded_const_map),
           /* use_inactive = */ false,
           /* validate_full_update = */ false);
+<<<<<<< HEAD
       constant_folded_ = true;
+=======
+      const_folded = ConstantState::FOLDED;
+    } else if (constant_folded_ != ConstantState::FOLDED) {
+      throw std::runtime_error(
+          "Unknown constant state: " + toStringConstantState(constant_folded_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     model->run_single_threaded(
         input_handles, output_handles, stream, proxy_executor);
   }
 
+<<<<<<< HEAD
+=======
+  const std::unordered_map<std::string, AtenTensorHandle> extract_constants_map(
+      bool use_inactive) const {
+    size_t n_consts = this->num_constants();
+    std::unordered_map<std::string, AtenTensorHandle> ret;
+    ret.reserve(n_consts);
+
+    std::shared_ptr<ConstantMap> extract_map = constants_map_;
+    // Essentially a XOR
+    if (use_inactive != use_secondary_) {
+      extract_map = constants_map_secondary_;
+    }
+    for (size_t idx = 0; idx < n_consts; idx++) {
+      if (this->constant_from_folded(idx)) {
+        continue;
+      }
+
+      auto it = extract_map->find(this->constant_name(idx));
+      if (it != extract_map->end()) {
+        ret.emplace(this->constant_original_fqn(idx), it->second);
+        continue;
+      }
+    }
+
+    return ret;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t num_constants() const {
     if (this->num_models() == 0) {
       throw std::runtime_error("No available models in container!");
@@ -171,6 +266,16 @@ class AOTInductorModelContainer {
     return models_[0]->constant_from_folded(static_cast<int64_t>(idx));
   }
 
+<<<<<<< HEAD
+=======
+  size_t constant_data_size(size_t idx) const {
+    if (this->num_models() == 0) {
+      throw std::runtime_error("No available models in container!");
+    }
+    return models_[0]->constant_data_size(static_cast<int64_t>(idx));
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // retrieve type of constants_info_[idx]
   int32_t constant_type(size_t idx) const {
     if (this->num_models() == 0) {
@@ -191,6 +296,7 @@ class AOTInductorModelContainer {
       bool inactive_buffer,
       DeviceStreamType stream,
       AOTIProxyExecutorHandle proxy_executor) {
+<<<<<<< HEAD
     std::shared_lock model_lk(model_exec_mutex_);
     auto* model = get_available_model();
 
@@ -199,20 +305,42 @@ class AOTInductorModelContainer {
       // folding on the active buffer.
       model_lk.unlock();
       std::unique_lock constants_folding_lk(model_exec_mutex_);
+=======
+    AOTInductorModel* model;
+    ConstantState& const_folded = inactive_buffer == use_secondary_
+        ? constant_folded_
+        : constant_folded_secondary_;
+    if (!inactive_buffer) {
+      // We would need to acquire a unique lock if we want to run constant
+      // folding on the active buffer.
+      std::unique_lock constants_folding_lk(model_exec_mutex_);
+      model = get_available_model();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       try {
         auto folded_const_map = model->run_const_fold(stream, proxy_executor);
         update_constant_buffer(
             std::move(folded_const_map),
             /* use_inactive = */ false,
             /* validate_full_update = */ false);
+<<<<<<< HEAD
+=======
+        const_folded = ConstantState::FOLDED;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } catch (...) {
         std::lock_guard lk(models_mutex_);
         available_models_.push_back(model);
         throw;
       }
+<<<<<<< HEAD
       constants_folding_lk.unlock();
       model_lk.lock();
     } else {
+=======
+    } else {
+      std::shared_lock model_lk(model_exec_mutex_);
+      model = get_available_model();
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // We swap the constant mapping to the inactive buffer in the model to run
       // const run.
       auto constants_map = get_constants_map(/* get_inactive= */ true);
@@ -235,6 +363,10 @@ class AOTInductorModelContainer {
         model->update_constants_map(
             constants_map, /* remap_constants_array= */ false);
         model->update_constants_array(constants_array);
+<<<<<<< HEAD
+=======
+        const_folded = ConstantState::FOLDED;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } catch (...) {
         std::lock_guard lk(models_mutex_);
         available_models_.push_back(model);
@@ -249,19 +381,34 @@ class AOTInductorModelContainer {
     pending_models_available_.notify_one();
   }
 
+<<<<<<< HEAD
   bool _should_skip_update(const size_t idx) const {
+=======
+  bool _is_tensor_constant_type(const size_t idx) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto constant_type = models_[0]->constant_type(static_cast<int64_t>(idx));
     // We should skip constants
     return constant_type == ConstantType::TensorConstant;
   }
 
+<<<<<<< HEAD
   bool _could_skip_update(const size_t idx) const {
+=======
+  bool _is_buffer_type(const size_t idx) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto constant_type = models_[0]->constant_type(static_cast<int64_t>(idx));
     // Buffer can be optionally skipped, so if it not provided by upstream
     // services, it is OK to relax the check.
     return constant_type == ConstantType::Buffer;
   }
 
+<<<<<<< HEAD
+=======
+  bool _is_tensor_constant_or_buffer_type(const size_t idx) const {
+    return _is_tensor_constant_type(idx) || _is_buffer_type(idx);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void assert_all_constants(
       const std::unordered_map<std::string, AtenTensorHandle>& constants_map) {
     auto num_constants = models_[0]->num_constants();
@@ -274,7 +421,11 @@ class AOTInductorModelContainer {
           std::string(models_[0]->constant_name(static_cast<int64_t>(idx)));
       auto it = constants_map.find(constant_name);
       if (it == constants_map.end()) {
+<<<<<<< HEAD
         if (_should_skip_update(idx) || _could_skip_update(idx)) {
+=======
+        if (_is_tensor_constant_or_buffer_type(idx)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           // tracing sometimes creates tensors that are non-existent in
           // original graph. We could skip those and do a direct copy.
           std::cerr << "[WARNING] Found constant or module state buffer "
@@ -301,6 +452,14 @@ class AOTInductorModelContainer {
       assert_all_constants(constants_map);
     }
 
+<<<<<<< HEAD
+=======
+    ConstantState& const_folded = use_inactive == use_secondary_
+        ? constant_folded_
+        : constant_folded_secondary_;
+    const_folded = ConstantState::INITIALIZED;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto original_constants_map = get_constants_map(!use_inactive);
     auto constants_map_to_update = get_constants_map(use_inactive);
 
@@ -309,19 +468,33 @@ class AOTInductorModelContainer {
       auto constant_name =
           std::string(models_[0]->constant_name(static_cast<int64_t>(idx)));
       auto it = constants_map.find(constant_name);
+<<<<<<< HEAD
       if (it == constants_map.end() && !use_inactive) {
+=======
+      if (it == constants_map.end() &&
+          !(use_inactive && _is_tensor_constant_type(idx))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue;
       }
 
       AtenTensorHandle tensor;
+<<<<<<< HEAD
       if (it == constants_map.end() && use_inactive) {
+=======
+      if (it == constants_map.end()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aoti_torch_clone(
             original_constants_map->find(constant_name)->second.get(), &tensor);
       } else {
         tensor = it->second;
       }
 
+<<<<<<< HEAD
       constants_map_to_update->insert_or_assign(constant_name, tensor);
+=======
+      constants_map_to_update->insert_or_assign(
+          constant_name, RAIIAtenTensorHandle(tensor));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     // Update the inactive constant array.
     update_array_from_map(
@@ -333,7 +506,12 @@ class AOTInductorModelContainer {
   void update_constant_buffer(
       const std::unordered_map<std::string, AtenTensorHandle>& constants_map,
       bool use_inactive,
+<<<<<<< HEAD
       bool validate_full_update) {
+=======
+      bool validate_full_update,
+      bool user_managed = false) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (this->num_models() == 0) {
       throw std::runtime_error("No model available in container!");
     }
@@ -341,6 +519,14 @@ class AOTInductorModelContainer {
       assert_all_constants(constants_map);
     }
 
+<<<<<<< HEAD
+=======
+    ConstantState& const_folded = use_inactive == use_secondary_
+        ? constant_folded_
+        : constant_folded_secondary_;
+    const_folded = ConstantState::INITIALIZED;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto original_constants_map = get_constants_map(!use_inactive);
     auto constants_map_to_update = get_constants_map(use_inactive);
 
@@ -349,16 +535,38 @@ class AOTInductorModelContainer {
       auto constant_name =
           std::string(models_[0]->constant_name(static_cast<int64_t>(idx)));
       auto it = constants_map.find(constant_name);
+<<<<<<< HEAD
       if (it == constants_map.end() && !use_inactive) {
+=======
+      if (it == constants_map.end() &&
+          !(use_inactive && _is_tensor_constant_or_buffer_type(idx))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue;
       }
 
       AtenTensorHandle tensor;
+<<<<<<< HEAD
       if (it == constants_map.end() && use_inactive) {
+=======
+      if (it == constants_map.end()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor = original_constants_map->find(constant_name)->second.get();
       } else {
         tensor = it->second;
       }
+<<<<<<< HEAD
+=======
+
+      if (user_managed) {
+        // If user managed, we pass in the pointer directly, and skip the
+        // copy.
+        constants_map_to_update->insert_or_assign(
+            constant_name,
+            MaybeOwningAtenTensorHandle(tensor, /* user_managed = */ true));
+        continue;
+      }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto* constants_blob_ptr =
           static_cast<uint8_t*>(get_constant_blob_ptr(use_inactive));
 
@@ -406,9 +614,16 @@ class AOTInductorModelContainer {
           device_idx,
           &tensor_handle));
 
+<<<<<<< HEAD
       // Now place the tensor to constants_map. Note at this point the ownership
       // of the tensor_handle will be taken over.
       constants_map_to_update->insert_or_assign(constant_name, tensor_handle);
+=======
+      // Now place the tensor to constants_map. Note at this point the
+      // ownership of the tensor_handle will be taken over.
+      constants_map_to_update->insert_or_assign(
+          constant_name, RAIIAtenTensorHandle(tensor_handle));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     // Update the inactive constant array.
     update_array_from_map(
@@ -445,6 +660,32 @@ class AOTInductorModelContainer {
     use_secondary_ = !use_secondary_;
   }
 
+<<<<<<< HEAD
+=======
+  void free_inactive_constant_buffer() {
+    if (use_secondary_) {
+      constant_folded_ = ConstantState::NONE;
+      constant_blob_.reset();
+    } else {
+      constant_folded_secondary_ = ConstantState::NONE;
+      constant_blob_secondary_.reset();
+    }
+    // Free the internally held constants
+    int num_constants = static_cast<int>(models_[0]->num_constants());
+    std::shared_ptr<ConstantMap> to_free_map =
+        use_secondary_ ? constants_map_ : constants_map_secondary_;
+
+    for (int i = 0; i < num_constants; i++) {
+      if (models_[0]->constant_from_folded(i)) {
+        auto it = to_free_map->find(models_[0]->constant_name(i));
+        if (it != to_free_map->end()) {
+          it->second.reset();
+        }
+      }
+    }
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t num_inputs() const {
     return input_names_.size();
   }
@@ -494,7 +735,12 @@ class AOTInductorModelContainer {
   bool use_secondary_{false};
 
   // Determine whether we have ran constant folding
+<<<<<<< HEAD
   bool constant_folded_{false};
+=======
+  ConstantState constant_folded_{ConstantState::NONE};
+  ConstantState constant_folded_secondary_{ConstantState::NONE};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Holds the mapping of constants to at::Tensor.
   // The underlying data of at::Tensor is in either constant_blob_ (for CUDA).
@@ -540,6 +786,7 @@ class AOTInductorModelContainer {
   // make sure no one is executing the model.
   std::shared_mutex model_exec_mutex_;
 
+<<<<<<< HEAD
   void* get_constant_blob_ptr(bool get_inactive) {
     if ((get_inactive && use_secondary_) ||
         (!get_inactive && !use_secondary_)) {
@@ -551,6 +798,26 @@ class AOTInductorModelContainer {
 #else
         constant_blob_secondary_ = RAII_cpuMalloc(blob_size_);
 #endif // USE_CUDA
+=======
+  RAIIDataPtr allocate_constant_blob() {
+#if defined(USE_CUDA) || defined(USE_XPU) || defined(USE_MPS)
+    return RAII_gpuMalloc(blob_size_);
+#else
+    return RAII_cpuMalloc(blob_size_);
+#endif // USE_CUDA
+  }
+
+  void* get_constant_blob_ptr(bool get_inactive) {
+    if ((get_inactive && use_secondary_) ||
+        (!get_inactive && !use_secondary_)) {
+      if (!constant_blob_) {
+        constant_blob_ = allocate_constant_blob();
+      }
+      return constant_blob_.get();
+    } else {
+      if (!constant_blob_secondary_) {
+        constant_blob_secondary_ = allocate_constant_blob();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       return constant_blob_secondary_.get();
     }

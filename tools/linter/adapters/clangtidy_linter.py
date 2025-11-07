@@ -13,7 +13,11 @@ import time
 from enum import Enum
 from pathlib import Path
 from sysconfig import get_paths as gp
+<<<<<<< HEAD
 from typing import Any, NamedTuple
+=======
+from typing import NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # PyTorch directory root
@@ -31,7 +35,10 @@ def scm_root() -> str:
 
 
 PYTORCH_ROOT = scm_root()
+<<<<<<< HEAD
 IS_WINDOWS: bool = os.name == "nt"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Returns '/usr/local/include/python<version number>'
@@ -39,10 +46,13 @@ def get_python_include_dir() -> str:
     return gp()["include"]
 
 
+<<<<<<< HEAD
 def eprint(*args: Any, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, flush=True, **kwargs)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LintSeverity(str, Enum):
     ERROR = "error"
     WARNING = "warning"
@@ -62,10 +72,13 @@ class LintMessage(NamedTuple):
     description: str | None
 
 
+<<<<<<< HEAD
 def as_posix(name: str) -> str:
     return name.replace("\\", "/") if IS_WINDOWS else name
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # c10/core/DispatchKey.cpp:281:26: error: 'k' used after it was moved [bugprone-use-after-move]
 RESULTS_RE: re.Pattern[str] = re.compile(
     r"""(?mx)

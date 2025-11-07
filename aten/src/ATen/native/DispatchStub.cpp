@@ -4,6 +4,10 @@
 #include <c10/core/DeviceType.h>
 #include <c10/util/Array.h>
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if !defined(__s390x__) && !defined(__powerpc__)
 #include <cpuinfo.h>
@@ -26,6 +30,7 @@ static inline bool cpu_has_vxe()
 #endif
 
 static CPUCapability compute_cpu_capability() {
+<<<<<<< HEAD
   auto envar = std::getenv("ATEN_CPU_CAPABILITY");
   if (envar) {
 #if defined(HAVE_VSX_CPU_DEFINITION)
@@ -34,14 +39,34 @@ static CPUCapability compute_cpu_capability() {
     }
 #elif defined(HAVE_ZVECTOR_CPU_DEFINITION)
     if (strcmp(envar, "zvector") == 0) {
+=======
+  const auto envar = c10::utils::get_env("ATEN_CPU_CAPABILITY");
+  if (envar.has_value()) {
+#if defined(HAVE_VSX_CPU_DEFINITION)
+    if (envar == "vsx") {
+      return CPUCapability::VSX;
+    }
+#elif defined(HAVE_ZVECTOR_CPU_DEFINITION)
+    if (envar == "zvector") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return CPUCapability::ZVECTOR;
     }
 #elif defined(HAVE_SVE_CPU_DEFINITION)
     int sve_vl = cpuinfo_get_max_arm_sve_length(); //Returns maximum SVE VL supported by your HW.
 #ifdef HAVE_SVE256_CPU_DEFINITION
+<<<<<<< HEAD
     if (strcmp(envar, "sve256") == 0) {
       if (sve_vl == 256) {
         return CPUCapability::SVE256;
+=======
+    if (envar == "sve256") {
+      if (sve_vl == 256) {
+#ifdef HAVE_ARM_BF16_CPU_DEFINITION
+        if (cpuinfo_has_arm_bf16()) {
+          return CPUCapability::SVE256;
+        }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       TORCH_WARN("SVE256 capability not available on hardware. Falling back to DEFAULT");
       return CPUCapability::DEFAULT;
@@ -49,20 +74,35 @@ static CPUCapability compute_cpu_capability() {
 #endif
 #else
 #ifdef HAVE_AVX512_CPU_DEFINITION
+<<<<<<< HEAD
     if (strcmp(envar, "avx512") == 0) {
+=======
+    if (envar == "avx512") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return CPUCapability::AVX512;
     }
 #endif
 #ifdef HAVE_AVX2_CPU_DEFINITION
+<<<<<<< HEAD
     if (strcmp(envar, "avx2") == 0) {
+=======
+    if (envar == "avx2") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return CPUCapability::AVX2;
     }
 #endif
 #endif
+<<<<<<< HEAD
     if (strcmp(envar, "default") == 0) {
       return CPUCapability::DEFAULT;
     }
     TORCH_WARN("ignoring invalid value for ATEN_CPU_CAPABILITY: ", envar);
+=======
+    if (envar == "default") {
+      return CPUCapability::DEFAULT;
+    }
+    TORCH_WARN("ignoring invalid value for ATEN_CPU_CAPABILITY: ", envar.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 #if !defined(__powerpc__) && !defined(__s390x__) && !defined(HAVE_SVE_CPU_DEFINITION)
@@ -102,7 +142,14 @@ static CPUCapability compute_cpu_capability() {
     }
     #ifdef HAVE_SVE256_CPU_DEFINITION
         if (sve_vl == 256) { // Check for SVE256
+<<<<<<< HEAD
             return CPUCapability::SVE256;
+=======
+        #ifdef HAVE_ARM_BF16_CPU_DEFINITION
+          if (cpuinfo_has_arm_bf16())
+            return CPUCapability::SVE256;
+        #endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
     #endif
     // Return the default CPU capability.
@@ -147,6 +194,10 @@ DispatchResult DispatchStubImpl::try_get_call_ptr(
         c10::DeviceType::MPS,
         c10::DeviceType::MTIA,
         c10::DeviceType::XPU,
+<<<<<<< HEAD
+=======
+        c10::DeviceType::HPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         c10::DeviceType::PrivateUse1
     );
     // Check if the device type is supported.
@@ -203,6 +254,12 @@ DispatchResult DispatchStubImpl::try_get_call_ptr(
       return xpu_dispatch_ptr != nullptr ? DispatchResult(xpu_dispatch_ptr) : ErrorType::MissingDeviceKernel;
 #endif
 
+<<<<<<< HEAD
+=======
+    case DeviceType::HPU:
+      return hpu_dispatch_ptr != nullptr ? DispatchResult(hpu_dispatch_ptr) : ErrorType::MissingDeviceKernel;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case DeviceType::PrivateUse1:
       return privateuse1_dispatch_ptr != nullptr ? DispatchResult(privateuse1_dispatch_ptr) : ErrorType::MissingDeviceKernel;
 

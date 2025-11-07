@@ -76,7 +76,11 @@ fi
 # Environment initialization
 if [[ "$(uname)" == Darwin ]]; then
     # Install the testing dependencies
+<<<<<<< HEAD
     retry conda install -yq future hypothesis ${NUMPY_PACKAGE} ${PROTOBUF_PACKAGE} pytest setuptools six typing_extensions pyyaml
+=======
+    retry pip install -q future hypothesis ${NUMPY_PACKAGE} ${PROTOBUF_PACKAGE} pytest setuptools six typing_extensions pyyaml
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else
     retry pip install -qr requirements.txt || true
     retry pip install -q hypothesis protobuf pytest setuptools || true
@@ -91,7 +95,10 @@ fi
 
 echo "Testing with:"
 pip freeze
+<<<<<<< HEAD
 conda list || true
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ##############################################################################
 # Smoke tests

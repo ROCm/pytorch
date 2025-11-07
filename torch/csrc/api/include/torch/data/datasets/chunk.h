@@ -234,7 +234,11 @@ class BatchDataBuffer {
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
   ExampleSampler& example_sampler_;
 
+<<<<<<< HEAD
   // configurable maximun number of elements the queue can hold at one time.
+=======
+  // configurable maximum number of elements the queue can hold at one time.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t queue_capacity_;
 
   // When set to true, it wakes the writer threads from the wait and exit
@@ -286,7 +290,11 @@ struct ChunkDatasetOptions {
   /// The capacity of the queue for batch caching.
   TORCH_ARG(size_t, cache_size) = 2048;
 
+<<<<<<< HEAD
   // The number of chunks to perfrom cross-chunk shuffling. Default to 1 meaning
+=======
+  // The number of chunks to perform cross-chunk shuffling. Default to 1 meaning
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // no cross-chunk shuffling. When it is equal to n (n > 1), n random
   // chunks will be loaded at once and example shuffling will be performed
   // across all those n chunks.
@@ -303,9 +311,16 @@ struct ChunkDatasetOptions {
 ///
 /// Unlike regular dataset, chunk dataset require two samplers to operate and
 /// keeps an internal state. `ChunkSampler` selects, which chunk to load next,
+<<<<<<< HEAD
 /// while the `ExampleSampler` determins the order of Examples that are returned
 /// in each `get_batch` call. The hierarchical sampling approach used here is
 /// inspired by this paper http://martin.zinkevich.org/publications/nips2010.pdf
+=======
+/// while the `ExampleSampler` determines the order of Examples that are
+/// returned in each `get_batch` call. The hierarchical sampling approach used
+/// here is inspired by this paper
+/// http://martin.zinkevich.org/publications/nips2010.pdf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <
     typename ChunkReader,
     typename ChunkSampler = samplers::RandomSampler,
@@ -346,7 +361,11 @@ class ChunkDataset final
   }
 
   /// Default get_batch method of BatchDataset. This method returns
+<<<<<<< HEAD
   /// Example batches created from the preloaded chunks. The implemenation
+=======
+  /// Example batches created from the preloaded chunks. The implementation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// is dataset agnostic and does not need overriding in different chunk
   /// datasets.
   BatchType get_batch(size_t batch_size) override {

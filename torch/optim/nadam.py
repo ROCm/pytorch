@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 r"""Implementation for the NAdam algorithm."""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import cast, Optional, Union
 
 import torch
@@ -17,6 +21,10 @@ from .optimizer import (
     _maximize_doc,
     _params_doc,
     _stack_if_compiling,
+<<<<<<< HEAD
+=======
+    _to_scalar,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _use_grad_for_differentiable,
     _view_as_real,
     Optimizer,
@@ -296,6 +304,12 @@ def _single_tensor_nadam(
     differentiable: bool,
     has_complex: bool,
 ):
+<<<<<<< HEAD
+=======
+    if not torch.jit.is_scripting():
+        lr = _to_scalar(lr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for i, param in enumerate(params):
         grad = grads[i] if not maximize else -grads[i]
         exp_avg = exp_avgs[i]
@@ -404,7 +418,17 @@ def _multi_tensor_nadam(
             p.device.type == mp.device.type == step.device.type
             and p.device.type in capturable_supported_devices
             for p, mp, step in zip(params, mu_products, state_steps)
+<<<<<<< HEAD
         ), f"If capturable=True, params, mu_products, and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+        ), (
+            "If capturable=True, "
+            "params, mu_products, and state_steps must be on supported devices: "
+            f"{capturable_supported_devices}."
+        )
+
+    lr = _to_scalar(lr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     grouped_tensors = Optimizer._group_tensors_by_device_and_dtype(
         [params, grads, exp_avgs, exp_avg_sqs, mu_products, state_steps]  # type: ignore[list-item]
@@ -570,10 +594,23 @@ def _multi_tensor_nadam(
             )
 
             torch._foreach_addcdiv_(
+<<<<<<< HEAD
                 grouped_params, grouped_grads, exp_avg_sq_sqrt, step_size_grads  # type: ignore[arg-type]
             )
             torch._foreach_addcdiv_(
                 grouped_params, grouped_exp_avgs, exp_avg_sq_sqrt, step_size_expavg  # type: ignore[arg-type]
+=======
+                grouped_params,
+                grouped_grads,
+                exp_avg_sq_sqrt,
+                step_size_grads,  # type: ignore[arg-type]
+            )
+            torch._foreach_addcdiv_(
+                grouped_params,
+                grouped_exp_avgs,
+                exp_avg_sq_sqrt,
+                step_size_expavg,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 

@@ -60,12 +60,23 @@ class CMake:
         cmake3_version = CMake._get_version(which("cmake3"))
         cmake_version = CMake._get_version(which("cmake"))
 
+<<<<<<< HEAD
         _cmake_min_version = LooseVersion("3.18.0")
+=======
+        _cmake_min_version = LooseVersion("3.27.0")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if all(
             ver is None or ver < _cmake_min_version
             for ver in [cmake_version, cmake3_version]
         ):
+<<<<<<< HEAD
             raise RuntimeError("no cmake or cmake3 with version >= 3.18.0 found")
+=======
+            raise RuntimeError(
+                "no cmake or cmake3 with version >= 3.27.0 found:"
+                + str([cmake_version, cmake3_version])
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if cmake3_version is None:
             cmake_command = "cmake"
@@ -189,7 +200,10 @@ class CMake:
             # Key: environment variable name. Value: Corresponding variable name to be passed to CMake. If you are
             # adding a new build option to this block: Consider making these two names identical and adding this option
             # in the block below.
+<<<<<<< HEAD
             "_GLIBCXX_USE_CXX11_ABI": "GLIBCXX_USE_CXX11_ABI",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "CUDNN_LIB_DIR": "CUDNN_LIBRARY",
             "USE_CUDA_STATIC_LINK": "CAFFE2_STATIC_LINK_CUDA",
         }
@@ -289,6 +303,15 @@ class CMake:
             }
         )
 
+<<<<<<< HEAD
+=======
+        # Detect build dependencies from python lib path (in order to set *_HOME variables)
+        # NVSHMEM
+        nvshmem_home = py_lib_path + "/nvidia/nvshmem"
+        if os.path.exists(nvshmem_home):
+            build_options["NVSHMEM_HOME"] = nvshmem_home
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Options starting with CMAKE_
         cmake__options = {
             "CMAKE_INSTALL_PREFIX": install_dir,

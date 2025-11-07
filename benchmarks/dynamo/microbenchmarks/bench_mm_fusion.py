@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 # flake8: noqa
 
 import triton
+=======
+# flake8: noqa: B902
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from prettytable import PrettyTable
 
 import torch
@@ -18,7 +23,11 @@ torch.manual_seed(0)
 torch.backends.cuda.matmul.allow_tf32 = True
 
 
+<<<<<<< HEAD
 class Func(object):
+=======
+class Func:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # mm
     @torch._dynamo.optimize("inductor")
     def mm(a, b, bias):
@@ -45,7 +54,14 @@ class Func(object):
         return torch.relu(y)
 
 
+<<<<<<< HEAD
 def bench(shape, layer_id, p, fusion_types=[""]):
+=======
+def bench(shape, layer_id, p, fusion_types=None):
+    torch._logging.set_logs(inductor_metrics=True)
+    if fusion_types is None:
+        fusion_types = [""]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dtype = torch.float16
     M, K = shape[0]
     _, N = shape[1]
@@ -60,7 +76,11 @@ def bench(shape, layer_id, p, fusion_types=[""]):
     row = [layer_id]
     for fusion_type in fusion_types:
         if fusion_type == "":
+<<<<<<< HEAD
             fn_mm = getattr(Func, "mm")
+=======
+            fn_mm = Func.mm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             fn_mm = getattr(Func, f"mm_{fusion_type}")
 
@@ -87,6 +107,10 @@ def bench(shape, layer_id, p, fusion_types=[""]):
         row.extend([tflops(torch_mm_ms), tflops(triton_mm_ms)])
 
     p.add_row(row)
+<<<<<<< HEAD
+=======
+    torch._logging.set_logs()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 fusion_types = ["", "add", "relu", "add_relu"]

@@ -7,7 +7,11 @@ import warnings
 import torch
 import torch.distributed as dist
 import torch.testing._internal.common_methods_invocations as common_ops
+<<<<<<< HEAD
 from torch.distributed._tensor import DeviceMesh, DTensor
+=======
+from torch.distributed.tensor import DeviceMesh, DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.overrides import resolve_name
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
@@ -112,6 +116,10 @@ dtensor_fails = {
     xfail("_batch_norm_with_update"),
     xfail("block_diag"),
     xfail("broadcast_shapes"),
+<<<<<<< HEAD
+=======
+    xfail("cartesian_prod"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("cauchy"),
     xfail("cdist"),
     xfail("cholesky"),
@@ -128,11 +136,16 @@ dtensor_fails = {
     xfail("cross"),
     xfail("cummax"),
     xfail("cummin"),
+<<<<<<< HEAD
     xfail("cumsum"),
     xfail("cumulative_trapezoid"),
     xfail("diagonal_scatter"),
     xfail("dist"),
     xfail("dot"),
+=======
+    xfail("diagonal_scatter"),
+    xfail("dist"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("empty"),
     xfail("empty_strided"),
     xfail("empty_like"),
@@ -157,6 +170,10 @@ dtensor_fails = {
     xfail("fft.rfft"),
     xfail("fft.rfftn"),
     xfail("fill"),
+<<<<<<< HEAD
+=======
+    xfail("flatten"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("flip"),
     xfail("fliplr"),
     xfail("flipud"),
@@ -186,6 +203,10 @@ dtensor_fails = {
     xfail("index_select"),
     xfail("isin"),
     xfail("kthvalue"),
+<<<<<<< HEAD
+=======
+    xfail("kron"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("linalg.cholesky"),
     xfail("linalg.cholesky_ex"),
     xfail("linalg.cross"),
@@ -233,7 +254,10 @@ dtensor_fails = {
     xfail("masked.argmax"),
     xfail("masked.argmin"),
     xfail("masked.cumprod"),
+<<<<<<< HEAD
     xfail("masked.cumsum"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("masked.logsumexp"),
     xfail("masked.median"),
     xfail("matrix_exp"),
@@ -357,10 +381,19 @@ dtensor_fails = {
     xfail("randint"),
     xfail("randn"),
     xfail("randn_like"),
+<<<<<<< HEAD
+=======
+    xfail("ravel"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("renorm"),
     xfail("repeat_interleave"),
     xfail("resize_"),
     xfail("resize_as_"),
+<<<<<<< HEAD
+=======
+    xfail("reshape"),
+    xfail("reshape_as"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("roll"),
     xfail("rot90"),
     xfail("rsub"),
@@ -372,7 +405,10 @@ dtensor_fails = {
     xfail("scatter_reduce", "prod"),
     xfail("scatter_reduce", "sum"),
     xfail("searchsorted"),
+<<<<<<< HEAD
     xfail("select"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("select_scatter"),
     xfail("sort"),
     xfail("sparse.sampled_addmm"),
@@ -425,6 +461,10 @@ dtensor_fails = {
     xfail("svd_lowrank"),
     xfail("t_copy"),
     xfail("take"),
+<<<<<<< HEAD
+=======
+    xfail("take_along_dim"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("tensor_split"),
     xfail("to_sparse"),
     xfail("trace"),
@@ -446,8 +486,16 @@ dtensor_fails = {
     xfail("var_mean"),
     xfail("var_mean", "unbiased"),
     xfail("vdot"),
+<<<<<<< HEAD
     xfail("view_copy"),
     xfail("zeros"),
+=======
+    xfail("view"),
+    xfail("view_as"),
+    xfail("view_copy"),
+    xfail("zeros"),
+    # /TODO(whc) debug/triage
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # ops inside this might even fail without dtensor
     # tests, as we rescale op db common test size factor (i.e. L, M, S)
     # which triggered the original function run failures with input
@@ -577,6 +625,7 @@ class TestDTensorOps(DTensorOpTestBase):
         def to_replicate(e: object) -> object:
             return e.full_tensor() if isinstance(e, DTensor) else e
 
+<<<<<<< HEAD
         try:
             # Suppress warnings, this doesn't matter for test_meta.py
             # but it does matter if you want to use this decorator
@@ -589,6 +638,20 @@ class TestDTensorOps(DTensorOpTestBase):
                     # Only attempt if we managed to convert all tensors to DTensor
                     # (if any of them failed, we're in a mixed tensor situation and
                     # this is not allowed in DTensor)
+=======
+        # Suppress warnings, this doesn't matter for test_meta.py
+        # but it does matter if you want to use this decorator
+        # for cross-ref testing, as some tests may be looking at
+        # errors
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # for every comb of sharding choices, we test if it works
+            for dtensor_args, dtensor_kwargs in to_dtensor:
+                # Only attempt if we managed to convert all tensors to DTensor
+                # (if any of them failed, we're in a mixed tensor situation and
+                # this is not allowed in DTensor)
+                try:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if to_dtensor.successful():
                         # Handle special cases first if there's any
                         # Suppress warnings, this doesn't matter for test_meta.py
@@ -598,7 +661,11 @@ class TestDTensorOps(DTensorOpTestBase):
                         dtensor_rs = func(*dtensor_args, **dtensor_kwargs)
 
                         # we need to skip tests containing tensors of zero elements for now.
+<<<<<<< HEAD
                         # see issue: https://github.com/pytorch/tau/issues/470
+=======
+                        # see issue: https://github.com/pytorch/PiPPy/issues/470
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         # TODO remove this once issue above fixed.
                         flat_args = pytree.tree_leaves(dtensor_rs)
                         if any(
@@ -629,11 +696,18 @@ class TestDTensorOps(DTensorOpTestBase):
                             f"failed to convert args to DTensor; "
                             f"originally (*{args}, **{kwargs})"
                         )
+<<<<<<< HEAD
         except Exception as e:
             raise RuntimeError(
                 f"failed to run: {resolve_name(func)}, with (*{args}, **{kwargs})"
             ) from e
 
+=======
+                except Exception as e:
+                    raise RuntimeError(
+                        f"failed to run: {resolve_name(func)}, with (*{dtensor_args}, **{dtensor_kwargs})"
+                    ) from e
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return rs
 
     def check_dtensor_func(self, test_func, opinfo, dry_run=False):

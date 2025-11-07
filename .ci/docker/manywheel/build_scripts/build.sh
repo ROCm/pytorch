@@ -97,7 +97,11 @@ find /opt/_internal -type f -print0 \
     | xargs -0 -n1 strip --strip-unneeded 2>/dev/null || true
 # We do not need the Python test suites, or indeed the precompiled .pyc and
 # .pyo files. Partially cribbed from:
+<<<<<<< HEAD
 #    https://github.com/docker-library/python/blob/master/3.4/slim/Dockerfile
+=======
+#    https://github.com/docker-library/python/blob/master/3.4/slim/Dockerfile  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 find /opt/_internal \
      \( -type d -a -name test -o -name tests \) \
   -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \

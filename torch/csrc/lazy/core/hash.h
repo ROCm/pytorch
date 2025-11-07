@@ -20,7 +20,11 @@ using size_t = std::size_t;
 
 class TORCH_API hash_t : public c10::uint128 {
  public:
+<<<<<<< HEAD
   // Swich from typedef hash_t = uint128 to provide explicit casters
+=======
+  // Switch from typedef hash_t = uint128 to provide explicit casters
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   hash_t(int8_t val) : uint128(static_cast<uint32_t>(val)) {}
   hash_t(int16_t val) : uint128(static_cast<uint32_t>(val)) {}
   hash_t(int32_t val) : uint128(static_cast<uint32_t>(val)) {}
@@ -69,7 +73,11 @@ hash_t Hash(const T& value) {
 // breaks falling through to the templated arithmetic types above
 hash_t TORCH_API Hash(const std::vector<bool>& value);
 
+<<<<<<< HEAD
 // Specialiazed implementations for proprietary types
+=======
+// Specialized implementations for proprietary types
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static inline hash_t Hash(const c10::ScalarType& value) {
   return DataHash(&value, sizeof(value));
 }

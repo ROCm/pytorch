@@ -92,6 +92,10 @@ void run_cudnn_SDP_bprop(
 #include <ATen/cudnn/Types.h>
 #include <ATen/cudnn/Utils.h>
 #include <ATen/native/cudnn/MHA.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/transformers/sdp_utils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/cuda/Exceptions.h>
 #include <cudnn_frontend.h>
@@ -296,7 +300,11 @@ struct MHAGraphCache {
 
 // @eqy: use thread local caches as cuDNN Execution Plans are not guaranteed to
 // be thread safe across all engines see Limitations in
+<<<<<<< HEAD
 // https://docs.nvidia.com/deeplearning/cudnn/release-notes/index.html
+=======
+// https://docs.nvidia.com/deeplearning/cudnn/backend/latest/release-notes.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 thread_local MHAGraphCache<graph_and_tensors, MHACacheKeyWrapper> mhagraphcache;
 thread_local MHAGraphCache<graph_and_tensors_backward, MHACacheKeyWrapper>
     mhagraphbackwardcache;
@@ -319,6 +327,7 @@ auto fixSizeOneDimStrideSDPA(
   }
   return strides;
 }
+<<<<<<< HEAD
 
 void alloc_with_matching_layout(
     const Tensor& q,
@@ -401,6 +410,8 @@ bool same_strides(const Tensor& t1, const Tensor& t2) {
       t2_strides_no_ones.begin(),
       t2_strides_no_ones.end());
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 auto build_graph_and_tensors(

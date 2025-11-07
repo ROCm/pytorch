@@ -1,9 +1,20 @@
+<<<<<<< HEAD
 #include <ATen/native/mkldnn/xpu/detail/Attr.h>
 #include <ATen/native/mkldnn/xpu/detail/Utils.h>
 #include <ATen/native/mkldnn/xpu/detail/oneDNN.h>
 
 #include <oneapi/dnnl/dnnl.hpp>
 
+=======
+#include <ATen/OpMathType.h>
+#include <ATen/native/mkldnn/xpu/detail/Attr.h>
+#include <ATen/native/mkldnn/xpu/detail/Utils.h>
+#include <ATen/native/mkldnn/xpu/detail/oneDNN.h>
+#include <oneapi/dnnl/dnnl.hpp>
+
+namespace {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using namespace at::native::onednn;
 using logical_tensor = dnnl::graph::logical_tensor;
 using data_type = logical_tensor::data_type;
@@ -11,7 +22,17 @@ using dims = logical_tensor::dims;
 using op = dnnl::graph::op;
 using partition = dnnl::graph::partition;
 
+<<<<<<< HEAD
 namespace {
+=======
+inline data_type to_logical_tensor_data_type(c10::ScalarType scalar_type) {
+  return scalar_type == c10::ScalarType::Float   ? data_type::f32
+      : scalar_type == c10::ScalarType::Half     ? data_type::f16
+      : scalar_type == c10::ScalarType::BFloat16 ? data_type::bf16
+                                                 : data_type::undef;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct SDPALogicalParams {
   enum class TensorID {
     query,
@@ -38,17 +59,30 @@ struct SDPALogicalParams {
       const at::Tensor& value_,
       const std::optional<at::Tensor>& attn_mask_,
       const at::Tensor& output_,
+<<<<<<< HEAD
       bool is_causal) {
     const data_type dtype = // to logical_tensor data type
         query_.scalar_type() == c10::ScalarType::Float      ? data_type::f32
         : query_.scalar_type() == c10::ScalarType::Half     ? data_type::f16
         : query_.scalar_type() == c10::ScalarType::BFloat16 ? data_type::bf16
                                                             : data_type::undef;
+=======
+      int batch_size,
+      int seq_len_q,
+      int seq_len_kv,
+      int num_head_q,
+      int num_head_kv,
+      int head_dim_qk,
+      int head_dim_v,
+      bool is_causal) {
+    const data_type dtype = to_logical_tensor_data_type(query_.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(
         (dtype != data_type::undef),
         "Only FP16/BF16/FP32 datatypes are currently supported");
     const dims scalar_shape = {1};
     std::vector<logical_tensor> inputLogicalTensors;
+<<<<<<< HEAD
     query = {
         static_cast<size_t>(TensorID::query),
         dtype,
@@ -62,27 +96,102 @@ struct SDPALogicalParams {
     scale = {
         static_cast<size_t>(TensorID::scale),
         dtype,
+=======
+
+    at::Tensor reshaped_query = query_;
+    at::Tensor reshaped_key = key_;
+    at::Tensor reshaped_value = value_;
+    at::Tensor reshaped_output = output_;
+    at::Tensor reshaped_attn_mask = attn_mask_.value_or(at::Tensor());
+    if (at::native::onednn::is_broadcast(reshaped_query)) {
+      at::native::onednn::undo_broadcast(reshaped_query);
+    }
+    if (at::native::onednn::is_broadcast(reshaped_key)) {
+      at::native::onednn::undo_broadcast(reshaped_key);
+    }
+    if (at::native::onednn::is_broadcast(reshaped_value)) {
+      at::native::onednn::undo_broadcast(reshaped_value);
+    }
+    if (at::native::onednn::is_broadcast(reshaped_output)) {
+      at::native::onednn::undo_broadcast(reshaped_output);
+    }
+    if (attn_mask_.has_value() &&
+        at::native::onednn::is_broadcast(reshaped_attn_mask)) {
+      at::native::onednn::undo_broadcast(reshaped_attn_mask);
+    }
+
+    if (num_head_q != num_head_kv) { // Check whether the attention is a
+                                     // Grouped-Query Attention (GQA)
+      int group_num = num_head_kv;
+      int group_size = num_head_q / num_head_kv;
+      // oneDNN requires the shape of the query tensor to be represented as
+      // [batch_size, num_head_q / num_head_kv, num_head_kv, seq_len_q,
+      // head_dim_qk]. Please refer to
+      // https://uxlfoundation.github.io/oneDNN/dev_guide_graph_gqa.html#gqa-pattern
+      reshaped_query = query_.view(
+          {batch_size, group_num, group_size, seq_len_q, head_dim_qk});
+      reshaped_key = key_.unsqueeze(2);
+      reshaped_value = value_.unsqueeze(2);
+      reshaped_output = output_.view(
+          {batch_size, group_num, group_size, seq_len_q, head_dim_v});
+      if (attn_mask_.has_value() && attn_mask_.value().dim() == 4) {
+        reshaped_attn_mask = attn_mask_.value().unsqueeze(2);
+      }
+    }
+
+    query = {
+        static_cast<size_t>(TensorID::query),
+        dtype,
+        reshaped_query.sizes().vec(),
+        reshaped_query.strides().vec()};
+    key = {
+        static_cast<size_t>(TensorID::key),
+        dtype,
+        reshaped_key.sizes().vec(),
+        reshaped_key.strides().vec()};
+    scale = {
+        static_cast<size_t>(TensorID::scale),
+        to_logical_tensor_data_type(at::toOpMathType(query_.scalar_type())),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         scalar_shape,
         logical_tensor::layout_type::strided,
         logical_tensor::property_type::constant};
     if (is_causal) {
       neg_inf = {
           static_cast<size_t>(TensorID::neg_inf),
+<<<<<<< HEAD
           dtype,
+=======
+          to_logical_tensor_data_type(at::toOpMathType(query_.scalar_type())),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           scalar_shape,
           logical_tensor::layout_type::strided,
           logical_tensor::property_type::constant};
     }
     if (attn_mask_.has_value()) {
+<<<<<<< HEAD
       attn_mask = {
           static_cast<size_t>(TensorID::attn_mask),
           dtype,
           attn_mask_->sizes().vec(),
           attn_mask_->strides().vec()};
+=======
+      const data_type mask_dtype =
+          to_logical_tensor_data_type(attn_mask_->scalar_type());
+      TORCH_INTERNAL_ASSERT(
+          (mask_dtype != data_type::undef),
+          "Only FP16/BF16/FP32 datatypes are currently supported for attn_mask");
+      attn_mask = {
+          static_cast<size_t>(TensorID::attn_mask),
+          mask_dtype,
+          reshaped_attn_mask.sizes().vec(),
+          reshaped_attn_mask.strides().vec()};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     value = {
         static_cast<size_t>(TensorID::value),
         dtype,
+<<<<<<< HEAD
         value_.sizes().vec(),
         value_.strides().vec()};
     output = {
@@ -90,6 +199,15 @@ struct SDPALogicalParams {
         dtype,
         output_.sizes().vec(),
         output_.strides().vec()};
+=======
+        reshaped_value.sizes().vec(),
+        reshaped_value.strides().vec()};
+    output = {
+        static_cast<size_t>(TensorID::output),
+        dtype,
+        reshaped_output.sizes().vec(),
+        reshaped_output.strides().vec()};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   std::vector<logical_tensor> get_input() const {
     std::vector<logical_tensor> input = {query, key, scale};
@@ -108,23 +226,38 @@ struct SDPALogicalParams {
 };
 
 partition create_sdpa_graph_partition(
+<<<<<<< HEAD
     int batch_size,
     int seq_len_q,
     int seq_len_k,
     int num_head,
     int head_dim,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool is_causal,
     data_type dtype,
     const SDPALogicalParams& params) {
   // graph building and partitioning
   // currently, we assume that Q and K have same sequence length
 
+<<<<<<< HEAD
   dims qk_output_shape = {batch_size, num_head, seq_len_q, seq_len_k};
   dims scale_shape = {1};
   size_t lt_id = static_cast<size_t>(SDPALogicalParams::TensorID::end);
   size_t op_id = 0;
 
   logical_tensor matmul_qk_out{lt_id++, dtype};
+=======
+  size_t lt_id = static_cast<size_t>(SDPALogicalParams::TensorID::end);
+  size_t op_id = 0;
+
+  // OneDNN graph has optimized implementation for `f16` or `bf16` SDPA with
+  // `f32` intermediate data type on Intel Graphics Products with Intel(R) Xe
+  // Matrix Extensions (Intel(R) XMX) support, which means the
+  // Q/K/V tensors have bf16 or f16 data type while the output of the first
+  // MatMul, Scale, Mask, and the input of SoftMax are in f32 data type.
+  logical_tensor matmul_qk_out{lt_id++, data_type::f32};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   op matmul_qk{
       op_id++,
       op::kind::MatMul,
@@ -133,7 +266,11 @@ partition create_sdpa_graph_partition(
       "matmul_qk"};
   matmul_qk.set_attr<bool>(op::attr::transpose_b, true);
 
+<<<<<<< HEAD
   logical_tensor scaled_qk_out{lt_id++, dtype};
+=======
+  logical_tensor scaled_qk_out{lt_id++, data_type::f32};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   op scale_mul{
       op_id++,
       op::kind::Multiply,
@@ -158,7 +295,11 @@ partition create_sdpa_graph_partition(
   if (params.attn_mask.has_value()) {
     TORCH_INTERNAL_ASSERT(
         !is_causal, "Additive mask cannot use with is_causal.");
+<<<<<<< HEAD
     masked_qk_out = {lt_id++, dtype};
+=======
+    masked_qk_out = {lt_id++, data_type::f32};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mask_add = {
         op_id++,
         op::kind::Add,
@@ -193,7 +334,11 @@ partition create_sdpa_graph_partition(
         {mask_gt_out.value()},
         "mask_gt"};
 
+<<<<<<< HEAD
     masked_qk_out = {lt_id++, dtype};
+=======
+    masked_qk_out = {lt_id++, data_type::f32};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mask_select = {
         op_id++,
         op::kind::Select,
@@ -209,6 +354,10 @@ partition create_sdpa_graph_partition(
 
   op softmax{op_id++, op::kind::SoftMax, "softmax"};
   softmax.set_attr<int64_t>(op::attr::axis, -1);
+<<<<<<< HEAD
+=======
+  softmax.set_attr<std::string>(op::attr::mode, "inf_as_zero");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   logical_tensor softmax_out{lt_id++, dtype};
   softmax.add_input(masked_qk_out.value_or(scaled_qk_out));
@@ -246,11 +395,14 @@ partition create_sdpa_graph_partition(
 }
 
 partition& find_or_create_graph_partition(
+<<<<<<< HEAD
     int batch_size,
     int seq_len_q,
     int seq_len_k,
     int num_head,
     int head_dim,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool is_causal,
     const SDPALogicalParams& params) {
   thread_local static PartitionCache cache;
@@ -280,6 +432,7 @@ partition& find_or_create_graph_partition(
   if (!partition_.has_value()) {
     // partition cache no hit
     // graph building and partitioning
+<<<<<<< HEAD
     partition sdp_partition = create_sdpa_graph_partition(
         batch_size,
         seq_len_q,
@@ -289,6 +442,10 @@ partition& find_or_create_graph_partition(
         is_causal,
         dtype,
         params);
+=======
+    partition sdp_partition =
+        create_sdpa_graph_partition(is_causal, dtype, params);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     partition_ = cache.insert_partition_cache(patternID, sdp_partition);
   }
   return *partition_;
@@ -299,10 +456,17 @@ namespace at::native::onednn {
 void gpu_float_sdpa(
     int batch_size,
     int seq_len_q,
+<<<<<<< HEAD
     int seq_len_k,
     int num_head,
     int num_head_kv,
     int head_dim,
+=======
+    int seq_len_kv,
+    int num_head_q,
+    int num_head_kv,
+    int head_dim_qk,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int head_dim_v,
     const Tensor& query,
     const Tensor& key,
@@ -311,22 +475,32 @@ void gpu_float_sdpa(
     bool is_causal,
     float softmax_scale,
     const Tensor& output) {
+<<<<<<< HEAD
   auto eng = GpuEngineManager::Instance().get_engine(
       {c10::kXPU, c10::xpu::current_device()});
   auto strm = GpuStreamManager::Instance().get_stream();
+=======
+  auto& eng = GpuEngineManager::Instance().get_engine();
+  auto& strm = GpuStreamManager::Instance().get_stream();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const auto get_tril_mask = [&]() {
     auto opts = query.options();
     auto bool_tril =
+<<<<<<< HEAD
         at::ones_symint(
             {query.sym_size(-2), key.sym_size(-2)}, opts.dtype(at::kBool))
             .tril();
+=======
+        at::ones_symint({seq_len_q, seq_len_kv}, opts.dtype(at::kBool)).tril();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return at::where(
         bool_tril,
         0.f,
         at::scalar_tensor(-std::numeric_limits<float>::infinity(), opts));
   };
 
+<<<<<<< HEAD
   static bool driver_support_implict_causal = true;
   if (attn_mask.has_value()) {
     TORCH_INTERNAL_ASSERT(
@@ -345,10 +519,23 @@ void gpu_float_sdpa(
   }
 
   std::vector<logical_tensor> l_inputs, l_outputs;
+=======
+  // OneDNN doesn't support fp32 ukernel for implicit causal mask,
+  // and the reference implementation is worse than aten math + explict causal
+  // mask. Fall back to explict causal mask until OneDNN v3.9 which has fp32
+  // ukernel for implicit causal mask.
+  if (is_causal && query.dtype() == at::kFloat) {
+    attn_mask = get_tril_mask();
+    is_causal = false;
+  }
+
+  std::vector<dnnl::graph::logical_tensor> l_inputs, l_outputs;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<dnnl::graph::compiled_partition> compiled_partition;
 
   auto get_compiled_partition = [&]() {
     const SDPALogicalParams logical_params(
+<<<<<<< HEAD
         query, key, value, attn_mask, output, is_causal);
     auto& partition_ = find_or_create_graph_partition(
         batch_size,
@@ -358,6 +545,23 @@ void gpu_float_sdpa(
         head_dim,
         is_causal,
         logical_params);
+=======
+        query,
+        key,
+        value,
+        attn_mask,
+        output,
+        batch_size,
+        seq_len_q,
+        seq_len_kv,
+        num_head_q,
+        num_head_kv,
+        head_dim_qk,
+        head_dim_v,
+        is_causal);
+    auto& partition_ =
+        find_or_create_graph_partition(is_causal, logical_params);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto i = logical_params.get_input();
     auto o = logical_params.get_output();
     auto compiled_partition = partition_.compile(i, o, eng);
@@ -366,6 +570,7 @@ void gpu_float_sdpa(
     return compiled_partition;
   };
 
+<<<<<<< HEAD
   // maybe retry without causal mask
   try {
     compiled_partition = get_compiled_partition();
@@ -384,6 +589,20 @@ void gpu_float_sdpa(
   std::optional<at::Tensor> neg_inf;
   if (is_causal) {
     neg_inf = at::full({}, -INFINITY, query.options());
+=======
+  compiled_partition = get_compiled_partition();
+
+  Tensor softmax_scale1 = at::full(
+      {},
+      softmax_scale,
+      query.options().dtype(at::toOpMathType(query.scalar_type())));
+  std::optional<at::Tensor> neg_inf;
+  if (is_causal) {
+    neg_inf = at::full(
+        {},
+        -INFINITY,
+        query.options().dtype(at::toOpMathType(query.scalar_type())));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::vector<dnnl::graph::tensor> outputs = {

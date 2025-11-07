@@ -46,9 +46,15 @@ def parallel_apply(
     element of :attr:`inputs` can either be a single object as the only argument
     to a module, or a collection of positional arguments.
     """
+<<<<<<< HEAD
     assert len(modules) == len(
         inputs
     ), f"The number of modules {len(modules)} is not equal to the number of inputs {len(inputs)}"
+=======
+    assert len(modules) == len(inputs), (
+        f"The number of modules {len(modules)} is not equal to the number of inputs {len(inputs)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if kwargs_tup is not None:
         assert len(modules) == len(kwargs_tup)
     else:
@@ -88,9 +94,17 @@ def parallel_apply(
         if stream is None:
             stream = torch.cuda.current_stream(device)
         try:
+<<<<<<< HEAD
             with torch.cuda.device(device), torch.cuda.stream(
                 stream
             ), torch.amp.autocast("cuda", enabled=autocast_enabled):
+=======
+            with (
+                torch.cuda.device(device),
+                torch.cuda.stream(stream),
+                torch.amp.autocast("cuda", enabled=autocast_enabled),
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # this also avoids accidental slicing of `input` if it is a Tensor
                 if not isinstance(input, (list, tuple)):
                     input = (input,)

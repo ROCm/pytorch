@@ -254,6 +254,23 @@ def build_subgraph_buffer(args: list[TensorBox], subgraph: Subgraph) -> Subgraph
     return build_subgraph_module_buffer(args, subgraph.graph_module)
 
 
+<<<<<<< HEAD
+=======
+def get_fwd_subgraph_outputs(
+    subgraph_buffer: SubgraphResults, mask_graph_buffer: SubgraphResults
+) -> list[Optional[ComputedBuffer]]:
+    subgraph_buffer = (
+        subgraph_buffer if isinstance(subgraph_buffer, Sequence) else [subgraph_buffer]
+    )
+    mask_graph_buffer = (
+        mask_graph_buffer
+        if isinstance(mask_graph_buffer, Sequence)
+        else [mask_graph_buffer]
+    )
+    return [*subgraph_buffer, *mask_graph_buffer]
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Inner Triton functions shared by flex_attention & split-k decoding kernels.
 compute_next_offset_func = r"""
 @triton.jit
@@ -373,6 +390,36 @@ compute_flex_attention = r"""
     off_zq = tl.program_id(1) // HQ
     off_hq = tl.program_id(1) % HQ
 
+<<<<<<< HEAD
+=======
+
+    # Setting up the TMA descriptors for Q, K, V
+    desc_q = None
+    desc_k = None
+    desc_v = None
+    {%- if USE_TMA %}
+    desc_q = tl.make_tensor_descriptor(
+        base=Q,
+        shape=[Q_LEN*HQ*ZQ, QK_HEAD_DIM],
+        strides=[QK_HEAD_DIM, 1],
+        block_shape=[BLOCK_M, QK_HEAD_DIM_ROUNDED],
+    )
+    desc_v = tl.make_tensor_descriptor(
+        base=V,
+        shape=[KV_LEN*ZKV*HQ, V_HEAD_DIM],
+        strides=[V_HEAD_DIM, 1],
+        block_shape=[BLOCK_N, V_HEAD_DIM_ROUNDED],
+    )
+    desc_k = tl.make_tensor_descriptor(
+        base=V,
+        shape=[KV_LEN*ZKV*HQ, V_HEAD_DIM],
+        strides=[V_HEAD_DIM, 1],
+        block_shape=[BLOCK_N, V_HEAD_DIM_ROUNDED],
+    )
+    {%- endif %}
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # We support two cases for batch dimension. a) (ZKV == ZQ) where off_zkv = off_zq.
     # b) (ZKV == 1 and ZQ > 1) where KV is broadcasted along the batch dimension and off_zkv=0.
     off_zkv = off_zq % ZKV
@@ -411,6 +458,7 @@ compute_flex_attention = r"""
     sparse_hz_offset = sparse_idx_z * SPARSE_HQ + sparse_idx_hq
     sparse_kv_num_blks_offset = sparse_hz_offset * stride_kv_num_blks_h + q_start // SPARSE_Q_MULTIPLE
     sparse_kv_idx_offset = sparse_hz_offset * stride_kv_idx_h + (q_start // SPARSE_Q_MULTIPLE) * stride_kv_idx_m  # noqa: B950
+<<<<<<< HEAD
 
     Q_block_ptr = tl.make_block_ptr(
         base=Q,
@@ -421,6 +469,31 @@ compute_flex_attention = r"""
         order=(1, 0)
     )
     q = load_checked_block(Q_block_ptr, IS_DIVISIBLE, SAFE_HEAD_DIM)
+=======
+    K_block_ptr = None
+    V_block_ptr = None
+    Q_block_ptr = None
+
+    if not USE_TMA:
+        Q_block_ptr = tl.make_block_ptr(
+            base=Q ,
+            shape=(Q_LEN, QK_HEAD_DIM),
+            strides=(stride_qm, stride_qk),
+            offsets=(q_start * BLOCK_M, 0),
+            block_shape=(BLOCK_M, QK_HEAD_DIM_ROUNDED),
+            order=(1, 0)
+        )
+
+    {%- if USE_TMA %}
+    q = tl.load_tensor_descriptor(
+        desc_q,
+        [(q_start * BLOCK_M).to(tl.int32), 0],
+    )
+    {%- else %}
+        q = load_checked_block(Q_block_ptr, IS_DIVISIBLE, SAFE_HEAD_DIM)
+    {%- endif %}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # ~~~~~~~~~~~~~~ normal blocks ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # We don't know anything "special" about these blocks, so we need to apply
     # both score_mod and mask_mod to it
@@ -429,6 +502,7 @@ compute_flex_attention = r"""
     kv_num_blocks = tl.load(KV_NUM_BLKS + sparse_kv_num_blks_offset)
     block_n_end = tl.minimum(kv_num_blocks * SPARSE_KV_MULTIPLE, tl.maximum(tl.cdiv(KV_LEN, BLOCK_N), 1))
 
+<<<<<<< HEAD
     K_block_ptr = tl.make_block_ptr(
         base=K,
         shape=(QK_HEAD_DIM, KV_LEN),
@@ -452,6 +526,38 @@ compute_flex_attention = r"""
         q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
         acc, l_i, m_i,
         off_zq, off_hq, offs_m[:, None], offs_n[None, :],
+=======
+
+    if not USE_TMA:
+        K_block_ptr = tl.make_block_ptr(
+            base=K,
+            shape=(QK_HEAD_DIM, KV_LEN),
+            strides=(stride_kk, stride_kn),
+            offsets=(0, kv_start),
+            block_shape=(QK_HEAD_DIM_ROUNDED, BLOCK_N),
+            order=(0, 1)
+        )
+
+        V_block_ptr = tl.make_block_ptr(
+            base=V,
+            shape=(KV_LEN, V_HEAD_DIM),
+            strides=(stride_vn, stride_vk),
+            offsets=(kv_start, 0),
+            block_shape=(BLOCK_N, V_HEAD_DIM_ROUNDED),
+            order=(1, 0)
+        )
+
+    offs_n = kv_start + tl.arange(0, BLOCK_N)
+
+
+    acc, l_i, m_i = forward_inner(
+        {{gen_argdefs()}},
+        q, K_block_ptr, V_block_ptr,
+        desc_k, desc_v, Q_LEN, KV_LEN,
+        acc, l_i, m_i,
+        off_zq, off_hq, offs_m[:, None], offs_n[None, :],
+        kv_start,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kv_indices, kv_num_blocks,
         0, block_n_end,
         MATMUL_PRECISION,
@@ -467,6 +573,7 @@ compute_flex_attention = r"""
         kv_start = tl.load(kv_indices) * SPARSE_KV_BLOCK_SIZE # first kv block we're loading
         kv_num_blocks = tl.load(FULL_KV_NUM_BLKS + sparse_kv_num_blks_offset)
         block_n_end = tl.minimum(kv_num_blocks * SPARSE_KV_MULTIPLE, tl.maximum(tl.cdiv(KV_LEN, BLOCK_N), 1))
+<<<<<<< HEAD
 
         K_block_ptr = tl.make_block_ptr(
             base=K,
@@ -484,13 +591,40 @@ compute_flex_attention = r"""
             block_shape=(BLOCK_N, V_HEAD_DIM_ROUNDED),
             order=(1, 0)
         )
+=======
+        if not USE_TMA:
+            K_block_ptr = tl.make_block_ptr(
+                base=K,
+                shape=(QK_HEAD_DIM, KV_LEN),
+                strides=(stride_kk, stride_kn),
+                offsets=(0, kv_start),
+                block_shape=(QK_HEAD_DIM_ROUNDED, BLOCK_N),
+                order=(0, 1)
+            )
+            V_block_ptr = tl.make_block_ptr(
+                base=V,
+                shape=(KV_LEN, V_HEAD_DIM),
+                strides=(stride_vn, stride_vk),
+                offsets=(kv_start, 0),
+                block_shape=(BLOCK_N, V_HEAD_DIM_ROUNDED),
+                order=(1, 0)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offs_n = kv_start + tl.arange(0, BLOCK_N)
 
         acc, l_i, m_i = forward_inner(
             {{gen_argdefs()}},
+<<<<<<< HEAD
             q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
             acc, l_i, m_i,
             off_zq, off_hq, offs_m[:, None], offs_n[None, :],
+=======
+            q, K_block_ptr, V_block_ptr,
+            desc_k, desc_v, Q_LEN, KV_LEN,
+            acc, l_i, m_i,
+            off_zq, off_hq, offs_m[:, None], offs_n[None, :],
+            kv_start,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             kv_indices, kv_num_blocks,
             0, block_n_end,
             MATMUL_PRECISION,
@@ -528,12 +662,22 @@ compute_forward_inner = r"""
 @triton.jit
 def forward_inner(
     {{gen_argdefs()}},
+<<<<<<< HEAD
     q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
+=======
+    q, K_block_ptr, V_block_ptr,
+    desc_k, desc_v, Q_LEN, KV_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # accumulated values
     acc, l_i, m_i,
     # Offsets used as inputs to score_mod & mask_mod
     # of size [BLOCK_M, BLOCK_N] or scalar.
     off_z, off_h, offs_m, offs_n,
+<<<<<<< HEAD
+=======
+    # Offsets needed for TMA loads
+    kv_start,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # blocksparse data
     kv_indices, kv_num_blocks,
     # start kv and end kv block
@@ -552,14 +696,28 @@ def forward_inner(
 
     # loop over k, v and update accumulator until block_n_end
     for start_n in range(block_n_start, block_n_end):
+<<<<<<< HEAD
         if IS_DIVISIBLE:
             acc, l_i, m_i = forward_block_mn(
                 {{gen_argdefs()}},
                 q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
+=======
+        # Here IS_DIVISIBLE acts are the start_n = tl.multiple_of(start_n, BLOCK_N) from triton_fused_attention.
+        if IS_DIVISIBLE:
+            acc, l_i, m_i = forward_block_mn(
+                {{gen_argdefs()}},
+                q, K_block_ptr, V_block_ptr, desc_k, desc_v, Q_LEN, KV_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # accumulated values
                 acc, l_i, m_i,
                 # Offsets
                 off_z, off_h, offs_m, offs_n,
+<<<<<<< HEAD
+=======
+                # Offsets needed for TMA loads
+                kv_start,
+                start_n,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 MATMUL_PRECISION, RCP_LN2,
                 IS_FULL_BLOCKS,
             )
@@ -570,25 +728,48 @@ def forward_inner(
             # to the last block because it's faster a lot.
             acc, l_i, m_i = forward_block_mn(
                 {{gen_argdefs()}},
+<<<<<<< HEAD
                 q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
+=======
+                q, K_block_ptr, V_block_ptr, desc_k, desc_v, Q_LEN, KV_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # accumulated values
                 acc, l_i, m_i,
                 # Offsets
                 off_z, off_h, offs_m, offs_n,
+<<<<<<< HEAD
+=======
+                # Offsets needed for TMA loads
+                kv_start,
+                start_n,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 MATMUL_PRECISION, RCP_LN2,
                 IS_FULL_BLOCKS, CHECK_BLOCK_BOUNDARY=True,
             )
 
+<<<<<<< HEAD
         # update pointers
+=======
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offset = get_offset_for_next_block(
             start_n, kv_indices, kv_num_blocks,
             SPARSE_KV_BLOCK_SIZE, SPARSE_KV_MULTIPLE, BLOCK_N, BLOCKS_ARE_CONTIGUOUS
         )
 
+<<<<<<< HEAD
         V_block_ptr = tl.advance(V_block_ptr, (offset, 0))
         K_block_ptr = tl.advance(K_block_ptr, (0, offset))
 
         offs_n = offs_n + offset
+=======
+        offs_n = offs_n + offset
+        if not USE_TMA:
+            K_block_ptr = tl.advance(K_block_ptr, (0, offset))
+            V_block_ptr = tl.advance(V_block_ptr, (offset, 0))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return acc, l_i, m_i
 
@@ -599,11 +780,21 @@ compute_forward_block_mn = r"""
 @triton.jit
 def forward_block_mn(
     {{gen_argdefs()}},
+<<<<<<< HEAD
     q, K_block_ptr, V_block_ptr, Q_LEN, KV_LEN,
+=======
+    q, K_block_ptr, V_block_ptr, desc_k, desc_v, Q_LEN, KV_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # accumulated values
     acc, l_i, m_i,
     # Offsets
     off_z, off_h, offs_m, offs_n,
+<<<<<<< HEAD
+=======
+    # Offsets needed for TMA loads
+    kv_start,
+    start_n,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MATMUL_PRECISION, RCP_LN2,
     IS_FULL_BLOCKS, CHECK_BLOCK_BOUNDARY=False,
 
@@ -613,7 +804,21 @@ def forward_block_mn(
 
     # -- load k --
     # NB reversed order to since K is transposed
+<<<<<<< HEAD
     k = load_checked_block(K_block_ptr, SAFE_HEAD_DIM, IS_DIVISIBLE)
+=======
+    {%- if USE_TMA %}
+    k = tl.load_tensor_descriptor(  # load in row major
+            desc_k,
+            [start_n.to(tl.int32) , kv_start],
+    )
+    {%- else %}
+    k = load_checked_block(K_block_ptr, SAFE_HEAD_DIM, IS_DIVISIBLE)
+    {%- endif %}
+
+    if USE_TMA:
+        k = tl.trans(k)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # -- compute qk ---
     qk = tl.dot(q, k, input_precision=FLOAT32_PRECISION) # TODO: use cuda matmul when q_len <= 2.
     if not PRESCALE_QK:
@@ -677,7 +882,18 @@ def forward_block_mn(
     l_i = l_i * alpha + tl.sum(p, 1)
     # # -- scale and update acc --
     acc = acc * alpha[:, None]
+<<<<<<< HEAD
     v = load_checked_block(V_block_ptr, IS_DIVISIBLE, SAFE_HEAD_DIM)
+=======
+    {%- if USE_TMA %}
+    v = tl.load_tensor_descriptor(
+        desc_v,
+        [kv_start.to(tl.int32) + start_n.to(tl.int32),0],
+    )
+    {%- else %}
+    v = load_checked_block(V_block_ptr, IS_DIVISIBLE, SAFE_HEAD_DIM)
+    {%- endif %}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     acc = tl.dot(p.to(MATMUL_PRECISION), v, acc, input_precision=FLOAT32_PRECISION)
 
     # -- update m_i
@@ -833,7 +1049,11 @@ def check_cpu_supported():
 
 
 def contiguous_last_dim(x):
+<<<<<<< HEAD
     """Ensure that realized IR node has a contigous stride in the last dimension."""
+=======
+    """Ensure that realized IR node has a contiguous stride in the last dimension."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     strides = x.maybe_get_stride()
     if strides and strides[-1] != 1:
         contiguous_stride_order = list(reversed(range(len(x.get_size()))))
@@ -888,7 +1108,11 @@ def lower_cpu(
     cur_kvSplitSize = V.graph.sizevars.shape_env.create_unbacked_symint().node.expr
     shape_env = V.graph.sizevars.shape_env
 
+<<<<<<< HEAD
     # We don't know the concret value of cur_qSplitSize and cur_kvSplitSize during the compilation.
+=======
+    # We don't know the concrete value of cur_qSplitSize and cur_kvSplitSize during the compilation.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Mark symbols > 1 to ensure broadcasting is always applied.
     # This avoids treating them as equal when `eq(var, 1)` is evaluated in `broadcast_symbolic_shapes`.
     shape_env.var_to_range[cur_qSplitSize] = ValueRanges(2, int_oo)
@@ -1066,6 +1290,10 @@ def lower_cpu(
     else:
         no_full_kv_block = False
         input_nodes += [full_kv_num_blocks]
+<<<<<<< HEAD
+=======
+        input_nodes += [full_kv_indices]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     has_other_buffer = False
     kernel_input_name_to_buffer = {}
     if score_mod_other_buffers or mask_mod_other_buffers:
@@ -1106,6 +1334,10 @@ def lower_cpu(
         score_mod=None if skip_mask_score else subgraph_buffer,
         mask_mod=None if skip_mask_score else mask_graph_buffer,
         kv_block_size=SPARSE_KV_BLOCK_SIZE,
+<<<<<<< HEAD
+=======
+        q_block_size=SPARSE_Q_BLOCK_SIZE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         has_other_buffer=has_other_buffer,
         no_full_kv_block=no_full_kv_block,
         fake_buffers=fake_buffers,
@@ -1125,6 +1357,18 @@ def lower_cpu(
         inputs_for_autotuning,
         layout,
     )
+<<<<<<< HEAD
+=======
+
+    # need subgraph inputs and outputs to analyze all symints used in flex attention
+    res.data.data.subgraph_inps = list(score_mod_other_buffers) + list(
+        mask_mod_other_buffers
+    )
+    res.data.data.subgraph_outs = get_fwd_subgraph_outputs(
+        subgraph_buffer, mask_graph_buffer
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (res,)
 
 
@@ -1378,7 +1622,10 @@ def flex_attention(
     # because they're implicitly added by the score_mod function
     # We do need to explicitly pass it in for autotuning though.
     original_kernel_options = kernel_options.copy()
+<<<<<<< HEAD
     
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Default config for warp specialization
     num_consumer_groups, num_buffers_warp_spec = 0, 0
 
@@ -1404,7 +1651,10 @@ def flex_attention(
                 cur_kernel_options[k[4:]] = v
             if k.startswith("bwd_"):
                 cur_kernel_options.pop(k)
+<<<<<<< HEAD
         
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cur_kernel_options.setdefault("num_stages", conf.num_stages)
         cur_kernel_options.setdefault("num_warps", conf.num_warps)
         if cur_kernel_options.get("num_consumer_groups", False):
@@ -1418,7 +1668,10 @@ def flex_attention(
 
         cur_kernel_options.setdefault("BLOCK_M", conf.block_m)
         cur_kernel_options.setdefault("BLOCK_N", conf.block_n)
+<<<<<<< HEAD
         
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Blocksparse options
         cur_kernel_options.setdefault("SPARSE_Q_BLOCK_SIZE", SPARSE_Q_BLOCK_SIZE)
         cur_kernel_options.setdefault("SPARSE_KV_BLOCK_SIZE", SPARSE_KV_BLOCK_SIZE)
@@ -1473,6 +1726,7 @@ def flex_attention(
         6: create_num_blocks_fake_generator(full_kv_indices),
         7: create_indices_fake,
     }
+<<<<<<< HEAD
     return (
         autotune_select_algorithm(
             "flex_attention",
@@ -1484,6 +1738,29 @@ def flex_attention(
         logsumexp,
     )
 
+=======
+
+    out = autotune_select_algorithm(
+        "flex_attention",
+        choices,
+        # Need to filter out symbols since there is an invariant
+        # that all input_nodes are of type IRNode
+        [x for x in inputs_for_autotuning if isinstance(x, torch._inductor.ir.IRNode)],
+        layout,
+        input_gen_fns=input_gen_fns,
+    )
+
+    # need subgraph inputs and outputs to analyze all symints used in flex attention
+    out.data.data.subgraph_inps = list(score_mod_other_buffers) + list(
+        mask_mod_other_buffers
+    )
+    out.data.data.subgraph_outs = get_fwd_subgraph_outputs(
+        subgraph_buffer, mask_graph_buffer
+    )
+
+    return (out, logsumexp)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # ---------------------------- Backward HOP Implementation ----------------------------
 
@@ -1610,7 +1887,11 @@ flex_attention_backward_template = TritonTemplate(
         sparse_kv_num_blks_offset = sparse_hz_offset * stride_kv_num_blks_h + off_pid_mask
         sparse_kv_idx_offset = sparse_hz_offset * stride_kv_idx_h + off_pid_mask * stride_kv_idx_m  # noqa: B950
 
+<<<<<<< HEAD
         # Offset Q, DQ, DO, DELTA & LSE. These inputs are offseted by query heads.
+=======
+        # Offset Q, DQ, DO, DELTA & LSE. These inputs are offsetted by query heads.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         q_adj2 = (stride_qh * off_hq2 + stride_qz * off_zq).to(tl.int64)
         do_adj2 = (stride_doh * off_hq2 + stride_doz * off_zq).to(tl.int64)
         dq_adj2 = (stride_dqh * off_hq2 + stride_dqz * off_zq).to(tl.int64)
@@ -1718,7 +1999,11 @@ flex_attention_backward_template = TritonTemplate(
         for off_g in range(0, GQA_SHARED_HEADS):
             off_hq1 = off_hkv * GQA_SHARED_HEADS + off_g
 
+<<<<<<< HEAD
             # Offset Q, DQ, DO, DELTA & LSE. These inputs are offseted by query heads.
+=======
+            # Offset Q, DQ, DO, DELTA & LSE. These inputs are offsetted by query heads.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             q_adj1 = (stride_qh * off_hq1 + stride_qz * off_zq).to(tl.int64)
             do_adj1 = (stride_doh * off_hq1 + stride_doz * off_zq).to(tl.int64)
             dq_adj1 = (stride_dqh * off_hq1 + stride_dqz * off_zq).to(tl.int64)
@@ -2599,11 +2884,26 @@ def flex_attention_backward(*args, **kwargs):
     broadcasted_grad_key = autotune_select_algorithm(
         "flex_attention_backward",
         choices,
+<<<<<<< HEAD
         inputs_for_autotuning,
+=======
+        [x for x in inputs_for_autotuning if isinstance(x, torch._inductor.ir.IRNode)],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         layout_broadcasted_k,
         input_gen_fns=input_gen_fns,
     )  # [Bq, Hkv, seq_len_kv, k_head_dim]
 
+<<<<<<< HEAD
+=======
+    # need subgraph inputs and outputs to analyze all symints used in flex attention
+    broadcasted_grad_key.data.data.subgraph_inps = list(score_mod_other_buffers) + list(
+        mask_mod_other_buffers
+    )
+    broadcasted_grad_key.data.data.subgraph_outs = get_bwd_subgraph_outputs(
+        fw_subgraph_buffer, mask_graph_buffer, joint_outputs
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if V.graph.sizevars.evaluate_expr(sympy.Eq(Bq, Bkv)):
         grad_key = broadcasted_grad_key
         grad_value = broadcasted_grad_value
@@ -2617,3 +2917,29 @@ def flex_attention_backward(*args, **kwargs):
         grad_value = lowerings[aten.sum](broadcasted_grad_value, axis=0, keepdims=True)
 
     return (grad_query, grad_key, grad_value, tuple(joint_outputs.captured_grads))
+<<<<<<< HEAD
+=======
+
+
+def get_bwd_subgraph_outputs(
+    subgraph_buffer: SubgraphResults,
+    mask_graph_buffer: SubgraphResults,
+    joint_outputs: JointOutputResult,
+) -> list[Optional[Union[ComputedBuffer, TensorBox]]]:
+    subgraph_buffer = (
+        subgraph_buffer if isinstance(subgraph_buffer, Sequence) else [subgraph_buffer]
+    )
+    mask_graph_buffer = (
+        mask_graph_buffer
+        if isinstance(mask_graph_buffer, Sequence)
+        else [mask_graph_buffer]
+    )
+    joint_output_buffers = [
+        joint_outputs.grad_input,
+        *joint_outputs.captured_grads_compute,
+        *joint_outputs.captured_grads,
+        *joint_outputs.mutated_grads,
+    ]
+
+    return [*subgraph_buffer, *mask_graph_buffer, *joint_output_buffers]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

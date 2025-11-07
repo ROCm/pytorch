@@ -8,7 +8,16 @@ from unittest.mock import patch
 
 import torch
 import torch.hub as hub
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_SANDCASTLE, retry, TestCase
+=======
+from torch.testing._internal.common_utils import (
+    IS_SANDCASTLE,
+    retry,
+    run_tests,
+    TestCase,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def sum_of_state_dict(state_dict):
@@ -307,3 +316,10 @@ class TestHub(TestCase):
         torch.hub.load("ailzhang/torchhub_example", "mnist_zip_1_6", trust_repo="check")
 
         self._assert_trusted_list_is_empty()
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    run_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

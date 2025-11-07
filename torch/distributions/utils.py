@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
 from functools import update_wrapper
 from typing import Any, Callable, Generic, overload, Union
@@ -11,6 +12,20 @@ from torch.types import _Number
 
 
 euler_constant = 0.57721566490153286060  # Euler Mascheroni Constant
+=======
+from collections.abc import Sequence
+from functools import update_wrapper
+from typing import Any, Callable, Final, Generic, Optional, overload, TypeVar, Union
+
+import torch
+import torch.nn.functional as F
+from torch import SymInt, Tensor
+from torch.overrides import is_tensor_like
+from torch.types import _dtype, _Number, Device, Number
+
+
+euler_constant: Final[float] = 0.57721566490153286060  # Euler Mascheroni Constant
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = [
     "broadcast_all",
@@ -23,7 +38,13 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
 def broadcast_all(*values):
+=======
+# FIXME: Use (*values: *Ts) -> tuple[Tensor for T in Ts] if Mapping-Type is ever added.
+#   See https://github.com/python/typing/issues/1216#issuecomment-2126153831
+def broadcast_all(*values: Union[Tensor, Number]) -> tuple[Tensor, ...]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Given a list of values (possibly containing numbers), returns a list where each
     value is broadcasted based on the following rules:
@@ -57,7 +78,15 @@ def broadcast_all(*values):
     return torch.broadcast_tensors(*values)
 
 
+<<<<<<< HEAD
 def _standard_normal(shape, dtype, device):
+=======
+def _standard_normal(
+    shape: Sequence[Union[int, SymInt]],
+    dtype: Optional[_dtype],
+    device: Optional[Device],
+) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if torch._C._get_tracing_state():
         # [JIT WORKAROUND] lack of support for .normal_()
         return torch.normal(
@@ -67,7 +96,11 @@ def _standard_normal(shape, dtype, device):
     return torch.empty(shape, dtype=dtype, device=device).normal_()
 
 
+<<<<<<< HEAD
 def _sum_rightmost(value, dim):
+=======
+def _sum_rightmost(value: Tensor, dim: int) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Sum out ``dim`` many rightmost dimensions of a given tensor.
 
@@ -81,7 +114,11 @@ def _sum_rightmost(value, dim):
     return value.reshape(required_shape).sum(-1)
 
 
+<<<<<<< HEAD
 def logits_to_probs(logits, is_binary=False):
+=======
+def logits_to_probs(logits: Tensor, is_binary: bool = False) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Converts a tensor of logits into probabilities. Note that for the
     binary case, each value denotes log odds, whereas for the
@@ -93,7 +130,11 @@ def logits_to_probs(logits, is_binary=False):
     return F.softmax(logits, dim=-1)
 
 
+<<<<<<< HEAD
 def clamp_probs(probs):
+=======
+def clamp_probs(probs: Tensor) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Clamps the probabilities to be in the open interval `(0, 1)`.
 
     The probabilities would be clamped between `eps` and `1 - eps`,
@@ -119,7 +160,11 @@ def clamp_probs(probs):
     return probs.clamp(min=eps, max=1 - eps)
 
 
+<<<<<<< HEAD
 def probs_to_logits(probs, is_binary=False):
+=======
+def probs_to_logits(probs: Tensor, is_binary: bool = False) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Converts a tensor of probabilities into logits. For the binary case,
     this denotes the probability of occurrence of the event indexed by `1`.

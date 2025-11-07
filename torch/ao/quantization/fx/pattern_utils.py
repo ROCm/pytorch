@@ -47,9 +47,15 @@ def _register_quant_pattern(pattern, fixed_qparams_observer=None):
     def insert(fn):
         _DEFAULT_QUANTIZATION_PATTERNS[pattern] = fn
         if fixed_qparams_observer is not None:
+<<<<<<< HEAD
             _DEFAULT_OUTPUT_FAKE_QUANTIZE_MAP[
                 pattern
             ] = FixedQParamsFakeQuantize.with_args(observer=fixed_qparams_observer)
+=======
+            _DEFAULT_OUTPUT_FAKE_QUANTIZE_MAP[pattern] = (
+                FixedQParamsFakeQuantize.with_args(observer=fixed_qparams_observer)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _DEFAULT_OUTPUT_OBSERVER_MAP[pattern] = fixed_qparams_observer
         return fn
 
@@ -81,7 +87,11 @@ def get_default_output_activation_post_process_map(
 
 
 def _sorted_patterns_dict(
+<<<<<<< HEAD
     patterns_dict: dict[Pattern, QuantizeHandler]
+=======
+    patterns_dict: dict[Pattern, QuantizeHandler],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> dict[Pattern, QuantizeHandler]:
     """
     Return a sorted version of the patterns dictionary such that longer patterns are matched first,

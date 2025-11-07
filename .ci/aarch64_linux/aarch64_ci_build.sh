@@ -3,10 +3,15 @@ set -eux -o pipefail
 
 GPU_ARCH_VERSION=${GPU_ARCH_VERSION:-}
 
+<<<<<<< HEAD
 if [[ "$GPU_ARCH_VERSION" == *"12.6"* ]]; then
     export TORCH_CUDA_ARCH_LIST="9.0"
 elif [[ "$GPU_ARCH_VERSION" == *"12.8"* ]]; then
     export TORCH_CUDA_ARCH_LIST="9.0;10.0;12.0"
+=======
+if [[ "$GPU_ARCH_VERSION" == *"12.9"* ]]; then
+    export TORCH_CUDA_ARCH_LIST="8.0;9.0;10.0;12.0"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -27,6 +32,10 @@ if [ "$DESIRED_CUDA" = "cpu" ]; then
     USE_PRIORITIZED_TEXT_FOR_LD=1 python /pytorch/.ci/aarch64_linux/aarch64_wheel_ci_build.py --enable-mkldnn
 else
     echo "BASE_CUDA_VERSION is set to: $DESIRED_CUDA"
+<<<<<<< HEAD
+=======
+    export USE_SYSTEM_NCCL=1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #USE_PRIORITIZED_TEXT_FOR_LD for enable linker script optimization https://github.com/pytorch/pytorch/pull/121975/files
     USE_PRIORITIZED_TEXT_FOR_LD=1 python /pytorch/.ci/aarch64_linux/aarch64_wheel_ci_build.py --enable-mkldnn --enable-cuda
 fi

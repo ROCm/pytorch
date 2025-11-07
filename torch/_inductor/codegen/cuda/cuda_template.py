@@ -1,14 +1,25 @@
 # mypy: allow-untyped-defs
 import functools
+<<<<<<< HEAD
 import itertools
 from dataclasses import dataclass
 from typing import Any, Optional
+=======
+import hashlib
+import itertools
+from dataclasses import dataclass
+from typing import Any, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import override
 from unittest.mock import patch
 
 import sympy
 
 import torch
+<<<<<<< HEAD
+=======
+from torch._inductor.utils import Placeholder
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import getArtifactLogger
 
 from ...autotune_process import CUDABenchmarkRequest, TensorMeta
@@ -17,8 +28,21 @@ from ...utils import IndentedBuffer, unique
 from ...virtualized import V
 from ..common import KernelTemplate
 from .cuda_kernel import CUDATemplateCaller, CUDATemplateKernel
+<<<<<<< HEAD
 
 
+=======
+from .cutlass_utils import DTYPE_TO_CUTLASS_TYPE
+
+
+if TYPE_CHECKING:
+    from ...scheduler import BaseSchedulerNode  # noqa: TC004
+else:
+    BaseSchedulerNode = Any
+
+GemmOperation = Any
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 autotuning_log = getArtifactLogger(__name__, "autotuning")
 
 
@@ -55,6 +79,13 @@ class CUDATemplate(KernelTemplate):
         self.input_reorder = input_reorder
         self.layout = layout
 
+<<<<<<< HEAD
+=======
+    @staticmethod
+    def supports_epilogue_fusion(op: GemmOperation) -> bool:
+        return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def generate(  # type: ignore[override]
         self,
         description,
@@ -70,7 +101,11 @@ class CUDATemplate(KernelTemplate):
         Returns:
             A CUDATemplateCaller object representing the generated CUDA template caller.
         """
+<<<<<<< HEAD
         kernel_name = f"cuda_{self.name}"
+=======
+        kernel_name = str(Placeholder.KERNEL_NAME)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with (
             patch.object(V.graph, "get_dtype", self._fake_get_dtype(self.output_node)),
             CUDATemplateKernel(
@@ -84,7 +119,11 @@ class CUDATemplate(KernelTemplate):
             autotuning_log.debug("Generated Code:\n%s", code)
             autotuning_log.debug(
                 "Args: cpp_argdefs: %s, python_argdefs: %s",
+<<<<<<< HEAD
                 kernel.args.cpp_argdefs(),
+=======
+                kernel.args.cpp_argdefs(DTYPE_TO_CUTLASS_TYPE),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kernel.args.python_argdefs(),
             )
 
@@ -102,10 +141,19 @@ class CUDATemplate(KernelTemplate):
             expected_args,
         )
         V.graph.sizevars.size_hints(map(sympy.expand, call_args[len(expected_args) :]))
+<<<<<<< HEAD
         size_args = V.graph.sizevars.size_hints(kernel.get_layout_args())
         extra_args = tuple(list(size_args) + self.get_runtime_arg_values(**kwargs))
 
         kernel_hash_name = f"cuda_{self.name}_{next(self.index_counter)}"
+=======
+        size_args = V.graph.sizevars.size_hints(kernel.get_dynamic_shape_args())
+        extra_args = tuple(list(size_args) + self.get_runtime_arg_values(**kwargs))
+
+        kernel_hash = hashlib.sha256(code.encode("utf-8")).hexdigest()[:8]
+        kernel_name = f"cutlass_{kernel_hash}"
+        code = code.replace(self.name, kernel_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # create the BenchmarkRequest
         bmreq = CUDABenchmarkRequest(
@@ -116,12 +164,32 @@ class CUDATemplate(KernelTemplate):
             source_code=code,
         )
 
+<<<<<<< HEAD
         def make_kernel_render(
             template_node: CUDATemplateBuffer,
             epilogue_nodes: Optional[list[IRNode]] = None,
         ):
             kernel = CUDATemplateKernel(
                 kernel_name="KERNEL_NAME",
+=======
+        # kwargs has "op" argument in case of CUTLASSGemmTemplate
+        op = kwargs["op"]
+        if not op:
+            supports_epilogue_fusion = False
+        else:
+            # epilogue fusion is only supported for TMA kernels
+            supports_epilogue_fusion = self.supports_epilogue_fusion(op)
+
+        def make_kernel_render(
+            template_node: CUDATemplateBuffer,
+            epilogue_nodes: Optional[list[BaseSchedulerNode]] = None,
+        ) -> tuple[CUDATemplateKernel, functools.partial[str]]:
+            assert supports_epilogue_fusion or not epilogue_nodes, (
+                "epilogue fusion is not supported for this kernel"
+            )
+            kernel = CUDATemplateKernel(
+                kernel_name=str(Placeholder.KERNEL_NAME),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 runtime_arg_info=self.get_runtime_arg_info(),
                 runtime_arg_values=self.get_runtime_arg_values(**kwargs),
             )
@@ -135,12 +203,21 @@ class CUDATemplate(KernelTemplate):
             return kernel, render
 
         return CUDATemplateCaller(
+<<<<<<< HEAD
             kernel_hash_name,
             self.name,
+=======
+            kernel_name,
+            "cutlass_gemm",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.input_nodes,
             self.output_node.get_layout(),
             make_kernel_render,
             bmreq,
+<<<<<<< HEAD
+=======
+            supports_epilogue_fusion,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self,
             kwargs,
             description,
@@ -175,7 +252,10 @@ class CUDATemplate(KernelTemplate):
                 #define PT_EXPORT
                 #endif
                 #endif
+<<<<<<< HEAD
                 using bfloat16 = nv_bfloat16;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """
         )
         return res
@@ -257,6 +337,10 @@ class CUTLASSTemplate(CUDATemplate):
         torch.uint8: "uint8_t",
         torch.bool: "bool",
         torch.bfloat16: "cutlass::bfloat16_t",
+<<<<<<< HEAD
+=======
+        torch.float8_e4m3fn: "cutlass::float_e4m3_t",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     _DTYPE_TO_CUTLASS_SPARSE_META = {

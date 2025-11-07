@@ -1,16 +1,29 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/native/TensorAdvancedIndexing.h>
+<<<<<<< HEAD
 
 #include <ATen/core/Tensor.h>
 #include <ATen/Dispatch.h>
+=======
+#include <ATen/core/Tensor.h>
+#include <ATen/Dispatch.h>
+#include <ATen/ceil_div.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/MemoryOverlap.h>
 
 #include <ATen/native/ScatterGatherChecks.h>
 #include <ATen/native/ReduceOpsUtils.h>
+<<<<<<< HEAD
 #include <ATen/native/TensorIterator.h>
 
 #include <ATen/native/cuda/Loops.cuh>
 #include <ATen/native/cuda/KernelUtils.cuh>
+=======
+#include <ATen/native/cuda/IndexKernelUtils.h>
+#include <ATen/native/cuda/Loops.cuh>
+#include <ATen/native/cuda/KernelUtils.cuh>
+#include <ATen/native/cuda/MemoryAccess.cuh>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/cuda/detail/OffsetCalculator.cuh>
 #include <ATen/cuda/Atomic.cuh>
 #include <ATen/cuda/CUDAContext.h>
@@ -116,8 +129,12 @@ static void _launch_scatter_gather_kernel(int64_t N, const func_t& f) {
   C10_CUDA_KERNEL_LAUNCH_CHECK();
 }
 
+<<<<<<< HEAD
 
 template <bool is_scatter_like, typename scalar_t>
+=======
+template <bool is_scatter_like, typename scalar_t, typename index_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct _cuda_scatter_gather_internal_kernel {
   template <typename func_t>
   void operator() (
@@ -129,7 +146,11 @@ struct _cuda_scatter_gather_internal_kernel {
   ) {
     if (!iter.can_use_32bit_indexing()) {
       for (auto& sub_iter : iter.with_32bit_indexing()) {
+<<<<<<< HEAD
         _cuda_scatter_gather_internal_kernel<is_scatter_like, scalar_t>()(
+=======
+        _cuda_scatter_gather_internal_kernel<is_scatter_like, scalar_t, index_t>()(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           sub_iter, index_size, index_stride, numel, f
         );
       }
@@ -140,13 +161,38 @@ struct _cuda_scatter_gather_internal_kernel {
     char* src_ptr = (char*)iter.data_ptr(1);
     char* index_ptr = (char*)iter.data_ptr(2);
 
+<<<<<<< HEAD
+=======
+    if constexpr (!is_scatter_like) {
+      // we can go to faster path if we are indexing on the first dim
+      // the dst and src are contiguous and all the dims and pts are multiple of 16
+      constexpr size_t element_size = sizeof(scalar_t);
+      constexpr size_t alignment = 16;
+      if (at::native::fast_gather_kernel_eligible<alignment>(iter, self_ptr, src_ptr, index_stride * element_size, element_size)) {
+        auto slice_size = iter.shape()[0] * element_size;
+        auto num_ind = iter.shape()[1];
+        auto ind_dim_size = index_size;
+        auto inp_stride_bytes = index_stride * element_size;
+        auto out_stride_bytes = iter.strides(0)[1];
+        if (iter.numel() == 0) return;
+        at::native::vectorized_gather_kernel_launch<alignment, index_t>(self_ptr, src_ptr, (index_t*)index_ptr, num_ind, slice_size, ind_dim_size, inp_stride_bytes, out_stride_bytes);
+        return;
+      }
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto offset_calc = make_offset_calculator<3>(iter);
     auto loop = [=]C10_DEVICE(int i) {
       auto offsets = offset_calc.get(i);
 
+<<<<<<< HEAD
       int64_t idx_dim = *(int64_t*)(index_ptr + offsets[2]);
       CUDA_KERNEL_ASSERT(idx_dim >= 0 && idx_dim < index_size
         && "index out of bounds");
+=======
+      int64_t idx_dim = *(index_t*)(index_ptr + offsets[2]);
+      CUDA_KERNEL_ASSERT(idx_dim >= 0 && idx_dim < index_size
+        && "scatter gather kernel index out of bounds");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       f(
         (scalar_t*)(self_ptr + offsets[0]),
@@ -157,6 +203,10 @@ struct _cuda_scatter_gather_internal_kernel {
     };
 
     _launch_scatter_gather_kernel<num_threads(), thread_work_size()>(iter.numel(), loop);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }; // struct _cuda_scatter_gather_internal_kernel
 
@@ -213,9 +263,17 @@ struct cuda_scatter_gather_base_kernel {
         using dtype = typename std::conditional<cast_to_opaque,
           OpaqueType<sizeof(scalar_t)>, scalar_t>::type;
 
+<<<<<<< HEAD
         _cuda_scatter_gather_internal_kernel<is_scatter_like, dtype>()(
           iter, index_size, index_stride, self.numel(), f
         );
+=======
+        AT_DISPATCH_INDEX_TYPES(index.scalar_type(), "cuda_scatter_gather_base_kernel_func", [&] () {
+          _cuda_scatter_gather_internal_kernel<is_scatter_like, dtype, index_t>()(
+            iter, index_size, index_stride, self.numel(), f
+          );
+        });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     );
   }
@@ -263,6 +321,7 @@ struct cuda_scatter_gather_base_kernel {
     auto index_size = is_scatter_like ? self_dim_size : src_dim_size;
     auto index_stride = is_scatter_like ? self_dim_stride : src_dim_stride;
 
+<<<<<<< HEAD
 
     AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND3(
       at::ScalarType::Half, at::ScalarType::Bool, at::ScalarType::BFloat16,
@@ -276,6 +335,42 @@ struct cuda_scatter_gather_base_kernel {
         );
       }
     );
+=======
+    if (self.is_quantized()) {
+      TORCH_CHECK(
+          self.qscheme() == kPerTensorAffine,
+          "Only per_tensor quantized quantized tensors are supported by gather.")
+      AT_DISPATCH_QINT_TYPES(iter.dtype(), "gather_quant_cuda", [&] {
+        using dtype = typename std::conditional<cast_to_opaque,
+            OpaqueType<sizeof(scalar_t)>, scalar_t>::type;
+        AT_DISPATCH_INDEX_TYPES(index.scalar_type(), "cuda_scatter_gather_base_kernel_func", [&] () {
+          _cuda_scatter_gather_internal_kernel<is_scatter_like, dtype, index_t>()(
+            iter, index_size, index_stride, self.numel(), f
+          );
+        });
+      });
+    } else {
+      AT_DISPATCH_V2(
+          iter.dtype(),
+          "gather_cuda",
+          AT_WRAP([&] {
+            using dtype = typename std::conditional<cast_to_opaque,
+                OpaqueType<sizeof(scalar_t)>, scalar_t>::type;
+            AT_DISPATCH_INDEX_TYPES(index.scalar_type(), "cuda_scatter_gather_base_kernel_func", [&] () {
+              _cuda_scatter_gather_internal_kernel<is_scatter_like, dtype, index_t>()(
+                iter, index_size, index_stride, self.numel(), f
+              );
+            });
+          }),
+          AT_EXPAND(AT_ALL_TYPES_AND_COMPLEX),
+          AT_EXPAND(AT_BAREBONES_UNSIGNED_TYPES),
+          AT_EXPAND(AT_FLOAT8_TYPES),
+          kComplexHalf,
+          kHalf,
+          kBool,
+          kBFloat16);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   template <typename func_t>
@@ -322,7 +417,10 @@ struct cuda_scatter_gather_base_kernel {
     auto index_size = is_scatter_like ? self_dim_size : src_dim_size;
     auto index_stride = is_scatter_like ? self_dim_stride : src_dim_stride;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     AT_DISPATCH_ALL_TYPES_AND2(
       at::ScalarType::Half, at::ScalarType::BFloat16,
       iter.dtype(),
@@ -330,15 +428,27 @@ struct cuda_scatter_gather_base_kernel {
         using dtype = typename std::conditional<cast_to_opaque,
           OpaqueType<sizeof(scalar_t)>, scalar_t>::type;
 
+<<<<<<< HEAD
         _cuda_scatter_gather_internal_kernel<is_scatter_like, dtype>()(
           iter, index_size, index_stride, self.numel(), f
         );
+=======
+        AT_DISPATCH_INDEX_TYPES(index.scalar_type(), "cuda_scatter_gather_base_kernel_func", [&] () {
+          _cuda_scatter_gather_internal_kernel<is_scatter_like, dtype, index_t>()(
+            iter, index_size, index_stride, self.numel(), f
+          );
+        });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     );
   }
 }; // struct cuda_scatter_gather_base_kernel
 
+<<<<<<< HEAD
 template <typename scalar_t>
+=======
+template <typename scalar_t, typename index_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct _cuda_scatter_fill_internal_kernel {
   template <typename func_t>
   void operator()(
@@ -351,7 +461,11 @@ struct _cuda_scatter_fill_internal_kernel {
   ) {
     if (!iter.can_use_32bit_indexing()) {
       for (auto& sub_iter : iter.with_32bit_indexing()) {
+<<<<<<< HEAD
         _cuda_scatter_fill_internal_kernel<scalar_t>()(
+=======
+        _cuda_scatter_fill_internal_kernel<scalar_t, index_t>()(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           sub_iter, src_val, index_size, index_stride, numel, f
         );
       }
@@ -365,7 +479,11 @@ struct _cuda_scatter_fill_internal_kernel {
     auto loop = [=]C10_DEVICE(int i) {
       auto offsets = offset_calc.get(i);
 
+<<<<<<< HEAD
       int64_t idx_dim = *(int64_t*)(index_ptr + offsets[1]);
+=======
+      int64_t idx_dim = *(index_t*)(index_ptr + offsets[1]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       CUDA_KERNEL_ASSERT(idx_dim >= 0 && idx_dim < index_size
         && "index out of bounds"
       );
@@ -421,9 +539,17 @@ struct cuda_scatter_fill_base_kernel {
         auto src_scalar_val = src.to<scalar_t>();
         auto src_val = *(dtype*)&src_scalar_val;
 
+<<<<<<< HEAD
         _cuda_scatter_fill_internal_kernel<dtype>()(
           iter, src_val, index_size, index_stride, self.numel(), f
         );
+=======
+        AT_DISPATCH_INDEX_TYPES(index.scalar_type(), "cuda_scatter_fill_base_kernel_func", [&] () {
+          _cuda_scatter_fill_internal_kernel<dtype, index_t>()(
+            iter, src_val, index_size, index_stride, self.numel(), f
+          );
+        });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     );
   }
@@ -464,9 +590,17 @@ struct cuda_scatter_fill_base_kernel {
         auto src_scalar_val = src.to<scalar_t>();
         auto src_val = *(dtype*)&src_scalar_val;
 
+<<<<<<< HEAD
         _cuda_scatter_fill_internal_kernel<dtype>()(
           iter, src_val, index_size, index_stride, self.numel(), f
         );
+=======
+        AT_DISPATCH_INDEX_TYPES(index.scalar_type(), "cuda_scatter_fill_base_kernel_reduce_multiply", [&] () {
+          _cuda_scatter_fill_internal_kernel<dtype, index_t>()(
+            iter, src_val, index_size, index_stride, self.numel(), f
+          );
+        });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     );
   }

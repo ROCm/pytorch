@@ -63,8 +63,12 @@ TEST(CPUAllocationPlanTest, with_control_flow) {
     }
     bool success{true};
     for (uint64_t i = 0; i < 10; ++i) {
+<<<<<<< HEAD
       // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
       bool validation_success;
+=======
+      bool validation_success = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {
         c10::WithValidateAllocationPlanGuard
           validation_guard(&plan, &validation_success);

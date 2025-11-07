@@ -64,4 +64,12 @@ variable_list CppFunctionSingleTensorPreHook::operator()(
   return results;
 }
 
+<<<<<<< HEAD
+=======
+void CppFunctionSingleTensorPreHook::compiled_args(
+    torch::dynamo::autograd::CompiledNodeArgs& args) const {
+  args.add_cpp_single_tensor_pre_hook(hook_, value_idx_);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::autograd

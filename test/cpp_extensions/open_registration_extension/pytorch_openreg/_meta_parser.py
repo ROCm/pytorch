@@ -67,7 +67,11 @@ def prepare_for_sending(args, kwargs):
     def convert(obj):
         if type(obj) not in VALID_QUEUE_TYPES_IN:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Cannot send object of type {type(obj)} " "over openreg device pipe."
+=======
+                f"Cannot send object of type {type(obj)} over openreg device pipe."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         if isinstance(obj, torch.Tensor):
@@ -82,8 +86,12 @@ def receive_after_sending(allocator, args, kwargs):
     def convert(obj):
         if type(obj) not in VALID_QUEUE_TYPES_OUT:
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Received invalid object of type {type(obj)} "
                 "over openreg device pipe."
+=======
+                f"Received invalid object of type {type(obj)} over openreg device pipe."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         if isinstance(obj, OpenRegTensorMeta):

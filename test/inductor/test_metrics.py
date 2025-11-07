@@ -50,9 +50,13 @@ def triton_red_fused_add_sum_2(in_out_ptr0, in_ptr0, xnumel, rnumel, XBLOCK : tl
     tmp5 = tmp4 + tmp2
     tl.debug_barrier()
     tl.store(in_out_ptr0 + (x0), tmp5, xmask)
+<<<<<<< HEAD
 """.replace(
     "GPU_TYPE", GPU_TYPE
 )
+=======
+""".replace("GPU_TYPE", GPU_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestMetrics(TestCase):

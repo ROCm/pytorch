@@ -62,7 +62,11 @@ def venv(interpreter: str) -> Iterator[str]:
 
 
 class Builder:
+<<<<<<< HEAD
     # The python interpeter that we should be using
+=======
+    # The python interpreter that we should be using
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     interpreter: str
 
     def __init__(self, interpreter: str) -> None:
@@ -124,7 +128,11 @@ def main() -> None:
         with venv(interpreter) as venv_interpreter:
             builder = Builder(venv_interpreter)
             # clean actually requires setuptools so we need to ensure we
+<<<<<<< HEAD
             # install requriements before
+=======
+            # install requirements before
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             builder.install_requirements()
             builder.clean()
 

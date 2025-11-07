@@ -35,7 +35,11 @@ endfunction()
 
 ################################################################################
 
+<<<<<<< HEAD
 # -- [ Deterine commit hash
+=======
+# -- [ Determine commit hash
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 execute_process(
     COMMAND "${Python_EXECUTABLE}" -c "from tools.generate_torch_version import get_sha;print(get_sha('.'), end='')"
     OUTPUT_VARIABLE COMMIT_SHA
@@ -76,6 +80,7 @@ if(INTERN_BUILD_ATEN_OPS)
 
   file(GLOB_RECURSE all_python "${CMAKE_CURRENT_LIST_DIR}/../torchgen/*.py")
 
+<<<<<<< HEAD
   # RowwiseScaled.cu requires sm89/sm90a flags
   if(USE_CUDA)
     set(ROWWISE_SCALED_MM_FILE "${CMAKE_CURRENT_LIST_DIR}/../aten/src/ATen/native/cuda/RowwiseScaledMM.cu")
@@ -117,6 +122,61 @@ if(INTERN_BUILD_ATEN_OPS)
     list(JOIN ROWWISE_SCALED_MM_FILE_COMPILE_FLAGS " " ROWWISE_SCALED_MM_FILE_COMPILE_FLAGS)
     set_source_files_properties(${ROWWISE_SCALED_MM_FILE} PROPERTIES COMPILE_FLAGS "${ROWWISE_SCALED_MM_FILE_COMPILE_FLAGS}")
 
+=======
+  # Handle files that may need sm89/sm90a/sm100a flags (stable/nightly
+  # builds are not built for these archs).
+  if(USE_CUDA)
+    # The stable/nightly builds do not enable some SM architectures,
+    # like 89/90a/100a.  Still, some files need to be built for these
+    # architectures specifically.  This function makes it possible to
+    # enable building given file for a specific such architecture, in
+    # case if PyTorch is built for corresponding other architecture;
+    # for example, it will enable building for SM 90a in case PyTorch
+    # built for SM 90, etc.  For examples of how to use the function,
+    # see below the function itself.
+    function(_BUILD_FOR_ADDITIONAL_ARCHS file archs)
+      torch_cuda_get_nvcc_gencode_flag(_existing_arch_flags)
+
+      set(_file_compile_flags "")
+      if(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 12.0)
+        foreach(_arch ${archs})
+          if("${_arch}" STREQUAL "89")
+            if(_existing_arch_flags MATCHES ".*compute_86.*")
+              list(APPEND _file_compile_flags "-gencode;arch=compute_89,code=sm_89")
+            endif()
+          endif()
+          if("${_arch}" STREQUAL "90a")
+            if(_existing_arch_flags MATCHES ".*compute_90.*")
+              list(APPEND _file_compile_flags "-gencode;arch=compute_90a,code=sm_90a")
+            endif()
+          endif()
+          if("${_arch}" STREQUAL "100a")
+            if(_existing_arch_flags MATCHES ".*compute_100.*")
+              list(APPEND _file_compile_flags "-gencode;arch=compute_100a,code=sm_100a")
+            endif()
+          endif()
+          if("${_arch}" STREQUAL "120a")
+            if(_existing_arch_flags MATCHES ".*compute_120.*")
+              list(APPEND _file_compile_flags "-gencode;arch=compute_120a,code=sm_120a")
+            endif()
+          endif()
+        endforeach()
+      endif()
+      list(JOIN _file_compile_flags " " _file_compile_flags)
+
+      set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${_file_compile_flags}")
+    endfunction()
+
+    _BUILD_FOR_ADDITIONAL_ARCHS(
+      "${CMAKE_CURRENT_LIST_DIR}/../aten/src/ATen/native/cuda/RowwiseScaledMM.cu"
+      "89;90a;100a;120a")
+    _BUILD_FOR_ADDITIONAL_ARCHS(
+      "${CMAKE_CURRENT_LIST_DIR}/../aten/src/ATen/native/cuda/ScaledGroupMM.cu"
+      "90a")
+    _BUILD_FOR_ADDITIONAL_ARCHS(
+      "${CMAKE_CURRENT_LIST_DIR}/../aten/src/ATen/native/cuda/GroupMM.cu"
+      "90a")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   endif()
 
@@ -383,6 +443,7 @@ if(INTERN_BUILD_ATEN_OPS)
     LIST(APPEND CPU_CAPABILITY_FLAGS "${OPT_FLAG}  ${CXX_ZVECTOR_FLAGS}")
   endif(CXX_ZVECTOR_FOUND)
 
+<<<<<<< HEAD
   if(CXX_SVE_FOUND)
     if(CXX_SVE256_FOUND)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_SVE_CPU_DEFINITION -DHAVE_SVE256_CPU_DEFINITION")
@@ -394,11 +455,26 @@ if(INTERN_BUILD_ATEN_OPS)
       endif()
     endif(CXX_SVE256_FOUND)
   endif(CXX_SVE_FOUND)
+=======
+  if(CXX_SVE_FOUND AND CXX_SVE256_FOUND AND CXX_ARM_BF16_FOUND)
+    list(APPEND CPU_CAPABILITY_NAMES "SVE256")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_SVE_CPU_DEFINITION -DHAVE_SVE256_CPU_DEFINITION -DHAVE_ARM_BF16_CPU_DEFINITION")
+    if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+      list(APPEND CPU_CAPABILITY_FLAGS "${OPT_FLAG} -O2 -march=armv8-a+sve+bf16 -D__ARM_FEATURE_BF16 -DCPU_CAPABILITY_SVE -msve-vector-bits=256")
+    else()
+      list(APPEND CPU_CAPABILITY_FLAGS "${OPT_FLAG} -march=armv8-a+sve+bf16 -D__ARM_FEATURE_BF16 -DCPU_CAPABILITY_SVE -msve-vector-bits=256")
+    endif()
+  endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   list(LENGTH CPU_CAPABILITY_NAMES NUM_CPU_CAPABILITY_NAMES)
   math(EXPR NUM_CPU_CAPABILITY_NAMES "${NUM_CPU_CAPABILITY_NAMES}-1")
 
+<<<<<<< HEAD
   # The sources list might get reordered later based on the capabilites.
+=======
+  # The sources list might get reordered later based on the capabilities.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # See NOTE [ Linking AVX and non-AVX files ]
   foreach(i RANGE ${NUM_CPU_CAPABILITY_NAMES})
     function(process_vec NAME)

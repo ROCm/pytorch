@@ -273,7 +273,11 @@ std::tuple<at::Tensor, at::Tensor> fused_moving_avg_obs_fake_quant_cuda(
     }
     _calculate_moving_average(
         y,
+<<<<<<< HEAD
         observer_on,
+=======
+        observer_on.to(at::kLong),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         running_min,
         running_max,
         averaging_const,
@@ -282,7 +286,11 @@ std::tuple<at::Tensor, at::Tensor> fused_moving_avg_obs_fake_quant_cuda(
   } else {
     _calculate_moving_average(
         x_contig,
+<<<<<<< HEAD
         observer_on,
+=======
+        observer_on.to(at::kLong),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         running_min,
         running_max,
         averaging_const,
@@ -295,7 +303,11 @@ std::tuple<at::Tensor, at::Tensor> fused_moving_avg_obs_fake_quant_cuda(
 
   _calc_moving_avg_qparams_helper(
       x_contig,
+<<<<<<< HEAD
       fake_quant_on,
+=======
+      fake_quant_on.to(at::kLong),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       running_min,
       running_max,
       scale_ptr,
@@ -316,7 +328,11 @@ std::tuple<at::Tensor, at::Tensor> fused_moving_avg_obs_fake_quant_cuda(
     }
   } else {
     return at::_fake_quantize_per_tensor_affine_cachemask_tensor_qparams(
+<<<<<<< HEAD
         x, scale, zero_point, fake_quant_on, qmin, qmax);
+=======
+        x, scale, zero_point, fake_quant_on.to(at::kLong), qmin, qmax);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 } // namespace at::native

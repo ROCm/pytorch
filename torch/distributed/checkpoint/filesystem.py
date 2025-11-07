@@ -2,6 +2,10 @@
 import collections
 import dataclasses
 import io
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import operator
 import os
 import pickle
@@ -13,6 +17,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator, Iterable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
+<<<<<<< HEAD
+=======
+from enum import Enum
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from io import UnsupportedOperation
 from pathlib import Path
 from typing import Any, Callable, cast, IO, Optional, Union
@@ -28,6 +36,16 @@ from torch.distributed.checkpoint._extension import (
     ExtensionRegistry,
     StreamTransformExtension,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.checkpoint._hf_utils import (
+    CUSTOM_METADATA_KEY,
+    DCP_VERSION_KEY,
+    FORMAT_KEY,
+    FORMAT_VALUE,
+    HF_DCP_VERSION,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint.metadata import Metadata, STATE_DICT_TYPE, StorageMeta
 from torch.distributed.checkpoint.planner import (
     LoadItemType,
@@ -49,7 +67,17 @@ from torch.distributed.checkpoint.utils import _create_file_view
 from torch.futures import Future
 
 
+<<<<<<< HEAD
 __all__ = ["FileSystemWriter", "FileSystemReader", "FileSystem", "FileSystemBase"]
+=======
+__all__ = [
+    "FileSystemWriter",
+    "FileSystemReader",
+    "FileSystem",
+    "FileSystemBase",
+    "SerializationFormat",
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _metadata_fn: str = ".metadata"
 
@@ -72,6 +100,14 @@ class _StoragePrefix:
     prefix: str
 
 
+<<<<<<< HEAD
+=======
+class SerializationFormat(Enum):
+    TORCH_SAVE = "torch_save"
+    SAFETENSORS = "safetensors"
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DEFAULT_SUFFIX = ".distcp"
 
 
@@ -298,7 +334,11 @@ def _write_item(
     data: Union[io.BytesIO, torch.Tensor],
     write_item: WriteItem,
     storage_key: str,
+<<<<<<< HEAD
     safe_tensors: bool = False,
+=======
+    serialization_format: SerializationFormat,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> WriteResult:
     offset = stream.tell()
 
@@ -312,12 +352,22 @@ def _write_item(
     else:
         assert isinstance(data, torch.Tensor)
         assert data.device == torch.device("cpu")
+<<<<<<< HEAD
         if not safe_tensors:
+=======
+        if serialization_format == SerializationFormat.TORCH_SAVE:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.save(data, transform_to)
 
     transform_to.close()
 
+<<<<<<< HEAD
     if not safe_tensors or isinstance(data, io.BytesIO):
+=======
+    if serialization_format == SerializationFormat.TORCH_SAVE or isinstance(
+        data, io.BytesIO
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         length = stream.tell() - offset
     else:
         length = data.numel() * data.element_size()
@@ -349,7 +399,11 @@ def _write_files_from_queue(
     inflight_threshhold: int,
     use_fsync: bool,
     thread_count: int,
+<<<<<<< HEAD
     safe_tensors: bool,
+=======
+    serialization_format: SerializationFormat,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     try:
         while True:
@@ -360,7 +414,11 @@ def _write_files_from_queue(
             custom_device_mod = getattr(torch, custom_backend_name, None)
 
             # TODO: Using the OverlappingCpuLoader with multiple threads creates significant
+<<<<<<< HEAD
             # performance degredation, observed as being related to cuda stream syncs. We
+=======
+            # performance degradation, observed as being related to cuda stream syncs. We
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # should try to fix this and use _OverlappingCpuLoader for all threaded cases
             if (
                 thread_count == 1
@@ -397,11 +455,19 @@ def _write_files_from_queue(
                             data,
                             write_item,
                             storage_key,
+<<<<<<< HEAD
                             safe_tensors,
+=======
+                            serialization_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                     )
 
                 tensor_dict = {}
+<<<<<<< HEAD
+=======
+                metadata_dict = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for tensor, write_item in loader.values():
                     assert tensor.is_cpu
                     write_results.append(
@@ -409,6 +475,7 @@ def _write_files_from_queue(
                             transforms,
                             stream,
                             tensor,
+<<<<<<< HEAD
                             write_item,
                             storage_key,
                             safe_tensors,
@@ -420,6 +487,31 @@ def _write_files_from_queue(
                     from safetensors.torch import save  # type: ignore[import-not-found]
 
                     stream.write(save(tensor_dict))
+=======
+                            write_item,  # type: ignore[arg-type]
+                            storage_key,
+                            serialization_format,
+                        )
+                    )
+                    tensor_dict[write_item.index.fqn] = tensor  # type: ignore[attr-defined]
+                    metadata_dict[write_item.index.fqn] = {  # type: ignore[attr-defined]
+                        "saved_offsets": write_item.tensor_data.chunk.offsets  # type: ignore[attr-defined]
+                    }
+
+                if serialization_format == SerializationFormat.SAFETENSORS:
+                    from safetensors.torch import save  # type: ignore[import-not-found]
+
+                    stream.write(
+                        save(
+                            tensor_dict,
+                            metadata={
+                                CUSTOM_METADATA_KEY: json.dumps(metadata_dict),
+                                DCP_VERSION_KEY: str(HF_DCP_VERSION),
+                                FORMAT_KEY: FORMAT_VALUE,
+                            },
+                        )
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 if use_fsync:
                     try:
@@ -525,6 +617,14 @@ class FileSystem(FileSystemBase):
             path = Path(path)
         path.unlink()
 
+<<<<<<< HEAD
+=======
+    def ls(self, path: Union[str, os.PathLike]) -> list[str]:
+        if not isinstance(path, Path):
+            path = Path(path)
+        return [str(p) for p in path.iterdir()]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _FileSystemWriter(StorageWriter):
     """
@@ -549,6 +649,10 @@ class _FileSystemWriter(StorageWriter):
         per_thread_copy_ahead: int = 10_000_000,
         overwrite: bool = True,
         _extensions: Optional[Sequence[StreamTransformExtension]] = None,
+<<<<<<< HEAD
+=======
+        serialization_format: SerializationFormat = SerializationFormat.TORCH_SAVE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -576,6 +680,10 @@ class _FileSystemWriter(StorageWriter):
         self.save_id = _generate_uuid()
         self.overwrite = overwrite
         self.transforms = _StorageWriterTransforms(_extensions)
+<<<<<<< HEAD
+=======
+        self.serialization_format = serialization_format
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def reset(self, checkpoint_id: Union[str, os.PathLike, None] = None) -> None:
         if checkpoint_id:
@@ -638,7 +746,10 @@ class _FileSystemWriter(StorageWriter):
         self,
         planner: SavePlanner,
         file_queue: queue.Queue,
+<<<<<<< HEAD
         safe_tensors: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Future[list[WriteResult]]:
         result_queue: queue.Queue = queue.Queue()
 
@@ -655,7 +766,11 @@ class _FileSystemWriter(StorageWriter):
                     self.per_thread_copy_ahead,
                     self.sync_files,
                     self.thread_count,
+<<<<<<< HEAD
                     safe_tensors,
+=======
+                    self.serialization_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
             )
             t.start()
@@ -670,7 +785,11 @@ class _FileSystemWriter(StorageWriter):
             inflight_threshhold=self.per_thread_copy_ahead,
             use_fsync=self.sync_files,
             thread_count=self.thread_count,
+<<<<<<< HEAD
             safe_tensors=safe_tensors,
+=======
+            serialization_format=self.serialization_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         for t in threads:
@@ -892,6 +1011,10 @@ class FileSystemWriter(_FileSystemWriter, BlockingAsyncStager):
         cache_staged_state_dict: bool = False,
         overwrite: bool = True,
         _extensions: Optional[Sequence[StreamTransformExtension]] = None,
+<<<<<<< HEAD
+=======
+        serialization_format: SerializationFormat = SerializationFormat.TORCH_SAVE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         """
         Initialize the writer pointing to `path`.
@@ -904,7 +1027,11 @@ class FileSystemWriter(_FileSystemWriter, BlockingAsyncStager):
             per_thread_copy_ahead: How many bytes to copy from the GPU ahead of saving then. Default 10Mb.
             cache_staged_state_dict: Whether to cache the staged state_dict. This option decreases staging latency
                 at the cost of increases memory usage. Additionally, if this parameter is set to True, it's the expectation
+<<<<<<< HEAD
                 that the stager is maintained and re-used for multiple dcp.async_save calls. Default to False.
+=======
+                that the stager is maintained and reused for multiple dcp.async_save calls. Default to False.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             overwrite: Whether to allow overwriting existing checkpoints. Defaults to True.
             _extensions: Extensions to apply to output streams (EXPERIMENTAL)
 
@@ -919,6 +1046,10 @@ class FileSystemWriter(_FileSystemWriter, BlockingAsyncStager):
             per_thread_copy_ahead=per_thread_copy_ahead,
             overwrite=overwrite,
             _extensions=_extensions,
+<<<<<<< HEAD
+=======
+            serialization_format=serialization_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         BlockingAsyncStager.__init__(
             self,

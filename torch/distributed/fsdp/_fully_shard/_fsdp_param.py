@@ -42,7 +42,11 @@ FSDP considers the following tensors:
 - Unsharded parameter: parameter used for forward/backward computation, derived
   from the all-gather output; autograd leaf
 
+<<<<<<< HEAD
 We define these tensors to describe the general framework that can accomodate
+=======
+We define these tensors to describe the general framework that can accommodate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 extensions, where:
 - all-gather-inputs = pre-all-gather-transform(sharded-parameter)
 - unsharded-parameter = post-all-gather-transform(all-gather-outputs)
@@ -327,6 +331,7 @@ class FSDPParam:
                 self._spmd_placements,
                 tensor_meta=self._tp_spec.tensor_meta,
             )
+<<<<<<< HEAD
             # TODO: Enable uneven sharding for FSDP+TP.
             if split_factor > 1:  # FSDP has strided sharding on tensor dim 0
                 num_shards = self._sharding_spec.num_shards_map[0]
@@ -337,6 +342,8 @@ class FSDPParam:
                         f"tensor dim 0 has size {tensor_size_dim_0} which cannot be "
                         f"evenly sharded into {num_shards} shards."
                     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             param_data = cast(DTensor, param)._local_tensor
         else:
             self._spmd_mesh = self.mesh_info.mesh

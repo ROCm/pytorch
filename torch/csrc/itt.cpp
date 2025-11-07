@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 #include <torch/csrc/itt_wrapper.h>
 #include <torch/csrc/utils/pybind.h>
+=======
+#include <torch/csrc/itt.h>
+#include <torch/csrc/itt_wrapper.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::profiler {
 void initIttBindings(PyObject* module) {

@@ -27,7 +27,11 @@ struct ForwardGrad;
 //   - Ensure that we can keep the level that we expose to the user API simple
 //   (an integer
 //     that represents the nesting depth) while avoiding confusions when the
+<<<<<<< HEAD
 //     level index is re-used.
+=======
+//     level index is reused.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // The important external APIs from this file are:
 //   - ForwardADLevel::get_next_idx() that can be used to enter a new level and

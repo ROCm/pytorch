@@ -24,9 +24,16 @@ struct TORCH_API FunctionPreHook {
   // only implemented for python hooks, registers hook with compiled autograd
   virtual void compiled_args(
       torch::dynamo::autograd::CompiledNodeArgs& args) const {
+<<<<<<< HEAD
     throw std::runtime_error(
         std::string("compiled_args nyi, see [Note: Compiled Autograd] ") +
         typeid(*this).name());
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        false,
+        std::string("compiled_args nyi, see [Note: Compiled Autograd] ") +
+            typeid(*this).name());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -38,9 +45,16 @@ struct TORCH_API FunctionPostHook {
   // only implemented for python hooks, registers hook with compiled autograd
   virtual void compiled_args(
       torch::dynamo::autograd::CompiledNodeArgs& args) const {
+<<<<<<< HEAD
     throw std::runtime_error(
         std::string("compiled_args nyi, see [Note: Compiled Autograd] ") +
         typeid(*this).name());
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        false,
+        std::string("compiled_args nyi, see [Note: Compiled Autograd] ") +
+            typeid(*this).name());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -51,17 +65,31 @@ struct TORCH_API PostAccumulateGradHook {
   // autograd
   virtual void compiled_args(
       torch::dynamo::autograd::CompiledNodeArgs& args) const {
+<<<<<<< HEAD
     throw std::runtime_error(
         std::string("not yet implemented for compiled autograd: ") +
         typeid(*this).name());
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        false,
+        std::string("compiled_args nyi, see [Note: Compiled Autograd] ") +
+            typeid(*this).name());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   virtual void apply_with_saved(
       Variable&,
       torch::dynamo::autograd::SwapSavedVariables&) {
+<<<<<<< HEAD
     throw std::runtime_error(
         std::string("not yet implemented for compiled autograd: ") +
         typeid(*this).name());
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        false,
+        std::string("compiled_args nyi, see [Note: Compiled Autograd] ") +
+            typeid(*this).name());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 

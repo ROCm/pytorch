@@ -1,4 +1,8 @@
 #include <torch/csrc/lazy/core/helpers.h>
+<<<<<<< HEAD
+=======
+#include <algorithm>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <c10/util/Half.h>
 #include <c10/util/irange.h>
@@ -10,6 +14,10 @@ std::vector<int64_t> DropDimensions(
     c10::ArrayRef<int64_t> sizes,
     c10::ArrayRef<int64_t> drop_dims) {
   std::vector<int64_t> new_dims;
+<<<<<<< HEAD
+=======
+  new_dims.reserve(sizes.size() - drop_dims.size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t drop_index = 0;
   for (const auto i : c10::irange(sizes.size())) {
     if (drop_index < drop_dims.size() &&
@@ -45,6 +53,10 @@ std::vector<int64_t> GetCanonicalDimensionIndices(
     c10::ArrayRef<int64_t> dimensions,
     int64_t rank) {
   std::vector<int64_t> canonical_dim_indices;
+<<<<<<< HEAD
+=======
+  canonical_dim_indices.reserve(dimensions.size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (int64_t dim : dimensions) {
     canonical_dim_indices.push_back(GetCanonicalDimensionIndex(dim, rank));
   }
@@ -131,8 +143,12 @@ std::vector<std::string> StrSplit(std::string_view text, char delim) {
   std::vector<std::string> tokens;
   while ((start = text.find_first_not_of(delim, end)) != std::string::npos) {
     end = text.find(delim, start);
+<<<<<<< HEAD
     auto token = text.substr(start, end - start);
     tokens.emplace_back(token.begin(), token.end());
+=======
+    tokens.emplace_back(text.substr(start, end - start));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return tokens;
 }

@@ -12,6 +12,10 @@ import torch._C
 import torch._ops
 import torch._prims.executor
 import torch.fx
+<<<<<<< HEAD
+=======
+import torch.onnx._internal._lazy_import
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._subclasses.fake_tensor import FakeTensor
 from torch.fx._compatibility import compatibility
 from torch.fx.passes.fake_tensor_prop import FakeTensorProp
@@ -28,7 +32,10 @@ if TYPE_CHECKING:
     import torch.onnx
     import torch.onnx._internal
     import torch.onnx._internal._exporter_legacy
+<<<<<<< HEAD
     import torch.onnx._internal.diagnostics
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import torch.onnx._internal.fx.decomposition_table
     import torch.onnx._internal.fx.passes  # noqa: TCH004
 
@@ -78,7 +85,10 @@ def is_onnxrt_backend_supported() -> bool:
             import torch.onnx  # noqa: F401
             import torch.onnx._internal  # noqa: F401
             import torch.onnx._internal._exporter_legacy  # noqa: F401
+<<<<<<< HEAD
             import torch.onnx._internal.diagnostics  # noqa: F401
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch.onnx._internal.fx import (  # noqa: F401
                 decomposition_table,
                 fx_onnx_interpreter,
@@ -345,10 +355,28 @@ def _get_onnx_devices(
 def _get_ortvalues_from_torch_tensors(
     tensors: tuple[torch.Tensor, ...], devices: tuple["ORTC.OrtDevice", ...]
 ) -> tuple[torch.Tensor, ...]:
+<<<<<<< HEAD
     from onnxruntime.capi import _pybind_state as ORTC
 
     from torch.onnx._internal.fx.type_utils import _TORCH_DTYPE_TO_NUMPY_DTYPE
 
+=======
+    # TODO(justinchuby): Refactor this function
+    import numpy as np
+    from onnxruntime.capi import _pybind_state as ORTC
+
+    torch_dtype_to_numpy_dtype = {
+        torch.float16: np.float16,
+        torch.float32: np.float32,
+        torch.float64: np.float64,
+        torch.uint8: np.uint8,
+        torch.int8: np.int8,
+        torch.int16: np.int16,
+        torch.int32: np.int32,
+        torch.int64: np.longlong,
+        torch.bool: np.bool_,
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ortvalues = ORTC.OrtValueVector()
     ortvalues.reserve(len(tensors))
     dtypes = []
@@ -356,7 +384,11 @@ def _get_ortvalues_from_torch_tensors(
     data_ptrs = []
 
     for tensor in tensors:
+<<<<<<< HEAD
         dtypes.append(_TORCH_DTYPE_TO_NUMPY_DTYPE[tensor.dtype])
+=======
+        dtypes.append(torch_dtype_to_numpy_dtype[tensor.dtype])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shapes.append(tensor.size())
         data_ptrs.append(tensor.data_ptr())
     ortvalues.push_back_batch(tensors, data_ptrs, dtypes, shapes, devices)
@@ -496,6 +528,11 @@ def _run_onnx_session_with_ortvaluevector(
         _nvtx_range_pop()
         return pth_outputs
     else:
+<<<<<<< HEAD
+=======
+        import onnxruntime.training
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Profile the two ORT-to-PyTorch type casts below
         _nvtx_range_push("after run_with_ortvaluevector")
         # Map ORTValue to torch.Tensor.
@@ -549,6 +586,32 @@ def _run_onnx_session_with_fetch(
     return pth_outputs
 
 
+<<<<<<< HEAD
+=======
+def _from_python_type_to_onnx_tensor_element_type(type: type):
+    """
+    Converts a Python type to the corresponding ONNX tensor element type.
+    For example, `_from_python_type_to_onnx_tensor_element_type(float)` returns
+    `onnx.TensorProto.FLOAT`.
+
+    Args:
+      type (type): The Python type to convert.
+
+    Returns:
+      int: The corresponding ONNX tensor element type.
+
+    """
+    import onnx
+
+    _PYTHON_TYPE_TO_ONNX_TENSOR_ELEMENT_TYPE = {
+        float: onnx.TensorProto.FLOAT,  # type: ignore[attr-defined]
+        int: onnx.TensorProto.INT64,  # type: ignore[attr-defined]
+        bool: onnx.TensorProto.BOOL,  # type: ignore[attr-defined]
+    }
+    return _PYTHON_TYPE_TO_ONNX_TENSOR_ELEMENT_TYPE.get(type)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class OrtExecutionInfoPerSession:
     """Information required to execute torch.fx.GraphModule using onnxruntime.InferenceSession"""
 
@@ -586,10 +649,35 @@ class OrtExecutionInfoPerSession:
         )
 
     def is_supported(self, *args):
+<<<<<<< HEAD
         from torch.onnx._internal.fx.type_utils import (
             _TORCH_DTYPE_TO_ONNX_TENSOR_ELEMENT_TYPE,
             from_python_type_to_onnx_tensor_element_type,
         )
+=======
+        # TODO(justinchuby): Simplify
+        import onnx
+
+        _onnx_tensor_element_type_to_torch_dtype = {
+            onnx.TensorProto.FLOAT: torch.float32,  # type: ignore[attr-defined]
+            onnx.TensorProto.FLOAT16: torch.float16,  # type: ignore[attr-defined]
+            onnx.TensorProto.FLOAT8E5M2: torch.float8_e5m2,  # type: ignore[attr-defined]
+            onnx.TensorProto.FLOAT8E5M2FNUZ: torch.float8_e5m2fnuz,  # type: ignore[attr-defined]
+            onnx.TensorProto.FLOAT8E4M3FN: torch.float8_e4m3fn,  # type: ignore[attr-defined]
+            onnx.TensorProto.FLOAT8E4M3FNUZ: torch.float8_e4m3fnuz,  # type: ignore[attr-defined]
+            onnx.TensorProto.DOUBLE: torch.float64,  # type: ignore[attr-defined]
+            onnx.TensorProto.BOOL: torch.bool,  # type: ignore[attr-defined]
+            onnx.TensorProto.UINT8: torch.uint8,  # type: ignore[attr-defined]
+            onnx.TensorProto.INT8: torch.int8,  # type: ignore[attr-defined]
+            onnx.TensorProto.INT16: torch.int16,  # type: ignore[attr-defined]
+            onnx.TensorProto.INT32: torch.int32,  # type: ignore[attr-defined]
+            onnx.TensorProto.INT64: torch.int64,  # type: ignore[attr-defined]
+        }
+        _torch_dtype_to_onnx_tensor_element_type = {
+            value: key
+            for key, value in _onnx_tensor_element_type_to_torch_dtype.items()
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Compare the args and the input schema in ONNX model and
         # return the first match.
@@ -602,7 +690,11 @@ class OrtExecutionInfoPerSession:
             # Check Python scalars such as int, float, and bool.
             if isinstance(arg, (int, float, bool)):
                 # Map, e.g., float to onnx.TensorProto.FLOAT.
+<<<<<<< HEAD
                 onnx_dtype = from_python_type_to_onnx_tensor_element_type(type(arg))
+=======
+                onnx_dtype = _from_python_type_to_onnx_tensor_element_type(type(arg))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if onnx_dtype != value_info.type.tensor_type.elem_type:
                     return False
                 if len(value_info.type.tensor_type.shape.dim) != 0:
@@ -610,7 +702,11 @@ class OrtExecutionInfoPerSession:
                 continue
 
             # Check tensor.
+<<<<<<< HEAD
             onnx_dtype = _TORCH_DTYPE_TO_ONNX_TENSOR_ELEMENT_TYPE[arg.dtype]
+=======
+            onnx_dtype = _torch_dtype_to_onnx_tensor_element_type[arg.dtype]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if onnx_dtype != value_info.type.tensor_type.elem_type:
                 return False
             for dim, onnx_dim in zip(arg.shape, value_info.type.tensor_type.shape.dim):
@@ -724,9 +820,12 @@ class OrtBackendOptions:
     sub-graphs are compiled by ``OrtBackend``.
     """
 
+<<<<<<< HEAD
     export_options: Optional["torch.onnx.ExportOptions"] = None
     """Options for the TorchDynamo-based ONNX exporter used by the ``OrtBackend``."""
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ort_session_options: Optional["onnxruntime.SessionOptions"] = None
     """Options for the ``onnxruntime.InferenceSession`` used by the ``OrtBackend``."""
 
@@ -771,11 +870,15 @@ class OrtBackend:
         # - self._resolved_onnx_exporter_options.onnx_registry records what
         #   aten/prim ops are supported by exporter and their exporters (type: callable).
         self._resolved_onnx_exporter_options = (
+<<<<<<< HEAD
             torch.onnx._internal._exporter_legacy.ResolvedExportOptions(
                 torch.onnx.ExportOptions()
                 if self._options.export_options is None
                 else self._options.export_options
             )
+=======
+            torch.onnx._internal._exporter_legacy.ResolvedExportOptions()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         #  Given DORT's computation flow:
@@ -899,7 +1002,10 @@ class OrtBackend:
             # (type: onnxruntime.InferenceSession) for it.
 
             graph_module = passes.MovePlaceholderToFront(
+<<<<<<< HEAD
                 self._resolved_onnx_exporter_options.diagnostic_context,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 graph_module,
             ).run()
             # Generate reference outputs. They are used to indicate output
@@ -940,6 +1046,7 @@ class OrtBackend:
 
             # Create the object to iterate through the nodes in graph one-by-one
             # and calls the corresponding ONNX exporter for each node.
+<<<<<<< HEAD
             fx_interpreter = fx_onnx_interpreter.FxOnnxInterpreter(
                 diagnostic_context=self._resolved_onnx_exporter_options.diagnostic_context
             )
@@ -949,6 +1056,13 @@ class OrtBackend:
             graph_module = passes.InsertTypePromotion(
                 self._resolved_onnx_exporter_options.diagnostic_context, graph_module
             ).run()
+=======
+            fx_interpreter = fx_onnx_interpreter.FxOnnxInterpreter()
+            # Cast FX variables if they will result schema-mismatch when searching
+            # for ONNX operator. E.g., add(double_tensor, int_tensor) is fine in PyTorch,
+            # but ONNX expects add(double_tensor, double_tensor).
+            graph_module = passes.InsertTypePromotion(graph_module).run()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Start the per-node exporting process. It's conceptually a for loop
             # scanning through the nodes in the graph.
             exported = fx_interpreter.run(
@@ -1176,6 +1290,7 @@ class OrtBackend:
             if a.ort_session_options is not None or b.ort_session_options is not None:
                 return False
 
+<<<<<<< HEAD
             if a.export_options is b.export_options:
                 return True
 
@@ -1192,6 +1307,9 @@ class OrtBackend:
 
             # We can't account for how the two option sets may differ, so it's not safe to reuse.
             return False
+=======
+            return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not isinstance(options, OrtBackendOptions):
             options = OrtBackendOptions(**(options or {}))

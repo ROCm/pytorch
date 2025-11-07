@@ -37,19 +37,38 @@ class TORCH_API AOTIModelContainerRunner {
       const;
   std::unordered_map<std::string, int32_t> getConstantNamesToDtypes() const;
 
+<<<<<<< HEAD
+=======
+  const std::unordered_map<std::string, at::Tensor> extract_constants_map(
+      bool use_inactive) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void update_inactive_constant_buffer(const TensorConstantMap& const_map);
   void update_constant_buffer(
       std::unordered_map<std::string, at::Tensor>& tensor_map,
       bool use_inactive,
+<<<<<<< HEAD
       bool validate_full_updates);
   void update_constant_buffer(
       const TensorConstantMap& const_map,
       bool use_inactive,
       bool validate_full_updates);
+=======
+      bool validate_full_updates,
+      bool user_managed = false);
+  void update_constant_buffer(
+      const TensorConstantMap& const_map,
+      bool use_inactive,
+      bool validate_full_updates,
+      bool user_managed = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run_const_fold(
       bool use_inactive,
       AOTInductorStreamHandle cuda_stream_handle = nullptr);
   void swap_constant_buffer();
+<<<<<<< HEAD
+=======
+  void free_inactive_constant_buffer();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::vector<std::string> get_call_spec();
 
@@ -79,6 +98,13 @@ class TORCH_API AOTIModelContainerRunner {
       get_constant_original_fqn_func_{nullptr};
   decltype(&AOTInductorModelContainerGetConstantDtype) get_constant_dtype_func_{
       nullptr};
+<<<<<<< HEAD
+=======
+  decltype(&AOTInductorModelContainerExtractConstantsMap)
+      extract_constants_map_func_{nullptr};
+  decltype(&AOTInductorModelContainerUpdateUserManagedConstantBuffer)
+      update_user_managed_constant_buffer_func_{nullptr};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   decltype(&AOTInductorModelContainerUpdateConstantBuffer)
       update_constant_buffer_func_{nullptr};
   decltype(&AOTInductorModelContainerUpdateInactiveConstantBuffer)
@@ -87,6 +113,11 @@ class TORCH_API AOTIModelContainerRunner {
       nullptr};
   decltype(&AOTInductorModelContainerSwapConstantBuffer)
       swap_constant_buffer_func_{nullptr};
+<<<<<<< HEAD
+=======
+  decltype(&AOTInductorModelContainerFreeInactiveConstantBuffer)
+      free_inactive_constant_buffer_func_{nullptr};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   decltype(&AOTInductorModelContainerGetCallSpec) get_call_spec_func_{nullptr};
 
   AOTInductorModelContainerHandle container_handle_ = nullptr;
@@ -110,6 +141,7 @@ TORCH_API std::unordered_map<std::string, CreateAOTIModelRunnerFunc>&
 getAOTIModelRunnerRegistry();
 
 // To register a new external backend in AOTI one needs to create an instance of
+<<<<<<< HEAD
 // this struct. It is not thread-safe. Becase it is expected to be called during
 // the initialization of the program.
 struct TORCH_API RegisterAOTIModelRunner {
@@ -119,6 +151,17 @@ struct TORCH_API RegisterAOTIModelRunner {
     getAOTIModelRunnerRegistry()[name] = create_aoti_model_runner_fn;
   }
 };
+=======
+// this struct. It is not thread-safe. Because it is expected to be called
+// during the initialization of the program.
+struct TORCH_API RegisterAOTIModelRunner{RegisterAOTIModelRunner(
+    const std::string& name,
+    CreateAOTIModelRunnerFunc create_aoti_model_runner_fn){
+    getAOTIModelRunnerRegistry()[name] = create_aoti_model_runner_fn;
+} // namespace torch::inductor
+}
+;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::inductor
 #endif

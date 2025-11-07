@@ -19,7 +19,11 @@
 
 namespace at::functorch {
 
+<<<<<<< HEAD
 bool kVmapFallbackWarningEnabled = true;
+=======
+static bool kVmapFallbackWarningEnabled = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool isVmapFallbackWarningEnabled() {
   return kVmapFallbackWarningEnabled;
@@ -29,7 +33,11 @@ void setVmapFallbackWarningEnabled(bool enabled) {
   kVmapFallbackWarningEnabled = enabled;
 }
 
+<<<<<<< HEAD
 bool kVmapFallbackEnabled = true;
+=======
+static bool kVmapFallbackEnabled = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool isVmapFallbackEnabled() {
   return kVmapFallbackEnabled;

@@ -7,13 +7,24 @@ from torch.distributed.pipelining import pipe_split, SplitPoint
 
 
 class ExampleCode(torch.nn.Module):
+<<<<<<< HEAD
     def __init__(self, d_hid):
         super().__init__()
+=======
+    def __init__(self, d_hid, splits=2):
+        assert splits <= 4
+        super().__init__()
+        self.splits = splits
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.mm_param0 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
         self.mm_param1 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
         self.cval = torch.nn.Buffer(torch.randn((d_hid,), requires_grad=False))
         self.lin0 = torch.nn.Linear(d_hid, d_hid)
         self.lin1 = torch.nn.Linear(d_hid, d_hid)
+<<<<<<< HEAD
+=======
+        self.lin2 = torch.nn.Linear(d_hid, d_hid)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x):
         x = torch.mm(x, self.mm_param0)
@@ -24,8 +35,19 @@ class ExampleCode(torch.nn.Module):
         pipe_split()
         x = torch.relu(x) + a_constant
         x = torch.mm(x, self.mm_param1)
+<<<<<<< HEAD
         x = self.lin1(x)
         x = torch.relu(x)
+=======
+        if self.splits > 2:
+            pipe_split()
+            x = self.lin1(x)
+            x = torch.relu(x)
+        if self.splits > 3:
+            pipe_split()
+            x = self.lin2(x)
+            x = torch.relu(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x
 
 
@@ -33,12 +55,24 @@ class ModelWithKwargs(torch.nn.Module):
     DEFAULT_DHID = 512
     DEFAULT_BATCH_SIZE = 256
 
+<<<<<<< HEAD
     def __init__(self, d_hid: int = DEFAULT_DHID):
         super().__init__()
+=======
+    def __init__(self, d_hid: int = DEFAULT_DHID, splits=2):
+        assert splits <= 4
+        super().__init__()
+        self.splits = splits
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.mm_param0 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
         self.mm_param1 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
         self.lin0 = torch.nn.Linear(d_hid, d_hid)
         self.lin1 = torch.nn.Linear(d_hid, d_hid)
+<<<<<<< HEAD
+=======
+        self.lin2 = torch.nn.Linear(d_hid, d_hid)
+        self.lin3 = torch.nn.Linear(d_hid, d_hid)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x, y=torch.zeros(DEFAULT_BATCH_SIZE, DEFAULT_DHID)):
         x = torch.mm(x, self.mm_param0)
@@ -49,6 +83,17 @@ class ModelWithKwargs(torch.nn.Module):
         x = torch.mm(x, self.mm_param1)
         x = self.lin1(x)
         x = torch.relu(x)
+<<<<<<< HEAD
+=======
+        if self.splits > 2:
+            pipe_split()
+            x = self.lin2(x)
+            x = torch.relu(x)
+        if self.splits > 3:
+            pipe_split()
+            x = self.lin3(x)
+            x = torch.relu(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x
 
 
@@ -88,6 +133,30 @@ class MLPModule(torch.nn.Module):
         return x
 
 
+<<<<<<< HEAD
+=======
+class MLPKWargModule(torch.nn.Module):
+    def __init__(self, d_hid: int, layer_num):
+        super().__init__()
+        self.net1 = torch.nn.Linear(d_hid, d_hid)
+        self.relu = torch.nn.ReLU()
+        self.net2 = torch.nn.Linear(d_hid, d_hid)
+        self.layer_num = layer_num
+
+    def forward(self, x, unused_kwarg: torch.Tensor = torch.zeros(1)):
+        x = self.net1(x)
+        x = self.relu(x)
+        x = self.net2(x)
+        # Test when only 1 module has extra outputs
+        # TODO: handle this case later
+        # if self.layer_num == 0:
+        #     return x, unused_kwarg
+        # else:
+        #     return x
+        return x
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Multi-MLP model
 class MultiMLP(torch.nn.Module):
     def __init__(self, d_hid: int, n_layers: int = 2):
@@ -104,6 +173,32 @@ class MultiMLP(torch.nn.Module):
         return x
 
 
+<<<<<<< HEAD
+=======
+# Multi-MLP with kwargs model
+class MultiMLPKwargs(torch.nn.Module):
+    def __init__(self, d_hid: int, n_layers: int = 2):
+        super().__init__()
+        self.layers = torch.nn.ModuleList(
+            [MLPKWargModule(d_hid, i) for i in range(n_layers)]
+        )
+        # For testing purpose only, this should be defined by user
+        self.split_spec = {
+            f"layers.{i}": SplitPoint.BEGINNING for i in range(1, n_layers)
+        }
+
+    def forward(self, x, unused_kwarg: torch.Tensor = torch.zeros(1)):
+        for layer in self.layers:
+            # TODO: handle this case later
+            # if layer.layer_num == 0:
+            #     x, _ = layer(x, unused_kwarg)
+            # else:
+            #     x = layer(x)
+            x = layer(x)
+        return x
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CustomLinearDx(Function):
     @staticmethod
     def forward(ctx, input_val, weight, bias, module, layer_idx):

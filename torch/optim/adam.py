@@ -18,6 +18,10 @@ from .optimizer import (
     _maximize_doc,
     _params_doc,
     _stack_if_compiling,
+<<<<<<< HEAD
+=======
+    _to_scalar,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _use_grad_for_differentiable,
     _view_as_real,
     DeviceDict,
@@ -372,6 +376,12 @@ def _single_tensor_adam(
         assert isinstance(lr, float)
         assert isinstance(beta1, float)
         assert isinstance(beta2, float)
+<<<<<<< HEAD
+=======
+    else:
+        lr = _to_scalar(lr)
+        # TODO: Support nonzero-dim Tensor betas, see #147921
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # We only shuffle around the beta when it is a Tensor, otherwise, we prefer
     # treating it as a scalar.
@@ -394,7 +404,13 @@ def _single_tensor_adam(
             assert (
                 param.device.type == step_t.device.type
                 and param.device.type in capturable_supported_devices
+<<<<<<< HEAD
             ), f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+            ), (
+                f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # update step
         step_t += 1
@@ -429,7 +445,13 @@ def _single_tensor_adam(
             # cast to workaround https://github.com/pytorch/pytorch/issues/140601
             key = (device, dtype)
             if key not in beta1_dict:
+<<<<<<< HEAD
                 beta1_dict[key] = beta1.to(device=device, dtype=dtype, non_blocking=True)  # type: ignore[union-attr]
+=======
+                beta1_dict[key] = beta1.to(  # type: ignore[union-attr]
+                    device=device, dtype=dtype, non_blocking=True
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             device_beta1: Union[float, Tensor] = beta1_dict[key]
         else:
@@ -556,10 +578,20 @@ def _multi_tensor_adam(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
     if isinstance(lr, Tensor) and not capturable:
         raise RuntimeError(
             "lr as a Tensor is not supported for capturable=False and foreach=True"
         )
+=======
+    if isinstance(lr, Tensor):
+        if not capturable:
+            raise RuntimeError(
+                "lr as a Tensor is not supported for capturable=False and foreach=True"
+            )
+        if lr.numel() != 1:
+            raise ValueError("Tensor lr must be 1-element")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if isinstance(beta1, Tensor):
         if not capturable:
@@ -586,12 +618,24 @@ def _multi_tensor_adam(
             p.device.type == step.device.type
             and p.device.type in capturable_supported_devices
             for p, step in zip(params, state_steps)
+<<<<<<< HEAD
         ), f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+        ), (
+            f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     assert grad_scale is None and found_inf is None
 
     assert not differentiable, "_foreach ops don't support autograd"
 
+<<<<<<< HEAD
+=======
+    lr = _to_scalar(lr)
+    # TODO: Support nonzero-dim Tensor betas, see #147921
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grouped_tensors = Optimizer._group_tensors_by_device_and_dtype(
         [params, grads, exp_avgs, exp_avg_sqs, max_exp_avg_sqs, state_steps]  # type: ignore[list-item]
     )
@@ -759,7 +803,14 @@ def _multi_tensor_adam(
             torch._foreach_div_(exp_avg_sq_sqrt, bias_correction2_sqrt)
             torch._foreach_add_(exp_avg_sq_sqrt, eps)
             torch._foreach_addcdiv_(
+<<<<<<< HEAD
                 device_params, device_exp_avgs, exp_avg_sq_sqrt, step_size  # type: ignore[arg-type]
+=======
+                device_params,
+                device_exp_avgs,
+                exp_avg_sq_sqrt,
+                step_size,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 
@@ -822,9 +873,12 @@ def _fused_adam(
         device_exp_avg_sqs = cast(list[Tensor], device_exp_avg_sqs_)
         device_state_steps = cast(list[Tensor], device_state_steps_)
 
+<<<<<<< HEAD
         if device.type == "mps":  # type: ignore[union-attr]
             assert found_inf is None and grad_scale is None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device_grad_scale, device_found_inf = None, None
         if grad_scale is not None:
             device_grad_scale = grad_scale_dict.setdefault(

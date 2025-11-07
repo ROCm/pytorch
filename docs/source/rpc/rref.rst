@@ -204,7 +204,11 @@ will create the ``OwnerRRef``, and returns an ACK to acknowledge ``{100, 1}``
 **G2**, the ``OwnerRRef`` is a child of the ``UserRRef``, and the ``UserRRef``
 is not deleted until it receives the ACK from the owner.
 
+<<<<<<< HEAD
 .. image:: https://user-images\.githubusercontent\.com/16999635/69164772-98181300-0abe-11ea-93a7-9ad9f757cd94.png
+=======
+.. image:: https://user-images.githubusercontent.com/16999635/69164772-98181300-0abe-11ea-93a7-9ad9f757cd94.png
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     :alt: user_to_owner_ret.png
     :width: 500 px
 

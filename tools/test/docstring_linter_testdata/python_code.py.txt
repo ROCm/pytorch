@@ -81,12 +81,27 @@ class ImpossibleCombo(
                 pass
 
 
+<<<<<<< HEAD
+=======
+@override  # Won't work!
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class NotDocstring:
     def short1(self):
         pass
 
     """This is not a docstring"""
 
+<<<<<<< HEAD
+=======
+    @override
+    def long_with_override(self):
+        #
+        #
+        #
+        #
+        pass
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def short2(self):
         pass
 
@@ -94,6 +109,10 @@ class NotDocstring:
         pass
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def long_with_omit():  # noqa: docstring_linter
     #
     #

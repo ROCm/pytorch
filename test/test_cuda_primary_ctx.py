@@ -4,7 +4,15 @@ import sys
 import unittest
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_MULTIGPU
+=======
+from torch.testing._internal.common_cuda import (
+    _get_torch_cuda_version,
+    TEST_CUDA,
+    TEST_MULTIGPU,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import NoTest, run_tests, TestCase
 
 
@@ -31,6 +39,22 @@ class TestCudaPrimaryCtx(TestCase):
                 TestCudaPrimaryCtx.CTX_ALREADY_CREATED_ERR_MSG,
             )
 
+<<<<<<< HEAD
+=======
+    def test_set_device_0(self):
+        # In CUDA 12 the behavior of cudaSetDevice has changed. It eagerly creates context on target.
+        # The behavior of `torch.cuda.set_device(0)` should also create context on the device 0.
+        # Initially, we should not have any context on device 0.
+        self.assertFalse(torch._C._cuda_hasPrimaryContext(0))
+        torch.cuda.set_device(0)
+        if _get_torch_cuda_version() >= (12, 0):
+            # Now after the device was set, the contex should present in CUDA 12.
+            self.assertTrue(torch._C._cuda_hasPrimaryContext(0))
+        else:
+            # In CUDA 11 the context should not be created.
+            self.assertFalse(torch._C._cuda_hasPrimaryContext(0))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
     def test_str_repr(self):
         x = torch.randn(1, device="cuda:1")

@@ -24,6 +24,7 @@ from ..loop_body import LoopBody
 from ..scheduler import BaseSchedulerNode, SchedulerBuffer
 from ..utils import IndentedBuffer, sympy_index_symbol_with_prefix, sympy_subs
 from ..virtualized import ops, OpsValue, V
+<<<<<<< HEAD
 from .common import (
     CSEVariable,
     deduce_output_dtype_by_name,
@@ -31,12 +32,19 @@ from .common import (
     KernelArgs,
     OptimizationContext,
 )
+=======
+from .common import CSEVariable, Kernel, KernelArgs, OptimizationContext
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 DTYPE_TO_CPP = {
     torch.float32: "float",
     torch.float64: "double",
+<<<<<<< HEAD
     torch.float16: "half",
+=======
+    torch.float16: "at::Half",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.int64: "int64_t",
     torch.int32: "int32_t",
     torch.int16: "int16_t",
@@ -46,6 +54,7 @@ DTYPE_TO_CPP = {
     torch.uint16: "uint16_t",
     torch.uint8: "uint8_t",
     torch.bool: "bool",
+<<<<<<< HEAD
     torch.bfloat16: "bfloat16",
     torch.complex32: "c10::complex<half>",
     torch.complex64: "c10::complex<float>",
@@ -54,6 +63,16 @@ DTYPE_TO_CPP = {
     torch.float8_e5m2: "float8_e5m2",
     torch.float8_e4m3fnuz: "float8_e4m3fnuz",
     torch.float8_e5m2fnuz: "float8_e5m2fnuz",
+=======
+    torch.bfloat16: "at::BFloat16",
+    torch.complex32: "at::complex<at::Half>",
+    torch.complex64: "at::complex<float>",
+    torch.complex128: "at::complex<double>",
+    torch.float8_e4m3fn: "at::Float8_e4m3fn",
+    torch.float8_e5m2: "at::Float8_e5m2",
+    torch.float8_e4m3fnuz: "at::Float8_e4m3fnuz",
+    torch.float8_e5m2fnuz: "at::Float8_e5m2fnuz",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 DTYPE_TO_ATEN = {
@@ -86,6 +105,10 @@ DEVICE_TO_ATEN = {
     "cpu": "at::kCPU",
     "cuda": "at::kCUDA",
     "xpu": "at::kXPU",
+<<<<<<< HEAD
+=======
+    "mps": "at::kMPS",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 LAYOUT_TO_ATEN = {
@@ -93,6 +116,12 @@ LAYOUT_TO_ATEN = {
     torch._mkldnn: "at::kMkldnn",  # type: ignore[attr-defined]
 }
 
+<<<<<<< HEAD
+=======
+# matches c10/core/DeviceType.h
+DEVICE_TO_INT = {"cpu": 0, "cuda": 1}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _IS_WINDOWS = sys.platform == "win32"
 
 INDEX_TYPE = "int64_t"
@@ -141,6 +170,7 @@ def promote_args(new_args):
     return new_args
 
 
+<<<<<<< HEAD
 def get_opt_ctx(node: torch.fx.Node) -> OptimizationContext:
     return node.meta.get(OptimizationContext.key, None)
 
@@ -180,6 +210,8 @@ def deduce_dtype_for_cpp_cse_variable(name, *args, **kwargs):
         )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CppCSEVariable(CSEVariable):
     def __init__(
         self,
@@ -214,6 +246,7 @@ class CppCSEVariable(CSEVariable):
                 self._set_dependent_itervars(args[0])
             if any(arg.is_vec for arg in args if isinstance(arg, CppCSEVariable)):
                 self.is_vec = True
+<<<<<<< HEAD
         # NOTE [Deduce dtype of CppCSEVariable at runtime]
         if self.dtype is None:
             # Take frexp for example: 2 output with different data type.
@@ -221,6 +254,8 @@ class CppCSEVariable(CSEVariable):
             # of return tensor everywhere invoking update_on_args
             self.dtype = deduce_dtype_for_cpp_cse_variable(name, *args, **kwargs)
         assert self.dtype is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _set_dependent_itervars(self, index: sympy.Expr):
         """

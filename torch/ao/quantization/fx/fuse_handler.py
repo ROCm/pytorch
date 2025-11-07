@@ -64,9 +64,15 @@ class DefaultFuseHandler(FuseHandler):
         fuser_method_mapping: dict[Pattern, Union[torch.nn.Sequential, Callable]],
         is_qat: bool,
     ) -> Node:
+<<<<<<< HEAD
         assert (
             root_node.op == "call_module"
         ), "Expecting module node to be a call_module Node"
+=======
+        assert root_node.op == "call_module", (
+            "Expecting module node to be a call_module Node"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         root_module = named_modules[str(root_node.target)]
 
         def get_modules(pattern):

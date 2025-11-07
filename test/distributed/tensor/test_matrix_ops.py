@@ -17,8 +17,14 @@ from torch.distributed.tensor import (
     Shard,
 )
 from torch.distributed.tensor.debug import CommDebugMode
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8
 from torch.testing._internal.common_utils import run_tests, skipIfRocm, skipIfRocmArch, MI350_ARCH
+=======
+from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8, SM90OrLater
+from torch.testing._internal.common_device_type import E4M3_MAX_POS, e4m3_type
+from torch.testing._internal.common_utils import run_tests, TEST_WITH_ROCM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     skip_unless_torch_gpu,
@@ -26,6 +32,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 )
 
 
+<<<<<<< HEAD
+=======
+funcol = torch.ops.c10d_functional
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def scale_for_fp8(
     t: torch.Tensor, scale_shape: tuple[int]
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -33,8 +45,15 @@ def scale_for_fp8(
         t = t.unsqueeze(0).unsqueeze(-2)
     else:
         t = t.unflatten(0, (scale_shape[0], -1)).unflatten(-1, (scale_shape[1], -1))
+<<<<<<< HEAD
     scale = t.abs().amax(dim=[1, -1]).float() / torch.finfo(torch.float8_e4m3fn).max
     t_fp8 = (t / scale[:, None, :, None]).to(torch.float8_e4m3fn)
+=======
+
+    scale = t.abs().amax(dim=[1, -1]).float() / E4M3_MAX_POS
+    t_fp8 = (t / scale[:, None, :, None]).to(e4m3_type)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return t_fp8.flatten(end_dim=1).flatten(start_dim=-2), scale.view(scale_shape)
 
 
@@ -140,7 +159,10 @@ class DistMatrixOpsTest(DTensorTestBase):
         not PLATFORM_SUPPORTS_FP8,
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
+<<<<<<< HEAD
     @skipIfRocmArch(MI350_ARCH) #Enable via https://github.com/ROCm/frameworks-internal/issues/13103
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_scaled_mm(self):
         device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
         shrd0 = Shard(0)
@@ -206,7 +228,11 @@ class DistMatrixOpsTest(DTensorTestBase):
 
             full_dist_res = dist_res.full_tensor()
             # Fp8 matmuls are quite inaccurate, we need high tolerances
+<<<<<<< HEAD
             self.assertEqual(full_dist_res, full_ref_res, atol=1, rtol=7e-2)
+=======
+            self.assertEqual(full_dist_res, full_ref_res, atol=1.5, rtol=7e-2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.assertEqual(comm_mode.get_total_counts(), 0)
 
@@ -449,7 +475,10 @@ class DistMatrixOpsTest(DTensorTestBase):
                     self.assertTrue(dist_value.grad.placements[0].is_shard(dim=1))
                     self.assertEqual(dist_value.grad.full_tensor(), value.grad)
 
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_unless_torch_gpu
     @with_comms()
     def test_dtensor_mm(self):
@@ -473,7 +502,13 @@ class DistMatrixOpsTest(DTensorTestBase):
             lhs_dtensor = distribute_tensor(lhs, mesh, [Shard(dim=0), Replicate()])
             rhs_dtensor = distribute_tensor(rhs, mesh, [Replicate(), Shard(dim=1)])
             dtensor_result = lhs_dtensor @ rhs_dtensor
+<<<<<<< HEAD
             self.assertEqual(dtensor_result.full_tensor(), mm_result)
+=======
+            self.assertEqual(
+                dtensor_result.full_tensor(), mm_result, atol=1.5e-5, rtol=1e-6
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_unless_torch_gpu
@@ -498,6 +533,66 @@ class DistMatrixOpsTest(DTensorTestBase):
             dist_result_full = dist_result.full_tensor()
             self.assertEqual(local_result, dist_result_full)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(TEST_WITH_ROCM, "ROCm doesn't support CUTLASS")
+    @unittest.skipIf(not SM90OrLater, "Grouped gemm supported on SM90")
+    @with_comms
+    @skip_unless_torch_gpu
+    def test_grouped_mm(self):
+        # TODO: torch._grouped_mm can take inputs of dimension (2D, 3D) x (2D, 3D)
+        # Here we only test the 2D x 3D Tensor Parallel use case in an MoE layer.
+        # More tests need to be added.
+        device_mesh = init_device_mesh(self.device_type, (self.world_size,))
+        comm_mode = CommDebugMode()
+        dtype = torch.bfloat16
+
+        inp = torch.rand(
+            64, 16, device=self.device_type, dtype=dtype, requires_grad=True
+        )
+        w1 = torch.rand(
+            2, 16, 32, device=self.device_type, dtype=dtype, requires_grad=True
+        )
+        w2 = torch.rand(
+            2, 32, 16, device=self.device_type, dtype=dtype, requires_grad=True
+        )
+        offs = torch.tensor([16, 64], device=self.device_type, dtype=torch.int32)
+
+        h = torch._grouped_mm(inp, w1, offs=offs)
+        out = torch._grouped_mm(h, w2, offs=offs)
+
+        dist_inp = distribute_tensor(inp, device_mesh, [Replicate()])
+        # colwise sharded
+        dist_w1 = distribute_tensor(w1, device_mesh, [Shard(2)])
+        # rowwise sharded
+        dist_w2 = distribute_tensor(w2, device_mesh, [Shard(1)])
+        dist_offs = distribute_tensor(offs, device_mesh, [Replicate()])
+
+        with comm_mode:
+            dist_h = torch._grouped_mm(dist_inp, dist_w1, offs=dist_offs)
+            dist_out = torch._grouped_mm(dist_h, dist_w2, offs=dist_offs)
+            self.assertEqual(comm_mode.get_total_counts(), 0)
+            self.assertTrue(dist_out.placements[0].is_partial())
+            self.assertEqual(dist_out.full_tensor(), out)
+
+        out_grad = torch.ones_like(out)
+        out.backward(out_grad)
+
+        dist_out = dist_out.redistribute(device_mesh, [Shard(0)])
+        dist_out_grad = distribute_tensor(out_grad, device_mesh, [Shard(0)])
+
+        with comm_mode:
+            dist_out.backward(dist_out_grad)
+            self.assertEqual(comm_mode.get_total_counts(), 1)
+            self.assertEqual(
+                comm_mode.get_comm_counts()[funcol.all_gather_into_tensor],
+                1,
+            )
+        self.assertEqual(dist_inp.grad.full_tensor(), inp.grad)
+        self.assertEqual(dist_w1.grad.full_tensor(), w1.grad)
+        self.assertEqual(dist_w2.grad.full_tensor(), w2.grad)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

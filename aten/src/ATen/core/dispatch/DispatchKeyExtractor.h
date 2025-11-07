@@ -152,8 +152,16 @@ struct TORCH_API DispatchKeyExtractor final {
         // no safe toTensorRef method, alas)
         ks = ks | ivalue.unsafeToTensorImpl()->key_set();
       } else if (C10_UNLIKELY(ivalue.isTensorList())) {
+<<<<<<< HEAD
         for (const at::Tensor& tensor : ivalue.toTensorList()) {
           ks = ks | tensor.key_set();
+=======
+        // NB: use toListRef as it doesn't induce refcount bumps
+        // (toTensorListRef is not a thing)
+        for (const auto& nv : ivalue.toListRef()) {
+          auto* tensor = nv.unsafeToTensorImpl();
+          ks = ks | tensor->key_set();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
       }
       // Tensor?[] translates to a c10::List<IValue> so we need to peek inside
@@ -200,6 +208,34 @@ struct TORCH_API DispatchKeyExtractor final {
   void checkInvariants(const FunctionSchema& schema) const;
 
  private:
+<<<<<<< HEAD
+=======
+  static bool isDispatchType(const Type& type) {
+    // Checking isSubtypeOf on a DynamicType heap-allocates a
+    // DynamicType version of the argument if it's not a DynamicType
+    // already, and this has measurable overhead during startup.
+#ifdef C10_MOBILE
+    struct CachedTypes {
+      DynamicTypePtr listOfTensors;
+      DynamicTypePtr listOfOptionalTensors;
+      DynamicTypePtr optionalOfTensor;
+    };
+    static const CachedTypes ct = {
+        DynamicType::create(*ListType::ofTensors()),
+        DynamicType::create(*ListType::ofOptionalTensors()),
+        DynamicType::create(*OptionalType::ofTensor())};
+    return type.isSubtypeOf(c10::TypeFactory::get<TensorType>()) ||
+        type.isSubtypeOf(ct.listOfTensors) ||
+        type.isSubtypeOf(ct.listOfOptionalTensors) ||
+        type.isSubtypeOf(ct.optionalOfTensor);
+#else // C10_MOBILE
+    return type.isSubtypeOf(*TensorType::get()) ||
+        type.isSubtypeOf(*ListType::ofTensors()) ||
+        type.isSubtypeOf(*ListType::ofOptionalTensors()) ||
+        type.isSubtypeOf(*OptionalType::ofTensor());
+#endif // C10_MOBILE
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static c10::utils::bitset makeBitsetForDispatchArgs(
       const FunctionSchema& schema) {
     TORCH_CHECK(
@@ -210,6 +246,7 @@ struct TORCH_API DispatchKeyExtractor final {
         c10::utils::bitset::NUM_BITS());
     c10::utils::bitset dispatch_arg_indices_reverse;
     for (const auto index : c10::irange(schema.arguments().size())) {
+<<<<<<< HEAD
       if (schema.arguments()[index].type()->isSubtypeOf(*TensorType::get()) ||
           schema.arguments()[index].type()->isSubtypeOf(
               *ListType::ofTensors()) ||
@@ -217,6 +254,9 @@ struct TORCH_API DispatchKeyExtractor final {
               *ListType::ofOptionalTensors()) ||
           schema.arguments()[index].type()->isSubtypeOf(
               *OptionalType::ofTensor())) {
+=======
+      if (isDispatchType(*schema.arguments()[index].type())) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dispatch_arg_indices_reverse.set(schema.arguments().size() - 1 - index);
       }
     }
@@ -225,8 +265,12 @@ struct TORCH_API DispatchKeyExtractor final {
 
   explicit DispatchKeyExtractor(c10::utils::bitset dispatch_arg_indices_reverse)
       : dispatch_arg_indices_reverse_(dispatch_arg_indices_reverse),
+<<<<<<< HEAD
         nonFallthroughKeys_(DispatchKeySet::FULL),
         requiresBitsetPerBackend_(false) {
+=======
+        nonFallthroughKeys_(DispatchKeySet::FULL) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (const auto i : c10::irange(nonFallthroughKeysPerBackend_.size())) {
       nonFallthroughKeysPerBackend_[i] = DispatchKeySet::FULL;
     }
@@ -252,7 +296,11 @@ struct TORCH_API DispatchKeyExtractor final {
   // Flag to tell us if we can use the single set of nonFallthroughKeys_ (fast
   // path), or if we need to fall back to the slower path and check
   // nonFallthroughKeysPerBackend_
+<<<<<<< HEAD
   bool requiresBitsetPerBackend_;
+=======
+  bool requiresBitsetPerBackend_{false};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace c10

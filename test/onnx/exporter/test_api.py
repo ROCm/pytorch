@@ -3,6 +3,10 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
+import io
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 
 import numpy as np
@@ -49,6 +53,14 @@ class NestedModelForDynamicShapes(torch.nn.Module):
             return x - w, x - y, c
 
 
+<<<<<<< HEAD
+=======
+class SampleModelForDimOne(torch.nn.Module):
+    def forward(self, x, y, z):
+        return torch.cat((x, y), axis=1) + z
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestExportAPIDynamo(common_utils.TestCase):
     """Tests for the ONNX exporter API when dynamo=True."""
 
@@ -124,6 +136,7 @@ class TestExportAPIDynamo(common_utils.TestCase):
             )
             self.assertTrue(os.path.exists(path))
 
+<<<<<<< HEAD
     def test_export_supports_script_module(self):
         class ScriptModule(torch.nn.Module):
             def forward(self, x):
@@ -135,6 +148,8 @@ class TestExportAPIDynamo(common_utils.TestCase):
             strategy="JitTraceConvertStrategy",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_shapes_with_fully_specified_axes(self):
         ep = torch.export.export(
             SampleModelForDynamicShapes(),
@@ -246,6 +261,34 @@ class TestExportAPIDynamo(common_utils.TestCase):
             )
         )
 
+<<<<<<< HEAD
+=======
+    def test_upgraded_torchlib_impl(self):
+        class GeluModel(torch.nn.Module):
+            def forward(self, input):
+                # Use GELU activation function
+                return torch.nn.functional.gelu(input, approximate="tanh")
+
+        input = torch.randn(1, 3, 4, 4)
+        onnx_program_op18 = torch.onnx.export(
+            GeluModel(),
+            input,
+            dynamo=True,
+        )
+        all_nodes_op18 = [n.op_type for n in onnx_program_op18.model.graph]
+        self.assertIn("Tanh", all_nodes_op18)
+        self.assertNotIn("Gelu", all_nodes_op18)
+
+        onnx_program_op20 = torch.onnx.export(
+            GeluModel(),
+            input,
+            opset_version=20,
+            dynamo=True,
+        )
+        all_nodes_op20 = [n.op_type for n in onnx_program_op20.model.graph]
+        self.assertIn("Gelu", all_nodes_op20)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_refine_dynamic_shapes_with_onnx_export(self):
         # NOTE: From test/export/test_export.py
 
@@ -273,6 +316,20 @@ class TestExportAPIDynamo(common_utils.TestCase):
         input = torch.randn(2)
         self.assert_export(Model(), (input))
 
+<<<<<<< HEAD
+=======
+    def test_export_successful_when_dynamic_dimension_is_one(self):
+        self.assert_export(
+            SampleModelForDimOne(),
+            (torch.randn(1, 3), torch.randn(1, 5), torch.randn(1, 8)),
+            dynamic_shapes=(
+                {0: "batch", 1: "sequence"},
+                {0: "batch", 1: "sequence"},
+                {0: "batch", 1: "sequence"},
+            ),
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestCustomTranslationTable(common_utils.TestCase):
     def test_custom_translation_table_overrides_ops(self):
@@ -505,6 +562,38 @@ class TestFakeTensorExport(common_utils.TestCase):
             onnx_model.graph.initializers["weight"].const_value.numpy(), 42.0
         )
 
+<<<<<<< HEAD
+=======
+    def test_is_in_onnx_export(self):
+        class Mod(torch.nn.Module):
+            def forward(self, x):
+                def f(x):
+                    return x.sin() if torch.onnx.is_in_onnx_export() else x.cos()
+
+                return f(x)
+
+        self.assertFalse(torch.onnx.is_in_onnx_export())
+        onnx_program = torch.onnx.export(
+            Mod(),
+            (torch.randn(3, 4),),
+            dynamo=True,
+            fallback=False,
+        )
+        self.assertFalse(torch.onnx.is_in_onnx_export())
+
+        node_names = [n.op_type for n in onnx_program.model.graph]
+        self.assertIn("Sin", node_names)
+
+    def test_torchscript_exporter_raises_deprecation_warning(self):
+        # Test that the deprecation warning is raised when using torchscript exporter
+        with self.assertWarnsRegex(
+            DeprecationWarning, "You are using the legacy TorchScript-based ONNX export"
+        ):
+            torch.onnx.export(
+                SampleModel(), (torch.randn(1, 1, 2),), io.BytesIO(), dynamo=False
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     common_utils.run_tests()

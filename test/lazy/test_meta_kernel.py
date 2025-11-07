@@ -37,3 +37,13 @@ class TestMetaKernel(TestCase):
     def test_add_invalid_device(self):
         with self.assertRaisesRegex(RuntimeError, ".*not a lazy tensor.*"):
             _ = torch.tensor([1], device="cpu") + torch.tensor([1], device="lazy")
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

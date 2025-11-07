@@ -52,6 +52,12 @@ class StmtNode : public Stmt {
     visitor->visit(static_to<Op>(getptr()));
   }
   StmtPtr accept_mutator(IRMutator* mutator) override;
+<<<<<<< HEAD
+=======
+  friend Op;
+
+ private:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   StmtNode() = default;
 };
 

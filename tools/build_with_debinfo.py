@@ -38,7 +38,11 @@ def get_lib_extension() -> str:
         return "so"
     if sys.platform == "darwin":
         return "dylib"
+<<<<<<< HEAD
     raise RuntimeError(f"Usupported platform {sys.platform}")
+=======
+    raise RuntimeError(f"Unsupported platform {sys.platform}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def create_symlinks() -> None:
@@ -78,7 +82,11 @@ def create_build_plan() -> list[tuple[str, str]]:
         if line.startswith(": &&") and line.endswith("&& :"):
             line = line[4:-4]
         line = line.replace("-O2", "-g").replace("-O3", "-g")
+<<<<<<< HEAD
         # Build Metal shaders with debug infomation
+=======
+        # Build Metal shaders with debug information
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if "xcrun metal " in line and "-frecord-sources" not in line:
             line += " -frecord-sources -gline-tables-only"
         try:

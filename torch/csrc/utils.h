@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 #ifndef THP_UTILS_H
 #define THP_UTILS_H
+=======
+#pragma once
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/ATen.h>
 #include <c10/util/Exception.h>
@@ -12,10 +16,13 @@
 #include <type_traits>
 #include <vector>
 
+<<<<<<< HEAD
 #ifdef USE_CUDA
 #include <c10/cuda/CUDAStream.h>
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define THPUtils_(NAME) TH_CONCAT_4(THP, Real, Utils_, NAME)
 
 #define THPUtils_typename(obj) (Py_TYPE(obj)->tp_name)
@@ -106,11 +113,18 @@
 #define THPBoolUtils_newReal(value) THPUtils_newReal_BOOL(value)
 #define THPBoolUtils_checkAccreal(object) THPUtils_checkReal_BOOL(object)
 #define THPBoolUtils_unpackAccreal(object) \
+<<<<<<< HEAD
   (int64_t) THPUtils_unpackReal_BOOL(object)
 #define THPBoolUtils_newAccreal(value) THPUtils_newReal_BOOL(value)
 #define THPLongUtils_checkReal(object) THPUtils_checkReal_INT(object)
 #define THPLongUtils_unpackReal(object) \
   (int64_t) THPUtils_unpackReal_INT(object)
+=======
+  (int64_t)THPUtils_unpackReal_BOOL(object)
+#define THPBoolUtils_newAccreal(value) THPUtils_newReal_BOOL(value)
+#define THPLongUtils_checkReal(object) THPUtils_checkReal_INT(object)
+#define THPLongUtils_unpackReal(object) (int64_t)THPUtils_unpackReal_INT(object)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define THPLongUtils_newReal(value) THPUtils_newReal_INT(value)
 #define THPIntUtils_checkReal(object) THPUtils_checkReal_INT(object)
 #define THPIntUtils_unpackReal(object) (int)THPUtils_unpackReal_INT(object)
@@ -204,6 +218,7 @@ void setBackCompatKeepdimWarn(bool warn);
 bool getBackCompatKeepdimWarn();
 bool maybeThrowBackCompatKeepdimWarn(char* func);
 
+<<<<<<< HEAD
 // NB: This is in torch/csrc/cuda/utils.cpp, for whatever reason
 #ifdef USE_CUDA
 std::vector<std::optional<at::cuda::CUDAStream>>
@@ -215,3 +230,8 @@ void storage_set(const at::Storage& self, ptrdiff_t idx, uint8_t value);
 uint8_t storage_get(const at::Storage& self, ptrdiff_t idx);
 
 #endif
+=======
+void storage_fill(const at::Storage& self, uint8_t value);
+void storage_set(const at::Storage& self, ptrdiff_t idx, uint8_t value);
+uint8_t storage_get(const at::Storage& self, ptrdiff_t idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

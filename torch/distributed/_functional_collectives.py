@@ -275,7 +275,11 @@ def reduce_scatter_tensor(
     group_size = c10d._get_group_size_by_name(group_name)
 
     assert self.size(scatter_dim) % group_size == 0, (
+<<<<<<< HEAD
         f"input dimension 0 ({self.size(0)} must be a multiple of group_size {group_size}"
+=======
+        f"input dimension 0 ({self.size(0)} must be a multiple of group_size {group_size})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     if scatter_dim != 0:
         tensor_list = torch.chunk(self, group_size, dim=scatter_dim)
@@ -582,7 +586,11 @@ class AsyncCollectiveTensor(torch.Tensor):
 
     @staticmethod
     def __new__(cls, elem: torch.Tensor):
+<<<<<<< HEAD
         r = torch.Tensor._make_wrapper_subclass(  # type: ignore[attr-defined]
+=======
+        r = torch.Tensor._make_wrapper_subclass(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cls,
             elem.size(),
             strides=elem.stride(),
@@ -635,7 +643,11 @@ class AsyncCollectiveTensor(torch.Tensor):
         return self.elem
 
     @classmethod
+<<<<<<< HEAD
     def __torch_dispatch__(cls, func, types, args=(), kwargs=None):
+=======
+    def __torch_dispatch__(cls, func, types, args=(), kwargs=None):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if func == torch.ops.aten.view.default:
             # Fast handle aten.view as a lot of view related op goes to aten.view
             # eventually, this avoids pytree slowdown
@@ -731,8 +743,15 @@ def _expand_group(group: RANK_TYPES, tag: str = "") -> tuple[str, list[int], int
             "Only 1D mesh is supported, pass in (DeviceMesh, int) together if mesh > 1D"
         )
         # TODO: it should run collective in the whole mesh instead of dim 0
+<<<<<<< HEAD
         tag, rankset, _ = group._dim_group_infos[0]
         group_size = len(rankset)
+=======
+        pg = group.get_group()
+        rankset = dist.get_process_group_ranks(pg)
+        group_size = len(rankset)
+        tag = tag or c10d._get_group_tag(pg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(group, tuple):
         if (
             len(group) == 2
@@ -741,8 +760,15 @@ def _expand_group(group: RANK_TYPES, tag: str = "") -> tuple[str, list[int], int
         ):
             dmesh = group[0]
             dim = group[1]
+<<<<<<< HEAD
             tag, rankset, _ = dmesh._dim_group_infos[dim]
             group_size = len(rankset)
+=======
+            pg = dmesh.get_group(dim)
+            rankset = dist.get_process_group_ranks(pg)
+            group_size = len(rankset)
+            tag = tag or c10d._get_group_tag(pg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise ValueError("Invalid tuple for group must be (DeviceMesh, int)")
     else:
@@ -767,7 +793,11 @@ def _resolve_group_name(group: RANK_TYPES, tag: str = "") -> str:
         assert group.ndim == 1, (
             "Only 1D mesh is supported, pass in (DeviceMesh, int) together if mesh > 1D"
         )
+<<<<<<< HEAD
         return group._dim_group_infos[0][2]
+=======
+        return group._dim_group_names[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(group, tuple):
         if (
             len(group) == 2
@@ -776,7 +806,11 @@ def _resolve_group_name(group: RANK_TYPES, tag: str = "") -> str:
         ):
             dmesh = group[0]
             dim = group[1]
+<<<<<<< HEAD
             return dmesh._dim_group_infos[dim][2]
+=======
+            return dmesh._dim_group_names[dim]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise ValueError("Invalid tuple for group must be (DeviceMesh, int)")
     elif isinstance(group, list):

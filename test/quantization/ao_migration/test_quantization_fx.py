@@ -1,5 +1,10 @@
 # Owner(s): ["oncall: quantization"]
 
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .common import AOMigrationTestCase
 
 
@@ -150,3 +155,10 @@ class TestAOMigrationQuantizationFx(AOMigrationTestCase):
             "maybe_get_next_module",
         ]
         self._test_function_import("fx.utils", function_list)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

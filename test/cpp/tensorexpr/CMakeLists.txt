@@ -39,7 +39,11 @@ add_executable(test_tensorexpr
   ${TENSOREXPR_TEST_ROOT}/padded_buffer.cpp
   ${TENSOREXPR_TEST_SRCS})
 
+<<<<<<< HEAD
 target_link_libraries(test_tensorexpr PRIVATE torch gtest)
+=======
+target_link_libraries(test_tensorexpr PRIVATE torch gtest_main)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 target_include_directories(test_tensorexpr PRIVATE ${ATen_CPU_INCLUDE})
 target_compile_definitions(test_tensorexpr PRIVATE USE_GTEST)
 

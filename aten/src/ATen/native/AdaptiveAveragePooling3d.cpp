@@ -235,6 +235,11 @@ Tensor& adaptive_avg_pool3d_backward_out_cpu_template(
   auto gradOutput = gradOutput_.contiguous();
 
   adaptive_pool_empty_output_check(gradOutput_, "adaptive_avg_pool3d_backward");
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(input.dim() == gradOutput_.dim(),
+    __func__, ": Expected dimensions ", input.dim(), " for `gradOutput_` but got dimensions ", gradOutput_.dim());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /* sizes */
   int64_t sizeD = input.size(-4);

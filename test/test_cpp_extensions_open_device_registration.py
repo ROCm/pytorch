@@ -3,10 +3,14 @@
 import _codecs
 import io
 import os
+<<<<<<< HEAD
 import sys
 import tempfile
 import unittest
 from typing import Union
+=======
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import numpy as np
@@ -16,6 +20,7 @@ import torch
 import torch.testing._internal.common_utils as common
 import torch.utils.cpp_extension
 from torch.serialization import safe_globals
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     IS_ARM64,
     skipIfTorchDynamo,
@@ -71,6 +76,14 @@ def generate_faked_module_methods():
 @unittest.skipIf(TEST_XPU, "XPU does not support cppextension currently")
 @torch.testing._internal.common_utils.markDynamoStrictTest
 class TestCppExtensionOpenRgistration(common.TestCase):
+=======
+from torch.testing._internal.common_utils import TemporaryFileName
+
+
+@unittest.skipIf(common.TEST_XPU, "XPU does not support cppextension currently")
+@common.markDynamoStrictTest
+class TestCppExtensionOpenRegistration(common.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Tests Open Device Registration with C++ extensions."""
 
     module = None
@@ -93,7 +106,11 @@ class TestCppExtensionOpenRgistration(common.TestCase):
 
     @classmethod
     def setUpClass(cls):
+<<<<<<< HEAD
         torch.testing._internal.common_utils.remove_cpp_extensions_build_root()
+=======
+        common.remove_cpp_extensions_build_root()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cls.module = torch.utils.cpp_extension.load(
             name="custom_device_extension",
@@ -105,6 +122,7 @@ class TestCppExtensionOpenRgistration(common.TestCase):
             verbose=True,
         )
 
+<<<<<<< HEAD
         torch.utils.generate_methods_for_privateuse1_backend(for_storage=True)
         generate_faked_module_methods()
 
@@ -433,6 +451,8 @@ class TestCppExtensionOpenRgistration(common.TestCase):
         finally:
             torch.openreg.FloatStorage = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_open_device_faketensor(self):
         with torch._subclasses.fake_tensor.FakeTensorMode.push():
             a = torch.empty(1, device="openreg")
@@ -459,7 +479,11 @@ class TestCppExtensionOpenRgistration(common.TestCase):
 
     # Not an open registration test - this file is just very convenient
     # for testing torch.compile on custom C++ operators
+<<<<<<< HEAD
     @skipIfTorchDynamo("Temporary disabled due to torch._ops.OpOverloadPacket")
+=======
+    @common.skipIfTorchDynamo("Temporary disabled due to torch._ops.OpOverloadPacket")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_compile_autograd_function_aliasing(self):
         x_ref = torch.randn(4, requires_grad=True)
         out_ref = torch.ops._test_funcs.custom_autograd_fn_aliasing(x_ref)
@@ -520,7 +544,11 @@ class TestCppExtensionOpenRgistration(common.TestCase):
         # call _fused_adamw_ with undefined tensor.
         self.module.fallback_with_undefined_tensor()
 
+<<<<<<< HEAD
     @skipIfTorchDynamo()
+=======
+    @common.skipIfTorchDynamo()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         np.__version__ < "1.25",
         "versions < 1.25 serialize dtypes differently from how it's serialized in data_legacy_numpy",

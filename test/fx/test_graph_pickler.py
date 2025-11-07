@@ -14,8 +14,12 @@ import torch
 import torch.library
 from torch._dynamo.testing import make_test_cls_with_patches
 from torch._inductor.test_case import TestCase
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TEST_WITH_ASAN
 from torch.testing._internal.inductor_utils import HAS_CPU, HAS_GPU
+=======
+from torch.testing._internal.inductor_utils import HAS_CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Make the helper files in test/ importable
@@ -93,8 +97,15 @@ class TestGraphPickler(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     from torch._inductor.test_case import run_tests
 
     # Slow on ASAN after https://github.com/pytorch/pytorch/pull/94068
     if (HAS_CPU or HAS_GPU) and not TEST_WITH_ASAN:
         run_tests(needs="filelock")
+=======
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

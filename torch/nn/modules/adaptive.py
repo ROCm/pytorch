@@ -18,13 +18,23 @@ _ASMoutput = namedtuple("_ASMoutput", ["output", "loss"])
 
 
 class AdaptiveLogSoftmaxWithLoss(Module):
+<<<<<<< HEAD
     """Efficient softmax approximation.
+=======
+    (
+        """Efficient softmax approximation.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     As described in
     `Efficient softmax approximation for GPUs by Edouard Grave, Armand Joulin,
     Moustapha Ciss\u00e9, David Grangier, and Herv\u00e9 J\u00e9gou
     <https://arxiv.org/abs/1609.04309>`__.
+<<<<<<< HEAD
 """ r"""
+=======
+"""
+        r"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Adaptive softmax is an approximate strategy for training models with large
     output spaces. It is most effective when the label distribution is highly
     imbalanced, for example in natural language modelling, where the word
@@ -104,6 +114,10 @@ class AdaptiveLogSoftmaxWithLoss(Module):
 
     .. _Zipf's law: https://en.wikipedia.org/wiki/Zipf%27s_law
     """
+<<<<<<< HEAD
+=======
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     in_features: int
     n_classes: int
@@ -172,9 +186,15 @@ class AdaptiveLogSoftmaxWithLoss(Module):
 
     def reset_parameters(self) -> None:
         self.head.reset_parameters()
+<<<<<<< HEAD
         for i2h, h2o in self.tail:
             i2h.reset_parameters()
             h2o.reset_parameters()
+=======
+        for i2h, h2o in self.tail:  # type: ignore[misc]
+            i2h.reset_parameters()  # type: ignore[has-type]
+            h2o.reset_parameters()  # type: ignore[has-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, input_: Tensor, target_: Tensor) -> _ASMoutput:
         targ_dim = target_.dim()
@@ -182,8 +202,12 @@ class AdaptiveLogSoftmaxWithLoss(Module):
         if targ_dim == 1:
             if input_.size(0) != target_.size(0):
                 raise RuntimeError(
+<<<<<<< HEAD
                     "Input and target should have the same size "
                     "in the batch dimension."
+=======
+                    "Input and target should have the same size in the batch dimension."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             if input_.dim() != 2:
                 raise RuntimeError(

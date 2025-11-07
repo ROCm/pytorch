@@ -91,3 +91,12 @@ class TestQConfig(TestCase):
 
                 fake_quantize_weight = qconfig.weight()
                 self.assertEqual(fake_quantize_weight.reduce_range, reduce_ranges[1])
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

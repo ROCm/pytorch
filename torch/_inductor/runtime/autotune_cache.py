@@ -1,3 +1,31 @@
+<<<<<<< HEAD
+=======
+"""
+PyTorch Inductor Autotuning Cache System
+
+This module implements a caching system for autotuning configurations in PyTorch's Inductor compiler.
+It provides mechanisms to store and retrieve optimal kernel configurations both locally and remotely,
+which significantly speeds up compilation by reusing previously discovered optimal parameters.
+
+The caching system includes:
+- Local filesystem caching for individual machine reuse
+- Remote caching for sharing optimizations across machines
+- Bundled caching to efficiently store multiple related configurations
+- Cache invalidation based on PyTorch versions and backend changes
+- Serialization/deserialization support for worker processes
+
+Key components:
+- AutotuneCache: Main class for managing cache access and storage
+- AutotuneCacheBundler: Bundles multiple cache entries for efficient storage
+- LocalAutotuneCache: Handles filesystem-based caching
+- _LocalAutotuneCacheBackend: Low-level file operations for cache storage
+- AutotuneCacheArtifact: Integration with PyTorch's artifact system
+
+This caching system is critical for performance as it eliminates the need to re-run
+expensive autotuning operations when the same kernels are compiled multiple times.
+"""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import dataclasses
@@ -10,7 +38,16 @@ from typing import Any, Optional, TYPE_CHECKING
 from typing_extensions import override
 
 import torch
+<<<<<<< HEAD
 from torch.compiler._cache import CacheArtifactManager, CacheArtifactType
+=======
+from torch._inductor.runtime.runtime_utils import cache_dir
+from torch.compiler._cache import (
+    CacheArtifact,
+    CacheArtifactFactory,
+    CacheArtifactManager,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._triton import has_triton
 
 from ..remote_cache import (
@@ -20,7 +57,11 @@ from ..remote_cache import (
     RemoteCacheBackend,
     RemoteCacheJsonSerde,
 )
+<<<<<<< HEAD
 from .triton_compat import Config
+=======
+from .triton_compat import Config, HAS_WARP_SPEC
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -59,6 +100,32 @@ def inductor_meta_from_config() -> _InductorMetaTy:
     }
 
 
+<<<<<<< HEAD
+=======
+@CacheArtifactFactory.register
+class AutotuneCacheArtifact(CacheArtifact):
+    @override
+    def populate_cache(self) -> None:
+        autotune_cache = _LocalAutotuneCacheBackend()
+        key = os.path.join(cache_dir(), self.key)
+        autotune_cache._put(key, self.content)
+
+    @override
+    @staticmethod
+    def type() -> str:
+        return "autotune"
+
+    @override
+    @staticmethod
+    def encode(content: JsonDataTy) -> bytes:
+        assert not isinstance(content, bytes)
+        serde = RemoteCacheJsonSerde()
+        content_bytes = serde.encode(content)
+        assert isinstance(content_bytes, bytes)
+        return content_bytes
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class AutotuneCache:
     configs_hash: str
@@ -121,7 +188,25 @@ class AutotuneCache:
         if not inductor_meta.get("autotune_local_cache", True):
             return
 
+<<<<<<< HEAD
         cache_filename = f"{dirname}/{cache_key}.best_config"
+=======
+        from ..codecache import torch_key
+
+        """
+        [Note: torch_key in autotune cache key]
+        Include torch_key() in the cache key so that different versions
+        of torch result in cache invalidation. This is important in case
+        of changes to the best_config format or other code changes that
+        are not backward compatible w.r.t. the cache.
+        """
+        hasher = hashlib.sha256()
+        hasher.update(cache_key.encode("utf-8"))
+        hasher.update(torch_key())
+        updated_cache_key = hasher.hexdigest()
+
+        cache_filename = f"{dirname}/{updated_cache_key}.best_config"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_cache = LocalAutotuneCache()
         self.local_cache = (local_cache, cache_filename)
 
@@ -139,10 +224,20 @@ class AutotuneCache:
             return
         assert isinstance(backend_hash, str)
 
+<<<<<<< HEAD
         is_fbcode = bool(inductor_meta.get("is_fbcode", False))
 
         salt = "autotune-best-config-v2"
         key = backend_hash + self.configs_hash + salt
+=======
+        from ..codecache import torch_key
+
+        is_fbcode = bool(inductor_meta.get("is_fbcode", False))
+
+        salt = "autotune-best-config-v2"
+        # re: torch_key - see [Note: torch_key in autotune cache key]
+        key = torch_key().hex() + backend_hash + self.configs_hash + salt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         key = hashlib.sha256(key.encode("utf-8")).hexdigest()
 
         remote_cache = create_cache(
@@ -197,7 +292,15 @@ class AutotuneCache:
 
     # Save the config in the caches
     def save(
+<<<<<<< HEAD
         self, config: Config, time_taken_ns: int, found_by_coordesc: bool = False
+=======
+        self,
+        config: Config,
+        time_taken_ns: int,
+        found_by_coordesc: bool = False,
+        triton_cache_hash: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         data = {
             **config.kwargs,
@@ -206,14 +309,34 @@ class AutotuneCache:
             "configs_hash": self.configs_hash,
             "found_by_coordesc": found_by_coordesc,
             "time_taken_ms": time_taken_ns // 1000000,  # Convert from NS to MS
+<<<<<<< HEAD
         }
+=======
+            "triton_cache_hash": triton_cache_hash,
+        }
+        if HAS_WARP_SPEC:
+            data.update(
+                {
+                    "num_consumer_groups": getattr(config, "num_consumer_groups", 0),
+                    "num_buffers_warp_spec": getattr(
+                        config, "num_buffers_warp_spec", 0
+                    ),
+                }
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if local_cache := self.local_cache:
             cache, key = local_cache
             cache.put(key, data)
             AutotuneCacheBundler.put(key, data)
+<<<<<<< HEAD
             CacheArtifactManager.record_artifact(
                 CacheArtifactType.AUTOTUNE, os.path.basename(key), data
+=======
+            autotune_artifact_key = os.path.join(*key.split(os.sep)[-2:])
+            CacheArtifactManager.record_artifact(
+                AutotuneCacheArtifact.type(), autotune_artifact_key, data
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             if log.isEnabledFor(logging.DEBUG):
@@ -459,12 +582,39 @@ def _load_cached_autotuning(
     # Remove time taken for comparison
     best_config.pop("time_taken_ms", None)
 
+<<<<<<< HEAD
+=======
+    best_config.pop("triton_cache_hash", None)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if inductor_meta.get("coordinate_descent_tuning") and best_config.pop(
         "found_by_coordesc", False
     ):
         num_warps = best_config.pop("num_warps")
         num_stages = best_config.pop("num_stages")
+<<<<<<< HEAD
         triton_config = Config(best_config, num_warps=num_warps, num_stages=num_stages)
+=======
+
+        # Extract common arguments
+        config_args = {
+            "num_warps": num_warps,
+            "num_stages": num_stages,
+        }
+
+        if HAS_WARP_SPEC:
+            config_args.update(
+                {
+                    "num_consumer_groups": best_config.pop("num_consumer_groups", 0),
+                    "num_buffers_warp_spec": best_config.pop(
+                        "num_buffers_warp_spec", 0
+                    ),
+                }
+            )
+
+        # Create the triton_config with the appropriate arguments
+        triton_config = Config(best_config, **config_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         triton_config.found_by_coordesc = True
         return triton_config
 
@@ -493,8 +643,14 @@ class _LocalAutotuneCacheBackend(RemoteCacheBackend[bytes]):
     @override
     def _put(self, key: str, data: bytes) -> None:
         os.makedirs(os.path.dirname(key), exist_ok=True)
+<<<<<<< HEAD
         with open(key, "wb") as fd:
             fd.write(data)
+=======
+        from torch._inductor import codecache
+
+        codecache.write_atomic(key, data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LocalAutotuneCache(RemoteCache[JsonDataTy]):
@@ -515,8 +671,14 @@ class LocalAutotuneCache(RemoteCache[JsonDataTy]):
             # model would only bundle *newly* compiled kernels, not existing
             # kernels that were already compiled and cached.
             AutotuneCacheBundler.put(key, result)
+<<<<<<< HEAD
             CacheArtifactManager.record_artifact(
                 CacheArtifactType.AUTOTUNE, os.path.basename(key), result
+=======
+            autotune_artifact_key = os.path.join(*key.split(os.sep)[-2:])
+            CacheArtifactManager.record_artifact(
+                AutotuneCacheArtifact.type(), autotune_artifact_key, result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return result
 

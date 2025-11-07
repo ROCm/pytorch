@@ -345,7 +345,10 @@ class MPSHeapAllocatorImpl {
     return m_device;
   }
 
+<<<<<<< HEAD
   // TODO: make a common function to do size unit conversions in PyTorch.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   inline std::string format_size(uint64_t size) const;
 
  private:

@@ -6,6 +6,7 @@ import numpy as np
 
 import torch
 from torch.testing import FileCheck
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_MACOS
 from torch.testing._internal.jit_utils import JitTestCase
 
@@ -18,6 +19,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import IS_MACOS, raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestPythonIr(JitTestCase):
     def test_param_strides(self):
         def trace_me(arg):
@@ -100,3 +107,10 @@ class TestPythonIr(JitTestCase):
 
         FileCheck().check_not("aten::mul").check("aten::add").run(foo.graph)
         self.assertEqual(foo(torch.ones([2, 2])), torch.ones([2, 2]) * 4)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

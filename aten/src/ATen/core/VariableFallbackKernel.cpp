@@ -80,6 +80,13 @@ TORCH_LIBRARY_IMPL(_, AutogradMTIA, m) {
   m.fallback(AUTOGRAD_FALLBACK);
 }
 
+<<<<<<< HEAD
+=======
+TORCH_LIBRARY_IMPL(_, AutogradMAIA, m) {
+  m.fallback(AUTOGRAD_FALLBACK);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_LIBRARY_IMPL(_, AutogradXLA, m) {
   m.fallback(AUTOGRAD_FALLBACK);
 }

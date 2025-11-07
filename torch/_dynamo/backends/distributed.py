@@ -146,6 +146,29 @@ def has_higher_order_op(gm):
     return False
 
 
+<<<<<<< HEAD
+=======
+def propagate_metadata(orig_gm, split_gm) -> None:
+    for name, module in split_gm.named_modules():
+        if "." not in name and len(name):
+            # TODO: add split id to CompileId: https://github.com/pytorch/tlparse/pull/83/files#r1880649384
+            module.meta = orig_gm.meta
+            module._param_name_to_source = orig_gm._param_name_to_source
+
+
+def propagate_dynamo_source(orig_gm, split_gm) -> None:
+    name_to_dynamo_source = {}
+    for node in orig_gm.graph.find_nodes(op="placeholder"):
+        name_to_dynamo_source[node.name] = node._dynamo_source
+
+    for name, module in split_gm.named_modules():
+        if "." not in name and len(name):
+            for node in module.graph.find_nodes(op="placeholder"):
+                # non-placeholder in original_gm may become placeholder in submodules
+                node._dynamo_source = name_to_dynamo_source.get(node.name, None)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # compile each of the partitioned submodules using the user-provided compiler
 class SubmodCompiler(torch.fx.interpreter.Interpreter):
     def __init__(self, module, compiler, fake_mode) -> None:
@@ -516,6 +539,13 @@ class DDPOptimizer:
             gm, None, lambda node: partition_map[node]
         )
 
+<<<<<<< HEAD
+=======
+        # See note [Assumption on Dynamo Metadata]
+        propagate_dynamo_source(gm, split_gm)
+        propagate_metadata(gm, split_gm)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         debug_str = (
             f"\n---orig graph---\n{gm.graph}\n"
             + f"\n---split graph---\n{split_gm.graph}\n"

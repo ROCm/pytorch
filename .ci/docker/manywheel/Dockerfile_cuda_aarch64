@@ -1,7 +1,11 @@
 FROM quay.io/pypa/manylinux_2_28_aarch64 as base
 
 # Cuda ARM build needs gcc 11
+<<<<<<< HEAD
 ARG DEVTOOLSET_VERSION=11
+=======
+ARG DEVTOOLSET_VERSION=13
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Language variables
 ENV LC_ALL=en_US.UTF-8
@@ -34,7 +38,14 @@ RUN yum install -y \
   zstd \
   libgomp \
   sudo \
+<<<<<<< HEAD
   gcc-toolset-${DEVTOOLSET_VERSION}-toolchain
+=======
+  gcc-toolset-${DEVTOOLSET_VERSION}-gcc \
+  gcc-toolset-${DEVTOOLSET_VERSION}-gcc-c++ \
+  gcc-toolset-${DEVTOOLSET_VERSION}-gcc-gfortran \
+  gcc-toolset-${DEVTOOLSET_VERSION}-gdb
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Ensure the expected devtoolset is used
 ENV PATH=/opt/rh/gcc-toolset-${DEVTOOLSET_VERSION}/root/usr/bin:$PATH
@@ -57,7 +68,11 @@ RUN bash ./install_openssl.sh && rm install_openssl.sh
 ENV SSL_CERT_FILE=/opt/_internal/certs.pem
 
 FROM openssl as final
+<<<<<<< HEAD
 # remove unncessary python versions
+=======
+# remove unnecessary python versions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 RUN rm -rf /opt/python/cp26-cp26m /opt/_internal/cpython-2.6.9-ucs2
 RUN rm -rf /opt/python/cp26-cp26mu /opt/_internal/cpython-2.6.9-ucs4
 RUN rm -rf /opt/python/cp33-cp33m /opt/_internal/cpython-3.3.6
@@ -66,8 +81,16 @@ RUN rm -rf /opt/python/cp34-cp34m /opt/_internal/cpython-3.4.6
 FROM base as cuda
 ARG BASE_CUDA_VERSION
 # Install CUDA
+<<<<<<< HEAD
 ADD ./common/install_cuda_aarch64.sh install_cuda_aarch64.sh
 RUN bash ./install_cuda_aarch64.sh ${BASE_CUDA_VERSION} && rm install_cuda_aarch64.sh
+=======
+ADD ./common/install_cuda.sh install_cuda.sh
+COPY ./common/install_nccl.sh install_nccl.sh
+COPY ./common/install_cusparselt.sh install_cusparselt.sh
+COPY ./ci_commit_pins/nccl-cu* /ci_commit_pins/
+RUN bash ./install_cuda.sh ${BASE_CUDA_VERSION} && rm install_cuda.sh install_nccl.sh ci_commit_pins/nccl-cu* install_cusparselt.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 FROM base as magma
 ARG BASE_CUDA_VERSION

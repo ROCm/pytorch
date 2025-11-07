@@ -389,7 +389,11 @@ vgg16,eager_two_runs_differ,0
 
 
 
+<<<<<<< HEAD
 vision_maskrcnn,pass,18
+=======
+vision_maskrcnn,pass,20
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

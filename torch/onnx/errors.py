@@ -31,6 +31,7 @@ class UnsupportedOperatorError(OnnxExporterError):
     # NOTE: This is legacy and is only used by the torchscript exporter
     # Clean up when the torchscript exporter is removed
     def __init__(self, name: str, version: int, supported_version: int | None):
+<<<<<<< HEAD
         from torch.onnx import _constants
         from torch.onnx._internal import diagnostics
 
@@ -51,6 +52,26 @@ class UnsupportedOperatorError(OnnxExporterError):
                 diagnostic_rule = diagnostics.rules.missing_custom_symbolic_function
                 msg = diagnostic_rule.format_message(name)
                 diagnostics.diagnose(diagnostic_rule, diagnostics.levels.ERROR, msg)
+=======
+        if supported_version is not None:
+            msg = (
+                f"Exporting the operator '{name}' to ONNX opset version {version} "
+                "is not supported. Support for this operator was added in version "
+                f"{supported_version}, try exporting with this version"
+            )
+        elif name.startswith(("aten::", "prim::", "quantized::")):
+            msg = (
+                f"Exporting the operator '{name}' to ONNX opset version {version} "
+                "is not supported"
+            )
+        else:
+            msg = (
+                "ONNX export failed on an operator with unrecognized namespace {op_name}. "
+                "If you are trying to export a custom operator, make sure you registered it with "
+                "the right domain and version."
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(msg)
 
 

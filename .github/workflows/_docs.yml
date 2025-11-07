@@ -84,7 +84,11 @@ jobs:
     name: build-docs-${{ matrix.docs_type }}-${{ inputs.push }}
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
           instructions: |
@@ -95,14 +99,22 @@ jobs:
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Setup Linux
         uses: ./.github/actions/setup-linux
 
       - name: configure aws credentials
         if : ${{ inputs.aws-role-to-assume != '' }}
+<<<<<<< HEAD
         uses: aws-actions/configure-aws-credentials@v3
+=======
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           role-to-assume: ${{ inputs.aws-role-to-assume }}
           role-session-name: gha-linux-test
@@ -110,12 +122,20 @@ jobs:
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image-name: ${{ inputs.docker-image }}
 
       - name: Pull docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -185,14 +205,22 @@ jobs:
 
       - name: configure aws credentials
         if : ${{ inputs.upload-aws-role-to-assume != '' }}
+<<<<<<< HEAD
         uses: aws-actions/configure-aws-credentials@v3
+=======
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           role-to-assume: ${{ inputs.upload-aws-role-to-assume }}
           role-session-name: gha-linux-test
           aws-region: us-east-1
 
       - name: Upload Python Docs Preview
+<<<<<<< HEAD
         uses: seemethere/upload-artifact-s3@v5
+=======
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ github.event_name == 'pull_request' && matrix.docs_type == 'python' && steps.build-docs.outcome == 'success' }}
         with:
           retention-days: 14
@@ -202,7 +230,11 @@ jobs:
           s3-prefix: pytorch/pytorch/${{ github.event.pull_request.number }}
 
       - name: Upload C++ Docs Preview
+<<<<<<< HEAD
         uses: seemethere/upload-artifact-s3@v5
+=======
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ github.event_name == 'pull_request' && matrix.docs_type == 'cpp' && steps.build-docs.outcome == 'success' }}
         with:
           retention-days: 14
@@ -212,7 +244,11 @@ jobs:
           s3-prefix: pytorch/pytorch/${{ github.event.pull_request.number }}/cppdocs
 
       - name: Upload functorch Docs Preview
+<<<<<<< HEAD
         uses: seemethere/upload-artifact-s3@v5
+=======
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ github.event_name == 'pull_request' && matrix.docs_type == 'functorch' && steps.build-docs.outcome == 'success' }}
         with:
           retention-days: 14
@@ -222,5 +258,9 @@ jobs:
           s3-prefix: pytorch/pytorch/${{ github.event.pull_request.number }}/functorchdocs
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: always()

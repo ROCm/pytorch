@@ -111,7 +111,11 @@ class L1Loss(_Loss):
         - Output: scalar. If :attr:`reduction` is ``'none'``, then
           :math:`(*)`, same shape as the input.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.L1Loss()
         >>> input = torch.randn(3, 5, requires_grad=True)
@@ -119,6 +123,10 @@ class L1Loss(_Loss):
         >>> output = loss(input, target)
         >>> output.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(self, size_average=None, reduce=None, reduction: str = "mean") -> None:
@@ -154,8 +162,13 @@ class NLLLoss(_WeightedLoss):
     The unreduced (i.e. with :attr:`reduction` set to ``'none'``) loss can be described as:
 
     .. math::
+<<<<<<< HEAD
         \ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \quad
         l_n = - w_{y_n} x_{n,y_n}, \quad
+=======
+        \ell(x, y) = L = \{l_1,\dots,l_N\}^\top, \\
+        l_n = - w_{y_n} x_{n,y_n}, \\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         w_{c} = \text{weight}[c] \cdot \mathbb{1}\{c \not= \text{ignore\_index}\},
 
     where :math:`x` is the input, :math:`y` is the target, :math:`w` is the weight, and
@@ -207,7 +220,11 @@ class NLLLoss(_WeightedLoss):
           :math:`(N, d_1, d_2, ..., d_K)` with :math:`K \geq 1` in the case of K-dimensional loss.
           Otherwise, scalar.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> log_softmax = nn.LogSoftmax(dim=1)
         >>> loss_fn = nn.NLLLoss()
@@ -233,6 +250,10 @@ class NLLLoss(_WeightedLoss):
         >>> loss = loss_fn(output, target)
         >>> loss.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["ignore_index", "reduction"]
     ignore_index: int
 
@@ -317,7 +338,11 @@ class PoissonNLLLoss(_Loss):
             and :attr:`reduce` are in the process of being deprecated, and in the meantime,
             specifying either of those two args will override :attr:`reduction`. Default: ``'mean'``
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.PoissonNLLLoss()
         >>> log_input = torch.randn(5, 2, requires_grad=True)
@@ -331,6 +356,10 @@ class PoissonNLLLoss(_Loss):
         - Output: scalar by default. If :attr:`reduction` is ``'none'``, then :math:`(*)`,
           the same shape as the input.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["log_input", "full", "eps", "reduction"]
     log_input: bool
     full: bool
@@ -402,7 +431,11 @@ class GaussianNLLLoss(_Loss):
           ``'sum'``. If :attr:`reduction` is ``'none'``, then :math:`(N, *)`, same
           shape as the input
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> loss = nn.GaussianNLLLoss()
         >>> input = torch.randn(5, 2, requires_grad=True)
         >>> target = torch.randn(5, 2)
@@ -427,6 +460,10 @@ class GaussianNLLLoss(_Loss):
         Conference on Neural Networks (ICNN'94), Orlando, FL, USA, 1994, pp. 55-60
         vol.1, doi: 10.1109/ICNN.1994.374138.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["full", "eps", "reduction"]
     full: bool
     eps: float
@@ -467,7 +504,11 @@ class KLDivLoss(_Loss):
 
     .. code-block:: python
 
+<<<<<<< HEAD
         if not log_target: # default
+=======
+        if not log_target:  # default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             loss_pointwise = target * (target.log() - input)
         else:
             loss_pointwise = target.exp() * (target - input)
@@ -515,18 +556,30 @@ class KLDivLoss(_Loss):
         - Output: scalar by default. If :attr:`reduction` is `'none'`, then :math:`(*)`,
           same shape as the input.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> kl_loss = nn.KLDivLoss(reduction="batchmean")
         >>> # input should be a distribution in the log space
         >>> input = F.log_softmax(torch.randn(3, 5, requires_grad=True), dim=1)
         >>> # Sample a batch of distributions. Usually this would come from the dataset
         >>> target = F.softmax(torch.rand(3, 5), dim=1)
         >>> output = kl_loss(input, target)
+<<<<<<< HEAD
 
+=======
+        >>>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> kl_loss = nn.KLDivLoss(reduction="batchmean", log_target=True)
         >>> log_target = F.log_softmax(torch.rand(3, 5), dim=1)
         >>> output = kl_loss(input, log_target)
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(
@@ -593,7 +646,11 @@ class MSELoss(_Loss):
         - Input: :math:`(*)`, where :math:`*` means any number of dimensions.
         - Target: :math:`(*)`, same shape as the input.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.MSELoss()
         >>> input = torch.randn(3, 5, requires_grad=True)
@@ -601,6 +658,10 @@ class MSELoss(_Loss):
         >>> output = loss(input, target)
         >>> output.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(self, size_average=None, reduce=None, reduction: str = "mean") -> None:
@@ -675,7 +736,11 @@ class BCELoss(_WeightedLoss):
         - Output: scalar. If :attr:`reduction` is ``'none'``, then :math:`(*)`, same
           shape as input.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> m = nn.Sigmoid()
         >>> loss = nn.BCELoss()
@@ -684,6 +749,10 @@ class BCELoss(_WeightedLoss):
         >>> output = loss(m(input), target)
         >>> output.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(
@@ -746,7 +815,11 @@ class BCEWithLogitsLoss(_Loss):
     then ``pos_weight`` for the class should be equal to :math:`\frac{300}{100}=3`.
     The loss would act as if the dataset contains :math:`3\times 100=300` positive examples.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> target = torch.ones([10, 64], dtype=torch.float32)  # 64 classes, batch size = 10
         >>> output = torch.full([10, 64], 1.5)  # A prediction (logit)
@@ -794,7 +867,11 @@ class BCEWithLogitsLoss(_Loss):
         - Output: scalar. If :attr:`reduction` is ``'none'``, then :math:`(*)`, same
           shape as input.
 
+<<<<<<< HEAD
      Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.BCEWithLogitsLoss()
         >>> input = torch.randn(3, requires_grad=True)
@@ -876,6 +953,10 @@ class HingeEmbeddingLoss(_Loss):
         - Target: :math:`(*)`, same shape as the input
         - Output: scalar. If :attr:`reduction` is ``'none'``, then same shape as the input
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["margin", "reduction"]
     margin: float
 
@@ -939,7 +1020,11 @@ class MultiLabelMarginLoss(_Loss):
         - Target: :math:`(C)` or :math:`(N, C)`, label targets padded by -1 ensuring same shape as the input.
         - Output: scalar. If :attr:`reduction` is ``'none'``, then :math:`(N)`.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.MultiLabelMarginLoss()
         >>> x = torch.FloatTensor([[0.1, 0.2, 0.4, 0.8]])
@@ -950,6 +1035,10 @@ class MultiLabelMarginLoss(_Loss):
         tensor(0.85...)
 
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(self, size_average=None, reduce=None, reduction: str = "mean") -> None:
@@ -1030,6 +1119,10 @@ class SmoothL1Loss(_Loss):
         - Target: :math:`(*)`, same shape as the input.
         - Output: scalar. If :attr:`reduction` is ``'none'``, then :math:`(*)`, same shape as the input.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(
@@ -1092,6 +1185,10 @@ class HuberLoss(_Loss):
         - Target: :math:`(*)`, same shape as the input.
         - Output: scalar. If :attr:`reduction` is ``'none'``, then :math:`(*)`, same shape as the input.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction", "delta"]
 
     def __init__(self, reduction: str = "mean", delta: float = 1.0) -> None:
@@ -1134,6 +1231,10 @@ class SoftMarginLoss(_Loss):
           shape as input.
 
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(self, size_average=None, reduce=None, reduction: str = "mean") -> None:
@@ -1215,7 +1316,11 @@ class CrossEntropyLoss(_WeightedLoss):
 
     Args:
         weight (Tensor, optional): a manual rescaling weight given to each class.
+<<<<<<< HEAD
             If given, has to be a Tensor of size `C` and floating point dtype
+=======
+            If given, has to be a Tensor of size `C`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         size_average (bool, optional): Deprecated (see :attr:`reduction`). By default,
             the losses are averaged over each loss element in the batch. Note that for
             some losses, there are multiple elements per sample. If the field :attr:`size_average`
@@ -1261,7 +1366,11 @@ class CrossEntropyLoss(_WeightedLoss):
                 N ={} & \text{batch size} \\
             \end{aligned}
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> # Example of target with class indices
         >>> loss = nn.CrossEntropyLoss()
@@ -1276,6 +1385,10 @@ class CrossEntropyLoss(_WeightedLoss):
         >>> output = loss(input, target)
         >>> output.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["ignore_index", "reduction", "label_smoothing"]
     ignore_index: int
     label_smoothing: float
@@ -1342,6 +1455,10 @@ class MultiLabelSoftMarginLoss(_WeightedLoss):
         - Target: :math:`(N, C)`, label targets must have the same shape as the input.
         - Output: scalar. If :attr:`reduction` is ``'none'``, then :math:`(N)`.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["reduction"]
 
     def __init__(
@@ -1401,7 +1518,11 @@ class CosineEmbeddingLoss(_Loss):
         - Target: :math:`(N)` or :math:`()`.
         - Output: If :attr:`reduction` is ``'none'``, then :math:`(N)`, otherwise scalar.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.CosineEmbeddingLoss()
         >>> input1 = torch.randn(3, 5, requires_grad=True)
@@ -1410,6 +1531,10 @@ class CosineEmbeddingLoss(_Loss):
         >>> output = loss(input1, input2, target)
         >>> output.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["margin", "reduction"]
     margin: float
 
@@ -1466,7 +1591,11 @@ class MarginRankingLoss(_Loss):
         - Target: :math:`(N)` or :math:`()`, same shape as the inputs.
         - Output: scalar. If :attr:`reduction` is ``'none'`` and Input size is not :math:`()`, then :math:`(N)`.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.MarginRankingLoss()
         >>> input1 = torch.randn(3, requires_grad=True)
@@ -1475,6 +1604,10 @@ class MarginRankingLoss(_Loss):
         >>> output = loss(input1, input2, target)
         >>> output.backward()
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["margin", "reduction"]
     margin: float
 
@@ -1545,7 +1678,11 @@ class MultiMarginLoss(_WeightedLoss):
         - Target: :math:`(N)` or :math:`()`, where each value is :math:`0 \leq \text{targets}[i] \leq C-1`.
         - Output: scalar. If :attr:`reduction` is ``'none'``, then same shape as the target.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> loss = nn.MultiMarginLoss()
         >>> x = torch.tensor([[0.1, 0.2, 0.4, 0.8]])
@@ -1554,6 +1691,10 @@ class MultiMarginLoss(_WeightedLoss):
         >>> loss(x, y)
         tensor(0.32...)
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["p", "margin", "reduction"]
     margin: float
     p: int
@@ -1645,7 +1786,11 @@ class TripletMarginLoss(_Loss):
         - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'`` and
           input shape is :math:`(N, D)`; a scalar otherwise.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     >>> triplet_loss = nn.TripletMarginLoss(margin=1.0, p=2, eps=1e-7)
     >>> anchor = torch.randn(100, 128, requires_grad=True)
@@ -1657,6 +1802,10 @@ class TripletMarginLoss(_Loss):
     .. _Learning shallow convolutional feature descriptors with triplet losses:
         https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["margin", "p", "eps", "swap", "reduction"]
     margin: float
     p: float
@@ -1756,7 +1905,11 @@ class TripletMarginWithDistanceLoss(_Loss):
         - Output: A Tensor of shape :math:`(N)` if :attr:`reduction` is ``'none'``, or a scalar
           otherwise.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     >>> # Initialize embeddings
     >>> embedding = nn.Embedding(1000, 128)
@@ -1794,6 +1947,10 @@ class TripletMarginWithDistanceLoss(_Loss):
         V. Balntas, et al.: Learning shallow convolutional feature descriptors with triplet losses:
         https://bmva-archive.org.uk/bmvc/2016/papers/paper119/index.html
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["margin", "swap", "reduction"]
     margin: float
     swap: bool
@@ -1886,6 +2043,7 @@ class CTCLoss(_Loss):
           ``'sum'``. If :attr:`reduction` is ``'none'``, then :math:`(N)` if input is batched or
           :math:`()` if input is unbatched, where :math:`N = \text{batch size}`.
 
+<<<<<<< HEAD
     Examples::
 
         >>> # Target are to be padded
@@ -1893,6 +2051,15 @@ class CTCLoss(_Loss):
         >>> C = 20      # Number of classes (including blank)
         >>> N = 16      # Batch size
         >>> S = 30      # Target sequence length of longest target in batch (padding length)
+=======
+    Examples:
+
+        >>> # Target are to be padded
+        >>> T = 50  # Input sequence length
+        >>> C = 20  # Number of classes (including blank)
+        >>> N = 16  # Batch size
+        >>> S = 30  # Target sequence length of longest target in batch (padding length)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> S_min = 10  # Minimum target length, for demonstration purposes
         >>>
         >>> # Initialize random batch of input vectors, for *size = (T,N,C)
@@ -1902,16 +2069,31 @@ class CTCLoss(_Loss):
         >>> target = torch.randint(low=1, high=C, size=(N, S), dtype=torch.long)
         >>>
         >>> input_lengths = torch.full(size=(N,), fill_value=T, dtype=torch.long)
+<<<<<<< HEAD
         >>> target_lengths = torch.randint(low=S_min, high=S, size=(N,), dtype=torch.long)
+=======
+        >>> target_lengths = torch.randint(
+        ...     low=S_min,
+        ...     high=S,
+        ...     size=(N,),
+        ...     dtype=torch.long,
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> ctc_loss = nn.CTCLoss()
         >>> loss = ctc_loss(input, target, input_lengths, target_lengths)
         >>> loss.backward()
         >>>
         >>>
         >>> # Target are to be un-padded
+<<<<<<< HEAD
         >>> T = 50      # Input sequence length
         >>> C = 20      # Number of classes (including blank)
         >>> N = 16      # Batch size
+=======
+        >>> T = 50  # Input sequence length
+        >>> C = 20  # Number of classes (including blank)
+        >>> N = 16  # Batch size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>>
         >>> # Initialize random batch of input vectors, for *size = (T,N,C)
         >>> input = torch.randn(T, N, C).log_softmax(2).detach().requires_grad_()
@@ -1919,15 +2101,29 @@ class CTCLoss(_Loss):
         >>>
         >>> # Initialize random batch of targets (0 = blank, 1:C = classes)
         >>> target_lengths = torch.randint(low=1, high=T, size=(N,), dtype=torch.long)
+<<<<<<< HEAD
         >>> target = torch.randint(low=1, high=C, size=(sum(target_lengths),), dtype=torch.long)
+=======
+        >>> target = torch.randint(
+        ...     low=1,
+        ...     high=C,
+        ...     size=(sum(target_lengths),),
+        ...     dtype=torch.long,
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> ctc_loss = nn.CTCLoss()
         >>> loss = ctc_loss(input, target, input_lengths, target_lengths)
         >>> loss.backward()
         >>>
         >>>
         >>> # Target are to be un-padded and unbatched (effectively N=1)
+<<<<<<< HEAD
         >>> T = 50      # Input sequence length
         >>> C = 20      # Number of classes (including blank)
+=======
+        >>> T = 50  # Input sequence length
+        >>> C = 20  # Number of classes (including blank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>>
         >>> # Initialize random batch of input vectors, for *size = (T,C)
         >>> # xdoctest: +SKIP("FIXME: error in doctest")
@@ -1936,7 +2132,16 @@ class CTCLoss(_Loss):
         >>>
         >>> # Initialize random batch of targets (0 = blank, 1:C = classes)
         >>> target_lengths = torch.randint(low=1, high=T, size=(), dtype=torch.long)
+<<<<<<< HEAD
         >>> target = torch.randint(low=1, high=C, size=(target_lengths,), dtype=torch.long)
+=======
+        >>> target = torch.randint(
+        ...     low=1,
+        ...     high=C,
+        ...     size=(target_lengths,),
+        ...     dtype=torch.long,
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> ctc_loss = nn.CTCLoss()
         >>> loss = ctc_loss(input, target, input_lengths, target_lengths)
         >>> loss.backward()
@@ -1963,6 +2168,10 @@ class CTCLoss(_Loss):
         True``.
         Please see the notes on :doc:`/notes/randomness` for background.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __constants__ = ["blank", "reduction"]
     blank: int
     zero_infinity: bool

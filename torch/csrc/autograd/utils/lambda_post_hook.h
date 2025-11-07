@@ -27,7 +27,16 @@ class LambdaPostHook : public torch::autograd::FunctionPostHook {
     return fn_(outputs, inputs);
   }
 
+<<<<<<< HEAD
   void compiled_args(CompiledNodeArgs& args) const override {}
+=======
+  void compiled_args(CompiledNodeArgs& args) const override {
+    if (compiled_fn_ != nullptr) {
+      return compiled_fn_(args);
+    }
+    return FunctionPostHook::compiled_args(args);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  protected:
   std::function<variable_list(const variable_list&, const variable_list&)> fn_;

@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import torch
 import torch.nn as nn
+<<<<<<< HEAD
 from torch.distributed._tensor import (
     distribute_tensor,
     DTensor,
@@ -12,6 +13,10 @@ from torch.distributed._tensor import (
     Replicate,
     Shard,
 )
+=======
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import distribute_tensor, DTensor, Replicate, Shard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.debug import CommDebugMode
 from torch.distributed.tensor.parallel import parallelize_module
 from torch.distributed.tensor.parallel.style import (

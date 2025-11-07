@@ -3,7 +3,11 @@
 import datetime
 from enum import Enum
 from types import TracebackType
+<<<<<<< HEAD
 from typing import Callable, Optional
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class Aggregation(Enum):
     VALUE = ...
@@ -48,9 +52,15 @@ class _WaitCounterTracker:
     def __enter__(self) -> None: ...
     def __exit__(
         self,
+<<<<<<< HEAD
         exec_type: Optional[type[BaseException]] = None,
         exec_value: Optional[BaseException] = None,
         traceback: Optional[TracebackType] = None,
+=======
+        exc_type: type[BaseException] | None = None,
+        exc_value: BaseException | None = None,
+        traceback: TracebackType | None = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None: ...
 
 class _WaitCounter:

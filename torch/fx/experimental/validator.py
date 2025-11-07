@@ -203,9 +203,13 @@ try:
             return _Z3Ops.to_real(result) if cast_result_to_real else result
 
         def ceil(self, number: z3.ArithRef) -> z3.ArithRef:
+<<<<<<< HEAD
             return z3.If(
                 self.floor(number) < number, self.floor(number + 1), number
             )  # type: ignore[return-value]
+=======
+            return z3.If(self.floor(number) < number, self.floor(number + 1), number)  # type: ignore[return-value]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def trunc(self, number: z3.ArithRef) -> z3.ArithRef:
             return z3.If(number >= 0, self.floor(number), self.ceil(number))  # type: ignore[return-value]
@@ -363,9 +367,15 @@ try:
                 return super().call_function(z3op(target, self.validator), args, kwargs)  # type: ignore[arg-type]
             # Adds the Z3 expression corresponding to the first argument
             # as a validator input.
+<<<<<<< HEAD
             assert (
                 len(args) == 1
             ), f"expected 1 argument on assertion. Got: {len(args)} "
+=======
+            assert len(args) == 1, (
+                f"expected 1 argument on assertion. Got: {len(args)} "
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.validator.add_source_expr(args[0])  # type: ignore[arg-type]
 
     # Translates SymPy expressions into Z3 expressions.
@@ -536,9 +546,15 @@ try:
 
         def to_z3_boolean_expr(self, e: sympy.Basic) -> z3.BoolRef:
             z3expr = SympyToZ3(self).run(e)
+<<<<<<< HEAD
             assert isinstance(
                 z3expr, z3.BoolRef
             ), f"expected boolean expression. Got: {z3expr}"
+=======
+            assert isinstance(z3expr, z3.BoolRef), (
+                f"expected boolean expression. Got: {z3expr}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return z3expr
 
         def add_source_expr(self, e: z3.BoolRef) -> None:

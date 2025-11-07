@@ -294,6 +294,16 @@ bool is_onednn_matmul_strides(const at::Tensor& tensor) {
   if (tensor.is_contiguous())
     return true;
 
+<<<<<<< HEAD
+=======
+  if (tensor.storage_offset() > 0) {
+    // currently onednn asks 64 byte alignment
+    constexpr int alignment_byte = 64;
+    if (reinterpret_cast<uintptr_t>(tensor.data_ptr()) % alignment_byte > 0)
+      return false;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // the overlaped cases are not supported
   dnnl::memory::dims strides = get_onednn_strides(tensor);
   int64_t storage_size = 1;

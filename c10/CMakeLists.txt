@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+=======
+cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 project(c10 CXX)
 
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "The C++ standard whose features are requested to build this target.")
@@ -50,7 +54,11 @@ endif()
         )
 if(NOT BUILD_LIBTORCHLESS)
   add_library(c10 ${C10_SRCS} ${C10_HEADERS})
+<<<<<<< HEAD
   target_compile_options_if_supported(c10 "-Wdeprecated")
+=======
+  torch_compile_options(c10)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if(HAVE_SOVERSION)
     set_target_properties(c10 PROPERTIES
         VERSION ${TORCH_VERSION} SOVERSION ${TORCH_SOVERSION})
@@ -96,6 +104,10 @@ if(NOT BUILD_LIBTORCHLESS)
   endif()
   target_link_libraries(c10 PRIVATE fmt::fmt-header-only)
   target_link_libraries(c10 PRIVATE nlohmann)
+<<<<<<< HEAD
+=======
+  target_link_libraries(c10 PRIVATE moodycamel)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if(C10_USE_NUMA)
     message(STATUS "NUMA paths:")

@@ -439,7 +439,11 @@ class ConfigModule(ModuleType):
     def _is_default(self, name: str) -> bool:
         """
         Returns true if the config is at its default value.
+<<<<<<< HEAD
         configs overriden by the env are not considered default.
+=======
+        configs overridden by the env are not considered default.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         config_val = self._config[name]
         # The config is not overridden by the user, and the env_value_default
@@ -508,9 +512,19 @@ class ConfigModule(ModuleType):
             protocol=2,
         )
 
+<<<<<<< HEAD
     def save_config_portable(self) -> dict[str, Any]:
         """Convert config to portable format"""
         prefixes = ["_"]
+=======
+    def save_config_portable(
+        self, *, ignore_private_configs: bool = True
+    ) -> dict[str, Any]:
+        """Convert config to portable format"""
+        prefixes = []
+        if ignore_private_configs:
+            prefixes.append("_")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prefixes.extend(getattr(self, "_cache_config_ignore_prefix", []))
         return self._get_dict(ignored_prefixes=prefixes)
 
@@ -667,12 +681,24 @@ class ConfigModule(ModuleType):
         config = self
 
         class ConfigPatch(ContextDecorator):
+<<<<<<< HEAD
             def __enter__(self) -> None:
                 assert not prior
                 for key in changes.keys():
                     # KeyError on invalid entry
                     prior[key] = config.__getattr__(key)
                 for k, v in changes.items():
+=======
+            def __init__(self) -> None:
+                self.changes = changes
+
+            def __enter__(self) -> None:
+                assert not prior
+                for key in self.changes.keys():
+                    # KeyError on invalid entry
+                    prior[key] = config.__getattr__(key)
+                for k, v in self.changes.items():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     config.__setattr__(k, v)
 
             def __exit__(self, exc_type, exc_val, exc_tb):  # type: ignore[no-untyped-def]

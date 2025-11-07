@@ -48,12 +48,18 @@ misc-*,
 -misc-no-recursion,
 -misc-non-private-member-variables-in-classes,
 -misc-unused-using-decls,
+<<<<<<< HEAD
 -misc-use-internal-linkage,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 modernize-*,
 -modernize-macro-to-enum,
 -modernize-return-braced-init-list,
 -modernize-use-auto,
+<<<<<<< HEAD
 -modernize-use-default-member-init,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -modernize-use-using,
 -modernize-use-trailing-return-type,
 -modernize-use-nodiscard,

@@ -127,7 +127,11 @@ def generate_cct_and_mode(autograd_view_consistency=True):
             # by a Composite operation; if the Composite
             # operator attempts to read from the storage without dispatching then it'll
             # raise a RuntimeError due to it being a meta storage.
+<<<<<<< HEAD
             r = torch.Tensor._make_wrapper_subclass(  # type: ignore[attr-defined]
+=======
+            r = torch.Tensor._make_wrapper_subclass(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cls, elem.size(),
                 dtype=elem.dtype, layout=elem.layout,
                 device=elem.device, requires_grad=elem.requires_grad,
@@ -359,7 +363,11 @@ def check_all_permutations(op, args, kwargs, assert_equal_fn):
         # - data_ptr accesses
         # The first is easy to filter for (we could make the error a different
         # error class), the second is always going to be a RuntimeError due to
+<<<<<<< HEAD
         # how it is implemented (if you try to access the data_ptr of thex
+=======
+        # how it is implemented (if you try to access the data_ptr of the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # wrapper Tensor, it raises you some internal RuntimeError).
         #
         # So the most general thing to catch here was RuntimeError. If you
@@ -552,8 +560,21 @@ def check_forward_ad_formula(op: Callable, args, kwargs, gradcheck_wrapper=None,
 
         expected = compute_expected_grad(args, tangent_args, kwargs, tangent_kwargs)
         expected = tree_map(fwAD.unpack_dual, expected)
+<<<<<<< HEAD
         expected_primals = tree_map(lambda x: x.primal, expected)
         expected_tangents = tree_map(lambda x: x.tangent, expected)
+=======
+        expected_primals = tree_map(
+            lambda x: x.primal,
+            expected,
+            is_leaf=lambda x: type(x) is fwAD.UnpackedDualTensor,
+        )
+        expected_tangents = tree_map(
+            lambda x: x.tangent,
+            expected,
+            is_leaf=lambda x: type(x) is fwAD.UnpackedDualTensor,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Permutations of arg and kwargs in CCT.
         for choice in generate_subclass_choices_args_kwargs(args, kwargs, CCT, cct_mode):
@@ -586,7 +607,20 @@ def check_forward_ad_formula(op: Callable, args, kwargs, gradcheck_wrapper=None,
                     return e.elem if isinstance(e, CCT) else e
 
                 actual = tree_map(fwAD.unpack_dual, actual)
+<<<<<<< HEAD
                 actual_primals = tree_map(lambda x: unwrap(x.primal), actual)
                 actual_tangents = tree_map(lambda x: unwrap(x.tangent), actual)
+=======
+                actual_primals = tree_map(
+                    lambda x: unwrap(x.primal),
+                    actual,
+                    is_leaf=lambda x: type(x) is fwAD.UnpackedDualTensor,
+                )
+                actual_tangents = tree_map(
+                    lambda x: unwrap(x.tangent),
+                    actual,
+                    is_leaf=lambda x: type(x) is fwAD.UnpackedDualTensor,
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert_equal_fn(actual_primals, expected_primals, equal_nan=True)
                 assert_equal_fn(actual_tangents, expected_tangents, equal_nan=True)

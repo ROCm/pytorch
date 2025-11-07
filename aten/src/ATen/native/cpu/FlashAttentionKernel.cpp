@@ -201,6 +201,12 @@ void reshape_attn_mask_to_4d(
   attn_mask = attn_mask
                 .view({attn_mask_size_0, attn_mask_size_1, attn_mask.size(-2), attn_mask.size(-1)})
                 .expand({attn_mask_size_0, attn_mask_size_1, qSize, kvSize});
+<<<<<<< HEAD
+=======
+  if (attn_mask.sym_stride(-1) != 1 && attn_mask.sym_stride(-1) != 0) {
+    attn_mask = attn_mask.contiguous();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename scalar_t>
@@ -386,7 +392,11 @@ void cpu_flash_attention(
     int64_t thresh_size = (dtype == at::ScalarType::BFloat16) ? 64 : 16;
     need_pack = kvSize >= thresh_size && qSize >= thresh_size;
     // When the number of gemm is greater than the number of pack,
+<<<<<<< HEAD
     // the pack overhead can be overlaped.
+=======
+    // the pack overhead can be overlapped.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (need_pack) {
       double pack_size = batchSize * num_head * kvSize * headSize;
       double qs_per_thread = (batchSize * num_head * qSlice + num_thread - 1) / num_thread;

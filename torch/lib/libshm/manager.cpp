@@ -32,19 +32,32 @@ struct ClientSession {
   pid_t pid;
 };
 
+<<<<<<< HEAD
 std::vector<struct pollfd> pollfds;
 std::unordered_map<int, ClientSession> client_sessions;
 // TODO: check if objects have been freed from time to time
 std::set<std::string> used_objects;
 
 void register_fd(int fd) {
+=======
+static std::vector<struct pollfd> pollfds;
+static std::unordered_map<int, ClientSession> client_sessions;
+// TODO: check if objects have been freed from time to time
+static std::set<std::string> used_objects;
+
+static void register_fd(int fd) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct pollfd pfd = {};
   pfd.fd = fd;
   pfd.events = POLLIN;
   pollfds.push_back(pfd);
 }
 
+<<<<<<< HEAD
 void unregister_fd(int fd) {
+=======
+static void unregister_fd(int fd) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   pollfds.erase(
       std::remove_if(
           pollfds.begin(),
@@ -54,7 +67,11 @@ void unregister_fd(int fd) {
   client_sessions.erase(fd);
 }
 
+<<<<<<< HEAD
 void print_init_message(std::string_view message) {
+=======
+static void print_init_message(std::string_view message) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ssize_t written_bytes = -1;
   while (!message.empty()) {
     // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
@@ -69,7 +86,11 @@ void print_init_message(std::string_view message) {
   }
 }
 
+<<<<<<< HEAD
 bool object_exists(const char* name) {
+=======
+static bool object_exists(const char* name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int fd = shm_open(name, O_RDONLY, 0);
   if (fd >= 0) {
     close(fd);
@@ -79,7 +100,11 @@ bool object_exists(const char* name) {
   }
 }
 
+<<<<<<< HEAD
 void free_used_object(const std::string& name) {
+=======
+static void free_used_object(const std::string& name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!object_exists(name.c_str())) {
     DEBUG("object %s appears to have been freed", name.c_str());
     used_objects.erase(name);

@@ -679,7 +679,11 @@ class TestExpandedWeightModule(TestCase):
             expected_grads = [torch.stack(grad) for grad in zip(*expected_grads)]
             if not batch_first:
                 expected_grads[-1] = expected_grads[-1].transpose(0, 1)
+<<<<<<< HEAD
         self.assertEqual(actual_res, expected_res)
+=======
+        self.assertEqual(actual_res, expected_res, atol=atol, rtol=rtol)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         [
             self.assertEqual(actual, expected, atol=atol, rtol=rtol)
             for (actual, expected) in zip(actual_grads, expected_grads)
@@ -776,7 +780,11 @@ class TestExpandedWeightModule(TestCase):
                 expected_grads.append(out_grads)
 
             expected_grads = [torch.stack(grad) for grad in zip(*expected_grads)]
+<<<<<<< HEAD
             self.assertEqual(actual_res, expected_res)
+=======
+            self.assertEqual(actual_res, expected_res, atol=atol, rtol=rtol)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [
                 self.assertEqual(actual, expected, atol=atol, rtol=rtol)
                 for (actual, expected) in zip(actual_grads, expected_grads)
@@ -807,11 +815,15 @@ class TestExpandedWeightModule(TestCase):
             return h.unsqueeze(1).repeat(new_h_shape)
 
         module_cls = module_info.module_cls
+<<<<<<< HEAD
         atol, rtol = (
             (1e-4, 1e-5)
             if module_cls == torch.nn.GRU and dtype == torch.float32
             else (None, None)
         )
+=======
+        atol, rtol = (1e-3, 1e-4) if dtype == torch.float32 else (None, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module_inputs = module_info.module_inputs_func(
             module_info,
             device=device,

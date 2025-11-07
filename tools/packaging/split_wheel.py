@@ -76,11 +76,23 @@ def split_build(cmd: str) -> None:
         extra_env={"BUILD_LIBTORCH_WHL": "1", "BUILD_PYTHON_ONLY": "0"},
     )
     logger.info("Running %s for torch wheel", cmd)
+<<<<<<< HEAD
     # NOTE: Passing --cmake is necessary here since the torch frontend has it's
     # own cmake files that it needs to generate
     setup_py(
         [cmd, "--cmake"],
         extra_env={"BUILD_LIBTORCH_WHL": "0", "BUILD_PYTHON_ONLY": "1"},
+=======
+    # NOTE: Passing CMAKE_FRESH=1 is necessary here since the torch frontend has it's
+    # own cmake files that it needs to generate
+    setup_py(
+        [cmd],
+        extra_env={
+            "BUILD_LIBTORCH_WHL": "0",
+            "BUILD_PYTHON_ONLY": "1",
+            "CMAKE_FRESH": "1",
+        },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 

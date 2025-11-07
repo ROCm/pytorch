@@ -329,7 +329,11 @@ Examples::
     tensor(0, dtype=torch.int32)
 
 .. _LAPACK's getrf:
+<<<<<<< HEAD
     https://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_ga0019443faea08275ca60a734d0593e60.html
+=======
+    https://www.netlib.org/lapack/explore-html-3.6.1/dd/d9a/group__double_g_ecomputational_ga0019443faea08275ca60a734d0593e60.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -967,7 +971,11 @@ Examples::
     tensor([1, 2, 3], dtype=torch.int32)
 
 .. _LAPACK's sytrf:
+<<<<<<< HEAD
     https://www.netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_gad91bde1212277b3e909eb6af7f64858a.html
+=======
+    https://www.netlib.org/lapack/explore-html-3.6.1/d3/db6/group__double_s_ycomputational_gad91bde1212277b3e909eb6af7f64858a.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -1025,7 +1033,11 @@ Examples::
     tensor(0, dtype=torch.int32)
 
 .. _LAPACK's sytrf:
+<<<<<<< HEAD
     https://www.netlib.org/lapack/explore-html/d3/db6/group__double_s_ycomputational_gad91bde1212277b3e909eb6af7f64858a.html
+=======
+    https://www.netlib.org/lapack/explore-html-3.6.1/d3/db6/group__double_s_ycomputational_gad91bde1212277b3e909eb6af7f64858a.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -1369,6 +1381,7 @@ Whether this function computes a vector or matrix norm is determined as follows:
 
 :attr:`ord` defines the norm that is computed. The following norms are supported:
 
+<<<<<<< HEAD
 ======================     =========================  ========================================================
 :attr:`ord`                norm for matrices          norm for vectors
 ======================     =========================  ========================================================
@@ -1384,6 +1397,23 @@ Whether this function computes a vector or matrix norm is determined as follows:
 `-2`                       smallest singular value    as below
 other `int` or `float`     -- not supported --        `sum(abs(x)^{ord})^{(1 / ord)}`
 ======================     =========================  ========================================================
+=======
+======================     ==========================   ======================================================
+:attr:`ord`                norm for matrices            norm for vectors
+======================     ==========================   ======================================================
+`None` (default)           Frobenius norm               `2`-norm (see below)
+`'fro'`                    Frobenius norm               -- not supported --
+`'nuc'`                    nuclear norm                 -- not supported --
+`inf`                      `max(sum(abs(x), dim=1))`    `max(abs(x))`
+`-inf`                     `min(sum(abs(x), dim=1))`    `min(abs(x))`
+`0`                        -- not supported --          `sum(x != 0)`
+`1`                        `max(sum(abs(x), dim=0))`    as below
+`-1`                       `min(sum(abs(x), dim=0))`    as below
+`2`                        largest `singular value`_    as below
+`-2`                       smallest `singular value`_   as below
+other `int` or `float`     -- not supported --          `sum(abs(x)^{ord})^{(1 / ord)}`
+======================     ==========================   ======================================================
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 where `inf` refers to `float('inf')`, NumPy's `inf` object, or any equivalent object.
 
@@ -1483,6 +1513,12 @@ Using the :attr:`dim` argument to compute matrix norms::
     tensor([ 3.7417, 11.2250])
     >>> LA.norm(A[0, :, :]), LA.norm(A[1, :, :])
     (tensor(3.7417), tensor(11.2250))
+<<<<<<< HEAD
+=======
+
+.. _singular value:
+    https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -2513,7 +2549,11 @@ Returns:
     A named tuple `(LU, pivots, info)`.
 
 .. _LAPACK's getrf:
+<<<<<<< HEAD
     https://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_ga0019443faea08275ca60a734d0593e60.html
+=======
+    https://www.netlib.org/lapack/explore-html-3.6.1/dd/d9a/group__double_g_ecomputational_ga0019443faea08275ca60a734d0593e60.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 

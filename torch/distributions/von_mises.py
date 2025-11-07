@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import math
+<<<<<<< HEAD
+=======
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.jit
@@ -126,7 +130,16 @@ class VonMises(Distribution):
     support = constraints.real
     has_rsample = False
 
+<<<<<<< HEAD
     def __init__(self, loc, concentration, validate_args=None):
+=======
+    def __init__(
+        self,
+        loc: Tensor,
+        concentration: Tensor,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.loc, self.concentration = broadcast_all(loc, concentration)
         batch_shape = self.loc.shape
         event_shape = torch.Size()

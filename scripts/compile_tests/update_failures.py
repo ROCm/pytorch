@@ -221,5 +221,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     assert Path(args.filename).exists(), args.filename
     assert Path(args.test_dir).exists(), args.test_dir
+<<<<<<< HEAD
     dynamo39, dynamo311 = download_reports(args.commit, ("dynamo39", "dynamo311"))
     update(args.filename, args.test_dir, dynamo39, dynamo311, args.also_remove_skips)
+=======
+    dynamo39, dynamo313 = download_reports(args.commit, ("dynamo39", "dynamo313"))
+    update(args.filename, args.test_dir, dynamo39, dynamo313, args.also_remove_skips)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -73,7 +73,11 @@ class CommBlock:
 def get_comm_block(comm_node: fx.Node) -> Optional[CommBlock]:
     """
     Given a collective node (e.g., allreduce), find out all the nodes belong to
+<<<<<<< HEAD
     this communcation.
+=======
+    this communication.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Args:
         comm_node(fx.Node): The target communication/collective node.
@@ -304,7 +308,11 @@ def _scatter_fused_allreduce_waits(
     """
 
     # Before we mass up the order, we need to get the index of the last wait node
+<<<<<<< HEAD
     # in orig_comm_blocks. This index will be later used to determinee what users
+=======
+    # in orig_comm_blocks. This index will be later used to determine what users
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # nodes need to be move to maintain a correct topological sort order.
     last_wait_node_idx = 0
     for node in graph.nodes:

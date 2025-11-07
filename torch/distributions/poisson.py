@@ -1,10 +1,19 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions import constraints
 from torch.distributions.exp_family import ExponentialFamily
 from torch.distributions.utils import broadcast_all
+<<<<<<< HEAD
 from torch.types import _Number
+=======
+from torch.types import _Number, Number
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["Poisson"]
@@ -45,7 +54,15 @@ class Poisson(ExponentialFamily):
     def variance(self) -> Tensor:
         return self.rate
 
+<<<<<<< HEAD
     def __init__(self, rate, validate_args=None):
+=======
+    def __init__(
+        self,
+        rate: Union[Tensor, Number],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (self.rate,) = broadcast_all(rate)
         if isinstance(rate, _Number):
             batch_shape = torch.Size()

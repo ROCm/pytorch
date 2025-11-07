@@ -258,7 +258,11 @@ class VmapInfo(NamedTuple):
     randomness: str
 
 
+<<<<<<< HEAD
 def has_overriden_vmap_rule(autograd_function):
+=======
+def has_overridden_vmap_rule(autograd_function):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return autograd_function.vmap is not torch.autograd.Function.vmap
 
 
@@ -286,14 +290,24 @@ def custom_function_call_vmap(interpreter, autograd_function, *operands, **kwarg
         )
 
     if autograd_function.generate_vmap_rule:
+<<<<<<< HEAD
         if has_overriden_vmap_rule(autograd_function):
+=======
+        if has_overridden_vmap_rule(autograd_function):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # TODO: Update link to stable once that's out
             # https://github.com/pytorch/pytorch/issues/92029
             raise RuntimeError(
                 f"You tried to vmap over {autograd_function.__name__}, but "
+<<<<<<< HEAD
                 f"it has both generate_vmap_rule=True and an overriden vmap "
                 f"staticmethod. Please set generate_vmap_rule=False or delete "
                 f"the overriden vmap staticmethod to avoid ambiguity. "
+=======
+                f"it has both generate_vmap_rule=True and an overridden vmap "
+                f"staticmethod. Please set generate_vmap_rule=False or delete "
+                f"the overridden vmap staticmethod to avoid ambiguity. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"For more details, please see "
                 f"https://pytorch.org/docs/main/notes/extending.func.html"
             )
@@ -301,7 +315,11 @@ def custom_function_call_vmap(interpreter, autograd_function, *operands, **kwarg
             interpreter, autograd_function, *operands
         )
 
+<<<<<<< HEAD
     if not has_overriden_vmap_rule(autograd_function):
+=======
+    if not has_overridden_vmap_rule(autograd_function):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Update link to stable once that's out
         # https://github.com/pytorch/pytorch/issues/92029
         raise RuntimeError(

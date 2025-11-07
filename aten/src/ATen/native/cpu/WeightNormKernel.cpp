@@ -48,7 +48,12 @@ void weight_norm_first_dim_kernel(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void sum_norm_per_row(
+=======
+inline std::enable_if_t<!is_reduced_floating_point_v<scalar_t>, void>
+sum_norm_per_row(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* out_ptr,
     const scalar_t* v_ptr,
     int64_t size) {
@@ -61,16 +66,30 @@ inline void sum_norm_per_row(
       size);
 }
 
+<<<<<<< HEAD
 inline void sum_norm_per_row(
     float* out_ptr,
     const BFloat16* v_ptr,
     int64_t size) {
   using bVec = vec::Vectorized<BFloat16>;
+=======
+template <typename scalar_t>
+inline std::enable_if_t<is_reduced_floating_point_v<scalar_t>, void>
+sum_norm_per_row(
+    float* out_ptr,
+    const scalar_t* v_ptr,
+    int64_t size) {
+  using bVec = vec::Vectorized<scalar_t>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using fVec = vec::Vectorized<float>;
   int64_t d = 0;
   for (; d < size - (size % bVec::size()); d += bVec::size()) {
     bVec v_bvec = bVec::loadu(v_ptr + d);
+<<<<<<< HEAD
     auto [v_fvec0, v_fvec1] = convert_bfloat16_float(v_bvec);
+=======
+    auto [v_fvec0, v_fvec1] = vec::convert_to_float<scalar_t>(v_bvec);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     fVec out_fvec0 = fVec::loadu(out_ptr + d) + v_fvec0 * v_fvec0;
     fVec out_fvec1 = fVec::loadu(out_ptr + d + fVec::size()) + v_fvec1 * v_fvec1;
@@ -84,7 +103,12 @@ inline void sum_norm_per_row(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void apply_norm_per_row(
+=======
+inline std::enable_if_t<!is_reduced_floating_point_v<scalar_t>, void>
+apply_norm_per_row(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* w_ptr,
     const scalar_t* v_ptr,
     const scalar_t* a_ptr,
@@ -98,21 +122,40 @@ inline void apply_norm_per_row(
       size);
 }
 
+<<<<<<< HEAD
 inline void apply_norm_per_row(
     BFloat16* w_ptr,
     const BFloat16* v_ptr,
     const float* a_ptr,
     int64_t size) {
   using bVec = vec::Vectorized<BFloat16>;
+=======
+template <typename scalar_t>
+inline std::enable_if_t<is_reduced_floating_point_v<scalar_t>, void>
+apply_norm_per_row(
+  scalar_t* w_ptr,
+    const scalar_t* v_ptr,
+    const float* a_ptr,
+    int64_t size) {
+  using bVec = vec::Vectorized<scalar_t>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using fVec = vec::Vectorized<float>;
   int64_t d = 0;
   for (; d < size - (size % bVec::size()); d += bVec::size()) {
     bVec v_bvec = bVec::loadu(v_ptr + d);
+<<<<<<< HEAD
     auto [v_fvec0, v_fvec1] = convert_bfloat16_float(v_bvec);
 
     fVec w_fvec0 = fVec::loadu(a_ptr + d) * v_fvec0;
     fVec w_fvec1 = fVec::loadu(a_ptr + d + fVec::size()) * v_fvec1;
     bVec w_bvec = convert_float_bfloat16(w_fvec0, w_fvec1);
+=======
+    auto [v_fvec0, v_fvec1] = vec::convert_to_float<scalar_t>(v_bvec);
+
+    fVec w_fvec0 = fVec::loadu(a_ptr + d) * v_fvec0;
+    fVec w_fvec1 = fVec::loadu(a_ptr + d + fVec::size()) * v_fvec1;
+    bVec w_bvec = vec::convert_from_float<scalar_t>(w_fvec0, w_fvec1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     w_bvec.store(w_ptr + d);
   }
   for(; d < size; ++d) {
@@ -222,7 +265,12 @@ void weight_norm_backward_first_dim_kernel(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void sum_product_per_row(
+=======
+inline std::enable_if_t<!is_reduced_floating_point_v<scalar_t>, void>
+sum_product_per_row(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* out_ptr,
     const scalar_t* grad_w_ptr,
     const scalar_t* v_ptr,
@@ -237,19 +285,36 @@ inline void sum_product_per_row(
       size);
 }
 
+<<<<<<< HEAD
 inline void sum_product_per_row(
     float* out_ptr,
     const BFloat16* grad_w_ptr,
     const BFloat16* v_ptr,
     int64_t size) {
   using bVec = vec::Vectorized<BFloat16>;
+=======
+template <typename scalar_t>
+inline std::enable_if_t<is_reduced_floating_point_v<scalar_t>, void>
+sum_product_per_row(
+    float* out_ptr,
+    const scalar_t* grad_w_ptr,
+    const scalar_t* v_ptr,
+    int64_t size) {
+  using bVec = vec::Vectorized<scalar_t>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using fVec = vec::Vectorized<float>;
   int64_t d = 0;
   for (; d < size - (size % bVec::size()); d += bVec::size()) {
     bVec grad_w_bvec = bVec::loadu(grad_w_ptr + d);
+<<<<<<< HEAD
     auto [grad_w_fvec0, grad_w_fvec1] = convert_bfloat16_float(grad_w_bvec);
     bVec v_bvec = bVec::loadu(v_ptr + d);
     auto [v_fvec0, v_fvec1] = convert_bfloat16_float(v_bvec);
+=======
+    auto [grad_w_fvec0, grad_w_fvec1] = vec::convert_to_float<scalar_t>(grad_w_bvec);
+    bVec v_bvec = bVec::loadu(v_ptr + d);
+    auto [v_fvec0, v_fvec1] = vec::convert_to_float<scalar_t>(v_bvec);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     fVec out_fvec0 = fVec::loadu(out_ptr + d) + grad_w_fvec0 * v_fvec0;
     fVec out_fvec1 = fVec::loadu(out_ptr + d + fVec::size()) + grad_w_fvec1 * v_fvec1;
@@ -264,7 +329,12 @@ inline void sum_product_per_row(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void apply_per_row_backward(
+=======
+inline std::enable_if_t<!is_reduced_floating_point_v<scalar_t>, void>
+apply_per_row_backward(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* grad_v_ptr,
     const scalar_t* grad_w_ptr,
     const scalar_t* v_ptr,
@@ -282,6 +352,7 @@ inline void apply_per_row_backward(
       size);
 }
 
+<<<<<<< HEAD
 inline void apply_per_row_backward(
     BFloat16* grad_v_ptr,
     const BFloat16* grad_w_ptr,
@@ -290,18 +361,40 @@ inline void apply_per_row_backward(
     const float* b_ptr,
     int64_t size) {
   using bVec = vec::Vectorized<BFloat16>;
+=======
+template <typename scalar_t>
+inline std::enable_if_t<is_reduced_floating_point_v<scalar_t>, void>
+apply_per_row_backward(
+  scalar_t* grad_v_ptr,
+    const scalar_t* grad_w_ptr,
+    const scalar_t* v_ptr,
+    const float* a_ptr,
+    const float* b_ptr,
+    int64_t size) {
+  using bVec = vec::Vectorized<scalar_t>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using fVec = vec::Vectorized<float>;
   int64_t d = 0;
   for (; d < size - (size % bVec::size()); d += bVec::size()) {
     bVec grad_w_bvec = bVec::loadu(grad_w_ptr + d);
+<<<<<<< HEAD
     auto [grad_w_fvec0, grad_w_fvec1] = convert_bfloat16_float(grad_w_bvec);
     bVec v_bvec = bVec::loadu(v_ptr + d);
     auto [v_fvec0, v_fvec1] = convert_bfloat16_float(v_bvec);
+=======
+    auto [grad_w_fvec0, grad_w_fvec1] = vec::convert_to_float<scalar_t>(grad_w_bvec);
+    bVec v_bvec = bVec::loadu(v_ptr + d);
+    auto [v_fvec0, v_fvec1] = vec::convert_to_float<scalar_t>(v_bvec);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     fVec grad_v_fvec0 = fVec::loadu(a_ptr + d) * grad_w_fvec0 - fVec::loadu(b_ptr + d) * v_fvec0;
     fVec grad_v_fvec1 = fVec::loadu(a_ptr + d + fVec::size()) * grad_w_fvec1
         - fVec::loadu(b_ptr + d + fVec::size()) * v_fvec1;
+<<<<<<< HEAD
     bVec grad_v_bvec = convert_float_bfloat16(grad_v_fvec0, grad_v_fvec1);
+=======
+    bVec grad_v_bvec = vec::convert_from_float<scalar_t>(grad_v_fvec0, grad_v_fvec1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grad_v_bvec.store(grad_v_ptr + d);
   }
   for(; d < size; ++d) {
@@ -395,7 +488,11 @@ void weight_norm_kernel(
     int64_t dim) {
   TORCH_INTERNAL_ASSERT(dim == 0 || dim == v.dim() - 1,
       "fused kernels can only be applied for first or last dim");
+<<<<<<< HEAD
   AT_DISPATCH_FLOATING_TYPES_AND(ScalarType::BFloat16, v.scalar_type(),
+=======
+  AT_DISPATCH_FLOATING_TYPES_AND2(ScalarType::BFloat16, ScalarType::Half, v.scalar_type(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "weight_norm_kernel", [&]() {
     using accscalar_t = at::opmath_type<scalar_t>;
     if (dim == 0) {
@@ -420,7 +517,11 @@ void weight_norm_backward_kernel(
     int64_t dim) {
   TORCH_INTERNAL_ASSERT(dim == 0 || dim == saved_v.dim() - 1,
       "fused kernels can only be applied for first or last dim");
+<<<<<<< HEAD
   AT_DISPATCH_FLOATING_TYPES_AND(ScalarType::BFloat16, saved_v.scalar_type(),
+=======
+  AT_DISPATCH_FLOATING_TYPES_AND2(ScalarType::BFloat16, ScalarType::Half, saved_v.scalar_type(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "weight_norm_backward_kernel", [&]() {
     using accscalar_t = at::opmath_type<scalar_t>;
     if (dim == 0) {

@@ -19,6 +19,11 @@ ignore =
     G100,G101,G200
     # these ignores are from flake8-simplify. please fix or ignore with commented reason
     SIM105,SIM108,SIM110,SIM111,SIM113,SIM114,SIM115,SIM116,SIM117,SIM118,SIM119,SIM12,
+<<<<<<< HEAD
+=======
+    # SIM104 is already covered by pyupgrade ruff
+    SIM104,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # flake8-simplify code styles
     SIM102,SIM103,SIM106,SIM112,
     # TorchFix codes that don't make sense for PyTorch itself:

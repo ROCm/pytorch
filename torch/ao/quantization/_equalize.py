@@ -92,9 +92,15 @@ def channel_range(input, axis=0):
     mins = min_over_ndim(input, axis_list)
     maxs = max_over_ndim(input, axis_list)
 
+<<<<<<< HEAD
     assert mins.size(0) == input.size(
         axis
     ), "Dimensions of resultant channel range does not match size of requested axis"
+=======
+    assert mins.size(0) == input.size(axis), (
+        "Dimensions of resultant channel range does not match size of requested axis"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return maxs - mins
 
 

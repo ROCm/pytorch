@@ -196,12 +196,18 @@ def stage_backward_input(
             torch.ones_like(stage_output) for stage_output in stage_outputs_or_loss
         ]
 
+<<<<<<< HEAD
+=======
+    # Some inputs may not be used or may not require gradients, so we filter them out
+    input_values = [inp for inp in input_values if inp.requires_grad]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dinputs = torch.autograd.grad(
         stage_outputs_or_loss,
         inputs=input_values,
         grad_outputs=output_grads,
         retain_graph=True,
     )
+<<<<<<< HEAD
 
     # update the gradients for inputs
     for i, inp in enumerate(input_values):
@@ -209,6 +215,14 @@ def stage_backward_input(
             inp.grad = dinputs[i]
         else:
             inp.grad += dinputs[i]
+=======
+    # Update the gradients for inputs
+    for inp, dinput in zip(input_values, dinputs):
+        if inp.grad is None:
+            inp.grad = dinput
+        else:
+            inp.grad += dinput
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # stage_outputs_or_loss are not used in backwards after this point, so we can safely remove it from the autograd graph
     # this allows autograd to clear up the graph dedicated for this tensor and free up significant memory
@@ -243,7 +257,11 @@ def stage_backward_weight(
         # Break a reference cycle caused inside stage_backward_input->get_hook->hook
         # The summarized cycle is:
         # `hook` -> cell -> param_group -> intermediates -> `hook`
+<<<<<<< HEAD
         # becuase we install the hook function onto each of the intermediate autograd nodes.
+=======
+        # because we install the hook function onto each of the intermediate autograd nodes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We need to keep intermediates alive up until backward_weight, but we can free it now.
         del param_group["intermediates"]
 

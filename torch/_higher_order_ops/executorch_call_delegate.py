@@ -87,7 +87,11 @@ def call_delegate_cpu(lowered_module, *args):
     return lowered_module.original_module.module()(*new_args)
 
 
+<<<<<<< HEAD
 @executorch_call_delegate.py_impl(torch._C.DispatchKey.Autograd)
+=======
+@executorch_call_delegate.py_autograd_impl
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # pyre-ignore
 def call_delegate_autograd(lowered_module, *args):
     # TODO: support autograd

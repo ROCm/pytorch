@@ -66,10 +66,19 @@ class Threshold(Module):
         - Input: :math:`(*)`, where :math:`*` means any number of dimensions.
         - Output: :math:`(*)`, same shape as the input.
 
+<<<<<<< HEAD
     Examples::
 
         >>> m = nn.Threshold(0.1, 20)
         >>> input = torch.randn(2)
+=======
+    .. image:: ../scripts/activation_images/Threshold.png
+
+    Examples::
+
+        >>> m = nn.Threshold(0, 0.5)
+        >>> input = torch.arange(-3, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> output = m(input)
     """
 
@@ -674,6 +683,11 @@ class GLU(Module):
           dimensions
         - Output: :math:`(\ast_1, M, \ast_2)` where :math:`M=N/2`
 
+<<<<<<< HEAD
+=======
+    .. image:: ../scripts/activation_images/GLU.png
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Examples::
 
         >>> m = nn.GLU()
@@ -973,6 +987,7 @@ def _is_make_fx_tracing():
 class MultiheadAttention(Module):
     r"""Allows the model to jointly attend to information from different representation subspaces.
 
+<<<<<<< HEAD
     .. note::
         See `this tutorial <https://pytorch.org/tutorials/intermediate/transformer_building_blocks.html>`_
         for an in depth discussion of the performant building blocks PyTorch offers for building your own
@@ -980,6 +995,16 @@ class MultiheadAttention(Module):
 
     Method described in the paper:
     `Attention Is All You Need <https://arxiv.org/abs/1706.03762>`_.
+=======
+    This MultiheadAttention layer implements the original architecture described
+    in the `Attention Is All You Need <https://arxiv.org/abs/1706.03762>`_ paper. The
+    intent of this layer is as a reference implementation for foundational understanding
+    and thus it contains only limited features relative to newer architectures.
+    Given the fast pace of innovation in transformer-like architectures, we recommend
+    exploring this `tutorial <https://pytorch.org/tutorials/intermediate/transformer_building_blocks.html>`_
+    to build efficient layers from building blocks in core or using higher
+    level libraries from the `PyTorch Ecosystem <https://landscape.pytorch.org/>`_.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Multi-Head Attention is defined as:
 
@@ -1072,9 +1097,15 @@ class MultiheadAttention(Module):
         self.dropout = dropout
         self.batch_first = batch_first
         self.head_dim = embed_dim // num_heads
+<<<<<<< HEAD
         assert (
             self.head_dim * num_heads == self.embed_dim
         ), "embed_dim must be divisible by num_heads"
+=======
+        assert self.head_dim * num_heads == self.embed_dim, (
+            "embed_dim must be divisible by num_heads"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not self._qkv_same_embed_dim:
             self.q_proj_weight = Parameter(
@@ -1271,8 +1302,15 @@ class MultiheadAttention(Module):
         elif query.is_nested and (
             key_padding_mask is not None or attn_mask is not None
         ):
+<<<<<<< HEAD
             why_not_fast_path = "supplying both src_key_padding_mask and src_mask at the same time \
                                  is not supported with NestedTensor input"
+=======
+            why_not_fast_path = (
+                "supplying both src_key_padding_mask and src_mask at the same time \
+                                 is not supported with NestedTensor input"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif torch.is_autocast_enabled():
             why_not_fast_path = "autocast is enabled"
 

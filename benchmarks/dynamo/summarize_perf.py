@@ -8,6 +8,12 @@ import pandas as pd
 from tabulate import tabulate
 
 
+<<<<<<< HEAD
+=======
+log = logging.getLogger(__name__)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def gmean(s):
     return s.product() ** (1 / len(s))
 
@@ -67,7 +73,11 @@ def main(directory, amp, float32, perf_compare):
         try:
             dfs[os.path.basename(f)].append(pd.read_csv(f))
         except Exception:
+<<<<<<< HEAD
             logging.warning("failed parsing %s", f)
+=======
+            log.warning("failed parsing %s", f)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise
 
     # dtype -> statistic -> benchmark -> compiler -> value

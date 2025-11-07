@@ -32,7 +32,11 @@ class DataNormSparsifier(BaseDataSparsifier):
         zeros_per_block: Number of zeros in a sparse block
     Note::
         All arguments to the DataNormSparsifier constructor are "default"
+<<<<<<< HEAD
         arguments and could be overriden by the configuration provided in the
+=======
+        arguments and could be overridden by the configuration provided in the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         `add_data` step.
     """
 

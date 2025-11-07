@@ -67,7 +67,12 @@ class TORCH_API GradBucket {
     return parameters_;
   }
 
+<<<<<<< HEAD
   // Returns whther this bucket is the last bucket to allreduce in an iteration.
+=======
+  // Returns whether this bucket is the last bucket to allreduce in an
+  // iteration.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isLast() const {
     return index_ == bucket_count_ - 1;
   }

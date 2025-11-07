@@ -2,6 +2,10 @@
 
 #include <cstddef>
 #include <cstdint>
+<<<<<<< HEAD
+=======
+#include <cstring>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <memory>
 
@@ -31,6 +35,10 @@ class ProcessedNodeInputs {
   }
 
   uint16_t operator[](uint16_t idx) const {
+<<<<<<< HEAD
+=======
+    // NOLINTNEXTLINE(*const-cast*)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (*const_cast<ProcessedNodeInputs*>(this))[idx];
   }
 

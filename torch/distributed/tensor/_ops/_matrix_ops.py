@@ -9,9 +9,15 @@ from torch.distributed.device_mesh import DeviceMesh
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
 from torch.distributed.tensor._op_schema import (
     OpSchema,
+<<<<<<< HEAD
     OpStrategy,
     PlacementList,
     PlacementStrategy,
+=======
+    OpSpec,
+    OpStrategy,
+    PlacementList,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RuntimeSchemaInfo,
 )
 from torch.distributed.tensor._ops._einsum_strategy import gen_einsum_strategies
@@ -24,7 +30,16 @@ from torch.distributed.tensor._ops.utils import (
     prod,
     register_op_strategy,
 )
+<<<<<<< HEAD
 from torch.distributed.tensor.placement_types import Placement, Replicate, Shard
+=======
+from torch.distributed.tensor.placement_types import (
+    Partial,
+    Placement,
+    Replicate,
+    Shard,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 aten = torch.ops.aten
@@ -43,7 +58,11 @@ def transpose_strategy(op_schema: OpSchema) -> OpStrategy:
             Shard(1 - p.dim) if isinstance(p, Shard) else p
             for p in input_spec.placements
         ]
+<<<<<<< HEAD
         transpose_strategy = PlacementStrategy(
+=======
+        transpose_strategy = OpSpec(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_specs=DTensorSpec(
                 mesh=input_strategy.mesh,
                 placements=tuple(output_placements),
@@ -203,6 +222,15 @@ def _scaled_mm_like_strategy(
     return mm_strategy
 
 
+<<<<<<< HEAD
+=======
+@register_op_strategy(aten.dot.default)
+def dot_strategy(op_schema: OpSchema) -> OpStrategy:
+    mesh = op_schema.get_mesh_from_args()
+    return _mm_like_strategy("i,i->", mesh, op_schema)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_op_strategy(aten.mm.default)
 def mm_strategy(op_schema: OpSchema) -> OpStrategy:
     mesh = op_schema.get_mesh_from_args()
@@ -296,6 +324,27 @@ def scaled_dot_product_flash_attention_strategy(op_schema: OpSchema) -> OpStrate
     ]
     single_mesh_dim_strategies.append(num_heads_dim_sharding)
 
+<<<<<<< HEAD
+=======
+    # Shard on the batch dimension
+    single_mesh_dim_strategies.append(
+        [
+            Shard(0),  # output
+            Shard(0),  # logsumexp
+            None,  # cum_seq_q
+            None,  # cum_seq_k
+            None,  # max_q
+            None,  # max_k
+            Replicate(),  # rng_state
+            None,  # unused
+            Shard(0),  # debugattn
+            Shard(0),  # q
+            Shard(0),  # k
+            Shard(0),  # v
+        ]
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Context Parallelism: shards on the sequence dim
     single_mesh_dim_strategies.append(
         [
@@ -370,6 +419,27 @@ def scaled_dot_product_flash_attention_backward_strategy(
     num_heads_dim_sharding.extend([Replicate()] * (num_tensor_inputs - 6))
     single_mesh_dim_strategies.append(num_heads_dim_sharding)
 
+<<<<<<< HEAD
+=======
+    # Batch sharding
+    batch_dim_sharding: PlacementList = [
+        Shard(0),  # grad_q
+        Shard(0),  # grad_k
+        Shard(0),  # grad_v
+        Shard(0),  # grad_output
+        Shard(0),  # q
+        Shard(0),  # k
+        Shard(0),  # v
+        Shard(0),  # output
+        Shard(0),  # logsumexp
+    ]
+    # accept replicate on the rest tensor inputs, potentially
+    # cum_seq_q, cum_seq_k, philox_seed, philox_offset
+    # at indices 6, 7, 12, 13, respectively
+    batch_dim_sharding.extend([Replicate()] * (num_tensor_inputs - 6))
+    single_mesh_dim_strategies.append(batch_dim_sharding)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Context Parallelism: shards on the sequence dim
     seq_dim_sharding: PlacementList = [
         Shard(2),  # grad_q
@@ -400,7 +470,11 @@ def constant_pad_nd_strategy(op_schema: OpSchema) -> OpStrategy:
     # TODO(d4l3k); implement a more correct strategy for constant_pad_nd
     return OpStrategy(
         [
+<<<<<<< HEAD
             PlacementStrategy(
+=======
+            OpSpec(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 output_specs=DTensorSpec(mesh, (Replicate(),)),
                 input_specs=(
                     DTensorSpec(mesh, (Replicate(),)),
@@ -481,6 +555,29 @@ def scaled_dot_product_efficient_attention_strategy(op_schema: OpSchema) -> OpSt
         num_heads_dim_sharding.append(Shard(1))
     single_mesh_dim_strategies.append(num_heads_dim_sharding)
 
+<<<<<<< HEAD
+=======
+    # batch sharding
+    if compute_log_sumexp:
+        logsumexp_sharding_dp: Placement = Shard(0)
+    else:
+        # empty logsumexp, replicated
+        logsumexp_sharding_dp = Replicate()
+    batch_sharding = [
+        Shard(0),  # output
+        logsumexp_sharding_dp,  # logsumexp
+        None,  # philox_seed
+        None,  # philox_offset
+        Shard(0),  # q
+        Shard(0),  # k
+        Shard(0),  # v
+    ]
+    if has_attn_bias:
+        batch_sharding.append(Shard(0))
+
+    single_mesh_dim_strategies.append(batch_sharding)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return expand_to_full_mesh_op_strategy(
         mesh,
         op_schema,
@@ -545,6 +642,30 @@ def scaled_dot_product_efficient_attention_backward_strategy(
     num_heads_dim_sharding.extend([Replicate(), Replicate()])
     single_mesh_dim_strategies.append(num_heads_dim_sharding)
 
+<<<<<<< HEAD
+=======
+    # Shards on batch dim
+    batch_dim_sharding: PlacementList = [
+        Shard(0),  # grad_q
+        Shard(0),  # grad_k
+        Shard(0),  # grad_v
+        Shard(0) if has_attn_bias else None,  # grad_bias
+        Shard(0),  # grad_output
+        Shard(0),  # q
+        Shard(0),  # k
+        Shard(0),  # v
+        Shard(0),  # output
+        Shard(0),  # logsumexp
+    ]
+    # accept replicate on the rest tensor inputs, potentially
+    # cum_seq_q, cum_seq_k, philox_seed, philox_offset
+    # at indices 6, 7, 12, 13, respectively
+    if has_attn_bias:
+        batch_dim_sharding.insert(8, Shard(0))
+    batch_dim_sharding.extend([Replicate(), Replicate()])
+    single_mesh_dim_strategies.append(batch_dim_sharding)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Context Parallelism: shards on the sequence dim
     seq_dim_sharding: PlacementList = [
         Shard(2),  # grad_q
@@ -648,6 +769,28 @@ def scaled_dot_product_cudnn_attention_strategy(op_schema: OpSchema) -> OpStrate
     ]
     single_mesh_dim_strategies.append(num_heads_dim_sharding)
 
+<<<<<<< HEAD
+=======
+    # batch parallelism
+    logsumexp_sharding = Shard(0) if compute_log_sumexp else Replicate()
+    debug_attn_mask_sharding = Shard(0) if return_debug_mask else None
+    batch_dim_sharding: PlacementList = [
+        Shard(0),  # output
+        logsumexp_sharding,
+        None,  # cum_seq_q
+        None,  # cum_seq_k
+        None,  # max_q
+        None,  # max_k
+        None,  # philox_seed
+        None,  # philox_offset
+        debug_attn_mask_sharding,
+        Shard(0),  # q
+        Shard(0),  # k
+        Shard(0),  # v
+    ]
+    single_mesh_dim_strategies.append(batch_dim_sharding)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Context Parallelism: shards on the sequence dim
     cp_sharding = Shard(2)  # seq dim
     logsumexp_sharding = cp_sharding if compute_log_sumexp else Replicate()
@@ -767,6 +910,173 @@ def scaled_scaled_dot_product_cudnn_attention_backward_strategy(
     )
     single_mesh_dim_strategies.append(context_parallel_sharding)
 
+<<<<<<< HEAD
     return expand_to_full_mesh_op_strategy(
         mesh, op_schema, single_mesh_dim_strategies, input_index=3
     )
+=======
+    # case 4: we can accept the sharding pattern of batch parallelism, which
+    #   shards on the batch dimension
+    qkv_sharding = Shard(0)
+    output_sharding = Shard(0)
+    logsumexp_sharding = Shard(0)
+
+    batch_dim_sharding_out: PlacementList = [qkv_sharding] * 3
+    batch_dim_sharding_inp: PlacementList = [qkv_sharding] * 4
+    batch_dim_sharding_inp += [output_sharding]
+    batch_dim_sharding_inp += [logsumexp_sharding]
+    batch_dim_sharding_inp += [
+        Replicate()
+    ] * 2  # philox_seed, philox_offset is casted to Replicate() in DTensor
+    batch_dim_sharding_inp += [Shard(0) if has_attn_bias else None]
+    batch_dim_sharding_inp += [None] * 6
+    if has_scale:
+        batch_dim_sharding_inp.append(None)
+
+    batch_dim_sharding = batch_dim_sharding_out + batch_dim_sharding_inp
+    single_mesh_dim_strategies.append(batch_dim_sharding)
+
+    return expand_to_full_mesh_op_strategy(
+        mesh, op_schema, single_mesh_dim_strategies, input_index=3
+    )
+
+
+@register_op_strategy(aten._grouped_mm.default)
+def grouped_mm_strategy(op_schema: OpSchema) -> OpStrategy:
+    mesh = op_schema.get_mesh_from_args()
+
+    mat1_strategy = op_schema.args_schema[0]
+    assert isinstance(mat1_strategy, OpStrategy)
+    mat2_strategy = op_schema.args_schema[1]
+    assert isinstance(mat2_strategy, OpStrategy)
+    if len(op_schema.args_schema) > 3:
+        bias_strategy = op_schema.args_schema[3]
+        assert bias_strategy is None, "grouped_mm doesn't support bias yet"
+
+    single_mesh_dim_strategies = []
+
+    offs_placement = None
+    if len(op_schema.args_schema) > 2 and op_schema.args_schema[2] is not None:
+        offs_placement = Replicate()  # offs should always be replicated
+
+    all_replicate: PlacementList = [
+        Replicate(),
+        Replicate(),  # mat1
+        Replicate(),  # mat2
+        offs_placement,  # offs
+        None,  # bias
+    ]
+    partial_replicate: PlacementList = [
+        Partial(),
+        Partial(),  # mat1
+        Replicate(),  # mat2
+        offs_placement,  # offs
+        None,  # bias
+    ]
+    replicate_partial: PlacementList = [
+        Partial(),
+        Replicate(),  # mat1
+        Partial(),  # mat2
+        offs_placement,  # offs
+        None,  # bias
+    ]
+    single_mesh_dim_strategies = [all_replicate, partial_replicate, replicate_partial]
+
+    if mat1_strategy.ndim == 2 and mat2_strategy.ndim == 3:
+        # rowwise_replicate for 2dx3d not supported
+        replicate_colwise_2x3: PlacementList = [
+            Shard(1),
+            Replicate(),  # mat1
+            Shard(2),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        colwise_rowwise_2x3: PlacementList = [
+            Partial(),
+            Shard(1),  # mat1
+            Shard(1),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        single_mesh_dim_strategies.extend([replicate_colwise_2x3, colwise_rowwise_2x3])
+
+    if mat1_strategy.ndim == 3 and mat2_strategy.ndim == 2:
+        # replicate_colwise for 3dx2d not supported
+        colwise_rowwise_3x2: PlacementList = [
+            Partial(),
+            Shard(2),  # mat1
+            Shard(0),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        rowwise_replicate_3x2: PlacementList = [
+            Shard(0),
+            Shard(1),  # mat1
+            Replicate(),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        single_mesh_dim_strategies.extend([colwise_rowwise_3x2, rowwise_replicate_3x2])
+
+    if mat1_strategy.ndim == 2 and mat2_strategy.ndim == 2:
+        # colwise_rowwise for 2dx2d not supported
+        replicate_colwise_2x2: PlacementList = [
+            Shard(2),
+            Replicate(),  # mat1
+            Shard(1),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        rowwise_replicate_2x2: PlacementList = [
+            Shard(1),
+            Shard(0),  # mat1
+            Replicate(),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        single_mesh_dim_strategies.extend(
+            [replicate_colwise_2x2, rowwise_replicate_2x2]
+        )
+
+    if mat1_strategy.ndim == 3 and mat2_strategy.ndim == 3:
+        replicate_colwise_3x3: PlacementList = [
+            Shard(2),
+            Replicate(),  # mat1
+            Shard(2),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        rowwise_replicate_3x3: PlacementList = [
+            Shard(1),
+            Shard(1),  # mat1
+            Replicate(),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        colwise_rowwise_3x3: PlacementList = [
+            Partial(),
+            Shard(2),  # mat1
+            Shard(1),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        batch_dim_sharding: PlacementList = [
+            Shard(0),
+            Shard(0),  # mat1
+            Shard(0),  # mat2
+            offs_placement,  # offs
+            None,  # bias
+        ]
+        single_mesh_dim_strategies.extend(
+            [
+                replicate_colwise_3x3,
+                rowwise_replicate_3x3,
+                colwise_rowwise_3x3,
+                batch_dim_sharding,
+            ]
+        )
+
+    return expand_to_full_mesh_op_strategy(
+        mesh, op_schema, single_mesh_dim_strategies, input_index=1
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

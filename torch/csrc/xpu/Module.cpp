@@ -9,6 +9,7 @@
 #include <torch/csrc/utils/pycfunction_helpers.h>
 #include <torch/csrc/utils/python_numbers.h>
 #include <torch/csrc/utils/python_strings.h>
+<<<<<<< HEAD
 
 #ifndef WIN32
 #include <pthread.h>
@@ -42,6 +43,18 @@ PyObject* THXPModule_getArchFlags(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
 #ifdef XPU_ARCH_FLAGS
   static const char* flags = C10_STRINGIZE(XPU_ARCH_FLAGS);
+=======
+#include <torch/csrc/xpu/Module.h>
+
+using namespace torch;
+
+// XPU management methods
+
+static PyObject* THXPModule_getArchFlags(PyObject* self, PyObject* noargs) {
+  HANDLE_TH_ERRORS
+#ifdef XPU_ARCH_FLAGS
+  static const std::string flags = std::string(C10_STRINGIZE(XPU_ARCH_FLAGS));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_packString(flags);
 #else
   Py_RETURN_NONE;
@@ -51,11 +64,19 @@ PyObject* THXPModule_getArchFlags(PyObject* self, PyObject* noargs) {
 
 static PyObject* THXPModule_isInBadFork_wrap(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   return PyBool_FromLong(in_bad_fork);
   END_HANDLE_TH_ERRORS
 }
 
 PyObject* THXPModule_setDevice_wrap(PyObject* self, PyObject* arg) {
+=======
+  return PyBool_FromLong(torch::utils::is_device_in_bad_fork(at::kXPU));
+  END_HANDLE_TH_ERRORS
+}
+
+static PyObject* THXPModule_setDevice_wrap(PyObject* self, PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   TORCH_CHECK(THPUtils_checkLong(arg), "invalid argument to set_device");
 
@@ -66,7 +87,11 @@ PyObject* THXPModule_setDevice_wrap(PyObject* self, PyObject* arg) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_exchangeDevice_wrap(PyObject* self, PyObject* arg) {
+=======
+static PyObject* THXPModule_exchangeDevice_wrap(PyObject* self, PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   TORCH_CHECK(THPUtils_checkLong(arg), "invalid argument to exchange_device");
 
@@ -82,7 +107,13 @@ PyObject* THXPModule_exchangeDevice_wrap(PyObject* self, PyObject* arg) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_maybeExchangeDevice_wrap(PyObject* self, PyObject* arg) {
+=======
+static PyObject* THXPModule_maybeExchangeDevice_wrap(
+    PyObject* self,
+    PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   TORCH_CHECK(
       THPUtils_checkLong(arg), "invalid argument to maybe_exchange_device");
@@ -99,7 +130,11 @@ PyObject* THXPModule_maybeExchangeDevice_wrap(PyObject* self, PyObject* arg) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_getDevice_wrap(PyObject* self, PyObject* noargs) {
+=======
+static PyObject* THXPModule_getDevice_wrap(PyObject* self, PyObject* noargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
 
   auto device_index = c10::xpu::current_device();
@@ -108,14 +143,28 @@ PyObject* THXPModule_getDevice_wrap(PyObject* self, PyObject* noargs) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_getDeviceCount_wrap(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
   poison_fork();
+=======
+static PyObject* THXPModule_getDeviceCount_wrap(
+    PyObject* self,
+    PyObject* noargs) {
+  HANDLE_TH_ERRORS
+  // Note: This is distinct from initExtension because a stub xpu implementation
+  // has some working functions (e.g. device_count) but cannot fully initialize.
+  torch::utils::register_fork_handler_for_device_init(at::kXPU);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_packUInt64(at::xpu::device_count());
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_getCurrentStream_wrap(
+=======
+static PyObject* THXPModule_getCurrentStream_wrap(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* device_index) {
   HANDLE_TH_ERRORS
@@ -136,7 +185,11 @@ PyObject* THXPModule_getCurrentStream_wrap(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_getCurrentStream_raw(
+=======
+static PyObject* THXPModule_getCurrentStream_raw(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* device_index) {
   HANDLE_TH_ERRORS
@@ -149,7 +202,11 @@ PyObject* THXPModule_getCurrentStream_raw(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_setStream_wrap(
+=======
+static PyObject* THXPModule_setStream_wrap(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* args,
     PyObject* kwargs) {
@@ -186,7 +243,11 @@ PyObject* THXPModule_setStream_wrap(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_xpuSynchronize(PyObject* self, PyObject* arg) {
+=======
+static PyObject* THXPModule_xpuSynchronize(PyObject* self, PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   TORCH_CHECK(THPUtils_checkLong(arg), "invalid argument to synchronize");
   auto device_index = THPUtils_unpackDeviceIndex(arg);
@@ -200,14 +261,22 @@ PyObject* THXPModule_xpuSynchronize(PyObject* self, PyObject* arg) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_emptyCache(PyObject* self, PyObject* noargs) {
+=======
+static PyObject* THXPModule_emptyCache(PyObject* self, PyObject* noargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   c10::xpu::XPUCachingAllocator::emptyCache();
   END_HANDLE_TH_ERRORS
   Py_RETURN_NONE;
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_memoryStats(PyObject* self, PyObject* arg) {
+=======
+static PyObject* THXPModule_memoryStats(PyObject* self, PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   TORCH_CHECK(THPUtils_checkLong(arg), "invalid argument to memory_stats");
   const auto device_index = THPUtils_unpackDeviceIndex(arg);
@@ -250,7 +319,13 @@ PyObject* THXPModule_memoryStats(PyObject* self, PyObject* arg) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_resetPeakMemoryStats(PyObject* self, PyObject* arg) {
+=======
+static PyObject* THXPModule_resetPeakMemoryStats(
+    PyObject* self,
+    PyObject* arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   TORCH_CHECK(
       THPUtils_checkLong(arg), "invalid argument to reset_peak_memory_stats");
@@ -260,7 +335,11 @@ PyObject* THXPModule_resetPeakMemoryStats(PyObject* self, PyObject* arg) {
   Py_RETURN_NONE;
 }
 
+<<<<<<< HEAD
 PyObject* THXPModule_resetAccumulatedMemoryStats(
+=======
+static PyObject* THXPModule_resetAccumulatedMemoryStats(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* arg) {
   HANDLE_TH_ERRORS
@@ -413,8 +492,13 @@ static void initXpuMethodBindings(PyObject* module) {
 // classes
 static PyObject* THXPModule_initExtension(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   TORCH_INTERNAL_ASSERT(!in_bad_fork); // Handled at python level
   poison_fork();
+=======
+  TORCH_INTERNAL_ASSERT(!torch::utils::is_device_in_bad_fork(at::kXPU));
+  torch::utils::register_fork_handler_for_device_init(at::kXPU);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::globalContext().lazyInitDevice(c10::DeviceType::XPU);
 
   auto m = THPObjectPtr(PyImport_ImportModule("torch.xpu"));

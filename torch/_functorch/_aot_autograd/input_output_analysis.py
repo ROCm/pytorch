@@ -28,6 +28,10 @@ from .schemas import (
     BackwardSignature,
     GraphSignature,
     InputAliasInfo,
+<<<<<<< HEAD
+=======
+    MemoryFormatMeta,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     OutputAliasInfo,
     OutputType,
     ViewAndMutationMeta,
@@ -61,7 +65,13 @@ def remove_dupe_metadata(
 
     assert m.subclass_tangent_meta is not None
     subclass_tangent_meta = [
+<<<<<<< HEAD
         PlainTensorMeta(0, memory_format=torch.contiguous_format)
+=======
+        PlainTensorMeta(
+            0, memory_format=MemoryFormatMeta(memory_format=torch.contiguous_format)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ] * len(filtered_inp_traced_tangents) + m.subclass_tangent_meta[num_data_mutations:]
 
     return ViewAndMutationMeta(
@@ -297,6 +307,24 @@ def compute_overlapping_inputs(aot_config, fwd_inputs, aliased_input_indices):
         ]
     )
 
+<<<<<<< HEAD
+=======
+    if torch._inductor.config.is_fbcode():
+        if symbolic and num_aliases > 400:
+            from torch._subclasses.fake_tensor import (
+                UnsupportedMutationAliasingException,
+            )
+            from torch._utils_internal import justknobs_check
+
+            msg = f"Encountered {num_aliases} dynamic, aliased/mutated inputs, consider setting dynamic=False"
+
+            if justknobs_check(
+                "pytorch/compiler:aliased_inputs_with_mutation_and_dyn_shapes_killswitch",
+                False,
+            ):
+                raise UnsupportedMutationAliasingException(msg)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with maybe_suppress_guards():
         aliased_fwd_inputs = [fwd_inputs[i] for i in aliased_input_indices]
         actual_aliased_indices = {

@@ -68,7 +68,11 @@ def _get_sharded_module_tree_with_module_name_to_fqns(
 ) -> tuple[str, dict[str, list[str]]]:
     """
     It is used for composable fully_shard() code path, it returns
+<<<<<<< HEAD
       1. sharded module tree info: each line reprents a submodule name that contats the
+=======
+      1. sharded module tree info: each line represents a submodule name that contains the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     submodule's FQN and its submodule class name, if the submodule is sharded by `fully_shard`,
     the submodule name will add a postfix with ' FULLY SHARDED'. Each increased tree
     level adds 4 spaces before the printed name. A printed sharded module tree info for a toy model

@@ -66,6 +66,7 @@ def post_training_sparse_quantize(
 
     else:
         embedding_modules = []
+<<<<<<< HEAD
         assert isinstance(
             select_embeddings, list
         ), "the embedding_modules must be a list of embedding modules"
@@ -77,6 +78,19 @@ def post_training_sparse_quantize(
             assert (
                 fqn_name is not None
             ), "the embedding modules must be part of input model"
+=======
+        assert isinstance(select_embeddings, list), (
+            "the embedding_modules must be a list of embedding modules"
+        )
+        for emb in select_embeddings:
+            assert type(emb) in SUPPORTED_MODULES, (
+                "the embedding_modules list must be an embedding or embedding bags"
+            )
+            fqn_name = module_to_fqn(model, emb)
+            assert fqn_name is not None, (
+                "the embedding modules must be part of input model"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             embedding_modules.append((fqn_name, emb))
 
     if sparsify_first:
@@ -118,9 +132,15 @@ def post_training_sparse_quantize(
 
             quantized_weight = quantized_emb.weight()  # type: ignore[operator]
             quantize_params["scales"][name] = quantized_weight.q_per_channel_scales()
+<<<<<<< HEAD
             quantize_params["zero_points"][
                 name
             ] = quantized_weight.q_per_channel_zero_points()
+=======
+            quantize_params["zero_points"][name] = (
+                quantized_weight.q_per_channel_zero_points()
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             quantize_params["dequant_weights"][name] = torch.dequantize(
                 quantized_weight
             )

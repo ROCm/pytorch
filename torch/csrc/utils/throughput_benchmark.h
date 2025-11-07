@@ -18,7 +18,11 @@ namespace torch::throughput_benchmark {
 
 /**
  * The struct is used to provide results of a benchmark to the caller
+<<<<<<< HEAD
  * In the future all additional statics should be added here.
+=======
+ * In the future all additional statistics should be added here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 struct BenchmarkExecutionStats {
   float latency_avg_ms{-1};

@@ -31,7 +31,11 @@ is present in the working directory). For additional details see [1].
     # read in as dataframe, explicitly use zero values
     df = pd.DataFrame(rows).fillna(0).astype(int)
 
+<<<<<<< HEAD
     # peform conversion according to Section 2.1 of [1]
+=======
+    # perform conversion according to Section 2.1 of [1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     df["poly"] = 2 * df["a"] + 2 ** df["s"] + 1
 
     # ensure columns are properly ordered

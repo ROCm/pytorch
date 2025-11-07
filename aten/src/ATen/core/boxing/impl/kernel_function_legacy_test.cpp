@@ -519,7 +519,11 @@ TEST(OperatorRegistrationTestLegacyFunctionBasedKernel, givenKernelWithDictInput
   EXPECT_EQ(2, captured_dict_size);
 }
 
+<<<<<<< HEAD
 string kernelWithDictInputWithOutput(Dict<string, string> input1) {
+=======
+std::string kernelWithDictInputWithOutput(Dict<string, string> input1) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return input1.at("key2");
 }
 
@@ -581,7 +585,11 @@ TEST(OperatorRegistrationTestLegacyFunctionBasedKernel, givenKernelWithUnordered
   EXPECT_EQ(2, captured_dict_size);
 }
 
+<<<<<<< HEAD
 string kernelWithUnorderedMapInputWithOutput(std::unordered_map<string, string> input1) {
+=======
+std::string kernelWithUnorderedMapInputWithOutput(std::unordered_map<string, string> input1) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return input1.at("key2");
 }
 

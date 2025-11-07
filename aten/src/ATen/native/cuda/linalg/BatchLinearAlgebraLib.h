@@ -36,8 +36,13 @@
 // The current pytorch implementation sets gesvdj tolerance to epsilon of a C++ data type to target the best possible precision.
 constexpr int cusolver_gesvdj_max_sweeps = 400;
 
+<<<<<<< HEAD
 namespace at {
 namespace native {
+=======
+
+namespace at::native {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void geqrf_batched_cublas(const Tensor& input, const Tensor& tau);
 void triangular_solve_cublas(const Tensor& A, const Tensor& B, bool left, bool upper, TransposeType transpose, bool unitriangular);
@@ -90,4 +95,8 @@ C10_EXPORT void registerLinalgDispatch(const LinalgDispatch&);
 }} // namespace cuda::detail
 #endif
 
+<<<<<<< HEAD
 }}  // namespace at::native
+=======
+} // namespace at::native
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -18,6 +18,7 @@ sys.path.append(pytorch_test_dir)
 from typing import Dict, Iterable, List, Optional, Tuple
 
 import torch.testing._internal.jit_utils
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_SANDCASTLE, skipIfTorchDynamo
 from torch.testing._internal.jit_utils import JitTestCase, make_global
 
@@ -30,6 +31,16 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import (
+    IS_SANDCASTLE,
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+)
+from torch.testing._internal.jit_utils import JitTestCase, make_global
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestClassType(JitTestCase):
     def test_reference_semantics(self):
         """
@@ -1667,3 +1678,10 @@ class TestClassType(JitTestCase):
         for fn in (fn_a, fn_b, fn_c, fn_d, fn_e):
             with self.assertRaisesRegex(RuntimeError, error_message_regex):
                 torch.jit.script(fn)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

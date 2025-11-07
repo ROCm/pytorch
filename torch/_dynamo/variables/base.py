@@ -16,6 +16,7 @@ computations.
 """
 
 import collections
+<<<<<<< HEAD
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any, Callable, Optional, TYPE_CHECKING
@@ -23,13 +24,27 @@ from typing import Any, Callable, Optional, TYPE_CHECKING
 from .. import variables
 from ..current_scope_id import current_scope_id
 from ..exc import unimplemented, unimplemented_v2
+=======
+from collections.abc import ItemsView, KeysView, Sequence, ValuesView
+from enum import Enum
+from typing import Any, Callable, Optional, TYPE_CHECKING
+
+from .. import graph_break_hints, variables
+from ..current_scope_id import current_scope_id
+from ..exc import raise_observed_exception, unimplemented_v2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..guards import GuardBuilder, install_guard
 from ..source import AttrSource, Source
 from ..utils import cmp_name_to_op_mapping, istype
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from .symbolic_convert import InstructionTranslator, InstructionTranslatorBase
+=======
+    from ..codegen import PyCodegen
+    from ..symbolic_convert import InstructionTranslator, InstructionTranslatorBase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SourceType(Enum):
@@ -88,7 +103,19 @@ class MutationType:
         elif typ is SourceType.New:
             self.scope = current_scope_id()
         else:
+<<<<<<< HEAD
             unimplemented(f"Unsupported SourceType: {typ}")
+=======
+            unimplemented_v2(
+                gb_type="Unsupported SourceType",
+                context=f"MutationType.__init__ {self} {typ}",
+                explanation=f"Dynamo does not support the type `{typ}`",
+                hints=[
+                    "This branch is not supposed to be reachable.",
+                    *graph_break_hints.DYNAMO_BUG,
+                ],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ValueMutationNew(MutationType):
@@ -201,7 +228,11 @@ class AsPythonConstantNotImplementedError(NotImplementedError):
     vt: "VariableTracker"
 
     def __init__(self, vt: "VariableTracker"):
+<<<<<<< HEAD
         super().__init__(self, f"{vt} is not a constant")
+=======
+        super().__init__(f"{vt} is not a constant")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.vt = vt
 
 
@@ -336,8 +367,18 @@ class VariableTracker(metaclass=VariableTrackerMeta):
         """Similar to as_python_constant(), but add ID_MATCH guards to try to force things to become constants"""
         try:
             return self.as_python_constant()
+<<<<<<< HEAD
         except NotImplementedError as e:
             unimplemented(str(e))
+=======
+        except NotImplementedError:
+            unimplemented_v2(
+                gb_type="Not a Python constant",
+                context=f"guard_as_python_constant {self}",
+                explanation=f"Failed to convert {self} into a Python constant.",
+                hints=[],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def is_python_constant(self):
         try:
@@ -386,7 +427,11 @@ class VariableTracker(metaclass=VariableTrackerMeta):
         except NotImplementedError:
             return None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     def unpack_var_sequence(self, tx) -> list["VariableTracker"]:
@@ -412,13 +457,43 @@ class VariableTracker(metaclass=VariableTrackerMeta):
     def has_force_unpack_var_sequence(self, tx) -> bool:
         return self.has_unpack_var_sequence(tx)
 
+<<<<<<< HEAD
     def inspect_parameter_names(self) -> list[str]:
         unimplemented(f"inspect_parameter_names: {self}")
+=======
+    # Forces unpacking the var sequence while also applying a function to each element.
+    # Only use when it is safe to eagerly unpack this variable (like force_unpack_var_sequence).
+    # INVARIANT: variable must satisfy has_force_unpack_var_sequence() == True!
+    def force_apply_to_var_sequence(self, tx, fn) -> None:
+        assert self.has_force_unpack_var_sequence(tx)
+        for v in self.unpack_var_sequence(tx):
+            fn(v)
+
+    def inspect_parameter_names(self) -> list[str]:
+        unimplemented_v2(
+            gb_type="Unsupported inspect call",
+            context=f"inspect_parameter_names {self}",
+            explanation=f"Dynamo does not know how to trace the function `{self.debug_repr()}`",
+            hints=[],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_obj_hasattr(
         self, tx: "InstructionTranslator", name: str
     ) -> "VariableTracker":
+<<<<<<< HEAD
         unimplemented(f"hasattr {self.__class__.__name__} {name}")
+=======
+        unimplemented_v2(
+            gb_type="Unsupported hasattr call",
+            context=f"call_obj_hasattr {self} {name}",
+            explanation=f"Dynamo does not know how to trace the function `{self.debug_repr()}`",
+            hints=[
+                f"Avoid calling `hasattr({self.__class__.__name__}, {name})` in your code.",
+                *graph_break_hints.SUPPORTABLE,
+            ],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def call_function(
         self,
@@ -453,6 +528,7 @@ class VariableTracker(metaclass=VariableTrackerMeta):
             and not kwargs
         ):
             return self.var_getattr(tx, args[0].as_python_constant())
+<<<<<<< HEAD
         elif (
             name in cmp_name_to_op_mapping
             and len(args) == 1
@@ -476,6 +552,47 @@ class VariableTracker(metaclass=VariableTrackerMeta):
                     self.as_python_constant(), other.as_python_constant()
                 )
             )
+=======
+        elif name in cmp_name_to_op_mapping and len(args) == 1 and not kwargs:
+            other = args[0]
+            if not isinstance(self, type(other)) and not (
+                isinstance(self, variables.GetAttrVariable)
+                or isinstance(other, variables.GetAttrVariable)
+            ):
+                # NB: GetAttrVariable is a special case because sometimes an
+                # object can map to GetAttrVariable but other time as
+                # SkipFunctionVariable if it is an input to the compiled
+                # function, e.g. tensor.data_ptr
+                return variables.ConstantVariable.create(NotImplemented)
+            # NB : Checking for mutation is necessary because we compare
+            # constant values
+            if (
+                not self.is_python_constant()
+                or not other.is_python_constant()
+                or tx.output.side_effects.has_pending_mutation(self)
+                or tx.output.side_effects.has_pending_mutation(other)
+            ):
+                unimplemented_v2(
+                    gb_type="Builtin `operator.*` comparison with constant `self` failed",
+                    context=f"call_method {self} {name} {args} {kwargs}",
+                    explanation=f"Failed to compare {self} with {other}, "
+                    + f"because {other} is not a Python constant or its mutation check fails.",
+                    hints=[],
+                )
+
+            try:
+                return variables.ConstantVariable.create(
+                    cmp_name_to_op_mapping[name](
+                        self.as_python_constant(), other.as_python_constant()
+                    )
+                )
+            except Exception as e:
+                raise_observed_exception(
+                    type(e),
+                    tx,
+                    args=[list(map(variables.ConstantVariable.create, e.args))],
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         hints = [
             f"Avoid calling `{self.python_type_name()}.{name}` in your code.",
             "Please report an issue to PyTorch.",
@@ -485,6 +602,14 @@ class VariableTracker(metaclass=VariableTrackerMeta):
             "__iter__",
             "__next__",
         ):
+<<<<<<< HEAD
+=======
+            if isinstance(self.value, (KeysView, ItemsView, ValuesView)):
+                hints.append(
+                    "Consider moving the creation of dict view object (e.g. `dict.keys()`, `dict.items()`,) "
+                    "to the compiled region, instead of passing it as an input to the compiled region."
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             hints.append(
                 "Dynamo does not fully support tracing builtin iterators (e.g. `map`, `zip`, `enumerate`) "
                 "passed in from uncompiled to compiled regions (e.g. `torch.compile(fn)(enumerate(...))`). "
@@ -514,7 +639,16 @@ class VariableTracker(metaclass=VariableTrackerMeta):
         return True
 
     def next_variable(self, tx):
+<<<<<<< HEAD
         unimplemented(f"next({self})")
+=======
+        unimplemented_v2(
+            gb_type="Unsupported next() call",
+            context=f"next({self})",
+            explanation=f"Dynamo does not know how to trace calling `next()` on variable `{self}`.",
+            hints=[*graph_break_hints.USER_ERROR],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def is_strict_mode(self, tx):
         return tx.strict_checks_fn and tx.strict_checks_fn(self)
@@ -537,7 +671,11 @@ class VariableTracker(metaclass=VariableTrackerMeta):
         if source is None:
             return builder.SourcelessBuilder.create(tx, value)
         else:
+<<<<<<< HEAD
             return builder.VariableBuilder(tx, source)(value)
+=======
+            return variables.LazyVariableTracker.create(value, source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,

@@ -1,7 +1,13 @@
 # mypy: allow-untyped-defs
 """Defines utilities for interacting with scaled_dot_product_attention"""
+<<<<<<< HEAD
 import math
 from typing import Optional, Union
+=======
+
+import math
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -31,6 +37,7 @@ def _calculate_scale(head_dim_size: int, scale: Optional[float]) -> float:
     return 1.0 / math.sqrt(head_dim_size)
 
 
+<<<<<<< HEAD
 _SUPPORTED_HEAD_DIMS = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
 
@@ -39,6 +46,8 @@ def _supported_head_dim(n: Union[int, torch.SymInt]) -> bool:
     return n in _SUPPORTED_HEAD_DIMS
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _validate_sdpa_input(
     query: torch.Tensor,
     key: torch.Tensor,

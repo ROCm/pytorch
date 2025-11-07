@@ -1,7 +1,10 @@
 # Owner(s): ["module: dynamo"]
 import contextlib
 import sys
+<<<<<<< HEAD
 import traceback
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 from contextlib import contextmanager
 
@@ -16,7 +19,10 @@ from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FLASH_ATTENTIO
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
     TEST_WITH_ROCM,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -32,6 +38,19 @@ z_glb = 0
 k_glb = 0
 
 
+<<<<<<< HEAD
+=======
+@contextlib.contextmanager
+def set_default_dtype(dtype):
+    old_dtype = torch.get_default_dtype()
+    try:
+        torch.set_default_dtype(dtype)
+        yield
+    finally:
+        torch.set_default_dtype(old_dtype)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CustomizedCtxManager:
     def __init__(self, mode):
         self.prev = torch.is_grad_enabled()
@@ -659,7 +678,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCase):
         self.assertTrue(same(ref, res))
 
     @unittest.skipIf(
+<<<<<<< HEAD
         not PLATFORM_SUPPORTS_FLASH_ATTENTION or TEST_WITH_ROCM,
+=======
+        not PLATFORM_SUPPORTS_FLASH_ATTENTION,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Can't run fused SDPA on this platform",
     )
     def test_autocast_sdpa(self):
@@ -1244,10 +1267,20 @@ class CtxManagerTests(torch._dynamo.test_case.TestCase):
             def f(x, y):
                 return x + y
 
+<<<<<<< HEAD
             x, y = torch.ones(
                 1,
             ), torch.zeros(
                 1,
+=======
+            x, y = (
+                torch.ones(
+                    1,
+                ),
+                torch.zeros(
+                    1,
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return f(x, y)
 
@@ -1281,10 +1314,20 @@ class GraphModule(torch.nn.Module):
             def f(x, y):
                 return x + y
 
+<<<<<<< HEAD
             x, y = torch.ones(
                 1,
             ), torch.zeros(
                 1,
+=======
+            x, y = (
+                torch.ones(
+                    1,
+                ),
+                torch.zeros(
+                    1,
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return f(x, y)
 
@@ -1327,10 +1370,20 @@ class GraphModule(torch.nn.Module):
 
                 return inner_fn(x, y) + x
 
+<<<<<<< HEAD
             x, y = torch.ones(
                 1,
             ), torch.zeros(
                 1,
+=======
+            x, y = (
+                torch.ones(
+                    1,
+                ),
+                torch.zeros(
+                    1,
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return f(x, y)
 
@@ -1745,10 +1798,20 @@ class GraphModule(torch.nn.Module):
 class ContextlibContextManagerTests(torch._dynamo.test_case.TestCase):
     def setUp(self):
         self._prev = torch._dynamo.config.enable_trace_contextlib
+<<<<<<< HEAD
         torch._dynamo.config.enable_trace_contextlib = True
 
     def tearDown(self):
         torch._dynamo.config.enable_trace_contextlib = self._prev
+=======
+        self._u_prev = torch._dynamo.config.enable_trace_unittest
+        torch._dynamo.config.enable_trace_contextlib = True
+        torch._dynamo.config.enable_trace_unittest = True
+
+    def tearDown(self):
+        torch._dynamo.config.enable_trace_contextlib = self._prev
+        torch._dynamo.config.enable_trace_unittest = self._u_prev
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_ctx_basic0(self):
         @contextlib.contextmanager
@@ -2692,6 +2755,7 @@ class GraphModule(torch.nn.Module):
         self.assertEqual(y, t.sin())
 
 
+<<<<<<< HEAD
 class CPythonContextManagerTestCase(torch._dynamo.test_case.TestCase):
     # Tests taken from CPython source code in cpython/Lib/test/test_contextlib.py
     # https://github.com/python/cpython/blob/d48cc82ed25e26b02eb97c6263d95dcaa1e9111b/Lib/test/test_contextlib.py#L70
@@ -3019,6 +3083,8 @@ class CPythonContextManagerTestCase(torch._dynamo.test_case.TestCase):
         self.assertEqual(depth, 0)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_parametrized_tests(CtxManagerTests)
 instantiate_parametrized_tests(ContextlibContextManagerTests)
 

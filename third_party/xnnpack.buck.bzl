@@ -2236,7 +2236,10 @@ def define_xnnpack(third_party, labels = [], XNNPACK_WINDOWS_AVX512F_ENABLED = F
         apple_sdks = (IOS, MACOSX, APPLETVOS),
         labels = labels,
         deps = [
+<<<<<<< HEAD
             ":subgraph",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ":tables",
             ":prod_ukernels",
             third_party("cpuinfo"),
@@ -2247,6 +2250,16 @@ def define_xnnpack(third_party, labels = [], XNNPACK_WINDOWS_AVX512F_ENABLED = F
         },
         header_namespace = "",
         headers = get_xnnpack_headers(),
+<<<<<<< HEAD
+=======
+        exported_deps = [
+            ":subgraph",
+        ],
+        compiler_flags = select({
+            "DEFAULT": [],
+            "ovr_config//os:macos": ["-fvisibility=default"],
+        }),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         platforms = (APPLE, ANDROID, CXX, WINDOWS),
         preprocessor_flags = XNN_COMMON_PREPROCESSOR_FLAGS + [
             "-DXNN_NO_Q8_OPERATORS",

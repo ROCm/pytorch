@@ -19,7 +19,11 @@ from torch.fx.passes.utils.matcher_utils import SubgraphMatcher
 from torch.fx.passes.utils.matcher_with_name_node_map_utils import (
     SubgraphMatcherWithNameNodeMap,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_WINDOWS, run_tests
+=======
+from torch.testing._internal.common_utils import IS_WINDOWS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -173,7 +177,11 @@ class TestMatcher(JitTestCase):
             torch.randn(3, 3, 3, 3),
         )
         pattern_gm = export_for_training(
+<<<<<<< HEAD
             WrapperModule(pattern), example_inputs
+=======
+            WrapperModule(pattern), example_inputs, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ).module()
         before_split_res = pattern_gm(*example_inputs)
         pattern_gm, _ = _split_to_graph_and_name_node_map(pattern_gm)
@@ -204,11 +212,19 @@ class TestMatcher(JitTestCase):
             torch.randn(3, 3, 3, 3),
         )
         pattern_gm = export_for_training(
+<<<<<<< HEAD
             WrapperModule(pattern), example_inputs
         ).module()
         matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
         target_gm = export_for_training(
             WrapperModule(target_graph), example_inputs
+=======
+            WrapperModule(pattern), example_inputs, strict=True
+        ).module()
+        matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
+        target_gm = export_for_training(
+            WrapperModule(target_graph), example_inputs, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ).module()
         internal_matches = matcher.match(target_gm.graph)
         for internal_match in internal_matches:
@@ -248,9 +264,17 @@ class TestMatcher(JitTestCase):
                 return linear, {"linear": linear, "x": x}
 
         example_inputs = (torch.randn(3, 5),)
+<<<<<<< HEAD
         pattern_gm = export_for_training(Pattern(), example_inputs).module()
         matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
         target_gm = export_for_training(M(), example_inputs).module()
+=======
+        pattern_gm = export_for_training(
+            Pattern(), example_inputs, strict=True
+        ).module()
+        matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
+        target_gm = export_for_training(M(), example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         internal_matches = matcher.match(target_gm.graph)
         for internal_match in internal_matches:
             name_node_map = internal_match.name_node_map
@@ -267,4 +291,11 @@ class TestMatcher(JitTestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     run_tests()
+=======
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -80,8 +80,12 @@ TEST(Vitals, OnAndOff) {
 
 TEST(Vitals, APIVitals) {
   std::stringstream buffer;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   bool rvalue;
+=======
+  bool rvalue = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::streambuf* sbuf = std::cout.rdbuf();
   std::cout.rdbuf(buffer.rdbuf());
   {

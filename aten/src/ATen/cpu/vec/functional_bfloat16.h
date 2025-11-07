@@ -6,27 +6,50 @@
 #include <ATen/cpu/vec/vec.h>
 
 namespace at::vec {
+<<<<<<< HEAD
 
 // BFloat16 specification
 template <typename scalar_t> struct VecScalarType { using type = scalar_t; };
 template <> struct VecScalarType<BFloat16> { using type = float; };
 template <> struct VecScalarType<Half> { using type = float; };
+=======
+// BFloat16 specification
+template <typename scalar_t>
+struct VecScalarType {
+  using type = scalar_t;
+};
+template <>
+struct VecScalarType<BFloat16> {
+  using type = float;
+};
+template <>
+struct VecScalarType<Half> {
+  using type = float;
+};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // This is different from at::acc_type since we only need to specialize BFloat16
 template <typename scalar_t>
 using vec_scalar_t = typename VecScalarType<scalar_t>::type;
 
 // Vector conversion between float and bfloat16/half
+<<<<<<< HEAD
 template <typename scalar_t,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
 inline std::tuple<Vectorized<float>, Vectorized<float>> convert_to_float(const Vectorized<scalar_t>&);
 
 template <>
 inline std::tuple<Vectorized<float>, Vectorized<float>> convert_to_float<BFloat16> (const Vectorized<BFloat16>& a) {
+=======
+template <>
+inline std::tuple<Vectorized<float>, Vectorized<float>> convert_to_float<
+    BFloat16>(const Vectorized<BFloat16>& a) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return convert_bfloat16_float(a);
 }
 
 template <>
+<<<<<<< HEAD
 inline std::tuple<Vectorized<float>, Vectorized<float>> convert_to_float<Half> (const Vectorized<Half>& a) {
     return convert_half_float(a);
 }
@@ -37,10 +60,22 @@ inline Vectorized<scalar_t> convert_from_float(const Vectorized<float>&, const V
 
 template <>
 inline Vectorized<BFloat16> convert_from_float<BFloat16>(const Vectorized<float>& a, const Vectorized<float>& b) {
+=======
+inline std::tuple<Vectorized<float>, Vectorized<float>> convert_to_float<Half>(
+    const Vectorized<Half>& a) {
+  return convert_half_float(a);
+}
+
+template <>
+inline Vectorized<BFloat16> convert_from_float<BFloat16>(
+    const Vectorized<float>& a,
+    const Vectorized<float>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return convert_float_bfloat16(a, b);
 }
 
 template <>
+<<<<<<< HEAD
 inline Vectorized<Half> convert_from_float<Half>(const Vectorized<float>& a, const Vectorized<float>& b) {
   return convert_float_half(a, b);
 }
@@ -51,10 +86,32 @@ inline void load_to_float(const scalar_t *data, Vectorized<float> &out1, Vectori
 
 template <>
 inline void load_to_float<BFloat16> (const BFloat16 *data, Vectorized<float> &out1, Vectorized<float> &out2) {
+=======
+inline Vectorized<Half> convert_from_float<Half>(
+    const Vectorized<float>& a,
+    const Vectorized<float>& b) {
+  return convert_float_half(a, b);
+}
+
+template <
+    typename scalar_t,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+inline void load_to_float(
+    const scalar_t* data,
+    Vectorized<float>& out1,
+    Vectorized<float>& out2);
+
+template <>
+inline void load_to_float<BFloat16>(
+    const BFloat16* data,
+    Vectorized<float>& out1,
+    Vectorized<float>& out2) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   load_fp32_from_bf16(data, out1, out2);
 }
 
 template <>
+<<<<<<< HEAD
 inline void load_to_float<Half> (const Half *data, Vectorized<float> &out1, Vectorized<float> &out2) {
   load_fp32_from_fp16(data, out1, out2);
 }
@@ -65,21 +122,49 @@ inline void load_to_float(const scalar_t *data, Vectorized<float> &out);
 
 template <>
 inline void load_to_float<BFloat16> (const BFloat16 *data, Vectorized<float> &out) {
+=======
+inline void load_to_float<Half>(
+    const Half* data,
+    Vectorized<float>& out1,
+    Vectorized<float>& out2) {
+  load_fp32_from_fp16(data, out1, out2);
+}
+
+template <
+    typename scalar_t,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+inline void load_to_float(const scalar_t* data, Vectorized<float>& out);
+
+template <>
+inline void load_to_float<BFloat16>(
+    const BFloat16* data,
+    Vectorized<float>& out) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   load_fp32_from_bf16(data, out);
 }
 
 template <>
+<<<<<<< HEAD
 inline void load_to_float<Half> (const Half *data, Vectorized<float> &out) {
   load_fp32_from_fp16(data, out);
 }
 
 // Note that we already have specialized member of Vectorized<scalar_t> for BFloat16
 // so the following functions would run smoothly:
+=======
+inline void load_to_float<Half>(const Half* data, Vectorized<float>& out) {
+  load_fp32_from_fp16(data, out);
+}
+
+// Note that we already have specialized member of Vectorized<scalar_t> for
+// BFloat16 so the following functions would run smoothly:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //   using Vec = Vectorized<BFloat16>;
 //   Vec one = Vec(BFloat16(1));
 //   vec::map([](Vec x) { return one / (one + x.exp()); }, y_ptr, x_ptr, N);
 //
 // Then why we still need to specialize "functional"?
+<<<<<<< HEAD
 //   If we do specialization at Vectorized<> level, the above example would need 3 pairs of
 //   conversion of bf16->fp32/fp32->bf16, each for ".exp()", "+" and "/".
 //   If we do specialization at vec::map<>() level, we have only 1 pair of conversion
@@ -88,6 +173,17 @@ inline void load_to_float<Half> (const Half *data, Vectorized<float> &out) {
 // The following BFloat16 functionality will only do data type conversion for input
 // and output vector (reduce functionality will only convert the final scalar back to bf16).
 // Compared to Vectorized<> specialization,
+=======
+//   If we do specialization at Vectorized<> level, the above example would need
+//   3 pairs of conversion of bf16->fp32/fp32->bf16, each for ".exp()", "+" and
+//   "/". If we do specialization at vec::map<>() level, we have only 1 pair of
+//   conversion of bf16->fp32/fp32->bf16, for the input and output BFloat16
+//   vector only.
+//
+// The following BFloat16 functionality will only do data type conversion for
+// input and output vector (reduce functionality will only convert the final
+// scalar back to bf16). Compared to Vectorized<> specialization,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //   1. better performance since we have less data type conversion;
 //   2. less rounding error since immediate results are kept in fp32;
 //   3. accumulation done on data type of fp32.
@@ -95,8 +191,15 @@ inline void load_to_float<Half> (const Half *data, Vectorized<float> &out) {
 //  If you plan to extend this file, please ensure adding unit tests at
 //    aten/src/ATen/test/vec_test_all_types.cpp
 //
+<<<<<<< HEAD
 template <typename scalar_t, typename Op,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename Op,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline float reduce_all(const Op& vec_fun, const scalar_t* data, int64_t size) {
   using bVec = vec::Vectorized<scalar_t>;
   using fVec = vec::Vectorized<float>;
@@ -104,7 +207,12 @@ inline float reduce_all(const Op& vec_fun, const scalar_t* data, int64_t size) {
     bVec data_bvec = bVec::loadu(data, size);
     auto [data_fvec0, data_fvec1] = convert_to_float<scalar_t>(data_bvec);
     if (size > fVec::size()) {
+<<<<<<< HEAD
       data_fvec0 = fVec::set(data_fvec0, vec_fun(data_fvec0, data_fvec1), size - fVec::size());
+=======
+      data_fvec0 = fVec::set(
+          data_fvec0, vec_fun(data_fvec0, data_fvec1), size - fVec::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return vec_reduce_all<float>(vec_fun, data_fvec0, fVec::size());
     } else {
       return vec_reduce_all<float>(vec_fun, data_fvec0, size);
@@ -124,27 +232,55 @@ inline float reduce_all(const Op& vec_fun, const scalar_t* data, int64_t size) {
     auto [data_fvec0, data_fvec1] = convert_to_float<scalar_t>(data_bvec);
     if (size - d > fVec::size()) {
       acc_fvec0 = vec_fun(acc_fvec0, data_fvec0);
+<<<<<<< HEAD
       acc_fvec1 = fVec::set(acc_fvec1, vec_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
     } else {
       acc_fvec0 = fVec::set(acc_fvec0, vec_fun(acc_fvec0, data_fvec0), size - d);
+=======
+      acc_fvec1 = fVec::set(
+          acc_fvec1, vec_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
+    } else {
+      acc_fvec0 =
+          fVec::set(acc_fvec0, vec_fun(acc_fvec0, data_fvec0), size - d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   acc_fvec0 = vec_fun(acc_fvec0, acc_fvec1);
   return vec_reduce_all<float>(vec_fun, acc_fvec0);
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename Op1, typename Op2,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
 inline std::pair<float, float> reduce2_all(const Op1& vec_fun1, const Op2& vec_fun2,
     const scalar_t* data, int64_t size) {
+=======
+template <
+    typename scalar_t,
+    typename Op1,
+    typename Op2,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+inline std::pair<float, float> reduce2_all(
+    const Op1& vec_fun1,
+    const Op2& vec_fun2,
+    const scalar_t* data,
+    int64_t size) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using bVec = vec::Vectorized<scalar_t>;
   using fVec = vec::Vectorized<float>;
   if (size < bVec::size()) {
     bVec data_bvec = bVec::loadu(data, size);
     auto [data_fvec0, data_fvec1] = convert_to_float<scalar_t>(data_bvec);
     if (size > fVec::size()) {
+<<<<<<< HEAD
       fVec acc1_fvec = fVec::set(data_fvec0, vec_fun1(data_fvec0, data_fvec1), size - fVec::size());
       fVec acc2_fvec = fVec::set(data_fvec0, vec_fun2(data_fvec0, data_fvec1), size - fVec::size());
+=======
+      fVec acc1_fvec = fVec::set(
+          data_fvec0, vec_fun1(data_fvec0, data_fvec1), size - fVec::size());
+      fVec acc2_fvec = fVec::set(
+          data_fvec0, vec_fun2(data_fvec0, data_fvec1), size - fVec::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return std::pair<scalar_t, scalar_t>(
           vec_reduce_all<float>(vec_fun1, acc1_fvec, fVec::size()),
           vec_reduce_all<float>(vec_fun2, acc2_fvec, fVec::size()));
@@ -171,12 +307,29 @@ inline std::pair<float, float> reduce2_all(const Op1& vec_fun1, const Op2& vec_f
     auto [data_fvec0, data_fvec1] = convert_to_float<scalar_t>(data_bvec);
     if (size - d > fVec::size()) {
       acc1_fvec0 = vec_fun1(acc1_fvec0, data_fvec0);
+<<<<<<< HEAD
       acc1_fvec1 = fVec::set(acc1_fvec1, vec_fun1(acc1_fvec1, data_fvec1), size - d - fVec::size());
       acc2_fvec0 = vec_fun2(acc2_fvec0, data_fvec0);
       acc2_fvec1 = fVec::set(acc2_fvec1, vec_fun2(acc2_fvec1, data_fvec1), size - d - fVec::size());
     } else {
       acc1_fvec0 = fVec::set(acc1_fvec0, vec_fun1(acc1_fvec0, data_fvec0), size - d);
       acc2_fvec0 = fVec::set(acc2_fvec0, vec_fun2(acc2_fvec0, data_fvec0), size - d);
+=======
+      acc1_fvec1 = fVec::set(
+          acc1_fvec1,
+          vec_fun1(acc1_fvec1, data_fvec1),
+          size - d - fVec::size());
+      acc2_fvec0 = vec_fun2(acc2_fvec0, data_fvec0);
+      acc2_fvec1 = fVec::set(
+          acc2_fvec1,
+          vec_fun2(acc2_fvec1, data_fvec1),
+          size - d - fVec::size());
+    } else {
+      acc1_fvec0 =
+          fVec::set(acc1_fvec0, vec_fun1(acc1_fvec0, data_fvec0), size - d);
+      acc2_fvec0 =
+          fVec::set(acc2_fvec0, vec_fun2(acc2_fvec0, data_fvec0), size - d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   acc1_fvec0 = vec_fun1(acc1_fvec0, acc1_fvec1);
@@ -186,8 +339,16 @@ inline std::pair<float, float> reduce2_all(const Op1& vec_fun1, const Op2& vec_f
       vec_reduce_all<float>(vec_fun2, acc2_fvec0));
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename MapOp, typename ReduceOp,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename MapOp,
+    typename ReduceOp,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline float map_reduce_all(
     const MapOp& map_fun,
     const ReduceOp& red_fun,
@@ -201,7 +362,12 @@ inline float map_reduce_all(
     if (size > fVec::size()) {
       data_fvec0 = map_fun(data_fvec0);
       data_fvec1 = map_fun(data_fvec1);
+<<<<<<< HEAD
       data_fvec0 = fVec::set(data_fvec0, red_fun(data_fvec0, data_fvec1), size - fVec::size());
+=======
+      data_fvec0 = fVec::set(
+          data_fvec0, red_fun(data_fvec0, data_fvec1), size - fVec::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return vec_reduce_all<float>(red_fun, data_fvec0, fVec::size());
     } else {
       data_fvec0 = map_fun(data_fvec0);
@@ -228,18 +394,35 @@ inline float map_reduce_all(
       data_fvec0 = map_fun(data_fvec0);
       data_fvec1 = map_fun(data_fvec1);
       acc_fvec0 = red_fun(acc_fvec0, data_fvec0);
+<<<<<<< HEAD
       acc_fvec1 = fVec::set(acc_fvec1, red_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
     } else {
       data_fvec0 = map_fun(data_fvec0);
       acc_fvec0 = fVec::set(acc_fvec0, red_fun(acc_fvec0, data_fvec0), size - d);
+=======
+      acc_fvec1 = fVec::set(
+          acc_fvec1, red_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
+    } else {
+      data_fvec0 = map_fun(data_fvec0);
+      acc_fvec0 =
+          fVec::set(acc_fvec0, red_fun(acc_fvec0, data_fvec0), size - d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   acc_fvec0 = red_fun(acc_fvec0, acc_fvec1);
   return vec_reduce_all<float>(red_fun, acc_fvec0);
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename MapOp, typename ReduceOp,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename MapOp,
+    typename ReduceOp,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline float map2_reduce_all(
     const MapOp& map_fun,
     const ReduceOp& red_fun,
@@ -256,7 +439,12 @@ inline float map2_reduce_all(
     if (size > fVec::size()) {
       data_fvec0 = map_fun(data_fvec0, data2_fvec0);
       data_fvec1 = map_fun(data_fvec1, data2_fvec1);
+<<<<<<< HEAD
       data_fvec0 = fVec::set(data_fvec0, red_fun(data_fvec0, data_fvec1), size - fVec::size());
+=======
+      data_fvec0 = fVec::set(
+          data_fvec0, red_fun(data_fvec0, data_fvec1), size - fVec::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return vec_reduce_all<float>(red_fun, data_fvec0, fVec::size());
     } else {
       data_fvec0 = map_fun(data_fvec0, data2_fvec0);
@@ -289,18 +477,35 @@ inline float map2_reduce_all(
       data_fvec0 = map_fun(data_fvec0, data2_fvec0);
       data_fvec1 = map_fun(data_fvec1, data2_fvec1);
       acc_fvec0 = red_fun(acc_fvec0, data_fvec0);
+<<<<<<< HEAD
       acc_fvec1 = fVec::set(acc_fvec1, red_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
     } else {
       data_fvec0 = map_fun(data_fvec0, data2_fvec0);
       acc_fvec0 = fVec::set(acc_fvec0, red_fun(acc_fvec0, data_fvec0), size - d);
+=======
+      acc_fvec1 = fVec::set(
+          acc_fvec1, red_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
+    } else {
+      data_fvec0 = map_fun(data_fvec0, data2_fvec0);
+      acc_fvec0 =
+          fVec::set(acc_fvec0, red_fun(acc_fvec0, data_fvec0), size - d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   acc_fvec0 = red_fun(acc_fvec0, acc_fvec1);
   return vec_reduce_all<float>(red_fun, acc_fvec0);
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename MapOp, typename ReduceOp,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename MapOp,
+    typename ReduceOp,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline float map3_reduce_all(
     const MapOp& map_fun,
     const ReduceOp& red_fun,
@@ -320,7 +525,12 @@ inline float map3_reduce_all(
     if (size > fVec::size()) {
       data_fvec0 = map_fun(data_fvec0, data2_fvec0, data3_fvec0);
       data_fvec1 = map_fun(data_fvec1, data2_fvec1, data3_fvec1);
+<<<<<<< HEAD
       data_fvec0 = fVec::set(data_fvec0, red_fun(data_fvec0, data_fvec1), size - fVec::size());
+=======
+      data_fvec0 = fVec::set(
+          data_fvec0, red_fun(data_fvec0, data_fvec1), size - fVec::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return vec_reduce_all<float>(red_fun, data_fvec0, fVec::size());
     } else {
       data_fvec0 = map_fun(data_fvec0, data2_fvec0, data3_fvec0);
@@ -359,18 +569,37 @@ inline float map3_reduce_all(
       data_fvec0 = map_fun(data_fvec0, data2_fvec0, data3_fvec0);
       data_fvec1 = map_fun(data_fvec1, data2_fvec1, data3_fvec1);
       acc_fvec0 = red_fun(acc_fvec0, data_fvec0);
+<<<<<<< HEAD
       acc_fvec1 = fVec::set(acc_fvec1, red_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
     } else {
       data_fvec0 = map_fun(data_fvec0, data2_fvec0, data3_fvec0);
       acc_fvec0 = fVec::set(acc_fvec0, red_fun(acc_fvec0, data_fvec0), size - d);
+=======
+      acc_fvec1 = fVec::set(
+          acc_fvec1, red_fun(acc_fvec1, data_fvec1), size - d - fVec::size());
+    } else {
+      data_fvec0 = map_fun(data_fvec0, data2_fvec0, data3_fvec0);
+      acc_fvec0 =
+          fVec::set(acc_fvec0, red_fun(acc_fvec0, data_fvec0), size - d);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   acc_fvec0 = red_fun(acc_fvec0, acc_fvec1);
   return vec_reduce_all<float>(red_fun, acc_fvec0);
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename Op,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename Op,
+    typename std::enable_if_t<
+        !(!detail::should_prefer_converting_through_float_v<scalar_t> &&
+          std::is_invocable_v<Op, vec::Vectorized<scalar_t>>),
+        int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline void map(
     const Op& vec_fun,
     scalar_t* output_data,
@@ -397,8 +626,15 @@ inline void map(
   }
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename Op,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename Op,
+    typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline void map(
     const Op& vec_fun,
     scalar_t* output_data,
@@ -419,7 +655,12 @@ inline void map(
     fVec data_fvec0, data_fvec1;
     if (size - d > fVec::size()) {
       data_fvec0 = fVec::loadu(input_data + d);
+<<<<<<< HEAD
       data_fvec1 = fVec::loadu(input_data + d + fVec::size(), size - d - fVec::size());
+=======
+      data_fvec1 =
+          fVec::loadu(input_data + d + fVec::size(), size - d - fVec::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       // choose to align with behaviour of bVec::loadu(ptr, size),
       // which leaves data_fvec1 uninitialized
@@ -432,8 +673,21 @@ inline void map(
   }
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename Op,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename Op,
+    typename std::enable_if_t<
+        !(!detail::should_prefer_converting_through_float_v<scalar_t> &&
+          std::is_invocable_v<
+              Op,
+              vec::Vectorized<scalar_t>,
+              vec::Vectorized<scalar_t>>),
+        int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline void map2(
     const Op& vec_fun,
     scalar_t* output_data,
@@ -465,8 +719,22 @@ inline void map2(
   }
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename Op,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename Op,
+    typename std::enable_if_t<
+        !(!detail::should_prefer_converting_through_float_v<scalar_t> &&
+          std::is_invocable_v<
+              Op,
+              vec::Vectorized<scalar_t>,
+              vec::Vectorized<scalar_t>,
+              vec::Vectorized<scalar_t>>),
+        int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline void map3(
     const Op& vec_fun,
     scalar_t* output_data,
@@ -503,8 +771,23 @@ inline void map3(
   }
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename Op,
           typename std::enable_if_t<is_reduced_floating_point_v<scalar_t>, int> = 0>
+=======
+template <
+    typename scalar_t,
+    typename Op,
+    typename std::enable_if_t<
+        !(!detail::should_prefer_converting_through_float_v<scalar_t> &&
+          std::is_invocable_v<
+              Op,
+              vec::Vectorized<scalar_t>,
+              vec::Vectorized<scalar_t>,
+              vec::Vectorized<scalar_t>,
+              vec::Vectorized<scalar_t>>),
+        int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline void map4(
     const Op& vec_fun,
     scalar_t* output_data,
@@ -525,8 +808,15 @@ inline void map4(
     auto [data3_fvec0, data3_fvec1] = convert_to_float<scalar_t>(data3_bvec);
     bVec data4_bvec = bVec::loadu(input_data4 + d);
     auto [data4_fvec0, data4_fvec1] = convert_to_float<scalar_t>(data4_bvec);
+<<<<<<< HEAD
     fVec output_fvec0 = vec_fun(data1_fvec0, data2_fvec0, data3_fvec0, data4_fvec0);
     fVec output_fvec1 = vec_fun(data1_fvec1, data2_fvec1, data3_fvec1, data4_fvec1);
+=======
+    fVec output_fvec0 =
+        vec_fun(data1_fvec0, data2_fvec0, data3_fvec0, data4_fvec0);
+    fVec output_fvec1 =
+        vec_fun(data1_fvec1, data2_fvec1, data3_fvec1, data4_fvec1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bVec output_bvec = convert_from_float<scalar_t>(output_fvec0, output_fvec1);
     output_bvec.store(output_data + d);
   }
@@ -539,8 +829,15 @@ inline void map4(
     auto [data3_fvec0, data3_fvec1] = convert_to_float<scalar_t>(data3_bvec);
     bVec data4_bvec = bVec::loadu(input_data4 + d, size - d);
     auto [data4_fvec0, data4_fvec1] = convert_to_float<scalar_t>(data4_bvec);
+<<<<<<< HEAD
     fVec output_fvec0 = vec_fun(data1_fvec0, data2_fvec0, data3_fvec0, data4_fvec0);
     fVec output_fvec1 = vec_fun(data1_fvec1, data2_fvec1, data3_fvec1, data4_fvec1);
+=======
+    fVec output_fvec0 =
+        vec_fun(data1_fvec0, data2_fvec0, data3_fvec0, data4_fvec0);
+    fVec output_fvec1 =
+        vec_fun(data1_fvec1, data2_fvec1, data3_fvec1, data4_fvec1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bVec output_bvec = convert_from_float<scalar_t>(output_fvec0, output_fvec1);
     output_bvec.store(output_data + d, size - d);
   }

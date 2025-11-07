@@ -1,5 +1,9 @@
 #include <c10/util/error.h>
 #include <pybind11/pybind11.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/cuda/GdsFile.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/utils/pybind.h>
 
 #if defined(USE_CUFILE)
@@ -20,7 +24,11 @@ std::string cuGDSFileGetErrorString(T status) {
                                : std::string(c10::utils::str_error(errno));
 }
 
+<<<<<<< HEAD
 // To get error message for Buf/Handle registeration APIs that return
+=======
+// To get error message for Buf/Handle registration APIs that return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // CUfileError_t
 template <
     class T,
@@ -90,8 +98,12 @@ void gds_deregister_buffer(const at::Storage& storage) {
 
 int64_t gds_register_handle(int fd) {
   CUfileDescr_t cf_descr;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   CUfileHandle_t cf_handle;
+=======
+  CUfileHandle_t cf_handle{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   memset((void*)&cf_descr, 0, sizeof(CUfileDescr_t));
   cf_descr.handle.fd = fd;
   cf_descr.type = CU_FILE_HANDLE_TYPE_OPAQUE_FD;

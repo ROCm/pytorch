@@ -257,9 +257,15 @@ def expectedFailureTrainingIRToRunDecompNonStrict(fn):
     return fn
 
 
+<<<<<<< HEAD
 # Controls tests generated in test/export/test_export_nonstrict.py
 def expectedFailureNonStrict(fn):
     fn._expected_failure_non_strict = True
+=======
+# Controls tests generated in test/export/test_export_strict.py
+def expectedFailureStrict(fn):
+    fn._expected_failure_strict = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return fn
 
 
@@ -307,6 +313,14 @@ def expectedFailureCppRuntime(fn):
     return fn
 
 
+<<<<<<< HEAD
+=======
+def expectedFailureCppRuntimeNonStrict(fn):
+    fn._expected_failure_cpp_runtime_non_strict = True
+    return fn
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Controls tests generated in test/export/test_export_legacy.py
 def expectedFailureLegacyExportStrict(fn):
     fn._expected_failure_legacy_export = True

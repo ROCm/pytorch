@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 
 import sys
+<<<<<<< HEAD
 from functools import wraps, partial
+=======
+from functools import partial, wraps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -12,8 +16,15 @@ from torch.testing._internal.common_distributed import (
     tp_transports,
 )
 
+<<<<<<< HEAD
 TEST_GPU_NUM = 4
 
+=======
+
+TEST_GPU_NUM = 4
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ShardedTensorTestBase(MultiProcessTestCase):
     @property
     def world_size(self):
@@ -34,9 +45,16 @@ class ShardedTensorTestBase(MultiProcessTestCase):
         if backend == "nccl":
             torch.cuda.set_device(self.rank)
 
+<<<<<<< HEAD
 
     def init_rpc(self):
         rpc_backend_options = rpc.TensorPipeRpcBackendOptions(_transports=tp_transports())
+=======
+    def init_rpc(self):
+        rpc_backend_options = rpc.TensorPipeRpcBackendOptions(
+            _transports=tp_transports()
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         rpc_backend_options.init_method = f"file://{self.file_name}"
         for rank in range(self.world_size):
             rpc_backend_options.set_device_map(
@@ -79,6 +97,10 @@ class ShardedTensorTestBase(MultiProcessTestCase):
         self.assertEqual(st1.sharding_spec(), st2.sharding_spec())
         self.assertEqual(len(st1.remote_shards()), len(st2.remote_shards()))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # wrapper to initialize comms (processgroup + rpc)
 def with_comms(func=None, init_rpc=True, backend="nccl"):
     if func is None:
@@ -95,4 +117,8 @@ def with_comms(func=None, init_rpc=True, backend="nccl"):
         self.init_comms(init_rpc=init_rpc, backend=backend)
         func(self, *args, **kwargs)
         self.destroy_comms(destroy_rpc=init_rpc)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return wrapper

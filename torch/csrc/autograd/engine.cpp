@@ -75,17 +75,28 @@ inline bool should_run_in_cpu_ready_queue(c10::DeviceType device) {
 std::atomic<Engine::compiled_autograd_fn> the_compiled_autograd = nullptr;
 #define COMPILED_AUTOGRAD_POISON \
   reinterpret_cast<Engine::compiled_autograd_fn>(1)
+<<<<<<< HEAD
 std::atomic<int32_t> num_threads_in_backwards;
 struct CompiledAutogradThreadingDebugCheck {
   CompiledAutogradThreadingDebugCheck() {
     num_threads_in_backwards++;
+=======
+std::atomic<int32_t> num_threads_in_compiled_autograd;
+struct CompiledAutogradThreadingDebugCheck {
+  CompiledAutogradThreadingDebugCheck() {
+    num_threads_in_compiled_autograd++;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   ~CompiledAutogradThreadingDebugCheck() {
     release();
   }
   void release() {
     if (std::exchange(incremented, false)) {
+<<<<<<< HEAD
       num_threads_in_backwards--;
+=======
+      num_threads_in_compiled_autograd--;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -289,8 +300,15 @@ void Engine::stop() {
   stopped_ = true;
   // Under some conditions, autograd threads can hang on shutdown
   // Do not wait for them to shutdown indefinitely but rely on timeout
+<<<<<<< HEAD
   auto wait_duration_str = getenv("TORCH_AUTOGRAD_SHUTDOWN_WAIT_LIMIT");
   auto wait_duration = wait_duration_str ? std::atof(wait_duration_str) : 10.0;
+=======
+  auto wait_duration_str =
+      c10::utils::get_env("TORCH_AUTOGRAD_SHUTDOWN_WAIT_LIMIT");
+  auto wait_duration =
+      wait_duration_str ? std::atof(wait_duration_str->c_str()) : 10.0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool noBackward = true;
   for (auto& queue : device_ready_queues_) {
     noBackward = noBackward && queue->empty();
@@ -609,7 +627,11 @@ auto Engine::thread_main(const std::shared_ptr<GraphTask>& graph_task) -> void {
   }
 }
 
+<<<<<<< HEAD
 // Reentrant call will re-use the graph_task's owner thread ready_queue for
+=======
+// Reentrant call will reuse the graph_task's owner thread ready_queue for
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // queueing tasks (NOTE: this is not true in the async_mode of the engine).
 // While we can create separate ready queue for each new reentrant
 // thread, but sharing the same cpu_ready_queue with parent thread is a
@@ -868,7 +890,11 @@ void set_device(int device) {
 
 // Given an Edge or optional<InputMetdata>, return the InputMetadata
 template <typename T>
+<<<<<<< HEAD
 const InputMetadata& get_input_metadata(const T& thing);
+=======
+const static InputMetadata& get_input_metadata(const T& thing);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <>
 const InputMetadata& get_input_metadata<std::optional<InputMetadata>>(
@@ -884,7 +910,11 @@ const InputMetadata& get_input_metadata<Edge>(const Edge& thing) {
 
 // Given an Edge or optional<InputMetdata>, return if there is an InputMetadata.
 template <typename T>
+<<<<<<< HEAD
 bool has_input_metadata(const T& thing);
+=======
+static bool has_input_metadata(const T& thing);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <>
 bool has_input_metadata<std::optional<InputMetadata>>(
@@ -914,7 +944,11 @@ std::vector<std::optional<InputMetadata>> collect_input_metadata(
 // outputs. This involves using the InputMetadata to check the outputs and also
 // potentially calling .sum_to on the outputs.
 template <typename T>
+<<<<<<< HEAD
 void validate_outputs_impl(
+=======
+static void validate_outputs_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::vector<T>& input_metadata_container,
     variable_list& grads,
     const std::function<std::string(const std::string&)>& format_error) {
@@ -1063,6 +1097,7 @@ void Engine::evaluate_function(
     Node* func,
     InputBuffer& inputs,
     const std::shared_ptr<ReadyQueue>& cpu_ready_queue) {
+<<<<<<< HEAD
   // The InputBuffer::adds that supplied incoming grads took pains to
   // ensure they're safe to consume in the context of the present
   // func's stream (if applicable). So we guard onto that stream
@@ -1070,6 +1105,31 @@ void Engine::evaluate_function(
   auto opt_parent_stream = (*func).stream();
   c10::OptionalStreamGuard parent_stream_guard{opt_parent_stream};
 
+=======
+  // Locally set the current stream to func's associated stream
+  auto opt_parent_stream = (*func).stream();
+  c10::OptionalStreamGuard parent_stream_guard{opt_parent_stream};
+
+  // Ensure that the incoming gradients are ready
+  for (size_t pos = 0; pos < inputs.ready_events.size(); ++pos) {
+    if (!inputs.buffer[pos].defined()) {
+      continue;
+    }
+    const auto device = inputs.buffer[pos].device();
+    bool is_accelerator = at::accelerator::isAccelerator(device.type());
+    if (!is_accelerator) {
+      continue;
+    }
+    auto& opt_ready_stream = inputs.ready_streams[pos];
+    auto& opt_ready_event = inputs.ready_events[pos];
+    TORCH_INTERNAL_ASSERT(opt_ready_stream && opt_parent_stream);
+    if (*opt_parent_stream != *opt_ready_stream) {
+      TORCH_INTERNAL_ASSERT(opt_ready_event);
+      opt_parent_stream->wait(opt_ready_event.value());
+    }
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // If exec_info_ is not empty, we have to instrument the execution
   auto& exec_info_ = graph_task->exec_info_;
   if (!exec_info_.empty()) {
@@ -1207,7 +1267,11 @@ void Engine::evaluate_function(
 }
 
 static uint64_t compute_min_topological_nr(const edge_list& outputs) {
+<<<<<<< HEAD
   // Computes the mininum topological number among all the outputs
+=======
+  // Computes the minimum topological number among all the outputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (outputs.empty()) {
     return 0;
   }
@@ -1278,8 +1342,11 @@ auto Engine::execute(
         "your parameters to None after use to break the cycle and avoid the leak.");
   }
 
+<<<<<<< HEAD
   // Allows us to assert no other threads are in backwards
   CompiledAutogradThreadingDebugCheck _thread_check;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto compiled_autograd = the_compiled_autograd.load();
   TORCH_INTERNAL_ASSERT(compiled_autograd != COMPILED_AUTOGRAD_POISON);
 
@@ -1305,8 +1372,13 @@ auto Engine::execute(
 
   auto graph_task = std::make_shared<GraphTask>(
       /* keep_graph */ keep_graph,
+<<<<<<< HEAD
       /* create_graph */ create_graph,
       /* depth */ not_reentrant_backward_call ? 0 : total_depth + 1,
+=======
+      /* grad_mode */ create_graph,
+      /* reentrant_depth */ not_reentrant_backward_call ? 0 : total_depth + 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       /* cpu_ready_queue */ local_ready_queue,
       /* graph_roots */ std::move(temp_roots));
 
@@ -1326,6 +1398,7 @@ auto Engine::execute(
   }
 
   if (compiled_autograd != nullptr) {
+<<<<<<< HEAD
     // see [Note: Compiled Autograd]
     TORCH_CHECK(
         !create_graph, "compiled_autograd does not support create_graph");
@@ -1333,6 +1406,15 @@ auto Engine::execute(
     TORCH_CHECK(
         !AnomalyMode::is_enabled(),
         "compiled_autograd does not support AnomalyMode")
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        num_threads_in_compiled_autograd.load() == 0,
+        "Re-entrant into Compiled Autograd from a parent Compiled Autograd call is not yet supported. Consider disabling Compiled Autograd on the re-entrant call.");
+    // Allows us to assert no other threads are in backwards
+    CompiledAutogradThreadingDebugCheck _thread_check;
+    // see [Note: Compiled Autograd]
+    _thread_check.release();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     GraphTaskGuard guard(graph_task);
     CheckpointValidGuard cpvguard(graph_task);
     return (*compiled_autograd)(
@@ -1455,7 +1537,11 @@ c10::intrusive_ptr<at::ivalue::Future> Engine::execute_with_graph_task(
   return graph_task->future_result_;
 }
 
+<<<<<<< HEAD
 // note that when python is present, this base engine will be overriden
+=======
+// note that when python is present, this base engine will be overridden
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // with a PythonEngine. Because this typically happens before get_default_engine
 // is called, this base engine will never be created.
 Engine& Engine::get_base_engine() {
@@ -1463,7 +1549,11 @@ Engine& Engine::get_base_engine() {
   return engine;
 }
 
+<<<<<<< HEAD
 std::atomic<EngineStub> engine_stub(Engine::get_base_engine);
+=======
+static std::atomic<EngineStub> engine_stub(Engine::get_base_engine);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void set_default_engine_stub(EngineStub stub) {
   engine_stub.store(stub);
@@ -1479,8 +1569,13 @@ void Engine::set_compiled_autograd(Engine::compiled_autograd_fn fn) {
   }
   auto prior = the_compiled_autograd.exchange(COMPILED_AUTOGRAD_POISON);
   TORCH_CHECK(
+<<<<<<< HEAD
       num_threads_in_backwards.load() == 0 && prior != COMPILED_AUTOGRAD_POISON,
       "compiled_autograd._enable() requires no threads in backwards()");
+=======
+      prior != COMPILED_AUTOGRAD_POISON,
+      "compiled_autograd._enable() does not support multiple Python threads");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   the_compiled_autograd.store(fn);
 }
 

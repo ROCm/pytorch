@@ -470,9 +470,15 @@ def load_torch_function_handler(cls, func, types, args=(), kwargs=None):
                         return cls(src._data)
                     return cls(src)
         else:
+<<<<<<< HEAD
             assert isinstance(
                 src, cls
             ), f"Expected isinstance(src, {cls}) but got {type(src)}"
+=======
+            assert isinstance(src, cls), (
+                f"Expected isinstance(src, {cls}) but got {type(src)}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert (
                 type(dest) == torch.Tensor
                 or type(dest) == torch.nn.Parameter

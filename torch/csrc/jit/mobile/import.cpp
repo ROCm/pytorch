@@ -22,6 +22,10 @@
 #include <torch/csrc/jit/serialization/import_export_functions.h>
 #include <torch/csrc/jit/serialization/import_read.h>
 #include <torch/custom_class.h>
+<<<<<<< HEAD
+=======
+#include <torch/library.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 #include <string>
 #include <vector>
@@ -646,6 +650,12 @@ mobile::Module _load_for_mobile(
     std::optional<at::Device> device,
     ExtraFilesMap& extra_files,
     uint64_t module_load_options) {
+<<<<<<< HEAD
+=======
+#if defined(TORCH_LIBRARY_THREAD_UNSAFE_LAZY_INIT) && defined(C10_MOBILE)
+  torch::initialize_torch_libraries();
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto observer = torch::observerConfig().getModuleObserver();
   if (observer) {
     extra_files.insert(std::make_pair("model_path", filename));

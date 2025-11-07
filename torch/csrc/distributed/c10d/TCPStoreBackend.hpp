@@ -33,6 +33,12 @@ enum class QueryType : uint8_t {
   MULTI_SET,
   CANCEL_WAIT,
   PING,
+<<<<<<< HEAD
+=======
+  QUEUE_PUSH,
+  QUEUE_POP,
+  QUEUE_LEN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 enum class CheckResponseType : uint8_t { READY, NOT_READY };

@@ -6,7 +6,11 @@ import re
 import subprocess
 from pathlib import Path
 
+<<<<<<< HEAD
 from setuptools import distutils  # type: ignore[import]
+=======
+from setuptools import distutils  # type: ignore[import,attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 UNKNOWN = "Unknown"
@@ -97,7 +101,13 @@ if __name__ == "__main__":
 
     with open(version_path, "w") as f:
         f.write("from typing import Optional\n\n")
+<<<<<<< HEAD
         f.write("__all__ = ['__version__', 'debug', 'cuda', 'git_version', 'hip']\n")
+=======
+        f.write(
+            "__all__ = ['__version__', 'debug', 'cuda', 'git_version', 'hip', 'xpu']\n"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f.write(f"__version__ = '{version}'\n")
         # NB: This is not 100% accurate, because you could have built the
         # library code with DEBUG, but csrc without DEBUG (in which case

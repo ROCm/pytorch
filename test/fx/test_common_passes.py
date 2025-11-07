@@ -9,7 +9,11 @@ from torch.fx.passes.dialect.common.cse_pass import CSEPass
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
     run_tests,
+=======
+    raise_on_run_directly,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 
@@ -128,4 +132,8 @@ class TestCommonPass(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     run_tests()
+=======
+    raise_on_run_directly("test/test_fx.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

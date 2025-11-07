@@ -7,8 +7,13 @@
 #include <ATen/PythonTorchFunctionTLS.h>
 
 namespace torch {
+<<<<<<< HEAD
 PyObject* disabled_torch_function = nullptr;
 PyObject* disabled_torch_dispatch = nullptr;
+=======
+static PyObject* disabled_torch_function = nullptr;
+static PyObject* disabled_torch_dispatch = nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool torch_function_enabled() {
   return at::impl::PythonTorchFunctionTLS::get_disabled_state() ==
@@ -38,7 +43,11 @@ typedef struct {
   at::impl::TorchFunctionDisabledState old_state;
 } DisableTorchFunctionSubclass;
 
+<<<<<<< HEAD
 PyObject* DisableTorchFunctionSubclass__enter(
+=======
+static PyObject* DisableTorchFunctionSubclass__enter(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* unused) {
   const auto old_state = at::impl::PythonTorchFunctionTLS::get_disabled_state();
@@ -50,7 +59,13 @@ PyObject* DisableTorchFunctionSubclass__enter(
   Py_RETURN_NONE;
 }
 
+<<<<<<< HEAD
 PyObject* DisableTorchFunctionSubclass__exit(PyObject* self, PyObject* unused) {
+=======
+static PyObject* DisableTorchFunctionSubclass__exit(
+    PyObject* self,
+    PyObject* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::impl::PythonTorchFunctionTLS::set_disabled_state(
       ((DisableTorchFunctionSubclass*)self)->old_state);
   Py_RETURN_NONE;
@@ -79,7 +94,11 @@ static PyMethodDef DisableTorchFunctionSubclass_methods[] = { // NOLINT
     {"__exit__", DisableTorchFunctionSubclass__exit, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
+<<<<<<< HEAD
 PyTypeObject DisableTorchFunctionSubclassType = {
+=======
+static PyTypeObject DisableTorchFunctionSubclassType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C.DisableTorchFunctionSubclass", /* tp_name */
     sizeof(DisableTorchFunctionSubclass), /* tp_basicsize */
@@ -134,7 +153,11 @@ typedef struct {
   at::impl::TorchFunctionDisabledState old_state;
 } DisableTorchFunction;
 
+<<<<<<< HEAD
 PyObject* DisableTorchFunction__enter(PyObject* self, PyObject* unused) {
+=======
+static PyObject* DisableTorchFunction__enter(PyObject* self, PyObject* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ((DisableTorchFunctionSubclass*)self)->old_state =
       at::impl::PythonTorchFunctionTLS::get_disabled_state();
   at::impl::PythonTorchFunctionTLS::set_disabled_state(
@@ -142,7 +165,11 @@ PyObject* DisableTorchFunction__enter(PyObject* self, PyObject* unused) {
   Py_RETURN_NONE;
 }
 
+<<<<<<< HEAD
 PyObject* DisableTorchFunction__exit(PyObject* self, PyObject* unused) {
+=======
+static PyObject* DisableTorchFunction__exit(PyObject* self, PyObject* unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::impl::PythonTorchFunctionTLS::set_disabled_state(
       ((DisableTorchFunctionSubclass*)self)->old_state);
   Py_RETURN_NONE;
@@ -153,7 +180,11 @@ static PyMethodDef DisableTorchFunction_methods[] = { // NOLINT
     {"__exit__", DisableTorchFunction__exit, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
+<<<<<<< HEAD
 PyTypeObject DisableTorchFunctionType = {
+=======
+static PyTypeObject DisableTorchFunctionType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C.DisableTorchFunction", /* tp_name */
     sizeof(DisableTorchFunction), /* tp_basicsize */
@@ -304,7 +335,11 @@ static bool is_basic_python_type(PyTypeObject* tp) {
       false);
 }
 
+<<<<<<< HEAD
 inline bool has_torch_function_attr(PyObject* obj) {
+=======
+inline static bool has_torch_function_attr(PyObject* obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto attr = PyObject_FastGetAttrString(obj, "__torch_function__");
   return (
       attr.ptr() != nullptr && attr.ptr() != torch::disabled_torch_function);
@@ -321,7 +356,11 @@ auto check_has_torch_function(PyObject* obj, bool ignore_mode) -> bool {
 }
 } // namespace torch
 
+<<<<<<< HEAD
 inline bool sequence_has_torch_function(PyObject* args) {
+=======
+inline static bool sequence_has_torch_function(PyObject* args) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Py_ssize_t nargs = PySequence_Fast_GET_SIZE(args);
   for (Py_ssize_t i = 0; i < nargs; i++) {
     PyObject* obj = PySequence_Fast_GET_ITEM(args, i);
@@ -332,7 +371,13 @@ inline bool sequence_has_torch_function(PyObject* args) {
   return false;
 }
 
+<<<<<<< HEAD
 inline bool array_has_torch_function(PyObject* const* args, Py_ssize_t nargs) {
+=======
+inline static bool array_has_torch_function(
+    PyObject* const* args,
+    Py_ssize_t nargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (Py_ssize_t i = 0; i < nargs; i++) {
     if (torch::check_has_torch_function(args[i])) {
       return true;

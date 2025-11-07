@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import math
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -13,7 +17,11 @@ from torch.distributions.utils import (
     probs_to_logits,
 )
 from torch.nn.functional import binary_cross_entropy_with_logits
+<<<<<<< HEAD
 from torch.types import _Number, _size
+=======
+from torch.types import _Number, _size, Number
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["ContinuousBernoulli"]
@@ -52,7 +60,15 @@ class ContinuousBernoulli(ExponentialFamily):
     has_rsample = True
 
     def __init__(
+<<<<<<< HEAD
         self, probs=None, logits=None, lims=(0.499, 0.501), validate_args=None
+=======
+        self,
+        probs: Optional[Union[Tensor, Number]] = None,
+        logits: Optional[Union[Tensor, Number]] = None,
+        lims: tuple[float, float] = (0.499, 0.501),
+        validate_args: Optional[bool] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         if (probs is None) == (logits is None):
             raise ValueError(
@@ -68,6 +84,10 @@ class ContinuousBernoulli(ExponentialFamily):
                     raise ValueError("The parameter probs has invalid values")
             self.probs = clamp_probs(self.probs)
         else:
+<<<<<<< HEAD
+=======
+            assert logits is not None  # helps mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             is_scalar = isinstance(logits, _Number)
             (self.logits,) = broadcast_all(logits)
         self._param = self.probs if probs is not None else self.logits

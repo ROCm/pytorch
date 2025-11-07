@@ -33,7 +33,11 @@ pushd tmp
 set VC_VERSION_LOWER=14
 set VC_VERSION_UPPER=36
 
+<<<<<<< HEAD
 call "%DEPENDENCIES_DIR%\VSBuildTools\VC\Auxiliary\Build\vcvarsall.bat" arm64
+=======
+call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" arm64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 set install_root=%CD%
 set INCLUDE=%INCLUDE%;%install_root%\include;%install_root%\include\torch\csrc\api\include

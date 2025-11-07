@@ -2,13 +2,23 @@
 
 #ifdef USE_ROCM
 
+<<<<<<< HEAD
 #include <aotriton/dtypes.h>
 #include <aotriton/util.h>
+=======
+// Expect to be included after headers of at::zeros_like and at::empty_like
+
+#include <aotriton/dtypes.h>
+#include <aotriton/util.h>
+#include <aotriton/config.h>
+#include <ATen/native/transformers/hip/aotriton_versions.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Common macros copied from cuda/mem_eff_attention/gemm_kernel_utils.h
 ////////////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 #define CHECK_NOSPARSE_CONTIGUOUS_CUDA(TENSOR)                            \
   TORCH_CHECK(TENSOR.is_cuda(), #TENSOR " must be a CUDA tensor");     \
   TORCH_CHECK(!TENSOR.is_sparse(), #TENSOR " must be a dense tensor"); \
@@ -31,6 +41,8 @@
         B < std::numeric_limits<decltype(A)>::max(), #B " overflows"); \
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace sdp {
 
 namespace aotriton_adapter {
@@ -133,6 +145,64 @@ inline aotriton::TensorView<0> mk_atomictensor(const int32_t* ptr)
                                  aotriton::DType::kInt32);
 }
 
+<<<<<<< HEAD
+=======
+#if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 11)
+
+struct LazyTensorContext {
+  at::Tensor like_tensor;
+  std::string_view tensor_name;
+  at::Tensor tensor;
+};
+
+template<int kRank, bool kRequireZeros>
+struct LazyTensorFunctions : public LazyTensorContext {
+  static aotriton::TensorView<kRank> acquire(void* cookie) {
+    auto ctx = (LazyTensorContext*)cookie;
+    if (!ctx->tensor.defined()) {
+      auto q = ctx->like_tensor;
+      if constexpr (kRequireZeros) {
+        ctx->tensor = at::zeros(q.sizes(),
+                                q.options().dtype(at::kFloat));
+      } else {
+        ctx->tensor = at::empty_like(q);
+      }
+    }
+    return mk_aotensor<kRank>(ctx->tensor, ctx->tensor_name);
+  }
+
+  static void dispose(void* cookie) {
+  }
+};
+
+template<int kRank, bool kRequireZeros>
+aotriton::LazyTensor<kRank> mklazy_common(LazyTensorContext* cookie)
+{
+  using LTF = LazyTensorFunctions<kRank, kRequireZeros>;
+  return aotriton::LazyTensor<kRank> {
+    .cookie = cookie,
+    .acquire = &LTF::acquire,
+    .dispose = &LTF::dispose
+  };
+}
+
+template<int kRank>
+auto mklazy_empty_like(LazyTensorContext* cookie)
+{
+  return mklazy_common<kRank, false>(cookie);
+}
+
+
+// Note: this will not keep the original strides
+template<int kRank>
+auto mklazy_fp32zeros(LazyTensorContext* cookie)
+{
+  return mklazy_common<kRank, true>(cookie);
+}
+
+#endif  // >= 0.11
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace aotriton_adapter
 
 } // namespace sdp

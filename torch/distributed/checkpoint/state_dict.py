@@ -154,7 +154,10 @@ class _StateDictInfo(StateDictOptions):
     fsdp_modules: list[nn.Module] = field(default_factory=list)
 
 
+<<<<<<< HEAD
 @functools.cache
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_fqns(
     model: nn.Module,
     name: str,
@@ -208,7 +211,11 @@ def _get_fqns(
             if not skip_compiler_prefix:
                 fqn_obj_names.append(curr_obj_name)
         else:
+<<<<<<< HEAD
             # In some modeuls, _fqn_modifiers would not shown in the state_dict keys,
+=======
+            # In some modules, _fqn_modifiers would not shown in the state_dict keys,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # skip them in the fqn to ensure load stat dict successfully for them.
             if hasattr(curr_obj, dsd_fqn_modifiers):
                 if removed_fqn := getattr(curr_obj, dsd_fqn_modifiers)().get(
@@ -531,10 +538,13 @@ def _get_model_state_dict(
             for fqn in fqns:
                 state_dict.pop(fqn)
 
+<<<<<<< HEAD
     for key, p in list(state_dict.items()):
         if torch.is_tensor(p) and p.is_meta:
             state_dict.pop(key)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _maybe_full_or_cpu_state_dict(state_dict, info)
 
 
@@ -596,8 +606,12 @@ def _load_model_state_dict(
             )
         elif info.full_state_dict:
             _distribute_state_dict(state_dict, local_state_dict, device=devices.pop())
+<<<<<<< HEAD
         for fqn, local_state in local_state_dict.items():
             state_dict[fqn] = local_state
+=======
+        state_dict.update(local_state_dict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     with info.fsdp_context():
         return cast(
@@ -797,7 +811,11 @@ def _get_optim_state_dict(
             # We need to specially handle FlatParameter FSDP as
             # FlatParameter FSDP converts the FQNs.
             # There are no easy ways to do this conversion systematically.
+<<<<<<< HEAD
             # We can only use a string replacment without correctness check.
+=======
+            # We can only use a string replacement without correctness check.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not osd:
                 continue
             for k in list(osd[_STATE].keys()):

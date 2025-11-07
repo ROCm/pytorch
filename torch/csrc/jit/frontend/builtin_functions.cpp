@@ -7,7 +7,11 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 auto scalar_operators_source = at::jit::CodeTemplate(
+=======
+static auto scalar_operators_source = at::jit::CodeTemplate(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     R"SCRIPT(
 def mul(a : ${Scalar}, b : Tensor) -> Tensor:
   return b * a
@@ -23,7 +27,11 @@ def div(a : ${Scalar}, b : Tensor) -> Tensor:
   return torch.reciprocal(b) * a
 )SCRIPT");
 
+<<<<<<< HEAD
 auto scalar_operators_no_complex_source = at::jit::CodeTemplate(
+=======
+static auto scalar_operators_no_complex_source = at::jit::CodeTemplate(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     R"SCRIPT(
 def lt(a : ${Scalar}, b : Tensor) -> Tensor:
   return b > a
@@ -35,19 +43,31 @@ def ge(a : ${Scalar}, b : Tensor) -> Tensor:
   return b <= a
 )SCRIPT");
 
+<<<<<<< HEAD
 auto _ntuple_ops = at::jit::CodeTemplate(
+=======
+static auto _ntuple_ops = at::jit::CodeTemplate(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     R"SCRIPT(
 def _${name}(x: BroadcastingList${Length}[${Scalar}]) -> List[${Scalar}]:
   return x
 )SCRIPT");
 
+<<<<<<< HEAD
 auto floordiv = at::jit::CodeTemplate(
+=======
+static auto floordiv = at::jit::CodeTemplate(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     R"SCRIPT(
 def floordiv(self : Tensor, other : ${Rhs_Type}) -> Tensor:
   return torch.floor_divide(self, other)
 )SCRIPT");
 
+<<<<<<< HEAD
 auto tensor_properties =
+=======
+static auto tensor_properties =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     R"SCRIPT(
 def ndim(a : Tensor) -> int:
   return a.dim()
@@ -67,7 +87,11 @@ def shape(a : Tensor) -> List[int]:
 // aten::_assert_int_or_pair op which was removed once we were able to compile
 // torch.nn.functional.assert_int_or_pair
 // list_with_default also needs to be here for BC
+<<<<<<< HEAD
 auto aten_ops =
+=======
+static auto aten_ops =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     R"SCRIPT(
 def _assert_int_or_pair(vals: List[int], name: str, message: str):
   pass

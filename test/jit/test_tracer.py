@@ -29,6 +29,10 @@ from torch.testing._internal.common_cuda import with_tf32_off
 from torch.testing._internal.common_utils import (
     enable_profiling_mode_for_profiling_tests,
     IS_SANDCASTLE,
+<<<<<<< HEAD
+=======
+    raise_on_run_directly,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfCompiledWithoutNumpy,
     skipIfCrossRef,
     skipIfTorchDynamo,
@@ -46,6 +50,7 @@ from torch.testing._internal.jit_utils import (
 )
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -54,6 +59,8 @@ if __name__ == "__main__":
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @skipIfTorchDynamo("Not a suitable test for TorchDynamo")
 class TestTracer(JitTestCase):
     @unittest.skipIf(not RUN_CUDA, "requires CUDA")
@@ -2826,3 +2833,10 @@ class TestMixTracingScripting(JitTestCase):
         for n in fn_t.graph.nodes():
             if n.kind() == "prim::CallFunction":
                 self.assertTrue(n.output().isCompleteTensor())
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

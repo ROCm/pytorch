@@ -27,7 +27,11 @@ void reset_buffers() {
   }
 }
 
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && !defined(_WIN32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(TestLoops, HasSameArgTypes) {
   // This is a compile-time unit test. If this file compiles without error,
   // then the test passes and during runtime, we just need to return.

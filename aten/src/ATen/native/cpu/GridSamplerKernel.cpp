@@ -14,6 +14,15 @@
 
 namespace at::native { namespace {
 
+<<<<<<< HEAD
+=======
+// fixes segfaults for GCC >= 12 on some AArch64 cpus https://github.com/pytorch/pytorch/issues/157626
+#if defined(__GNUC__) && __GNUC__ >= 12 && defined(__aarch64__)
+#pragma GCC push_options
+#pragma GCC optimize ("no-strict-aliasing")
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /**  NOTE [ Grid Sample CPU Kernels ]
  *
  *   Implementation of vectorized grid sample CPU kernels is divided into three
@@ -1014,6 +1023,13 @@ struct ApplyGridSample<scalar_t, 2, GridSamplerInterpolation::Bicubic,
   }
 };
 
+<<<<<<< HEAD
+=======
+#if defined(__GNUC__) && __GNUC__ >= 12 && defined(__aarch64__)
+#pragma GCC pop_options
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // ~~~~~~~~~~~~~~~~~~ grid_sample_2d_grid_slice_iterator ~~~~~~~~~~~~~~~~~~~~~~
 // Function to apply a vectorized function on a grid slice tensor (without batch
 // dimension).

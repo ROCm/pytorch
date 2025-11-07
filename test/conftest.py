@@ -341,5 +341,9 @@ class StepcurrentPlugin:
         self.cache.set(self.directory, self.lastrun)
 
     def pytest_sessionfinish(self, session, exitstatus):
+<<<<<<< HEAD
         if exitstatus == 0 and not self.run_single:
+=======
+        if exitstatus == 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cache.set(self.directory, self.initial_val)

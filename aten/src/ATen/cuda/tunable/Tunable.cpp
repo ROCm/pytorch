@@ -524,8 +524,13 @@ void TuningContext::EnableNumericsCheck(bool value) {
 }
 
 bool TuningContext::IsNumericsCheckEnabled() const {
+<<<<<<< HEAD
   const char *env = getenv("PYTORCH_TUNABLEOP_NUMERICAL_CHECK");
   if (env != nullptr && strcmp(env, "1") == 0) {
+=======
+  const auto env = c10::utils::get_env("PYTORCH_TUNABLEOP_NUMERICAL_CHECK");
+  if (env == "1") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return true;
   }
   return numerics_check_enable_;

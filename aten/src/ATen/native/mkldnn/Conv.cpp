@@ -440,6 +440,10 @@ Tensor mkldnn_convolution_pointwise_binary(
       po.append_eltwise(unary_alg, 0.f, 0.f);
     }
     op_attr.set_post_ops(po);
+<<<<<<< HEAD
+=======
+    auto aprop_kind = ideep::prop_kind::forward_inference;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (bias.defined()) {
       const ideep::tensor b = itensor_from_tensor(bias);
@@ -456,7 +460,13 @@ Tensor mkldnn_convolution_pointwise_binary(
           padding_expanded,
           groups,
           /* is_channels_last */ true,
+<<<<<<< HEAD
           op_attr);
+=======
+          op_attr,
+          ideep::algorithm::convolution_direct,
+          aprop_kind);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       ideep::convolution_forward::compute_binary(
           x,
@@ -470,7 +480,13 @@ Tensor mkldnn_convolution_pointwise_binary(
           padding_expanded,
           groups,
           /* is_channels_last */ true,
+<<<<<<< HEAD
           op_attr);
+=======
+          op_attr,
+          ideep::algorithm::convolution_direct,
+          aprop_kind);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return output;
   } else {
@@ -573,6 +589,10 @@ Tensor& mkldnn_convolution_pointwise_binary_(
     } else {
       op_attr = ideep::attr_t::fuse_sum();
     }
+<<<<<<< HEAD
+=======
+    auto aprop_kind = ideep::prop_kind::forward_inference;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _mkldnn_convolution_out(
         input_t,
         weight_t,
@@ -584,7 +604,12 @@ Tensor& mkldnn_convolution_pointwise_binary_(
         padding_expanded,
         groups,
         true,
+<<<<<<< HEAD
         op_attr);
+=======
+        op_attr,
+        aprop_kind);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     // Fallback case, if inputs are not channels last or have different dtype,
     // OneDNN fusion may have performance regression.

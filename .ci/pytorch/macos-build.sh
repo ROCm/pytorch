@@ -33,6 +33,7 @@ if which sccache > /dev/null; then
   export PATH="${tmp_dir}:$PATH"
 fi
 
+<<<<<<< HEAD
 cross_compile_arm64() {
   # Cross compilation for arm64
   # Explicitly set USE_DISTRIBUTED=0 to align with the default build config on mac. This also serves as the sole CI config that tests
@@ -83,6 +84,17 @@ else
   compile_x86_64
 fi
 
+=======
+print_cmake_info
+if [[ ${BUILD_ENVIRONMENT} == *"distributed"* ]]; then
+  # Needed for inductor benchmarks, as lots of HF networks make `torch.distribtued` calls
+  USE_DISTRIBUTED=1 USE_OPENMP=1 WERROR=1 python setup.py bdist_wheel
+else
+  # Explicitly set USE_DISTRIBUTED=0 to align with the default build config on mac. This also serves as the sole CI config that tests
+  # that building with USE_DISTRIBUTED=0 works at all. See https://github.com/pytorch/pytorch/issues/86448
+  USE_DISTRIBUTED=0 USE_OPENMP=1 MACOSX_DEPLOYMENT_TARGET=11.0 WERROR=1 BUILD_TEST=OFF USE_PYTORCH_METAL=1 python setup.py bdist_wheel --plat-name macosx_11_0_arm64
+fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if which sccache > /dev/null; then
   print_sccache_stats
 fi

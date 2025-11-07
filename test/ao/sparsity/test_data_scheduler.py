@@ -1,19 +1,26 @@
 # Owner(s): ["module: unknown"]
 
 import copy
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 
 import torch
 from torch import nn
 from torch.ao.pruning._experimental.data_scheduler import BaseDataScheduler
 from torch.ao.pruning._experimental.data_sparsifier import DataNormSparsifier
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
 
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ImplementedDataScheduler(BaseDataScheduler):
@@ -180,3 +187,10 @@ class TestBaseDataScheduler(TestCase):
             name, _, _ = self._get_name_data_config(some_data, defaults)
             assert scheduler1.base_param[name] == scheduler2.base_param[name]
             assert scheduler1._last_param[name] == scheduler2._last_param[name]
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

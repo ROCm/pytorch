@@ -31,7 +31,11 @@ PYLONG_API_CHECK=$?
 if [[ $PYLONG_API_CHECK == 0 ]]; then
   echo "Usage of PyLong_{From,As}{Unsigned}Long API may lead to overflow errors on Windows"
   echo "because \`sizeof(long) == 4\` and \`sizeof(unsigned long) == 4\`."
+<<<<<<< HEAD
   echo "Please include \"torch/csrc/utils/python_numbers.h\" and use the correspoding APIs instead."
+=======
+  echo "Please include \"torch/csrc/utils/python_numbers.h\" and use the corresponding APIs instead."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   echo "PyLong_FromLong -> THPUtils_packInt32 / THPUtils_packInt64"
   echo "PyLong_AsLong -> THPUtils_unpackInt (32-bit) / THPUtils_unpackLong (64-bit)"
   echo "PyLong_FromUnsignedLong -> THPUtils_packUInt32 / THPUtils_packUInt64"

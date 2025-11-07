@@ -3,7 +3,11 @@
 import copy
 import unittest
 from re import escape
+<<<<<<< HEAD
 from typing import Any, List
+=======
+from typing import Any, List, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo as torchdynamo
@@ -233,7 +237,11 @@ class TestUnflatten(TestCase):
             new_inps = *inps, torch.rand(2, 3)
             with self.assertRaisesRegex(
                 TypeError,
+<<<<<<< HEAD
                 "There is no flat args adapter sepcified. Are you sure you are calling this with the right arguments?",
+=======
+                "There is no flat args adapter specified. Are you sure you are calling this with the right arguments?",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 unflattened(new_inps)
 
@@ -245,6 +253,10 @@ class TestUnflatten(TestCase):
                     input_spec: TreeSpec,
                     input_args: List[Any],
                     metadata: dict[str, Any],
+<<<<<<< HEAD
+=======
+                    obj: Optional[Any] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ) -> List[Any]:
                     while len(input_args) > 2:
                         input_args.pop(-1)
@@ -878,7 +890,11 @@ class TestUnflatten(TestCase):
         fn_count_sym_size = lambda graph: [node.target for node in graph.nodes].count(
             torch.ops.aten.sym_size.int
         )
+<<<<<<< HEAD
         self.assertEqual(fn_count_sym_size(unflat.graph), 1)
+=======
+        self.assertEqual(fn_count_sym_size(unflat.graph), 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(fn_count_sym_size(unflat.m1.graph), 1)
         self.assertEqual(fn_count_sym_size(unflat.m2.graph), 0)
 
@@ -953,6 +969,60 @@ class TestUnflatten(TestCase):
         unflattened.foo = torch.compile(unflattened.foo, fullgraph=True)
         self.compare_outputs(orig_eager, unflattened, inputs)
 
+<<<<<<< HEAD
+=======
+    def test_unflatten_none(self):
+        class M2(torch.nn.Module):
+            def forward(self, x, y):
+                return x + x, None
+
+        class M(torch.nn.Module):
+            def __init__(self) -> None:
+                super().__init__()
+                self.m2 = M2()
+
+            def forward(self, x, y):
+                x = x + x
+                return self.m2(x, y)
+
+        ep = export(
+            M(), (torch.rand(2, 3), None), preserve_module_call_signature=("m2",)
+        )
+        unflattened = unflatten(ep)
+        inp = (torch.randn(2, 3), None)
+        self.assertTrue(torch.allclose(M()(*inp)[0], unflattened(*inp)[0]))
+
+    def test_unflatten_empty_branch(self):
+        class M(torch.nn.Module):
+            def forward(self, x):
+                if x is None:
+                    return torch.ones(3), torch.ones(3)
+                else:
+                    return x + x, x * x
+
+        class M1(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.m = M()
+
+            def forward(self, x, y):
+                a, b = self.m(x)
+                c, d = self.m(y)
+                return a + b + c + d
+
+        ep = torch.export.export(M1(), (torch.randn(3), None))
+        unf = torch.export.unflatten(ep)
+        inp = (torch.randn(3), None)
+        self.assertTrue(torch.allclose(unf(*inp), M1()(*inp)))
+
+        ep = torch.export.export(
+            M1(), (torch.randn(3), None), preserve_module_call_signature="m"
+        )
+        unf = torch.export.unflatten(ep)
+        inp = (torch.randn(3), None)
+        self.assertTrue(torch.allclose(unf(*inp), M1()(*inp)))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

@@ -24,7 +24,11 @@ TORCH_IMPL_FUNC(lerp_Tensor_mps)(const Tensor& self, const Tensor& end, const Te
     MPSGraphTensor* outputTensor_ = nil;
   };
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "lerp_Tensor_mps" + getTensorsStringKey({self, end, weight});
+=======
+    std::string key = "lerp_Tensor_mps" + getTensorsStringKey({self, end, weight});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto graph) {
       auto selfTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       auto endTensor = mpsGraphRankedPlaceHolder(mpsGraph, end);

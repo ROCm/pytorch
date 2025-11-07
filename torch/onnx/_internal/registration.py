@@ -4,6 +4,10 @@
 import warnings
 from collections.abc import Collection, Sequence
 from typing import Callable, Generic, Optional, TypeVar, Union
+<<<<<<< HEAD
+=======
+from typing_extensions import ParamSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.onnx import _constants, errors
 
@@ -51,6 +55,11 @@ def _dispatch_opset_version(
 
 _K = TypeVar("_K")
 _V = TypeVar("_V")
+<<<<<<< HEAD
+=======
+_R = TypeVar("_R")
+_P = ParamSpec("_P")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class OverrideDict(Collection[_K], Generic[_K, _V]):
@@ -287,7 +296,11 @@ def onnx_symbolic(
         ValueError: If the separator '::' is not in the name.
     """
 
+<<<<<<< HEAD
     def wrapper(func: Callable) -> Callable:
+=======
+    def wrapper(func: Callable[_P, _R]) -> Callable[_P, _R]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         decorated = func
         if decorate is not None:
             for decorate_func in decorate:

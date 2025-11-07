@@ -474,6 +474,18 @@ int register_linear_params() {
               .def("bias", [](const c10::intrusive_ptr<LinearPackedParamsBase>& self) {
                   return std::get<1>(self->unpack());
                  })
+<<<<<<< HEAD
+=======
+#if defined(USE_FBGEMM) && defined(FBCODE_CAFFE2)
+              .def("__obj_flatten__", [](const c10::intrusive_ptr<LinearPackedParamsBase>& self) -> std::tuple<std::tuple<std::string, at::Tensor>, std::tuple<std::string, std::optional<at::Tensor>>> {
+                auto [weight, bias] = self->unpack();
+                return std::tuple(
+                  std::tuple("weight", std::move(weight)),
+                  std::tuple("bias", std::move(bias))
+                );
+              })
+#endif // defined(USE_FBGEMM) && defined(FBCODE_CAFFE2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               .def("unpack", &LinearPackedParamsBase::unpack);
   // (1) we can't (easily) return the static initializer itself because it can have a different type because of selective build
   // (2) we can't return void and be able to call the function in the global scope

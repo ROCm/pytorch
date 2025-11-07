@@ -9,7 +9,16 @@ You can use this script to check out a new nightly branch with the following::
     $ ./tools/nightly.py checkout -b my-nightly-branch
     $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
 
+<<<<<<< HEAD
 Or if you would like to re-use an existing virtual environment, you can pass in
+=======
+Or if you would like to check out the nightly commit in detached HEAD mode::
+
+    $ ./tools/nightly.py checkout
+    $ source venv/bin/activate  # or `& .\venv\Scripts\Activate.ps1` on Windows
+
+Or if you would like to reuse an existing virtual environment, you can pass in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 the prefix argument (--prefix)::
 
     $ ./tools/nightly.py checkout -b my-nightly-branch -p my-env
@@ -50,6 +59,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+<<<<<<< HEAD
+=======
+import textwrap
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import time
 import uuid
 from ast import literal_eval
@@ -91,6 +104,10 @@ DEFAULT_VENV_DIR = REPO_ROOT / "venv"
 
 
 LOGGER: logging.Logger | None = None
+<<<<<<< HEAD
+=======
+VERBOSE: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DATETIME_FORMAT = "%Y-%m-%d_%Hh%Mm%Ss"
 SHA1_RE = re.compile(r"(?P<sha1>[0-9a-fA-F]{40})")
 USERNAME_PASSWORD_RE = re.compile(r":\/\/(.*?)\@")
@@ -122,6 +139,7 @@ PIP_SOURCES = {
         supported_platforms={"Linux", "macOS", "Windows"},
         accelerator="cpu",
     ),
+<<<<<<< HEAD
     "cuda-11.8": PipSource(
         name="cuda-11.8",
         index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/cu118",
@@ -134,15 +152,37 @@ PIP_SOURCES = {
         supported_platforms={"Linux", "Windows"},
         accelerator="cuda",
     ),
+=======
+    # NOTE: Sync with CUDA_ARCHES in .github/scripts/generate_binary_build_matrix.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "cuda-12.6": PipSource(
         name="cuda-12.6",
         index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/cu126",
         supported_platforms={"Linux", "Windows"},
         accelerator="cuda",
     ),
+<<<<<<< HEAD
     "rocm-6.2.4": PipSource(
         name="rocm-6.2.4",
         index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/rocm6.2.4",
+=======
+    "cuda-12.8": PipSource(
+        name="cuda-12.8",
+        index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/cu128",
+        supported_platforms={"Linux", "Windows"},
+        accelerator="cuda",
+    ),
+    # NOTE: Sync with ROCM_ARCHES in .github/scripts/generate_binary_build_matrix.py
+    "rocm-6.3": PipSource(
+        name="rocm-6.3",
+        index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/rocm6.3",
+        supported_platforms={"Linux"},
+        accelerator="rocm",
+    ),
+    "rocm-6.4": PipSource(
+        name="rocm-6.4",
+        index_url=f"{PYTORCH_NIGHTLY_PIP_INDEX_URL}/rocm6.4",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         supported_platforms={"Linux"},
         accelerator="rocm",
     ),
@@ -217,7 +257,18 @@ def timed(prefix: str) -> Callable[[F], F]:
 class Venv:
     """Virtual environment manager"""
 
+<<<<<<< HEAD
     AGGRESSIVE_UPDATE_PACKAGES = ("pip", "setuptools", "packaging", "wheel")
+=======
+    AGGRESSIVE_UPDATE_PACKAGES = (
+        "uv",
+        "pip",
+        "setuptools",
+        "packaging",
+        "wheel",
+        "build[uv]",
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -230,21 +281,49 @@ class Venv:
         self.pip_source = pip_source
         self.base_executable = Path(base_executable or sys.executable).absolute()
         self._executable: Path | None = None
+<<<<<<< HEAD
         self._env = {"PIP_EXTRA_INDEX_URL": self.pip_source.index_url}
+=======
+        self._bindir: Path | None = None
+        self._env = {
+            "PIP_EXTRA_INDEX_URL": self.pip_source.index_url,
+            "UV_INDEX": self.pip_source.index_url,
+            "FORCE_COLOR": "1",
+            "CLICOLOR_FORCE": "1",
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def is_venv(self) -> bool:
         """Check if the prefix is a virtual environment."""
         return self.prefix.is_dir() and (self.prefix / "pyvenv.cfg").is_file()
 
     @property
+<<<<<<< HEAD
+=======
+    def bindir(self) -> Path:
+        """Get the bin directory for the virtual environment."""
+        assert self.is_venv()
+        if self._bindir is None:
+            if WINDOWS:
+                self._bindir = self.prefix / "Scripts"
+            else:
+                self._bindir = self.prefix / "bin"
+        return self._bindir
+
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def executable(self) -> Path:
         """Get the Python executable for the virtual environment."""
         assert self.is_venv()
         if self._executable is None:
+<<<<<<< HEAD
             if WINDOWS:
                 executable = self.prefix / "Scripts" / "python.exe"
             else:
                 executable = self.prefix / "bin" / "python"
+=======
+            executable = self.bindir / ("python.exe" if WINDOWS else "python")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert executable.is_file() or executable.is_symlink()
             assert os.access(executable, os.X_OK), f"{executable} is not executable"
             self._executable = executable
@@ -340,6 +419,47 @@ class Venv:
         self.base_python("-m", "venv", str(self.prefix))
         assert self.is_venv(), "Failed to create virtual environment."
         (self.prefix / ".gitignore").write_text("*\n", encoding="utf-8")
+<<<<<<< HEAD
+=======
+
+        if LINUX:
+            activate_script = self.activate_script
+            st_mode = activate_script.stat().st_mode
+            # The activate script may be read-only and we need to add write permissions
+            activate_script.chmod(st_mode | 0o200)
+            with activate_script.open(mode="a", encoding="utf-8") as f:
+                f.write(
+                    "\n"
+                    + textwrap.dedent(
+                        f"""
+                        # Add NVIDIA PyPI packages to LD_LIBRARY_PATH
+                        export LD_LIBRARY_PATH="$(
+                            {self.executable.name} - <<EOS
+                        import glob
+                        import itertools
+                        import os
+                        import site
+
+                        nvidia_libs = [
+                            p.rstrip("/")
+                            for p in itertools.chain.from_iterable(
+                                glob.iglob(f"{{site_dir}}/{{pattern}}/", recursive=True)
+                                for site_dir in site.getsitepackages()
+                                for pattern in ("nvidia/**/lib", "cu*/**/lib")
+                            )
+                        ]
+                        ld_library_path = os.getenv("LD_LIBRARY_PATH", "").split(os.pathsep)
+                        print(os.pathsep.join(dict.fromkeys(nvidia_libs + ld_library_path)))
+                        EOS
+                        )"
+                        """
+                    ).strip()
+                    + "\n"
+                )
+            # Change the file mode back
+            activate_script.chmod(st_mode)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.ensure()
 
     def ensure(self) -> Path:
@@ -361,9 +481,16 @@ class Venv:
             python = self.executable
         cmd = [str(python), *args]
         env = popen_kwargs.pop("env", None) or {}
+<<<<<<< HEAD
         return subprocess.run(
             cmd,
             check=True,
+=======
+        check = popen_kwargs.pop("check", True)
+        return subprocess.run(
+            cmd,
+            check=check,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             text=True,
             encoding="utf-8",
             env={**self._env, **env},
@@ -394,6 +521,58 @@ class Venv:
         """Get the Python version for the base environment."""
         return self.python_version(python=self.base_executable)
 
+<<<<<<< HEAD
+=======
+    def uv(
+        self,
+        *args: str,
+        python: Path | str | None = None,
+        **popen_kwargs: Any,
+    ) -> subprocess.CompletedProcess[str]:
+        """Run a uv command in the virtual environment."""
+        if python is None:
+            python = self.executable
+        cmd = [str(self.bindir / "uv"), *args]
+        env = popen_kwargs.pop("env", None) or {}
+        check = popen_kwargs.pop("check", True)
+        env["UV_PYTHON"] = str(python)
+        return subprocess.run(
+            cmd,
+            check=check,
+            text=True,
+            encoding="utf-8",
+            env={**self._env, **env},
+            **popen_kwargs,
+        )
+
+    @timed("Installing packages")
+    def uv_pip_install(
+        self,
+        *packages: str,
+        prerelease: bool = False,
+        upgrade: bool = False,
+        no_deps: bool = False,
+        **popen_kwargs: Any,
+    ) -> subprocess.CompletedProcess[str]:
+        """Run a pip install command in the virtual environment."""
+        uv_pip_args = []
+        if VERBOSE:
+            uv_pip_args.append("-v")
+        if prerelease:
+            uv_pip_args.append("--prerelease")
+        if upgrade:
+            uv_pip_args.append("--upgrade")
+            verb = "Upgrading"
+        else:
+            verb = "Installing"
+        if no_deps:
+            uv_pip_args.append("--no-deps")
+        print(f"{verb} package(s) ({self.pip_source.index_url}):")
+        for package in packages:
+            print(f"  - {os.path.basename(package)}")
+        return self.uv("pip", "install", *uv_pip_args, *packages, **popen_kwargs)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def pip(self, *args: str, **popen_kwargs: Any) -> subprocess.CompletedProcess[str]:
         """Run a pip command in the virtual environment."""
         return self.python("-m", "pip", *args, **popen_kwargs)
@@ -404,6 +583,7 @@ class Venv:
         *packages: str,
         prerelease: bool = False,
         upgrade: bool = False,
+<<<<<<< HEAD
         **popen_kwargs: Any,
     ) -> subprocess.CompletedProcess[str]:
         """Run a pip install command in the virtual environment."""
@@ -420,12 +600,38 @@ class Venv:
             f"{', '.join(map(os.path.basename, packages))}"
         )
         return self.pip("install", *args, **popen_kwargs)
+=======
+        no_deps: bool = False,
+        **popen_kwargs: Any,
+    ) -> subprocess.CompletedProcess[str]:
+        """Run a pip install command in the virtual environment."""
+        pip_args = []
+        if VERBOSE:
+            pip_args.append("-v")
+        if prerelease:
+            pip_args.append("--pre")
+        if upgrade:
+            pip_args.append("--upgrade")
+            verb = "Upgrading"
+        else:
+            verb = "Installing"
+        if no_deps:
+            pip_args.append("--no-deps")
+        print(f"{verb} package(s) ({self.pip_source.index_url}):")
+        for package in packages:
+            print(f"  - {os.path.basename(package)}")
+        return self.pip("install", *pip_args, *packages, **popen_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @timed("Downloading packages")
     def pip_download(
         self,
         *packages: str,
         prerelease: bool = False,
+<<<<<<< HEAD
+=======
+        no_deps: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         **popen_kwargs: Any,
     ) -> list[Path]:
         """Download a package in the virtual environment."""
@@ -436,11 +642,22 @@ class Venv:
             f"Downloading package(s) ({self.pip_source.index_url}): "
             f"{', '.join(packages)}"
         )
+<<<<<<< HEAD
         if prerelease:
             args = ["--pre", *packages]
         else:
             args = list(packages)
         self.pip("download", "--dest", str(tempdir), *args, **popen_kwargs)
+=======
+        pip_args = []
+        if VERBOSE:
+            pip_args.append("-v")
+        if prerelease:
+            pip_args.append("--pre")
+        if no_deps:
+            pip_args.append("--no-deps")
+        self.pip("download", f"--dest={tempdir}", *pip_args, *packages, **popen_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         files = list(tempdir.iterdir())
         print(f"Downloaded {len(files)} file(s) to {tempdir}:")
         for file in files:
@@ -466,7 +683,11 @@ class Venv:
         wheel = Path(wheel).absolute()
         dest = Path(dest).absolute()
         assert wheel.is_file() and wheel.suffix.lower() == ".whl"
+<<<<<<< HEAD
         return self.wheel("unpack", "--dest", str(dest), str(wheel), **popen_kwargs)
+=======
+        return self.wheel("unpack", f"--dest={dest}", str(wheel), **popen_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @contextlib.contextmanager
     def extracted_wheel(self, wheel: Path | str) -> Generator[Path]:
@@ -556,7 +777,11 @@ def logging_manager(*, debug: bool = False) -> Generator[logging.Logger, None, N
         print(f"log file: {log_file}")
         yield root_logger
     except Exception as e:
+<<<<<<< HEAD
         logging.exception("Fatal exception")
+=======
+        logging.exception("Fatal exception")  # noqa: LOG015
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         logging_record_exception(e)
         print(f"log file: {log_file}")
         sys.exit(1)
@@ -564,7 +789,11 @@ def logging_manager(*, debug: bool = False) -> Generator[logging.Logger, None, N
         # You could logging.debug here to suppress the backtrace
         # entirely, but there is no reason to hide it from technically
         # savvy users.
+<<<<<<< HEAD
         logging.info("", exc_info=True)
+=======
+        logging.info("", exc_info=True)  # noqa: LOG015
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         logging_record_exception(e)
         print(f"log file: {log_file}")
         sys.exit(1)
@@ -574,19 +803,31 @@ def check_branch(subcommand: str, branch: str | None) -> str | None:
     """Checks that the branch name can be checked out."""
     if subcommand != "checkout":
         return None
+<<<<<<< HEAD
     # first make sure actual branch name was given
     if branch is None:
         return "Branch name to checkout must be supplied with '-b' option"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # next check that the local repo is clean
     cmd = git("status", "--untracked-files=no", "--porcelain")
     stdout = subprocess.check_output(cmd, text=True, encoding="utf-8")
     if stdout.strip():
         return "Need to have clean working tree to checkout!\n\n" + stdout
+<<<<<<< HEAD
     # next check that the branch name doesn't already exist
     cmd = git("show-ref", "--verify", "--quiet", f"refs/heads/{branch}")
     p = subprocess.run(cmd, capture_output=True, check=False)  # type: ignore[assignment]
     if not p.returncode:
         return f"Branch {branch!r} already exists"
+=======
+    # next check that the branch name doesn't already exist (if a branch name is provided)
+    if branch is not None:
+        cmd = git("show-ref", "--verify", "--quiet", f"refs/heads/{branch}")
+        p = subprocess.run(cmd, capture_output=True, check=False)  # type: ignore[assignment]
+        if not p.returncode:
+            return f"Branch {branch!r} already exists"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return None
 
 
@@ -596,7 +837,11 @@ def install_packages(venv: Venv, packages: Iterable[str]) -> None:
     # install packages
     packages = list(dict.fromkeys(packages))
     if packages:
+<<<<<<< HEAD
         venv.pip_install(*packages)
+=======
+        venv.uv_pip_install(*packages)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _ensure_commit(git_sha1: str) -> None:
@@ -641,10 +886,22 @@ def _nightly_version(site_dir: Path) -> str:
 
 
 @timed("Checking out nightly PyTorch")
+<<<<<<< HEAD
 def checkout_nightly_version(branch: str, site_dir: Path) -> None:
     """Get's the nightly version and then checks it out."""
     nightly_version = _nightly_version(site_dir)
     cmd = git("checkout", "-b", branch, nightly_version)
+=======
+def checkout_nightly_version(branch: str | None, site_dir: Path) -> None:
+    """Gets the nightly version and then checks it out."""
+    nightly_version = _nightly_version(site_dir)
+    if branch is None:
+        # Detached mode - explicitly use --detach flag
+        cmd = git("checkout", "--detach", nightly_version)
+    else:
+        # Branch mode
+        cmd = git("checkout", "-b", branch, nightly_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     subprocess.check_call(cmd)
 
 
@@ -741,12 +998,22 @@ def _move_single(
                 relname = relroot / name
                 s = src / relname
                 t = trg / relname
+<<<<<<< HEAD
                 print(f"{verb} {s} -> {t}")
+=======
+                if VERBOSE:
+                    print(f"{verb} {s} -> {t}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mover(s, t)
             for name in dirs:
                 (trg / relroot / name).mkdir(parents=True, exist_ok=True)
     else:
+<<<<<<< HEAD
         print(f"{verb} {src} -> {trg}")
+=======
+        if VERBOSE:
+            print(f"{verb} {src} -> {trg}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mover(src, trg)
 
 
@@ -789,13 +1056,61 @@ def write_pth(venv: Venv) -> None:
     )
 
 
+<<<<<<< HEAD
+=======
+def parse_dependencies(
+    venv: Venv,
+    wheel_site_dir: Path,
+) -> list[str]:
+    """Parse dependencies from the torch wheel's metadata."""
+    dist_info_dirs = list(wheel_site_dir.glob("*.dist-info"))
+    if len(dist_info_dirs) != 1:
+        raise RuntimeError(
+            f"Expected exactly one .dist-info directory in {wheel_site_dir}, "
+            f"got {dist_info_dirs}"
+        )
+    dist_info_dir = dist_info_dirs[0]
+    if not (dist_info_dir / "METADATA").is_file():
+        raise RuntimeError(
+            f"Expected METADATA file in {dist_info_dir}, but it does not exist."
+        )
+
+    # Use the Python interpreter in the virtual environment instead of the interpreter
+    # running this script, so that we can evaluate markers correctly.
+    dependencies = (
+        venv.python(
+            "-c",
+            textwrap.dedent(
+                """
+                from packaging.metadata import Metadata
+
+                with open("METADATA", encoding="utf-8") as f:
+                    metadata = Metadata.from_email(f.read())
+                for req in metadata.requires_dist:
+                    if req.marker is None or req.marker.evaluate():
+                        print(req)
+                """
+            ).strip(),
+            cwd=dist_info_dir,
+            capture_output=True,
+        )
+        .stdout.strip()
+        .splitlines()
+    )
+    return [dep.strip() for dep in dependencies]
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def install(
     *,
     venv: Venv,
     packages: Iterable[str],
     subcommand: str = "checkout",
     branch: str | None = None,
+<<<<<<< HEAD
     logger: logging.Logger,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """Development install of PyTorch"""
     use_existing = subcommand == "checkout"
@@ -806,6 +1121,7 @@ def install(
 
     packages = [p for p in packages if p != "torch"]
 
+<<<<<<< HEAD
     dependencies = venv.pip_download("torch", prerelease=True)
     torch_wheel = [
         dep
@@ -822,6 +1138,23 @@ def install(
     with venv.extracted_wheel(torch_wheel) as wheel_site_dir:
         if subcommand == "checkout":
             checkout_nightly_version(cast(str, branch), wheel_site_dir)
+=======
+    downloaded_files = venv.pip_download("torch", prerelease=True, no_deps=True)
+    if len(downloaded_files) != 1:
+        raise RuntimeError(f"Expected exactly one torch wheel, got {downloaded_files}")
+    torch_wheel = downloaded_files[0]
+    if not (
+        torch_wheel.name.startswith("torch-") and torch_wheel.name.endswith(".whl")
+    ):
+        raise RuntimeError(f"Expected exactly one torch wheel, got {torch_wheel}")
+
+    with venv.extracted_wheel(torch_wheel) as wheel_site_dir:
+        dependencies = parse_dependencies(venv, wheel_site_dir)
+        install_packages(venv, [*dependencies, *packages])
+
+        if subcommand == "checkout":
+            checkout_nightly_version(branch, wheel_site_dir)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif subcommand == "pull":
             pull_nightly_version(wheel_site_dir)
         else:
@@ -829,11 +1162,19 @@ def install(
         move_nightly_files(wheel_site_dir)
 
     write_pth(venv)
+<<<<<<< HEAD
     logger.info(
         "-------\n"
         "PyTorch Development Environment set up!\n"
         "Please activate to enable this environment:\n\n"
         "  $ %s",
+=======
+    cast(logging.Logger, LOGGER).info(
+        "-------\n"
+        "PyTorch Development Environment set up!\n"
+        "Please activate to enable this environment:\n\n"
+        "  $ %s\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         venv.activate_command,
     )
 
@@ -854,7 +1195,11 @@ def make_parser() -> argparse.ArgumentParser:
     checkout.add_argument(
         "-b",
         "--branch",
+<<<<<<< HEAD
         help="Branch name to checkout",
+=======
+        help="Branch name to checkout (if omitted, checks out in detached HEAD mode)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dest="branch",
         default=None,
         metavar="NAME",
@@ -930,14 +1275,24 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Main entry point"""
+<<<<<<< HEAD
     global LOGGER
     args = parse_arguments()
+=======
+    global LOGGER, VERBOSE
+    args = parse_arguments()
+    VERBOSE = args.verbose
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     status = check_branch(args.subcmd, args.branch)
     if status:
         sys.exit(status)
 
     pip_source = None
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for toolkit in ("CUDA", "ROCm"):
         accel = toolkit.lower()
         if hasattr(args, accel):
@@ -977,7 +1332,10 @@ def main() -> None:
             packages=PACKAGES_TO_INSTALL,
             subcommand=args.subcmd,
             branch=args.branch,
+<<<<<<< HEAD
             logger=logger,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 

@@ -1,6 +1,10 @@
 #!/bin/bash
 
+<<<<<<< HEAD
 # this script makes it easy parallize collecting data across using multiple GPUs
+=======
+# This script makes it easy to parallelize data collection across multiple GPUs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Check if tmux is installed
 if ! command -v tmux &> /dev/null; then

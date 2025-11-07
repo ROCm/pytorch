@@ -35,7 +35,11 @@ MemOverlap has_internal_overlap(TensorImpl* t) {
     // SymInts.  Thus, if I have u0 size, we should assume that this has > 1
     // elements (first expression), but if I have a u0 stride, I should NOT
     // assume that it is not zero (second expression)
+<<<<<<< HEAD
     if (TORCH_GUARD_SIZE_OBLIVIOUS(sizes[i].sym_gt(1)) && strides[i] == 0) {
+=======
+    if (TORCH_GUARD_OR_FALSE(sizes[i].sym_gt(1)) && strides[i] == 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return MemOverlap::Yes;
     }
   }

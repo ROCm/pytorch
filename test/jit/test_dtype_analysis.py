@@ -17,7 +17,15 @@ from torch.testing._internal.common_methods_invocations import (
     sample_inputs_conv2d,
     SampleInput,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import first_sample, set_default_dtype
+=======
+from torch.testing._internal.common_utils import (
+    first_sample,
+    raise_on_run_directly,
+    set_default_dtype,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_metaprogramming_utils import create_traced_fn
 from torch.testing._internal.jit_utils import JitTestCase
 
@@ -27,6 +35,7 @@ Dtype Analysis relies on symbolic shape analysis, which is still in beta
 """
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -35,6 +44,8 @@ if __name__ == "__main__":
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 custom_rules_works_list = {
     "nn.functional.adaptive_avg_pool1d",
     "nn.functional.adaptive_avg_pool2d",
@@ -386,3 +397,9 @@ class TestDtypeCustomRules(TestDtypeBase):
 TestDtypeCustomRulesCPU = None
 # This creates TestDtypeCustomRulesCPU
 instantiate_device_type_tests(TestDtypeCustomRules, globals(), only_for=("cpu",))
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

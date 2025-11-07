@@ -12,8 +12,11 @@
 #include <torch/csrc/jit/serialization/onnx.h>
 #include <torch/csrc/utils/python_strings.h>
 
+<<<<<<< HEAD
 #include <torch/csrc/onnx/diagnostics/diagnostics.h>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <onnx/shape_inference/implementation.h>
 #include <algorithm>
 #include <cmath>
@@ -24,7 +27,11 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 inline bool PyNone_Check(PyObject* o) {
+=======
+static inline bool PyNone_Check(PyObject* o) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return o == Py_None;
 }
 
@@ -84,7 +91,10 @@ void MergeInferredTypeAndSetMap(
 namespace {
 namespace onnx_torch = ::torch::onnx;
 namespace onnx = ::ONNX_NAMESPACE;
+<<<<<<< HEAD
 namespace diagnostics = ::torch::onnx::diagnostics;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // SymbolDimMap is a Torch-to-ONNX shape look-up. This is built so it can be
 // returned by the export function. During the export however, when we come
@@ -1997,11 +2007,14 @@ void UpdateReliable(
         output->node()->kind().toDisplayString(),
         " type is missing, so it may result in wrong shape inference for the exported graph. ",
         "Please consider adding it in symbolic function.");
+<<<<<<< HEAD
     // Experimental, nothing sent to stdout nor stderr.
     diagnostics::Diagnose(
         diagnostics::Rule::kNodeMissingOnnxShapeInference,
         diagnostics::Level::kWarning,
         {{"op_name", output->node()->kind().toDisplayString()}});
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   auto reliable = false;
   if (inferred) {
@@ -2035,7 +2048,11 @@ void UpdateReliable(Node* n) {
 // Traverse the graph inputs and compute reliability (e.g., are shapes static).
 // Since the inputs do not change during export, we save computation time by
 // marking it as computed and subsequently skipping.
+<<<<<<< HEAD
 void SetGraphInputTypeReliable(const Graph* g) {
+=======
+static void SetGraphInputTypeReliable(const Graph* g) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!ConstantValueMap::GetAllGraphInputsReliableComputed()) {
     for (auto graph_input : g->inputs()) {
       if (!ConstantValueMap::HasTypeReliable(graph_input->debugName())) {
@@ -2263,7 +2280,11 @@ void ONNXSetDynamicInputShape(
   }
 }
 
+<<<<<<< HEAD
 bool HasSequenceTypeOutput(Node* node) {
+=======
+static bool HasSequenceTypeOutput(Node* node) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (node->kind() == ::c10::onnx::SplitToSequence ||
       node->kind() == ::c10::onnx::SequenceInsert ||
       node->kind() == ::c10::onnx::SequenceEmpty ||
@@ -2274,7 +2295,11 @@ bool HasSequenceTypeOutput(Node* node) {
   return false;
 }
 
+<<<<<<< HEAD
 void ONNXUpdateTypeFromTensor(
+=======
+static void ONNXUpdateTypeFromTensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Value* graph_output,
     const at::Tensor& output,
     bool onnx_shape_inference) {
@@ -2290,7 +2315,11 @@ void ONNXUpdateTypeFromTensor(
 // into flattened graph outputs. `outputs_index` is passed in to point to the
 // current index in flattened graph outputs. The updated `outputs_index` is
 // returned at the end of the function.
+<<<<<<< HEAD
 size_t ONNXAssignOutputShape(
+=======
+static size_t ONNXAssignOutputShape(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::shared_ptr<Graph>& graph,
     size_t outputs_index,
     PyObject* output_obj,

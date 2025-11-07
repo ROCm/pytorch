@@ -354,7 +354,11 @@ class Dispatcher:
         self._cache = {}
 
     @property
+<<<<<<< HEAD
     def __doc__(self):
+=======
+    def __doc__(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         docs = [f"Multiply dispatched method: {self.name}"]
 
         if self.doc:

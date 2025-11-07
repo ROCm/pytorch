@@ -33,7 +33,11 @@ TORCH_DECLARE_REGISTRY(SROperatorRegistry, SROperatorFunctor);
 
 #define REGISTER_OPERATOR_FUNCTOR(name, id, ...)             \
   struct SROperatorFunctor_##id : public SROperatorFunctor { \
+<<<<<<< HEAD
     const SROpFunctor fn = __VA_ARGS__;                      \
+=======
+    SROpFunctor fn = __VA_ARGS__;                            \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SROperator Generate(Node* n) override {                  \
       return fn(n);                                          \
     }                                                        \
@@ -43,7 +47,11 @@ TORCH_DECLARE_REGISTRY(SROperatorRegistry, SROperatorFunctor);
 TORCH_DECLARE_REGISTRY(SRNativeOperatorRegistry, SROperatorFunctor);
 #define REGISTER_NATIVE_OPERATOR_FUNCTOR(name, id, ...)            \
   struct SRNativeOperatorFunctor_##id : public SROperatorFunctor { \
+<<<<<<< HEAD
     const SROpFunctor fn = __VA_ARGS__;                            \
+=======
+    SROpFunctor fn = __VA_ARGS__;                                  \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SROperator Generate(Node* n) override {                        \
       return fn(n);                                                \
     }                                                              \
@@ -182,5 +190,11 @@ bool sr_schema_check(
 }
 
 bool sr_schema_check_kind(torch::jit::Node* node, c10::Symbol node_kind);
+<<<<<<< HEAD
 
 } // namespace torch::jit
+=======
+} // namespace torch::jit
+
+C10_DECLARE_bool(static_runtime_enable_fast_math);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

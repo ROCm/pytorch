@@ -123,6 +123,7 @@ void clearCublasWorkspaces() {
 }
 
 size_t parseChosenWorkspaceSize() {
+<<<<<<< HEAD
   const char * val = getenv("CUBLAS_WORKSPACE_CONFIG");
 #ifdef USE_ROCM
   if (!val) {
@@ -137,6 +138,20 @@ size_t parseChosenWorkspaceSize() {
   std::string device_arch = properties->gcnArchName;
   const bool gfx94 = device_arch.find("gfx94") != std::string::npos;
   const size_t default_size = gfx94 ? 1024 * 128 * 1024 : 1024 * 32 * 1024;
+=======
+  auto val = c10::utils::get_env("CUBLAS_WORKSPACE_CONFIG");
+#ifdef USE_ROCM
+  if (!val) {
+    val = c10::utils::get_env("HIPBLAS_WORKSPACE_CONFIG");
+  }
+  if (!val) {
+    // for extra convenience
+    val = c10::utils::get_env("ROCBLAS_WORKSPACE_CONFIG");
+  }
+  /* 32MiB default, 128MiB for gfx94x/gfx95x */
+  const bool gfx94_95 = at::detail::getCUDAHooks().isGPUArch({"gfx94", "gfx95"});
+  const size_t default_size = gfx94_95 ? 1024 * 128 * 1024 : 1024 * 32 * 1024;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   /* :4096:2:16:8 default, 32MiB for Hopper */
   cudaDeviceProp* properties = at::cuda::getCurrentDeviceProperties();
@@ -146,7 +161,11 @@ size_t parseChosenWorkspaceSize() {
 
   if (val) {
     size_t total_size = 0;
+<<<<<<< HEAD
     const std::string config(val);
+=======
+    const std::string& config(val.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::regex exp(":([0-9]+):([0-9]+)");
     std::sregex_iterator next(config.begin(), config.end(), exp);
     std::sregex_iterator end;

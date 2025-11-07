@@ -16,7 +16,11 @@ from benchmark_utils import (  # type: ignore[import-not-found]
 )
 
 import torch
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class BenchmarkRunnerMM(BenchmarkRunner):  # type: ignore[misc, no-any-unimported]
@@ -57,7 +61,11 @@ class BenchmarkRunnerMM(BenchmarkRunner):  # type: ignore[misc, no-any-unimporte
                 dtype_right=dtype,
             )
 
+<<<<<<< HEAD
             with fresh_inductor_cache():
+=======
+            with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 def mixed_mm(A: Any, B: Any) -> Any:
                     return torch.mm(A, B)

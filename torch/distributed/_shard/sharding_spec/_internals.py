@@ -1,4 +1,8 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+import math
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional
 
 from torch.distributed._shard.metadata import ShardMetadata
@@ -94,6 +98,19 @@ def validate_non_overlapping_shards_metadata(shards: list[ShardMetadata]):
 
     pair: Optional[tuple[int, int]] = None
     if len(sharded_dims) == 0:
+<<<<<<< HEAD
+=======
+        # if shard is all zeros, we should consider as pass
+        all_zeros: bool = all(
+            # strictly limited all offsets to be 0 to pass
+            # could loose it later on
+            shard.shard_offsets == [0] * len(shards[0].shard_offsets)
+            and math.prod(shard.shard_sizes) == 0  # one dimension is 0
+            for shard in shards
+        )
+        if all_zeros:
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # All shards are the same, all dims are not partitioned. Choose any 2.
         pair = (0, 1)
     elif len(sharded_dims) == 1:

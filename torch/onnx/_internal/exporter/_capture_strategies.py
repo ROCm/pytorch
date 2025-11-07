@@ -12,7 +12,11 @@ import pathlib
 from typing import Any, Callable, TYPE_CHECKING
 
 import torch
+<<<<<<< HEAD
 from torch.utils import _pytree
+=======
+from torch.export import _draft_export
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -62,6 +66,16 @@ class Result:
 
     @property
     def success(self) -> bool:
+<<<<<<< HEAD
+=======
+        """Whether the capture was successful.
+
+        An exception can still be recorded even if the capture was successful. In
+        this case the exception is informational only. For example, draft_export
+        can record an exception if there are warnings during the export. The exceptions
+        will go into the onnx export report when report=True.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.exported_program is not None
 
 
@@ -71,7 +85,11 @@ class CaptureStrategy(abc.ABC):
     To use a strategy, create an instance and call it with the model, args, kwargs, and dynamic_shapes.
     Example::
 
+<<<<<<< HEAD
         strategy = TorchExportStrategy(verbose=True)
+=======
+        strategy = TorchExportNonStrictStrategy(verbose=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = strategy(model, args, kwargs, dynamic_shapes)
     """
 
@@ -95,6 +113,10 @@ class CaptureStrategy(abc.ABC):
         self._timestamp = timestamp or datetime.datetime.now().strftime(
             "%Y-%m-%d_%H-%M-%S-%f"
         )
+<<<<<<< HEAD
+=======
+        self._exception: Exception | None = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __call__(
         self,
@@ -116,7 +138,15 @@ class CaptureStrategy(abc.ABC):
                 exception=e,
             )
         self._success(model)
+<<<<<<< HEAD
         return Result(exported_program, strategy=self.__class__.__name__)
+=======
+        return Result(
+            exported_program,
+            strategy=self.__class__.__name__,
+            exception=self._exception,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abc.abstractmethod
     def _capture(
@@ -136,11 +166,23 @@ class CaptureStrategy(abc.ABC):
         return
 
 
+<<<<<<< HEAD
 class TorchExportStrategy(CaptureStrategy):
     def _capture(
         self, model, args, kwargs, dynamic_shapes
     ) -> torch.export.ExportedProgram:
         with _patch_dynamo_unsupported_functions():
+=======
+class TorchExportStrictStrategy(CaptureStrategy):
+    def _capture(
+        self, model, args, kwargs, dynamic_shapes
+    ) -> torch.export.ExportedProgram:
+        with (
+            _patch_dynamo_unsupported_functions(),
+            # Support the dynamism with 0/1 input dim
+            torch.fx.experimental._config.patch(backed_size_oblivious=True),  # type: ignore[attr-defined]
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 return torch.export.export(
                     model,
@@ -165,20 +207,32 @@ class TorchExportStrategy(CaptureStrategy):
     def _enter(self, model) -> None:
         model_repr = _take_first_line(repr(model))
         self._verbose_print(
+<<<<<<< HEAD
             f"Obtain model graph for `{model_repr}` with `torch.export.export`..."
+=======
+            f"Obtain model graph for `{model_repr}` with `torch.export.export(..., strict=True)`..."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def _success(self, model) -> None:
         model_repr = _take_first_line(repr(model))
         self._verbose_print(
+<<<<<<< HEAD
             f"Obtain model graph for `{model_repr}` with `torch.export.export`... ✅"
+=======
+            f"Obtain model graph for `{model_repr}` with `torch.export.export(..., strict=True)`... ✅"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def _failure(self, model, e) -> None:
         del e  # Unused
         model_repr = _take_first_line(repr(model))
         self._verbose_print(
+<<<<<<< HEAD
             f"Obtain model graph for `{model_repr}` with `torch.export.export`... ❌"
+=======
+            f"Obtain model graph for `{model_repr}` with `torch.export.export(..., strict=True)`... ❌"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -186,6 +240,7 @@ class TorchExportNonStrictStrategy(CaptureStrategy):
     def _capture(
         self, model, args, kwargs, dynamic_shapes
     ) -> torch.export.ExportedProgram:
+<<<<<<< HEAD
         try:
             return torch.export.export(
                 model, args, kwargs=kwargs, dynamic_shapes=dynamic_shapes, strict=False
@@ -202,6 +257,32 @@ class TorchExportNonStrictStrategy(CaptureStrategy):
             return torch.export.export(
                 model, args, kwargs=kwargs, dynamic_shapes=new_shapes, strict=False
             )
+=======
+        with (
+            # Support the dynamism with 0/1 input dim
+            torch.fx.experimental._config.patch(backed_size_oblivious=True),  # type: ignore[attr-defined]
+        ):
+            try:
+                return torch.export.export(
+                    model,
+                    args,
+                    kwargs=kwargs,
+                    dynamic_shapes=dynamic_shapes,
+                    strict=False,
+                )
+            except torch._dynamo.exc.UserError as exc:
+                # Refine the dynamic shapes based on the suggested fixes.
+                try:
+                    new_shapes = torch.export.dynamic_shapes.refine_dynamic_shapes_from_suggested_fixes(
+                        exc.msg, dynamic_shapes
+                    )
+                except Exception:
+                    # If the dynamic shapes cannot be refined, re-raise the exception.
+                    raise exc from None
+                return torch.export.export(
+                    model, args, kwargs=kwargs, dynamic_shapes=new_shapes, strict=False
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _enter(self, model) -> None:
         model_repr = _take_first_line(repr(model))
@@ -223,6 +304,7 @@ class TorchExportNonStrictStrategy(CaptureStrategy):
         )
 
 
+<<<<<<< HEAD
 class JitTraceConvertStrategy(CaptureStrategy):
     def _capture(
         self, model, args, kwargs, dynamic_shapes
@@ -300,30 +382,60 @@ class JitTraceConvertStrategy(CaptureStrategy):
                 dynamic_shapes=dynamic_shapes,
                 strict=False,
             )
+=======
+class TorchExportDraftExportStrategy(CaptureStrategy):
+    def _capture(
+        self, model, args, kwargs, dynamic_shapes
+    ) -> torch.export.ExportedProgram:
+        ep = _draft_export.draft_export(
+            model, args, kwargs=kwargs, dynamic_shapes=dynamic_shapes
+        )
+        report = ep._report  # type: ignore[attr-defined]
+        if not report.successful():
+            self._exception = RuntimeError(str(report))
+            self._verbose_print(f"Draft Export report:\n{report}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ep
 
     def _enter(self, model) -> None:
         model_repr = _take_first_line(repr(model))
         self._verbose_print(
+<<<<<<< HEAD
             f"Obtain model graph for `{model_repr}` with Torch Script..."
+=======
+            f"Obtain model graph for `{model_repr}` with `torch.export draft_export`..."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def _success(self, model) -> None:
         model_repr = _take_first_line(repr(model))
         self._verbose_print(
+<<<<<<< HEAD
             f"Obtain model graph for `{model_repr}` with Torch Script... ✅"
+=======
+            f"Obtain model graph for `{model_repr}` with `torch.export draft_export`... ✅"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def _failure(self, model, e) -> None:
         del e  # Unused
         model_repr = _take_first_line(repr(model))
         self._verbose_print(
+<<<<<<< HEAD
             f"Obtain model graph for `{model_repr}` with Torch Script... ❌"
+=======
+            f"Obtain model graph for `{model_repr}` with `torch.export draft_export`... ❌"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
 CAPTURE_STRATEGIES = (
     TorchExportNonStrictStrategy,  # strict=False is preferred over strict=True because it does not have dynamo issues
+<<<<<<< HEAD
     TorchExportStrategy,
     JitTraceConvertStrategy,
+=======
+    TorchExportStrictStrategy,
+    TorchExportDraftExportStrategy,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )

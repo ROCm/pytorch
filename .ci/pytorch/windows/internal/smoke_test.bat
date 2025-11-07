@@ -35,6 +35,7 @@ exit /b 1
 :wheel
 echo "install wheel package"
 
+<<<<<<< HEAD
 set PYTHON_INSTALLER_URL=
 if "%DESIRED_PYTHON%" == "3.13t" set "PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
 if "%DESIRED_PYTHON%" == "3.13" set "PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
@@ -66,6 +67,10 @@ start /wait "" python-amd64.exe /quiet InstallAllUsers=1 PrependPath=0 Include_t
 if errorlevel 1 exit /b 1
 
 set "PATH=%CD%\Python%PYTHON_VERSION%\Scripts;%CD%\Python;%PATH%"
+=======
+call "internal\install_python.bat"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if "%DESIRED_PYTHON%" == "3.13t" %PYTHON_EXEC% -m pip install --pre numpy==2.2.1 protobuf
 if "%DESIRED_PYTHON%" == "3.13" %PYTHON_EXEC% -m pip install --pre numpy==2.1.2 protobuf
 if "%DESIRED_PYTHON%" == "3.12" %PYTHON_EXEC% -m pip install --pre numpy==2.0.2 protobuf
@@ -82,7 +87,11 @@ if "%PYTORCH_BUILD_VERSION:dev=%" NEQ "%PYTORCH_BUILD_VERSION%" (
 )
 
 set "EXTRA_INDEX= "
+<<<<<<< HEAD
 if "%CUDA_VERSION%" == "xpu" set "EXTRA_INDEX=--index-url https://download.pytorch.org/whl/%CHANNEL%/xpu"
+=======
+if "%CUDA_VERSION%" == "xpu" set "EXTRA_INDEX=--index-url https://download.pytorch.org/whl/%CHANNEL%/xpu"  %= @lint-ignore =%
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 for /F "delims=" %%i in ('where /R "%PYTORCH_FINAL_PACKAGE_DIR:/=\%" *.whl') do %PYTHON_EXEC% -m pip install "%%i" %EXTRA_INDEX%
 if errorlevel 1 exit /b 1
@@ -128,7 +137,10 @@ goto end
 :libtorch
 echo "install and test libtorch"
 
+<<<<<<< HEAD
 if "%VC_YEAR%" == "2019" powershell internal\vs2019_install.ps1
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if "%VC_YEAR%" == "2022" powershell internal\vs2022_install.ps1
 
 if ERRORLEVEL 1 exit /b 1
@@ -140,10 +152,13 @@ pushd tmp\libtorch
 
 set VC_VERSION_LOWER=17
 set VC_VERSION_UPPER=18
+<<<<<<< HEAD
 IF "%VC_YEAR%" == "2019" (
     set VC_VERSION_LOWER=16
     set VC_VERSION_UPPER=17
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -legacy -products * -version [%VC_VERSION_LOWER%^,%VC_VERSION_UPPER%^) -property installationPath`) do (
     if exist "%%i" if exist "%%i\VC\Auxiliary\Build\vcvarsall.bat" (

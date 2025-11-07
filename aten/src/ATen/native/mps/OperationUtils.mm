@@ -1,6 +1,10 @@
 //  Copyright © 2022 Apple Inc.
 #include <ATen/core/TensorBase.h>
 #include <ATen/native/mps/MetalShaderLibrary.h>
+<<<<<<< HEAD
+=======
+#include <c10/metal/common.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <functional>
 #include <stdexcept>
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
@@ -12,6 +16,10 @@
 #include <ATen/native/mps/MPSGraphVenturaOps.h>
 #include <ATen/native/mps/OperationUtils.h>
 #include <fmt/format.h>
+<<<<<<< HEAD
+=======
+#include <fmt/ranges.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -20,6 +28,10 @@
 #include <ATen/ops/scalar_tensor.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <mach-o/dyld.h>
 #include <mach-o/getsect.h>
 
@@ -307,6 +319,7 @@ std::string getMPSShapeString(MPSShape* shape) {
 }
 
 std::string getArrayRefString(const IntArrayRef s) {
+<<<<<<< HEAD
   std::stringstream ss;
   std::copy(s.begin(), s.end(), std::ostream_iterator<int>(ss, ","));
   return ss.str();
@@ -338,6 +351,37 @@ std::string getTensorsStringKey(const TensorList& tensors, bool short_dtype, boo
     }
   }
   return str;
+=======
+  return fmt::to_string(fmt::join(s, ","));
+}
+
+std::string getTensorsStringKey(const TensorList& tensors, bool short_dtype, bool exclude_shape) {
+  fmt::basic_memory_buffer<char, 100> buffer;
+  auto buf_iterator = std::back_inserter(buffer);
+
+  for (const Tensor& tensor : tensors) {
+    fmt::format_to(buf_iterator, ":");
+    if (tensor.defined()) {
+      fmt::format_to(buf_iterator, "{}[", getMPSTypeString(tensor.scalar_type(), short_dtype));
+      if (tensor.dim() == 0) {
+        fmt::format_to(buf_iterator, "Scalar");
+      } else {
+        if (exclude_shape) {
+          fmt::format_to(buf_iterator, "-1");
+        } else {
+          fmt::format_to(buf_iterator, getArrayRefString(tensor.sizes()));
+        }
+      }
+      fmt::format_to(buf_iterator, "]");
+      if (tensor.is_conj()) {
+        fmt::format_to(buf_iterator, "_conj");
+      }
+    } else {
+      fmt::format_to(buf_iterator, "Undefined");
+    }
+  }
+  return fmt::to_string(buffer);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor getTensorView(const Tensor& t, MPSShape* shape) {
@@ -466,7 +510,11 @@ MPSNDArray* getMPSNDArray(const TensorBase& t, MPSShape* sizes, MPSShape* stride
                                                         offset:t.storage_offset() * t.element_size()
                                                     descriptor:srcTensorDesc] autorelease];
   if (strides != nil) {
+<<<<<<< HEAD
     srcNDArray = [srcNDArray arrayViewWithShape:sizes strides:strides];
+=======
+    srcNDArray = getStridedMPSNDArray(t, srcNDArray);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return srcNDArray;
 }
@@ -475,7 +523,11 @@ MPSNDArray* getMPSNDArray(const TensorBase& t, const IntArrayRef& sizes, const I
   return getMPSNDArray(t, getMPSShape(sizes.empty() ? t.sizes() : sizes), strides.empty() ? nil : getMPSShape(strides));
 }
 
+<<<<<<< HEAD
 static MPSNDArray* getStridedMPSNDArray(const TensorBase& src, MPSNDArray* srcNDArray) {
+=======
+MPSNDArray* getStridedMPSNDArray(const TensorBase& src, MPSNDArray* srcNDArray) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto strides = src.strides();
   auto sizes = src.sizes();
   auto nStrides = strides.size();
@@ -759,8 +811,13 @@ MPSGraphTensor* convertNHWCtoNCHW(MPSGraph* mpsGraph, MPSGraphTensor* tensor) {
                               name:nil];
 }
 
+<<<<<<< HEAD
 string get_mem_format_string(c10::MemoryFormat memory_format) {
   string mem_format_key;
+=======
+std::string get_mem_format_string(c10::MemoryFormat memory_format) {
+  std::string mem_format_key;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   switch (memory_format) {
     case at::MemoryFormat::Contiguous:
       mem_format_key = "Contiguous";
@@ -777,6 +834,11 @@ string get_mem_format_string(c10::MemoryFormat memory_format) {
 
 MPSGraphCache* MPSGraphCache::_instance_cache = nullptr;
 
+<<<<<<< HEAD
+=======
+MPSKernelCache* MPSKernelCache::_instance_cache = nullptr;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void MPSGraphCache::profileCachedGraph(const CacheEntry& cacheEntry) const {
   auto& profiler = getMPSProfiler();
   if (profiler.isOperationProfilingEnabled()) {
@@ -853,8 +915,13 @@ id<MTLLibrary> MetalShaderLibrary::getLibrary(const std::initializer_list<std::s
 
 id<MTLLibrary> MetalShaderLibrary::compileLibrary(const std::string& src) {
   static auto fast_math = []() {
+<<<<<<< HEAD
     auto val = std::getenv("PYTORCH_MPS_FAST_MATH");
     return val && std::stoi(val) != 0;
+=======
+    auto const val = c10::utils::get_env("PYTORCH_MPS_FAST_MATH");
+    return val.has_value() && val != "0";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }();
   NSError* error = nil;
   MTLCompileOptions* options = compile_options;
@@ -921,7 +988,12 @@ std::vector<std::string> MetalShaderLibrary::getFunctionNames() {
 }
 
 std::shared_ptr<MetalKernelFunction> MetalShaderLibrary::getKernelFunction(const std::string& name) {
+<<<<<<< HEAD
   return std::make_shared<MetalKernelFunction>(getPipelineStateForFunc(name));
+=======
+  auto [cpl, func] = getLibraryPipelineState(getLibrary(), name);
+  return std::make_shared<MetalKernelFunction>(cpl, func);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 class BundledShaderLibary : public MetalShaderLibrary {
@@ -969,15 +1041,31 @@ class BundledShaderLibary : public MetalShaderLibrary {
 
 void MetalShaderLibrary::exec_unary_kernel(TensorIteratorBase& iter,
                                            const std::string& name,
+<<<<<<< HEAD
                                            std::optional<int64_t> extra) {
   auto inputTensor = iter.input(0);
   auto outputTensor = iter.output(0);
   bool is_storage_dense = is_dense_in_storage(inputTensor) && inputTensor.strides().equals(outputTensor.strides());
+=======
+                                           std::optional<c10::Scalar> alpha,
+                                           std::optional<c10::ScalarType> scalar_arg_type) {
+  // Decompose 64-bit tensor into 32-bit ones
+  if (!iter.can_use_32bit_indexing()) {
+    for (auto&& sub_iter : iter.with_32bit_indexing()) {
+      exec_unary_kernel(sub_iter, name, alpha, scalar_arg_type);
+    }
+    return;
+  }
+
+  auto inputTensor = iter.input(0);
+  auto outputTensor = iter.output(0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint32_t length = iter.numel();
   if (length == 0) {
     return;
   }
   using namespace mps;
+<<<<<<< HEAD
   @autoreleasepool {
     id<MTLComputePipelineState> cplState = nil;
     cplState = getPipelineStateForFunc(fmt::format("{}_{}_{}_{}",
@@ -985,6 +1073,17 @@ void MetalShaderLibrary::exec_unary_kernel(TensorIteratorBase& iter,
                                                    is_storage_dense ? "dense" : "strided",
                                                    scalarToMetalTypeString(outputTensor),
                                                    scalarToMetalTypeString(inputTensor)));
+=======
+  const auto alpha_type = scalar_arg_type.has_value() ? scalar_arg_type.value() : iter.common_dtype();
+  auto kernel_name = fmt::format("{}_{}_{}_{}{}",
+                                 name,
+                                 iter.is_contiguous() ? "dense" : "strided",
+                                 scalarToMetalTypeString(outputTensor),
+                                 scalarToMetalTypeString(inputTensor),
+                                 alpha.has_value() ? fmt::format("_{}", scalarToMetalTypeString(alpha_type)) : "");
+  @autoreleasepool {
+    auto cplState = getPipelineStateForFunc(kernel_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     MPSStream* mpsStream = getCurrentMPSStream();
     dispatch_sync(mpsStream->queue(), ^() {
@@ -993,6 +1092,7 @@ void MetalShaderLibrary::exec_unary_kernel(TensorIteratorBase& iter,
       getMPSProfiler().beginProfileKernel(cplState, name, {inputTensor});
 
       [computeEncoder setComputePipelineState:cplState];
+<<<<<<< HEAD
       if (is_storage_dense) {
         mtl_setArgs(computeEncoder, outputTensor, inputTensor);
         if (extra) {
@@ -1009,6 +1109,18 @@ void MetalShaderLibrary::exec_unary_kernel(TensorIteratorBase& iter,
         if (extra) {
           mtl_setBytes(computeEncoder, *extra, 6);
         }
+=======
+      bind_iter_tensors(computeEncoder, iter);
+      if (!iter.is_contiguous()) {
+        mtl_setArgs<2>(computeEncoder,
+                       outputTensor.sizes(),
+                       inputTensor.strides(),
+                       outputTensor.strides(),
+                       inputTensor.ndimension());
+      }
+      if (alpha) {
+        mtl_setBytes(computeEncoder, getMPSScalar(*alpha, alpha_type), iter.is_contiguous() ? 2 : 6);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       mtl_dispatch1DJob(computeEncoder, cplState, length);
 
@@ -1017,6 +1129,108 @@ void MetalShaderLibrary::exec_unary_kernel(TensorIteratorBase& iter,
   }
 }
 
+<<<<<<< HEAD
+=======
+void MetalShaderLibrary::exec_binary_kernel(TensorIteratorBase& iter,
+                                            const std::string& name,
+                                            std::optional<c10::Scalar> alpha,
+                                            std::optional<c10::ScalarType> scalar_arg_type) {
+  // TODO: Figure a better place to downcast double scalars (probably in tensor iterator itself?)
+  // Right now running something like 1.0-torch.rand(5, device='mps') will create iterator with
+  // double as common dtype (because Python floating point are always 64-bit values)
+  TORCH_CHECK(iter.output().scalar_type() != at::kDouble, "float64 is not supported on MPS");
+
+  // Skip for empty iterators
+  if (iter.numel() == 0) {
+    return;
+  }
+
+  // Decompose 64-bit tensor into 32-bit ones
+  if (!iter.can_use_32bit_indexing()) {
+    for (auto&& sub_iter : iter.with_32bit_indexing()) {
+      exec_binary_kernel(sub_iter, name, alpha, scalar_arg_type);
+    }
+    return;
+  }
+
+  auto convert_double_scalar = [](Tensor& t) {
+    if (t.dim() != 0) {
+      return;
+    }
+    if (t.scalar_type() == kDouble) {
+      t = t.to(kFloat);
+    } else if (t.scalar_type() == kComplexDouble) {
+      t = t.to(kComplexFloat);
+    }
+  };
+
+  Tensor input = iter.input(0);
+  Tensor other = iter.input(1);
+  Tensor out = iter.output();
+
+  convert_double_scalar(input);
+  convert_double_scalar(other);
+
+  MPSStream* mpsStream = getCurrentMPSStream();
+  const auto cast_needed = input.scalar_type() != other.scalar_type();
+  const auto suffix = iter.is_contiguous() ? "dense" : "strided";
+  const auto alpha_type = scalar_arg_type.has_value() ? scalar_arg_type.value() : iter.common_dtype();
+  const auto alpha_suffix = alpha.has_value() ? fmt::format("_{}", scalarToMetalTypeString(alpha_type)) : "";
+  // TODO: Implicitly pass both input and output types to non-cast kernels
+  const auto kernel_name = cast_needed
+      ? fmt::format("{}_{}_cast_{}{}", name, suffix, scalarToMetalTypeString(out), alpha_suffix)
+      : fmt::format(
+            "{}_{}_{}_{}{}", name, suffix, scalarToMetalTypeString(out), scalarToMetalTypeString(input), alpha_suffix);
+  dispatch_sync_with_rethrow(mpsStream->queue(), ^() {
+    @autoreleasepool {
+      auto computeEncoder = mpsStream->commandEncoder();
+      auto binaryPSO = getPipelineStateForFunc(kernel_name);
+      // this function call is a no-op if MPS Profiler is not enabled
+      getMPSProfiler().beginProfileKernel(binaryPSO, kernel_name, {input, other});
+      [computeEncoder setComputePipelineState:binaryPSO];
+      // Set input and output tensors
+      bind_iter_tensors(computeEncoder, iter);
+      // Iterator is contiguous if all of its elements are dense in storage,
+      // i.e. it's true for both row-first and column-first tensors
+      if (iter.is_contiguous()) {
+        if (alpha) {
+          mtl_setBytes(computeEncoder, getMPSScalar(*alpha, alpha_type), 3);
+        }
+        if (cast_needed) {
+          std::array<int, 4> size_and_types = {static_cast<int>(c10::elementSize(input.scalar_type())),
+                                               static_cast<int>(c10::elementSize(other.scalar_type())),
+                                               static_cast<int>(input.scalar_type()),
+                                               static_cast<int>(other.scalar_type())};
+          mtl_setBytes(computeEncoder, size_and_types, alpha ? 4 : 3);
+        }
+      } else {
+        // Please note that shapes and strides of the iterator might be
+        // different than that of its operands, for example binary op
+        // between 4x4 tensor and scalar will result in 1D 16 element iterator
+        std::array<int, 4> ndim_and_types = {iter.ndim(),
+                                             static_cast<int>(input.scalar_type()),
+                                             static_cast<int>(other.scalar_type()),
+                                             static_cast<int>(out.scalar_type())};
+        if (alpha) {
+          mtl_setArgs<3>(computeEncoder,
+                         getMPSScalar(*alpha, alpha_type),
+                         iter.shape(),
+                         iter.strides(0),
+                         iter.strides(1),
+                         iter.strides(2),
+                         ndim_and_types);
+        } else {
+          mtl_setArgs<3>(
+              computeEncoder, iter.shape(), iter.strides(0), iter.strides(1), iter.strides(2), ndim_and_types);
+        }
+      }
+      mtl_dispatch1DJob(computeEncoder, binaryPSO, iter.numel());
+      getMPSProfiler().endProfileKernel(binaryPSO);
+    }
+  });
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MetalShaderLibrary& MetalShaderLibrary::getBundledLibrary() {
   static BundledShaderLibary l;
   return l;
@@ -1028,10 +1242,19 @@ DynamicMetalShaderLibrary::~DynamicMetalShaderLibrary() {
 }
 
 // MetalKernelFunction implementation
+<<<<<<< HEAD
 MetalKernelFunction::MetalKernelFunction(MTLComputePipelineState_t cps_) : cps([cps_ retain]) {}
 
 MetalKernelFunction::~MetalKernelFunction() {
   [cps release];
+=======
+MetalKernelFunction::MetalKernelFunction(MTLComputePipelineState_t cps_, MTLFunction_t f_)
+    : cps([cps_ retain]), func([f_ retain]) {}
+
+MetalKernelFunction::~MetalKernelFunction() {
+  [cps release];
+  [func release];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void MetalKernelFunction::runCommandBlock(std::function<void(void)> run) {
@@ -1055,7 +1278,11 @@ void MetalKernelFunction::dispatch(uint64_t length, std::optional<uint64_t> grou
 }
 
 void MetalKernelFunction::dispatch(c10::ArrayRef<uint64_t> length, c10::OptionalArrayRef<uint64_t> group_size) {
+<<<<<<< HEAD
   TORCH_CHECK(length.size() > 0 && length.size() < 4, "Dispatch dimentions must be less than 3 and non-empty");
+=======
+  TORCH_CHECK(!length.empty() && length.size() < 4, "Dispatch dimentions must be less than 3 and non-empty");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(!group_size.has_value() || group_size->size() == length.size(),
               "size and group_size must have same number of dimentions");
   const auto max_tg_size = getMaxThreadsPerThreadgroup();
@@ -1092,4 +1319,17 @@ uint64_t MetalKernelFunction::getStaticThreadGroupMemoryLength() const {
   return [cps staticThreadgroupMemoryLength];
 }
 
+<<<<<<< HEAD
 } // namespace at::native::mps
+=======
+void* get_tensor_gpu_address(const at::TensorBase& t) {
+  return reinterpret_cast<void*>(getMTLBufferStorage(t).gpuAddress + t.storage_offset() * t.element_size());
+}
+
+} // namespace at::native::mps
+
+// Check that c10::metal::ScalarType is strict subset (with matching values) of c10::ScalarType
+#define DTYPE_CHECKER(_n, _v) \
+  static_assert(static_cast<int>(::c10::ScalarType::_n) == static_cast<int>(::c10::metal::ScalarType::_n));
+C10_METAL_ALL_TYPES_FUNCTOR(DTYPE_CHECKER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

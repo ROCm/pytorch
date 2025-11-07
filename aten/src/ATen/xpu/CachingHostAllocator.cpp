@@ -32,6 +32,7 @@ struct XPUCachingHostAllocatorImpl
   }
 };
 
+<<<<<<< HEAD
 void raw_local_deleter(void* ptr);
 
 struct XPUCachingHostAllocator final
@@ -73,4 +74,15 @@ at::Allocator* getCachingHostAllocator() {
   return &getXPUCachingHostAllocator();
 }
 
+=======
+DECLARE_HOST_ALLOCATOR(
+    XPUCachingHostAllocator,
+    XPUCachingHostAllocatorImpl,
+    raw_local_deleter,
+    caching_host_allocator)
+
+REGISTER_HOST_ALLOCATOR(at::kXPU, &caching_host_allocator);
+
+} // anonymous namespace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::xpu

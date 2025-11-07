@@ -14,6 +14,16 @@ DISTRIBUTED = [
 ]
 
 register_log(
+<<<<<<< HEAD
+=======
+    "async_compile",
+    [
+        "torch._inductor.async_compile",
+        "torch._inductor.compile_worker.tracked_process_pool",
+    ],
+)
+register_log(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "cache", ("torch._inductor.remote_cache", "torch._inductor.fb.remote_cache")
 )
 register_log("dynamo", ["torch._dynamo", *DYNAMIC])
@@ -71,6 +81,13 @@ register_artifact(
 )
 register_artifact("graph_code", "Like `graph`, but gives you the Python code instead.")
 register_artifact(
+<<<<<<< HEAD
+=======
+    "graph_code_verbose",
+    "Verbose FX pass logs, e.g. from tensorify_python_scalars and runtime_assert.",
+)
+register_artifact(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "graph_sizes", "Prints the sizes of all FX nodes in the dynamo graph."
 )
 register_artifact(
@@ -172,6 +189,10 @@ register_artifact(
 )
 register_artifact("perf_hints", "", off_by_default=True)
 register_artifact("onnx_diagnostics", "", off_by_default=True)
+<<<<<<< HEAD
+=======
+register_artifact("compute_dependencies", "", off_by_default=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 register_artifact(
     "fusion",
     "Detailed Inductor fusion decisions. More detailed than 'schedule'",
@@ -183,6 +204,15 @@ register_artifact(
     off_by_default=True,
 )
 register_artifact(
+<<<<<<< HEAD
+=======
+    "loop_tiling",
+    "Logs related to loop ordering",
+    off_by_default=True,
+)
+
+register_artifact(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "overlap",
     "Detailed Inductor compute/comm overlap decisions",
     off_by_default=True,
@@ -218,4 +248,17 @@ register_artifact(
     off_by_default=True,
 )
 
+<<<<<<< HEAD
+=======
+register_artifact(
+    "inductor_metrics",
+    "Logs Inductor metrics, such as num_bytes, nodes_num_elem, node_runtimes",
+    off_by_default=True,
+)
+register_artifact(
+    "hierarchical_compile",
+    "Logs debug info for hierarchical compilation",
+    off_by_default=True,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 register_artifact("custom_format_test_artifact", "Testing only", log_format="")

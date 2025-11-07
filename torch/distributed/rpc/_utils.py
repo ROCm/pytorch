@@ -3,8 +3,11 @@ import logging
 from contextlib import contextmanager
 from typing import cast
 
+<<<<<<< HEAD
 from . import api, TensorPipeAgent
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +43,11 @@ def _group_membership_management(store, name, is_join):
 
 
 def _update_group_membership(worker_info, my_devices, reverse_device_map, is_join):
+<<<<<<< HEAD
+=======
+    from . import api, TensorPipeAgent
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     agent = cast(TensorPipeAgent, api._get_current_rpc_agent())
     ret = agent._update_group_membership(
         worker_info, my_devices, reverse_device_map, is_join

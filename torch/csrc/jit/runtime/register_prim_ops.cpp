@@ -1347,7 +1347,11 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
         auto string = pop(stack).toStringRef();                        \
         push(                                                          \
             stack,                                                     \
+<<<<<<< HEAD
             string.size() != 0 &&                                      \
+=======
+            !string.empty() &&                                         \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::all_of(string.begin(), string.end(), [](char c) { \
                   return char_op(c);                                   \
                 }));                                                   \

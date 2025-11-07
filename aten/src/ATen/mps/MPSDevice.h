@@ -1,6 +1,10 @@
 //  Copyright © 2022 Apple Inc.
 
 #pragma once
+<<<<<<< HEAD
+=======
+#include <ATen/Device.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/Allocator.h>
 #include <c10/macros/Macros.h>
 #include <c10/util/Exception.h>
@@ -70,4 +74,11 @@ TORCH_API bool is_available();
 TORCH_API bool is_macos_13_or_newer(MacOSVersion version);
 TORCH_API at::Allocator* GetMPSAllocator(bool useSharedAllocator = false);
 
+<<<<<<< HEAD
+=======
+inline Device getDeviceFromPtr(void* ptr) {
+  return {c10::DeviceType::MPS, 0};
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::mps

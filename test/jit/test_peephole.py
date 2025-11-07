@@ -6,6 +6,7 @@ from typing import Callable, List
 import torch
 from torch import nn
 from torch.testing import FileCheck
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import _inline_everything, JitTestCase, RUN_CUDA
 
 
@@ -17,6 +18,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import _inline_everything, JitTestCase, RUN_CUDA
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestPeephole(JitTestCase):
     def test_peephole_with_writes(self):
         def test_write(x):
@@ -890,3 +897,10 @@ class TestPeephole(JitTestCase):
 
         self.run_pass("peephole", foo.graph)
         FileCheck().check("aten::slice").run(foo.graph)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

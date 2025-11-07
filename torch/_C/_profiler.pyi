@@ -1,5 +1,9 @@
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, Literal, Optional
+=======
+from typing import Literal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeAlias
 
 from torch._C import device, dtype, layout
@@ -73,7 +77,11 @@ class ProfilerConfig:
         with_flops: bool,
         with_modules: bool,
         experimental_config: _ExperimentalConfig,
+<<<<<<< HEAD
         trace_id: Optional[str] = None,
+=======
+        trace_id: str | None = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None: ...
 
 class _ProfilerEvent:
@@ -243,4 +251,8 @@ class _RecordFunctionFast:
         keyword_values: dict | None = None,
     ) -> None: ...
     def __enter__(self) -> None: ...
+<<<<<<< HEAD
     def __exit__(self, *args: Any) -> None: ...
+=======
+    def __exit__(self, *exc_info: object) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

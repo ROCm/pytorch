@@ -271,13 +271,24 @@ class FailOnRecompileLimitHit(Exception):
     pass
 
 
+<<<<<<< HEAD
+=======
+class PackageError(TorchDynamoException):
+    pass
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ObservedException(TorchDynamoException):
     # An exception observed during the tracing. This exception is used by Dynamo to handle exceptions.
     pass
 
 
 class ObservedUserStopIteration(ObservedException):
+<<<<<<< HEAD
     # An UserStopIteraion exception observed during the Dynamo tracing (e.g Dynamo tracing __next__)
+=======
+    # An UserStopIteration exception observed during the Dynamo tracing (e.g Dynamo tracing __next__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     value: Optional[Any]
 
     # Reference `StopIteration_init` in CPython
@@ -400,6 +411,10 @@ exceptions_allowed_to_be_fallback = (
     torch._subclasses.fake_tensor.DynamicOutputShapeException,
     torch._subclasses.fake_tensor.UnsupportedOperatorException,
     torch._subclasses.fake_tensor.UnsupportedFakeTensorException,
+<<<<<<< HEAD
+=======
+    torch._subclasses.fake_tensor.UnsupportedMutationAliasingException,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -510,6 +525,15 @@ def unimplemented_v2(
     """
 
     msg = format_graph_break_message(gb_type, context, explanation, hints)
+<<<<<<< HEAD
+=======
+
+    # Temporarily disabling the generation of the weblinks in error message
+
+    # documentation_link = get_gbid_documentation_link(gb_type)
+    # msg += f"\n For more details about this graph break, please visit: {documentation_link}"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if log_warning:
         log.warning(msg)
     if from_exc is not _NOTHING:

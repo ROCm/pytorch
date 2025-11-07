@@ -72,8 +72,15 @@ def allow_smaller_batches(args, kwargs):
 
 @contextmanager
 def setup_rnn(use_input_variant, args, kwargs):
+<<<<<<< HEAD
     with batch_second(args, kwargs) if use_input_variant else allow_smaller_batches(
         args, kwargs
+=======
+    with (
+        batch_second(args, kwargs)
+        if use_input_variant
+        else allow_smaller_batches(args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         yield
 
@@ -150,6 +157,7 @@ class ExpandedWeight(torch.Tensor):
         )
 
     @property
+<<<<<<< HEAD
     def dtype(self):
         return self.orig_weight.dtype
 
@@ -167,6 +175,25 @@ class ExpandedWeight(torch.Tensor):
 
     @property
     def is_cuda(self):
+=======
+    def dtype(self):  # type: ignore[override]
+        return self.orig_weight.dtype
+
+    @property
+    def data(self):  # type: ignore[override]
+        return self.orig_weight.data
+
+    @property
+    def shape(self):  # type: ignore[override]
+        return self.orig_weight.shape
+
+    @property
+    def device(self):  # type: ignore[override]
+        return self.orig_weight.device
+
+    @property
+    def is_cuda(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.orig_weight.is_cuda
 
     def data_ptr(self):

@@ -13,10 +13,21 @@
 /* Microsoft C/C++-compatible compiler */
 #include <intrin.h>
 #if _MSC_VER <= 1900
+<<<<<<< HEAD
 #define _mm256_extract_epi64(X, Y) (_mm_extract_epi64(_mm256_extractf128_si256(X, Y >> 1), Y % 2))
 #define _mm256_extract_epi32(X, Y) (_mm_extract_epi32(_mm256_extractf128_si256(X, Y >> 2), Y % 4))
 #define _mm256_extract_epi16(X, Y) (_mm_extract_epi16(_mm256_extractf128_si256(X, Y >> 3), Y % 8))
 #define _mm256_extract_epi8(X, Y) (_mm_extract_epi8(_mm256_extractf128_si256(X, Y >> 4), Y % 16))
+=======
+#define _mm256_extract_epi64(X, Y) \
+  (_mm_extract_epi64(_mm256_extractf128_si256(X, Y >> 1), Y % 2))
+#define _mm256_extract_epi32(X, Y) \
+  (_mm_extract_epi32(_mm256_extractf128_si256(X, Y >> 2), Y % 4))
+#define _mm256_extract_epi16(X, Y) \
+  (_mm_extract_epi16(_mm256_extractf128_si256(X, Y >> 3), Y % 8))
+#define _mm256_extract_epi8(X, Y) \
+  (_mm_extract_epi8(_mm256_extractf128_si256(X, Y >> 4), Y % 16))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 #elif defined(__GNUC__) && (defined(__ARM_NEON__) || defined(__aarch64__))
 /* GCC-compatible compiler, targeting ARM with NEON */
@@ -25,9 +36,15 @@
 /* GCC-compatible compiler, targeting ARM with SVE */
 #include <arm_sve.h>
 #endif
+<<<<<<< HEAD
 #if defined (MISSING_ARM_VLD1)
 #include <ATen/cpu/vec/vec256/missing_vld1_neon.h>
 #elif defined (MISSING_ARM_VST1)
+=======
+#if defined(MISSING_ARM_VLD1)
+#include <ATen/cpu/vec/vec256/missing_vld1_neon.h>
+#elif defined(MISSING_ARM_VST1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/cpu/vec/vec256/missing_vst1_neon.h>
 #endif
 #elif defined(__GNUC__) && defined(__IWMMXT__)
@@ -36,8 +53,13 @@
 #elif defined(__s390x__)
 // targets Z/architecture
 // we will include vecintrin later
+<<<<<<< HEAD
 #elif (defined(__GNUC__) || defined(__xlC__)) &&                               \
         (defined(__VEC__) || defined(__ALTIVEC__))
+=======
+#elif (defined(__GNUC__) || defined(__xlC__)) && \
+    (defined(__VEC__) || defined(__ALTIVEC__))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /* XLC or GCC-compatible compiler, targeting PowerPC with VMX/VSX */
 #include <altivec.h>
 /* We need to undef those tokens defined by <altivec.h> to avoid conflicts

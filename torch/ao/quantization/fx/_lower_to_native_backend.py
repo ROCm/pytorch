@@ -28,7 +28,11 @@ from .utils import (
 )
 
 
+<<<<<<< HEAD
 QOP_TO_ARG_NAMES_TO_SKIP = {
+=======
+QOP_TO_ARG_NAMES_TO_SKIP: dict[Callable[..., Any], list[str]] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._ops.ops.quantized.hardswish: ["inplace"],
     torch._ops.ops.quantized.elu: ["inplace"],
     torch._ops.ops.quantized.dropout: ["inplace"],
@@ -411,6 +415,11 @@ QBIN_RELU_OP_MAPPING: dict[Union[Callable, str], Callable] = {
     torch.mul: torch.ops.quantized.mul_relu,
 }
 
+<<<<<<< HEAD
+=======
+ORIGINAL_WEIGHTS_LOOKUP = "original_weights_lookup"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _save_packed_weight(self, destination, prefix, keep_vars):
     for attr_name in dir(self):
@@ -433,7 +442,13 @@ def _load_packed_weight(
 ):
     attrs_to_pop = []
     for attr_name in state_dict:
+<<<<<<< HEAD
         if attr_name.startswith("_packed_weight") and isinstance(state_dict[attr_name], torch._C.ScriptObject):  # type: ignore[attr-defined] # noqa: B950
+=======
+        if attr_name.startswith("_packed_weight") and isinstance(
+            state_dict[attr_name], torch._C.ScriptObject
+        ):  # type: ignore[attr-defined] # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             setattr(self, attr_name, state_dict[attr_name])
             attrs_to_pop.append(attr_name)
 
@@ -509,6 +524,10 @@ def fold_weight(
                     packed_weight_name.replace(":", "_")
                     .replace("/", "_")
                     .replace("|", "_")
+<<<<<<< HEAD
+=======
+                    .replace(" ", "")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     .lower()
                 )
                 original_weights_lookup[key_name] = original_weights_lookup[
@@ -529,7 +548,11 @@ def fold_weight(
 
     if keep_original_weights:
         setattr(  # noqa: B010
+<<<<<<< HEAD
             quantized_model, "original_weights_lookup", original_weights_lookup
+=======
+            quantized_model, ORIGINAL_WEIGHTS_LOOKUP, original_weights_lookup
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     return quantized_model
@@ -610,9 +633,15 @@ def _match_static_pattern(
     # (2) There must be at least one dequantize node
     matched_dequantize = False
     for i in dequantize_node_arg_indices:
+<<<<<<< HEAD
         assert i < len(
             ref_node.args
         ), f"Dequantize index {i} exceeded reference node's arg length {len(ref_node.args)}"
+=======
+        assert i < len(ref_node.args), (
+            f"Dequantize index {i} exceeded reference node's arg length {len(ref_node.args)}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         arg = ref_node.args[i]
         if is_dequantize_node(arg):
             matched_dequantize = True
@@ -697,7 +726,15 @@ def _lower_static_weighted_ref_module(
             STATIC_LOWER_FUSED_MODULE_MAP.keys()
         )
         q_node, _relu_node, ref_node = _match_static_pattern(
+<<<<<<< HEAD
             n, modules, qconfig_map, matching_modules, dequantize_node_arg_indices=[0]  # type: ignore[arg-type]
+=======
+            n,
+            modules,
+            qconfig_map,
+            matching_modules,  # type: ignore[arg-type]
+            dequantize_node_arg_indices=[0],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         if q_node is None:
             continue
@@ -754,7 +791,14 @@ def _lower_static_weighted_ref_module_with_two_inputs(
         # Step 0: Find nodes that match this pattern (dequantize - ref module - quantize)
         matching_modules = list(STATIC_LOWER_FUSED_MODULE_TWO_INPUTS_MAP.keys())
         (q_node, ref_node) = _match_static_pattern_with_two_inputs(
+<<<<<<< HEAD
             n, modules, qconfig_map, matching_modules  # type: ignore[arg-type]
+=======
+            n,
+            modules,
+            qconfig_map,
+            matching_modules,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         if q_node is None:
             continue

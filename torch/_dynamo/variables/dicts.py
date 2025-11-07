@@ -22,22 +22,49 @@ None values for efficiency and code reuse.
 
 import collections
 import functools
+<<<<<<< HEAD
 import types
+=======
+import inspect
+import operator
+import types
+from collections.abc import Hashable as py_Hashable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional, TYPE_CHECKING
 
 from torch._subclasses.fake_tensor import is_fake
 
+<<<<<<< HEAD
 from .. import polyfills, variables
 from ..bytecode_transformation import create_call_function, create_instruction
 from ..exc import raise_observed_exception, unimplemented
 from ..guards import GuardBuilder, install_guard
 from ..source import is_from_local_source
 from ..utils import cmp_name_to_op_mapping, dict_keys, dict_values, specialize_symnode
+=======
+from .. import graph_break_hints, polyfills, variables
+from ..bytecode_transformation import create_call_function, create_instruction
+from ..exc import raise_observed_exception, unimplemented_v2
+from ..guards import GuardBuilder, install_guard
+from ..source import is_from_local_source
+from ..utils import (
+    cmp_name_to_op_mapping,
+    dict_items,
+    dict_keys,
+    dict_values,
+    istype,
+    specialize_symnode,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .base import ValueMutationNew, VariableTracker
 from .constant import ConstantVariable
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+=======
+    from torch._dynamo.codegen import PyCodegen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._dynamo.symbolic_convert import InstructionTranslator
 
 
@@ -46,6 +73,31 @@ if TYPE_CHECKING:
 # - (perhaps) Define how it is compared in _HashableTracker._eq_impl
 
 
+<<<<<<< HEAD
+=======
+def raise_args_mismatch(tx, name):
+    raise_observed_exception(
+        TypeError,
+        tx,
+        args=[ConstantVariable(f"wrong number of arguments for {name}() call")],
+    )
+
+
+def was_instancecheck_override(obj):
+    return type(obj).__dict__.get("__instancecheck__", False)
+
+
+def raise_unhashable(arg, tx=None):
+    if tx is None:
+        from torch._dynamo.symbolic_convert import InstructionTranslator
+
+        tx = InstructionTranslator.current_tx()
+    raise_observed_exception(
+        TypeError, tx, args=[ConstantVariable(f"unhashable type: {type(arg)}")]
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_hashable(x):
     # NB - performing isinstance check on a LazVT realizes the VT, accidentally
     # inserting the guard. To avoid this, lazyVT `is_hashable` methods looks at
@@ -65,6 +117,16 @@ def is_hashable(x):
         return x.as_proxy().node.meta.get("example_value") is not None
     elif isinstance(x, variables.TupleVariable):
         return all(is_hashable(e) for e in x.items)
+<<<<<<< HEAD
+=======
+    elif (
+        isinstance(x, variables.UserDefinedObjectVariable)
+        and not was_instancecheck_override(x.value)
+        and inspect.getattr_static(x.value, "__hash__") is int.__hash__
+        and isinstance(x.value, int)
+    ):
+        return isinstance(x.value, py_Hashable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return isinstance(
             x,
@@ -73,7 +135,11 @@ def is_hashable(x):
                 variables.SymNodeVariable,
                 variables.ConstantVariable,
                 variables.EnumVariable,
+<<<<<<< HEAD
                 variables.user_defined.UserDefinedClassVariable,
+=======
+                variables.UserDefinedClassVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 variables.UserFunctionVariable,
                 variables.SkipFunctionVariable,
                 variables.misc.NumpyVariable,
@@ -104,10 +170,17 @@ class ConstDictVariable(VariableTracker):
         def __init__(self, vt) -> None:
             # We specialize SymNodes
             vt = specialize_symnode(vt)
+<<<<<<< HEAD
             # TODO Temorarily remove to figure out what keys are we breaking on
             # and add proper support for them
             if not is_hashable(vt):
                 unimplemented(f"Dict key of type {type(vt)}. Key: {vt}")
+=======
+            # TODO Temporarily remove to figure out what keys are we breaking on
+            # and add proper support for them
+            if not is_hashable(vt):
+                raise_unhashable(vt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.vt = vt
 
         @property
@@ -133,6 +206,14 @@ class ConstDictVariable(VariableTracker):
                 # Access the underlying value inside the referent_vt for the key representation
                 Hashable = ConstDictVariable._HashableTracker
                 return Hashable(self.vt.referent_vt).underlying_value
+<<<<<<< HEAD
+=======
+            elif isinstance(self.vt, variables.UserDefinedObjectVariable):
+                # The re module in Python 3.13+ has a dictionary (_cache2) with
+                # an object as key (`class _ZeroSentinel(int): ...`):
+                # python test/dynamo/test_unittest.py CPythonTestLongMessage.test_baseAssertEqual
+                return self.vt.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 x = self.vt.as_python_constant()
             return x
@@ -257,6 +338,7 @@ class ConstDictVariable(VariableTracker):
             return id(value.realize()) != id(other.realize())
         return id(value) != id(other)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
         # instructions to load collections.OrderedDict if necessary
         if self.user_cls is collections.OrderedDict:
@@ -269,6 +351,10 @@ class ConstDictVariable(VariableTracker):
                 )
             )
         # instructions to build the dict keys and values
+=======
+    def reconstruct_kvs_into_new_dict(self, codegen):
+        # Build a dictionary that contains the keys and values.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         num_args = 0
         for key, value in self.items.items():
             # We can safely call realize() here as it won't introduce any new guards
@@ -277,6 +363,7 @@ class ConstDictVariable(VariableTracker):
                 codegen(key.vt)
                 codegen(value)
                 num_args += 1
+<<<<<<< HEAD
 
         # BUILD_MAP and calling collections.OrderedDict if necessary
         if self.user_cls is collections.OrderedDict:
@@ -289,6 +376,25 @@ class ConstDictVariable(VariableTracker):
         # BUILD_MAP only if user_cls is dict
         else:
             codegen.append_output(create_instruction("BUILD_MAP", arg=num_args))
+=======
+        codegen.append_output(create_instruction("BUILD_MAP", arg=num_args))
+
+    def reconstruct(self, codegen: "PyCodegen"):
+        if self.user_cls is collections.OrderedDict:
+            # emit `OrderedDict(constructed_dict)`
+            codegen.add_push_null(
+                lambda: codegen.extend_output(
+                    [
+                        codegen.create_load_python_module(collections),
+                        codegen.create_load_attr("OrderedDict"),
+                    ]
+                )
+            )
+            self.reconstruct_kvs_into_new_dict(codegen)
+            codegen.extend_output(create_call_function(1, False))
+        else:
+            self.reconstruct_kvs_into_new_dict(codegen)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def getitem_const_raise_exception_if_absent(
         self, tx: "InstructionTranslator", arg: VariableTracker
@@ -301,7 +407,20 @@ class ConstDictVariable(VariableTracker):
     def getitem_const(self, tx: "InstructionTranslator", arg: VariableTracker):
         key = ConstDictVariable._HashableTracker(arg)
         if key not in self.items:
+<<<<<<< HEAD
             unimplemented(f"dict KeyError: {arg.value}")
+=======
+            msg = f"Dictionary key {arg.value} not found during tracing"
+            unimplemented_v2(
+                gb_type="key not found in dict",
+                context=f"Key {arg.value}",
+                explanation=msg,
+                hints=[
+                    "Check if the key exists in the dictionary before accessing it.",
+                    *graph_break_hints.USER_ERROR,
+                ],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.items[key]
 
     def maybe_getitem_const(self, arg: VariableTracker):
@@ -376,7 +495,11 @@ class ConstDictVariable(VariableTracker):
         # corresponding value VT. For __contains__, we add a DICT_CONTAINS
         # guard. But for all the other methods, we insert the DICT_KEYS_MATCH
         # guard to be conservative.
+<<<<<<< HEAD
         from . import BuiltinVariable, ConstantVariable, TupleVariable
+=======
+        from . import BuiltinVariable, ConstantVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         Hashable = ConstDictVariable._HashableTracker
 
@@ -397,6 +520,7 @@ class ConstDictVariable(VariableTracker):
             assert not (args or kwargs)
             self.install_dict_keys_match_guard()
             if self.source:
+<<<<<<< HEAD
                 tx.output.guard_on_key_order.add(self.source.name())
             return TupleVariable(
                 [TupleVariable([k.vt, v]) for k, v in self.items.items()]
@@ -405,12 +529,24 @@ class ConstDictVariable(VariableTracker):
             self.install_dict_keys_match_guard()
             if self.source:
                 tx.output.guard_on_key_order.add(self.source.name())
+=======
+                tx.output.guard_on_key_order.add(self.source)
+            return DictItemsVariable(self)
+        elif name == "keys":
+            self.install_dict_keys_match_guard()
+            if self.source:
+                tx.output.guard_on_key_order.add(self.source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert not (args or kwargs)
             return DictKeysVariable(self)
         elif name == "values":
             self.install_dict_keys_match_guard()
             if self.source:
+<<<<<<< HEAD
                 tx.output.guard_on_key_order.add(self.source.name())
+=======
+                tx.output.guard_on_key_order.add(self.source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert not (args or kwargs)
             return DictValuesVariable(self)
         elif name == "copy":
@@ -423,7 +559,14 @@ class ConstDictVariable(VariableTracker):
             assert not (args or kwargs)
             self.install_dict_keys_match_guard()
             return ConstantVariable.create(len(self.items))
+<<<<<<< HEAD
         elif name == "__setitem__" and arg_hashable and self.is_mutable():
+=======
+        elif name == "__setitem__" and self.is_mutable():
+            if not arg_hashable:
+                raise_unhashable(args[0])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.install_dict_keys_match_guard()
             assert not kwargs and len(args) == 2
             tx.output.side_effects.mutation(self)
@@ -484,6 +627,12 @@ class ConstDictVariable(VariableTracker):
             # Key guarding - Nothing to do.
             return self.getitem_const(tx, args[0])
         elif name == "__contains__" and len(args) == 1:
+<<<<<<< HEAD
+=======
+            if not arg_hashable:
+                raise_unhashable(args[0])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.install_dict_contains_guard(tx, args)
             contains = args[0] in self
             return ConstantVariable.create(contains)
@@ -511,6 +660,26 @@ class ConstDictVariable(VariableTracker):
             self.items.pop(key)
             self.items[key] = val
             return ConstantVariable.create(None)
+<<<<<<< HEAD
+=======
+        elif name == "__or__":
+            assert len(args) == 1
+            if not isinstance(args[0], ConstDictVariable):
+                raise TypeError(
+                    f"unsupported operand type(s) for |: 'dict' and '{args[0].python_type().__name__}'"
+                )
+
+            self.install_dict_keys_match_guard()
+            new_dict_vt = self.clone(
+                items=self.items.copy(), mutation_type=ValueMutationNew(), source=None
+            )
+
+            # NB - Guard on all the keys of the other dict to ensure
+            # correctness.
+            args[0].install_dict_keys_match_guard()
+            new_dict_vt.items.update(args[0].items)
+            return new_dict_vt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return super().call_method(tx, name, args, kwargs)
 
@@ -525,7 +694,21 @@ class ConstDictVariable(VariableTracker):
             if name in self.user_cls.__dict__:
                 return ConstantVariable.create(True)
             return ConstantVariable.create(False)
+<<<<<<< HEAD
         unimplemented(f"hasattr on {self.user_cls} is not supported")
+=======
+
+        msg = f"hasattr on {self.user_cls} is not supported"
+        unimplemented_v2(
+            gb_type="unsupported hasattr operation",
+            context=f"Class {self.user_cls}",
+            explanation=msg,
+            hints=[
+                "Consider using a regular dictionary instead",
+                *graph_break_hints.SUPPORTABLE,
+            ],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def clone(self, **kwargs):
         self.install_dict_keys_match_guard()
@@ -539,6 +722,7 @@ class MappingProxyVariable(VariableTracker):
         assert isinstance(dv_dict, ConstDictVariable)
         self.dv_dict = dv_dict
 
+<<<<<<< HEAD
     def unpack_var_sequence(self, tx):
         return self.dv_dict.unpack_var_sequence(tx)
 
@@ -548,6 +732,29 @@ class MappingProxyVariable(VariableTracker):
             unimplemented(
                 "Can't reconstruct an existing mapping variable because"
                 " the connection to the original dict will be lost"
+=======
+    def python_type(self):
+        return types.MappingProxyType
+
+    def unpack_var_sequence(self, tx):
+        return self.dv_dict.unpack_var_sequence(tx)
+
+    def reconstruct(self, codegen: "PyCodegen"):
+        # load types.MappingProxyType
+        if self.source:
+            msg = (
+                f"Preexisting MappingProxyVariable (source: {self.source}) cannot be reconstructed "
+                "because the connection to the original dict will be lost."
+            )
+            unimplemented_v2(
+                gb_type="mapping proxy cannot be reconstructed",
+                context=f"Source: {self.source}",
+                explanation=msg,
+                hints=[
+                    "Use a mapping proxy constructed in the same `torch.compile` region.",
+                    *graph_break_hints.SUPPORTABLE,
+                ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         codegen.add_push_null(
             lambda: codegen.extend_output(
@@ -568,7 +775,11 @@ class MappingProxyVariable(VariableTracker):
         kwargs: dict[str, "VariableTracker"],
     ) -> "VariableTracker":
         if self.source and tx.output.side_effects.has_existing_dict_mutation():
+<<<<<<< HEAD
             unimplemented(
+=======
+            msg = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "A dict has been modified while we have an existing mappingproxy object. "
                 "A mapping proxy object, as the name suggest, proxies a mapping "
                 "object (usually a dict). If the original dict object mutates, it "
@@ -577,6 +788,19 @@ class MappingProxyVariable(VariableTracker):
                 "for correctness we graph break when there is dict mutation and we "
                 "are trying to access a proxy object."
             )
+<<<<<<< HEAD
+=======
+
+            unimplemented_v2(
+                gb_type="mapping proxy affected by dictionary mutation",
+                context=f"Source: {self.source}, Dict mutation detected",
+                explanation=msg,
+                hints=[
+                    "Avoid modifying dictionaries that might be referenced by mapping proxy objects",
+                    "Or avoid using the mapping proxy objects after modifying its underlying dictionary",
+                ],
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.dv_dict.call_method(tx, name, args, kwargs)
 
 
@@ -638,12 +862,33 @@ class DefaultDictVariable(ConstDictVariable):
         else:
             return super().call_method(tx, name, args, kwargs)
 
+<<<<<<< HEAD
+=======
+    def reconstruct(self, codegen):
+        # emit `defaultdict(default_factory, new_dict)`
+        codegen.add_push_null(
+            lambda: codegen.extend_output(
+                [
+                    codegen.create_load_python_module(collections),
+                    codegen.create_load_attr("defaultdict"),
+                ]
+            )
+        )
+        codegen(self.default_factory)
+        self.reconstruct_kvs_into_new_dict(codegen)
+        codegen.extend_output(create_call_function(2, False))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: Implementing this via inheritance rather than composition is a
 # footgun, because self method calls in dict will route back to the set
 # implementation, which is almost assuredly wrong
 class SetVariable(ConstDictVariable):
+<<<<<<< HEAD
     """We model a sets as dictonary with None values"""
+=======
+    """We model a sets as dictionary with None values"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -665,7 +910,11 @@ class SetVariable(ConstDictVariable):
 
     @staticmethod
     def _default_value():
+<<<<<<< HEAD
         # Variable to fill in he keys of the dictinary
+=======
+        # Variable to fill in he keys of the dictionary
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ConstantVariable.create(None)
 
     def as_proxy(self):
@@ -677,7 +926,11 @@ class SetVariable(ConstDictVariable):
     def as_python_constant(self):
         return {k.vt.as_python_constant() for k in self.set_items}
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.foreach([x.vt for x in self.set_items])
         codegen.append_output(create_instruction("BUILD_SET", arg=len(self.set_items)))
 
@@ -688,17 +941,40 @@ class SetVariable(ConstDictVariable):
         args: list[VariableTracker],
         kwargs: dict[str, VariableTracker],
     ) -> "VariableTracker":
+<<<<<<< HEAD
         # We foward the calls to the dictionary model
         if name == "add":
             assert not kwargs
             assert len(args) == 1
+=======
+        # We forward the calls to the dictionary model
+        if name == "__init__":
+            temp_set_vt = variables.BuiltinVariable(set).call_set(tx, *args, *kwargs)
+            tx.output.side_effects.mutation(self)
+            self.items.clear()
+            self.items.update(temp_set_vt.items)
+            return ConstantVariable.create(None)
+        elif name == "add":
+            assert not kwargs
+            if len(args) != 1:
+                raise_args_mismatch(tx, name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             name = "__setitem__"
             args = (args[0], SetVariable._default_value())
         elif name == "pop":
             assert not kwargs
             assert not args
             # Choose an item at random and pop it via the Dict.pop method
+<<<<<<< HEAD
             result = self.set_items.pop().vt
+=======
+            try:
+                result = self.set_items.pop().vt
+            except KeyError as e:
+                raise_observed_exception(
+                    KeyError, tx, args=list(map(ConstantVariable.create, e.args))
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             super().call_method(tx, name, (result,), kwargs)
             return result
         elif name == "isdisjoint":
@@ -709,6 +985,7 @@ class SetVariable(ConstDictVariable):
             ).call_function(tx, [self, args[0]], {})
         elif name == "intersection":
             assert not kwargs
+<<<<<<< HEAD
             assert len(args) == 1
             return variables.UserFunctionVariable(
                 polyfills.set_intersection
@@ -730,12 +1007,59 @@ class SetVariable(ConstDictVariable):
             assert len(args) == 1
             return variables.UserFunctionVariable(polyfills.set_update).call_function(
                 tx, [self, args[0]], {}
+=======
+            return variables.UserFunctionVariable(
+                polyfills.set_intersection
+            ).call_function(tx, [self, *args], {})
+        elif name == "intersection_update":
+            assert not kwargs
+            return variables.UserFunctionVariable(
+                polyfills.set_intersection_update
+            ).call_function(tx, [self, *args], {})
+        elif name == "union":
+            assert not kwargs
+            return variables.UserFunctionVariable(polyfills.set_union).call_function(
+                tx, [self, *args], {}
+            )
+        elif name == "difference":
+            assert not kwargs
+            return variables.UserFunctionVariable(
+                polyfills.set_difference
+            ).call_function(tx, [self, *args], {})
+        elif name == "difference_update":
+            assert not kwargs
+            return variables.UserFunctionVariable(
+                polyfills.set_difference_update
+            ).call_function(tx, [self, *args], {})
+        elif name == "symmetric_difference":
+            if len(args) != 1:
+                raise_args_mismatch(tx, name)
+            assert not kwargs
+            return variables.UserFunctionVariable(
+                polyfills.set_symmetric_difference
+            ).call_function(tx, [self, *args], {})
+        elif name == "symmetric_difference_update":
+            if len(args) != 1:
+                raise_args_mismatch(tx, name)
+            assert not kwargs
+            return variables.UserFunctionVariable(
+                polyfills.set_symmetric_difference_update
+            ).call_function(tx, [self, *args], {})
+        elif name == "update" and self.is_mutable():
+            assert not kwargs
+            return variables.UserFunctionVariable(polyfills.set_update).call_function(
+                tx, [self, *args], {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         elif name == "remove":
             assert not kwargs
             assert len(args) == 1
             if args[0] not in self:
+<<<<<<< HEAD
                 unimplemented("key does not exist")
+=======
+                raise_observed_exception(KeyError, tx, args=args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return super().call_method(tx, "pop", args, kwargs)
         elif name == "discard":
             assert not kwargs
@@ -744,6 +1068,20 @@ class SetVariable(ConstDictVariable):
                 return super().call_method(tx, "pop", args, kwargs)
             else:
                 return ConstantVariable.create(value=None)
+<<<<<<< HEAD
+=======
+        elif name in ("issubset", "issuperset"):
+            op = {
+                "issubset": operator.le,
+                "issuperset": operator.ge,
+            }
+            other = args[0].realize()
+            if not istype(other, SetVariable):
+                other = variables.BuiltinVariable(set).call_function(tx, [other], {})
+            return variables.BuiltinVariable(op.get(name)).call_function(
+                tx, [self, other], {}
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     def getitem_const(self, tx: "InstructionTranslator", arg: VariableTracker):
@@ -782,7 +1120,11 @@ class FrozensetVariable(SetVariable):
     def as_python_constant(self):
         return {k.vt.as_python_constant() for k in self.set_items}
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.foreach([x.vt for x in self.set_items])
         codegen.add_push_null(
             lambda: codegen.extend_output(
@@ -802,6 +1144,18 @@ class FrozensetVariable(SetVariable):
     ) -> "VariableTracker":
         if name in ["add", "pop", "update", "remove", "discard", "clear"]:
             raise RuntimeError(f"Illegal call_method {name} on a frozenset")
+<<<<<<< HEAD
+=======
+        elif name == "__init__":
+            # frozenset is immutable. Calling __init__ again shouldn't have any effect
+            # In[1]: s = frozenset([1, 2])
+            #
+            # In[2]: s.__init__([3, 4])
+            #
+            # In[3]: s
+            # frozenset({1, 2})
+            return ConstantVariable.create(None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
 
@@ -858,7 +1212,11 @@ class DictViewVariable(VariableTracker):
 
     def __init__(self, dv_dict: ConstDictVariable, **kwargs) -> None:
         super().__init__(**kwargs)
+<<<<<<< HEAD
         assert self.kv in ("keys", "values")
+=======
+        assert self.kv in ("keys", "values", "items")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(dv_dict, ConstDictVariable)
         self.dv_dict = dv_dict
 
@@ -873,12 +1231,18 @@ class DictViewVariable(VariableTracker):
         raise NotImplementedError
 
     def unpack_var_sequence(self, tx):
+<<<<<<< HEAD
         def unwrap(x):
             return x.vt if self.kv == "keys" else x
 
         return [unwrap(x) for x in self.view_items]
 
     def reconstruct(self, codegen):
+=======
+        return self.view_items_vt
+
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.dv_dict)
         codegen.load_method(self.kv)
         codegen.call_method(0)
@@ -938,3 +1302,18 @@ class DictValuesVariable(DictViewVariable):
 
     def python_type(self):
         return dict_values
+<<<<<<< HEAD
+=======
+
+
+class DictItemsVariable(DictViewVariable):
+    kv = "items"
+
+    @property
+    def view_items_vt(self):
+        # Returns an iterable of the unpacked items
+        return [variables.TupleVariable([k.vt, v]) for k, v in self.view_items]
+
+    def python_type(self):
+        return dict_items
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

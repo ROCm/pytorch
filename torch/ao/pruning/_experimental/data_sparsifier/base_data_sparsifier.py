@@ -91,9 +91,15 @@ class BaseDataSparsifier(base_sparsifier.BaseSparsifier):
             4. By default, the config of the replaced data is used as config for the replacing data, unless something
                is specified in the config dictionary.
         """
+<<<<<<< HEAD
         assert (
             type(data) in SUPPORTED_TYPES
         ), "specified data type not supported at the moment"
+=======
+        assert type(data) in SUPPORTED_TYPES, (
+            "specified data type not supported at the moment"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_args = copy.deepcopy(self.defaults)
         local_args.update(config)
         weight = self._extract_weight(data)
@@ -115,9 +121,15 @@ class BaseDataSparsifier(base_sparsifier.BaseSparsifier):
 
             if reuse_mask:
                 current_data = self.get_data(name=name)
+<<<<<<< HEAD
                 assert (
                     weight.shape == current_data.shape
                 ), "to retain the old mask, the shape of the new data must be the same as the previous one"
+=======
+                assert weight.shape == current_data.shape, (
+                    "to retain the old mask, the shape of the new data must be the same as the previous one"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mask = self.get_mask(
                     name=name
                 )  # reuse mask instead of creating a new one
@@ -310,7 +322,11 @@ class BaseDataSparsifier(base_sparsifier.BaseSparsifier):
                 self.update_mask(name, data, **config)
 
     @abc.abstractmethod
+<<<<<<< HEAD
     def update_mask(self, name, data, **kwargs):
+=======
+    def update_mask(self, name, data, **kwargs):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass
 
     def _delete_data(self, name):

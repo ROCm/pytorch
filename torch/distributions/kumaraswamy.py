@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import nan, Tensor
 from torch.distributions import constraints
@@ -45,7 +50,16 @@ class Kumaraswamy(TransformedDistribution):
     support = constraints.unit_interval
     has_rsample = True
 
+<<<<<<< HEAD
     def __init__(self, concentration1, concentration0, validate_args=None):
+=======
+    def __init__(
+        self,
+        concentration1: Union[Tensor, float],
+        concentration0: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.concentration1, self.concentration0 = broadcast_all(
             concentration1, concentration0
         )

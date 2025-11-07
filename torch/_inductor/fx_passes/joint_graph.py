@@ -5,15 +5,29 @@ import logging
 import operator
 import typing
 from collections import Counter
+<<<<<<< HEAD
+=======
+from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Union
 
 import torch
 import torch._guards
 import torch.utils._pytree as pytree
+<<<<<<< HEAD
 from torch._inductor.constant_folding import ConstantFolder
 from torch._inductor.fx_passes.dedupe_symint_uses import _SymHashingDict
 from torch.fx.experimental.symbolic_shapes import (
     _guard_sizes_oblivious,
+=======
+from torch._dynamo.utils import counters
+from torch._inductor.constant_folding import ConstantFolder
+from torch._inductor.fx_passes.dedupe_symint_uses import _SymHashingDict
+from torch._inductor.utils import get_gpu_type
+from torch.fx.experimental.symbolic_shapes import (
+    guard_or_false,
+    guard_or_true,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     statically_known_true,
 )
 from torch.multiprocessing.reductions import StorageWeakRef
@@ -21,6 +35,10 @@ from torch.utils._ordered_set import OrderedSet
 
 from .. import config
 from ..pattern_matcher import (
+<<<<<<< HEAD
+=======
+    Arg,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CallFunction,
     init_once_fakemode,
     KeywordArg,
@@ -30,6 +48,10 @@ from ..pattern_matcher import (
     register_graph_pattern,
     stable_topological_sort,
 )
+<<<<<<< HEAD
+=======
+from .decompose_mem_bound_mm import check_device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .replace_random import replace_random_passes
 
 
@@ -200,7 +222,11 @@ def remove_redundant_views(gm: torch.fx.GraphModule):
 
 class UniformValueConstantFolder(ConstantFolder):
     """
+<<<<<<< HEAD
     Runs constant folding and replaces tensors that have a unifrom value
+=======
+    Runs constant folding and replaces tensors that have a uniform value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with a tensor constructor call: aten.full([shape], value, ...)
     """
 
@@ -239,6 +265,43 @@ class UniformValueConstantFolder(ConstantFolder):
             ]
         )
 
+<<<<<<< HEAD
+=======
+        self._add_peephole_patterns()
+
+    def _add_peephole_patterns(self) -> None:
+        """
+        Add peephole patterns for nodes where we can infer constant value even if some inputs
+        of the node are unknown.
+        """
+        for op in itertools.chain(
+            self.module.graph.find_nodes(  # type: ignore[operator, union-attr]
+                op="call_function", target=torch.ops.aten.mul.Tensor
+            ),
+            self.module.graph.find_nodes(  # type: ignore[operator, union-attr]
+                op="call_function", target=torch.ops.aten.mul.Scalar
+            ),
+        ):
+            tensor_val = op.meta.get("val", None)
+            if not isinstance(tensor_val, torch.Tensor):
+                continue
+
+            def is_zero_int(arg: Any) -> bool:
+                return isinstance(arg, int) and arg == 0
+
+            if not any(is_zero_int(a) for a in op.args):
+                continue
+
+            t = torch.full(
+                [1],  # shape
+                0,  # value
+                dtype=tensor_val.dtype,
+                device=tensor_val.device,
+                pin_memory=False,
+            )
+            self.add_node_replacement(op, t)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _support_dynamic_shape(self):
         return True
 
@@ -658,6 +721,53 @@ def pointless_convert(match: Match, arg, dtype1: torch.dtype, dtype2: torch.dtyp
         match.erase_nodes()
 
 
+<<<<<<< HEAD
+=======
+def definitely_equal(
+    old_sizes: Sequence[Union[torch.SymInt, int]],
+    new_sizes: Sequence[Union[torch.SymInt, torch.fx.Node, int]],
+) -> bool:
+    """
+    Leverage guard_or_true/false to compare if two lists of int/symint are equal.
+    Useful to compare sizes, strides etc.
+
+    Can handle -1 in new_sizes which happens in the size arguments of a
+    view op. old_sizes is supposed to be the tensor shape and should not
+    contain -1.
+
+    new_sizes can contains fx.Node when dynamic shape is enabled. In that
+    case new_sizes[i].meta['val'] contains the real torch.SymInt.
+    """
+
+    num_neg1 = 0
+
+    if len(old_sizes) != len(new_sizes):
+        return False
+
+    for lhs_item, rhs_item in zip(old_sizes, new_sizes):
+        if isinstance(rhs_item, torch.fx.Node):
+            rhs_item = rhs_item.meta["val"]
+
+        assert isinstance(lhs_item, (int, torch.SymInt)), type(lhs_item)
+        assert isinstance(rhs_item, (int, torch.SymInt)), type(rhs_item)
+
+        # It still makes sense to call guard_or_true/false since lhs_item
+        # rhs_item are torch.SymInt rather than sympy expressions when
+        # dynamic shape is enabled.
+        if guard_or_false(lhs_item == rhs_item):
+            continue
+
+        if guard_or_true(rhs_item != -1):
+            return False
+
+        num_neg1 += 1
+
+        if num_neg1 > 1:
+            return False
+    return True
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_graph_pattern(
     CallFunction(torch.ops.aten.view.default, KeywordArg("arg"), KeywordArg("size")),
     pass_dict=patterns,
@@ -666,7 +776,11 @@ def pointless_view(match: Match, arg, size):
     """Remove no-op view"""
     node = match.output_node()
     arg_size = list(node.args[0].meta["val"].shape)  # type: ignore[union-attr]
+<<<<<<< HEAD
     if _guard_sizes_oblivious(size, arg_size):
+=======
+    if definitely_equal(arg_size, size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         node.replace_all_uses_with(node.args[0])  # type: ignore[arg-type]
         match.erase_nodes()
 
@@ -685,9 +799,16 @@ def pointless_view_pair(match: Match, arg, size1, size2):
     """
     node = match.output_node()
     arg_size = list(arg.meta["val"].shape)
+<<<<<<< HEAD
     if _guard_sizes_oblivious(arg_size, size2):
         node.replace_all_uses_with(arg)
         match.erase_nodes()
+=======
+    if definitely_equal(arg_size, size2):
+        node.replace_all_uses_with(arg)
+        match.erase_nodes()
+        counters["inductor"]["removed_pointless_view_pair"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_graph_pattern(
@@ -710,6 +831,31 @@ def pointless_permute_pair(match: Match, arg, perm1, perm2):
     match.erase_nodes()
 
 
+<<<<<<< HEAD
+=======
+@register_graph_pattern(
+    CallFunction(
+        aten.bmm,
+        Arg(),
+        Arg(),
+    ),
+    pass_dict=patterns,
+)
+def bmm_to_mm(match: Match, mat1: torch.fx.Node, mat2: torch.fx.Node):
+    """Convert bmm to mm when batch size is 1"""
+
+    def repl(a, b):
+        return torch.mm(a.squeeze(0), b.squeeze(0)).unsqueeze(0)
+
+    if (
+        check_device(mat1.meta["val"], mat2.meta["val"], get_gpu_type())
+        and statically_known_true(mat1.meta["val"].shape[0] == 1)
+        and statically_known_true(mat2.meta["val"].shape[0] == 1)
+    ):
+        match.replace_by_example(repl, [mat1, mat2])
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # When softmax is used with temperature or other scaling, we get the pattern
 #
 #   scale(x) - scale(x).amax(dim, keepdim=True)

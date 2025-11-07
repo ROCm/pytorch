@@ -223,9 +223,15 @@ class _DerivedObserverOrFakeQuantize(ObserverBase):
         from .utils import is_per_channel
 
         if is_per_channel(self.qscheme):
+<<<<<<< HEAD
             assert (
                 self.ch_axis is not None
             ), "Must provide a valid ch_axis if qscheme is per channel"
+=======
+            assert self.ch_axis is not None, (
+                "Must provide a valid ch_axis if qscheme is per channel"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x: Tensor) -> Tensor:
         return x

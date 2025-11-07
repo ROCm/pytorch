@@ -31,12 +31,20 @@ from torch.onnx._internal.exporter import (
     _constants,
     _dispatching,
     _errors,
+<<<<<<< HEAD
+=======
+    _flags,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _fx_passes,
     _ir_passes,
     _onnx_program,
     _registration,
     _reporting,
     _tensors,
+<<<<<<< HEAD
+=======
+    _type_casting,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _verification,
 )
 
@@ -60,6 +68,10 @@ _TORCH_DTYPE_TO_ONNX: dict[torch.dtype, ir.DataType] = {
     torch.float8_e4m3fnuz: ir.DataType.FLOAT8E4M3FNUZ,
     torch.float8_e5m2: ir.DataType.FLOAT8E5M2,
     torch.float8_e5m2fnuz: ir.DataType.FLOAT8E5M2FNUZ,
+<<<<<<< HEAD
+=======
+    torch.float4_e2m1fn_x2: ir.DataType.FLOAT4E2M1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.int16: ir.DataType.INT16,
     torch.int32: ir.DataType.INT32,
     torch.int64: ir.DataType.INT64,
@@ -101,29 +113,69 @@ logger = logging.getLogger(__name__)
 current_tracer: _building.OpRecorder | None = None
 
 
+<<<<<<< HEAD
 def _torch_dtype_to_onnx_dtype(dtype: torch.dtype) -> ir.DataType:
+=======
+def torch_dtype_to_onnx_dtype(dtype: torch.dtype) -> ir.DataType:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _TORCH_DTYPE_TO_ONNX[dtype]
 
 
 class TorchTensor(ir.Tensor):
     def __init__(self, tensor: torch.Tensor, name: str | None = None):
         # Pass the tensor as the raw data to ir.Tensor's constructor
+<<<<<<< HEAD
         super().__init__(
             tensor, dtype=_torch_dtype_to_onnx_dtype(tensor.dtype), name=name
+=======
+        if tensor.dtype == torch.float4_e2m1fn_x2:
+            # Change the shape to the unpacked shape
+            shape = ir.Shape(_type_casting.get_float4_shape(tensor), frozen=True)
+        else:
+            # The base class will set the shape to the tensor's shape
+            shape = None
+        super().__init__(
+            tensor,
+            dtype=torch_dtype_to_onnx_dtype(tensor.dtype),
+            shape=shape,
+            name=name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def numpy(self) -> npt.NDArray:
         self.raw: torch.Tensor
+<<<<<<< HEAD
         if self.dtype == ir.DataType.BFLOAT16:
             return self.raw.view(torch.uint16).numpy(force=True)
+=======
+
+        # Handle dtypes that are not natively supported by NumPy:
+        # We pick an uint dtype that has the same size as the original dtype,
+        # view the tensor as that dtype so that it is convertible to NumPy,
+        # and then view it back to the proper dtype (using ml_dtypes obtained by
+        # calling dtype.numpy()).
+        if self.dtype == ir.DataType.BFLOAT16:
+            return (
+                self.raw.view(torch.uint16).numpy(force=True).view(self.dtype.numpy())
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.dtype in {
             ir.DataType.FLOAT8E4M3FN,
             ir.DataType.FLOAT8E4M3FNUZ,
             ir.DataType.FLOAT8E5M2,
             ir.DataType.FLOAT8E5M2FNUZ,
         }:
+<<<<<<< HEAD
             # TODO: Use ml_dtypes
             return self.raw.view(torch.uint8).numpy(force=True)
+=======
+            return self.raw.view(torch.uint8).numpy(force=True).view(self.dtype.numpy())
+        if self.dtype == ir.DataType.FLOAT4E2M1:
+            return _type_casting.unpack_float4x2_as_uint8(self.raw).view(
+                self.dtype.numpy()
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.raw.numpy(force=True)
 
     def __array__(self, dtype: Any = None, copy: bool | None = None) -> npt.NDArray:
@@ -200,6 +252,7 @@ def _set_shape_type(
     | tuple[torch.Tensor],
     complex_to_float: bool,
 ) -> None:
+<<<<<<< HEAD
     # TODO: Consider using meta["tensor_meta"] for this? Would it be faster?
     if isinstance(meta_val, tuple):
         logger.warning("Setting shape and type of tensors is not supported yet")
@@ -207,10 +260,24 @@ def _set_shape_type(
         # FIXME: Consider shape for complex values
         dims = []
         for dim in meta_val.shape:
+=======
+    if isinstance(meta_val, tuple):
+        logger.warning("Setting shape and type of tensors is not supported yet")
+    if isinstance(meta_val, torch.Tensor):
+        dims = []
+        shape: tuple[int, ...]
+        if meta_val.dtype == torch.float4_e2m1fn_x2:
+            # Change the shape to the unpacked shape
+            shape = _type_casting.get_float4_shape(meta_val)
+        else:
+            shape = meta_val.shape
+        for dim in shape:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(dim, int):
                 dims.append(dim)
             else:
                 dims.append(str(dim.node))
+<<<<<<< HEAD
         value.dtype = _torch_dtype_to_onnx_dtype(meta_val.dtype)
         if complex_to_float:
             if meta_val.dtype == torch.complex64:
@@ -221,6 +288,26 @@ def _set_shape_type(
                 value.dtype = ir.DataType.DOUBLE
                 # Add 2 as the last dimension if the tensor is complex to hold the real/imag parts
                 dims.append(2)
+=======
+
+        # If the dtype is set already (e.g. by the onnx_symbolic ops),
+        # we don't need to set it again.
+        #
+        # When a user specifies complex in onnx_symbolic, we consider that to
+        # be the intention even though non of the ONNX ops deals with complex values.
+        # In this case, we don't change the dtype or the shape of the tensor.
+        if value.dtype is None:
+            value.dtype = torch_dtype_to_onnx_dtype(meta_val.dtype)
+            if complex_to_float:
+                if meta_val.dtype == torch.complex64:
+                    value.dtype = ir.DataType.FLOAT
+                    # Add 2 as the last dimension if the tensor is complex to hold the real/imag parts
+                    dims.append(2)
+                elif meta_val.dtype == torch.complex128:
+                    value.dtype = ir.DataType.DOUBLE
+                    # Add 2 as the last dimension if the tensor is complex to hold the real/imag parts
+                    dims.append(2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         value.shape = ir.Shape(dims)
     elif isinstance(meta_val, (int, torch.SymInt)):
@@ -432,7 +519,11 @@ def _convert_fx_arg_to_onnx_arg(
     if isinstance(arg, (torch.device, torch.memory_format, torch.layout)):
         return str(arg)
     if isinstance(arg, torch.dtype):
+<<<<<<< HEAD
         return _torch_dtype_to_onnx_dtype(arg)
+=======
+        return torch_dtype_to_onnx_dtype(arg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Maybe a Python value
     return arg
 
@@ -441,6 +532,23 @@ def _get_onnxscript_opset(opset_version: int) -> onnxscript.values.Opset:
     return onnxscript.values.Opset("", opset_version)
 
 
+<<<<<<< HEAD
+=======
+def _is_onnx_op(op: Any) -> bool:
+    """Whether the op overload is an ONNX custom op implemented with PyTorch."""
+    if not isinstance(op, torch._ops.OpOverload):
+        return False
+    return op.name().startswith("onnx::")
+
+
+def _parse_onnx_op(op: torch._ops.OpOverload) -> tuple[str, int]:
+    """Parse the ONNX custom op overload name to get the op type and opset version."""
+    name = op.name()[len("onnx::") :]
+    name, _, opset = name.partition(".opset")
+    return name, int(opset)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _handle_call_function_node_with_lowering(
     model: ir.Model,
     node: torch.fx.Node,
@@ -476,6 +584,7 @@ def _handle_call_function_node_with_lowering(
             # use SequenceAt to get the value. This is handled by torchlib
             pass
 
+<<<<<<< HEAD
     # Find the matching ONNX overload for the node
     # NOTE: Create different registries for different ONNX opset versions
     # TODO: Log the message here to expose false positives
@@ -487,6 +596,8 @@ def _handle_call_function_node_with_lowering(
             f"No ONNX function found for {node.target!r}. Failure message: {message}"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Map FX inputs to ONNX inputs and fill optional inputs.
     # torch_args and torch_kwargs are for op-level validation
     fx_args = node.args
@@ -510,6 +621,7 @@ def _handle_call_function_node_with_lowering(
             # TODO(justinchuby): Maybe keep it as None?
             onnx_kwargs[key] = -1
 
+<<<<<<< HEAD
     with onnxscript.evaluator.default_as(
         tracer := _building.OpRecorder(opset, constant_farm)
     ):
@@ -523,6 +635,70 @@ def _handle_call_function_node_with_lowering(
             ) from e
         finally:
             current_tracer = None
+=======
+    if _is_onnx_op(node.target):
+        # Handle torch.ops.onnx.* ops. These ops can be directly added to the graph
+        op_type, opset_version = _parse_onnx_op(node.target)  # type: ignore[arg-type]
+        # If final inputs are None, strip them from the node inputs
+        for input_ in reversed(onnx_args):
+            if input_ is not None:
+                break
+            onnx_args.pop()
+        onnx_node = ir.Node(
+            "",
+            op_type,
+            onnx_args,
+            ir.convenience.convert_attributes(onnx_kwargs),
+            name=node.name,
+            num_outputs=len(node.target._schema.returns),  # type: ignore[union-attr]
+            version=opset_version,
+        )
+        # Store the single node in a list to be consistent with the rest of the code for further processing
+        onnx_nodes = [onnx_node]
+        if len(onnx_node.outputs) == 1:
+            outputs = onnx_node.outputs[0]
+        else:
+            outputs = onnx_node.outputs  # type: ignore[assignment]
+    else:
+        # Find the matching ONNX overload for the node
+        # TODO: Log the message here to expose false positives
+        onnx_function, message = _dispatching.dispatch(node, registry)
+
+        if onnx_function is None:
+            raise _errors.DispatchError(
+                f"No ONNX function found for {node.target!r}. Failure message: {message}"
+            )
+
+        with onnxscript.evaluator.default_as(
+            tracer := _building.OpRecorder(opset, constant_farm)
+        ):
+            global current_tracer
+            current_tracer = tracer
+            try:
+                outputs = onnx_function(*onnx_args, **onnx_kwargs)
+            except Exception as e:
+                raise _errors.GraphConstructionError(
+                    f"Error when calling function '{onnx_function}' with args '{onnx_args}' and kwargs '{onnx_kwargs}'"
+                ) from e
+            finally:
+                current_tracer = None
+
+        # Add the defined functions to the model
+        for identifier, onnxscript_function in tracer.functions.items():
+            if identifier in model.functions:
+                continue
+            if isinstance(onnxscript_function, ir.Function):
+                ir_function = onnxscript_function
+            else:
+                # TODO: Get IR function directly when onnxscript is updated
+                proto = onnxscript_function.to_function_proto()
+                ir_function = ir.serde.deserialize_function(proto)
+            model.functions[identifier] = ir_function
+            # Opset imports are added to the model in the final add_opset_imports pass
+
+        onnx_nodes = tracer.nodes
+        del tracer  # tracer is no longer needed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NOTE: Instead of using the output names from node.target._schema,
     # we always use the index if there are more than one outputs so the
@@ -536,18 +712,34 @@ def _handle_call_function_node_with_lowering(
         node_name_to_values[node.name] = outputs
         for i, output in enumerate(outputs):
             output.name = f"{node.name}__{i}"
+<<<<<<< HEAD
+=======
+            # Set the name of the producing node using the value name for correspondence
+            producer = output.producer()
+            if producer is not None:
+                producer.name = f"node_{output.name}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         _set_shape_type(outputs, node.meta["val"], complex_to_float=True)
         node_name_to_values[node.name] = outputs
         outputs.name = node.name
+<<<<<<< HEAD
 
     for ir_node in tracer.nodes:
+=======
+        producer = outputs.producer()
+        if producer is not None:
+            producer.name = f"node_{outputs.name}"
+
+    for ir_node in onnx_nodes:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ir_node.meta["node"] = node
         # Record the nn.Module stack for the node
         _set_node_metadata(node, ir_node)
 
     # Add the traced nodes to the current graph
     # Must add nodes to this graph, not model.graph, because it can be a subgraph that is currently being constructed
+<<<<<<< HEAD
     graph_like.extend(tracer.nodes)
     # Add the defined functions to the model
     for identifier, onnxscript_function in tracer.functions.items():
@@ -561,6 +753,9 @@ def _handle_call_function_node_with_lowering(
             ir_function = ir.serde.deserialize_function(proto)
         model.functions[identifier] = ir_function
         # Opset imports are added to the model in the final add_opset_imports pass
+=======
+    graph_like.extend(onnx_nodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _handle_placeholder_node(
@@ -775,7 +970,11 @@ def _get_inputs_and_attributes(
             elif isinstance(arg, torch.device):
                 attributes[schema_arg.name] = str(arg)
             elif isinstance(arg, torch.dtype):
+<<<<<<< HEAD
                 attributes[schema_arg.name] = _torch_dtype_to_onnx_dtype(arg)
+=======
+                attributes[schema_arg.name] = torch_dtype_to_onnx_dtype(arg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 attributes[schema_arg.name] = arg
         for schema_arg in node_schema.arguments:
@@ -791,7 +990,11 @@ def _get_inputs_and_attributes(
             } or isinstance(kwarg, torch.device):
                 attr = str(kwarg)
             elif isinstance(kwarg, torch.dtype):
+<<<<<<< HEAD
                 attr = _torch_dtype_to_onnx_dtype(kwarg)  # type: ignore[assignment]
+=======
+                attr = torch_dtype_to_onnx_dtype(kwarg)  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 attr = kwarg  # type: ignore[assignment]
 
@@ -1163,6 +1366,10 @@ def _verbose_printer(verbose: bool | None) -> Callable[..., None]:
     return lambda *args, **kwargs: print("[torch.onnx]", *args, **kwargs)
 
 
+<<<<<<< HEAD
+=======
+@_flags.set_onnx_exporting_flag
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def export(
     model: torch.nn.Module
     | torch.export.ExportedProgram
@@ -1229,7 +1436,12 @@ def export(
         # We know the model is already exported program, so the args, kwargs, and dynamic_shapes
         # are not used.
         program = model
+<<<<<<< HEAD
         export_status.torch_export = True
+=======
+        # torch.export.export has strict default to False
+        export_status.torch_export_non_strict = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         # Convert an nn.Module to an ExportedProgram
         # Try everything 🐰 (all paths for getting an ExportedProgram)
@@ -1247,6 +1459,7 @@ def export(
             # Record the status
             if strategy_class is _capture_strategies.TorchExportNonStrictStrategy:
                 export_status.torch_export_non_strict = result.success
+<<<<<<< HEAD
             elif strategy_class is _capture_strategies.TorchExportStrategy:
                 export_status.torch_export = result.success
             elif strategy_class is _capture_strategies.JitTraceConvertStrategy:
@@ -1257,6 +1470,19 @@ def export(
                 break
             else:
                 failed_results.append(result)
+=======
+            elif strategy_class is _capture_strategies.TorchExportStrictStrategy:
+                export_status.torch_export_strict = result.success
+            elif strategy_class is _capture_strategies.TorchExportDraftExportStrategy:
+                export_status.torch_export_draft_export = result.success
+
+            if result.exception is not None:
+                failed_results.append(result)
+            if result.success:
+                assert result.exported_program is not None
+                program = result.exported_program
+                break
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         assert result is not None
         capture_strategy = result.strategy

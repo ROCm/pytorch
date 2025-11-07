@@ -6,8 +6,11 @@ the values observed during calibration (PTQ) or training (QAT).
 
 import itertools
 
+<<<<<<< HEAD
 import matplotlib.pyplot as plt
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch.ao.quantization.experimental.apot_utils import apot_to_float, float_to_apot
 from torch.ao.quantization.observer import ObserverBase
@@ -148,6 +151,12 @@ class APoTObserver(ObserverBase):
     """
 
     def quant_levels_visualization(self, signed=False):
+<<<<<<< HEAD
+=======
+        # matplotlib is optional dep
+        import matplotlib.pyplot as plt
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         alpha, _gamma, quantization_levels, level_indices = self.calculate_qparams(
             signed
         )

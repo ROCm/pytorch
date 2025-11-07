@@ -12,7 +12,11 @@ if not torch._running_with_deploy():
     )
 
     _test_lib_impl = torch.library.Library("_inductor_test", "IMPL")
+<<<<<<< HEAD
     for dispatch_key in ("CPU", "CUDA", "Meta"):
+=======
+    for dispatch_key in ("CPU", "CUDA", "MPS", "Meta"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _test_lib_impl.impl("realize", lambda x: x.clone(), dispatch_key)
 
     class Realize(Function):

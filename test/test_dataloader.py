@@ -25,6 +25,10 @@ from torch.testing._internal.common_device_type import instantiate_device_type_t
 from torch.testing._internal.common_utils import (
     IS_CI,
     IS_JETSON,
+<<<<<<< HEAD
+=======
+    IS_S390X,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_SANDCASTLE,
     IS_WINDOWS,
     load_tests,
@@ -132,11 +136,35 @@ supported_multiprocessing_contexts = [None] + list(
 )
 
 
+<<<<<<< HEAD
 # collate_fn that returns the batch cloned; defined globally here for pickle purposes.
+=======
+# The following collate functions are defined globally here for pickle purposes.
+
+
+# collate_fn that returns the batch cloned
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _clone_collate(b):
     return [x.clone() for x in b]
 
 
+<<<<<<< HEAD
+=======
+# collate_fn that returns the batch of sparse coo tensors cloned
+def _sparse_coo_collate(b):
+    lst = []
+    for x in b:
+        t = x.clone()
+        lst.append(t)
+        # Force sparse tensor invariants checks. check_pinning=True
+        # reproduces gh-153143.
+        torch._validate_sparse_coo_tensor_args(
+            t._indices(), t._values(), t.size(), t.is_coalesced(), check_pinning=False
+        )
+    return lst
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @unittest.skipIf(
     TEST_WITH_TSAN,
     "Fails with TSAN with the following error: starting new threads after multi-threaded "
@@ -1384,6 +1412,12 @@ except RuntimeError as e:
     # This case pass on Intel GPU, but currently expected failure on other device,
     # please don't forget to remove this skip when remove the xfailIfLinux.
     @skipIfXpu
+<<<<<<< HEAD
+=======
+    # This case passes on s390x too.
+    # please don't forget to remove this skip when remove the xfailIfLinux.
+    @unittest.skipIf(IS_S390X, "Unexpectedly succeeds on s390x")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # https://github.com/pytorch/pytorch/issues/128551
     @xfailIfLinux
     def test_segfault(self):
@@ -2889,8 +2923,14 @@ class TestDataLoaderDeviceType(TestCase):
     def test_nested_tensor_multiprocessing(self, device, context):
         # The 'fork' multiprocessing context doesn't work for CUDA so skip it
         if "cuda" in device and context == "fork":
+<<<<<<< HEAD
             # TODO: Skip this better in a better way when the test framework allows
             return
+=======
+            self.skipTest(
+                f"{context} multiprocessing context not supported for {device}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dataset = [
             torch.nested.nested_tensor([torch.randn(5)], device=device)
@@ -2928,6 +2968,40 @@ class TestDataLoaderDeviceType(TestCase):
 
             next(iter(loader))
 
+<<<<<<< HEAD
+=======
+    @parametrize(
+        "context",
+        [ctx for ctx in supported_multiprocessing_contexts if ctx is not None],
+    )
+    @unittest.skipIf(not TEST_CUDA_IPC, "CUDA IPC not available")
+    def test_sparse_tensor_multiprocessing(self, device, context):
+        # The 'fork' multiprocessing context doesn't work for CUDA so skip it
+        if "cuda" in device and context == "fork":
+            self.skipTest(
+                f"{context} multiprocessing context not supported for {device}"
+            )
+
+        dataset = [torch.randn(5, 5).to_sparse().to(device) for _ in range(10)]
+
+        pin_memory_settings = [False]
+        if device == "cpu" and torch.cuda.is_available():
+            pin_memory_settings.append(True)
+
+        for pin_memory in pin_memory_settings:
+            loader = torch.utils.data.DataLoader(
+                dataset,
+                batch_size=1,
+                num_workers=4,
+                collate_fn=_sparse_coo_collate,
+                pin_memory=pin_memory,
+                multiprocessing_context=context,
+            )
+
+            for i, batch in enumerate(loader):
+                self.assertEqual(batch[0], dataset[i])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class IntegrationTestDataLoaderDataPipe(TestCase):
     r"""

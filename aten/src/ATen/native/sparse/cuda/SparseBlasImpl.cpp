@@ -615,7 +615,11 @@ void spmm(
 
   // CUDA < 11.0 doesn't support 64-bit indices and doesn't raise an error about this
   // silently returning incorrect results
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && (ROCM_VERSION < 60300)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto mat1_32 = at::native::_sparse_csr_tensor_unsafe(
       mat1.crow_indices().to(kInt),
       mat1.col_indices().to(kInt),
@@ -626,11 +630,19 @@ void spmm(
       mat1.device());
   auto descA = at::cuda::sparse::CuSparseSpMatCsrDescriptor(mat1_32);
   auto algorithm = CUSPARSE_MM_ALG_DEFAULT;
+<<<<<<< HEAD
 #else
   // TODO: update this to support COO sparse layout
   auto descA = at::cuda::sparse::CuSparseSpMatCsrDescriptor(mat1);
   auto algorithm = CUSPARSE_SPMM_CSR_ALG2;
 #endif
+=======
+#else // defined(USE_ROCM) && (ROCM_VERSION < 60300)
+  // TODO: update this to support COO sparse layout
+  auto descA = at::cuda::sparse::CuSparseSpMatCsrDescriptor(mat1);
+  auto algorithm = CUSPARSE_SPMM_CSR_ALG2;
+#endif // defined(USE_ROCM) && (ROCM_VERSION < 60300)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto descB = at::cuda::sparse::CuSparseConstDnMatDescriptor(
       transpose_B ? mat2_->mT() : *mat2_);

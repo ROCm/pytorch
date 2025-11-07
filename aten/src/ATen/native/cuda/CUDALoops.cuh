@@ -295,10 +295,16 @@ static inline void launch_vectorized_kernel(
   auto stream = at::cuda::getCurrentCUDAStream();
 #ifdef USE_ROCM
   int vec_size = memory::can_vectorize_up_to<func_t>(data);
+<<<<<<< HEAD
   // Similar check in vectorized_elementwise_kernel() as well. Both should be in sync.
   c10::DeviceIndex curDevice = -1;
   AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
   int tws = at::detail::getCUDAHooks().isGPUArch(curDevice, {"gfx942"}) ? 16 : elems_per_thread<io_size>();
+=======
+  c10::DeviceIndex curDevice = -1;
+  AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
+  int tws = at::detail::getCUDAHooks().isGPUArch({"gfx942"}, curDevice) ? 16 : elems_per_thread<io_size>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   using cpp_type = typename function_traits<func_t>::result_type;
   const uint16_t max_vec_size = memory::can_vectorize_up_to<func_t>(data);
@@ -347,8 +353,13 @@ static inline void launch_vectorized_kernel(
       auto output_calc = TrivialOffsetCalculator<1>();
       auto loader = memory::LoadWithoutCast();
       auto storer = memory::StoreWithoutCast();
+<<<<<<< HEAD
       int64_t grid_unrolled = (N + io_block_work_size<io_size>() - 1) / io_block_work_size<io_size>();
       unrolled_elementwise_kernel<func_t, array_t, elems_per_thread<io_size>()>
+=======
+      int64_t grid_unrolled = (N + elementwise_block_work_size() - 1) / elementwise_block_work_size();
+      unrolled_elementwise_kernel<func_t, array_t, elementwise_thread_work_size()>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           <<<grid_unrolled, num_threads(), 0, stream>>>(
               N, f, data, input_calc, output_calc, loader, storer);
       C10_CUDA_KERNEL_LAUNCH_CHECK();
@@ -533,6 +544,7 @@ __global__ void elementwise_kernel(int N, func_t f) {
   }
 }
 
+<<<<<<< HEAD
 #ifdef USE_ROCM
 template <int nt, int vt, typename func_t>
 C10_LAUNCH_BOUNDS_2(nt, 4)
@@ -554,6 +566,8 @@ __global__ void elementwise_kernel_manual_unroll(int N, func_t f) {
 }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <int nt, int vt, typename func_t>
 static void launch_legacy_kernel(int64_t N, const func_t& f) {
   TORCH_INTERNAL_ASSERT(N >= 0 && N <= std::numeric_limits<int32_t>::max());
@@ -569,6 +583,28 @@ static void launch_legacy_kernel(int64_t N, const func_t& f) {
 
 #ifdef USE_ROCM
 template <int nt, int vt, typename func_t>
+<<<<<<< HEAD
+=======
+C10_LAUNCH_BOUNDS_2(nt, 4)
+__global__ void elementwise_kernel_manual_unroll(int N, func_t f) {
+  int tid = threadIdx.x;
+  constexpr int nv = nt * vt;
+  int idx = nv * blockIdx.x + tid;
+  if ((idx + nt*(vt-1)) < N) {
+    f(idx, true);
+  } else {
+#pragma unroll
+    for (int i = 0; i < vt; i++) {
+      if (idx < N) {
+        f(idx, false);
+        idx += nt;
+      }
+    }
+  }
+}
+
+template <int nt, int vt, typename func_t>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static void launch_legacy_kernel_manual_unroll(int64_t N, const func_t& f) {
   TORCH_INTERNAL_ASSERT(N >= 0 && N <= std::numeric_limits<int32_t>::max());
   if (N == 0) {
@@ -671,6 +707,7 @@ void gpu_kernel_impl_nocast(TensorIteratorBase& iter, const func_t& f) {
   constexpr int unroll_factor = sizeof(arg0_t) >= 4 ? 4 : 8;
   constexpr int grp_sz = 128;
   launch_legacy_kernel_manual_unroll<grp_sz, unroll_factor>(numel, [=] GPU_LAMBDA(int idx, bool unrl) {
+<<<<<<< HEAD
      if constexpr (unroll_factor == 4) {
        if (unrl) {
          auto offsets0 = offset_calc.get(idx);
@@ -736,6 +773,65 @@ void gpu_kernel_impl_nocast(TensorIteratorBase& iter, const func_t& f) {
          *out = invoke(f, &data[1], &offsets[1], 1);
        }
      }
+=======
+    if (unrl) {
+      if constexpr (unroll_factor == 4) {
+        auto offsets0 = offset_calc.get(idx);
+        auto offsets1 = offset_calc.get(idx+grp_sz);
+        auto offsets2 = offset_calc.get(idx+grp_sz*2);
+        auto offsets3 = offset_calc.get(idx+grp_sz*3);
+        arg0_t* out0 = (arg0_t*)(data[0] + offsets0[0]);
+        arg0_t* out1 = (arg0_t*)(data[0] + offsets1[0]);
+        arg0_t* out2 = (arg0_t*)(data[0] + offsets2[0]);
+        arg0_t* out3 = (arg0_t*)(data[0] + offsets3[0]);
+        auto tmp0 = invoke(f, &data[1], &offsets0[1], 1);
+        auto tmp1 = invoke(f, &data[1], &offsets1[1], 1);
+        auto tmp2 = invoke(f, &data[1], &offsets2[1], 1);
+        auto tmp3 = invoke(f, &data[1], &offsets3[1], 1);
+        *out0 = tmp0;
+        *out1 = tmp1;
+        *out2 = tmp2;
+        *out3 = tmp3;
+      } else {
+        auto offsets0 = offset_calc.get(idx);
+        auto offsets1 = offset_calc.get(idx+grp_sz);
+        auto offsets2 = offset_calc.get(idx+grp_sz*2);
+        auto offsets3 = offset_calc.get(idx+grp_sz*3);
+        auto offsets4 = offset_calc.get(idx+grp_sz*4);
+        auto offsets5 = offset_calc.get(idx+grp_sz*5);
+        auto offsets6 = offset_calc.get(idx+grp_sz*6);
+        auto offsets7 = offset_calc.get(idx+grp_sz*7);
+        arg0_t* out0 = (arg0_t*)(data[0] + offsets0[0]);
+        arg0_t* out1 = (arg0_t*)(data[0] + offsets1[0]);
+        arg0_t* out2 = (arg0_t*)(data[0] + offsets2[0]);
+        arg0_t* out3 = (arg0_t*)(data[0] + offsets3[0]);
+        arg0_t* out4 = (arg0_t*)(data[0] + offsets4[0]);
+        arg0_t* out5 = (arg0_t*)(data[0] + offsets5[0]);
+        arg0_t* out6 = (arg0_t*)(data[0] + offsets6[0]);
+        arg0_t* out7 = (arg0_t*)(data[0] + offsets7[0]);
+        auto tmp0 = invoke(f, &data[1], &offsets0[1], 1);
+        auto tmp1 = invoke(f, &data[1], &offsets1[1], 1);
+        auto tmp2 = invoke(f, &data[1], &offsets2[1], 1);
+        auto tmp3 = invoke(f, &data[1], &offsets3[1], 1);
+        auto tmp4 = invoke(f, &data[1], &offsets4[1], 1);
+        auto tmp5 = invoke(f, &data[1], &offsets5[1], 1);
+        auto tmp6 = invoke(f, &data[1], &offsets6[1], 1);
+        auto tmp7 = invoke(f, &data[1], &offsets7[1], 1);
+        *out0 = tmp0;
+        *out1 = tmp1;
+        *out2 = tmp2;
+        *out3 = tmp3;
+        *out4 = tmp4;
+        *out5 = tmp5;
+        *out6 = tmp6;
+        *out7 = tmp7;
+      }
+    } else {
+      auto offsets = offset_calc.get(idx);
+      arg0_t* out = (arg0_t*)(data[0] + offsets[0]);
+      *out = invoke(f, &data[1], &offsets[1], 1);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
 #endif
 }
@@ -893,6 +989,72 @@ struct type_specialized_kernel_launcher {
   }
 };
 
+<<<<<<< HEAD
+=======
+template <int arg_index>
+struct type_specialized_broadcast_kernel_launcher {
+  template <
+      typename func_t,
+      typename array_t,
+      typename dtypes_t,
+      typename calc_t>
+  static void apply(
+      int64_t numel,
+      func_t f,
+      array_t data,
+      dtypes_t dtypes,
+      calc_t offset_calc) {
+        using traits = function_traits<func_t>;
+        using ret_t = typename traits::result_type;
+        using arg0_t = typename traits::template arg<0>::type;
+        using arg1_t = typename traits::template arg<1>::type;
+        if (dtypes[0] == rt_binary_specializations[arg_index][0] &&
+          dtypes[1] == rt_binary_specializations[arg_index][1] &&
+          dtypes[2] == rt_binary_specializations[arg_index][2]) {
+            using ret_cpp_t = c10::impl::ScalarTypeToCPPTypeT<rt_binary_specializations[arg_index][0]>;
+            using arg0_cpp_t = c10::impl::ScalarTypeToCPPTypeT<rt_binary_specializations[arg_index][1]>;
+            using arg1_cpp_t = c10::impl::ScalarTypeToCPPTypeT<rt_binary_specializations[arg_index][2]>;
+            constexpr int grp_sz = 128;
+            launch_legacy_kernel_manual_unroll<grp_sz, 4>(numel, [=] GPU_LAMBDA(int idx, bool unrl) {
+              if (unrl) {
+                auto offsets0 = offset_calc.get(idx);
+                auto offsets1 = offset_calc.get(idx + grp_sz);
+                auto offsets2 = offset_calc.get(idx + grp_sz * 2);
+                auto offsets3 = offset_calc.get(idx + grp_sz * 3);
+                void* out0 = data[0] + offsets0[0];
+                void* out1 = data[0] + offsets1[0];
+                void* out2 = data[0] + offsets2[0];
+                void* out3 = data[0] + offsets3[0];
+                auto u = c10::load<arg0_cpp_t>(data[1] + offsets0[1]);
+                auto v = c10::load<arg1_cpp_t>(data[2] + offsets0[2]);
+                ret_t result0 = f(c10::convert<arg0_t>(u), c10::convert<arg1_t>(v));
+                auto u1 = c10::load<arg0_cpp_t>(data[1] + offsets1[1]);
+                auto v1 = c10::load<arg1_cpp_t>(data[2]+ offsets1[2]);
+                ret_t result1 = f(c10::convert<arg0_t>(u1), c10::convert<arg1_t>(v1));
+                auto u2 = c10::load<arg0_cpp_t>(data[1] + offsets2[1]);
+                auto v2 = c10::load<arg1_cpp_t>(data[2] + offsets2[2]);
+                ret_t result2 = f(c10::convert<arg0_t>(u2), c10::convert<arg1_t>(v2));
+                auto u3 = c10::load<arg0_cpp_t>(data[1] + offsets3[1]);
+                auto v3 = c10::load<arg1_cpp_t>(data[2] + offsets3[2]);
+                ret_t result3 = f(c10::convert<arg0_t>(u3), c10::convert<arg1_t>(v3));
+                *(ret_cpp_t*)out0 = c10::convert<ret_cpp_t>(result0);
+                *(ret_cpp_t*)out1 = c10::convert<ret_cpp_t>(result1);
+                *(ret_cpp_t*)out2 = c10::convert<ret_cpp_t>(result2);
+                *(ret_cpp_t*)out3 = c10::convert<ret_cpp_t>(result3);
+              } else {
+                auto offsets = offset_calc.get(idx);
+                void* out = data[0] + offsets[0];
+                auto u = c10::load<arg0_cpp_t>(data[1] + offsets[1]);
+                auto v = c10::load<arg1_cpp_t>(data[2] + offsets[2]);
+                ret_t result = f(c10::convert<arg0_t>(u), c10::convert<arg1_t>(v));
+                *(ret_cpp_t*)out = c10::convert<ret_cpp_t>(result);
+              }
+            });
+        }
+      }
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 #endif
 
@@ -969,10 +1131,33 @@ void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
       dtypes[i] = iter.dtype(i);
       strides[i] = inner_strides[i];
     }
+<<<<<<< HEAD
     launch_legacy_kernel<512, 1>(numel, [=]GPU_LAMBDA(int idx) {
       void* out = data[0] + strides[0] * idx;
       arg0_t result = invoke(f, &data[1], &strides[1], &dtypes[1], idx);
       c10::cast_and_store<arg0_t>(dtypes[0], out, result);
+=======
+    constexpr int grp_sz = 128;
+    launch_legacy_kernel_manual_unroll<grp_sz, 4>(numel, [=] GPU_LAMBDA(int idx, bool unrl) {
+      if (unrl) {
+        void* out0 = data[0] + strides[0] * idx;
+        void* out1 = data[0] + strides[0] * (idx + grp_sz);
+        void* out2 = data[0] + strides[0] * (idx + grp_sz * 2);
+        void* out3 = data[0] + strides[0] * (idx + grp_sz * 3);
+        arg0_t result0 = invoke(f, &data[1], &strides[1], &dtypes[1], idx);
+        arg0_t result1 = invoke(f, &data[1], &strides[1], &dtypes[1], (idx + grp_sz));
+        arg0_t result2 = invoke(f, &data[1], &strides[1], &dtypes[1], (idx + grp_sz * 2));
+        arg0_t result3 = invoke(f, &data[1], &strides[1], &dtypes[1], (idx + grp_sz * 3));
+        c10::cast_and_store<arg0_t>(dtypes[0], out0, result0);
+        c10::cast_and_store<arg0_t>(dtypes[0], out1, result1);
+        c10::cast_and_store<arg0_t>(dtypes[0], out2, result2);
+        c10::cast_and_store<arg0_t>(dtypes[0], out3, result3);
+      } else {
+        void* out = data[0] + strides[0] * idx;
+        arg0_t result = invoke(f, &data[1], &strides[1], &dtypes[1], idx);
+        c10::cast_and_store<arg0_t>(dtypes[0], out, result);
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     });
 #else
     auto loader = memory::LoadWithCast<traits::arity>(iter);
@@ -995,6 +1180,35 @@ void gpu_kernel_impl(TensorIteratorBase& iter, const func_t& f) {
     }
     auto offset_calc = ::make_offset_calculator<traits::arity + 1>(iter);
 #ifdef USE_ROCM
+<<<<<<< HEAD
+=======
+    if (check_binary_rt_types_for_specialization(iter)) {
+      // constexpr to reduce the amount of kernels generated for
+      // broadcast elementwise with mexed dtypes and limit which functors are actually
+      // applied to the load and store at compile time.
+      using func_tuple = typename traits::ArgsTuple;
+      if constexpr (
+        std::is_same_v<float, arg0_t> && traits::arity == 2 &&
+        check_binary_functor_types_for_specialization<
+          func_tuple,
+          float,
+          float,
+          traits::arity,
+          /*arg_num=*/0>::check()) {
+            memory::detail::static_unroll<
+              type_specialized_broadcast_kernel_launcher,
+              rt_binary_specializations.size()>::with_args(
+                numel,
+                f,
+                data,
+                dtypes,
+                offset_calc
+            );
+            return;
+      }
+    }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     constexpr int grp_sz = 128;
     launch_legacy_kernel_manual_unroll<grp_sz, 4>(numel, [=] GPU_LAMBDA(int idx, bool unrl) {
       if (unrl) {

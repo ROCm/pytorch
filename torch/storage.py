@@ -155,6 +155,13 @@ class _StorageBase:
         raise NotImplementedError
 
     @classmethod
+<<<<<<< HEAD
+=======
+    def _release_ipc_counter(cls, *args, device=None, **kwargs):
+        return cls._release_ipc_counter_cuda(*args, **kwargs)
+
+    @classmethod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _release_ipc_counter_cuda(cls, *args, **kwargs) -> Self:
         raise NotImplementedError
 
@@ -540,6 +547,10 @@ def _new_dtypes():
         torch.float8_e5m2fnuz,
         torch.float8_e4m3fnuz,
         torch.float8_e8m0fnu,
+<<<<<<< HEAD
+=======
+        torch.float4_e2m1fn_x2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.bits8,
         torch.bits16,
         torch.bits1x8,
@@ -1518,7 +1529,11 @@ class _LegacyStorageMeta(type):
 
 class _LegacyStorage(TypedStorage, metaclass=_LegacyStorageMeta):
     @classmethod
+<<<<<<< HEAD
     def _new_shared(cls, size):
+=======
+    def _new_shared(cls, size):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Create a new storage in shared memory with the same data type."""
         untyped_storage = torch.UntypedStorage._new_shared(size * cls()._element_size())
         return cls(wrap_storage=untyped_storage)

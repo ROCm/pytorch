@@ -225,7 +225,11 @@ def varlen_lstm_inputs(
         return x, lengths, (hx, cx), lstm.all_weights, lstm
     else:
         # NB: lstm.all_weights format:
+<<<<<<< HEAD
         # wih, whh, bih, bhh = lstm.all_weights[layer]
+=======
+        # w_ih, w_hh, b_ih, b_hh = lstm.all_weights[layer]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x, lengths, (hx, cx), lstm.all_weights, None
 
 
@@ -266,10 +270,17 @@ def varlen_lstm_factory(cell, script):
     def dynamic_rnn(
         sequences: list[Tensor],
         hiddens: tuple[Tensor, Tensor],
+<<<<<<< HEAD
         wih: Tensor,
         whh: Tensor,
         bih: Tensor,
         bhh: Tensor,
+=======
+        w_ih: Tensor,
+        w_hh: Tensor,
+        b_ih: Tensor,
+        b_hh: Tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> tuple[list[Tensor], tuple[list[Tensor], list[Tensor]]]:
         hx, cx = hiddens
         hxs = hx.unbind(1)
@@ -286,7 +297,11 @@ def varlen_lstm_factory(cell, script):
 
             for seq_idx in range(len(inputs)):
                 hy, cy = cell(
+<<<<<<< HEAD
                     inputs[seq_idx].unsqueeze(0), (hy, cy), wih, whh, bih, bhh
+=======
+                    inputs[seq_idx].unsqueeze(0), (hy, cy), w_ih, w_hh, b_ih, b_hh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 output += [hy]
             outputs += [torch.stack(output)]
@@ -315,7 +330,11 @@ def varlen_lstm_creator(script=False, **kwargs):
 
 
 # cudnn_layernorm_lstm: since cudnn does not have Layernorm LSTM, we cannot benchmark
+<<<<<<< HEAD
 # the lowerbound directly. Instead, we only benchmark the forward pass by mimicing the
+=======
+# the lowerbound directly. Instead, we only benchmark the forward pass by mimicking the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # computation of a cudnn lstm + seq_len * 3 layernorm computation. This should serve
 # as a perf lowerbound for the Layernorm LSTM forward pass(given that Layernorm itself
 # is invariant), the lowerbound of backward pass is hard to get since we lose the
@@ -352,12 +371,21 @@ def layernorm_pytorch_lstm_creator(**kwargs):
     )
 
 
+<<<<<<< HEAD
 # input: lstm.all_weights format (wih, whh, bih, bhh = lstm.all_weights[layer])
 # output: packed_weights with format
 # packed_weights[0] is wih with size (layer, 4*hiddenSize, inputSize)
 # packed_weights[1] is whh with size (layer, 4*hiddenSize, hiddenSize)
 # packed_weights[2] is bih with size (layer, 4*hiddenSize)
 # packed_weights[3] is bhh with size (layer, 4*hiddenSize)
+=======
+# input: lstm.all_weights format (w_ih, w_hh, b_ih, b_hh = lstm.all_weights[layer])
+# output: packed_weights with format
+# packed_weights[0] is w_ih with size (layer, 4*hiddenSize, inputSize)
+# packed_weights[1] is w_hh with size (layer, 4*hiddenSize, hiddenSize)
+# packed_weights[2] is b_ih with size (layer, 4*hiddenSize)
+# packed_weights[3] is b_hh with size (layer, 4*hiddenSize)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def stack_weights(weights):
     def unzip_columns(mat):
         assert isinstance(mat, list)
@@ -398,7 +426,11 @@ def lstm_inputs(
         return x, (hx, cx), lstm.all_weights, lstm
     else:
         # NB: lstm.all_weights format:
+<<<<<<< HEAD
         # wih, whh, bih, bhh = lstm.all_weights[layer]
+=======
+        # w_ih, w_hh, b_ih, b_hh = lstm.all_weights[layer]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return x, (hx, cx), lstm.all_weights, None
 
 
@@ -406,17 +438,28 @@ def lstm_factory(cell, script):
     def dynamic_rnn(
         input: Tensor,
         hidden: tuple[Tensor, Tensor],
+<<<<<<< HEAD
         wih: Tensor,
         whh: Tensor,
         bih: Tensor,
         bhh: Tensor,
+=======
+        w_ih: Tensor,
+        w_hh: Tensor,
+        b_ih: Tensor,
+        b_hh: Tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> tuple[Tensor, tuple[Tensor, Tensor]]:
         hx, cx = hidden
         outputs = []
         inputs = input.unbind(0)
         hy, cy = hx[0], cx[0]
         for seq_idx in range(len(inputs)):
+<<<<<<< HEAD
             hy, cy = cell(inputs[seq_idx], (hy, cy), wih, whh, bih, bhh)
+=======
+            hy, cy = cell(inputs[seq_idx], (hy, cy), w_ih, w_hh, b_ih, b_hh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputs += [hy]
         return torch.stack(outputs), (hy.unsqueeze(0), cy.unsqueeze(0))
 
@@ -432,6 +475,7 @@ def lstm_factory_premul(premul_cell, script):
     def dynamic_rnn(
         input: Tensor,
         hidden: tuple[Tensor, Tensor],
+<<<<<<< HEAD
         wih: Tensor,
         whh: Tensor,
         bih: Tensor,
@@ -443,6 +487,19 @@ def lstm_factory_premul(premul_cell, script):
         hy, cy = hx[0], cx[0]
         for seq_idx in range(len(inputs)):
             hy, cy = premul_cell(inputs[seq_idx], (hy, cy), whh, bih, bhh)
+=======
+        w_ih: Tensor,
+        w_hh: Tensor,
+        b_ih: Tensor,
+        b_hh: Tensor,
+    ) -> tuple[Tensor, tuple[Tensor, Tensor]]:
+        hx, cx = hidden
+        outputs = []
+        inputs = torch.matmul(input, w_ih.t()).unbind(0)
+        hy, cy = hx[0], cx[0]
+        for seq_idx in range(len(inputs)):
+            hy, cy = premul_cell(inputs[seq_idx], (hy, cy), w_hh, b_ih, b_hh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputs += [hy]
         return torch.stack(outputs), (hy.unsqueeze(0), cy.unsqueeze(0))
 
@@ -458,10 +515,17 @@ def lstm_factory_premul_bias(premul_cell, script):
     def dynamic_rnn(
         input: Tensor,
         hidden: tuple[Tensor, Tensor],
+<<<<<<< HEAD
         wih: Tensor,
         whh: Tensor,
         bih: Tensor,
         bhh: Tensor,
+=======
+        w_ih: Tensor,
+        w_hh: Tensor,
+        b_ih: Tensor,
+        b_hh: Tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> tuple[Tensor, tuple[Tensor, Tensor]]:
         hx, cx = hidden
         outputs = []
@@ -470,11 +534,19 @@ def lstm_factory_premul_bias(premul_cell, script):
         # FIXME matmul(x,y) + bias currently goes through jit AD, and backward formula in AD is not optimized for this
         # case. Workaround with mm and views.
         inpSize = input.size()
+<<<<<<< HEAD
         inputs = torch.mm(input.view(-1, inpSize[2]), wih.t()) + bih
         inputs = inputs.view(inpSize[0], inpSize[1], -1).unbind(0)
         hy, cy = hx[0], cx[0]
         for seq_idx in range(len(inputs)):
             hy, cy = premul_cell(inputs[seq_idx], (hy, cy), whh, bhh)
+=======
+        inputs = torch.mm(input.view(-1, inpSize[2]), w_ih.t()) + b_ih
+        inputs = inputs.view(inpSize[0], inpSize[1], -1).unbind(0)
+        hy, cy = hx[0], cx[0]
+        for seq_idx in range(len(inputs)):
+            hy, cy = premul_cell(inputs[seq_idx], (hy, cy), w_hh, b_hh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputs += [hy]
         return torch.stack(outputs), (hy.unsqueeze(0), cy.unsqueeze(0))
 
@@ -488,12 +560,20 @@ def lstm_factory_premul_bias(premul_cell, script):
 # simple: flat inputs (no tuples), no list to accumulate outputs
 #         useful mostly for benchmarking older JIT versions
 def lstm_factory_simple(cell, script):
+<<<<<<< HEAD
     def dynamic_rnn(input, hx, cx, wih, whh, bih, bhh):
+=======
+    def dynamic_rnn(input, hx, cx, w_ih, w_hh, b_ih, b_hh):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         hy = hx  # for scoping
         cy = cx  # for scoping
         inputs = input.unbind(0)
         for seq_idx in range(len(inputs)):
+<<<<<<< HEAD
             hy, cy = cell(inputs[seq_idx], hy, cy, wih, whh, bih, bhh)
+=======
+            hy, cy = cell(inputs[seq_idx], hy, cy, w_ih, w_hh, b_ih, b_hh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return hy, cy
 
     if script:
@@ -515,12 +595,21 @@ def lstm_factory_multilayer(cell, script):
             hy = hx[layer]
             cy = cx[layer]
             base_idx = layer * params_stride
+<<<<<<< HEAD
             wih = params[base_idx]
             whh = params[base_idx + 1]
             bih = params[base_idx + 2]
             bhh = params[base_idx + 3]
             for seq_idx in range(len(inputs)):
                 hy, cy = cell(inputs[seq_idx], (hy, cy), wih, whh, bih, bhh)
+=======
+            w_ih = params[base_idx]
+            w_hh = params[base_idx + 1]
+            b_ih = params[base_idx + 2]
+            b_hh = params[base_idx + 3]
+            for seq_idx in range(len(inputs)):
+                hy, cy = cell(inputs[seq_idx], (hy, cy), w_ih, w_hh, b_ih, b_hh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 outputs += [hy]
             inputs, outputs = outputs, []
         return torch.stack(inputs), (hy.unsqueeze(0), cy.unsqueeze(0))

@@ -16,12 +16,15 @@ void initModule(PyObject* module) {
     }
   });
 
+<<<<<<< HEAD
   m.def("_accelerator_deviceCount", []() {
     auto device_type = at::accelerator::getAccelerator(false);
     torch::utils::maybe_initialize_device(device_type);
     return at::accelerator::deviceCount();
   });
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_accelerator_setDeviceIndex", [](c10::DeviceIndex device_index) {
     // If device index is negative, no-op
     if (device_index < 0) {
@@ -66,6 +69,21 @@ void initModule(PyObject* module) {
       at::accelerator::synchronizeDevice(device_index);
     }
   });
+<<<<<<< HEAD
+=======
+
+  m.def("_accelerator_exchangeDevice", [](c10::DeviceIndex device_index) {
+    const auto device_type = at::accelerator::getAccelerator(true).value();
+    torch::utils::maybe_initialize_device(device_type);
+    return at::accelerator::exchangeDevice(device_index);
+  });
+
+  m.def("_accelerator_maybeExchangeDevice", [](c10::DeviceIndex device_index) {
+    const auto device_type = at::accelerator::getAccelerator(true).value();
+    torch::utils::maybe_initialize_device(device_type);
+    return at::accelerator::maybeExchangeDevice(device_index);
+  });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace torch::accelerator

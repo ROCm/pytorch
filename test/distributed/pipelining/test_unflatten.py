@@ -60,9 +60,15 @@ class UnflattenTests(TestCase):
         for stage_idx in range(pipe.num_stages):
             stage_mod = pipe.get_stage_module(stage_idx)
             for param_name, _ in stage_mod.named_parameters():
+<<<<<<< HEAD
                 assert (
                     param_name in orig_state_dict
                 ), f"{param_name} not in original state dict"
+=======
+                assert param_name in orig_state_dict, (
+                    f"{param_name} not in original state dict"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         print("Param qualname test passed")
 
         # Check equivalence

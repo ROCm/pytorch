@@ -8,7 +8,11 @@
 namespace torch::jit::tensorexpr {
 
 // Creates a new Expr of the given type with the provided lhs and rhs.
+<<<<<<< HEAD
 inline ExprPtr newBinaryOpOfType(
+=======
+static inline ExprPtr newBinaryOpOfType(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IRNodeType expr_type,
     const ExprPtr& lhs,
     const ExprPtr& rhs,
@@ -72,7 +76,11 @@ static ExprPtr mutateBinaryOp(
 
 // Simple recursive GCD.
 template <typename T>
+<<<<<<< HEAD
 T gcd(T a, T b) {
+=======
+static T gcd(T a, T b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (b == 0) {
     return a;
   }
@@ -205,7 +213,11 @@ void MinTerm::uniquefy() {
 
 // Handles optimization cases for Broadcast/Ramp +/- Broadcast/Ramp
 template <class Op>
+<<<<<<< HEAD
 ExprPtr combineMultilane(const ExprPtr& lhs, const ExprPtr& rhs) {
+=======
+static ExprPtr combineMultilane(const ExprPtr& lhs, const ExprPtr& rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (BroadcastPtr bc = to<Broadcast>(lhs)) {
     if (BroadcastPtr bcother = to<Broadcast>(rhs)) {
       if (bc->lanes() != bcother->lanes()) {

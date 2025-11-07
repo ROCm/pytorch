@@ -2,6 +2,7 @@
 
 import torch
 from torch._C import parse_ir
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TemporaryFileName
 from torch.testing._internal.jit_utils import JitTestCase
 
@@ -14,6 +15,15 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    TemporaryFileName,
+)
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestAliasAnalysis(JitTestCase):
     def test_becomes_wildcard_annotations(self):
         graph_str = """
@@ -154,3 +164,10 @@ class TestAliasAnalysis(JitTestCase):
             mod = ModuleWrapper(module_list)
             mod = torch.jit.script(mod)
             mod(torch.zeros((2, 2)))
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

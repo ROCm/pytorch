@@ -98,6 +98,31 @@ class VerificationInfo:
             actual_dtype=actual.dtype,
         )
 
+<<<<<<< HEAD
+=======
+    def asdict(self) -> dict[str, Any]:
+        """Convert the VerificationInfo object to a dictionary.
+
+        Returns:
+            A dictionary representation of the VerificationInfo object.
+        """
+        return {
+            "name": self.name,
+            "max_abs_diff": self.max_abs_diff,
+            "max_rel_diff": self.max_rel_diff,
+            "abs_diff_hist": [
+                self.abs_diff_hist[0].tolist(),
+                self.abs_diff_hist[1].tolist(),
+            ],
+            "rel_diff_hist": [
+                self.rel_diff_hist[0].tolist(),
+                self.rel_diff_hist[1].tolist(),
+            ],
+            "expected_dtype": str(self.expected_dtype),
+            "actual_dtype": str(self.actual_dtype),
+        }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _compare_tensors(
     expected: torch.Tensor,
@@ -202,7 +227,11 @@ def _create_value_mapping(graph: ir.Graph) -> dict[str, ir.Value]:
     Returns:
         A dictionary mapping names to values.
     """
+<<<<<<< HEAD
     values = {}
+=======
+    values: dict[str, ir.Value] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     values.update(graph.initializers)
     # The names of the values can be None or "", which we need to exclude
     for input in graph.inputs:
@@ -300,6 +329,10 @@ class _VerificationInterpreter(torch.fx.Interpreter):
                 "Failed to compute value for node %s: %s",
                 node_name,
                 e,
+<<<<<<< HEAD
+=======
+                exc_info=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return result
         info = VerificationInfo.from_tensors(

@@ -108,7 +108,11 @@ def get_disabled_tests(
         return disabled_test_from_issues
 
     try:
+<<<<<<< HEAD
         url = "https://ossci-metrics.s3.amazonaws.com/disabled-tests-condensed.json?versionId=YtwvDnjQUfyi8xyjux1XJdTV_hMY0rqx"
+=======
+        url = "https://ossci-metrics.s3.amazonaws.com/disabled-tests-condensed.json?versionId=oZfFXdfoa7trdcAiH1aL91T9jUDckwlX"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fetch_and_cache(dirpath, filename, url, process_disabled_test)
     except Exception:
         print("Couldn't download test skip set, leaving all tests enabled...")

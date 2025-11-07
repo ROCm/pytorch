@@ -102,7 +102,11 @@ void prepare_and_call_rpc_op(
     std::vector<std::string> names;
     for (const auto& entry : kwargsDict) {
       const IValue& keyIValue = entry.key();
+<<<<<<< HEAD
       const string& keyStr = keyIValue.toStringRef();
+=======
+      const std::string& keyStr = keyIValue.toStringRef();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       names.emplace_back(keyStr);
     }
     throw std::runtime_error(functionSchema.findErrorInKwargs(names));

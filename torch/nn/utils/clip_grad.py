@@ -1,7 +1,13 @@
 # mypy: allow-untyped-decorators
 # mypy: allow-untyped-defs
 import functools
+<<<<<<< HEAD
 import typing
+=======
+import types
+import typing
+import warnings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import cast, Optional, Union
 from typing_extensions import deprecated
 
@@ -14,11 +20,15 @@ from torch.utils._foreach_utils import (
 )
 
 
+<<<<<<< HEAD
 __all__ = [
     "clip_grad_norm_",
     "clip_grad_norm",
     "clip_grad_value_",
 ]
+=======
+__all__: list[str] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _tensor_or_tensors = Union[
@@ -152,9 +162,13 @@ def _clip_grads_with_norm_(
         return
     grouped_grads: dict[
         tuple[torch.device, torch.dtype], tuple[list[list[Tensor]], list[int]]
+<<<<<<< HEAD
     ] = _group_tensors_by_device_and_dtype(
         [grads]
     )  # type: ignore[assignment]
+=======
+    ] = _group_tensors_by_device_and_dtype([grads])  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     clip_coef = max_norm / (total_norm + 1e-6)
     # Note: multiplying by the clamped coef is redundant when the coef is clamped to 1, but doing so
@@ -197,12 +211,21 @@ def clip_grad_norm_(
         parameters (Iterable[Tensor] or Tensor): an iterable of Tensors or a
             single Tensor that will have gradients normalized
         max_norm (float): max norm of the gradients
+<<<<<<< HEAD
         norm_type (float): type of the used p-norm. Can be ``'inf'`` for
             infinity norm.
         error_if_nonfinite (bool): if True, an error is thrown if the total
             norm of the gradients from :attr:`parameters` is ``nan``,
             ``inf``, or ``-inf``. Default: False (will switch to True in the future)
         foreach (bool): use the faster foreach-based implementation.
+=======
+        norm_type (float, optional): type of the used p-norm. Can be ``'inf'`` for
+            infinity norm. Default: 2.0
+        error_if_nonfinite (bool, optional): if True, an error is thrown if the total
+            norm of the gradients from :attr:`parameters` is ``nan``,
+            ``inf``, or ``-inf``. Default: False
+        foreach (bool, optional): use the faster foreach-based implementation.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             If ``None``, use the foreach implementation for CUDA and CPU native tensors and silently
             fall back to the slow implementation for other device types.
             Default: ``None``
@@ -213,8 +236,19 @@ def clip_grad_norm_(
     if isinstance(parameters, torch.Tensor):
         parameters = [parameters]
     else:
+<<<<<<< HEAD
         # prevent generators from being exhausted
         parameters = list(parameters)
+=======
+        is_generator = isinstance(parameters, types.GeneratorType)
+        # prevent generators from being exhausted
+        parameters = list(parameters)
+        if is_generator and len(parameters) == 0:
+            warnings.warn(
+                "`parameters` is an empty generator, no gradient clipping will occur.",
+                stacklevel=3,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grads = [p.grad for p in parameters if p.grad is not None]
     total_norm = _get_total_norm(grads, norm_type, error_if_nonfinite, foreach)
     _clip_grads_with_norm_(parameters, max_norm, total_norm, foreach)
@@ -258,7 +292,11 @@ def clip_grad_value_(
         clip_value (float): maximum allowed value of the gradients.
             The gradients are clipped in the range
             :math:`\left[\text{-clip\_value}, \text{clip\_value}\right]`
+<<<<<<< HEAD
         foreach (bool): use the faster foreach-based implementation
+=======
+        foreach (bool, optional): use the faster foreach-based implementation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             If ``None``, use the foreach implementation for CUDA and CPU native tensors and
             silently fall back to the slow implementation for other device types.
             Default: ``None``
@@ -284,3 +322,11 @@ def clip_grad_value_(
         else:
             for grad in grads:
                 cast(Tensor, grad).clamp_(min=-clip_value, max=clip_value)
+<<<<<<< HEAD
+=======
+
+
+clip_grad_norm.__module__ = "torch.nn.utils"
+clip_grad_norm_.__module__ = "torch.nn.utils"
+clip_grad_value_.__module__ = "torch.nn.utils"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

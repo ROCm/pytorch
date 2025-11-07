@@ -59,6 +59,7 @@ struct FakeGuardImpl final : public DeviceGuardImplInterface {
 
   // Event-related functions
   void record(
+<<<<<<< HEAD
       void** event,
       const Stream& stream,
       const DeviceIndex device_index,
@@ -68,6 +69,17 @@ struct FakeGuardImpl final : public DeviceGuardImplInterface {
     return true;
   }
   void destroyEvent(void* event, const DeviceIndex device_index)
+=======
+      void** /*event*/,
+      const Stream& /*stream*/,
+      const DeviceIndex /*device_index*/,
+      const EventFlag /*flag*/) const override {}
+  void block(void* /*event*/, const Stream& /*stream*/) const override {}
+  bool queryEvent(void* /*event*/) const override {
+    return true;
+  }
+  void destroyEvent(void* /*event*/, const DeviceIndex /*device_index*/)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const noexcept override {}
 
   // Convenience methods for testing

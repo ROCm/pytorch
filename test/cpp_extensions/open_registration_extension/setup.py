@@ -1,5 +1,9 @@
 import distutils.command.clean
 import os
+<<<<<<< HEAD
+=======
+import platform
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import shutil
 import sys
 from pathlib import Path
@@ -40,6 +44,12 @@ if __name__ == "__main__":
             CXX_FLAGS = ["/sdl"]
         else:
             CXX_FLAGS = ["/sdl", "/permissive-"]
+<<<<<<< HEAD
+=======
+    elif platform.machine() == "s390x":
+        # no -Werror on s390x due to newer compiler
+        CXX_FLAGS = {"cxx": ["-g", "-Wall"]}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         CXX_FLAGS = {"cxx": ["-g", "-Wall", "-Werror"]}
 

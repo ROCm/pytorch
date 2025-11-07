@@ -133,7 +133,11 @@ its type to `common_constant_types`.
 
     def call_method(
         self,
+<<<<<<< HEAD
         tx,
+=======
+        tx: "InstructionTranslator",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name,
         args: "list[VariableTracker]",
         kwargs: "dict[str, VariableTracker]",
@@ -190,7 +194,16 @@ its type to `common_constant_types`.
                     )
                     return SymNodeVariable.create(tx, proxy, add_target)
                 else:
+<<<<<<< HEAD
                     return ConstantVariable.create(op(self.value, add_target))
+=======
+                    try:
+                        return ConstantVariable.create(op(self.value, add_target))
+                    except Exception as e:
+                        raise_observed_exception(
+                            type(e), tx, args=list(map(ConstantVariable.create, e.args))
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(self.value, bytes) and name == "decode":
             method = getattr(self.value, name)
             return ConstantVariable.create(method(*const_args, **const_kwargs))

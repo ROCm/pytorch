@@ -341,7 +341,11 @@ def graph(model, args, verbose=False, use_strict_trace=True):
     # and pass it correctly to TensorBoard.
     #
     # Definition of StepStats and DeviceStepStats can be found at
+<<<<<<< HEAD
     # https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/graph/tf_graph_common/test/graph-test.ts
+=======
+    # https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/graph/tf_graph_common/proto.ts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # and
     # https://github.com/tensorflow/tensorboard/blob/master/tensorboard/compat/proto/step_stats.proto
     stepstats = RunMetadata(

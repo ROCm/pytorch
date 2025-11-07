@@ -14,7 +14,11 @@ test_classes = {}
 
 
 def mocked_training_ir_export(*args, **kwargs):
+<<<<<<< HEAD
     return export_for_training(*args, **kwargs)
+=======
+    return export_for_training(*args, **kwargs, strict=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def make_dynamic_cls(cls):

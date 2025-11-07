@@ -215,7 +215,11 @@ class CoordescTuner:
         """
         Check if candidate_config is better than best_config.
 
+<<<<<<< HEAD
         Return a touple of (compare_result, candidate_timing).
+=======
+        Return a tuple of (compare_result, candidate_timing).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compare_result is true iff candidate_config is better.
         """
         log.debug("Try config %s", candidate_config)

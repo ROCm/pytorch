@@ -18,7 +18,11 @@ from torch.testing._internal.common_quantization import (
     SingleLayerLinearModel,
     TwoLayerLinearModel,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 logging.basicConfig(
@@ -147,3 +151,10 @@ class TestSparsityUtilFunctions(TestCase):
             self.assertEqual(arg_info["module_fqn"], "foo.bar")
             self.assertEqual(arg_info["tensor_name"], "baz")
             self.assertEqual(arg_info["tensor_fqn"], "foo.bar.baz")
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

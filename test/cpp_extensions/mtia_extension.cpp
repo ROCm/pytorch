@@ -38,9 +38,14 @@ struct MTIAGuardImpl final : public c10::impl::DeviceGuardImplInterface {
   }
 
   void setDevice(c10::Device d) const override {
+<<<<<<< HEAD
     c10::Device current_device = getDevice();
     if (current_device.index() != d.index()) {
       current_device = d;
+=======
+    if (getDevice().index() != d.index()) {
+      current_device = d.index();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   void uncheckedSetDevice(c10::Device d) const noexcept override {

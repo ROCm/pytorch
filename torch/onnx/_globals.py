@@ -54,11 +54,14 @@ class _InternalGlobals:
 
     @export_onnx_opset_version.setter
     def export_onnx_opset_version(self, value: int):
+<<<<<<< HEAD
         supported_versions = range(
             _constants.ONNX_MIN_OPSET, _constants.ONNX_MAX_OPSET + 1
         )
         if value not in supported_versions:
             raise ValueError(f"Unsupported ONNX opset version: {value}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._export_onnx_opset_version = value
 
     @property

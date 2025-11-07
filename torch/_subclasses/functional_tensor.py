@@ -118,7 +118,11 @@ class FunctionalTensor(torch.Tensor):
             FunctionalTensor._extra_dispatch_keys & torch._C._dispatch_keys(elem)
         )
 
+<<<<<<< HEAD
         out = torch.Tensor._make_wrapper_subclass(  # type: ignore[arg-type, attr-defined]
+=======
+        out = torch.Tensor._make_wrapper_subclass(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # TODO: right now, _make_wrapper_subclass's dynamic shape interaction is not great.
             # Calling the overload that has kwargs causes us to go down the first overload path,
             # which will **always** specialize sizes.
@@ -160,7 +164,11 @@ class FunctionalTensor(torch.Tensor):
                 assert out._inference_mode_base is not None
         return out
 
+<<<<<<< HEAD
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
+=======
+    def __torch_dispatch__(self, func, types, args=(), kwargs=None):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unrecognized_types = [
             t
             for t in types
@@ -260,9 +268,18 @@ class FunctionalTensor(torch.Tensor):
 
     def to(self, *args, **kwargs):
         if _detect_infra_mode(torch._C._TorchDispatchModeKey.FUNCTIONAL).export:
+<<<<<<< HEAD
             # If copy is specified as pos arg, it's always the second one.
             if len([arg for arg in args if isinstance(arg, bool)]) <= 1:
                 return super().to(*args, **{**kwargs, "copy": True})
+=======
+            torch.ops.aten._assert_tensor_metadata(
+                self,
+                dtype=self.dtype,
+                device=self.device,
+                layout=self.layout,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().to(*args, **kwargs)
 
     def cuda(self, device=None, *args, **kwargs):
@@ -288,7 +305,11 @@ class FunctionalTensor(torch.Tensor):
         return self.elem.to_dense()
 
     @property
+<<<<<<< HEAD
     def layout(self):
+=======
+    def layout(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.elem.layout
 
     def __bool__(self):
@@ -354,6 +375,7 @@ class FunctionalTensorMode(TorchDispatchMode):
         if kwargs is None:
             kwargs = {}
 
+<<<<<<< HEAD
         if self.export:
             # We need to make sure that we don't decompose to() as usual in export mode,
             # because it can get optimized away. Instead we always replace it with _to_copy().
@@ -371,6 +393,8 @@ class FunctionalTensorMode(TorchDispatchMode):
                     torch.ops.aten._to_copy.default, types, args[:1], kwargs
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unrecognized_types = [
             t
             for t in types
@@ -527,6 +551,7 @@ class FunctionalTensorMode(TorchDispatchMode):
                         *args_unwrapped,
                         **kwargs_unwrapped,
                     )
+<<<<<<< HEAD
                     # We don't allow any mutation on result of dropout or _to_copy
                     if self.export:
                         if func in (
@@ -557,6 +582,12 @@ class FunctionalTensorMode(TorchDispatchMode):
                                 )
                             else:
                                 torch._freeze_functional_tensor(outs_unwrapped)  # type: ignore[attr-defined]
+=======
+
+                    if self.export:
+                        if func == torch.ops.aten.dropout.default:
+                            torch._freeze_functional_tensor(outs_unwrapped)  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     outs_wrapped = pytree.tree_map_only(
                         torch.Tensor, wrap, outs_unwrapped
                     )

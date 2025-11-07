@@ -17,12 +17,19 @@
 class Socket {
  public:
   int socket_fd;
+<<<<<<< HEAD
+=======
+  Socket(const Socket& other) = delete;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  protected:
   Socket() {
     SYSCHECK_ERR_RETURN_NEG1(socket_fd = socket(AF_UNIX, SOCK_STREAM, 0));
   }
+<<<<<<< HEAD
   Socket(const Socket& other) = delete;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Socket(Socket&& other) noexcept : socket_fd(other.socket_fd) {
     other.socket_fd = -1;
   };
@@ -122,7 +129,11 @@ class ManagerServerSocket : public Socket {
       SYSCHECK_ERR_RETURN_NEG1(unlink(socket_path.c_str()));
   }
 
+<<<<<<< HEAD
   virtual ~ManagerServerSocket() {
+=======
+  ~ManagerServerSocket() override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unlink(socket_path.c_str());
   }
 

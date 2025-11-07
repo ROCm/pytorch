@@ -2,7 +2,11 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/cuda/CUDAUtils.h>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Doesn't work on ROCm or Windows yet
 // TODO: Add compiler warning? Add PyTorch config flag?
 #else
@@ -20,7 +24,11 @@
 #include <ATen/native/cuda/cutlass_extensions/gemm/threadblock/default_mma.h>
 #endif
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Doesn't work on ROCm or Windows yet
 #else
 #define CUTLASS_STATUS_CHECK(status)                                      \
@@ -32,7 +40,11 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Doesn't work on ROCm or Windows yet or old compiler
 #else
 template<typename ElementInputA, typename ElementInputB, typename EpilogueTag>
@@ -198,7 +210,11 @@ _mixed_dtypes_linear(const Tensor& input, const Tensor& weight,
                      const Tensor& scale,
                      const std::optional<Tensor>& bias_opt,
                      const std::optional<std::string_view> activation_opt) {
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "_mixed_dtypes_linear: not compiled for this platform");
   return Tensor{};
 #else

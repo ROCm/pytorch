@@ -1,8 +1,16 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
 from torch.distributions import Categorical, constraints
+<<<<<<< HEAD
+=======
+from torch.distributions.constraints import MixtureSameFamilyConstraint
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributions.distribution import Distribution
 
 
@@ -59,7 +67,11 @@ class MixtureSameFamily(Distribution):
         self,
         mixture_distribution: Categorical,
         component_distribution: Distribution,
+<<<<<<< HEAD
         validate_args=None,
+=======
+        validate_args: Optional[bool] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         self._mixture_distribution = mixture_distribution
         self._component_distribution = component_distribution
@@ -123,9 +135,13 @@ class MixtureSameFamily(Distribution):
 
     @constraints.dependent_property
     def support(self):
+<<<<<<< HEAD
         # FIXME this may have the wrong shape when support contains batched
         # parameters
         return self._component_distribution.support
+=======
+        return MixtureSameFamilyConstraint(self._component_distribution.support)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def mixture_distribution(self) -> Categorical:

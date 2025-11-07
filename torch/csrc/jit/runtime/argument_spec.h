@@ -241,7 +241,11 @@ struct CompleteArgumentInfo;
 struct CompleteArgumentSpec {
   CompleteArgumentSpec(bool with_grad, at::ArrayRef<IValue> inputs)
       : ninputs(inputs.size()) {
+<<<<<<< HEAD
     int32_t all_dims = 0;
+=======
+    int64_t all_dims = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const auto num_inputs = inputs.size();
     for (const auto i : c10::irange(num_inputs)) {
       if (!inputs[i].isTensor())

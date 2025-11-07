@@ -163,7 +163,11 @@ def _union_input_edge_with(
 
 
 def _get_edge_or_node_to_group_id(
+<<<<<<< HEAD
     edge_or_node_to_qspec: dict[EdgeOrNode, QuantizationSpecBase]
+=======
+    edge_or_node_to_qspec: dict[EdgeOrNode, QuantizationSpecBase],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> dict[EdgeOrNode, int]:
     """Map from edge/node to the group ID, generated from quantization annotations,
     edge/node with the same group ID should use the same observer/fake_quant instance
@@ -351,9 +355,15 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
     original_arg = arg
     while _is_activation_post_process_node(original_arg, named_modules):
         original_arg = original_arg.args[0]  # type: ignore[assignment]
+<<<<<<< HEAD
     assert isinstance(
         original_arg, Node
     ), f"expect original argument to be a Node, but got: {type(original_arg)}"
+=======
+    assert isinstance(original_arg, Node), (
+        f"expect original argument to be a Node, but got: {type(original_arg)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     input_edge = (original_arg, node)
     if input_edge not in obs_or_fq_map:

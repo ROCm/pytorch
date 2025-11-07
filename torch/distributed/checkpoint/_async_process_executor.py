@@ -87,29 +87,82 @@ class _AsyncCheckpointProcess:
         pg_init_info: _ProcessGroupInitInfo,
     ):
         self.ctx = mp.get_context("spawn")
+<<<<<<< HEAD
         self._mp_queue_send: mp.Queue = self.ctx.Queue()
         self._mp_queue_recv: mp.Queue = self.ctx.Queue()
+=======
+        self._process_pipe, child_end = self.ctx.Pipe()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._save_process = self.ctx.Process(
             target=self._checkpointing_subprocess,
             args=(
                 pg_init_info,
+<<<<<<< HEAD
                 self._mp_queue_send,
                 self._mp_queue_recv,
+=======
+                child_end,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             daemon=True,
         )
 
         self._save_process.start()
+<<<<<<< HEAD
         response = self._wait_for_response()
+=======
+
+        # Close the parent's copy of child end after we pass it into the child,
+        # so the recv()s on it will fail-fast if the child process dies.
+        child_end.close()
+
+        # Wait for the checkpoint background process to initialize.
+        # Using default GLOO init timeout.
+        response = self._wait_for_response(timeout=1800)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert response == _CheckpointSaveProcessControlOpts.INIT_COMPLETE
 
     def __del__(self) -> None:
         if self._save_process.is_alive():
             logger.info("Terminating the checkpoint background process...")
+<<<<<<< HEAD
             self._mp_queue_send.put(_CheckpointSaveProcessControlOpts.TERMINATE)
             self._save_process.join()
 
+=======
+            self._send(_CheckpointSaveProcessControlOpts.TERMINATE)
+            self._save_process.join()
+
+    def _send(self, data: Any) -> None:
+        self._process_pipe.send(data)
+
+    def _wait_for_response(self, timeout: Optional[float] = None) -> Any:
+        if not self._save_process.is_alive():
+            logger.info("Checkpoint background process is dead calling join()...")
+            self._save_process.join()
+            raise RuntimeError(
+                f"Checkpoint background process is dead. Exit code: {self._save_process.exitcode}"
+            )
+
+        if timeout is not None and not self._process_pipe.poll(timeout=timeout):
+            raise RuntimeError(
+                f"Timed out after {timeout}s while waiting for response from checkpointer process pid: {self._save_process.pid}"
+            )
+
+        try:
+            response = self._process_pipe.recv()
+        except EOFError:
+            raise RuntimeError(  # noqa: B904
+                f"Checkpoint background process is dead. Exit code: {self._save_process.exitcode}"
+            )
+
+        if isinstance(response, BaseException):
+            raise response
+
+        return response
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def save(
         self,
         staged_state_dict: STATE_DICT_TYPE,
@@ -127,11 +180,16 @@ class _AsyncCheckpointProcess:
             storage_writer=storage_writer,
             planner=planner,
         )
+<<<<<<< HEAD
         self._mp_queue_send.put(async_cp_request)
+=======
+        self._send(async_cp_request)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = self._wait_for_response()
         assert isinstance(result, Metadata)
         return result
 
+<<<<<<< HEAD
     def _wait_for_response(self) -> Any:
         if not self._save_process.is_alive():
             logger.info("Checkpoint background process is dead calling join()...")
@@ -142,6 +200,8 @@ class _AsyncCheckpointProcess:
             raise response
         return response
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @staticmethod
     def _execute_save(
         state_dict: STATE_DICT_TYPE,
@@ -163,8 +223,12 @@ class _AsyncCheckpointProcess:
     @staticmethod
     def _checkpointing_subprocess(
         pg_init_info: _ProcessGroupInitInfo,
+<<<<<<< HEAD
         recv: mp.Queue,
         send: mp.Queue,
+=======
+        parent_conn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         try:
             _init_logger(pg_init_info.global_rank)
@@ -185,12 +249,20 @@ class _AsyncCheckpointProcess:
             dist.barrier()
 
             logger.info("Checkpoint background process is running...")
+<<<<<<< HEAD
             send.put(_CheckpointSaveProcessControlOpts.INIT_COMPLETE)
+=======
+            parent_conn.send(_CheckpointSaveProcessControlOpts.INIT_COMPLETE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Serving loop.
             while True:
                 logger.info("Waiting for checkpoint save request...")
+<<<<<<< HEAD
                 obj = recv.get()
+=======
+                obj = parent_conn.recv()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if (
                     isinstance(obj, _CheckpointSaveProcessControlOpts)
                     and obj == _CheckpointSaveProcessControlOpts.TERMINATE
@@ -208,7 +280,11 @@ class _AsyncCheckpointProcess:
                     storage_writer=obj.storage_writer,
                     planner=obj.planner,
                 )
+<<<<<<< HEAD
                 send.put(response)
+=======
+                parent_conn.send(response)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 logger.info(
                     f"Submitted checkpoint save request for checkpoint_id={obj.checkpoint_request_id}"  # noqa: G004
                 )
@@ -216,11 +292,19 @@ class _AsyncCheckpointProcess:
             logger.error(
                 f"Checkpoint background process encountered an exception: {e}"  # noqa: G004
             )
+<<<<<<< HEAD
             send.put(e)
+=======
+            parent_conn.send(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise
         finally:
             logger.info("Checkpoint background process is shutting down...")
             dist.destroy_process_group()
+<<<<<<< HEAD
+=======
+            parent_conn.close()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _CHECKPOINT_PROCESS: Optional[_AsyncCheckpointProcess] = None

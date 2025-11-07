@@ -33,7 +33,13 @@ std::unique_ptr<AOTIModelContainerRunner> create_aoti_runner_cpu(
 }
 } // namespace
 
+<<<<<<< HEAD
 RegisterAOTIModelRunner register_cpu_runner("cpu", &create_aoti_runner_cpu);
+=======
+static RegisterAOTIModelRunner register_cpu_runner(
+    "cpu",
+    &create_aoti_runner_cpu);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::inductor
 #endif

@@ -33,11 +33,19 @@ T* remove_const(const T* x) {
 } // namespace
 
 #if AT_BUILD_WITH_BLAS()
+<<<<<<< HEAD
+=======
+#ifndef _ARMPL_H
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 extern "C" double ddot_(int *n, double *x, int *incx, double *y, int *incy);
 extern "C" void dscal_(int *n, double *a, double *x, int *incx);
 extern "C" void sscal_(int *n, float *a, float *x, int *incx);
 extern "C" void dgemv_(char *trans, int *m, int *n, double *alpha, double *a, int *lda, double *x, int *incx, double *beta, double *y, int *incy);
 extern "C" void sgemv_(char *trans, int *m, int *n, float *alpha, float *a, int *lda, float *x, int *incx, float *beta, float *y, int *incy);
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if AT_BLAS_F2C()
 # define ffloat double
@@ -52,10 +60,18 @@ extern "C" void sgemv_(char *trans, int *m, int *n, float *alpha, float *a, int 
   extern "C" void cblas_cdotc_sub(const int n, const void *x, const int incx, const void *y, const int incy, void *dotc);
   extern "C" void cblas_zdotc_sub(const int n, const void *x, const int incx, const void *y, const int incy, void *dotc);
 
+<<<<<<< HEAD
+=======
+#ifndef _ARMPL_H
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static inline ffloat sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy)
   {
     return cblas_sdot(*n, x, *incx, y, *incy);
   }
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static inline void cdotu_(std::complex<float> *res, const int *n, const std::complex<float> *x, const int *incx,
   const std::complex<float> *y, const int *incy) {
     cblas_cdotu_sub(*n, x, *incx, y, *incy, res);
@@ -86,6 +102,11 @@ namespace at::native {
 #if !defined(C10_MOBILE)
 DEFINE_DISPATCH(fp16_gemv_trans_stub);
 DEFINE_DISPATCH(bf16_gemv_trans_stub);
+<<<<<<< HEAD
+=======
+DEFINE_DISPATCH(fp16_dot_stub);
+DEFINE_DISPATCH(bf16_dot_stub);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // !defined(C10_MOBILE)
 
 namespace blas_impl {
@@ -116,6 +137,7 @@ void fp16_gemv_trans(
   fp16_gemv_trans_stub(kCPU, m, n, alpha, a, lda, x, incx, beta, y, incy);
 }
 
+<<<<<<< HEAD
 void bf16_gemv_trans(
     const int m,
     const int n,
@@ -127,10 +149,67 @@ void bf16_gemv_trans(
     const at::BFloat16 beta,
     at::BFloat16* y,
     const int incy);
+=======
+static float fp16_dot(
+  const int64_t n,
+  const Half* x,
+  const int64_t incx,
+  const Half* y,
+  const int64_t incy) {
+  return fp16_dot_stub(kCPU, n, x, incx, y, incy);
+}
+
+static float bf16_dot(
+  const int64_t n,
+  const BFloat16* x,
+  const int64_t incx,
+  const BFloat16* y,
+  const int64_t incy) {
+  return bf16_dot_stub(kCPU, n, x, incx, y, incy);
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #endif // !defined(C10_MOBILE)
 
 #if defined(__aarch64__) && !defined(C10_MOBILE)
+<<<<<<< HEAD
+=======
+#ifdef __ARM_FEATURE_FP16_SCALAR_ARITHMETIC
+static void fp16_gemv_notrans_fp16_arith(int m, int n, const float16_t* a, const int lda, const float16_t *x, float16_t *y) {
+  for (auto j = 0; j < n; j++) {
+    auto vecCol = vdup_n_f16(x[j]);
+    const auto* column = a + lda * j;
+    for (auto i = 0; i < m; i += 4) {
+      auto yf16 = y + i;
+      auto matRow = vld1_f16(column + i);
+      auto resVec = j != 0 ? vld1_f16(yf16) : vdup_n_f16(0);
+      resVec = vfma_lane_f16(resVec, matRow, vecCol, 0);
+      vst1_f16(yf16, resVec);
+    }
+  }
+}
+#endif
+
+static void fp16_gemv_notrans_fp32_arith(int m, int n, const float16_t* a, const int lda, const float16_t *x, float16_t *y) {
+  std::vector<float> sum(m);
+  for (auto j = 0; j < n; j++) {
+    auto vecCol = vdup_n_f32(x[j]);
+    const auto* column = a + lda * j;
+    for (auto i = 0; i < m; i += 4) {
+      auto sf32 = sum.data() + i;
+      auto matRow = vcvt_f32_f16(vld1_f16(column + i));
+      auto resVec = j != 0 ? vld1q_f32(sf32) : vdupq_n_f32(0);
+      resVec = vfmaq_lane_f32(resVec, matRow, vecCol, 0);
+      vst1q_f32(sf32, resVec);
+    }
+  }
+
+  for (auto i = 0; i < m; i+= 4) {
+    vst1_f16(y + i, vcvt_f16_f32(vld1q_f32(sum.data() + i)));
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void fp16_gemv_notrans(
     const int m,
     const int n,
@@ -143,17 +222,66 @@ void fp16_gemv_notrans(
     Half* y,
     const int incy);
 
+<<<<<<< HEAD
 #endif // defined(__aarch64__) && !defined(C10_MOBILE)
 
 template <typename scalar_t>
 bool scal_use_fast_path(
+=======
+void fp16_gemv_notrans(
+    const int m,
+    const int n,
+    const float alpha,
+    const Half* a,
+    const int lda,
+    const Half* x,
+    const int incx,
+    const float beta,
+    Half* y,
+    const int incy) {
+  if (incx == 1 && alpha == 1.0 && beta == 0.0 && m % 4 == 0 && incy == 1) {
+#ifdef __ARM_FEATURE_FP16_SCALAR_ARITHMETIC
+    if (at::globalContext().allowFP16ReductionCPU())  {
+      return fp16_gemv_notrans_fp16_arith(m, n, reinterpret_cast<const float16_t*>(a), lda, reinterpret_cast<const float16_t*>(x), reinterpret_cast<float16_t*>(y));
+    }
+#endif
+    return fp16_gemv_notrans_fp32_arith(m, n, reinterpret_cast<const float16_t*>(a), lda, reinterpret_cast<const float16_t*>(x), reinterpret_cast<float16_t*>(y));
+  }
+  std::vector<float> sum(m);
+  for (const auto j : c10::irange(n)) {
+    const auto* column_ = a + lda * j;
+    auto z = alpha * x[j * incx];
+    for (const auto i : c10::irange(m)) {
+      sum[i] += z * column_[i];
+    }
+  }
+  if (beta == 0.0) {
+    for (const auto i : c10::irange(m)) {
+      y[i * incy] = sum[i];
+    }
+  } else {
+    for (const auto i : c10::irange(m)) {
+      y[i * incy] += sum[i];
+    }
+  }
+}
+
+#endif // defined(__aarch64__) && !defined(C10_MOBILE)
+
+template <typename scalar_t>
+static bool scal_use_fast_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     [[maybe_unused]] int64_t n,
     [[maybe_unused]] int64_t incx) {
   return false;
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 bool gemv_use_fast_path(
+=======
+static bool gemv_use_fast_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     [[maybe_unused]] char trans,
     [[maybe_unused]] int64_t m,
     [[maybe_unused]] int64_t n,
@@ -166,7 +294,11 @@ bool gemv_use_fast_path(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void scal_fast_path(
+=======
+static void scal_fast_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     [[maybe_unused]] int* n,
     [[maybe_unused]] scalar_t* a,
     [[maybe_unused]] scalar_t* x,
@@ -176,7 +308,11 @@ void scal_fast_path(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void gemv_fast_path(
+=======
+static void gemv_fast_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     [[maybe_unused]] const char* trans,
     [[maybe_unused]] const int* m,
     [[maybe_unused]] const int* n,
@@ -258,10 +394,13 @@ template <>
 void gemv_fast_path<float>(const char *trans, const int *m, const int *n, const float *alpha, const float *a, const int *lda, const float *x, const int *incx, const float *beta, float *y, const int *incy) {
   sgemv_(remove_const(trans), remove_const(m), remove_const(n), remove_const(alpha), remove_const(a), remove_const(lda), remove_const(x), remove_const(incx), remove_const(beta), y, remove_const(incy));
 }
+<<<<<<< HEAD
 #else
 INSTANTIATE(float)
 INSTANTIATE(double)
 #endif // AT_BUILD_WITH_BLAS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 INSTANTIATE(uint8_t)
 INSTANTIATE(int8_t)
@@ -283,7 +422,11 @@ bool gemv_use_fast_path<at::BFloat16>(
       beta == 0.0;
 }
 
+<<<<<<< HEAD
 void bf16_gemv_trans(
+=======
+static void bf16_gemv_trans(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int m,
   const int n,
   const at::BFloat16 alpha,
@@ -368,6 +511,7 @@ void gemv_fast_path<at::Half>(
       y,
       *incy);
 }
+<<<<<<< HEAD
 #else
 template <>
 bool scal_use_fast_path<at::Half>(
@@ -376,6 +520,9 @@ bool scal_use_fast_path<at::Half>(
   return false;
 }
 
+=======
+#else // !defined(__aarch64__))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 bool gemv_use_fast_path<at::Half>(
     char trans,
@@ -391,6 +538,7 @@ bool gemv_use_fast_path<at::Half>(
       (c10::detail::fp16_from_bits(beta.x) == 0.0f || trans == 't' || trans == 'T');
 }
 
+<<<<<<< HEAD
 #ifdef __ARM_FEATURE_FP16_SCALAR_ARITHMETIC
 static void fp16_gemv_notrans_fp16_arith(int m, int n, const float16_t* a, const int lda, const float16_t *x, float16_t *y) {
   for (auto j = 0; j < n; j++) {
@@ -464,6 +612,8 @@ void fp16_gemv_notrans(
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 void gemv_fast_path<at::Half>(
     const char* trans,
@@ -511,6 +661,10 @@ void gemv_fast_path<at::Half>(
 INSTANTIATE(c10::Half)
 INSTANTIATE(c10::BFloat16)
 #endif // !defined(C10_MOBILE)
+<<<<<<< HEAD
+=======
+#endif // AT_BUILD_WITH_BLAS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #undef INSTANTIATE
 
 } // namespace blas_impl
@@ -559,7 +713,11 @@ void gemv(char trans, int64_t m, int64_t n, scalar_t alpha, const scalar_t *a, i
       opmath_t sum = 0;
       const scalar_t *row_ = a + lda * i;
       for (const auto j : c10::irange(m)) {
+<<<<<<< HEAD
         sum += x[j * incx] * row_[j];
+=======
+        sum += static_cast<opmath_t>(x[j * incx]) * static_cast<opmath_t>(row_[j]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       if (beta == scalar_t(0)) {
         y[i * incy] = alpha * sum;
@@ -690,7 +848,11 @@ scalar_t dot_impl(int64_t n, const scalar_t* x, int64_t incx, const scalar_t* y,
     incx = 1;
     incy = 1;
   }
+<<<<<<< HEAD
   return blas_impl::dot_naive(n, x, incx, y, incy, std::multiplies<scalar_t>{});
+=======
+  return blas_impl::dot_naive(n, x, incx, y, incy, std::multiplies<at::opmath_type<scalar_t>>{});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
@@ -713,6 +875,37 @@ c10::complex<float> dot_impl(int64_t n, const c10::complex<float>* x, int64_t in
   return dot_impl_floating(n, x, incx, y, incy);
 }
 
+<<<<<<< HEAD
+=======
+template <>
+Half dot_impl(int64_t n, const Half* x, int64_t incx, const Half* y, int64_t incy) {
+  if (n == 1) {
+    incx = 1;
+    incy = 1;
+  }
+#if !defined(C10_MOBILE)
+  if (incx == 1 && incy == 1) {
+    return blas_impl::fp16_dot(n, x, incx, y, incy);
+  }
+#endif // !defined(C10_MOBILE)
+  return blas_impl::dot_naive(n, x, incx, y, incy, std::multiplies<float>{});
+}
+
+template <>
+BFloat16 dot_impl(int64_t n, const BFloat16* x, int64_t incx, const BFloat16* y, int64_t incy) {
+  if (n == 1) {
+    incx = 1;
+    incy = 1;
+  }
+#if !defined(C10_MOBILE)
+  if (incx == 1 && incy == 1) {
+    return blas_impl::bf16_dot(n, x, incx, y, incy);
+  }
+#endif // !defined(C10_MOBILE)
+  return blas_impl::dot_naive(n, x, incx, y, incy, std::multiplies<float>{});
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 template <typename scalar_t>
 struct vdot_op {
@@ -739,7 +932,11 @@ scalar_t vdot_impl(int64_t n, const scalar_t* x, int64_t incx, const scalar_t* y
 #endif
 }
 
+<<<<<<< HEAD
 // Skip reinstantiating the explicitly specialized types `float` and `double`.
+=======
+// Skip reinstantiating the explicitly specialized types `float`, `double`, `half` & `bfloat16`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define INSTANTIATE_DOT_IMPL(scalar_t)  \
   template scalar_t dot_impl<scalar_t>( \
       int64_t n, const scalar_t * x, int64_t incx, const scalar_t * y, int64_t incy);
@@ -748,8 +945,11 @@ INSTANTIATE_DOT_IMPL(int8_t)
 INSTANTIATE_DOT_IMPL(int16_t)
 INSTANTIATE_DOT_IMPL(int)
 INSTANTIATE_DOT_IMPL(int64_t)
+<<<<<<< HEAD
 INSTANTIATE_DOT_IMPL(c10::Half)
 INSTANTIATE_DOT_IMPL(c10::BFloat16)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define INSTANTIATE_VDOT_IMPL(scalar_t)  \
   template scalar_t vdot_impl<scalar_t>( \

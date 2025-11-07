@@ -1,18 +1,25 @@
 # Owner(s): ["module: unknown"]
 
 
+<<<<<<< HEAD
 import logging
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import nn
 from torch.ao.pruning.sparsifier import utils
 from torch.nn.utils import parametrize
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
 
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ModelUnderTest(nn.Module):
@@ -173,3 +180,10 @@ class TestFakeSparsity(TestCase):
         y = model(x)
         y_hat = model_trace(x)
         self.assertEqual(y_hat, y)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

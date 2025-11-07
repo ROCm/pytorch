@@ -29,12 +29,29 @@ struct TORCH_API OpaqueTensorImpl : public TensorImpl {
       bool is_non_overlapping_and_dense = true)
       : TensorImpl(key_set, data_type, device),
         opaque_handle_(std::move(opaque_handle)) {
+<<<<<<< HEAD
     set_storage_access_should_throw();
     set_custom_sizes_strides(SizesStridesPolicy::CustomStrides);
     sizes_and_strides_.set_sizes(sizes);
     refresh_numel();
     // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
     is_non_overlapping_and_dense_ = is_non_overlapping_and_dense;
+=======
+    constructor_impl(sizes, is_non_overlapping_and_dense);
+  }
+
+  OpaqueTensorImpl(
+      TensorImpl::ImplType impl_type,
+      c10::Storage&& storage,
+      at::DispatchKeySet key_set,
+      const caffe2::TypeMeta data_type,
+      OpaqueHandle opaque_handle,
+      c10::IntArrayRef sizes,
+      bool is_non_overlapping_and_dense = true)
+      : TensorImpl(impl_type, std::move(storage), key_set, data_type),
+        opaque_handle_(std::move(opaque_handle)) {
+    constructor_impl(sizes, is_non_overlapping_and_dense);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Destructor doesn't call release_resources because it's
@@ -181,6 +198,20 @@ struct TORCH_API OpaqueTensorImpl : public TensorImpl {
     return "OpaqueTensorImpl";
   }
 
+<<<<<<< HEAD
+=======
+  void constructor_impl(
+      c10::IntArrayRef sizes,
+      bool is_non_overlapping_and_dense) {
+    set_storage_access_should_throw();
+    set_custom_sizes_strides(SizesStridesPolicy::CustomStrides);
+    sizes_and_strides_.set_sizes(sizes);
+    refresh_numel();
+    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
+    is_non_overlapping_and_dense_ = is_non_overlapping_and_dense;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   OpaqueHandle opaque_handle_;
 };
 

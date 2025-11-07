@@ -90,7 +90,11 @@ class Pattern:
     def match(self, event: _ProfilerEvent):
         """
         Return True if the event matches the pattern.
+<<<<<<< HEAD
         This method should be overriden in subclass.
+=======
+        This method should be overridden in subclass.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         raise NotImplementedError
 
@@ -150,7 +154,11 @@ class ExtraCUDACopyPattern(Pattern):
     example: torch.zeros((100, 100)).to("cuda")
 
     Pattern:
+<<<<<<< HEAD
     build-in method                 |build-in method
+=======
+    built-in method                 |built-in method
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...                         |    aten::to
             aten::fill_/aten::zero_ |        aten::_to_copy
 
@@ -209,7 +217,11 @@ class ExtraCUDACopyPattern(Pattern):
             return False
         while event.children:
             event = event.children[-1]
+<<<<<<< HEAD
             # aten::zero_ is a special optimzation case where fill_ is not called
+=======
+            # aten::zero_ is a special optimization case where fill_ is not called
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if event.name in self.init_ops:
                 return True
         return event.name in self.init_ops
@@ -367,7 +379,11 @@ class OptimizerSingleTensorPattern(Pattern):
         self.name = "Optimizer Single Tensor Pattern"
         self.optimizers_with_foreach = ["adam", "sgd", "adamw"]
         self.description = (
+<<<<<<< HEAD
             "Deteced optimizer running with single tensor implementation. "
+=======
+            "Detected optimizer running with single tensor implementation. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "Please enable multi tensor implementation by passing 'foreach=True' into optimizer."
         )
         self.url = ""

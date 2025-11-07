@@ -58,6 +58,10 @@ def split_module(
     qualname_map: Optional[dict[str, str]] = None,
     keep_original_order: Optional[bool] = False,
     keep_original_node_name: Optional[bool] = False,
+<<<<<<< HEAD
+=======
+    keep_original_input_name: bool = True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Creates subgraphs out of main graph
@@ -76,7 +80,14 @@ def split_module(
             names in the original module.
         keep_original_order: Optional[bool]: keep the original order of the GraphModule
             or use the Topological order of the new constructed GraphModule
+<<<<<<< HEAD
 
+=======
+        keep_original_node_name: Optional[bool]: If the partitioned graphs should
+            have the same node names as the original graph.
+        keep_original_input_name: bool: If the partitioned graphs should
+            have the same input names as the original graph.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         GraphModule: the module after split.
@@ -419,11 +430,34 @@ def split_module(
     for partition_name in sorted_partitions:
         partition = partitions[partition_name]
         new_inputs: dict[str, None] = {}
+<<<<<<< HEAD
+=======
+
+        counter = 0
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for inp in partition.inputs:
             orig_node = orig_nodes[inp]
             # We don't pass in get_attr nodes as inputs to the partition, but
             # instead set them as targets and use getattr within the module
 
+<<<<<<< HEAD
+=======
+            def add_placeholder():
+                if keep_original_input_name:
+                    name = inp
+                else:
+                    nonlocal counter
+                    name = f"arg_{counter}"
+                    counter += 1
+                placeholder = partition.graph.placeholder(
+                    name,
+                    type_expr=orig_nodes[inp].type,
+                )
+                new_inputs[inp] = None
+                return placeholder
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if orig_node.op == "get_attr":
                 assert isinstance(orig_node.target, str)
 
@@ -432,6 +466,7 @@ def split_module(
                     placeholder = partition.graph.get_attr(orig_node.target)
                     partition.targets[orig_node.target] = orig_attr
                 else:
+<<<<<<< HEAD
                     placeholder = partition.graph.placeholder(
                         inp,
                         type_expr=orig_nodes[inp].type,
@@ -443,6 +478,11 @@ def split_module(
                     type_expr=orig_nodes[inp].type,
                 )
                 new_inputs[inp] = None
+=======
+                    placeholder = add_placeholder()
+            else:
+                placeholder = add_placeholder()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             placeholder.meta = orig_nodes[inp].meta.copy()
             partition.environment[orig_nodes[inp]] = placeholder
         partition.inputs = new_inputs

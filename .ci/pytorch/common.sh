@@ -13,6 +13,7 @@ if [[ "${BUILD_ENVIRONMENT}" == *rocm* ]]; then
   # HIP_PLATFORM is auto-detected by hipcc; unset to avoid build errors
   unset HIP_PLATFORM
   export PYTORCH_TEST_WITH_ROCM=1
+<<<<<<< HEAD
   # temporary to locate some kernel issues on the CI nodes
   export HSAKMT_DEBUG_LEVEL=4
   # improve rccl performance for distributed tests
@@ -20,5 +21,10 @@ if [[ "${BUILD_ENVIRONMENT}" == *rocm* ]]; then
 fi
 
 # TODO: Renable libtorch testing for MacOS, see https://github.com/pytorch/pytorch/issues/62598
+=======
+fi
+
+# TODO: Reenable libtorch testing for MacOS, see https://github.com/pytorch/pytorch/issues/62598
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # shellcheck disable=SC2034
 BUILD_TEST_LIBTORCH=0

@@ -1,7 +1,10 @@
 # Owner(s): ["module: unknown"]
 
 import itertools
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 
 import torch
@@ -18,12 +21,16 @@ from torch.testing._internal.common_pruning import (
     MockSparseLinear,
     SimpleLinear,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
 
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestBaseSparsifier(TestCase):
@@ -484,3 +491,10 @@ class TestNearlyDiagonalSparsifier(TestCase):
                         assert mask[row, col] == 1
                     else:
                         assert mask[row, col] == 0
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

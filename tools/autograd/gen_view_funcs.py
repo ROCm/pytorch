@@ -331,8 +331,12 @@ def gen_view_funcs(
             fname,
             lambda: {
                 "generated_comment": "@"
+<<<<<<< HEAD
                 + f"generated from {fm.template_dir_for_comments()}/"
                 + fname,
+=======
+                + f"generated from {fm.template_dir_for_comments()}/{fname}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "view_func_declarations": declarations,
                 "view_func_definitions": definitions,
                 "ops_headers": ops_headers,

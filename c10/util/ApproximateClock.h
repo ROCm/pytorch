@@ -59,7 +59,11 @@ inline time_t getTime(bool allow_monotonic = false) {
       .count();
 #else
   // clock_gettime is *much* faster than std::chrono implementation on Linux
+<<<<<<< HEAD
   struct timespec t {};
+=======
+  struct timespec t{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto mode = CLOCK_REALTIME;
   if (allow_monotonic) {
     mode = CLOCK_MONOTONIC;

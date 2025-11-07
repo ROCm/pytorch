@@ -28,8 +28,12 @@ c10::Allocator* GetCPUAllocatorMaybePinned(bool pin_memory) {
       opt_device_type = at::getAccelerator(false);
     }
     if (opt_device_type.has_value()) {
+<<<<<<< HEAD
       return at::globalContext().getPinnedMemoryAllocator(
           opt_device_type.value());
+=======
+      return at::globalContext().getPinnedMemoryAllocator(opt_device_type);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       TORCH_CHECK(
           false, "Need to provide pin_memory allocator to use pin memory.")
@@ -160,17 +164,33 @@ SymInt computeStorageNbytes(
   // of the last element according to stride
   SymInt size = 1;
   for (const auto i : c10::irange(sizes.size())) {
+<<<<<<< HEAD
     if (TORCH_GUARD_SIZE_OBLIVIOUS(sizes[i].sym_eq(0))) {
       return 0;
     }
 
+=======
+    if (TORCH_GUARD_OR_FALSE(sizes[i].sym_eq(0))) {
+      return 0;
+    }
+
+    // NOTE: while this can technically return negative sizes for
+    // 0-element tensors, there's a check in TensorShape:set_storage_meta__symint
+    // that skips setting nbytes with unbacked expressions.
+    // Would probably be safer to wrap this with a max(*, 0),
+    // once our min/max symbolic reasoning improves.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size += strides[i] * (sizes[i] - 1);
   }
   return itemsize_bytes * (storage_offset + size);
 }
 
 template <typename T>
+<<<<<<< HEAD
 TensorBase _empty_generic(
+=======
+static TensorBase _empty_generic(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ArrayRef<T> size,
     c10::Allocator* allocator,
     c10::DispatchKeySet ks,
@@ -223,7 +243,11 @@ TensorBase empty_generic_symint(
 }
 
 template <typename T>
+<<<<<<< HEAD
 TensorBase _empty_strided_generic(
+=======
+static TensorBase _empty_strided_generic(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     T size,
     T stride,
     c10::Allocator* allocator,

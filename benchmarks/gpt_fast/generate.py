@@ -44,7 +44,11 @@ def device_sync(device):
     elif "cpu" in device:
         pass
     else:
+<<<<<<< HEAD
         print(f"device={device} is not yet suppported")
+=======
+        print(f"device={device} is not yet supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_arch_name() -> str:

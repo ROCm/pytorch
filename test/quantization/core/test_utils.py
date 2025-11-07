@@ -1,7 +1,11 @@
 # Owner(s): ["oncall: quantization"]
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization.utils import get_fqn_to_example_inputs
 from torch.ao.nn.quantized.modules.utils import _quantize_weight
 from torch.ao.quantization import MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver
@@ -220,3 +224,9 @@ class TestUtils(TestCase):
                 [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF],
             ], dtype=torch.uint8))
             assert x.dtype == dtype
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -6,7 +6,11 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 void convertSubgraphToSubBlock(Block* block) {
+=======
+static void convertSubgraphToSubBlock(Block* block) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto it = block->nodes().begin(), end = block->nodes().end();
        it != end;) {
     Node* node = *it++;

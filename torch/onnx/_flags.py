@@ -43,8 +43,14 @@ def _load_boolean_flag(
     return state
 
 
+<<<<<<< HEAD
 USE_EXPERIMENTAL_LOGIC: bool = _load_boolean_flag(
     "TORCH_ONNX_USE_EXPERIMENTAL_LOGIC",
     this_will="use ExportedProgram and the new torch.onnx export logic",
+=======
+PLACEHOLDER: bool = _load_boolean_flag(
+    "TORCH_ONNX_PLACEHOLDER",
+    this_will="do nothing",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default=True,
 )

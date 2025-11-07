@@ -213,7 +213,11 @@ Warning::Warning(
 Warning::Warning(
     warning_variant_t type,
     SourceLocation source_location,
+<<<<<<< HEAD
     detail::CompileTimeEmptyString msg,
+=======
+    detail::CompileTimeEmptyString /*msg*/,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool verbatim)
     : Warning(type, source_location, "", verbatim) {}
 

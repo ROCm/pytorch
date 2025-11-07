@@ -17,6 +17,10 @@
 #include <c10/util/Exception.h>
 #include <c10/util/Logging.h>
 #include <c10/util/WaitCounter.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/hash.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 #include <c10/util/thread_name.h>
 #include <torch/csrc/cuda/CUDAPluggableAllocator.h>
@@ -36,6 +40,10 @@
 namespace c10d {
 
 constexpr const char* const kNCCLAbortedCommStoreKey = "NCCLABORTEDCOMM";
+<<<<<<< HEAD
+=======
+using FlightRecorderCUDA = FlightRecorder<at::cuda::CUDAEvent>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace {
 
@@ -55,6 +63,7 @@ const std::map<ReduceOp::RedOpType, ncclRedOp_t> ncclOp = {
 #endif // NCCL_HAS_AVG
 };
 
+<<<<<<< HEAD
 // NCCL type typing
 std::map<at::ScalarType, ncclDataType_t> ncclDataType = {
     {at::kChar, ncclInt8},
@@ -83,6 +92,17 @@ ncclDataType_t getNcclDataType(at::ScalarType type) {
       "Input tensor data type is not supported for NCCL process group: ",
       type);
   return it->second;
+=======
+inline bool isUnsupportedFloat8(at::ScalarType t) {
+  return (
+      t == at::ScalarType::Float8_e5m2fnuz ||
+      t == at::ScalarType::Float8_e4m3fnuz ||
+      t == at::ScalarType::Float8_e8m0fnu
+#ifndef NCCL_SUPPORTS_FP8
+      || t == at::ScalarType::Float8_e5m2 || t == at::ScalarType::Float8_e4m3fn
+#endif
+  );
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool complexViewAsRealAllowed(const ReduceOp& reduceOp) {
@@ -200,6 +220,7 @@ inline std::string getKeyFromDevice(at::Device& device) {
   return std::to_string(device.index());
 }
 
+<<<<<<< HEAD
 inline at::DeviceIndex getIndexFromDeviceKey(const std::string& deviceKey) {
   // initialize the device index to -1, which is an invalid value.
   int index = -1;
@@ -214,6 +235,8 @@ inline at::DeviceIndex getIndexFromDeviceKey(const std::string& deviceKey) {
   return static_cast<at::DeviceIndex>(index);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::string getKeySendRecv(int myRank, int peer) {
   int lowRank = myRank < peer ? myRank : peer;
   int highRank = myRank < peer ? peer : myRank;
@@ -289,6 +312,7 @@ inline void errorIfCapturingNonCapturableNCCL(c10::cuda::CaptureStatus status) {
   }
 }
 
+<<<<<<< HEAD
 } // namespace
 
 // Map from each communicator to its device index.
@@ -296,14 +320,60 @@ inline void errorIfCapturingNonCapturableNCCL(c10::cuda::CaptureStatus status) {
 // allocator. See design notes below:
 // - Each segment should be registered only to the communicator on the
 //   same device.
+=======
+// When TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK is set, all tensors (no
+// matter how they have been allocated) are registered with all NCCL comms.
+bool shouldAllCommunicatorsRegisterAllTensors() {
+#ifdef NCCL_HAS_COMM_REGISTER
+  static const bool flag = [] {
+    const bool flag =
+        getCvarBool(TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK, false);
+    if (flag &&
+        c10::cuda::CUDACachingAllocator::CUDAAllocatorConfig::
+            expandable_segments()) {
+      LOG(INFO)
+          << "disables TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK because it is not compatible with CUDA allocator expandable segments mode.";
+      return false;
+    }
+    return flag;
+  }();
+  return flag;
+#else
+  return false;
+#endif // NCCL_HAS_COMM_REGISTER
+}
+
+} // namespace
+
+// Map each communicator to the memory pools registered with it.
+// This map is used when the caching allocator allocates or frees segments, in
+// order to register or deregister them with the relevant NCCL communicators.
+// There are two modes to do so:
+// - If TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK=1 then *ALL* segments
+//   will be registered with *ALL* NCCL communicators (for the same device),
+//   even if they were allocated with cudaMalloc (which NCCL doesn't like).
+// - If a MemPool is explicitly registered with a ProcessGroup, then all its
+//   segments (current and future) will be registered with the NCCL communicator
+//   corresponding to the pool's device. This works best if the MemPool is set
+//   up to use ncclMemAlloc (which is exposed by the ProcessGroup).
+// Implementation notes:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // - We cannot reuse devNCCLCommMap_ in each ProcessGroup because the key may be
 //   ranks rather than device in point-to-point case.
 // - This map has also to be maintained as global variable since the register
 //   hooks are called outside the scope of any PG, thus we need traverse
 //   communicators in all PGs.
+<<<<<<< HEAD
 static std::unordered_map<std::shared_ptr<NCCLComm>, int> ncclCommDevIdxMap;
 static std::mutex ncclCommDevIdxMapMutex;
 static bool allocatorHooksAttached = false;
+=======
+using MemPoolSet = std::
+    unordered_set<c10::cuda::MempoolId_t, c10::hash<c10::cuda::MempoolId_t>>;
+static std::unordered_map<std::shared_ptr<NCCLComm>, MemPoolSet>
+    ncclCommMemPoolMap;
+static std::mutex ncclCommMemPoolMapMutex;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 std::atomic<bool> ProcessGroupNCCL::shouldDump_(false);
 
@@ -315,6 +385,7 @@ static void cacheAllocatorRegisterHook(
     return;
   }
 
+<<<<<<< HEAD
   std::lock_guard<std::mutex> lock(ncclCommDevIdxMapMutex);
   for (auto& it : ncclCommDevIdxMap) {
     auto& ncclComm = it.first;
@@ -322,6 +393,16 @@ static void cacheAllocatorRegisterHook(
     if (te.device_ == devIdx) {
       // NOLINTNEXTLINE(performance-no-int-to-ptr)
       ncclComm->registerSegment(reinterpret_cast<void*>(te.addr_), te.size_);
+=======
+  std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+  for (auto& [ncclComm, memPools] : ncclCommMemPoolMap) {
+    if (te.device_ == ncclComm->getDeviceIndex()) {
+      if (shouldAllCommunicatorsRegisterAllTensors() ||
+          memPools.find(te.mempool_) != memPools.end()) {
+        // NOLINTNEXTLINE(performance-no-int-to-ptr)
+        ncclComm->registerSegment(reinterpret_cast<void*>(te.addr_), te.size_);
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 }
@@ -334,6 +415,7 @@ static void cacheAllocatorDeregisterHook(
     return;
   }
 
+<<<<<<< HEAD
   std::lock_guard<std::mutex> lock(ncclCommDevIdxMapMutex);
   for (auto& it : ncclCommDevIdxMap) {
     auto& ncclComm = it.first;
@@ -341,10 +423,37 @@ static void cacheAllocatorDeregisterHook(
     if (te.device_ == devIdx) {
       // NOLINTNEXTLINE(performance-no-int-to-ptr)
       ncclComm->deregisterSegment(reinterpret_cast<void*>(te.addr_));
+=======
+  std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+  for (auto& [ncclComm, memPools] : ncclCommMemPoolMap) {
+    if (te.device_ == ncclComm->getDeviceIndex()) {
+      if (shouldAllCommunicatorsRegisterAllTensors() ||
+          memPools.find(te.mempool_) != memPools.end()) {
+        // NOLINTNEXTLINE(performance-no-int-to-ptr)
+        ncclComm->deregisterSegment(reinterpret_cast<void*>(te.addr_));
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 }
 
+<<<<<<< HEAD
+=======
+static void attachAllocatorHooks() {
+  static c10::once_flag flag;
+  c10::call_once(flag, [] {
+    // Attaching hooks fails if CUDACachingAllocator is not initialized, so
+    // Init for CUDA is called (and is a no-op if CUDA is already
+    // initialized).
+    at::globalContext().lazyInitDevice(c10::DeviceType::CUDA);
+    c10::cuda::CUDACachingAllocator::attachAllocatorTraceTracker(
+        &cacheAllocatorRegisterHook);
+    c10::cuda::CUDACachingAllocator::attachAllocatorTraceTracker(
+        &cacheAllocatorDeregisterHook);
+  });
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::
     unordered_map<std::string, std::unordered_map<std::string, std::string>>
     getNCCLCommDumpMap() {
@@ -354,16 +463,29 @@ static std::
       std::unordered_map<std::string, std::string> /* dump from this comm */>
       ncclDumpMap;
   // dump_nccl_trace is only called from the default PG (local_id_=0), but we
+<<<<<<< HEAD
   // want to dump from all comms so we need to iterate over ncclCommDevIdxMap,
+=======
+  // want to dump from all comms so we need to iterate over ncclCommMemPoolMap,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // which is static
   std::vector<std::shared_ptr<NCCLComm>> allNCCLComms;
   // within the critical section, we don't want to dump while holding the lock
   // as dump might hang
+<<<<<<< HEAD
   ncclCommDevIdxMapMutex.lock();
   for (auto& [ncclComm, _] : ncclCommDevIdxMap) {
     allNCCLComms.push_back(ncclComm);
   }
   ncclCommDevIdxMapMutex.unlock();
+=======
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    for (auto& [ncclComm, _] : ncclCommMemPoolMap) {
+      allNCCLComms.push_back(ncclComm);
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto& ncclComm : allNCCLComms) {
     std::string ncclUniqueIDStr = buildNcclUniqueIdStr(ncclComm->getNcclId());
     ncclDumpMap[ncclUniqueIDStr] = ncclComm->ncclCommDump();
@@ -386,13 +508,21 @@ std::string dump_nccl_trace(
     printNcclCommProxyTrace("Received dump signal " + ncclUniqueIDStr, dump);
   }
 #endif // defined(USE_ROCM) && defined(NCCL_COMM_DUMP)
+<<<<<<< HEAD
   return FlightRecorder::get()->dump(
+=======
+  return FlightRecorderCUDA::get()->dump(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ncclDumpMap, includeCollectives, includeStackTraces, onlyActive);
 }
 
 std::string dump_nccl_trace_json(bool includeCollectives, bool onlyActive) {
   auto ncclDumpMap = getNCCLCommDumpMap();
+<<<<<<< HEAD
   return FlightRecorder::get()->dump_json(
+=======
+  return FlightRecorderCUDA::get()->dump_json(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ncclDumpMap, includeCollectives, onlyActive);
 }
 
@@ -454,6 +584,39 @@ std::ostream& operator<<(
   return output << workInfo;
 }
 
+<<<<<<< HEAD
+=======
+/* Implementation of TensorShelf class */
+
+void TensorShelf::stash(std::vector<at::Tensor>& tensors) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  tVector_.insert(tVector_.end(), tensors.begin(), tensors.end());
+}
+
+void TensorShelf::stash(TensorShelf& other) {
+  std::vector<at::Tensor>& otherVec = other.get();
+  this->stash(otherVec);
+}
+
+void TensorShelf::unstash() {
+  this->clear();
+}
+
+bool TensorShelf::empty() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return tVector_.empty();
+}
+
+void TensorShelf::clear() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  tVector_.clear();
+}
+
+std::vector<at::Tensor>& TensorShelf::get() {
+  return tVector_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ProcessGroupNCCL::WorkNCCL::WorkNCCL(
     std::string pgUID,
     std::string pgDesc,
@@ -464,7 +627,10 @@ ProcessGroupNCCL::WorkNCCL::WorkNCCL(
     bool isP2P,
     const char* profilingTitle,
     const std::optional<std::vector<at::Tensor>>& inputs,
+<<<<<<< HEAD
     bool desyncDebug,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool enableTiming,
     bool cudaEventCacheEnabled,
     DebugLevel distDebugLevel)
@@ -496,6 +662,11 @@ ProcessGroupNCCL::WorkNCCL::WorkNCCL(
   }
   futureWorkResult_ =
       c10::make_intrusive<at::ivalue::Future>(c10::AnyEnumType::get());
+<<<<<<< HEAD
+=======
+  // other functions expect an initialized ptr
+  stashed_for_allocator_safety_ = std::make_shared<TensorShelf>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 ProcessGroupNCCL::WorkNCCL::WorkNCCL(const WorkNCCL& w)
@@ -517,6 +688,14 @@ ProcessGroupNCCL::WorkNCCL::WorkNCCL(const WorkNCCL& w)
       numelIn_(w.numelIn_),
       numelOut_(w.numelOut_),
       store_(w.store_),
+<<<<<<< HEAD
+=======
+      // Note: the `work` returned to user and the `work` enqueued to watchdog
+      // share the pointer to the tensor stash.  At least one of them should
+      // clean the tensor stash, the earlier the better, i.e. user calling
+      // `work.wait` than watchdog detecting work completion.
+      stashed_for_allocator_safety_(w.stashed_for_allocator_safety_),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       futureWorkResult_(w.futureWorkResult_),
       timingEnabled_(w.timingEnabled_),
       trace_id_(w.trace_id_),
@@ -647,11 +826,19 @@ bool ProcessGroupNCCL::WorkNCCL::checkTimeout(
 }
 
 // Print the traceback of the collective at call time
+<<<<<<< HEAD
 void ProcessGroupNCCL::WorkNCCL::printTraceback() const {
   // First step we get the corresponding record entry from FR, based on work's
   // trace_id_
   std::optional<FlightRecorder::Entry> entry =
       FlightRecorder::get()->getEntry(trace_id_);
+=======
+std::string ProcessGroupNCCL::WorkNCCL::getTraceback() const {
+  // First step we get the corresponding record entry from FR, based on work's
+  // trace_id_
+  std::optional<FlightRecorderCUDA::Entry> entry =
+      FlightRecorderCUDA::get()->getEntry(trace_id_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (entry.has_value()) {
     auto entryVal = entry.value();
     // Get stack trace from FR entry, in string format
@@ -663,10 +850,26 @@ void ProcessGroupNCCL::WorkNCCL::printTraceback() const {
     // Wait for the future to complete or timeout
     auto status = future.wait_for(std::chrono::seconds(8));
     if (status == std::future_status::ready) {
+<<<<<<< HEAD
       std::string tracebackStr = future.get();
       LOG(ERROR) << "Stack trace of the failed collective: \n" << tracebackStr;
     } // else, symbolizer probably timed out, we skip logging the stack trace.
   } else {
+=======
+      return future.get();
+    }
+  }
+  return "";
+}
+
+// Print the traceback of the collective at call time
+void ProcessGroupNCCL::WorkNCCL::printTraceback() const {
+  std::string tracebackStr = getTraceback();
+  if (!tracebackStr.empty()) {
+    LOG(ERROR) << "Stack trace of the failed collective: \n" << tracebackStr;
+  } // else, symbolizer probably timed out, we skip logging the stack trace.
+  else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LOG(ERROR)
         << "Stack trace of the failed collective not found, "
         << "potentially because FlightRecorder is disabled. "
@@ -714,10 +917,16 @@ void ProcessGroupNCCL::WorkNCCL::synchronizeStream() {
   auto currentStream = at::cuda::getCurrentCUDAStream(device_.index());
   // Block the current stream on the NCCL stream
   ncclEndEvent_->block(currentStream);
+<<<<<<< HEAD
 
   if (avoidRecordStreams_) {
     stashed_for_allocator_safety_->clear();
   }
+=======
+  // Unstage the stashed tensors so that CachingAllocator can recycle them
+  // THIS MUST HAPPEN AFTER THE BLOCKING CALL ABOVE
+  stashed_for_allocator_safety_->unstash();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Same as calling synchronize() when blockingWait_ is false
@@ -781,7 +990,11 @@ bool ProcessGroupNCCL::WorkNCCL::wait(std::chrono::milliseconds timeout) {
   // upgrade. Once a NCCL version is qualified, this code should not be needed
   // at runtime.
 #ifdef PGNCCL_ENABLE_HASH
+<<<<<<< HEAD
   if (distDebugLevel_ >= DebugLevel::Detail) {
+=======
+  if (enableCollectiveHashDebug_.load()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto numel = getTensorsNumel(*outputs_);
     auto hashValue = hashTensors(*outputs_);
     PRINT_COLLECTIVE_HASH_SIGNATURE(
@@ -802,9 +1015,16 @@ void ProcessGroupNCCL::WorkNCCL::abort() {
   // Abort all communicators of this work
   ncclComm_->abort();
 
+<<<<<<< HEAD
   ncclCommDevIdxMapMutex.lock();
   ncclCommDevIdxMap.erase(ncclComm_);
   ncclCommDevIdxMapMutex.unlock();
+=======
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    ncclCommMemPoolMap.erase(ncclComm_);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 ProcessGroupNCCL::CUDAEventCache::CUDAEventCache() = default;
@@ -880,7 +1100,10 @@ ProcessGroupNCCL::ProcessGroupNCCL(
       store_(std::move(store)),
       options_(std::move(options)),
       terminateProcessGroup_(false),
+<<<<<<< HEAD
       terminateHeartbeatMonitorThread_(false),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       local_id_(process_group_id++),
       intraNodeComm_(initIntraNodeComm()) {
   TORCH_CHECK_WITH(
@@ -899,6 +1122,7 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   blockingWait_ = getCvarBool(TORCH_NCCL_BLOCKING_WAIT, false);
   asyncErrorHandling_ = static_cast<ErrorHandlingMode>(
       getCvarInt(TORCH_NCCL_ASYNC_ERROR_HANDLING, 3 /*SkipCleanUp*/));
+<<<<<<< HEAD
   desyncDebug_ = getCvarBool(TORCH_NCCL_DESYNC_DEBUG, false) ||
       (dist_debug_level_ >= DebugLevel::Detail);
   rethrowCUDAErrors_ = getCvarBool(TORCH_NCCL_RETHROW_CUDA_ERRORS, true);
@@ -922,6 +1146,12 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   coordCheckIntervalMilSec_ = getCvarInt(TORCH_NCCL_COORD_CHECK_MILSEC, 1000);
   traceBufferSize_ = getCvarInt(TORCH_NCCL_TRACE_BUFFER_SIZE, 2000);
   enableCollecticeHashDebug_ = (dist_debug_level_ >= DebugLevel::Detail);
+=======
+  enableNanCheck_ = getCvarBool(TORCH_NCCL_NAN_CHECK, false);
+  cudaEventCacheEnabled_.store(getCvarBool(TORCH_NCCL_CUDA_EVENT_CACHE, true));
+  traceBufferSize_ = getCvarInt(TORCH_NCCL_TRACE_BUFFER_SIZE, 2000);
+  enableCollectiveHashDebug_ = (dist_debug_level_ >= DebugLevel::Detail);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // store_ usually is wrapped with PrefixStore and the prefix is different
   // across different ProcessGroupNCCL(PG) instances. We need to get the
   // underlying non-PrefixStore for sharing global information shared across
@@ -929,6 +1159,7 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   PrefixStore* prefixStore = dynamic_cast<PrefixStore*>(store_.get());
   globalStore_ =
       prefixStore ? prefixStore->getUnderlyingNonPrefixStore() : store_;
+<<<<<<< HEAD
 #ifdef ENABLE_NCCL_ERROR_CHECKING
   enableTiming_.store(
       getCvarBool(TORCH_NCCL_ENABLE_TIMING, false) || desyncDebug_);
@@ -945,13 +1176,29 @@ ProcessGroupNCCL::ProcessGroupNCCL(
         << "disables TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK because it is not compatible with CUDA allocator expandable segments mode.";
   }
 #endif // NCCL_HAS_COMM_REGISTER
+=======
+  auto desyncDebug = getCvarBool(TORCH_NCCL_DESYNC_DEBUG, false) ||
+      (dist_debug_level_ >= DebugLevel::Detail);
+#ifdef ENABLE_NCCL_ERROR_CHECKING
+  enableTiming_.store(
+      getCvarBool(TORCH_NCCL_ENABLE_TIMING, false) || desyncDebug);
+#endif // ENABLE_NCCL_ERROR_CHECKING
+  if (getCvarBool(TORCH_NCCL_AVOID_RECORD_STREAMS, false)) {
+    TORCH_WARN_ONCE(
+        "TORCH_NCCL_AVOID_RECORD_STREAMS is the default now, this environment variable is thus deprecated.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (blockingWait_) {
     LOG(INFO)
         << logPrefix()
         << "TORCH_NCCL_BLOCKING_WAIT is enabled, NO watchdog thread is created.";
   } else {
+<<<<<<< HEAD
     if (desyncDebug_ && asyncErrorHandling_ == NoHandling) {
+=======
+    if (desyncDebug && asyncErrorHandling_ == NoHandling) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       LOG(INFO)
           << logPrefix()
           << "TORCH_NCCL_DESYNC_DEBUG and TORCH_NCCL_ASYNC_ERROR_HANDLING "
@@ -961,13 +1208,42 @@ ProcessGroupNCCL::ProcessGroupNCCL(
     }
   }
 
+<<<<<<< HEAD
+=======
+  // If deterministic mode is enabled, we need to disable the NVLS algorithm in
+  // NCCL.
+  // TODO: remove this once NVLS supports deterministic mode.
+  if (at::globalContext().deterministicAlgorithms()) {
+    // Check if user have already set NCCL_ALGO. If already set, leave it.
+    auto nccl_algo = c10::utils::get_env("NCCL_ALGO");
+    if (!nccl_algo.has_value()) {
+      LOG(INFO)
+          << "torch deterministic mode is enabled, "
+          << "disabling NVLS algorithm in NCCL which can lead to non-deterministic reduction.";
+      // Sorry we have to disable NVLS for all collectives, be it all-reduce
+      // or all-gather, because NCCL does not support per-collective
+      // algorithm selection today.
+      c10::utils::set_env("NCCL_ALGO", "^NVLS");
+    }
+  }
+
+  // Initialize the heartbeat monitor/watchdog instance. This has to be done
+  // before the corresponding thread is launched to avoid the error.
+  heartbeatMonitor_ = std::make_unique<HeartbeatMonitor>(this);
+  watchdog_ = std::make_unique<Watchdog>(this);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef ENABLE_NCCL_ERROR_CHECKING
   // in blockingWait mode, we don't need to enable the watchdog thread to check
   // the timeout or nccl error because the main thread would throw an exception
   // and it is the user's responsibility to handle the exception.
   if (!blockingWait_) {
+<<<<<<< HEAD
     ncclCommWatchdogThread_ =
         std::thread(&ProcessGroupNCCL::ncclCommWatchdog, this);
+=======
+    watchdog_->start();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 #endif // ENABLE_NCCL_ERROR_CHECKING
 
@@ -987,16 +1263,20 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   LOG(INFO) << logPrefix() << "ProcessGroupNCCL environments: "
             << "NCCL version: " << ncclVersion
             << ", TORCH_NCCL_ASYNC_ERROR_HANDLING: " << asyncErrorHandling_
+<<<<<<< HEAD
             << ", TORCH_NCCL_DUMP_ON_TIMEOUT: " << dumpOnTimeoutOrEx_
             << ", TORCH_NCCL_PROPAGATE_ERROR: " << propagatePgError_
             << ", TORCH_NCCL_WAIT_TIMEOUT_DUMP_MILSEC: "
             << waitTimeoutDumpInMilSec_
             << ", TORCH_NCCL_DESYNC_DEBUG: " << desyncDebug_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             << ", TORCH_NCCL_ENABLE_TIMING: " << enableTiming_.load()
             << ", TORCH_NCCL_BLOCKING_WAIT: " << blockingWait_
             << ", TORCH_DISTRIBUTED_DEBUG: " << torch_distributed_debug
 #ifdef NCCL_HAS_COMM_REGISTER
             << ", TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK: "
+<<<<<<< HEAD
             << useTensorRegisterAllocatorHook_
 #endif // NCCL_HAS_COMM_REGISTER
             << ", TORCH_NCCL_ENABLE_MONITORING: "
@@ -1013,11 +1293,24 @@ ProcessGroupNCCL::ProcessGroupNCCL(
       options_->global_ranks_in_group,
       this->globalRankStart,
       this->globalRankStride);
+=======
+            << shouldAllCommunicatorsRegisterAllTensors()
+#endif // NCCL_HAS_COMM_REGISTER
+            << ", TORCH_NCCL_TRACE_BUFFER_SIZE: " << traceBufferSize_
+            << ", TORCH_NCCL_NAN_CHECK: " << enableNanCheck_
+            << ", TORCH_NCCL_CUDA_EVENT_CACHE: " << cudaEventCacheEnabled_;
+
+  getGlobalRankStartAndStride(
+      options_->global_ranks_in_group,
+      this->globalRankStart_,
+      this->globalRankStride_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Attach hooks to cache allocator to trigger the hooks whenever a traced
   // action is called. In the following hooks, we register a newly allocated
   // segment when SEGMENT_ALLOC action occurs, and deregister a segment when
   // SEGMENT_FREE action occurs.
+<<<<<<< HEAD
   // We attach hooks only once at the first PG creation.
   // Attaching hooks fails if CUDACachingAllocator is not initialized, so
   // Init for CUDA is called (and is a no-op if CUDA is already
@@ -1034,6 +1327,11 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   // Enable Desync Debugger per user setting
   if (desyncDebug_) {
     desyncDebugger_.init(rank, size, store_);
+=======
+  if (shouldAllCommunicatorsRegisterAllTensors()) {
+    // This call is idempotent.
+    attachAllocatorHooks();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1140,8 +1438,28 @@ void ProcessGroupNCCL::registerMemPool(c10::cuda::MemPool* pool) {
     ncclComm = initNCCLComm(key, device, OpType::ALLREDUCE);
   }
   TORCH_INTERNAL_ASSERT(ncclComm != nullptr);
+<<<<<<< HEAD
   auto ctx = c10::cuda::MemPoolContext(pool);
   auto snapshot = c10::cuda::CUDACachingAllocator::snapshot();
+=======
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    auto iter = ncclCommMemPoolMap.find(ncclComm);
+    iter->second.insert(pool->id());
+  }
+  // We must ensure we're listening for allocator trace events in order to
+  // register future segments allocated in this pool (this call is idempotent).
+  attachAllocatorHooks();
+  auto snapshot = c10::cuda::CUDACachingAllocator::snapshot(pool->id());
+  // TODO:
+  // if(pool->is_symmetric()) {
+  //   Allgather to verify len(mempool.snapshot.segments) matches across GPUs
+  //   Allgather to verify mempool.alloc_request_counter matches across GPUs
+  //   add alloc_request_counter per mempool (How many allocations a mempool has
+  //   served during its lifetime) this should guarantee pool is used in a
+  //   symmetric/SPMD manner
+  // }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& segmentInfo : snapshot.segments) {
     TORCH_INTERNAL_ASSERT(
         segmentInfo.device == pool->device(),
@@ -1150,7 +1468,13 @@ void ProcessGroupNCCL::registerMemPool(c10::cuda::MemPool* pool) {
         // NOLINTNEXTLINE(performance-no-int-to-ptr)
         reinterpret_cast<void*>(segmentInfo.address),
         segmentInfo.total_size,
+<<<<<<< HEAD
         /*errorOnRereg=*/false); // ignores reregistration error
+=======
+        /*errorOnRereg=*/false, // ignores reregistration error
+        /*window=*/pool->is_symmetric()); // whether to use NCCL symmetric
+                                          // memory
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1170,14 +1494,28 @@ void ProcessGroupNCCL::deregisterMemPool(c10::cuda::MemPool* pool) {
     ncclComm = initNCCLComm(key, device, OpType::ALLREDUCE);
   }
   TORCH_INTERNAL_ASSERT(ncclComm != nullptr);
+<<<<<<< HEAD
   auto ctx = c10::cuda::MemPoolContext(pool);
   auto snapshot = c10::cuda::CUDACachingAllocator::snapshot();
+=======
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    auto iter = ncclCommMemPoolMap.find(ncclComm);
+    iter->second.erase(pool->id());
+  }
+  auto snapshot = c10::cuda::CUDACachingAllocator::snapshot(pool->id());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& segmentInfo : snapshot.segments) {
     TORCH_INTERNAL_ASSERT(
         segmentInfo.device == pool->device(),
         "Mismatch between CUDA memory segment device and pool's device");
     // NOLINTNEXTLINE(performance-no-int-to-ptr)
+<<<<<<< HEAD
     ncclComm->deregisterSegment(reinterpret_cast<void*>(segmentInfo.address));
+=======
+    ncclComm->deregisterSegment(
+        reinterpret_cast<void*>(segmentInfo.address), pool->is_symmetric());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1240,7 +1578,11 @@ void ProcessGroupNCCL::waitForPendingWorks() {
   //    completedWorkList_ before it finishes.
   // 3. We have three threads and two locks.
   //      a. main thread (this function) grabs two locks atomically
+<<<<<<< HEAD
   //      b. watchdog thread (watchdogHandler function) always grabs
+=======
+  //      b. watchdog thread (runLoop function) always grabs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //      workMetaListMutex_
   //         first and then grabs completedWorkListMutex_.
   //      c. hook thread (runHookLoop function) only grabs
@@ -1298,7 +1640,11 @@ bool ProcessGroupNCCL::waitForFutureOrTimeout(
           e.what());
 
       debugLog.strings["status"] = "EXCEPTION";
+<<<<<<< HEAD
       debugLog.strings["exception"] = e.what();
+=======
+      debugLog.strings["exception_msg"] = e.what();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       LOG(ERROR) << errorMsg;
     } catch (...) {
       errorMsg = c10::str(
@@ -1306,7 +1652,11 @@ bool ProcessGroupNCCL::waitForFutureOrTimeout(
           "Unknown exception thrown when waiting for future ",
           futDescription);
       debugLog.strings["status"] = "EXCEPTION";
+<<<<<<< HEAD
       debugLog.strings["exception"] = "Unknown exception";
+=======
+      debugLog.strings["exception_msg"] = "Unknown exception";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       LOG(ERROR) << errorMsg;
     }
   } else {
@@ -1331,6 +1681,14 @@ void ProcessGroupNCCL::abortCommsFromMap(
     const std::optional<std::string>& abortReason) {
   // The process may control multiple devices, loop through the communicators on
   // each device
+<<<<<<< HEAD
+=======
+  // NCCL expects Group abort when there are multiple communicators created in a
+  // device. Group abort requires 2.22.0 release and up.
+  if (getNcclVersionNumber() >= NCCL_VERSION(2, 22, 0)) {
+    groupStart();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto& it : ncclCommsMap) {
     auto& devName = it.first;
     auto& ncclComm = it.second;
@@ -1351,6 +1709,12 @@ void ProcessGroupNCCL::abortCommsFromMap(
     VLOG(2) << logPrefix() << "ProcessGroupNCCL destroyed "
             << " communicator on CUDA device: " << devName;
   }
+<<<<<<< HEAD
+=======
+  if (getNcclVersionNumber() >= NCCL_VERSION(2, 22, 0)) {
+    groupEnd();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Abort all communicators on this rank
@@ -1359,6 +1723,7 @@ void ProcessGroupNCCL::abortCommsFromMap(
 // method calls `abortComms` but does more destruction than the latter.
 bool ProcessGroupNCCL::abortComms(
     const std::optional<std::string>& abortReason) {
+<<<<<<< HEAD
   // Remove record from global ncclCommDevIdxMapMutex before aboarting,
   // so that a new cache segment would not register to already aborded
   // communicators. Note that ncclCommDevIdxMap is a global container which may
@@ -1370,6 +1735,19 @@ bool ProcessGroupNCCL::abortComms(
     ncclCommDevIdxMap.erase(ncclComm);
   }
   ncclCommDevIdxMapMutex.unlock();
+=======
+  // Remove record from global ncclCommMemPoolMapMutex before aboarting,
+  // so that a new cache segment would not register to already aborted
+  // communicators. Note that ncclCommMemPoolMap is a global container which may
+  // contain other PG's communicators, thus we need to only erase communicators
+  // for the current PG.
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    for (auto& [_, ncclComm] : devNCCLCommMap_) {
+      ncclCommMemPoolMap.erase(ncclComm);
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::lock_guard<std::mutex> lock(mutex_);
   abortCommsFromMap(devNCCLCommMap_, abortReason);
@@ -1386,11 +1764,19 @@ void ProcessGroupNCCL::abort() {
   // communicators and signal the threads to exit. Joining on the threads could
   // potentially block and hence avoid it in this method.
   terminateProcessGroup_.store(true);
+<<<<<<< HEAD
   workMetaListCV_.notify_one();
 
   // lauch abort asynchrounously and wait for it to complete or timeout
   LOG(INFO) << logPrefix()
             << "Launching ProcessGroupNCCL abort asynchrounously.";
+=======
+  watchdog_->notify();
+
+  // launch abort asynchronously and wait for it to complete or timeout
+  LOG(INFO) << logPrefix()
+            << "Launching ProcessGroupNCCL abort asynchronously.";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::future<bool> fut =
       std::async(std::launch::async, [this]() { return this->abortComms(); });
 
@@ -1401,8 +1787,12 @@ void ProcessGroupNCCL::abort() {
 
   // We need to wait for abort to finish before we can safely shut down
   // heartbeat monitoring thread.
+<<<<<<< HEAD
   terminateHeartbeatMonitorThread_.store(true);
   monitorWakeUpCV_.notify_one();
+=======
+  heartbeatMonitor_->stop();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Difference between `abort()` and `shutdown()`:
@@ -1442,17 +1832,26 @@ void ProcessGroupNCCL::shutdown() {
   // anymore because I am going to destroy them now
   LOG(INFO) << logPrefix() << "Operations flushed, joining watchdog thread.";
   terminateProcessGroup_.store(true);
+<<<<<<< HEAD
   workMetaListCV_.notify_one();
   if (ncclCommWatchdogThread_.joinable()) {
     ncclCommWatchdogThread_.join();
   }
+=======
+  watchdog_->notify();
+  watchdog_->join();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (onCompletionHookThread_.joinable()) {
     onCompletionHookThread_.join();
   }
   // Watchdog thread exiting, retire heartbeat monitoring thread now to avoid
   // false alarm
+<<<<<<< HEAD
   terminateHeartbeatMonitorThread_.store(true);
   monitorWakeUpCV_.notify_one();
+=======
+  heartbeatMonitor_->stop();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Destroy the communicator, reclaim resources
   LOG(INFO) << logPrefix() << "Watchdog joined, destroying NCCL communicators.";
   {
@@ -1505,6 +1904,7 @@ ProcessGroupNCCL::~ProcessGroupNCCL() {
   // Make sure we've told threads to stop; doesn't hurt if we'd done so before.
   // Tell watchdog and onCompletionHook:
   terminateProcessGroup_.store(true);
+<<<<<<< HEAD
   workMetaListCV_.notify_one();
   // Tell heartbeat thread:
   terminateHeartbeatMonitorThread_.store(true);
@@ -1520,6 +1920,15 @@ ProcessGroupNCCL::~ProcessGroupNCCL() {
     LOG(INFO) << logPrefix()
               << "ProcessGroupNCCL heart beat monitor thread joined.";
   }
+=======
+  watchdog_->notify();
+  // Tell heartbeat thread:
+  heartbeatMonitor_->stop();
+
+  // Wait for all threads to finish before returning
+  watchdog_->join();
+  heartbeatMonitor_->join();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (onCompletionHookThread_.joinable()) {
     onCompletionHookThread_.join();
     LOG(INFO) << logPrefix()
@@ -1528,11 +1937,20 @@ ProcessGroupNCCL::~ProcessGroupNCCL() {
 }
 
 bool ProcessGroupNCCL::dumpDebuggingInfo(bool includeStackTrace /*=true*/) {
+<<<<<<< HEAD
+=======
+  // This will log counter for how long dumpDebuggingInfo actually takes.
+  STATIC_SCOPED_WAIT_COUNTER(pytorch.ProcessGroupNCCL__dumpDebuggingInfo);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Serialize all calls to this function to avoid corrupting data, but allow
   // multiple calls in one runtime. User is responsible for preserving the
   // output file from an earlier call before a later call overwrites it.
   static std::mutex writeDebugInfoMutex;
+<<<<<<< HEAD
   std::lock_guard<std::mutex> lock(writeDebugInfoMutex);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   LOG(ERROR)
       << logPrefix()
       << "ProcessGroupNCCL preparing to dump debug info. Include stack trace: "
@@ -1542,10 +1960,20 @@ bool ProcessGroupNCCL::dumpDebuggingInfo(bool includeStackTrace /*=true*/) {
     // their customized writer by inheriting `DebugInfoWriter` via
     // `registerDebugInfoWriter`.
     auto ncclTrace = dump_nccl_trace(true, includeStackTrace, false);
+<<<<<<< HEAD
+=======
+    // dump_nccl_trace will hang so we don't grab the global lock until we get
+    // the trace.
+    std::lock_guard<std::mutex> lock(writeDebugInfoMutex);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DebugInfoWriter& writer = DebugInfoWriter::getWriter(globalRank());
     LOG(INFO) << logPrefix() << "ProcessGroupNCCL dumping nccl trace to "
               << writer.getWriterTarget();
     writer.write(ncclTrace);
+<<<<<<< HEAD
+=======
+    LOG(INFO) << logPrefix() << "Flight Recorder trace successfully dumped.";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return true;
   }
   return false;
@@ -1564,17 +1992,34 @@ static long computeDeltaMS(
       .count();
 }
 
+<<<<<<< HEAD
 std::string ProcessGroupNCCL::getNCCLWatchdogTimeoutErrorMsg(
     const std::string& extraMsg) {
   return c10::str(
       logPrefix(),
+=======
+void ProcessGroupNCCL::setEnableNanCheck(bool enableNanCheck) {
+  enableNanCheck_ = enableNanCheck;
+}
+
+std::string ProcessGroupNCCL::HeartbeatMonitor::getNCCLWatchdogTimeoutErrorMsg(
+    const std::string& extraMsg) {
+  return c10::str(
+      pg_->logPrefix(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Received a dump signal due to a collective timeout from ",
       extraMsg,
       " and we will try our best to dump the debug info. ",
       "Last enqueued NCCL work: ",
+<<<<<<< HEAD
       pgStatus_->lastEnqueuedSeq,
       ", last completed NCCL work: ",
       pgStatus_->lastCompletedSeq,
+=======
+      pg_->pgStatus_->lastEnqueuedSeq,
+      ", last completed NCCL work: ",
+      pg_->pgStatus_->lastCompletedSeq,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ".",
       "This is most likely caused by incorrect usages of collectives, e.g., wrong ",
       "sizes used across ranks, the order of collectives is not same for all ranks ",
@@ -1583,21 +2028,95 @@ std::string ProcessGroupNCCL::getNCCLWatchdogTimeoutErrorMsg(
       "bugs in the communications library (e.g. NCCL), etc. ");
 }
 
+<<<<<<< HEAD
 std::string ProcessGroupNCCL::getNCCLWatchdogTimeoutExitMsg(
     const std::string& exitReason) {
   return c10::str(
       logPrefix(),
+=======
+std::string ProcessGroupNCCL::HeartbeatMonitor::getNCCLWatchdogTimeoutExitMsg(
+    const std::string& exitReason) {
+  return c10::str(
+      pg_->logPrefix(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Terminating the process after attempting to dump debug info, due to ",
       exitReason,
       ".");
 }
 
+<<<<<<< HEAD
 void ProcessGroupNCCL::heartbeatMonitor() {
+=======
+void ProcessGroupNCCL::HeartbeatMonitor::setLastWorkListUpdateTime(
+    std::chrono::time_point<std::chrono::steady_clock> time) {
+  // We intentionally let the race condition to happen but this is ok
+  // as long as we update the time, we know we are making progress.
+  lastWorkListUpdateTime_ = time;
+}
+
+int ProcessGroupNCCL::HeartbeatMonitor::getDumpTimeout() const {
+  return waitTimeoutDumpInMilSec_;
+}
+
+ProcessGroupNCCL::HeartbeatMonitor::HeartbeatMonitor(ProcessGroupNCCL* pg) {
+  pg_ = pg;
+  heartbeatTimeoutInSec_ =
+      getCvarInt(TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC, 60 * 8 /*8 Mins*/);
+  waitTimeoutDumpInMilSec_ =
+      getCvarInt(TORCH_NCCL_WAIT_TIMEOUT_DUMP_MILSEC, 15 * 1000 /*15 Sec*/);
+  coordCheckIntervalMilSec_ = getCvarInt(TORCH_NCCL_COORD_CHECK_MILSEC, 1000);
+  // TODO, we should either deprecate TORCH_NCCL_DUMP_ON_TIMEOUT
+  // or change its name to reflect that dump happens on exception including
+  // both timeout and other errors.
+  dumpOnTimeoutOrEx_ = getCvarBool(TORCH_NCCL_DUMP_ON_TIMEOUT, true);
+  // logging C++ stack isn't safe. Gate it with an ENV.
+  logCppStackOnUncleanShutdown_ =
+      getCvarBool(TORCH_NCCL_LOG_CPP_STACK_ON_UNCLEAN_SHUTDOWN, true);
+  watchdogHeartbeatMonitorEnabled_ =
+      getCvarBool(TORCH_NCCL_ENABLE_MONITORING, true);
+
+  // print out ENV settings for the heartbeat monitor thread.
+  LOG(INFO)
+      << pg_->logPrefix() << "HeartbeatMonitor environments: "
+      << "TORCH_NCCL_ENABLE_MONITORING (Whether to kill program when no watchdog heartbeat detected): "
+      << watchdogHeartbeatMonitorEnabled_
+      << ", TORCH_NCCL_DUMP_ON_TIMEOUT: " << dumpOnTimeoutOrEx_
+      << ", TORCH_NCCL_WAIT_TIMEOUT_DUMP_MILSEC: " << waitTimeoutDumpInMilSec_
+      << ", TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC: " << heartbeatTimeoutInSec_
+      << ", TORCH_NCCL_COORD_CHECK_MILSEC: " << coordCheckIntervalMilSec_
+      << ", TORCH_NCCL_LOG_CPP_STACK_ON_UNCLEAN_SHUTDOWN: "
+      << logCppStackOnUncleanShutdown_;
+}
+
+void ProcessGroupNCCL::HeartbeatMonitor::stop() {
+  terminateHeartbeatMonitorThread_.store(true);
+  monitorWakeUpCV_.notify_one();
+}
+
+void ProcessGroupNCCL::HeartbeatMonitor::start() {
+  TORCH_CHECK(
+      !ncclHeartbeatMonitorThread_.joinable(),
+      "HeartbeatMonitor thread already started");
+  ncclHeartbeatMonitorThread_ =
+      std::thread(&ProcessGroupNCCL::HeartbeatMonitor::runLoop, this);
+}
+
+void ProcessGroupNCCL::HeartbeatMonitor::join() {
+  if (ncclHeartbeatMonitorThread_.joinable()) {
+    ncclHeartbeatMonitorThread_.join();
+    LOG(INFO) << pg_->logPrefix()
+              << "ProcessGroupNCCL heart beat monitor thread joined.";
+  }
+}
+
+void ProcessGroupNCCL::HeartbeatMonitor::runLoop() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::setThreadName("pt_nccl_heartbt");
 
   uint64_t heartBeatCounter = 0ULL;
   std::string errorMsg;
   std::string exitReason;
+<<<<<<< HEAD
   bool checkDumpSignal = (dumpOnTimeoutOrEx_ && local_id_ == 0);
   int monitorPollInterval = checkDumpSignal || propagatePgError_
       ? coordCheckIntervalMilSec_
@@ -1610,6 +2129,23 @@ void ProcessGroupNCCL::heartbeatMonitor() {
     // after 'global' ranks in the system, So we assume processgroup (uid)==0 is
     // the global PG and has globally unique rank ids across trainers.
     dumpPipe.emplace(rank_);
+=======
+  bool checkDumpSignal = (dumpOnTimeoutOrEx_ && pg_->getUid() == 0);
+  int monitorPollInterval = checkDumpSignal ? coordCheckIntervalMilSec_
+                                            : heartbeatTimeoutInSec_ * 1000;
+  auto lastTimePollStore = std::chrono::steady_clock::now();
+  auto lastTimeHeartBeatCheck = std::chrono::steady_clock::now();
+  std::optional<DumpPipe> dumpPipe = std::nullopt;
+  // Use a pool to temporarily store the futures to avoid blocking when the code
+  // exits the scope of when future is generated by std::async.
+  std::vector<std::future<bool>> futures;
+
+  if (pg_->getUid() == 0) {
+    // DumpPipe is one per-trainer process, and its convenient to name them
+    // after 'global' ranks in the system, So we assume processgroup (uid)==0 is
+    // the global PG and has globally unique rank ids across trainers.
+    dumpPipe.emplace(pg_->globalRank());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   while (true) {
     // This won't have any lock since this lock is only used here.
@@ -1626,11 +2162,14 @@ void ProcessGroupNCCL::heartbeatMonitor() {
     }
     auto currentTime = std::chrono::steady_clock::now();
 
+<<<<<<< HEAD
     if (propagatePgError_) {
       // Check and set remote error if it has not been set before
       checkAndSetRemoteError();
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // We put extra functionality in the thread for the default PG (aka,
     // local_id_=0) because the signal is same across different PGs. We only
     // need to run once per process to avoid duplicate things performed in too
@@ -1643,7 +2182,11 @@ void ProcessGroupNCCL::heartbeatMonitor() {
       // 1. The current rank is the first to observe a timeout in watchdog.
       // (shouldDump_ was set to true by the watchdog thread).
       // 2. Other ranks detected the timeout and signal the current rank to
+<<<<<<< HEAD
       // dump. In addtion, monitor threads will dump if watchdog threads has no
+=======
+      // dump. In addition, monitor threads will dump if watchdog threads has no
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // heartbeat or dumpPipe is not empty.
       if (shouldDump_.load()) {
         errorMsg = getNCCLWatchdogTimeoutErrorMsg("this local rank");
@@ -1660,7 +2203,11 @@ void ProcessGroupNCCL::heartbeatMonitor() {
         lastTimePollStore = currentTime;
         auto handleError = [&](const std::string& errorMessage) {
           LOG(WARNING)
+<<<<<<< HEAD
               << logPrefix()
+=======
+              << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               << "Failed to check the \"should dump\" flag on TCPStore, "
               << "(maybe TCPStore server has shut down too early), with error: "
               << errorMessage;
@@ -1672,7 +2219,11 @@ void ProcessGroupNCCL::heartbeatMonitor() {
         bool checkExceptionDump = false;
         try {
           checkExceptionDump =
+<<<<<<< HEAD
               globalStore_->check({std::string(kStoreDumpKey)});
+=======
+              pg_->globalStore()->check({std::string(kStoreDumpKey)});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         } catch (const c10::DistNetworkError& e) {
           handleError(e.msg());
         } catch (const std::exception& e) {
@@ -1683,19 +2234,31 @@ void ProcessGroupNCCL::heartbeatMonitor() {
           int timeOutRank = -1;
           if (!shouldDump_.load()) {
             LOG(ERROR)
+<<<<<<< HEAD
                 << logPrefix()
+=======
+                << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 << "Observed flight recorder dump signal from another rank via TCPStore.";
           }
           shouldDump_.store(true);
           try {
+<<<<<<< HEAD
             auto vec = globalStore_->get(std::string(kStoreDumpKey));
+=======
+            auto vec = pg_->globalStore()->get(std::string(kStoreDumpKey));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             TORCH_CHECK_WITH(
                 DistBackendError,
                 vec.size() == sizeof(int),
                 "Invalid size for the timeout rank ID");
             std::memcpy(&timeOutRank, vec.data(), vec.size());
           } catch (const std::exception& e) {
+<<<<<<< HEAD
             LOG(ERROR) << logPrefix()
+=======
+            LOG(ERROR) << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                        << "Failed to get timeout rank ID from TCPStore."
                        << e.what();
           }
@@ -1711,14 +2274,22 @@ void ProcessGroupNCCL::heartbeatMonitor() {
         heartbeatTimeoutInSec_ * 1000l) {
       // Check the heart beat of watchdog thread.
       lastTimeHeartBeatCheck = currentTime;
+<<<<<<< HEAD
       auto heartbeat = heartbeat_.load();
+=======
+      auto heartbeat = pg_->getWatchdogHeartbt();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (heartbeat != heartBeatCounter) {
         heartBeatCounter = heartbeat;
       } else {
         shouldDump_.store(true);
         // Watchdog heartbeat timeout.
         errorMsg = c10::str(
+<<<<<<< HEAD
             logPrefix(),
+=======
+            pg_->logPrefix(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "ProcessGroupNCCL's watchdog got stuck for ",
             heartbeatTimeoutInSec_,
             " seconds without making progress in monitoring enqueued collectives. ",
@@ -1739,8 +2310,16 @@ void ProcessGroupNCCL::heartbeatMonitor() {
     // recorder and dump. After dump, the training should continue.
     if (dumpPipe.has_value() && dumpPipe->shouldDump()) {
       // best effort dump, not waiting for the dump here
+<<<<<<< HEAD
       std::future<bool> fut = std::async(
           std::launch::async, [this]() { return this->dumpDebuggingInfo(); });
+=======
+      LOG(INFO) << pg_->logPrefix()
+                << "Dump signal received through pipe, triggering FR dump.";
+      futures.emplace_back(std::async(std::launch::async, [this]() {
+        return this->pg_->dumpDebuggingInfo();
+      }));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   LOG(ERROR) << errorMsg;
@@ -1759,19 +2338,34 @@ void ProcessGroupNCCL::heartbeatMonitor() {
     // local disk)
     bool dumpStackTrace = true;
     ::c10d::C10dLoggingData debugLog;
+<<<<<<< HEAD
     debugLog.integers["pg_id"] = static_cast<int64_t>(local_id_);
     debugLog.integers["rank"] = rank_;
     debugLog.integers["global_rank"] = globalRank();
     debugLog.integers["world_size"] = getSize();
+=======
+    debugLog.integers["pg_id"] = static_cast<int64_t>(pg_->getUid());
+    debugLog.integers["rank"] = pg_->getRank();
+    debugLog.integers["global_rank"] = pg_->globalRank();
+    debugLog.integers["world_size"] = pg_->getSize();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     debugLog.strings["flight_recorder_version"] = c10d::version_val_str;
     for (int i = 0; i < 2; i++) {
       std::future<bool> asyncDebugDump =
           std::async(std::launch::async, [this, dumpStackTrace]() {
+<<<<<<< HEAD
             return this->dumpDebuggingInfo(dumpStackTrace);
           });
 
       // wait for the dump until timeout - log data
       auto complete = waitForFutureOrTimeout(
+=======
+            return this->pg_->dumpDebuggingInfo(dumpStackTrace);
+          });
+
+      // wait for the dump until timeout - log data
+      auto complete = pg_->waitForFutureOrTimeout(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           asyncDebugDump,
           std::chrono::milliseconds(waitTimeoutDumpInMilSec_),
           "Flight recorder dump in heartbeatMonitor",
@@ -1780,21 +2374,36 @@ void ProcessGroupNCCL::heartbeatMonitor() {
 
       if (complete) {
         LOG(INFO)
+<<<<<<< HEAD
             << logPrefix()
             << "Finished flight recorder successfully. Output can be analyzed using the fr_trace script.";
+=======
+            << pg_->logPrefix()
+            << "Finished flight recorder successfully. Output can be analyzed using the fr_trace script.";
+        if (i > 0) {
+          debugLog.strings["exception_msg"] = "Dump with stack trace failed.";
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         break;
       }
       // If we failed to dump, try dumping without stack trace in the 2nd
       // iteration.
       dumpStackTrace = false;
+<<<<<<< HEAD
+=======
+      futures.emplace_back(std::move(asyncDebugDump));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     debugLog.integers["trace_enabled"] = int64_t(dumpStackTrace);
     auto logger = c10d::C10dLogger::getLogger();
     if (logger) {
       logger->log(debugLog);
     }
+<<<<<<< HEAD
     // Indicate to watchdog thread that we have finished dumping.
     promiseFlightRecorderDump_.set_value();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // GIL deadlock check.
@@ -1807,26 +2416,43 @@ void ProcessGroupNCCL::heartbeatMonitor() {
           futStatus != std::future_status::deferred,
           "Expected the future to have been launched eagerly.");
       LOG(ERROR)
+<<<<<<< HEAD
           << logPrefix()
+=======
+          << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           << "Could not acquire GIL within 300 ms on exit, possible GIL induced hang";
     }
   } else {
     VLOG(2)
+<<<<<<< HEAD
         << logPrefix()
+=======
+        << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         << "GIL checker was not registered, perhaps this is a no-python build?";
   }
 
   // Dump the c++ stacktraces.
   auto& cpp_dumper = get_cpp_trace_dumper();
   if (logCppStackOnUncleanShutdown_ && cpp_dumper.has_value()) {
+<<<<<<< HEAD
     LOG(INFO) << logPrefix() << "Dumping c++ stacktraces:";
     cpp_dumper.value()(
         [&](const std::string& line) { LOG(INFO) << logPrefix() << line; });
     LOG(INFO) << logPrefix() << "Finished c++ stacktraces dump.";
+=======
+    LOG(INFO) << pg_->logPrefix() << "Dumping c++ stacktraces:";
+    cpp_dumper.value()([&](const std::string& line) {
+      LOG(INFO) << pg_->logPrefix() << line;
+    });
+    LOG(INFO) << pg_->logPrefix() << "Finished c++ stacktraces dump.";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // There are two possible cases for the watchdog thread exit:
   // Case one: desync report runs quickly, and it follows the step:
+<<<<<<< HEAD
   // collective timeout -> desync -> exception handling -> destructors
   // -> set terminateHeartbeatMonitorThread_ -> notify monitorWakeUpCV_.
   // So the code either early returns above or will skip the sleep below.
@@ -1840,6 +2466,23 @@ void ProcessGroupNCCL::heartbeatMonitor() {
     std::this_thread::sleep_for(std::chrono::seconds(heartbeatTimeoutInSec_));
     LOG(INFO) << logPrefix() << "slept for " << heartbeatTimeoutInSec_
               << " waiting for desync report or process group destroy.";
+=======
+  // collective timeout -> desync -> exception handling -> throwing exception.
+  // The program will exit because of exception thrown and the code below will
+  // not be run.
+  //
+  // Case two: desync might be slow or get stuck and we need to wait
+  // extra time to avoid we kill the program too early.
+  //
+  // Or we get stuck in destructors, we will sleep for some time before calling
+  // std::abort() to kill the whole process.
+  if ((pg_->terminateProcessGroup_.load() || shouldDump_.load()) &&
+      !terminateHeartbeatMonitorThread_.load()) {
+    std::this_thread::sleep_for(std::chrono::seconds(heartbeatTimeoutInSec_));
+    LOG(INFO)
+        << pg_->logPrefix() << "slept for " << heartbeatTimeoutInSec_
+        << " because we want to wait longer to verify there is indeed a watchdog hang.";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // At this point, we either already sleep for another `heartbeatTimeoutInSec_`
@@ -1851,20 +2494,32 @@ void ProcessGroupNCCL::heartbeatMonitor() {
   // We already log completion inside the thread, so it may not be necessary to
   // check the return value here.  We mainly use a future so we can exit early
   // if done.
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!terminateHeartbeatMonitorThread_.load()) {
     // Create a error message reported from MonitorThread, so
     // we throw exception and make the whole process to be killed.
     // TODO(fduwjj): After having a hang debug wiki, we need to update the wiki
     // url here.
+<<<<<<< HEAD
     if (monitorThreadEnabled_.load()) {
       terminateProcess(getNCCLWatchdogTimeoutExitMsg(exitReason));
+=======
+    if (watchdogHeartbeatMonitorEnabled_) {
+      pg_->terminateProcess(getNCCLWatchdogTimeoutExitMsg(exitReason));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       // Ideally we want to merge this one with the above one, but we are going
       // to remove the kill switch for monitor thread soon, so we keep this one
       // for now.
       LOG(ERROR)
+<<<<<<< HEAD
           << logPrefix()
+=======
+          << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           << "ProcessGroupNCCL monitor thread is disabled, but would have terminated the process"
           << "after attempting to dump debug info, due to " << exitReason
           << ".";
@@ -1872,6 +2527,7 @@ void ProcessGroupNCCL::heartbeatMonitor() {
   }
 }
 
+<<<<<<< HEAD
 void ProcessGroupNCCL::ncclCommWatchdog() {
   c10::setThreadName("pt_nccl_watchdg");
 
@@ -1881,19 +2537,81 @@ void ProcessGroupNCCL::ncclCommWatchdog() {
         std::thread(&ProcessGroupNCCL::heartbeatMonitor, this);
     watchdogHandler();
     VLOG(2) << logPrefix()
+=======
+ProcessGroupNCCL::Watchdog::Watchdog(ProcessGroupNCCL* pg) {
+  pg_ = pg;
+  heartbeat_ = 1ULL;
+  rethrowCUDAErrors_ = getCvarBool(TORCH_NCCL_RETHROW_CUDA_ERRORS, true);
+  propagatePgError_ = getCvarBool(TORCH_NCCL_PROPAGATE_ERROR, false);
+  desyncDebug_ = getCvarBool(TORCH_NCCL_DESYNC_DEBUG, false) ||
+      (pg_->dist_debug_level_ >= DebugLevel::Detail);
+
+  // print out ENV settings for the watchdog thread.
+  LOG(INFO) << pg_->logPrefix() << "PGNCCL Watchdog environments: "
+            << "TORCH_NCCL_RETHROW_CUDA_ERRORS: " << rethrowCUDAErrors_
+            << ", TORCH_NCCL_PROPAGATE_ERROR: " << propagatePgError_
+            << ", TORCH_NCCL_DESYNC_DEBUG: " << desyncDebug_;
+
+  // Enable Desync Debugger per user setting
+  if (desyncDebug_) {
+    desyncDebugger_.init(
+        pg_->getRank(),
+        pg_->getSize(),
+        pg_->globalRank(),
+        pg_->getUid(),
+        pg_->store_);
+  }
+}
+
+void ProcessGroupNCCL::Watchdog::notify() {
+  workMetaListCV_.notify_one();
+}
+
+void ProcessGroupNCCL::Watchdog::start() {
+  TORCH_CHECK(
+      !ncclCommWatchdogThread_.joinable(), "Watchdog thread already started");
+  ncclCommWatchdogThread_ = std::thread(&ProcessGroupNCCL::Watchdog::run, this);
+}
+
+void ProcessGroupNCCL::Watchdog::join() {
+  if (ncclCommWatchdogThread_.joinable()) {
+    ncclCommWatchdogThread_.join();
+    LOG(INFO) << pg_->logPrefix() << "ProcessGroupNCCL watchdog thread joined.";
+  }
+}
+
+void ProcessGroupNCCL::Watchdog::run() {
+  c10::setThreadName("pt_nccl_watchdg");
+
+  try {
+    VLOG(2) << pg_->logPrefix() << "Process group watchdog thread started!";
+    pg_->heartbeatMonitor_->start();
+    runLoop();
+    VLOG(2) << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             << "Process group watchdog thread terminated normally";
   } catch (std::exception& e) {
     if (std::string(e.what()).find("driver shutting down") !=
         std::string::npos) {
       VLOG(2)
+<<<<<<< HEAD
           << logPrefix()
+=======
+          << pg_->logPrefix()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           << "main process destroyed cuda before watchdog loop exited, terminating watchdog."
           << " (Watchdog caught exception: " << e.what();
 
     } else {
+<<<<<<< HEAD
       // Append error message reported from watchdogHandler
       const auto exitMsg = c10::str(
           logPrefix(),
+=======
+      // Append error message reported from runLoop
+      const auto exitMsg = c10::str(
+          pg_->logPrefix(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "Process group watchdog thread terminated with exception: ",
           e.what());
       LOG(ERROR) << exitMsg;
@@ -1908,7 +2626,11 @@ void ProcessGroupNCCL::ncclCommWatchdog() {
     }
   } catch (...) {
     const auto exitMsg = c10::str(
+<<<<<<< HEAD
         logPrefix(),
+=======
+        pg_->logPrefix(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Process group watchdog thread terminated with exception: unknown");
     LOG(ERROR) << exitMsg;
     watchDogException_ =
@@ -1917,13 +2639,347 @@ void ProcessGroupNCCL::ncclCommWatchdog() {
   }
 }
 
+<<<<<<< HEAD
+=======
+int ProcessGroupNCCL::Watchdog::getSignalSrcRank(
+    c10::intrusive_ptr<Store>& store,
+    const std::string& signal) {
+  // This function is 'non blocking'. We first 'check' if the key exists in the
+  // store, then read/get the value only if the key exists.
+  int srcRank = -1;
+  bool signalExists = false;
+  try {
+    signalExists = store->check({signal});
+  } catch (const std::exception& e) {
+    LOG(WARNING) << pg_->logPrefix() << "Failed to check the signal " << signal
+                 << " on TCPStore, " << e.what();
+  }
+  if (!signalExists) {
+    return srcRank;
+  }
+
+  // key exists, now read and parse the value (source rank)
+  std::vector<uint8_t> vec;
+  try {
+    vec = store->get(std::string(signal));
+  } catch (const std::exception& e) {
+    LOG(ERROR) << pg_->logPrefix() << "Failed to get source rank of the signal "
+               << signal << " from TCPStore." << e.what();
+  }
+  TORCH_CHECK_WITH(
+      DistBackendError,
+      vec.size() == sizeof(int),
+      "Invalid size for the timeout rank ID");
+  std::memcpy(&srcRank, vec.data(), vec.size());
+  return srcRank;
+}
+
+void ProcessGroupNCCL::Watchdog::checkAndSetRemoteError() {
+  // if the error is already set, no need to check again
+  if (pg_->getError() != ErrorType::SUCCESS) {
+    return;
+  }
+  // key/signal to read from the tcpstore is a string and pg specific:
+  // format is: remote_error:pg_uid
+  int remoteErrorRank = getSignalSrcRank(
+      pg_->store_, std::string(kStoreErrorSignalKey) + ':' + pg_->pg_uid_);
+  if (remoteErrorRank != -1) {
+    std::lock_guard<std::mutex> lock(pg_->errorMutex_);
+    pg_->error_ = ErrorType::REMOTE_ERROR;
+    LOG(ERROR) << c10::str(
+        pg_->logPrefix(),
+        " remote error detected from rank: ",
+        remoteErrorRank);
+  }
+}
+
+void ProcessGroupNCCL::Watchdog::runLoop() {
+  bool done = false;
+  pg_->heartbeatMonitor_->setLastWorkListUpdateTime(
+      std::chrono::steady_clock::now());
+  auto lastStatusUpdateTime = std::chrono::steady_clock::now();
+  std::list<ProcessGroupNCCL::WorkNCCL> completedWorkList;
+
+  while (!done || !pg_->terminateProcessGroup_.load()) {
+    std::unique_lock<std::mutex> lock(pg_->workMetaListMutex_);
+    // We busy-poll the work vector every kWatchdogThreadSleepMillis
+    // milliseconds as long as the atomic is True.
+    workMetaListCV_.wait_for(
+        lock,
+        std::chrono::milliseconds(kWatchdogThreadSleepMillis),
+        [&]() -> bool { return pg_->terminateProcessGroup_.load(); });
+    // Bump up heart beat by one.
+    heartbeat_++;
+
+// Some versions of GLOG support less-spammy version of LOG_EVERY_MS
+// in which case we don't want to spam the logs.
+#ifdef LOG_EVERY_MS
+    // Log the progress of this PG periodically
+    C10_LOG_EVERY_MS(INFO, kWorkStatusUpdatePeriodMs) << c10::str(
+        logPrefix(),
+        "NCCL Work update periodically: ",
+        "last enqueued NCCL work: ",
+        pg_->pgStatus_->lastEnqueuedSeq,
+        ", last completed NCCL work: ",
+        pg_->pgStatus_->lastCompletedSeq,
+        ".");
+#endif // LOG_EVERY_MS
+    auto logger = ::c10d::C10dLogger::getLogger();
+    if (logger &&
+        computeDeltaMS(
+            lastStatusUpdateTime, std::chrono::steady_clock::now()) >=
+            kWorkStatusUpdatePeriodMs) {
+      ::c10d::C10dLoggingData data;
+      // logging integers
+      data.integers["pg_id"] = static_cast<int64_t>(pg_->local_id_);
+      data.integers["rank"] = pg_->rank_;
+      data.integers["global_rank"] = pg_->globalRank();
+      data.integers["last_enqueued_work"] = pg_->pgStatus_->lastEnqueuedSeq;
+      data.integers["last_started_work"] = pg_->pgStatus_->lastStartedSeq;
+      data.integers["last_completed_work"] = pg_->pgStatus_->lastCompletedSeq;
+      data.integers["last_enqueued_numel_in"] =
+          static_cast<int64_t>(pg_->pgStatus_->lastEnqueuedNumelIn);
+      data.integers["last_enqueued_numel_out"] =
+          static_cast<int64_t>(pg_->pgStatus_->lastEnqueuedNumelOut);
+      data.integers["last_completed_numel_in"] =
+          static_cast<int64_t>(pg_->pgStatus_->lastCompletedNumelIn);
+      data.integers["last_completed_numel_out"] =
+          static_cast<int64_t>(pg_->pgStatus_->lastCompletedNumelOut);
+      data.integers["last_started_numel_in"] =
+          static_cast<int64_t>(pg_->pgStatus_->lastStartedNumelIn);
+      data.integers["last_started_numel_out"] =
+          static_cast<int64_t>(pg_->pgStatus_->lastStartedNumelOut);
+      // logging strings
+      data.strings["last_enqueued_work_name"] =
+          pg_->pgStatus_->lastEnqueuedWorkName;
+      data.strings["last_started_work_name"] =
+          pg_->pgStatus_->lastStartedWorkName;
+      data.strings["last_completed_work_name"] =
+          pg_->pgStatus_->lastCompletedWorkName;
+      data.strings["pg_name"] = pg_->pg_uid_;
+      data.strings["pg_desc"] = pg_->pg_desc_;
+      logger->log(data);
+      lastStatusUpdateTime = std::chrono::steady_clock::now();
+    }
+
+    if (propagatePgError_) {
+      // Check and set remote error if it has not been set before
+      checkAndSetRemoteError();
+    }
+
+    for (auto it = pg_->workMetaList_.begin(); it != pg_->workMetaList_.end();
+         /* no increment */) {
+      auto& work = *it;
+      // When terminateProcessGroup_ is true, communicators have already been
+      // aborted, So cannot check exception based on them. But watchdog needs to
+      // finish the check for the works that have already been enqueued to
+      // workMetaList_
+
+      // check NCCL errors first
+      if (!pg_->terminateProcessGroup_.load()) {
+        work.checkAndSetException();
+      }
+
+      if (work.exception()) {
+        // set the error to the first error found
+        std::lock_guard<std::mutex> lock(pg_->errorMutex_);
+        if (pg_->error_ == ErrorType::SUCCESS) {
+          pg_->error_ = ErrorType::COMM_ERROR;
+        }
+      }
+
+      // Then check if work has timed out
+      // Skip if work has encountered an error
+      bool timedout = !work.exception() && work.checkTimeout();
+
+      // Report desync state in case of timeout (if TORCH_NCCL_DESYNC_DEBUG is
+      // turned on; otherwise, run() is no-op)
+      if (timedout) {
+        std::lock_guard<std::mutex> lock(pg_->errorMutex_);
+        if (pg_->error_ == ErrorType::SUCCESS) {
+          pg_->error_ = ErrorType::TIMEOUT;
+        }
+        desyncDebugger_.run();
+      }
+
+      // If work hits an exception (either an error or timeout)
+      if (work.exception()) {
+        LOG(ERROR) << c10::str(
+            pg_->logPrefix(),
+            " failure detected by watchdog at work sequence id: ",
+            work.seq_,
+            " PG status: last enqueued work: ",
+            pg_->pgStatus_->lastEnqueuedSeq,
+            ", last completed work: ",
+            pg_->pgStatus_->lastCompletedSeq);
+
+        // Print the traceback of the collective at call time
+        work.printTraceback();
+
+        // broadcast remote error signal to all other ranks in this specific PG.
+        // key/signal to write in the tcpstore is a string and pg specific:
+        // format is: remote_error:pg_uid
+        if (propagatePgError_) {
+          pg_->broadcastSignal(
+              pg_->store_,
+              std::string(kStoreErrorSignalKey) + ':' + pg_->pg_uid_,
+              pg_->rank_);
+        }
+
+        // try to notify other ranks via global TCPStore to dump the flight
+        // recorder when a collective timeout or exception happens. Flight
+        // recorder behavior is independent of desync Debug.
+        pg_->broadcastDumpSignal();
+        // Give time for dumping before throwing exception for all ranks.
+        // It is hard to presume or control what the pattern of watchdog might
+        // look like, so it is better to let all ranks universally sleep for a
+        // short period of time, in this case, 60 seconds, which is also the
+        // maximum time we leave for FR dump.
+        std::this_thread::sleep_for(std::chrono::milliseconds(
+            pg_->heartbeatMonitor_->getDumpTimeout() * 4));
+
+        if (SHOULD_CLEAN_UP(pg_->asyncErrorHandling_)) {
+          // Abort work and corresponding communicators
+          work.abort();
+          // PG level abort, which would abort all other communicators on this
+          // rank
+          pg_->abortComms();
+        }
+        // Throw exception
+        work.handleException(pg_->asyncErrorHandling_);
+      }
+
+      // Work status logging for desync debug
+      desyncDebugger_.logWorkStart(work);
+
+      // a work could be started but not completed, so we should not update
+      // lastStartedSeq and lastStartedOpName if the work state is checked
+      // multiple times after the start
+      if (pg_->pgStatus_->lastStartedSeq < static_cast<int64_t>(work.seq_) &&
+          work.isStarted()) {
+        pg_->pgStatus_->lastStartedSeq = static_cast<int64_t>(work.seq_);
+        pg_->pgStatus_->lastStartedWorkName = opTypeToString(work.opType_);
+        pg_->pgStatus_->lastStartedNumelIn = work.numelIn_;
+        pg_->pgStatus_->lastStartedNumelOut = work.numelOut_;
+      }
+
+      // allow watchdog to do an event query on a side thread
+      at::cuda::CUDAGuard device_guard(work.ncclEndEvent_->device_index());
+      at::cuda::CUDAStreamCaptureModeGuard g{cudaStreamCaptureModeThreadLocal};
+
+      // Clean up completed work
+      if (work.isCompleted()) {
+        // In case user didn't call `work.wait()` with async collectives,
+        // watchdog would unstage the stashed tensors when detecting completion
+        // of the collective, to prevent ProcessGroupNCCL from holding reference
+        // to those tensors forever.
+        // work.stashed_for_allocator_safety_->unstash();
+        // Update: it seems directly unstashing from watchdog thread would cause
+        // some rare problems. We thus move the unstashing to main thread,
+        // triggered by a next user call, see `workEnqueue`. But `work` is going
+        // to be destructed, so we transfer the work's shelf to a shelves
+        // structure owned by the PG.
+        if (!work.stashed_for_allocator_safety_->empty()) {
+          std::lock_guard<std::mutex> lock(pg_->shelvesMutex_);
+          // We are just pushing back a shared_ptr here, so the cost should be
+          // minimal
+          pg_->shelvesToUnstash_.push_back(work.stashed_for_allocator_safety_);
+        }
+
+        if (pg_->enableTiming_ && logger) {
+          ::c10d::C10dLoggingData data;
+          // logging integers
+          data.strings["collective_duration"] =
+              std::to_string(work.getDuration());
+          data.integers["global_rank"] = pg_->globalRank();
+          data.integers["pg_id"] = static_cast<int64_t>(pg_->local_id_);
+          data.strings["pg_name"] = pg_->pg_uid_;
+          data.strings["pg_desc"] = pg_->pg_desc_;
+          data.integers["pg_rank"] = pg_->rank_;
+          data.integers["world_size"] = pg_->size_;
+          data.strings["comm_backend"] = "nccl";
+          data.strings["comm_backend_version"] = getNcclVersion();
+          // TODO: We see errors for this line, revert it for now.
+          data.strings["collective_stack"] = "";
+          data.strings["collective_name"] = opTypeToString(work.opType_);
+          logger->log(data);
+        }
+
+        // Work status logging for desync debug
+        desyncDebugger_.logWorkEnd(work);
+
+        if (work.futureWorkResult_ && work.finishedGPUExecutionInternal() &&
+            !work.futureWorkResult_->completed()) {
+          work.futureWorkResult_->markCompleted(
+              at::IValue(static_cast<uint8_t>(WorkResult::SUCCESS)));
+        }
+        {
+          // Reset the timeout and first work if the work is completed.
+          std::lock_guard<std::mutex> timeoutLock(pg_->mtxTimeoutExtension_);
+          if (work.ownedEphermeralTimeout_.count() > 0) {
+            pg_->ephemeralTimeoutActive_ -= work.ownedEphermeralTimeout_;
+            pg_->ephemeralTimeoutInflight_ -= work.ownedEphermeralTimeout_;
+          }
+        }
+        pg_->pgStatus_->lastCompletedSeq = static_cast<int64_t>(work.seq_);
+        pg_->pgStatus_->lastCompletedWorkName = opTypeToString(work.opType_);
+        pg_->pgStatus_->lastCompletedNumelIn = work.numelIn_;
+        pg_->pgStatus_->lastCompletedNumelOut = work.numelOut_;
+        FlightRecorderCUDA::get()->retire_id(work.trace_id_, true);
+        if (pg_->onCompletionHook_) {
+          // Move Work object to completedWorkList_ to be consumed by the hook
+          // thread
+          {
+            const std::lock_guard<std::mutex> lock(
+                pg_->completedWorkListMutex_);
+            pg_->completedWorkList_.splice(
+                pg_->completedWorkList_.end(), pg_->workMetaList_, it++);
+          }
+          pg_->completedWorkListCV_.notify_one();
+        } else {
+          it = pg_->workMetaList_.erase(it);
+          pg_->heartbeatMonitor_->setLastWorkListUpdateTime(
+              std::chrono::steady_clock::now());
+        }
+      } else {
+        // Increment the iterator if the current WorkNCCL object is not
+        // completed.
+        ++it;
+      }
+      // Increment heartbeat after each work processed,
+      // in case processing is slowed down (but not hung) by cuda api contention
+      heartbeat_++;
+    }
+    done = pg_->workMetaList_.empty();
+  }
+}
+
+uint64_t ProcessGroupNCCL::Watchdog::getHeartbt() const {
+  return heartbeat_.load();
+}
+
+void ProcessGroupNCCL::Watchdog::setDesyncDebug(bool desyncDebug) {
+  desyncDebug_ = desyncDebug;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Initialize and enable DesyncDebugger
 void ProcessGroupNCCL::DesyncDebugger::init(
     int rank,
     int size,
+<<<<<<< HEAD
     c10::intrusive_ptr<Store> store) {
   rank_ = rank;
   size_ = size;
+=======
+    int globalRank,
+    int pgId,
+    c10::intrusive_ptr<Store> store) {
+  rank_ = rank;
+  size_ = size;
+  globalRank_ = globalRank;
+  pgId_ = pgId;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   store_ = std::move(store);
   enabled_ = true;
   traceKeyStart_ = getTraceStartKey("NCCL", rank);
@@ -1935,21 +2991,51 @@ void ProcessGroupNCCL::DesyncDebugger::run() {
   if (!enabled_)
     return;
   auto logPrefix = c10::str("Rank ", rank_);
+<<<<<<< HEAD
   try {
     std::string desyncMsg = retrieveDesyncReport(store_, "NCCL", rank_, size_);
     LOG(ERROR) << logPrefix << desyncMsg;
   } catch (const std::exception& e) {
+=======
+  ::c10d::C10dLoggingData log;
+  log.integers["pg_id"] = pgId_;
+  log.integers["rank"] = rank_;
+  log.integers["global_rank"] = globalRank_;
+  log.integers["world_size"] = size_;
+  // Use this to differentiate between flight recorder and desync debug report.
+  log.strings["flight_recorder_version"] = "-1";
+
+  try {
+    std::string desyncMsg = retrieveDesyncReport(store_, "NCCL", rank_, size_);
+    log.strings["status"] = "SUCCESS";
+    LOG(ERROR) << logPrefix << desyncMsg;
+  } catch (const std::exception& e) {
+    log.strings["status"] = "EXCEPTION";
+    log.strings["exception_msg"] = e.what();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     enabled_ = false;
     LOG(ERROR) << logPrefix
                << " Failed to retrieve TORCH_NCCL_DESYNC_DEBUG report. "
                << " Please file an issue. Error: " << e.what();
   } catch (...) {
     enabled_ = false;
+<<<<<<< HEAD
+=======
+    log.strings["status"] = "EXCEPTION";
+    log.strings["exception_msg"] = "Unknown exception";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LOG(ERROR)
         << logPrefix
         << " Failed to rerieve TORCH_NCCL_DESYNC_DEBUG report with unknown error."
         << " Please file an issue.";
   }
+<<<<<<< HEAD
+=======
+  auto logger = c10d::C10dLogger::getLogger();
+  if (logger) {
+    logger->log(log);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Log work start to store.
@@ -2017,6 +3103,13 @@ const int& ProcessGroupNCCL::globalRank() const {
   return globalRank;
 }
 
+<<<<<<< HEAD
+=======
+const c10::intrusive_ptr<Store>& ProcessGroupNCCL::globalStore() const {
+  return globalStore_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const std::vector<uint64_t>& ProcessGroupNCCL::groupRanks() const {
   if (options_->global_ranks_in_group.empty() && local_id_ == 0) {
     static std::vector<uint64_t> globalRanks(size_);
@@ -2061,6 +3154,7 @@ void ProcessGroupNCCL::broadcastSignal(
   }
 }
 
+<<<<<<< HEAD
 int ProcessGroupNCCL::getSignalSrcRank(
     c10::intrusive_ptr<Store>& store,
     const std::string& signal) {
@@ -2094,10 +3188,13 @@ int ProcessGroupNCCL::getSignalSrcRank(
   return srcRank;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void ProcessGroupNCCL::broadcastDumpSignal() {
   // broadcast dump signal to all other global ranks.
   broadcastSignal(globalStore_, std::string(kStoreDumpKey), globalRank());
   // signal the local rank to start dumping
+<<<<<<< HEAD
   if (shouldDump_.load()) {
     // already signaled dump, skipping signal again and wait for the dump
     // future.
@@ -2136,6 +3233,12 @@ void ProcessGroupNCCL::checkAndSetRemoteError() {
     error_ = ErrorType::REMOTE_ERROR;
     LOG(ERROR) << c10::str(
         logPrefix(), " remote error detected from rank: ", remoteErrorRank);
+=======
+  if (!shouldDump_.load()) {
+    LOG(ERROR) << logPrefix() << "First PG on this rank to signal dumping.";
+    // signal the monitor thread on PG0 to start dumping
+    shouldDump_.store(true);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -2165,6 +3268,7 @@ static int getRootIndex(const int rank, const int nRanks, const int nIds) {
   }
 }
 
+<<<<<<< HEAD
 void ProcessGroupNCCL::watchdogHandler() {
   bool done = false;
   lastWorkListUpdateTime_ = std::chrono::steady_clock::now();
@@ -2373,6 +3477,8 @@ void ProcessGroupNCCL::watchdogHandler() {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void ProcessGroupNCCL::runHookLoop() {
   c10::setThreadName("pt_nccl_runhook");
 
@@ -2395,15 +3501,26 @@ void ProcessGroupNCCL::runHookLoop() {
         // Hook might grab GIL, unlock first to prevent deadlock
         lock.unlock();
 
+<<<<<<< HEAD
         auto timeStarted =
             std::chrono::system_clock::now() +
             std::chrono::duration_cast<std::chrono::system_clock::duration>(
+=======
+        auto timeFinished = std::chrono::system_clock::now();
+        auto timeStarted =
+            timeFinished +
+            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 work.workStartTime_ - std::chrono::steady_clock::now());
         onCompletionHook_(std::make_shared<WorkInfo>(
             work.retrieveOpType(), // OpType
             work.getSequencenumber(), // seq
             timeStarted, // timeStarted
+<<<<<<< HEAD
             std::chrono::system_clock::now(), // timeFinished
+=======
+            timeFinished, // timeFinished
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             std::chrono::duration<float, std::milli>(
                 work.getDuration()) // activeDuration
             ));
@@ -2503,6 +3620,23 @@ void ProcessGroupNCCL::broadcastUniqueNCCLID(
   // of sequence number for p2p communications.
 
   std::string storeKey;
+<<<<<<< HEAD
+=======
+  RECORD_PARAM_COMMS(
+      std::make_tuple(0, false), // seq
+      std::make_tuple(pg_uid_, pg_desc_), // PG name tuple
+      rank_, // TODO: this might not work for P2P
+      "broadcastUniqueNCCLID", // collective name
+      0, // inNelems
+      0, // outNelems
+      at::kByte, // dType
+      std::vector<int64_t>(), // inSplitSizes
+      std::vector<int64_t>(), // outSplitSizes
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+      size_); // worldSize
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!isSingleP2POp) {
     storeKey = std::to_string(ncclCommCounter_++);
   } else {
@@ -2559,6 +3693,23 @@ void ProcessGroupNCCL::allgatherUniqueNCCLIDs(
     std::vector<ncclUniqueId>& ncclIDs) {
   std::vector<std::string> storeKeys;
   std::vector<std::vector<uint8_t>> results;
+<<<<<<< HEAD
+=======
+  RECORD_PARAM_COMMS(
+      std::make_tuple(0, false), // seq
+      std::make_tuple(pg_uid_, pg_desc_), // PG name tuple
+      rank_, // rank
+      "allgatherUniqueNCCLIDs", // collective name
+      0, // inNelems
+      0, // outNelems
+      at::kByte, // dType
+      std::vector<int64_t>(), // inSplitSizes
+      std::vector<int64_t>(), // outSplitSizes
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+      size_); // worldSize
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (size_t r = 0; r < ncclIDs.size(); r++) {
     storeKeys.emplace_back("UniqueNCCLID:" + std::to_string(r));
   }
@@ -2625,9 +3776,16 @@ void ProcessGroupNCCL::destroyNCCLComms(const std::string& devNCCLCommMapKey) {
   // Clear used device indices.
   usedDeviceIdxs_.clear();
 
+<<<<<<< HEAD
   ncclCommDevIdxMapMutex.lock();
   ncclCommDevIdxMap.erase(ncclComm);
   ncclCommDevIdxMapMutex.unlock();
+=======
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    ncclCommMemPoolMap.erase(ncclComm);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
@@ -2726,8 +3884,13 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
       at::kByte, // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       size_); // worldSize
 
 #ifdef NCCL_HAS_COMM_NONBLOCKING
@@ -2764,7 +3927,11 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
 
   bool useScalableInit = false;
   // (nranks / nroots) == 128 was the default NCCL recommended
+<<<<<<< HEAD
   // accoring to
+=======
+  // according to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // https://github.com/pytorch/pytorch/pull/136789#discussion_r1779171615.
   auto ranksPerRoot = getCvarInt(TORCH_NCCL_RANKS_PER_ROOT, 128);
 #if defined(NCCL_HAS_INIT_RANK_SCALABLE) && defined(NCCL_HAS_CONFIG)
@@ -2794,8 +3961,13 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
                 << "ProcessGroupNCCL all-gather unique IDs through store took "
                 << timerDeltaMs << " ms";
 #if defined(NCCL_HAS_INIT_RANK_SCALABLE) && defined(NCCL_HAS_CONFIG)
+<<<<<<< HEAD
       ncclComm =
           NCCLComm::create_scalable(numRanks, rank, ncclIDs, options_->config);
+=======
+      ncclComm = NCCLComm::create_scalable(
+          numRanks, rank, ncclIDs, deviceIndex, options_->config);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
       C10_THROW_ERROR(
           DistBackendError,
@@ -2849,8 +4021,14 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
     inInitializationCommMap_.emplace(deviceKey, ncclComm);
   }
 
+<<<<<<< HEAD
   FlightRecorder::get()->record_pg_ranks(
       std::make_tuple(pg_uid_, pg_desc_), groupRanks());
+=======
+  FlightRecorderCUDA::get()->record_pg_ranks(
+      std::make_tuple(pg_uid_, pg_desc_), groupRanks());
+  FlightRecorderCUDA::get()->record_accelerator_version(getNcclVersion());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   VLOG(2) << logPrefix() << "ProcessGroupNCCL created ncclComm_ "
           << ncclComm->repr()
@@ -2887,7 +4065,11 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
     // Now ncclComms are fully initialized.
     // Register all active CUDA memory segments in cache allocator to
     // the new NCCL communicators
+<<<<<<< HEAD
     if (useTensorRegisterAllocatorHook_) {
+=======
+    if (shouldAllCommunicatorsRegisterAllTensors()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto snapshot = c10::cuda::CUDACachingAllocator::snapshot();
       // Register the segment to a new NCCL communicator if on the same device
       for (const auto& segmentInfo : snapshot.segments) {
@@ -2905,9 +4087,16 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
     // on the same device.
     // NOTE: we need remove the communicator from this map when it is
     // destroyed, otherwise may register onto an invalid communicator.
+<<<<<<< HEAD
     ncclCommDevIdxMapMutex.lock();
     ncclCommDevIdxMap.emplace(ncclComm, device.index());
     ncclCommDevIdxMapMutex.unlock();
+=======
+    {
+      std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+      ncclCommMemPoolMap.emplace(ncclComm, MemPoolSet{});
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   it = devNCCLCommMap_.find(deviceKey);
@@ -2916,6 +4105,24 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
   return it->second;
 }
 
+<<<<<<< HEAD
+=======
+int64_t ProcessGroupNCCL::getCommPtr() {
+  // Get the collective communicator on the current CUDA device.
+  auto device = at::Device(at::kCUDA, at::cuda::current_device());
+  std::string deviceKey = getKeyFromDevice(device);
+  auto ncclComm = getNCCLComm(deviceKey);
+
+  // ncclComm is a nullptr if the communicator does not exist.
+  ncclComm_t comm = nullptr;
+  if (ncclComm != nullptr) {
+    comm = ncclComm->getNcclComm();
+  }
+  const int64_t commPtr = reinterpret_cast<int64_t>(comm);
+  return commPtr;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::shared_ptr<NCCLComm> ProcessGroupNCCL::getNCCLComm(
     const std::string& deviceKey) {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -3028,10 +4235,17 @@ c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL> ProcessGroupNCCL::initWork(
       profilingTitle,
       profilingTitle != nullptr ? std::optional<std::vector<at::Tensor>>(inputs)
                                 : std::nullopt,
+<<<<<<< HEAD
       desyncDebug_,
       enableTiming_.load(),
       cudaEventCacheEnabled_.load(),
       dist_debug_level_);
+=======
+      enableTiming_.load(),
+      cudaEventCacheEnabled_.load(),
+      dist_debug_level_);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (record) {
     bool isP2P = isP2POp(opType);
     // Ideally record every work that we enqueue, rather than every work we
@@ -3044,10 +4258,17 @@ c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL> ProcessGroupNCCL::initWork(
     // - initially, moved record() into workEnqueue(), but found that makes it
     //   hard to get access to profilingTitle,
     //   inputs, and outputs for metadata recording, and we don't want to attach
+<<<<<<< HEAD
     //   these objects to the Work becuase it has implications for keeping those
     //   tensors alive longer and adds overhead when copying Work objects
     //   between threads
     r->trace_id_ = FlightRecorder::get()->record(
+=======
+    //   these objects to the Work because it has implications for keeping those
+    //   tensors alive longer and adds overhead when copying Work objects
+    //   between threads
+    r->trace_id_ = FlightRecorderCUDA::get()->record(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_id_,
         std::make_tuple(pg_uid_, pg_desc_),
         seqCollective_,
@@ -3111,6 +4332,20 @@ void ProcessGroupNCCL::assignTimeoutToWork(
 
 void ProcessGroupNCCL::workEnqueue(
     const c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {
+<<<<<<< HEAD
+=======
+  // We clean up the TensorShelf's in case user hasn't called `work.wait()`.
+  // This has nothing to do with new work enqueue. We are just using a place
+  // that would be triggered by a next user call.
+  {
+    std::lock_guard<std::mutex> lock(shelvesMutex_);
+    for (auto& shelf : shelvesToUnstash_) {
+      shelf->unstash();
+    }
+    shelvesToUnstash_.clear();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // in blockingWait_ mode, we don't need watchdog thread, so no need to enqueue
   // the work
   if (!terminateProcessGroup_.load() && !blockingWait_) {
@@ -3125,7 +4360,12 @@ void ProcessGroupNCCL::workEnqueue(
     pgStatus_->lastEnqueuedWorkName = opTypeToString(work->opType_);
     pgStatus_->lastEnqueuedNumelIn = work->numelIn_;
     pgStatus_->lastEnqueuedNumelOut = work->numelOut_;
+<<<<<<< HEAD
     lastWorkListUpdateTime_ = std::chrono::steady_clock::now();
+=======
+    heartbeatMonitor_->setLastWorkListUpdateTime(
+        std::chrono::steady_clock::now());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -3135,6 +4375,13 @@ ProcessGroupNCCL::Options::Options(bool is_high_priority_stream)
 
 static constexpr int CoalActive = 0x01, CoalColl = 0x02, CoalP2P = 0x04;
 
+<<<<<<< HEAD
+=======
+uint64_t ProcessGroupNCCL::getWatchdogHeartbt() const {
+  return watchdog_->getHeartbt();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void ProcessGroupNCCL::startCoalescing() {
   // Other collective ops bump seq_ before creating a work. Thus, if coalesced
   // ops bump seq_ only after initing a work they will collide with (reuse) the
@@ -3143,10 +4390,18 @@ void ProcessGroupNCCL::startCoalescing() {
   // ops from a coalesce group into the flight recorder, we want to have the
   // same seq_ for those ops and its 'endCoalescing' op. Hence we bump during
   // start, which has one minor downside- we burn a seq_ if someone ever does a
+<<<<<<< HEAD
   // 'start' and 'end' coalescing region without doing an operation inbetween.
 
   coalescedDevice_.set_index(-1);
   coalescedComm_ = nullptr;
+=======
+  // 'start' and 'end' coalescing region without doing an operation in between.
+
+  coalescedDevice_.set_index(-1);
+  coalescedComm_ = nullptr;
+  coalescedTensors_.clear();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   coalescing_state_ |= CoalActive;
   groupStart();
 }
@@ -3162,7 +4417,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::endCoalescing(OpType optype) {
   }
   TORCH_CHECK(
       coalescedDevice_.index() >= 0,
+<<<<<<< HEAD
       "Somthing went wrong. Did you call end_coalescing before start_coalescing?");
+=======
+      "Something went wrong. Did you call end_coalescing before start_coalescing?");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // `coalescedComm_` should have same set of comms across collectives
   auto comm = coalescedComm_;
@@ -3172,6 +4431,12 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::endCoalescing(OpType optype) {
   // `getKeyFromDevice` is how we get keys for both collectives and batch P2P
   const auto key = getKeyFromDevice(device);
   auto ncclStream = ncclStreams_.at(key);
+<<<<<<< HEAD
+=======
+  auto opProfilerTitle = optype != OpType::COALESCED
+      ? "nccl:" + opTypeToString(optype) + "_coalesced"
+      : "nccl:coalesced";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Create Work object
   c10::cuda::CaptureStatus capture_status =
@@ -3183,16 +4448,29 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::endCoalescing(OpType optype) {
       rank_,
       optype,
       coalescing_state_ & CoalP2P,
+<<<<<<< HEAD
       "nccl:coalesced",
+=======
+      opProfilerTitle.c_str(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {},
       {},
       enqueue);
   work->ncclComm_ = comm;
   work->blockingWait_ = blockingWait_;
+<<<<<<< HEAD
   work->avoidRecordStreams_ = avoidRecordStreams_;
   work->store_ = store_;
   assignTimeoutToWork(work, options_);
 
+=======
+  work->store_ = store_;
+  assignTimeoutToWork(work, options_);
+
+  // Hand over references to tensors during coalescing to work's stash
+  work->stashed_for_allocator_safety_->stash(coalescedTensors_);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Record start before ncclGroupEnd
   if (work->timingEnabled_) {
     work->ncclStartEvent_->record(ncclStream);
@@ -3208,19 +4486,32 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::endCoalescing(OpType optype) {
   // TODO(eqy): is this still necessary if avoidRecordStreams_ is set?
   work->ncclEndEvent_->record(ncclStream);
 
+<<<<<<< HEAD
   if (avoidRecordStreams_) {
     // other functions expect an initialized ptr if avoidRecordStreams_ is set
     work->stashed_for_allocator_safety_ =
         std::make_shared<std::vector<at::Tensor>>();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (enqueue) {
     workEnqueue(work);
   }
 
+<<<<<<< HEAD
   coalescing_state_ = 0;
   coalescedComm_ = nullptr;
   return work;
+=======
+  // Reset coalescing state
+  coalescing_state_ = 0;
+  coalescedComm_ = nullptr;
+  coalescedTensors_.clear();
+  // If in async mode, return work; otherwise, kernel is enqueued on current
+  // stream, no need to return work
+  return coalescedAsync_ ? work : nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 c10::intrusive_ptr<Work> ProcessGroupNCCL::endCoalescing() {
@@ -3228,6 +4519,26 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::endCoalescing() {
   return endCoalescing(OpType::COALESCED);
 }
 
+<<<<<<< HEAD
+=======
+void ProcessGroupNCCL::startTimeEstimate() {
+  groupStart();
+}
+
+float ProcessGroupNCCL::endTimeEstimate() {
+#ifdef NCCL_SIM_INFO_INITIALIZER
+  ncclSimInfo_t simInfo = NCCL_SIM_INFO_INITIALIZER;
+  C10D_NCCL_CHECK(ncclGroupSimulateEnd(&simInfo), std::nullopt);
+  return simInfo.estimatedTime;
+#else
+  TORCH_CHECK(
+      false,
+      c10::str(
+          "The current nccl version does not support nccl comm time estimation. "));
+#endif
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename Fn, typename PreProcess, typename PostProcess>
 c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     std::vector<at::Tensor>& inputs,
@@ -3236,11 +4547,18 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     PreProcess pre,
     PostProcess post,
     OpType opType,
+<<<<<<< HEAD
     const char* profilingTitle,
     bool avoidRecordStreams,
     bool nanCheck) {
   // Environment setting by the user may add onto collective call's option
   avoidRecordStreams |= avoidRecordStreams_;
+=======
+    bool asyncOp,
+    const char* profilingTitle,
+    bool nanCheck) {
+  // Environment setting by the user may add onto collective call's option
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   nanCheck &= enableNanCheck_;
 
   auto device = getDevice(inputs[0]);
@@ -3281,6 +4599,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     } else {
       TORCH_CHECK(coalescedComm_ == ncclComm, MULTI_DEVICE_ERROR_MSG);
     }
+<<<<<<< HEAD
   }
 
   // Used many times below, so we stash the unordered_map lookup
@@ -3288,18 +4607,71 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
 
   // First let NCCL streams wait for input tensors allocation streams
   syncStream(device, ncclEvents_[key], ncclStream);
+=======
+    coalescedAsync_ = asyncOp;
+  }
+
+  // in asyncOp=false [default] mode, we use currentStream as ncclStream
+  // otherwise, we use separate ncclStream and let it sync on currentStream
+  auto ncclStream = asyncOp ? ncclStreams_.at(key)
+                            : at::cuda::getCurrentCUDAStream(device.index());
+  if (asyncOp) {
+    // First let NCCL streams wait for input tensors allocation streams
+    syncStream(device, ncclEvents_[key], ncclStream);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool enqueue =
       !coalescing_state_ && capture_status == c10::cuda::CaptureStatus::None;
   auto work = initWork(
       device, rank_, opType, false, profilingTitle, inputs, outputs, enqueue);
+<<<<<<< HEAD
+=======
+  if (coalescing_state_) {
+    // When coalescing, we record events per op that lack timing/state
+    // information because there is no 'work' associated with them, and then
+    // later in endCoalescing we record a 'coalesced' Work which has
+    // timing/state updates via watchdog thread, but lacks op metadata such as
+    // input/output sizes and profilingTitle per-op in the group.
+    FlightRecorderCUDA::get()->record(
+        local_id_,
+        std::make_tuple(pg_uid_, pg_desc_),
+        seqCollective_,
+        seqP2P_,
+        op_id_,
+        profilingTitle,
+        inputs,
+        outputs,
+        nullptr,
+        nullptr,
+        options_->timeout,
+        pgStatus_,
+        /*isP2P=*/false);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Store references to outputs to be used by WorkNCCL::result and operator<<.
   work->outputs_ = std::make_shared<std::vector<at::Tensor>>(outputs);
 
+<<<<<<< HEAD
   if (avoidRecordStreams) {
     work->stashed_for_allocator_safety_ =
         std::make_shared<std::vector<at::Tensor>>(inputs);
+=======
+  // If we are performing sync operations, i.e. equeuing kernel onto "current"
+  // stream, we don't need to do anything for tensor lifetime management.
+  // Otherwise, we need to stage the tensors will `work.wait()`.
+  if (asyncOp) {
+    // First select which shelf to stash onto: to `work` if single collective;
+    // to an inflight shelf if coalescing.
+    if (coalescing_state_) {
+      coalescedTensors_.stash(inputs);
+      coalescedTensors_.stash(outputs);
+    } else {
+      work->stashed_for_allocator_safety_->stash(inputs);
+      work->stashed_for_allocator_safety_->stash(outputs);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (nanCheck) {
@@ -3309,7 +4681,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
   }
 
   // Start event should only be recorded before the ncclGroupStart()
+<<<<<<< HEAD
   if (work->timingEnabled_) {
+=======
+  if (work->timingEnabled_ && !coalescing_state_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     work->ncclStartEvent_->record(ncclStream);
   }
 
@@ -3325,6 +4701,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
   // operations where `inputs' and `outputs' are not the same.
   //
   // See [Sync Streams].
+<<<<<<< HEAD
   if (!avoidRecordStreams) {
     for (const auto& input : inputs) {
       if (!input.is_sparse()) {
@@ -3340,6 +4717,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
       }
     }
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Not all collectives have the same signature, e.g, all-reduce take in a Tensor
 // as the input and output while all-to-all take in a vector of Tensors as input
@@ -3391,7 +4770,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
 
   // Set appropriate work parameters.
   work->blockingWait_ = blockingWait_;
+<<<<<<< HEAD
   work->avoidRecordStreams_ = avoidRecordStreams;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   work->store_ = store_;
   assignTimeoutToWork(work, options_);
   // Record size info for debug. We only record the size on the first device as
@@ -3409,7 +4791,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     workEnqueue(work);
   }
 
+<<<<<<< HEAD
   return work;
+=======
+  return asyncOp ? work : nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename Fn>
@@ -3418,11 +4804,16 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
     std::vector<at::Tensor>& outputs,
     Fn fn,
     OpType opType,
+<<<<<<< HEAD
     const char* profilingTitle,
     bool avoidRecordStreams) {
   // Environment setting by the user may add onto collective call's option
   avoidRecordStreams |= avoidRecordStreams_;
 
+=======
+    bool asyncOp,
+    const char* profilingTitle) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Currently, the API permits one scenario where inputs.size() and
   // outputs.size() are > 0.
   // 1. If the call was a _coalesced call, all inputs must be on the same
@@ -3446,7 +4837,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
   // collective so there is no flight record and we increment seqCollective_ and
   // op_id_ together. Compare this to startCoalescing/endCoalescing flow where
   // we increment either seqP2P_ or seqCollective_ once per group and increment
+<<<<<<< HEAD
   // op_id_ once per indvidual operation within the group
+=======
+  // op_id_ once per individual operation within the group
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   op_id_++;
 
   const auto key = getKeyFromDevice(device);
@@ -3468,6 +4863,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
     } else {
       TORCH_CHECK(coalescedComm_ == ncclComm, MULTI_DEVICE_ERROR_MSG);
     }
+<<<<<<< HEAD
   }
 
   // Used many times below, so we stash the unordered_map lookup
@@ -3475,6 +4871,19 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
 
   // First let NCCL streams wait for input tensors allocation streams
   syncStream(device, ncclEvents_[key], ncclStream);
+=======
+    coalescedAsync_ = asyncOp;
+  }
+
+  // in asyncOp=false [default] mode, we use currentStream as ncclStream
+  // otherwise, we use separate ncclStream and let it sync on currentStream
+  auto ncclStream = asyncOp ? ncclStreams_.at(key)
+                            : at::cuda::getCurrentCUDAStream(device.index());
+  if (asyncOp) {
+    // First let NCCL streams wait for input tensors allocation streams
+    syncStream(device, ncclEvents_[key], ncclStream);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto work = initWork(
       device,
@@ -3489,9 +4898,18 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
   // Store references to outputs to be used by WorkNCCL::result and operator<<.
   work->outputs_ = std::make_shared<std::vector<at::Tensor>>(outputs);
 
+<<<<<<< HEAD
   if (avoidRecordStreams) {
     work->stashed_for_allocator_safety_ =
         std::make_shared<std::vector<at::Tensor>>(inputs);
+=======
+  // If we are performing sync operations, i.e. equeuing kernel onto "current"
+  // stream, we don't need to do anything for tensor lifetime management.
+  // Otherwise, we need to stage the tensors will `work.wait()`.
+  if (asyncOp) {
+    work->stashed_for_allocator_safety_->stash(inputs);
+    work->stashed_for_allocator_safety_->stash(outputs);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Start event should only be recorded before the ncclGroupStart() (which
@@ -3506,7 +4924,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
 // upgrade. Once a NCCL version is qualified, this code should not be needed at
 // runtime.
 #ifdef PGNCCL_ENABLE_HASH
+<<<<<<< HEAD
   if (enableCollecticeHashDebug_.load()) {
+=======
+  if (enableCollectiveHashDebug_.load()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto numel = getTensorsNumel(inputs);
     auto hashValue = hashTensors(inputs);
     PRINT_COLLECTIVE_HASH_SIGNATURE(
@@ -3517,6 +4939,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
   {
     torch::cuda::nccl::AutoNcclGroup nccl_group_guard(comm, useNonblocking());
     for (const auto i : c10::irange(inputs.size())) {
+<<<<<<< HEAD
       // Both `inputs' and `outputs' are created on a worker stream and used in
       // different ncclStreams.  Hence, both must record the ncclStream to
       // prevent being freed before the collective finishes.
@@ -3538,6 +4961,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
               inputs[i].indices().storage().data_ptr(), ncclStream);
         }
       }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef NCCL_HAS_COMM_NONBLOCKING
       C10D_NCCL_CHECK(
           fn(inputs[i], outputs[i], comm, ncclStream),
@@ -3578,7 +5003,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
 
   // Set appropriate work parameters.
   work->blockingWait_ = blockingWait_;
+<<<<<<< HEAD
   work->avoidRecordStreams_ = avoidRecordStreams;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   work->store_ = store_;
   assignTimeoutToWork(work, options_);
   // Record size info for debug. We only record the size on the first device as
@@ -3609,7 +5037,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collectiveCoalesced(
   // it, since interactions with it by usercode won't behave normally - they
   // won't observe work completion, for instance.  Will this lead to silent
   // problems during capture?
+<<<<<<< HEAD
   return work;
+=======
+  return asyncOp ? work : nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename Fn, typename PreProcess, typename PostProcess>
@@ -3627,6 +5059,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
   // to wait() on the returned handle, so ProcessGroupNCCL can't know
   // when it's safe to release the input back to the allocator,
   // and the present call has no way to know it's not an isend.
+<<<<<<< HEAD
   // Therefore, we warn and fall back to the typical recordStream logic:
   if (avoidRecordStreams_) {
     TORCH_WARN_ONCE(
@@ -3634,6 +5067,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
         "collectives.");
   }
 
+=======
+  // Therefore, we warn and fall back to the typical recordStream logic.
+  // TODO( kwen2501 ): revisit this when we have a better solution.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto device = getDevice(tensor);
   at::cuda::OptionalCUDAGuard gpuGuard(device);
 
@@ -3688,6 +5125,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
     } else {
       TORCH_CHECK(coalescedComm_ == ncclComm, MULTI_DEVICE_ERROR_MSG);
     }
+<<<<<<< HEAD
+=======
+    // For now, P2P ops are always put on internal stream
+    coalescedAsync_ = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Used many times below, so we stash the unordered_map lookup
@@ -3699,11 +5141,19 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
   c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL> work;
   if (coalescing_state_) {
     // When coalescing, we record events per op that lack timing/state
+<<<<<<< HEAD
     // information becuase there is no 'work' associated with them, and then
     // later in endCoalescing we record a 'coalesced' Work which has
     // timing/state updates via watchdog thread, but lacks op metadata such as
     // input/output sizes and profilingTitle per-op in the group.
     auto trace_id = FlightRecorder::get()->record(
+=======
+    // information because there is no 'work' associated with them, and then
+    // later in endCoalescing we record a 'coalesced' Work which has
+    // timing/state updates via watchdog thread, but lacks op metadata such as
+    // input/output sizes and profilingTitle per-op in the group.
+    FlightRecorderCUDA::get()->record(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_id_,
         std::make_tuple(pg_uid_, pg_desc_),
         seqCollective_,
@@ -3722,7 +5172,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
     // coalesce group gets its update, we could accumulate these trace_ids
     // together and ask FlightRecorder to take the update from one Work and
     // apply it to multiple entries
+<<<<<<< HEAD
     (void)trace_id;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     // Store references to outputs to be used by WorkNCCL::result and
     // operator<<. Note that these outputs are only valid for recv(), as send()
@@ -3745,7 +5198,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
     // TODO(whc) because we don't pass output {tensor} to initWork, we tell
     // initWork to not record, and then we manually call record passing all the
     // information it wants.
+<<<<<<< HEAD
     work->trace_id_ = FlightRecorder::get()->record(
+=======
+    work->trace_id_ = FlightRecorderCUDA::get()->record(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_id_,
         std::make_tuple(pg_uid_, pg_desc_),
         seqCollective_,
@@ -3859,8 +5316,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     PreProcess pre,
     PostProcess post,
     OpType opType,
+<<<<<<< HEAD
     const char* profilingTitle,
     bool avoidRecordStreams,
+=======
+    bool asyncOp,
+    const char* profilingTitle,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool nanCheck) {
   auto inputs = std::vector<at::Tensor>{input};
   auto outputs = std::vector<at::Tensor>{output};
@@ -3871,8 +5333,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
       pre,
       post,
       opType,
+<<<<<<< HEAD
       profilingTitle,
       avoidRecordStreams,
+=======
+      asyncOp,
+      profilingTitle,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       nanCheck);
 }
 
@@ -3882,8 +5349,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     at::Tensor& output,
     Fn fn,
     OpType opType,
+<<<<<<< HEAD
     const char* profilingTitle,
     bool avoidRecordStreams,
+=======
+    bool asyncOp,
+    const char* profilingTitle,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool nanCheck) {
   auto inputs = std::vector<at::Tensor>{input};
   auto outputs = std::vector<at::Tensor>{output};
@@ -3896,8 +5368,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
       [](at::cuda::CUDAStream&,
          c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
       opType,
+<<<<<<< HEAD
       profilingTitle,
       avoidRecordStreams,
+=======
+      asyncOp,
+      profilingTitle,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       nanCheck);
 }
 
@@ -3925,8 +5402,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_sparse(
   TORCH_CHECK(tensors.size() == 1, MULTI_DEVICE_ERROR_MSG);
   auto tensor = tensors.back();
   TORCH_CHECK(
+<<<<<<< HEAD
       !isFloat8Type(tensor.scalar_type()),
       "Float8 dtypes are not currenlty supported for NCCL reductions");
+=======
+      !isUnsupportedFloat8(tensor.scalar_type()),
+      "Unsupported Float8 type for NCCL reduction");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef IS_NCCLX
   tensor = tensor.coalesce();
   at::Tensor outputTensor =
@@ -3949,6 +5431,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_sparse(
         auto recvIndices = indices[0] * colSize;
 
         // prevent output and recvIndices from being freed
+<<<<<<< HEAD
+=======
+        // TODO: not changing the lifetime management of outputs this time,
+        // revisit later
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         c10::cuda::CUDACachingAllocator::recordStream(
             output.storage().data_ptr(), stream);
         c10::cuda::CUDACachingAllocator::recordStream(
@@ -3980,6 +5467,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_sparse(
         }
       },
       OpType::_ALLREDUCE_SPARSE,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:all_reduce_sparse");
   return work;
 #else
@@ -4014,6 +5505,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_impl(
             stream.stream());
       },
       OpType::ALLREDUCE,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       profilingTitle);
 }
 
@@ -4041,8 +5536,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce(
     }
   }
   TORCH_CHECK(
+<<<<<<< HEAD
       !isFloat8Type(tensor.scalar_type()),
       "Float8 dtypes are not currenlty supported for NCCL reductions");
+=======
+      !isUnsupportedFloat8(tensor.scalar_type()),
+      "Unsupported Float8 type for NCCL reduction");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   RECORD_PARAM_COMMS_DATA(
       std::make_tuple(
           static_cast<int64_t>(seqCollective_) + 1,
@@ -4057,8 +5557,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce(
       tensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash tensors.
@@ -4070,14 +5575,23 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_coalesced(
     const AllreduceCoalescedOptions& opts) {
   auto total_numel = check_gpu_tensors_same_device(tensors);
   TORCH_CHECK(
+<<<<<<< HEAD
       !isFloat8Type(tensors.back().scalar_type()),
       "Float8 dtypes are not currenlty supported for NCCL reductions");
+=======
+      !isUnsupportedFloat8(tensors.back().scalar_type()),
+      "Unsupported Float8 type for NCCL reduction");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   RECORD_PARAM_COMMS_DATA(
       std::make_tuple(
           static_cast<int64_t>(seqCollective_) + 1,
           false), // seq + 1 to match collective and assume only one collective
+<<<<<<< HEAD
                   // in coalesed range
+=======
+                  // in coalesced range
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::make_tuple(pg_uid_, pg_desc_), // PG name tuple
       tensors, // inputTensors
       tensors, // outputTensors
@@ -4089,8 +5603,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_coalesced(
       // I'm not sure what in,outSplitSizes mean here.
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash tensors.
@@ -4114,6 +5633,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_coalesced(
             stream.stream());
       },
       OpType::COALESCED,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:allreduce_coalesced");
 }
 
@@ -4141,6 +5664,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::broadcast(
       tensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
       this->getSize()); // worldSize
@@ -4151,6 +5675,16 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::broadcast(
   const auto root = opts.rootRank + opts.rootTensor;
   bool nanCheck = (root == rank_);
 
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+      this->getSize()); // worldSize
+
+  const auto root = opts.rootRank + opts.rootTensor;
+  bool nanCheck = (root == rank_);
+
+  // avoidRecordStreams_ note: collective() will stash tensors.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return collective(
       tensor,
       tensor,
@@ -4167,8 +5701,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::broadcast(
             stream.stream());
       },
       OpType::BROADCAST,
+<<<<<<< HEAD
       "nccl:broadcast",
       avoidRecordStreams,
+=======
+      opts.asyncOp,
+      "nccl:broadcast",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       nanCheck);
 }
 
@@ -4207,8 +5746,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_broadcast_oop(
             stream.stream());
       },
       OpType::BROADCAST,
+<<<<<<< HEAD
       "nccl:_broadcast_oop",
       /*avoidRecordStreams=*/false,
+=======
+      opts.asyncOp,
+      "nccl:_broadcast_oop",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       nanCheck);
 }
 
@@ -4240,8 +5784,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce(
       tensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash tensors.
@@ -4267,6 +5816,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce(
             stream.stream());
       },
       OpType::REDUCE,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:reduce");
 }
 
@@ -4308,6 +5861,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_reduce_oop(
             stream.stream());
       },
       OpType::REDUCE,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:_reduce_oop");
 }
 
@@ -4335,8 +5892,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather(
       inputTensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSize
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   bool same_size = check_same_size(outputTensors_);
@@ -4351,10 +5913,14 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather(
             at::Tensor& output,
             ncclComm_t comm,
             at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
           if (!avoidRecordStreams_) {
             c10::cuda::CUDACachingAllocator::recordStream(
                 output.storage().data_ptr(), stream);
           }
+=======
+          // See [We actually don't need to stash anything here].
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return ncclAllGather(
               input.data_ptr(),
               output.data_ptr(),
@@ -4370,6 +5936,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather(
           //  - inputTensors is stashed onto work->stashed_for_allocator_safety_
           //    in collective().
           //  - outputFlattened is stashed onto work->outputs_ in collective().
+<<<<<<< HEAD
           //  - User-facing outputTensors should be held by the user until after
           //    waiting on work_, or the call makes no sense.
           // So all participating tensors are accounted for, and won't be
@@ -4386,11 +5953,32 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather(
               c10::cuda::CUDACachingAllocator::recordStream(
                   outputTensors_[j].storage().data_ptr(), ncclStream);
             }
+=======
+        },
+        [&](at::cuda::CUDAStream& ncclStream,
+            c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {
+          // User-facing outputTensors should be held by the user until after
+          // waiting on work_, or the call makes no sense. We do a stashing here
+          // in case user doesn't hold the outputTensors in downstream code,
+          // which can cause an early recycle by the CachingAllocator, which can
+          // lead to segfault or data corruption.
+          if (opts.asyncOp) {
+            work->stashed_for_allocator_safety_->stash(outputTensors_);
+          }
+          // Copy the flattened output tensors to the outputs.
+          at::cuda::CUDAStreamGuard guard(ncclStream);
+          for (const auto j : c10::irange(outputTensors_.size())) {
+            // See [We actually don't need to stash anything here].
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputTensors_[j].copy_(
                 outputFlattened[static_cast<int64_t>(j)], true);
           }
         },
         OpType::ALLGATHER,
+<<<<<<< HEAD
+=======
+        opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "nccl:all_gather");
   } else {
     const auto num_reduces = outputTensors_.size();
@@ -4398,7 +5986,12 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather(
     for (const int64_t i : c10::irange(static_cast<int64_t>(num_reduces))) {
       auto& output = outputTensors_[i];
       auto& input = (i == rank_) ? inputTensor : output;
+<<<<<<< HEAD
       auto broadcastOpts = BroadcastOptions{i, int64_t(0), opts.timeout};
+=======
+      auto broadcastOpts =
+          BroadcastOptions{i, int64_t(0), opts.timeout, opts.asyncOp};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       _broadcast_oop(output, input, broadcastOpts);
     }
     auto work = endCoalescing(OpType::ALLGATHER);
@@ -4423,7 +6016,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather_into_tensor_coalesced(
       std::make_tuple(
           static_cast<int64_t>(seqCollective_) + 1,
           false), // seq + 1 to match collective and assume only one collective
+<<<<<<< HEAD
                   // in coalesed range
+=======
+                  // in coalesced range
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::make_tuple(pg_uid_, pg_desc_), // PG name tuple
       inputs, // inputTensors
       outputs, // outputTensors
@@ -4434,8 +6031,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather_into_tensor_coalesced(
       inputs[0].scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   return collectiveCoalesced(
@@ -4454,6 +6056,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allgather_into_tensor_coalesced(
             stream.stream());
       },
       OpType::COALESCED,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:all_gather_into_tensor_coalesced");
 }
 
@@ -4466,8 +6072,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
   check_gpu_single_tensor(outputTensor);
   auto inputTensors_ = inputTensors.back();
   TORCH_CHECK(
+<<<<<<< HEAD
       !isFloat8Type(outputTensor.scalar_type()),
       "Float8 dtypes are not currenlty supported for NCCL reductions");
+=======
+      !isUnsupportedFloat8(outputTensor.scalar_type()),
+      "Unsupported Float8 type for NCCL reduction");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   RECORD_PARAM_COMMS_DATA(
       std::make_tuple(
@@ -4483,8 +6094,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
       outputTensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   bool same_size = check_same_size(inputTensors_);
@@ -4499,10 +6115,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
             at::Tensor& output,
             ncclComm_t comm,
             at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
           if (!avoidRecordStreams_) {
             c10::cuda::CUDACachingAllocator::recordStream(
                 output.storage().data_ptr(), stream);
           }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           const auto ncclDataType = getNcclDataType(input.scalar_type());
           const auto ncclReduceOp =
               getNcclReduceOp(opts.reduceOp, input, ncclDataType, comm);
@@ -4517,6 +6136,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
         },
         [&](at::cuda::CUDAStream& ncclStream,
             c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {
+<<<<<<< HEAD
           if (avoidRecordStreams_) {
             // We only need to stash inputTensors.
             //  - inputFlattened is stashed onto
@@ -4538,6 +6158,20 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
               c10::cuda::CUDACachingAllocator::recordStream(
                   inputTensors_[j].storage().data_ptr(), ncclStream);
             }
+=======
+          // We only need to stash inputTensors.
+          //  - inputFlattened is stashed onto
+          //  work->stashed_for_allocator_safety_ in collective().
+          //  - User-facing outputTensors is stashed onto work->outputs_ in
+          //  collective(), and should also be held by the user until after
+          //  waiting on work_.
+          if (opts.asyncOp) {
+            work->stashed_for_allocator_safety_->stash(inputTensors_);
+          }
+          // Copy the input tensors to the flattened inputs.
+          at::cuda::CUDAStreamGuard guard(ncclStream);
+          for (const auto j : c10::irange(inputTensors_.size())) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inputFlattened[static_cast<int64_t>(j)].copy_(
                 inputTensors_[j], true);
           }
@@ -4545,6 +6179,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
         [&](at::cuda::CUDAStream&,
             c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
         OpType::REDUCE_SCATTER,
+<<<<<<< HEAD
+=======
+        opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "nccl:reduce_scatter");
   } else {
     const auto num_reduces = inputTensors_.size();
@@ -4556,7 +6194,12 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter(
           opts.reduceOp,
           static_cast<int64_t>(i),
           static_cast<int64_t>(0),
+<<<<<<< HEAD
           opts.timeout};
+=======
+          opts.timeout,
+          opts.asyncOp};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       _reduce_oop(output, input, reduceOpts);
     }
     auto work = endCoalescing(OpType::REDUCE_SCATTER);
@@ -4581,8 +6224,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_reduce_scatter_base(
 
   const auto& tensor = outputTensor;
   TORCH_CHECK(
+<<<<<<< HEAD
       !isFloat8Type(tensor.scalar_type()),
       "Float8 dtypes are not currenlty supported for NCCL reductions");
+=======
+      !isUnsupportedFloat8(tensor.scalar_type()),
+      "Unsupported Float8 type for NCCL reduction");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   RECORD_PARAM_COMMS_DATA(
       std::make_tuple(
           static_cast<int64_t>(seqCollective_) + 1,
@@ -4597,8 +6245,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_reduce_scatter_base(
       tensor.scalar_type(), // dtype
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash inputs and outputs.
@@ -4610,7 +6263,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_reduce_scatter_base(
   // stream so that the caching allocator can reuse memory pool for this stream
   // in a clever way. This setting is added for libraries like FSDP which uses
   // `reduce_scatter_tensor`.
+<<<<<<< HEAD
   bool avoidRecordStreams = avoidRecordStreams_ || (!opts.asyncOp);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return collective(
       inputTensor,
@@ -4619,10 +6275,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_reduce_scatter_base(
           at::Tensor& output,
           ncclComm_t comm,
           at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
         if (!avoidRecordStreams) {
           c10::cuda::CUDACachingAllocator::recordStream(
               output.storage().data_ptr(), stream);
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         auto ncclDataType = getNcclDataType(input.scalar_type());
         auto ncclReduceOp =
             getNcclReduceOp(opts.reduceOp, input, ncclDataType, comm);
@@ -4636,8 +6295,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_reduce_scatter_base(
             stream.stream());
       },
       OpType::_REDUCE_SCATTER_BASE,
+<<<<<<< HEAD
       "nccl:_reduce_scatter_base",
       avoidRecordStreams);
+=======
+      opts.asyncOp,
+      "nccl:_reduce_scatter_base");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter_tensor_coalesced(
@@ -4645,14 +6309,23 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter_tensor_coalesced(
     std::vector<at::Tensor>& inputs,
     const ReduceScatterOptions& opts) {
   TORCH_CHECK(
+<<<<<<< HEAD
       !isFloat8Type(inputs.back().scalar_type()),
       "Float8 dtypes are not currenlty supported for NCCL reductions");
+=======
+      !isUnsupportedFloat8(inputs.back().scalar_type()),
+      "Unsupported Float8 type for NCCL reduction");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   RECORD_PARAM_COMMS_DATA(
       std::make_tuple(
           static_cast<int64_t>(seqCollective_) + 1,
           false), // seq + 1 to match collective and assume only one collective
+<<<<<<< HEAD
                   // in coalesed range
+=======
+                  // in coalesced range
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::make_tuple(pg_uid_, pg_desc_), // PG name tuple
       inputs, // inputTensors
       outputs, // outputTensors
@@ -4663,8 +6336,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter_tensor_coalesced(
       inputs[0].scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   return collectiveCoalesced(
@@ -4674,10 +6352,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter_tensor_coalesced(
           at::Tensor& output,
           ncclComm_t comm,
           at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
         if (!avoidRecordStreams_) {
           c10::cuda::CUDACachingAllocator::recordStream(
               output.storage().data_ptr(), stream);
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         auto ncclDataType = getNcclDataType(input.scalar_type());
         auto ncclReduceOp =
             getNcclReduceOp(opts.reduceOp, input, ncclDataType, comm);
@@ -4691,6 +6372,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce_scatter_tensor_coalesced(
             stream.stream());
       },
       OpType::COALESCED,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:reduce_scatter_tensor_coalesced");
 }
 
@@ -4722,7 +6407,11 @@ c10::DeviceIndex ProcessGroupNCCL::guessDeviceId() const {
              devIdx,
              " as device used by this process is currently unknown. ",
              "This can potentially cause a hang if this rank to GPU mapping is incorrect. ",
+<<<<<<< HEAD
              "You can pecify device_id in init_process_group() to force use of a particular device.");
+=======
+             "You can specify device_id in init_process_group() to force use of a particular device.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return static_cast<c10::DeviceIndex>(devIdx);
 }
 
@@ -4739,8 +6428,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::barrier(const BarrierOptions& opts) {
       at::kByte, // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // Device to use for barrier
@@ -4769,6 +6463,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::barrier(const BarrierOptions& opts) {
       at::zeros({1}, at::TensorOptions().device(barDevice).dtype(at::kFloat));
 
   // All reduce to achieve the barrier
+<<<<<<< HEAD
   auto work = allreduce_impl(barrierTensor, "nccl:all_reduce_barrier");
 
   // Work will take over barrierTensors
@@ -4776,6 +6471,30 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::barrier(const BarrierOptions& opts) {
   TORCH_CHECK(ncclWork);
   ncclWork->isBarrierOp_ = true;
   return work;
+=======
+  AllreduceOptions arOpts = AllreduceOptions();
+  arOpts.asyncOp = opts.asyncOp;
+  auto work = allreduce_impl(barrierTensor, "nccl:all_reduce_barrier", arOpts);
+
+  if (opts.asyncOp) {
+    // Work will take over barrierTensors
+    auto ncclWork = dynamic_cast<ProcessGroupNCCL::WorkNCCL*>(work.get());
+    // If user specified async, the work should not be nullptr
+    TORCH_CHECK(ncclWork);
+    // Put a marker here so that `work.wait()` issue by users does
+    // barrier-specific thing: CPU sync
+    ncclWork->isBarrierOp_ = true;
+    return work;
+  }
+
+  // Otherwise, we are in sync mode, we directly wait here.
+  // (It is a CPU wait for barrier)
+  auto currentStream = at::cuda::getCurrentCUDAStream(barDevIdx);
+  // CUDAStream wrapper will correctly use a DeviceGuard here
+  currentStream.synchronize();
+  // No work to return
+  return nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
@@ -4783,7 +6502,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
     at::Tensor& inputTensor,
     std::vector<int64_t>& outputSplitSizes,
     std::vector<int64_t>& inputSplitSizes,
+<<<<<<< HEAD
     const AllToAllOptions& /* unused */) {
+=======
+    const AllToAllOptions& opts) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   check_gpu_single_tensor(outputTensor);
   check_gpu_single_tensor(inputTensor);
   if (outputSplitSizes.empty() && inputSplitSizes.empty()) {
@@ -4795,14 +6518,23 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
         inputTensor, // inputTensor
         outputTensor, // outputTensor
         rank_, // rank
+<<<<<<< HEAD
         "all_to_all", // collective name
+=======
+        "all_to_allv", // collective name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inputTensor.numel(), // inNelems
         outputTensor.numel(), // outNelems
         inputTensor.scalar_type(), // dType
         std::vector<int64_t>(), // inSplitSizes
         std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
         globalRankStart, // globalRankStart
         globalRankStride, // globalRankStride
+=======
+        globalRankStart_, // globalRankStart_
+        globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         this->getSize()); // worldSize
 
     // avoidRecordStreams_ note: collective() will stash inputTensors and
@@ -4814,16 +6546,23 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
             at::Tensor& output,
             ncclComm_t comm,
             at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
           // See [Sync Streams].
           if (!avoidRecordStreams_) {
             c10::cuda::CUDACachingAllocator::recordStream(
                 output.storage().data_ptr(), stream);
           }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           torch::cuda::nccl::all2all_single_equal_split(
               input, output, this->getSize(), comm, stream);
           return ncclSuccess;
         },
         OpType::ALLTOALL_BASE,
+<<<<<<< HEAD
+=======
+        opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "nccl:all_to_all");
   } else {
     c10d::checkSplitSizes(inputSplitSizes, inputTensor, size_);
@@ -4843,8 +6582,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
         inputTensor.scalar_type(), // dType
         inputSplitSizes, // inSplitSizes
         outputSplitSizes, // outSplitSizes
+<<<<<<< HEAD
         globalRankStart, // globalRankStart
         globalRankStride, // globalRankStride
+=======
+        globalRankStart_, // globalRankStart_
+        globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         this->getSize()); // worldSize
 
     // avoidRecordStreams_ note: collective() will stash inputTensors and
@@ -4865,10 +6609,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
           c10d::computeLengthsAndOffsets(
               outputSplitSizes, output, &recv_lengths, &recv_offsets);
           // See [Sync Streams].
+<<<<<<< HEAD
           if (!avoidRecordStreams_) {
             c10::cuda::CUDACachingAllocator::recordStream(
                 output.storage().data_ptr(), stream);
           }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           torch::cuda::nccl::all2all_single_unequal_split(
               input.data_ptr(),
               send_lengths.data(),
@@ -4883,6 +6630,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
           return ncclSuccess;
         },
         OpType::ALLTOALL_BASE,
+<<<<<<< HEAD
+=======
+        opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "nccl:all_to_all");
   }
 }
@@ -4890,10 +6641,20 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall_base(
 c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall(
     std::vector<at::Tensor>& outputTensors,
     std::vector<at::Tensor>& inputTensors,
+<<<<<<< HEAD
     const AllToAllOptions& /* unused */) {
   std::vector<int64_t> inSplitSizes;
   std::vector<int64_t> outSplitSizes;
   int64_t total_numel = 0;
+=======
+    const AllToAllOptions& opts) {
+  int64_t input_total_numel = 0;
+  int64_t output_total_numel = 0;
+  // considering uneven all2all bw calculation
+  // use split sizes field to record tensor list sizes
+  std::vector<int64_t> inSplitSizes;
+  std::vector<int64_t> outSplitSizes;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto device = outputTensors[0].device();
   for (const auto r : c10::irange(outputTensors.size())) {
@@ -4903,9 +6664,16 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall(
         device == outputTensors[r].device() &&
             device == inputTensors[r].device(),
         "Tensors must be on the same device")
+<<<<<<< HEAD
     inSplitSizes.push_back(inputTensors[r].numel());
     outSplitSizes.push_back(outputTensors[r].numel());
     total_numel += inputTensors[r].numel();
+=======
+    input_total_numel += inputTensors[r].numel();
+    output_total_numel += outputTensors[r].numel();
+    inSplitSizes.push_back(inputTensors[r].numel());
+    outSplitSizes.push_back(outputTensors[r].numel());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   RECORD_PARAM_COMMS_DATA(
@@ -4917,6 +6685,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall(
       outputTensors, // outputTensors
       rank_, // rank
       "all_to_all", // collective name
+<<<<<<< HEAD
       total_numel, // inNelems
       total_numel, // outNelems
       inputTensors.front().scalar_type(), // dType
@@ -4924,6 +6693,15 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall(
       outSplitSizes, // outSplitSizes
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      input_total_numel, // inNelems
+      output_total_numel, // outNelems
+      inputTensors.front().scalar_type(), // dType
+      inSplitSizes, // inSplitSizes
+      outSplitSizes, // outSplitSizes
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   return collective(
@@ -4937,6 +6715,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall(
         return ncclSuccess;
       },
       [&](at::cuda::CUDAStream&,
+<<<<<<< HEAD
           c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {
         if (avoidRecordStreams_) {
           // inputTensor0 and outputTensor0 are stashed redundantly by
@@ -4949,6 +6728,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::alltoall(
       [](at::cuda::CUDAStream&,
          c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
       OpType::ALLTOALL,
+=======
+          c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
+      [](at::cuda::CUDAStream&,
+         c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
+      OpType::ALLTOALL,
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:all_to_all");
 }
 
@@ -4975,8 +6761,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::send(
       tensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   auto ret = pointToPoint(
@@ -5023,8 +6814,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::recv(
       tensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSizes
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   auto ret = pointToPoint(
@@ -5130,8 +6926,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::gather(
       inputTensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSize
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash inputTensors and
@@ -5146,6 +6947,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::gather(
           ncclComm_t comm,
           at::cuda::CUDAStream& stream) {
         const auto root = opts.rootRank;
+<<<<<<< HEAD
         if (getRank() == root) {
           if (!avoidRecordStreams_) {
             for (auto const& output : outputs) {
@@ -5154,6 +6956,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::gather(
             }
           }
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch::cuda::nccl::gather(
             inputTensor, outputs, comm, stream, static_cast<int32_t>(root));
         return ncclSuccess;
@@ -5163,6 +6967,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::gather(
       [](at::cuda::CUDAStream&,
          c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
       OpType::GATHER,
+<<<<<<< HEAD
+=======
+      opts.asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "nccl:gather");
 }
 
@@ -5225,14 +7033,22 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::scatter(
       outputTensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSize
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash outputTensors and
   // inputs, which == inputTensors[0] on the root rank where it matters.
+<<<<<<< HEAD
   bool avoidRecordStreams = avoidRecordStreams_ || (!opts.asyncOp);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto root = opts.rootRank;
   bool nanCheck = (rank_ == root);
 
@@ -5244,6 +7060,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::scatter(
           at::Tensor& /* unused */,
           ncclComm_t comm,
           at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
         if (getRank() == root) {
           if (!avoidRecordStreams) {
             for (auto const& input : inputs) {
@@ -5252,6 +7069,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::scatter(
             }
           }
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch::cuda::nccl::scatter(
             inputs, outputTensor, comm, stream, static_cast<int32_t>(root));
         return ncclSuccess;
@@ -5261,8 +7080,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::scatter(
       [](at::cuda::CUDAStream&,
          c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
       OpType::SCATTER,
+<<<<<<< HEAD
       "nccl:scatter",
       avoidRecordStreams,
+=======
+      opts.asyncOp,
+      "nccl:scatter",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       nanCheck);
 }
 
@@ -5305,8 +7129,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_allgather_base(
       output_tensor.scalar_type(), // dType
       std::vector<int64_t>(), // inSplitSizes
       std::vector<int64_t>(), // outSplitSize
+<<<<<<< HEAD
       globalRankStart, // globalRankStart
       globalRankStride, // globalRankStride
+=======
+      globalRankStart_, // globalRankStart_
+      globalRankStride_, // globalRankStride_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       this->getSize()); // worldSize
 
   // avoidRecordStreams_ note: collective() will stash inputs and outputs.
@@ -5318,7 +7147,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_allgather_base(
   // stream so that the caching allocator can reuse memory pool for this stream
   // in a clever way. This setting is added for libraries like FSDP which uses
   // `all_gather_into_tensor`.
+<<<<<<< HEAD
   bool avoidRecordStreams = avoidRecordStreams_ || (!opts.asyncOp);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return collective(
       input_tensor,
@@ -5327,10 +7159,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_allgather_base(
           at::Tensor& output,
           ncclComm_t comm,
           at::cuda::CUDAStream& stream) {
+<<<<<<< HEAD
         if (!avoidRecordStreams) {
           c10::cuda::CUDACachingAllocator::recordStream(
               output.storage().data_ptr(), stream);
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ncclAllGather(
             input.data_ptr(),
             output.data_ptr(),
@@ -5340,8 +7175,13 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::_allgather_base(
             stream.stream());
       },
       OpType::_ALLGATHER_BASE,
+<<<<<<< HEAD
       "nccl:_all_gather_base",
       avoidRecordStreams);
+=======
+      opts.asyncOp,
+      "nccl:_all_gather_base");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Create a memory allocator for NCCL. This allocator is used to allocate memory
@@ -5426,10 +7266,16 @@ at::Tensor ProcessGroupNCCL::allocateTensor(
             getMemAllocator().get());
     // Pool is created
     memPool_ = std::make_unique<c10::cuda::MemPool>(allocator);
+<<<<<<< HEAD
+=======
+    // Register so that we call ncclCommRegister on all new allocations
+    registerMemPool(memPool_.get());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LOG(INFO) << logPrefix() << "Created memory pool";
   }
 
   // Allocate tensor under this MemPool's context
+<<<<<<< HEAD
   auto ctx = c10::cuda::MemPoolContext(memPool_.get());
   c10::cuda::CUDACachingAllocator::beginAllocateToPool(
       memPool_->device(), memPool_->id(), [](cudaStream_t) { return true; });
@@ -5437,6 +7283,15 @@ at::Tensor ProcessGroupNCCL::allocateTensor(
   // Also need to ncclCommRegister the pool in case new segments are created;
   // reregistration of old segments will be ignored
   registerMemPool(memPool_.get());
+=======
+  auto tid = std::this_thread::get_id();
+  c10::cuda::CUDACachingAllocator::beginAllocateToPool(
+      memPool_->device(), memPool_->id(), [=](cudaStream_t) {
+        auto current_tid = std::this_thread::get_id();
+        return current_tid == tid;
+      });
+  at::Tensor tensor = at::empty({size}, options);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::cuda::CUDACachingAllocator::endAllocateToPool(
       memPool_->device(), memPool_->id());
   c10::cuda::CUDACachingAllocator::releasePool(

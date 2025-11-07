@@ -5,6 +5,31 @@
 #include <ATen/core/Tensor.h>
 #include <c10/util/Exception.h>
 
+<<<<<<< HEAD
+=======
+#define CHECK_NOSPARSE_CONTIGUOUS_CUDA(TENSOR)                            \
+  TORCH_CHECK(TENSOR.is_cuda(), #TENSOR " must be a CUDA tensor");     \
+  TORCH_CHECK(!TENSOR.is_sparse(), #TENSOR " must be a dense tensor"); \
+  TORCH_CHECK(TENSOR.is_contiguous());
+
+#define CHECK_NOSPARSE_LASTCONTIGUOUS_CUDA(TENSOR)                        \
+  TORCH_CHECK(TENSOR.is_cuda(), #TENSOR " must be a CUDA tensor");     \
+  TORCH_CHECK(!TENSOR.is_sparse(), #TENSOR " must be a dense tensor"); \
+  TORCH_CHECK(                                                         \
+      TENSOR.stride(-1) == 1, #TENSOR ": last dimension must be contiguous");
+
+#define CHECK_ALIGNED_PTR(PTR, ALIGNMENT) \
+  TORCH_CHECK(                         \
+      uint64_t(PTR) % ALIGNMENT == 0, #PTR " is not correctly aligned")
+
+#define ASSIGN_CHECK_OVERFLOW(A, B)                                    \
+  {                                                                    \
+    A = B;                                                             \
+    TORCH_CHECK(                                                    \
+        B < std::numeric_limits<decltype(A)>::max(), #B " overflows"); \
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace pytorch_flash {
 
 // AOTriton Implementation
@@ -29,8 +54,13 @@ mha_fwd_aot(
     const float p_dropout,
     const float softmax_scale,
     bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool return_softmax,
     const std::optional<at::Generator>& gen_);
 
@@ -65,8 +95,13 @@ mha_varlen_fwd_aot(
     const float softmax_scale,
     const bool zero_tensors,
     bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool return_softmax,
     const std::optional<at::Generator>& gen_);
 
@@ -88,8 +123,13 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd_aot(
     const float p_dropout, // probability to drop
     const float softmax_scale,
     const bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool deterministic,
     const at::Tensor& philox_seed,
     const at::Tensor& philox_offset);
@@ -119,8 +159,13 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd_aot(
     const float softmax_scale,
     const bool zero_tensors,
     const bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool deterministic,
     const at::Tensor& philox_seed,
     const at::Tensor& philox_offset);
@@ -248,7 +293,11 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varle
 #endif
 
 TORCH_API
+<<<<<<< HEAD
 inline std::tuple<
+=======
+std::tuple<
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     at::Tensor,
     at::Tensor,
     at::Tensor,
@@ -268,6 +317,7 @@ mha_fwd(
     const float p_dropout,
     const float softmax_scale,
     bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
     const float softcap,
@@ -321,6 +371,13 @@ mha_fwd(
       gen_);
 #endif
 }
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+    const float softcap,
+    const bool return_softmax,
+    std::optional<at::Generator> gen_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 inline std::tuple<
     at::Tensor,
@@ -354,8 +411,13 @@ mha_varlen_fwd(
     const float softmax_scale,
     const bool zero_tensors,
     bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const float softcap,
     const bool return_softmax,
     std::optional<at::Generator> gen_) {
@@ -363,6 +425,11 @@ mha_varlen_fwd(
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
     std::optional<at::Tensor> dummy_attn_bias = std::nullopt;
+<<<<<<< HEAD
+=======
+    const int non_null_window_left = window_size_left.value_or(-1);
+    const int non_null_window_right = window_size_right.value_or(-1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return mha_varlen_fwd_ck(
         q,
         k,
@@ -377,6 +444,7 @@ mha_varlen_fwd(
         softmax_scale,
         zero_tensors,
         is_causal,
+<<<<<<< HEAD
         window_size_left,
         window_size_right,
         return_softmax,
@@ -405,6 +473,15 @@ mha_varlen_fwd(
         gen_);
   }
 #else
+=======
+        non_null_window_left,
+        non_null_window_right,
+        return_softmax,
+        gen_,
+        dummy_attn_bias); // Not used in flash attention
+  }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return mha_varlen_fwd_aot(
       q,
       k,
@@ -425,7 +502,10 @@ mha_varlen_fwd(
       window_size_right,
       return_softmax,
       gen_);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
@@ -446,16 +526,30 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
     const float p_dropout, // probability to drop
     const float softmax_scale,
     const bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const float softcap,
     const bool deterministic,
     const at::Tensor philox_seed,
     const at::Tensor philox_offset) {
+<<<<<<< HEAD
 #if defined(USE_CK_FLASH_ATTENTION)
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
     std::optional<at::Tensor> non_null_dbias = std::nullopt;
+=======
+  if (at::globalContext().getROCmFAPreferredBackend() ==
+      at::ROCmFABackend::Ck) {
+#if defined(USE_CK_FLASH_ATTENTION)
+    std::optional<at::Tensor> non_null_dbias = std::nullopt;
+    const int non_null_window_left = window_size_left.value_or(-1);
+    const int non_null_window_right = window_size_right.value_or(-1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto[dQuery,
          dKey,
          dValue,
@@ -476,13 +570,19 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
                              p_dropout,
                              softmax_scale,
                              is_causal,
+<<<<<<< HEAD
                              window_size_left,
                              window_size_right,
+=======
+                             non_null_window_left,
+                             non_null_window_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                              deterministic,
                              philox_seed,
                              philox_offset);
     // for FA return [dQ, dV, dK, dSoftmax]
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue), std::move(dSoftmax));
+<<<<<<< HEAD
   } else {
     return mha_bwd_aot(
         dout,
@@ -508,6 +608,11 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
   if(at::globalContext().getROCmFAPreferredBackend() ==
     at::ROCmFABackend::Ck) {
     TORCH_WARN_ONCE("Warning! You have opted to use CK flash attention backend in a build that was not compiled using USE_CK_FLASH_ATTENTION=1. Please set this variable and try again. Defaulting to use aotriton backend...");
+=======
+#else
+    TORCH_WARN_ONCE("Warning! You have opted to use CK flash attention backend in a build that was not compiled using USE_CK_FLASH_ATTENTION=1. Please set this variable and try again. Defaulting to use aotriton backend...");
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return mha_bwd_aot(
       dout,
@@ -528,7 +633,10 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
       deterministic,
       philox_seed,
       philox_offset);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd(
@@ -556,8 +664,13 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
     const float softmax_scale,
     const bool zero_tensors,
     const bool is_causal,
+<<<<<<< HEAD
     int window_size_left,
     int window_size_right,
+=======
+    std::optional<int64_t> window_size_left,
+    std::optional<int64_t> window_size_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const float softcap,
     const bool deterministic,
     const at::Tensor philox_seed,
@@ -566,6 +679,11 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
     std::optional<at::Tensor> non_null_dbias = std::nullopt;
+<<<<<<< HEAD
+=======
+    const int non_null_window_left = window_size_left.value_or(-1);
+    const int non_null_window_right = window_size_right.value_or(-1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto[dQuery,
          dKey,
          dValue,
@@ -591,13 +709,19 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
                                     softmax_scale,
                                     zero_tensors,
                                     is_causal,
+<<<<<<< HEAD
                                     window_size_left,
                                     window_size_right,
+=======
+                                    non_null_window_left,
+                                    non_null_window_right,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                     deterministic,
                                     philox_seed,
                                     philox_offset);
     // for FA return [dQ, dV, dK, dSoftmax]
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue), std::move(dSoftmax));
+<<<<<<< HEAD
   } else {
     return mha_varlen_bwd_aot(
         dout,
@@ -625,6 +749,10 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
         philox_offset);
   }
 #else
+=======
+  }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return mha_varlen_bwd_aot(
       dout,
       q,
@@ -649,7 +777,10 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
       deterministic,
       philox_seed,
       philox_offset);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace pytorch_flash

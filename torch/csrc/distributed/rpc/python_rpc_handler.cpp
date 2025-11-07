@@ -14,7 +14,11 @@ constexpr auto kInternalModule = "torch.distributed.rpc.internal";
 #define PROFILE_GIL_SCOPED_ACQUIRE                                       \
   std::chrono::time_point<std::chrono::high_resolution_clock> startTime; \
   auto shouldProfileGIL =                                                \
+<<<<<<< HEAD
       RpcAgent::getCurrentRpcAgent() -> isGILProfilingEnabled();         \
+=======
+      RpcAgent::getCurrentRpcAgent()->isGILProfilingEnabled();           \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (shouldProfileGIL) {                                                \
     startTime = std::chrono::high_resolution_clock::now();               \
   }                                                                      \
@@ -121,7 +125,11 @@ PythonRpcHandler& PythonRpcHandler::getInstance() {
   // initialization by calling `new PythonRpcHandler()`, inside of which GIL is
   // also required. Static data initialization is thread-safe, so the thread
   // holding the GIL will wait for the other thread to finish static data
+<<<<<<< HEAD
   // initializating before going forward. Because the initialization can't
+=======
+  // initializing before going forward. Because the initialization can't
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // proceed without GIL, there is a deadlock. We ask the calling thread to
   // release GIL to avoid this situation.
   TORCH_INTERNAL_ASSERT(!PyGILState_Check());
@@ -174,7 +182,11 @@ void PythonRpcHandler::handleExceptionGILHeld(const py::object& obj) {
 
 bool PythonRpcHandler::isRemoteException(const py::object& obj) {
   PROFILE_GIL_SCOPED_ACQUIRE;
+<<<<<<< HEAD
   auto type = obj.get_type();
+=======
+  auto type = py::type::handle_of(obj);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto moduleName = type.attr("__module__").cast<std::string>();
   auto qualName = type.attr("__qualname__").cast<std::string>();
   return moduleName == kInternalModule && qualName == "RemoteException";

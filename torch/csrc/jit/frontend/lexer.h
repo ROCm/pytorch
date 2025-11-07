@@ -397,9 +397,20 @@ struct Token {
   int kind;
   SourceRange range;
   Token(int kind, SourceRange range) : kind(kind), range(std::move(range)) {}
+<<<<<<< HEAD
   std::string text() {
     return std::string(range.token_text());
   }
+=======
+  std::string text() const {
+    return std::string(range.token_text());
+  }
+
+  std::string_view text_view() const {
+    return range.token_text();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string kindString() const {
     return kindToString(kind);
   }

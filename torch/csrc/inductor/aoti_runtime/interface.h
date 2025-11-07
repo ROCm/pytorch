@@ -117,6 +117,31 @@ AOTIRuntimeError AOTInductorModelContainerGetConstantDtype(
     size_t idx,
     int32_t* dtype);
 
+<<<<<<< HEAD
+=======
+// Retrieves a constant's data size.
+// idx is the index of the internal's constants.
+// Need idx < num_constants from AOTInductorModelContainerGetNumConstants
+AOTIRuntimeError AOTInductorModelContainerGetConstantDataSize(
+    AOTInductorModelContainerHandle container_handle,
+    size_t idx,
+    size_t* data_size);
+
+// Extract the constants that is being used in the container.
+AOTIRuntimeError AOTInductorModelContainerExtractConstantsMap(
+    AOTInductorModelContainerHandle container_handle,
+    AOTInductorConstantMapHandle constant_map_handle,
+    bool use_inactive);
+
+// Setup the constant buffer in model container with provided ConstantMap.
+// The ConstantMap is user managed, and the user would retain ownership.
+AOTIRuntimeError AOTInductorModelContainerUpdateUserManagedConstantBuffer(
+    AOTInductorModelContainerHandle container_handle,
+    AOTInductorConstantMapHandle constant_map_handle,
+    bool use_inactive,
+    bool validate_full_update);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Setup the constant buffer in model container with provided ConstantMap
 // use_inactive should be set as true if the inactive buffer is to be updated.
 // validate_full_update checks if all constants are included in the ConstantMap
@@ -132,6 +157,13 @@ AOTIRuntimeError AOTInductorModelContainerUpdateInactiveConstantBuffer(
     AOTInductorModelContainerHandle container_handle,
     AOTInductorConstantMapHandle constant_map_handle);
 
+<<<<<<< HEAD
+=======
+// Free the inactive constant buffer in model container.
+AOTIRuntimeError AOTInductorModelContainerFreeInactiveConstantBuffer(
+    AOTInductorModelContainerHandle container_handle);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Run constant folding on constant buffer.
 AOTIRuntimeError AOTInductorModelContainerRunConstantFolding(
     AOTInductorModelContainerHandle container_handle,

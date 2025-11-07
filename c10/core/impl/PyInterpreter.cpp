@@ -1,7 +1,11 @@
 #include <c10/core/SymIntArrayRef.h>
 #include <c10/core/TensorImpl.h>
 #include <c10/core/impl/PyInterpreter.h>
+<<<<<<< HEAD
 
+=======
+C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wunused-parameter")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace c10::impl {
 
 struct NoopPyInterpreterVTable final : public PyInterpreterVTable {
@@ -145,3 +149,7 @@ void PyInterpreter::disarm() noexcept {
 }
 
 } // namespace c10::impl
+<<<<<<< HEAD
+=======
+C10_DIAGNOSTIC_POP()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

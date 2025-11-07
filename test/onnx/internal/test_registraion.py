@@ -144,7 +144,11 @@ class TestOverrideDict(common_utils.TestCase):
         self.assertEqual(len(self.override_dict), 0)
         self.assertNotIn("a", self.override_dict)
 
+<<<<<<< HEAD
     def test_overriden_key_precededs_base_key_regardless_of_insert_order(self):
+=======
+    def test_overridden_key_precedes_base_key_regardless_of_insert_order(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.override_dict.set_base("a", 42)
         self.override_dict.override("a", 100)
         self.override_dict.set_base("a", 0)

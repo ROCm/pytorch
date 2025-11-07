@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-decorators
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # mypy: allow-untyped-defs
 from typing import Optional
 
@@ -104,6 +107,10 @@ class Linear(torch.nn.Module):
     r"""
     A quantized sparse linear module with quantized tensor as inputs and outputs.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _version = 1
     _FLOAT_MODULE = torch.nn.Linear
 
@@ -265,7 +272,14 @@ class Linear(torch.nn.Module):
             dtype=dtype,
         )
         qlinear.set_weight_bias(
+<<<<<<< HEAD
             qweight, mod.bias, row_block_size, col_block_size  # type: ignore[arg-type]
+=======
+            qweight,
+            mod.bias,
+            row_block_size,  # type: ignore[arg-type]
+            col_block_size,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         qlinear.scale = float(act_scale)
         qlinear.zero_point = int(act_zp)

@@ -8,7 +8,11 @@
 #include <ATen/cuda/CUDAUtils.h>
 #include <ATen/Dispatch.h>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 #include <ATen/native/sparse/cuda/ComputeSparseTile.h>
 #include <ATen/native/sparse/cuda/SparseSemiStructuredPack.h>
@@ -17,7 +21,11 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 struct MetadataCuSparseLt {
   // Format used by cuSparseLt
@@ -280,7 +288,11 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> _sparse_semi_structured_tile(
   std::string_view algorithm,
   bool use_cutlass)
 {
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "_sparse_semi_structured_tile: not supported");
   return std::make_tuple(Tensor{}, Tensor{}, Tensor{}, Tensor{}, Tensor{});
 #else

@@ -1341,6 +1341,10 @@ Please take a look at `Limitations of Symbolic Tracing <https://pytorch.org/docs
 .. py:module:: torch.ao.quantization.pt2e.qat_utils
 .. py:module:: torch.ao.quantization.pt2e.representation.rewrite
 .. py:module:: torch.ao.quantization.pt2e.utils
+<<<<<<< HEAD
+=======
+.. py:module:: torch.ao.quantization.pt2e.lowering
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.ao.quantization.qconfig
 .. py:module:: torch.ao.quantization.qconfig_mapping
 .. py:module:: torch.ao.quantization.quant_type

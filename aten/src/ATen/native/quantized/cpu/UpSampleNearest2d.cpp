@@ -117,7 +117,11 @@ static void upsample_nearest2d_out_frame_nhwc(
 }
 
 template <nn_compute_source_index_fn_t nn_compute_source_index_fn>
+<<<<<<< HEAD
 Tensor _upsample_nearest2d_quantized_cpu(
+=======
+static Tensor _upsample_nearest2d_quantized_cpu(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     IntArrayRef output_size,
     std::optional<double> scales_h,

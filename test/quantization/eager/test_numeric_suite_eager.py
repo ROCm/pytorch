@@ -2,6 +2,7 @@
 # ruff: noqa: F841
 
 import unittest
+<<<<<<< HEAD
 import torch
 import torch.nn as nn
 import torch.ao.nn.quantized as nnq
@@ -23,12 +24,37 @@ from torch.ao.ns._numeric_suite import (
     compare_weights,
     prepare_model_outputs,
     get_matching_activations,
+=======
+
+import torch
+import torch.ao.nn.quantized as nnq
+import torch.nn as nn
+from torch.ao.ns._numeric_suite import (
+    compare_model_outputs,
+    compare_model_stub,
+    compare_weights,
+    get_matching_activations,
+    OutputLogger,
+    prepare_model_outputs,
+    Shadow,
+    ShadowLogger,
+)
+from torch.ao.quantization import (
+    convert,
+    default_qconfig,
+    DeQuantStub,
+    prepare,
+    quantize,
+    quantize_dynamic,
+    QuantStub,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.common_quantization import (
     AnnotatedConvBnReLUModel,
     AnnotatedConvModel,
     AnnotatedConvTransposeModel,
     AnnotatedSingleLayerLinearModel,
+<<<<<<< HEAD
     LSTMwithHiddenDynamicModel,
     AnnotatedTwoLayerLinearModel,
     QuantizationTestCase,
@@ -38,6 +64,18 @@ from torch.testing._internal.common_quantization import (
 )
 from torch.testing._internal.common_quantized import override_qengines
 from torch.testing._internal.common_utils import IS_ARM64
+=======
+    AnnotatedTwoLayerLinearModel,
+    LSTMwithHiddenDynamicModel,
+    QuantizationTestCase,
+    SingleLayerLinearDynamicModel,
+    skip_if_no_torchvision,
+    test_only_eval_fn,
+)
+from torch.testing._internal.common_quantized import override_qengines
+from torch.testing._internal.common_utils import IS_ARM64, raise_on_run_directly
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class SubModule(torch.nn.Module):
     def __init__(self) -> None:
@@ -200,10 +238,25 @@ class TestNumericSuiteEager(QuantizationTestCase):
                 for i, val in enumerate(v["quantized"]):
                     self.assertTrue(v["float"][i].shape == v["quantized"][i].shape)
 
+<<<<<<< HEAD
         model_list = [AnnotatedConvModel(qengine),
                       AnnotatedConvTransposeModel("qnnpack"),  # ConvT cannot use per channel weights
                       AnnotatedConvBnReLUModel(qengine)]
         module_swap_list = [nn.Conv2d, nn.intrinsic.modules.fused.ConvReLU2d, nn.ConvTranspose2d]
+=======
+        model_list = [
+            AnnotatedConvModel(qengine),
+            AnnotatedConvTransposeModel(
+                "qnnpack"
+            ),  # ConvT cannot use per channel weights
+            AnnotatedConvBnReLUModel(qengine),
+        ]
+        module_swap_list = [
+            nn.Conv2d,
+            nn.intrinsic.modules.fused.ConvReLU2d,
+            nn.ConvTranspose2d,
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for model in model_list:
             model.eval()
             if hasattr(model, "fuse_model"):
@@ -279,7 +332,10 @@ class TestNumericSuiteEager(QuantizationTestCase):
         self.assertTrue(isinstance(q_model.mod1, Shadow))
         self.assertFalse(isinstance(q_model.conv, Shadow))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @override_qengines
     def test_compare_model_stub_functional_static(self):
         r"""Compare the output of static quantized functional layer and its float shadow module"""
@@ -486,7 +542,13 @@ class TestNumericSuiteEager(QuantizationTestCase):
                 for i, val in enumerate(v["quantized"]):
                     self.assertTrue(len(v["float"][i]) == len(v["quantized"][i]))
                     if i == 0:
+<<<<<<< HEAD
                         self.assertTrue(v["float"][i][0].shape == v["quantized"][i][0].shape)
+=======
+                        self.assertTrue(
+                            v["float"][i][0].shape == v["quantized"][i][0].shape
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     else:
                         self.assertTrue(
                             v["float"][i][0].shape == v["quantized"][i][0].shape
@@ -540,12 +602,32 @@ class TestNumericSuiteEager(QuantizationTestCase):
 
     @skip_if_no_torchvision
     def _test_vision_model(self, float_model):
+<<<<<<< HEAD
         float_model.to('cpu')
         float_model.eval()
         float_model.fuse_model()
         float_model.qconfig = torch.ao.quantization.default_qconfig
         img_data = [(torch.rand(2, 3, 224, 224, dtype=torch.float), torch.randint(0, 1, (2,), dtype=torch.long)) for _ in range(2)]
         qmodel = quantize(float_model, torch.ao.quantization.default_eval_fn, [img_data], inplace=False)
+=======
+        float_model.to("cpu")
+        float_model.eval()
+        float_model.fuse_model()
+        float_model.qconfig = torch.ao.quantization.default_qconfig
+        img_data = [
+            (
+                torch.rand(2, 3, 224, 224, dtype=torch.float),
+                torch.randint(0, 1, (2,), dtype=torch.long),
+            )
+            for _ in range(2)
+        ]
+        qmodel = quantize(
+            float_model,
+            torch.ao.quantization.default_eval_fn,
+            [img_data],
+            inplace=False,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         wt_compare_dict = compare_weights(float_model.state_dict(), qmodel.state_dict())
 
@@ -560,9 +642,17 @@ class TestNumericSuiteEager(QuantizationTestCase):
         # 'quantized', containing the activations of floating point and quantized model at matching locations.
         act_compare_dict = compare_model_outputs(float_model, qmodel, data)
 
+<<<<<<< HEAD
 
         for key in act_compare_dict:
             compute_error(act_compare_dict[key]['float'][0], act_compare_dict[key]['quantized'][0].dequantize())
+=======
+        for key in act_compare_dict:
+            compute_error(
+                act_compare_dict[key]["float"][0],
+                act_compare_dict[key]["quantized"][0].dequantize(),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         prepare_model_outputs(float_model, qmodel)
 
@@ -579,10 +669,23 @@ class TestNumericSuiteEager(QuantizationTestCase):
     @unittest.skipIf(IS_ARM64, "Not working on arm right now")
     def test_mobilenet_v2(self):
         from torchvision.models.quantization import mobilenet_v2
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._test_vision_model(mobilenet_v2(pretrained=True, quantize=False))
 
     @skip_if_no_torchvision
     @unittest.skipIf(IS_ARM64, "Not working on arm right now")
     def test_mobilenet_v3(self):
         from torchvision.models.quantization import mobilenet_v3_large
+<<<<<<< HEAD
         self._test_vision_model(mobilenet_v3_large(pretrained=True, quantize=False))
+=======
+
+        self._test_vision_model(mobilenet_v3_large(pretrained=True, quantize=False))
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

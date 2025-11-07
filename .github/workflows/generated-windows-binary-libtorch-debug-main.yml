@@ -19,6 +19,10 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
   SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
   SKIP_ALL_TESTS: 1
+<<<<<<< HEAD
+=======
+  OS: windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 concurrency:
   group: windows-binary-libtorch-debug-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true
@@ -27,7 +31,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -52,6 +60,18 @@ jobs:
       # without this value pip does not get installed for some reason
       DESIRED_PYTHON: "3.9"
     steps:
+<<<<<<< HEAD
+=======
+      # NOTE: These environment variables are put here so that they can be applied on every job equally
+      #       They are also here because setting them at a workflow level doesn't give us access to the
+      #       runner.temp variable, which we need.
+      - name: Populate binary env
+        shell: bash
+        run: |
+          echo "BINARY_ENV_FILE=${RUNNER_TEMP}/env" >> "${GITHUB_ENV}"
+          echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
+          echo "WIN_PACKAGE_WORK_DIR=${RUNNER_TEMP}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Display EC2 information
         shell: bash
         run: |
@@ -67,7 +87,11 @@ jobs:
           echo "instance-type: $(get_ec2_metadata instance-type)"
           echo "system info $(uname -a)"
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
@@ -96,6 +120,7 @@ jobs:
           # Let's both exclude the path and disable Windows Defender completely just to be sure
           # that it doesn't interfere
           Set-MpPreference -DisableRealtimeMonitoring $True -ErrorAction Ignore
+<<<<<<< HEAD
       # NOTE: These environment variables are put here so that they can be applied on every job equally
       #       They are also here because setting them at a workflow level doesn't give us access to the
       #       runner.temp variable, which we need.
@@ -105,6 +130,8 @@ jobs:
           echo "BINARY_ENV_FILE=${RUNNER_TEMP}/env" >> "${GITHUB_ENV}"
           echo "PYTORCH_FINAL_PACKAGE_DIR=${RUNNER_TEMP}/artifacts" >> "${GITHUB_ENV}"
           echo "WIN_PACKAGE_WORK_DIR=${RUNNER_TEMP}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Checkout PyTorch
         uses: actions/checkout@v4
         with:
@@ -144,6 +171,10 @@ jobs:
         if: always()
         run: |
           .github\scripts\kill_active_ssh_sessions.ps1
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   libtorch-cpu-shared-with-deps-debug-test:  # Testing
     if: ${{ github.repository_owner == 'pytorch' }}
     needs:
@@ -180,7 +211,11 @@ jobs:
           echo "instance-type: $(get_ec2_metadata instance-type)"
           echo "system info $(uname -a)"
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
@@ -209,6 +244,20 @@ jobs:
           # Let's both exclude the path and disable Windows Defender completely just to be sure
           # that it doesn't interfere
           Set-MpPreference -DisableRealtimeMonitoring $True -ErrorAction Ignore
+<<<<<<< HEAD
+=======
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: pytorch
+          show-progress: false
+      - name: Clean PyTorch checkout
+        run: |
+          # Remove any artifacts from the previous checkouts
+          git clean -fxd
+        working-directory: pytorch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # NOTE: These environment variables are put here so that they can be applied on every job equally
       #       They are also here because setting them at a workflow level doesn't give us access to the
       #       runner.temp variable, which we need.
@@ -223,6 +272,7 @@ jobs:
         with:
           name: libtorch-cpu-shared-with-deps-debug
           path: "${{ env.PYTORCH_FINAL_PACKAGE_DIR }}"
+<<<<<<< HEAD
       - name: Checkout PyTorch
         uses: actions/checkout@v4
         with:
@@ -234,6 +284,8 @@ jobs:
           # Remove any artifacts from the previous checkouts
           git clean -fxd
         working-directory: pytorch
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Populate binary env
         shell: bash
         run: |

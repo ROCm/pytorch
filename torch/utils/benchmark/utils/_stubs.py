@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 from typing import Any, Callable, Protocol, runtime_checkable
+=======
+from typing import Any, Callable
+from typing_extensions import Protocol, runtime_checkable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TimerClass(Protocol):

@@ -1257,7 +1257,15 @@ as_strided = _make_prim(
 def _broadcast_in_dim_meta(
     a: TensorLikeType, shape: ShapeType, broadcast_dimensions: Sequence[int]
 ):
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+=======
+    from torch.fx.experimental.symbolic_shapes import (
+        guard_or_false,
+        guard_or_true,
+        sym_or,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Type checks
     assert isinstance(a, TensorLike)
@@ -1284,11 +1292,18 @@ def _broadcast_in_dim_meta(
 
     # shape must be broadcastable to
     for idx, new_idx in enumerate(broadcast_dimensions):
+<<<<<<< HEAD
         if not guard_size_oblivious(a.shape[idx] == 1):
             torch._check(
                 a.shape[idx] == shape[new_idx],
                 lambda: f"{a.shape[idx]} must be broadcastable to {shape[new_idx]}",
             )
+=======
+        torch._check(
+            sym_or(a.shape[idx] == 1, shape[new_idx] == a.shape[idx]),
+            lambda: f"{a.shape[idx]} must be broadcastable to {shape[new_idx]}",
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     new_strides = []
     original_idx = 0
@@ -1296,6 +1311,7 @@ def _broadcast_in_dim_meta(
         if idx in broadcast_dimensions:
             # Assigns a stride of zero to dimensions
             # which were actually broadcast
+<<<<<<< HEAD
             if guard_size_oblivious(a.shape[original_idx] != shape[idx]):
                 new_strides.append(0)
             else:
@@ -1303,6 +1319,23 @@ def _broadcast_in_dim_meta(
             original_idx = original_idx + 1
         else:
             if guard_size_oblivious(shape[idx] != 1):
+=======
+            if guard_or_false(a.shape[original_idx] == 1):
+                if guard_or_false(a.shape[original_idx] == shape[idx]):
+                    new_strides.append(a.stride()[original_idx])
+                else:
+                    new_strides.append(0)
+            else:
+                torch._check(
+                    a.shape[original_idx] == shape[idx],
+                    lambda: f"non-broadcasting semantics require {a.shape[original_idx]} == {shape[idx]}",
+                )
+                new_strides.append(a.stride()[original_idx])
+            original_idx = original_idx + 1
+        else:
+            if guard_or_true(shape[idx] != 1):
+                # consistent with previous use of guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_strides.append(0)
             elif original_idx == a.ndim:
                 new_strides.append(1)

@@ -32,6 +32,12 @@ Update the existing commitlist to commit bfcb687b9c.
 
 """
 
+<<<<<<< HEAD
+=======
+# Increase the allowed size of a CSV field to 1mil bytes for long files changed
+csv.field_size_limit(1000000)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclasses.dataclass(frozen=False)
 class Commit:
@@ -490,6 +496,7 @@ def get_markdown_header(category):
     header = f"""
 # Release Notes worksheet {category}
 
+<<<<<<< HEAD
 The main goal of this process is to rephrase all the commit messages below to make them clear and easy to read by the end user. You should follow the following instructions to do so:
 
 * **Please cleanup, and format commit titles to be readable by the general pytorch user.** [Detailed instructions here](https://docs.google.com/document/d/14OmgGBr1w6gl1VO47GGGdwrIaUNr92DFhQbY_NEk8mQ/edit)
@@ -499,6 +506,17 @@ The main goal of this process is to rephrase all the commit messages below to ma
 * Please use markdown format
 * Please use #PR_NUM to link to the PR, instead of `[#PR_NUM](https://github.com/pytorch/pytorch/pull/#PR_NUM)` to reduce the length of the release notes
 * We place a lot of emphasis on the “BC-breaking” and “deprecation” sections. Those should be where the most effort goes in. The “improvements” and “bug fixes” for Python API should be nice as well. Everything else doesn’t matter too much so feel free to cut corners if time is short.
+=======
+The main goal of this process is to rephrase all the commit messages below to make them **clear and easy to read** by the end user. You should follow the following instructions to do so:
+
+* **Please clean up and format commit titles to be readable by the general PyTorch user.** Make sure you're [following the guidance here](https://docs.google.com/document/d/14OmgGBr1w6gl1VO47GGGdwrIaUNr92DFhQbY_NEk8mQ/edit)! Your resulting notes must be consistent and easy to read.
+* Please sort commits into the following categories (you should not rename the categories!), I tried to pre-sort these to ease your work, feel free to move commits around if the current categorization is not good.
+* Anything that is not public facing needs to be removed.
+* If anything is miscategorized/belongs to another domain, move it to `miscategorized.md`.
+* Please scan through `miscategorized.md` and handle any commits that belong within your domain according to these instructions.
+* We place a lot of emphasis on the “BC-breaking” and “deprecation” sections. Those should be where the most effort goes in. The “improvements” and “bug fixes” for Python API should be nice as well.
+* Once you are finished, move this very file from `todo/` to `done/` and submit a pull request.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 The categories below are as follows:
 
@@ -510,6 +528,10 @@ The categories below are as follows:
 * performance: All commits that are added mainly for performance (we separate this from improvements above to make it easier for users to look for it)
 * documentation: All commits that add/update documentation
 * Developers: All commits that are not end-user facing but still impact people that compile from source, develop into pytorch, extend pytorch, etc
+<<<<<<< HEAD
+=======
+* not user facing: All commits that are not public end-user facing and hence should be dropped from the release notes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 
     return [header]

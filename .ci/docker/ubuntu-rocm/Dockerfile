@@ -28,7 +28,10 @@ ARG ANACONDA_PYTHON_VERSION
 ARG BUILD_ENVIRONMENT
 ENV ANACONDA_PYTHON_VERSION=$ANACONDA_PYTHON_VERSION
 ENV PATH /opt/conda/envs/py_$ANACONDA_PYTHON_VERSION/bin:/opt/conda/bin:$PATH
+<<<<<<< HEAD
 ARG CONDA_CMAKE
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 COPY requirements-ci.txt /opt/conda/requirements-ci.txt
 COPY ./common/install_conda.sh install_conda.sh
 COPY ./common/common_utils.sh common_utils.sh
@@ -44,6 +47,7 @@ ARG CLANG_VERSION
 COPY ./common/install_clang.sh install_clang.sh
 RUN bash ./install_clang.sh && rm install_clang.sh
 
+<<<<<<< HEAD
 # (optional) Install protobuf for ONNX
 ARG PROTOBUF
 COPY ./common/install_protobuf.sh install_protobuf.sh
@@ -58,6 +62,8 @@ RUN if [ -n "${DB}" ]; then bash ./install_db.sh; fi
 RUN rm install_db.sh
 ENV INSTALLED_DB ${DB}
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (optional) Install vision packages like OpenCV
 ARG VISION
 COPY ./common/install_vision.sh ./common/cache_vision_models.sh ./common/common_utils.sh ./
@@ -71,7 +77,11 @@ COPY ./common/install_rocm.sh install_rocm.sh
 RUN bash ./install_rocm.sh
 RUN rm install_rocm.sh
 COPY ./common/install_rocm_magma.sh install_rocm_magma.sh
+<<<<<<< HEAD
 RUN bash ./install_rocm_magma.sh
+=======
+RUN bash ./install_rocm_magma.sh ${ROCM_VERSION}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 RUN rm install_rocm_magma.sh
 ADD ./common/install_miopen.sh install_miopen.sh
 RUN bash ./install_miopen.sh ${ROCM_VERSION} && rm install_miopen.sh
@@ -116,12 +126,15 @@ COPY ci_commit_pins/timm.txt timm.txt
 RUN if [ -n "${INDUCTOR_BENCHMARKS}" ]; then bash ./install_inductor_benchmark_deps.sh; fi
 RUN rm install_inductor_benchmark_deps.sh common_utils.sh timm.txt huggingface.txt
 
+<<<<<<< HEAD
 # (optional) Install non-default CMake version
 ARG CMAKE_VERSION
 COPY ./common/install_cmake.sh install_cmake.sh
 RUN if [ -n "${CMAKE_VERSION}" ]; then bash ./install_cmake.sh; fi
 RUN rm install_cmake.sh
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (optional) Install non-default Ninja version
 ARG NINJA_VERSION
 COPY ./common/install_ninja.sh install_ninja.sh

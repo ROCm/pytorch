@@ -6,6 +6,13 @@ namespace c10d {
 PrefixStore::PrefixStore(std::string prefix, c10::intrusive_ptr<Store> store)
     : prefix_(std::move(prefix)), store_(std::move(store)) {}
 
+<<<<<<< HEAD
+=======
+c10::intrusive_ptr<Store> PrefixStore::clone() {
+  return c10::make_intrusive<PrefixStore>(prefix_, store_->clone());
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::string PrefixStore::joinKey(const std::string& key) {
   return prefix_ + "/" + key;
 }
@@ -106,6 +113,23 @@ bool PrefixStore::hasExtendedApi() const {
   return store_->hasExtendedApi();
 }
 
+<<<<<<< HEAD
+=======
+void PrefixStore::queuePush(
+    const std::string& key,
+    const std::vector<uint8_t>& value) {
+  store_->queuePush(joinKey(key), value);
+}
+
+std::vector<uint8_t> PrefixStore::queuePop(const std::string& key, bool block) {
+  return store_->queuePop(joinKey(key), block);
+}
+
+int64_t PrefixStore::queueLen(const std::string& key) {
+  return store_->queueLen(joinKey(key));
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 c10::intrusive_ptr<Store> PrefixStore::getUnderlyingStore() {
   return store_;
 }

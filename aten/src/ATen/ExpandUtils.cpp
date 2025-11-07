@@ -59,7 +59,11 @@ SymDimVector infer_size_symdimvector(SymIntArrayRef a, SymIntArrayRef b) {
 }
 
 template<typename Container>
+<<<<<<< HEAD
 C10_ALWAYS_INLINE InferExpandGeometryResult<Container> inferExpandGeometryImpl(
+=======
+C10_ALWAYS_INLINE static InferExpandGeometryResult<Container> inferExpandGeometryImpl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IntArrayRef tensor_sizes,
     IntArrayRef tensor_strides,
     IntArrayRef sizes) {

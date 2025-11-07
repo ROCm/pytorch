@@ -21,7 +21,11 @@ target_include_directories(
   ${ATen_CPU_INCLUDE}
 )
 
+<<<<<<< HEAD
 target_link_libraries(test_lite_interpreter_runtime PRIVATE torch gtest backend_with_compiler_runtime)
+=======
+target_link_libraries(test_lite_interpreter_runtime PRIVATE torch gtest_main backend_with_compiler_runtime)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if(LINUX)
   target_link_libraries(test_lite_interpreter_runtime PRIVATE "-Wl,--no-as-needed,$<TARGET_FILE:backend_with_compiler_runtime>,--as-needed")

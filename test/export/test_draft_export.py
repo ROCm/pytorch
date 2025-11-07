@@ -4,8 +4,15 @@ import tempfile
 import unittest
 
 import torch
+<<<<<<< HEAD
 from torch.export import Dim, export
 from torch.export._draft_export import draft_export, FailureType
+=======
+from torch._subclasses.fake_tensor import FakeTensorMode
+from torch.export import Dim, draft_export, export
+from torch.export._draft_export import FailureType
+from torch.fx.experimental.symbolic_shapes import ShapeEnv
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import IS_WINDOWS, run_tests, TestCase
 from torch.testing._internal.torchbind_impls import (
@@ -20,6 +27,7 @@ class TestDraftExport(TestCase):
         super().setUp()
         init_torchbind_implementations()
 
+<<<<<<< HEAD
         @torch._library.register_fake_class("_TorchScriptTesting::_TensorQueue")
         class FakeTensorQueue:
             def __init__(self, queue):
@@ -44,6 +52,8 @@ class TestDraftExport(TestCase):
             def float_size(self):
                 return float(len(self.queue))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.torch_bind_ops = [
             torch.ops._TorchScriptTesting.queue_pop,
             torch.ops._TorchScriptTesting.queue_push,
@@ -51,11 +61,17 @@ class TestDraftExport(TestCase):
         ]
 
     def tearDown(self):
+<<<<<<< HEAD
         torch._library.fake_class_registry.deregister_fake_class(
             "_TorchScriptTesting::_TensorQueue"
         )
 
     def test_missing_meta_kernel_custom_op(self):
+=======
+        return
+
+    def test_missing_meta_kernel_custom_op_basic(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch.library._scoped_library("mylib", "FRAGMENT"):
 
             @torch.library.custom_op("mylib::foo2", mutates_args={})
@@ -80,6 +96,14 @@ class TestDraftExport(TestCase):
             inp = (torch.randn(3, 3), torch.randn(3, 3))
             self.assertEqual(ep.module()(*inp), M()(*inp))
 
+<<<<<<< HEAD
+=======
+            with torch._library.fake_profile.unsafe_generate_fake_kernels(
+                report.op_profiles
+            ):
+                ep.run_decompositions()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_missing_meta_kernel_impl(self):
         with torch.library._scoped_library("mylib", "FRAGMENT") as lib:
             torch.library.define(
@@ -90,7 +114,11 @@ class TestDraftExport(TestCase):
             )
 
             @torch.library.impl("mylib::foo", "cpu", lib=lib)
+<<<<<<< HEAD
             def foo_impl(a, b):
+=======
+            def foo_impl(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return a + b
 
             class M(torch.nn.Module):
@@ -112,6 +140,112 @@ class TestDraftExport(TestCase):
             inp = (torch.randn(3, 3), torch.randn(3, 3))
             self.assertEqual(ep.module()(*inp), M()(*inp))
 
+<<<<<<< HEAD
+=======
+            self.assertEqual(len(report.op_profiles), 1)
+            self.assertEqual(len(report.op_profiles["mylib.foo.default"]), 1)
+            print(report.op_profiles)
+
+            with torch._library.fake_profile.unsafe_generate_fake_kernels(
+                report.op_profiles
+            ):
+                ep = ep.run_decompositions()
+            self.assertEqual(ep.module()(*inp), M()(*inp))
+
+    def test_missing_meta_kernel_custom_op_multiple_profiles(self):
+        with torch.library._scoped_library("mylib", "FRAGMENT"):
+
+            @torch.library.custom_op("mylib::foo3", mutates_args={})
+            def foo3_impl(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+                return a + b
+
+            class M(torch.nn.Module):
+                def forward(self, a, b, c, d):
+                    res1 = torch.ops.mylib.foo3(a, b)
+                    res2 = torch.ops.mylib.foo3(c, d)
+                    return res1, res2
+
+            inp = (
+                torch.ones(3, 4),
+                torch.ones(3, 4),
+                torch.ones(2, 3, 4),
+                torch.ones(2, 3, 4),
+            )
+
+            ep = draft_export(M(), inp)
+            report = ep._report
+
+            self.assertEqual(len(report.failures), 1)
+            self.assertEqual(
+                report.failures[0].failure_type, FailureType.MISSING_FAKE_KERNEL
+            )
+            self.assertEqual(len(report.op_profiles), 1)
+            self.assertEqual(len(report.op_profiles["mylib.foo3.default"]), 2)
+
+            with torch._library.fake_profile.unsafe_generate_fake_kernels(
+                report.op_profiles
+            ):
+                ep.run_decompositions()
+
+    def test_missing_meta_kernel_custom_op_update_profile(self):
+        with torch.library._scoped_library("mylib", "FRAGMENT"):
+
+            @torch.library.custom_op("mylib::foo8", mutates_args={})
+            def foo8_impl(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+                return a + b
+
+            class M(torch.nn.Module):
+                def forward(self, a, b):
+                    res = torch.ops.mylib.foo8(a, b)
+                    return res
+
+            inp = (
+                torch.ones(3, 4),
+                torch.ones(3, 4),
+            )
+
+            ep = draft_export(M(), inp)
+            report = ep._report
+            self.assertEqual(len(report.op_profiles), 1)
+            self.assertEqual(len(report.op_profiles["mylib.foo8.default"]), 1)
+
+            new_inp = (
+                torch.ones(2, 3, 4),
+                torch.ones(2, 3, 4),
+            )
+
+            with torch._library.fake_profile.unsafe_generate_fake_kernels(
+                report.op_profiles
+            ):
+                with FakeTensorMode(allow_non_fake_inputs=True, shape_env=ShapeEnv()):
+                    torch.ops.mylib.foo8(*inp)
+                    with self.assertRaisesRegex(
+                        RuntimeError, "no profiles match the given inputs"
+                    ):
+                        torch.ops.mylib.foo8(*new_inp)
+
+                ep = draft_export(M(), new_inp)
+
+            report = ep._report
+            self.assertEqual(len(report.op_profiles), 1)
+            self.assertEqual(len(report.op_profiles["mylib.foo8.default"]), 1)
+
+            with (
+                torch._library.fake_profile.unsafe_generate_fake_kernels(
+                    report.op_profiles
+                ),
+                FakeTensorMode(allow_non_fake_inputs=True, shape_env=ShapeEnv()),
+            ):
+                torch.ops.mylib.foo8(*new_inp)
+
+                # Existing registration has been updated to match the new
+                # profile traced with draft-export
+                with self.assertRaisesRegex(
+                    RuntimeError, "no profiles match the given inputs"
+                ):
+                    torch.ops.mylib.foo8(*inp)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not torch.cuda.is_available(), "Requires cuda")
     def test_missing_meta_kernel_guard(self):
         with torch.library._scoped_library("mylib", "FRAGMENT"):
@@ -238,11 +372,15 @@ class TestDraftExport(TestCase):
 
         ep = draft_export(M(), (torch.tensor([938]),))
         report = ep._report
+<<<<<<< HEAD
         self.assertEqual(len(report.failures), 1)
         self.assertEqual(
             report.failures[0].failure_type, FailureType.DATA_DEPENDENT_ERROR
         )
         self.assertEqual(report.failures[0].data["expr"], "Eq(2*u1, 10)")
+=======
+        self.assertEqual(len(report.failures), 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_dedup_data_dependent_failure(self):
         class M(torch.nn.Module):
@@ -269,6 +407,18 @@ class TestDraftExport(TestCase):
         inp = (torch.tensor(4), torch.tensor(2), torch.tensor(6))
         self.assertEqual(ep.module()(*inp), M()(*inp))
 
+<<<<<<< HEAD
+=======
+        # the fake tensors on node.meta["val"] should have real_tensor
+        gm = ep.module()
+        tensors = [
+            node.meta.get("val").real_tensor
+            for node in gm.graph.nodes
+            if node.op == "placeholder"
+        ]
+        self.assertTrue(all(isinstance(t, torch.Tensor) for t in tensors))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_complex_data_dependent_expr(self):
         class M(torch.nn.Module):
             def forward(self, x, y):
@@ -291,6 +441,7 @@ class TestDraftExport(TestCase):
         self.assertEqual(
             report.failures[0].failure_type, FailureType.DATA_DEPENDENT_ERROR
         )
+<<<<<<< HEAD
         self.assertTrue(len(report.expressions_created) >= 4)
         for _ep in [ep, ep.run_decompositions()]:
             # check data-dependent asserts
@@ -300,6 +451,9 @@ class TestDraftExport(TestCase):
                 if node.target == torch.ops.aten._assert_scalar.default
             ]
             self.assertEqual(len(assert_scalar_nodes), 5)
+=======
+        for _ep in [ep, ep.run_decompositions()]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # unbacked bindings
             unbacked_binding_symbols = set()
             for node in _ep.graph.nodes:
@@ -330,9 +484,13 @@ class TestDraftExport(TestCase):
         report = ep._report
 
         self.assertEqual(len(report.failures), 1)
+<<<<<<< HEAD
         self.assertEqual(
             report.failures[0].failure_type, FailureType.CONSTRAINT_VIOLATION_ERROR
         )
+=======
+        self.assertEqual(report.failures[0].failure_type, FailureType.GUARD_ADDED)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         inp = (torch.randn(3, 3),)
         self.assertEqual(ep.module()(*inp), M()(*inp))
@@ -393,6 +551,10 @@ class TestDraftExport(TestCase):
                 return torch.nn.functional.linear(masked, weight, bias)
 
         x = torch.zeros(10)
+<<<<<<< HEAD
+=======
+        x[0] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inp = (torch.randn(10, 8, 7), x, torch.randn(25, 7), torch.randn(25))
         draft_ep = draft_export(M(), inp)
         ep = export(M(), inp)
@@ -432,6 +594,7 @@ class TestDraftExport(TestCase):
         self.assertEqual(tq.size(), 2)
 
     def test_override_size_and_dtype_mismatched_fake_kernels(self):
+<<<<<<< HEAD
         class M(torch.nn.Module):
             def forward(self, a):
                 return torch.ops.mylib.foo(a)
@@ -548,6 +711,144 @@ class TestDraftExport(TestCase):
             report.failures[0].data["reason"],
             "Dtypes torch.bfloat16 and torch.float32 are not equal!",
         )
+=======
+        with torch.library._scoped_library("mylib", "FRAGMENT"):
+
+            class M(torch.nn.Module):
+                def forward(self, a):
+                    return torch.ops.mylib.foo9(a)
+
+            @torch.library.custom_op("mylib::foo9", mutates_args={})
+            def foo(a: torch.Tensor) -> list[torch.Tensor]:
+                x = a * 2
+                y = a.repeat(2, 2)
+                z = a.to(torch.bfloat16)
+                return [x, y, z]
+
+            @torch.library.register_fake("mylib::foo9")
+            def foo_fake_impl(a):
+                x = torch.empty_like(a)  # good
+                y = torch.empty_like(a)  # size mismatch
+                z = torch.empty_like(a)  # dtype mismatch
+                return [x, y, z]
+
+            mod = M()
+            inputs = (torch.randn(3, 3),)
+            with self.assertRaises(RuntimeError):
+                with torch._functorch.config.patch(
+                    fake_tensor_propagate_real_tensors=True
+                ):
+                    export(mod, inputs, strict=True)
+
+            ep = draft_export(mod, inputs)
+            report = ep._report
+            for ep_out, eager_out in zip(ep.module()(*inputs), mod(*inputs)):
+                self.assertTrue(torch.allclose(ep_out, eager_out))
+                self.assertEqual(ep_out.dtype, eager_out.dtype)
+
+            self.assertEqual(len(report.failures), 2)
+            self.assertEqual(
+                report.failures[0].failure_type, FailureType.MISMATCHED_FAKE_KERNEL
+            )
+            self.assertEqual(
+                report.failures[1].failure_type, FailureType.MISMATCHED_FAKE_KERNEL
+            )
+            self.assertEqual(
+                sorted([f.data["reason"] for f in report.failures]),
+                [
+                    "Dtypes torch.bfloat16 and torch.float32 are not equal!",
+                    "mismatch between fake value 3 and real value 6 ",
+                ],
+            )
+
+            with torch._library.fake_profile.unsafe_generate_fake_kernels(
+                report.op_profiles
+            ):
+                ep.run_decompositions()
+
+    def test_override_incorrectly_aliasing_kernel(self):
+        with torch.library._scoped_library("mylib", "FRAGMENT"):
+
+            @torch.library.custom_op("mylib::foo10", mutates_args={})
+            def foo(a: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+                return a * 2, a + 2
+
+            @torch.library.register_fake("mylib::foo10")
+            def foo_fake_impl(a):
+                return a, torch.empty_like(a)  # incorrectly aliasing
+
+            class M(torch.nn.Module):
+                def forward(self, a):
+                    return torch.ops.mylib.foo10(a)
+
+            mod = M()
+            inputs = (torch.randn(3, 3),)
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "Real tensor propagation found an aliasing mismatch",
+            ):
+                with torch._functorch.config.patch(
+                    fake_tensor_propagate_real_tensors=True
+                ):
+                    export(mod, inputs, strict=True)
+
+            ep = draft_export(mod, inputs)
+            report = ep._report
+            for ep_out, eager_out in zip(
+                tree_leaves(ep.module()(*inputs)), tree_leaves(mod(*inputs))
+            ):
+                self.assertTrue(torch.allclose(ep_out, eager_out))
+                self.assertEqual(ep_out.dtype, eager_out.dtype)
+
+            self.assertEqual(len(report.failures), 1)
+            self.assertEqual(
+                report.failures[0].failure_type, FailureType.MISMATCHED_FAKE_KERNEL
+            )
+            self.assertTrue(
+                "Mismatched aliasing spec between fake kernel and real kernel"
+                in report.failures[0].data["reason"]
+            )
+
+    def test_override_mismatched_fake_kernel_with_unbacked_symbols(self):
+        with torch.library._scoped_library("mylib", "FRAGMENT"):
+
+            @torch.library.custom_op("mylib::foo11", mutates_args={})
+            def foo11(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+                return a[b.item()].to(torch.bfloat16)
+
+            @torch.library.register_fake("mylib::foo11")
+            def foo_fake_impl(a, b):
+                ctx = torch.library.get_ctx()
+                u = ctx.new_dynamic_size()
+                return torch.empty(u, a.shape[1], dtype=a.dtype)
+
+            class M(torch.nn.Module):
+                def forward(self, a, b):
+                    return torch.ops.mylib.foo11(a, b)
+
+            mod = M()
+            inputs = (torch.randn(100, 4), torch.tensor(10))
+
+            ep = draft_export(mod, inputs)
+
+            report = ep._report
+            for ep_out, eager_out in zip(ep.module()(*inputs), mod(*inputs)):
+                self.assertTrue(torch.allclose(ep_out, eager_out))
+                self.assertEqual(ep_out.dtype, eager_out.dtype)
+
+            self.assertEqual(len(report.failures), 1)
+            self.assertEqual(
+                report.failures[0].failure_type, FailureType.MISMATCHED_FAKE_KERNEL
+            )
+            self.assertEqual(
+                report.failures[0].data["reason"],
+                "Dtypes torch.bfloat16 and torch.float32 are not equal!",
+            )
+            with torch._library.fake_profile.unsafe_generate_fake_kernels(
+                report.op_profiles
+            ):
+                ep.run_decompositions()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # https://github.com/pytorch/pytorch/issues/140625
     @unittest.skipIf(IS_WINDOWS, "aoti_compile_and_package not supported on Windows")
@@ -567,6 +868,39 @@ class TestDraftExport(TestCase):
                 package_path=f.name,
             )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        not torch.cuda.is_available()
+        or torch.cuda.get_device_properties(0).total_memory < 2**28,
+        "Requires 16 MB GPU memory to pass the test; setting it higher to catch violations",
+    )
+    def test_cuda_memory_usage(self):
+        # This used to OOM
+        class Foo(torch.nn.Module):
+            def forward(self, x):
+                for _ in range(100):
+                    x = x + 1e-3
+                return x
+
+        # measure base usage
+        device = torch.device("cuda:0")
+        torch.cuda.reset_peak_memory_stats()
+        base_usage = torch.cuda.memory_allocated(device)
+
+        # usage with input tensor allocated
+        x = torch.randn(2**10, 2**10).to(device)
+        x_usage = torch.cuda.memory_allocated(device)
+
+        # draft export peak memory usage
+        draft_export(Foo(), (x,), strict=False)
+        peak_mem_usage = torch.cuda.memory_stats(device)["allocated_bytes.all.peak"]
+
+        # right now it's actually exactly 4x;
+        # I guess original tensor, 2 tensors per add op, 1 for clone stored in node.meta["val"]
+        self.assertTrue((peak_mem_usage - base_usage) <= (x_usage - base_usage) * 4.0)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

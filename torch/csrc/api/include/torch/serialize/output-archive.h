@@ -66,7 +66,11 @@ class TORCH_API OutputArchive final {
   void save_to(const std::function<size_t(const void*, size_t)>& func);
 
   /// Forwards all arguments to `write()`.
+<<<<<<< HEAD
   /// Useful for generic code that can be re-used for both `OutputArchive` and
+=======
+  /// Useful for generic code that can be reused for both `OutputArchive` and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// `InputArchive` (where `operator()` forwards to `read()`).
   template <typename... Ts>
   void operator()(Ts&&... ts) {

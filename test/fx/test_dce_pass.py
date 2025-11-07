@@ -5,7 +5,15 @@ from typing import Optional
 
 import torch
 import torch.fx
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_MACOS, TestCase
+=======
+from torch.testing._internal.common_utils import (
+    IS_MACOS,
+    raise_on_run_directly,
+    TestCase,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestDCE(TestCase):
@@ -232,6 +240,22 @@ class TestDCE(TestCase):
         # %add_ node should not be removed because it has side effects.
         self._run_dce_and_test(TestModule(), expect_dce_changes=False)
 
+<<<<<<< HEAD
+=======
+    def test_impure_random(self):
+        """
+        Test that DCE doesn't remove call_function for torch.rand.
+        """
+
+        class TestModule(torch.nn.Module):
+            def forward(self, a: torch.Tensor) -> torch.Tensor:
+                x = torch.rand([10])  # noqa: F841
+                return a * 2
+
+        # %torch.rand should not be removed because it has side effects.
+        self._run_dce_and_test(TestModule(), expect_dce_changes=False)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_impure_kwargs(self):
         """
         Test that DCE doesn't remove call_function nodes with side effects on kwargs.
@@ -315,3 +339,10 @@ class TestDCE(TestCase):
         # collective nodes should not be removed because they have side effects.
         self._run_dce_and_test(TestModule(), expect_dce_changes=False, custom=False)
         torch.distributed.destroy_process_group()
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_fx.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

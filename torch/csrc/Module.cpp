@@ -112,6 +112,10 @@
 #include <ATen/ROCmFABackend.h>
 #include <ATen/cuda/CUDAConfig.h>
 #include <ATen/native/transformers/cuda/sdp_utils.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/inductor/static_cuda_launcher.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef __HIP_PLATFORM_AMD__
 #include <ATen/native/cudnn/hip/BatchNorm.h>
 #else
@@ -132,6 +136,13 @@
 #include <callgrind.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#ifdef USE_ITT
+#include <torch/csrc/itt.h>
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace py = pybind11;
 
 static PyObject* module;
@@ -275,6 +286,10 @@ static PyObject* THPModule_crashIfvptrUBSAN(PyObject* module, PyObject* noarg) {
     virtual ~Baz() = default;
   };
   Baz x{};
+<<<<<<< HEAD
+=======
+  // NOLINTNEXTLINE(bugprone-casting*)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto y = static_cast<Foo*>(static_cast<void*>(&x));
   auto rc = y->bar();
   return THPUtils_packInt32(rc);
@@ -1756,12 +1771,15 @@ void initModule(PyObject* module);
 } // namespace torch::xpu
 #endif
 
+<<<<<<< HEAD
 #ifdef USE_ITT
 namespace torch::profiler {
 void initIttBindings(PyObject* module);
 } // namespace torch::profiler
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::vector<PyMethodDef> methods;
 
 // In Python we can't use the trick of C10_LOG_API_USAGE_ONCE
@@ -1886,6 +1904,12 @@ PyObject* initModule() {
 #ifdef USE_CUDA
   torch::cuda::initModule(module);
 #endif
+<<<<<<< HEAD
+=======
+#if defined(USE_CUDA) && !defined(USE_ROCM)
+  ASSERT_TRUE(StaticCudaLauncher_init(module));
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_MPS
   torch::mps::initModule(module);
 #endif
@@ -2010,6 +2034,15 @@ Call this whenever a new thread is created in order to propagate values from
     return at::caching::is_cached_tensor(t);
   });
 
+<<<<<<< HEAD
+=======
+  py_module.def("_storage_Use_Count", [](size_t storage_impl_ptr) {
+    // NOLINTNEXTLINE(performance-no-int-to-ptr)
+    c10::StorageImpl* storage_impl = (c10::StorageImpl*)storage_impl_ptr;
+    return c10::raw::weak_intrusive_ptr::use_count(storage_impl);
+  });
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ASSERT_TRUE(
       set_module_attr("has_openmp", at::hasOpenMP() ? Py_True : Py_False));
   ASSERT_TRUE(set_module_attr("has_mkl", at::hasMKL() ? Py_True : Py_False));
@@ -2363,7 +2396,11 @@ Call this whenever a new thread is created in order to propagate values from
         auto acc = at::getAccelerator(check.value_or(false));
         if (acc.has_value()) {
           bool is_available = at::globalContext()
+<<<<<<< HEAD
                                   .getAcceleratorHooksInterface(acc.value())
+=======
+                                  .getAcceleratorHooksInterface(acc)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                   .isAvailable();
 
           if (!is_available) {
@@ -2400,12 +2437,16 @@ Call this whenever a new thread is created in order to propagate values from
   ASSERT_TRUE(
       set_module_attr("_has_mkldnn", at::hasMKLDNN() ? Py_True : Py_False));
 
+<<<<<<< HEAD
 #ifdef _GLIBCXX_USE_CXX11_ABI
   ASSERT_TRUE(set_module_attr(
       "_GLIBCXX_USE_CXX11_ABI", _GLIBCXX_USE_CXX11_ABI ? Py_True : Py_False));
 #else
   ASSERT_TRUE(set_module_attr("_GLIBCXX_USE_CXX11_ABI", Py_False));
 #endif
+=======
+  ASSERT_TRUE(set_module_attr("_GLIBCXX_USE_CXX11_ABI", Py_True));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // See note [Pybind11 ABI constants]
 #define SET_STR_DEFINE(name) \

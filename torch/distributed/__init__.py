@@ -33,6 +33,10 @@ DistError = torch._C._DistError
 DistBackendError = torch._C._DistBackendError
 DistNetworkError = torch._C._DistNetworkError
 DistStoreError = torch._C._DistStoreError
+<<<<<<< HEAD
+=======
+QueueEmptyError = torch._C._DistQueueEmptyError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if is_available():
     from torch._C._distributed_c10d import (
@@ -133,6 +137,10 @@ if is_available():
         _get_process_group_name,
         _rank_not_in_group,
         _reduce_scatter_base,
+<<<<<<< HEAD
+=======
+        _time_estimator,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         get_node_local_rank,
     )
     from .remote_device import _remote_device

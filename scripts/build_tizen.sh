@@ -9,7 +9,11 @@
 
 setup_environment(){
 # The rootfs image for a Tizen target (RPi3)is located at the below webpage:
+<<<<<<< HEAD
 # http://download.tizen.org/releases/milestone/tizen/4.0.m1/tizen-unified_20170529.1/images/
+=======
+# https://cdn.download.tizen.org/archive/releases/milestone/tizen/4.0.m1/tizen-unified_20170529.1/images/
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # If you do not have a Tizen device, Please, run qemu-arm-static and chroot command.
 # $ sudo chroot ~/tizen-rootfs qemu-arm-static /usr/bin/bash
 
@@ -25,7 +29,11 @@ caffe2_lite_dep_packages(){
 # You can set-up a rpm repository with zypper, yum, and dnf because Tizen
 # software platform officially support rpm format such as Fedora, OpenSUSE.
 # The official Tizen repository is as following:
+<<<<<<< HEAD
 # http://download.tizen.org/releases/milestone/tizen/4.0.m1/
+=======
+# https://cdn.download.tizen.org/archive/releases/milestone/tizen/4.0.m1/
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 echo "Installing dependencies."
 sudo zypper install \
   make \
@@ -69,7 +77,11 @@ caffe2_full_dep_packages(){
 # You can set-up a rpm repository with zypper, yum, and dnf because Tizen
 # software platform officially support rpm format such as Fedora, OpenSUSE.
 # The official Tizen repository is as following:
+<<<<<<< HEAD
 # http://download.tizen.org/releases/milestone/tizen/4.0.m1/
+=======
+# https://cdn.download.tizen.org/archive/releases/milestone/tizen/4.0.m1/
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 echo "Installing dependencies."
 sudo zypper install \
   cmake \

@@ -32,6 +32,10 @@ class LSTM(torch.ao.nn.quantizable.LSTM):
         >>> tq.prepare(model, prepare_custom_module_class=custom_module_config)
         >>> tq.convert(model, convert_custom_module_class=custom_module_config)
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _FLOAT_MODULE = torch.ao.nn.quantizable.LSTM  # type: ignore[assignment]
 
     def _get_name(self):

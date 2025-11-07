@@ -6,7 +6,11 @@
 
 #pragma once
 // note: pytorch's python variable simple includes pybind which conflicts with minpybind
+<<<<<<< HEAD
 // so this file just reproduces the minimial API needed to extract Tensors from python objects.
+=======
+// so this file just reproduces the minimal API needed to extract Tensors from python objects.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <torch/csrc/python_headers.h>
 #include <ATen/core/Tensor.h>

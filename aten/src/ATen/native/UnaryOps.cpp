@@ -258,26 +258,42 @@ TORCH_META_FUNC(neg)(const Tensor& self) {
 
 TORCH_META_FUNC(trunc) (const Tensor& self) {
   // Note: this is consistent with NumPy
+<<<<<<< HEAD
   TORCH_CHECK(!self.is_complex(),
+=======
+  TORCH_CHECK_NOT_IMPLEMENTED(!self.is_complex(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "trunc is not supported for complex inputs");
   build_borrowing_unary_op(maybe_get_output(), self);
 }
 
 TORCH_META_FUNC(floor) (const Tensor& self) {
   // Note: this is consistent with NumPy
+<<<<<<< HEAD
   TORCH_CHECK(!self.is_complex(),
+=======
+  TORCH_CHECK_NOT_IMPLEMENTED(!self.is_complex(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "floor is not supported for complex inputs");
   build_borrowing_unary_op(maybe_get_output(), self);
 }
 
 TORCH_META_FUNC(sign) (const Tensor& self) {
+<<<<<<< HEAD
   TORCH_CHECK(!self.is_complex(),
+=======
+  TORCH_CHECK_NOT_IMPLEMENTED(!self.is_complex(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               "Unlike NumPy, torch.sign is not intended to support complex numbers. Please use torch.sgn instead.");
   build_borrowing_unary_op(maybe_get_output(), self);
 }
 
 TORCH_META_FUNC(signbit) (const Tensor& self) {
+<<<<<<< HEAD
   TORCH_CHECK(!self.is_complex(), "signbit is not implemented for complex tensors.");
+=======
+  TORCH_CHECK_NOT_IMPLEMENTED(!self.is_complex(), "signbit is not implemented for complex tensors.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(maybe_get_output().defined() ? maybe_get_output().dtype() == at::kBool : true,
               "signbit does not support non-boolean outputs.");
   build_borrowing_unary_force_boolean_op(maybe_get_output(), self);
@@ -285,7 +301,11 @@ TORCH_META_FUNC(signbit) (const Tensor& self) {
 
 TORCH_META_FUNC(ceil) (const Tensor& self) {
   // Note: this is consistent with NumPy
+<<<<<<< HEAD
   TORCH_CHECK(!self.is_complex(),
+=======
+  TORCH_CHECK_NOT_IMPLEMENTED(!self.is_complex(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "ceil is not supported for complex inputs");
   build_borrowing_unary_op(maybe_get_output(), self);
 }
@@ -887,7 +907,11 @@ static inline void mvlgamma_check(const Tensor& self, int64_t p) {
 Tensor mvlgamma(const Tensor& self, int64_t p) {
   mvlgamma_check(self, p);
   auto dtype = c10::scalarTypeToTypeMeta(self.scalar_type());
+<<<<<<< HEAD
   if (at::isIntegralType(self.scalar_type(), /*include_bool=*/true)) {
+=======
+  if (at::isIntegralType(self.scalar_type(), /*includeBool=*/true)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // int -> float promotion
     dtype = c10::get_default_dtype();
   }

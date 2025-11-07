@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
+from typing_extensions import assert_never
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torchgen.api import cpp
 from torchgen.api.types import (
     ArgName,
@@ -30,7 +35,10 @@ from torchgen.model import (
     TensorOptionsArguments,
     Type,
 )
+<<<<<<< HEAD
 from torchgen.utils import assert_never
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This file describes the translation of JIT schema to the structured functions API.

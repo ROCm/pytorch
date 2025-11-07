@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import argparse
+<<<<<<< HEAD
+=======
+import base64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import importlib
 import logging
@@ -8,12 +12,20 @@ import sys
 from typing import TypeVar
 
 from torch._inductor.async_compile import pre_fork_setup
+<<<<<<< HEAD
+=======
+from torch._inductor.codecache import torch_key
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.compile_worker.subproc_pool import (
     SubprocKind,
     SubprocMain,
     SubprocPickler,
 )
+<<<<<<< HEAD
 from torch._inductor.compile_worker.watchdog import _async_compile_initializer
+=======
+from torch._inductor.compile_worker.utils import _async_compile_initializer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.runtime.compile_tasks import _set_triton_ptxas_path
 
 
@@ -56,6 +68,10 @@ def main():
         parser.add_argument("--parent", type=int)
         parser.add_argument("--read-fd", type=int)
         parser.add_argument("--write-fd", type=int)
+<<<<<<< HEAD
+=======
+        parser.add_argument("--torch-key", type=str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args = parser.parse_args()
         if os.getppid() != args.parent:
             sys.exit(0)
@@ -64,6 +80,11 @@ def main():
 
         pre_fork_setup()
 
+<<<<<<< HEAD
+=======
+        torch_key.set(base64.b64decode(args.torch_key.encode("utf-8")))  # type: ignore[attr-defined]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _async_compile_initializer(args.parent)
 
         SubprocMain(args.pickler, args.kind, args.workers, read_fd, write_fd).main()

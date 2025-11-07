@@ -16,6 +16,14 @@ __all__ = ["Distribution"]
 class Distribution:
     r"""
     Distribution is the abstract base class for probability distributions.
+<<<<<<< HEAD
+=======
+
+    Args:
+        batch_shape (torch.Size): The shape over which parameters are batched.
+        event_shape (torch.Size): The shape of a single sample (without batching).
+        validate_args (bool, optional): Whether to validate arguments. Default: None.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     has_rsample = False
@@ -44,7 +52,11 @@ class Distribution:
         batch_shape: torch.Size = torch.Size(),
         event_shape: torch.Size = torch.Size(),
         validate_args: Optional[bool] = None,
+<<<<<<< HEAD
     ):
+=======
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._batch_shape = batch_shape
         self._event_shape = event_shape
         if validate_args is not None:

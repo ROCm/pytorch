@@ -17,11 +17,15 @@ from torch._logging import getArtifactLogger
 from torch._subclasses.fake_tensor import FakeTensor
 from torch._subclasses.functional_tensor import FunctionalTensor
 from torch._subclasses.meta_utils import is_sparse_any
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import (
     definitely_true,
     sym_eq,
     SymIntEqByExpr,
 )
+=======
+from torch.fx.experimental.symbolic_shapes import guard_or_false, sym_eq, SymIntEqByExpr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.multiprocessing.reductions import StorageWeakRef
 from torch.utils._python_dispatch import (
     is_traceable_wrapper_subclass,
@@ -317,6 +321,7 @@ def gen_alias_from_base(
 
 def has_same_metadata(t1, t2):
     return (
+<<<<<<< HEAD
         definitely_true(sym_eq(t1.size(), t2.size()))
         and definitely_true(t1.layout == t2.layout)
         and (
@@ -324,6 +329,15 @@ def has_same_metadata(t1, t2):
             or (
                 definitely_true(sym_eq(t1.stride(), t2.stride()))
                 and definitely_true(t1.storage_offset() == t2.storage_offset())
+=======
+        guard_or_false(sym_eq(t1.size(), t2.size()))
+        and guard_or_false(t1.layout == t2.layout)
+        and (
+            is_sparse_any(t1)
+            or (
+                guard_or_false(sym_eq(t1.stride(), t2.stride()))
+                and guard_or_false(t1.storage_offset() == t2.storage_offset())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
         and t1.is_conj() == t2.is_conj()

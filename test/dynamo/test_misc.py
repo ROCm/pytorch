@@ -11,6 +11,10 @@ import functools
 import gc
 import importlib
 import itertools
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import math
 import operator
@@ -31,6 +35,10 @@ import numpy as np
 
 import torch
 import torch._dynamo.testing
+<<<<<<< HEAD
+=======
+import torch._inductor.config
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch._inductor.test_case
 import torch.onnx.operators
 import torch.utils._pytree as python_pytree
@@ -50,9 +58,15 @@ from torch._dynamo.testing import (
     skipIfNotPy311,
     unsupported,
 )
+<<<<<<< HEAD
 from torch._dynamo.utils import counters, ifdynstaticdefault
 from torch._dynamo.variables import builder
 from torch._inductor.utils import run_and_get_code
+=======
+from torch._dynamo.utils import call_size, counters, ifdynstaticdefault
+from torch._dynamo.variables import builder
+from torch._inductor.utils import fresh_cache, run_and_get_code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization import MinMaxObserver
 from torch.ao.quantization.fake_quantize import FakeQuantize
 from torch.ao.quantization.qconfig import QConfig
@@ -75,6 +89,10 @@ from torch.testing._internal.common_cuda import (
     TEST_CUDA,
     TEST_MULTIGPU,
 )
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_device_type import instantiate_device_type_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_methods_invocations import (
     sample_inputs_take_along_dim,
 )
@@ -83,8 +101,15 @@ from torch.testing._internal.common_utils import (
     IS_FBCODE,
     scoped_load_inline,
     set_default_dtype,
+<<<<<<< HEAD
     skipIfNNModuleInlined,
     skipIfWindows,
+=======
+    skipIfHpu,
+    skipIfNNModuleInlined,
+    skipIfWindows,
+    TEST_HPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wrapDeterministicFlagAPITest,
 )
 from torch.testing._internal.jit_utils import JitTestCase
@@ -103,6 +128,11 @@ T = typing.TypeVar("T")
 # Defined in CPython's Include/object.h
 TPFLAGS_MAPPING = 1 << 6
 
+<<<<<<< HEAD
+=======
+GLOBAL_INT = 1
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Specializes a test to run only if translation validation is set.
 def onlyIfTranslationValidation(fn: typing.Callable) -> typing.Callable:
@@ -572,6 +602,48 @@ class MiscTests(torch._inductor.test_case.TestCase):
             self.assertEqual(obj.y, x + 1)
         self.assertEqual(obj.__dict__.keys(), {"pfx_x", "pfx_y"})
 
+<<<<<<< HEAD
+=======
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_unbacked_repeat_cat(self):
+        def f(x, n):
+            m = x.item()
+            x = torch.empty(x).repeat(n)  # s0*u0
+            return torch.cat([x, x], dim=0)
+
+        fn = torch.compile(f, backend="eager", dynamic=True, fullgraph=True)
+        fn(torch.tensor([5]), 5)
+
+    def test_tensor_setattr_getset_descriptor(self):
+        # Tensor attribute `real` has special getter/setter for complex dtype.
+        def f(x):
+            x.real = 10
+            return x + 1
+
+        opt_f = torch.compile(f, backend="eager", fullgraph=False)
+        x = torch.ones(5, dtype=torch.cfloat)
+
+        res = opt_f(x)
+        ref = f(x)
+        self.assertEqual(res, ref)
+
+    def test_newly_constructed_tensor_attr_mutation(self):
+        def f(x):
+            y = x + 10
+            y.grad = x
+            y.foo = 42
+            return y
+
+        opt_f = torch.compile(f, backend="eager", fullgraph=True)
+        x = torch.ones(5)
+
+        res = opt_f(x)
+        ref = f(x)
+        self.assertEqual(res, ref)
+        self.assertEqual(res.grad, ref.grad)
+        self.assertEqual(res.foo, ref.foo)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_closure_recompiles(self):
         cnt = CompileCounter()
 
@@ -1046,9 +1118,13 @@ not ___dict_contains('bbbbbbbb', G['sys'].modules)
 not ___dict_contains('cccccccc', G['sys'].modules)
 str(L['x'].device) == 'cpu'
 str(L['x'].dtype) == 'torch.float32'
+<<<<<<< HEAD
 utils_device.CURRENT_DEVICE == None""".split(
             "\n"
         ):
+=======
+utils_device.CURRENT_DEVICE == None""".split("\n"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIn(
                 line,
                 guard_code_str,
@@ -1178,17 +1254,50 @@ utils_device.CURRENT_DEVICE == None""".split(
             get_test_fn(func=min),
             2,
             expected_ops=1,
+<<<<<<< HEAD
             expected_ops_dynamic=ifdynstaticdefault(1, 10),
+=======
+            expected_ops_dynamic=ifdynstaticdefault(1, 7),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         torch._dynamo.testing.standard_test(
             self,
             get_test_fn(func=max),
             2,
             expected_ops=1,
+<<<<<<< HEAD
             expected_ops_dynamic=ifdynstaticdefault(1, 5),
         )
 
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+            expected_ops_dynamic=ifdynstaticdefault(1, 7),
+        )
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_bound_shape_checks(self):
+        def f1(x, y):
+            b = x.item()
+            torch._check_is_size(b)
+            torch._check(b < y.shape[0])
+            return y[:b]
+
+        fn1 = torch.compile(f1, fullgraph=True, backend="eager")
+        fn1(torch.tensor(4), torch.ones(10))
+
+        def f2(x, index):
+            idx = index.item()
+            torch._check(idx >= 0)
+            torch._check(idx < x.size(0))
+            return x[idx]
+
+        A = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        index = torch.tensor(1, dtype=torch.int64)
+        fn2 = torch.compile(f2, fullgraph=True, backend="eager")
+        fn2(A, index)
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_arange_length_with_float32_dtype(self):
         @torch.compile(fullgraph=True)
         def f(x):
@@ -1270,7 +1379,16 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         torch._dynamo.testing.standard_test(self, fn=fn2, nargs=1, expected_ops=1)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(specialize_float=False)
+=======
+    # When we unspecialize float, we wobble this test by changing
+    # the op count since previously we would just specialize and constant
+    # fold floats into the graph, whereas when we unspecialize we will have
+    # ops for item, add, and all other tensorified operations. Since this
+    # test really isn't testing that, we purposely specialize floats here.
+    @torch._dynamo.config.patch(specialize_float=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_obj(self):
         class Cfg:
             def __init__(self) -> None:
@@ -1295,7 +1413,11 @@ utils_device.CURRENT_DEVICE == None""".split(
         cfg2.val = 2.0
         v = opt_fn(v, cfg2)  # 7
         self.assertEqual(v[0], 7)
+<<<<<<< HEAD
         self.assertEqual(cnts.op_count, 9)
+=======
+        self.assertEqual(cnts.op_count, 8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_config_getattr_default(self):
         class Cfg:
@@ -1457,6 +1579,38 @@ utils_device.CURRENT_DEVICE == None""".split(
         self.assertEqual(cnts.frame_count, 3)
         self.assertEqual(cnts.op_count, 9)
 
+<<<<<<< HEAD
+=======
+    @patch.object(torch._dynamo.config, "capture_scalar_outputs", True)
+    def test_user_code_statically_known(self):
+        from torch.fx.experimental.symbolic_shapes import (
+            has_static_value,
+            statically_known_true,
+        )
+
+        @torch.compile(fullgraph=True, backend="eager")
+        def f(x):
+            # At this point, this isn't statically known, only the hint says so.
+            if statically_known_true(x.shape[0] > 9):
+                raise Exception()
+            torch._check(x.shape[0] >= 10)
+            # But now it is.
+            return statically_known_true(x.shape[0] > 9), has_static_value(x.shape[0])
+
+        x = torch.zeros(10)
+        torch._dynamo.mark_dynamic(x, 0)
+        self.assertEqual(f(x), (True, False))
+
+        @torch.compile(fullgraph=True, dynamic=True, backend="eager")
+        def g(x, y):
+            n = x.item()
+            torch._check(n == 3)
+            return has_static_value(4.0), has_static_value(n)
+
+        out = g(torch.tensor([3]), torch.zeros(1))
+        self.assertEqual(out, (True, True))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dictcomp(self):
         def fn1(inputs):
             return {k: v + 1 for k, v in inputs.items()}
@@ -1911,6 +2065,33 @@ utils_device.CURRENT_DEVICE == None""".split(
         with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
             res = opt_fn(g, torch.ones(2, 2))
 
+<<<<<<< HEAD
+=======
+    def test_set_descriptor(self):
+        class Field:
+            def __set__(self, obj, value):
+                obj.__dict__["field"] += value * 2
+
+        class Foo:
+            field = Field()
+
+            def __init__(self):
+                self.__dict__["field"] = 0
+
+        def fn(x, foo):
+            foo.field = 10
+            return x + foo.field
+
+        opt_fn = torch.compile(fn, fullgraph=True, backend="eager")
+        x = torch.zeros(2)
+        foo1, foo2 = Foo(), Foo()
+
+        ref = fn(x, foo1)
+        res = opt_fn(x, foo2)
+        self.assertEqual(ref, res)
+        self.assertEqual(foo1.field, foo2.field)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_attr_function(self):
         def fn(g, x):
             return g(x)
@@ -2680,7 +2861,11 @@ utils_device.CURRENT_DEVICE == None""".split(
             "int",
             np.intp,
             np.int32,
+<<<<<<< HEAD
             np.uint8
+=======
+            np.uint8,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # np.dtype('int')       # XXX: as above
         ]
 
@@ -3147,6 +3332,61 @@ utils_device.CURRENT_DEVICE == None""".split(
         self.assertEqual(cnts.frame_count, 1)
         self.assertEqual(cnts.op_count, 4)
 
+<<<<<<< HEAD
+=======
+    def test_global_state_guard_serialization(self):
+        GlobalStateGuard = torch._C._dynamo.guards.GlobalStateGuard
+        guards = GlobalStateGuard()
+        serialized_guards = guards.dump()
+        json_guards = json.loads(serialized_guards)
+
+        samples = []
+        # Test on non autocast state and autocast cache states.
+        self.assertIn("autocast_state", json_guards)
+        for key, value in json_guards.items():
+            if type(value) == int:
+                variant = value + 1
+            elif type(value) == bool:
+                variant = not value
+            elif isinstance(value, dict) and key == "autocast_state":
+                variant = value.copy()
+                variant["cached_enabled"] = not variant["cached_enabled"]
+                continue
+            else:
+                self.fail(f"Unknown global state type {key}: {value}")
+            new_dict = json_guards.copy()
+            new_dict[key] = variant
+            samples.append(new_dict)
+
+        for sample in samples:
+            guards.load(json.dumps(sample))
+            self.assertFalse(guards.check())
+
+        guards.load(json.dumps(json_guards))
+        self.assertTrue(guards.check())
+
+        # Test on autocast states.
+        def _test_autocast(dtype):
+            with torch.autocast("cpu", dtype):
+                guards = GlobalStateGuard()
+                serialized_guards = guards.dump()
+                json_guards = json.loads(serialized_guards)
+
+                for i, enabled in enumerate(json_guards["autocast_state"]["enabled"]):
+                    if enabled:
+                        self.assertEqual(
+                            type(json_guards["autocast_state"]["dtype"][i]), int
+                        )
+                        json_guards["autocast_state"]["dtype"][i] += 1
+                        guards.load(json.dumps(json_guards))
+                        self.assertFalse(guards.check())
+
+        _test_autocast(torch.float16)
+        _test_autocast(torch.float32)
+        _test_autocast(torch.float64)
+        _test_autocast(torch.bfloat16)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_type_copy(self):
         def fn(seq):
             a, b = seq
@@ -3246,6 +3486,29 @@ utils_device.CURRENT_DEVICE == None""".split(
         self.assertEqual(cnts.frame_count, 1)
         self.assertEqual(cnts.op_count, 9)
 
+<<<<<<< HEAD
+=======
+    def test_nesteduserfunction_setattr(self):
+        x = 0
+
+        def update(y):
+            def wrapper():
+                x += y
+
+            return wrapper
+
+        @torch.compile(backend="eager", fullgraph=True)
+        def fn(t):
+            w = update(123)
+            w.__wrapped__ = x
+            return t.sin(), w
+
+        t = torch.randn(2)
+        y, w = fn(t)
+        self.assertEqual(y, t.sin())
+        self.assertEqual(w.__wrapped__, x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_object_setattr(self):
         @dataclasses.dataclass
         class A:
@@ -3599,7 +3862,16 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         self.assertTrue(same(out[0], out[1]))
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(specialize_float=False)
+=======
+    # When we unspecialize float, we wobble this test by changing
+    # the op count since previously we would just specialize and constant
+    # fold floats into the graph, whereas when we unspecialize we will have
+    # ops for item, add, and all other tensorified operations. Since this
+    # test really isn't testing that, we purposely specialize floats here.
+    @torch._dynamo.config.patch(specialize_float=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_closure_out_of_scope_cell(self):
         cell1 = torch.rand(1).item()
         cell2 = torch.rand(3, 3)
@@ -3621,7 +3893,16 @@ utils_device.CURRENT_DEVICE == None""".split(
         self.assertEqual(cnts.frame_count, 1)
         self.assertEqual(cnts.op_count, 1)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(specialize_float=False)
+=======
+    # When we unspecialize float, we wobble this test by changing
+    # the op count since previously we would just specialize and constant
+    # fold floats into the graph, whereas when we unspecialize we will have
+    # ops for item, add, and all other tensorified operations. Since this
+    # test really isn't testing that, we purposely specialize floats here.
+    @torch._dynamo.config.patch(specialize_float=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_closure_out_of_scope_cell_with_mutation(self):
         cell1 = torch.rand(1).item()
         orig1 = cell1
@@ -3648,6 +3929,7 @@ utils_device.CURRENT_DEVICE == None""".split(
             result1, result2, _ = opt_fn()
             self.assertAlmostEqual(orig1 + 1 * i, result1)
             self.assertTrue(torch.allclose(orig2 + 10 * i, result2))
+<<<<<<< HEAD
             if i == 1:
                 # No automatic dynamic
                 self.assertEqual(cnts.frame_count, 1)
@@ -3660,6 +3942,10 @@ utils_device.CURRENT_DEVICE == None""".split(
                 # No more recompiles
                 self.assertEqual(cnts.frame_count, 0)
                 self.assertEqual(cnts.op_count, 0)
+=======
+            self.assertEqual(cnts.frame_count, 1)
+            self.assertEqual(cnts.op_count, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cnts.clear()
 
     def test_closure_with_mutation_and_graph_break(self):
@@ -4227,6 +4513,7 @@ utils_device.CURRENT_DEVICE == None""".split(
         # temporary test to check that the ci torch version is set correctly
         self.assertTrue(hasattr(torch, "_subclasses"))
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "requires cuda")
     def test_rand(self):
         cnts = torch._dynamo.testing.CompileCounter()
@@ -4248,6 +4535,8 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         self.assertTrue(same(res, ref_run1))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_slice_input(self):
         cnts = torch._dynamo.testing.CompileCounter()
 
@@ -5350,9 +5639,15 @@ utils_device.CURRENT_DEVICE == None""".split(
 
             def forward(self, idx, targets=None):
                 b, t = idx.size()
+<<<<<<< HEAD
                 assert (
                     t <= self.block_size
                 ), "Cannot forward, model block size is exhausted."
+=======
+                assert t <= self.block_size, (
+                    "Cannot forward, model block size is exhausted."
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # forward the GPT model
                 token_embeddings = self.tok_emb(
@@ -5682,11 +5977,23 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         error_message = ""
         if torch._dynamo.config.inline_inbuilt_nn_modules:
+<<<<<<< HEAD
             error_message = r"HigherOrderOperator: Mutating a variable not in the current scope \(SideEffects\)"
         else:
             error_message = "Can't inplace modify module params/buffers"
 
         with self.assertRaisesRegex(Unsupported, error_message):
+=======
+            error_message = (
+                "map doesn't work unless it is captured completely with torch.compile"
+            )
+        else:
+            error_message = "Can't inplace modify module params/buffers"
+
+        with self.assertRaisesRegex(
+            torch._dynamo.exc.UncapturedHigherOrderOpError, error_message
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             opt_fn = torch.compile(mod, backend="eager", fullgraph=True)
             opt_fn(torch.randn(3, 2))
 
@@ -5784,7 +6091,11 @@ utils_device.CURRENT_DEVICE == None""".split(
         from functorch.experimental.control_flow import cond
 
         def true_fn(x):
+<<<<<<< HEAD
             return x
+=======
+            return x.clone()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def false_fn(x):
             return x.sin()
@@ -5894,6 +6205,7 @@ utils_device.CURRENT_DEVICE == None""".split(
         def count_graph_break_msgs(msgs):
             return sum("Graph break in user code" in msg for msg in msgs)
 
+<<<<<<< HEAD
         with self.assertLogs(
             logger="torch._dynamo", level=logging.DEBUG
         ) as log, torch._dynamo.config.patch(verbose=True):
@@ -5903,6 +6215,19 @@ utils_device.CURRENT_DEVICE == None""".split(
         with self.assertLogs(
             logger="torch._dynamo", level=logging.DEBUG
         ) as log, torch._dynamo.config.patch(verbose=False):
+=======
+        with (
+            self.assertLogs(logger="torch._dynamo", level=logging.DEBUG) as log,
+            torch._dynamo.config.patch(verbose=True),
+        ):
+            f1(torch.randn(10), torch.randn(10))
+            self.assertGreater(count_graph_break_msgs(log.output), 1)
+
+        with (
+            self.assertLogs(logger="torch._dynamo", level=logging.DEBUG) as log,
+            torch._dynamo.config.patch(verbose=False),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             g1(torch.randn(10), torch.randn(10))
             self.assertEqual(count_graph_break_msgs(log.output), 1)
 
@@ -5930,6 +6255,7 @@ utils_device.CURRENT_DEVICE == None""".split(
         self.assertEqual(cnts.frame_count, 1)
         self.assertEqual(cnts.op_count, 3)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION,
         "Can't run fused SDPA on this platform",
@@ -5981,6 +6307,8 @@ utils_device.CURRENT_DEVICE == None""".split(
         opt_mod = torch.compile(module, backend="inductor")
         opt_mod(query, key, value)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_generate_tensor_from_list_of_numpy_primitive_type(self):
         # Test sth like torch.LongTensor(list(np.int64, np.int64, ...))
         def fn():
@@ -6437,6 +6765,7 @@ utils_device.CURRENT_DEVICE == None""".split(
         res = opt_fn(x, obj)
         self.assertTrue(same(ref, res))
 
+<<<<<<< HEAD
     def test_torch_cuda_is_available(self):
         def fn(x):
             if torch.cuda.is_available():
@@ -6450,6 +6779,8 @@ utils_device.CURRENT_DEVICE == None""".split(
         res = opt_fn(x)
         self.assertTrue(same(ref, res))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_variable_tracker_recursively_contains(self):
         # VariableTracker.recursively_contains should be updated correctly when mutation happens
         def fn(x):
@@ -6467,6 +6798,7 @@ utils_device.CURRENT_DEVICE == None""".split(
         res = opt_fn(x)
         self.assertTrue(same(ref, res))
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "requires cuda")
     @unittest.skipIf(not torch.backends.cudnn.is_available(), "requires cudnn")
     def test_torch_cudnn_is_acceptable(self):
@@ -6522,6 +6854,8 @@ utils_device.CURRENT_DEVICE == None""".split(
         res = opt_fn(x, y)
         self.assertTrue(same(ref, res))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_disable_flag(self):
         cnt = torch._dynamo.testing.CompileCounter()
 
@@ -6817,6 +7151,7 @@ utils_device.CURRENT_DEVICE == None""".split(
             # This guard was created
             self.assertTrue(guard.name != "nested_fn.__closure__[0].cell_contents")
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.cuda.is_available(), "Test requires CUDA.")
     def test_symint_as_device_kwarg(self):
         def f(rank):
@@ -6828,6 +7163,8 @@ utils_device.CURRENT_DEVICE == None""".split(
         opt_out = torch.compile(backend="eager", dynamic=True, fullgraph=True)(f)(x)
         self.assertEqual(out, opt_out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_MULTIGPU, "need multiple GPU")
     def test_symint_as_device_kwarg_multi_gpu(self):
         def fn(rank):
@@ -7014,6 +7351,152 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         optimized_loaded_model = torch.compile(loaded_model, backend="eager")(*inputs)
 
+<<<<<<< HEAD
+=======
+    def test_precompile_entry_hit(self):
+        from torch._C._dynamo.eval_frame import (
+            _load_precompile_entry,
+            _reset_precompile_entries,
+        )
+
+        def fn(x):
+            return x + 1
+
+        def injected(x):
+            return x + 42
+
+        args = (torch.randn(3, 2),)
+
+        compiled_fn = torch.compile(fn)
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(),
+            injected.__code__,
+        )
+        self.assertEqual(compiled_fn(*args), injected(*args))
+        _reset_precompile_entries(fn.__code__)
+
+        self.assertEqual(compiled_fn(*args), fn(*args))
+
+    def test_precompile_entry_miss(self):
+        from torch._C._dynamo.eval_frame import _load_precompile_entry
+
+        def fn(x):
+            return x + 1
+
+        guard_manager = torch._dynamo.guards.RootGuardManager()
+        guard_manager.add_lambda_guard(lambda L: isinstance(L["x"], int), [])
+
+        def injected(x):
+            return x + 42
+
+        args = (torch.randn(3, 2),)
+
+        compiled_fn = torch.compile(fn)
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(guard_manager),
+            injected.__code__,
+        )
+        self.assertEqual(compiled_fn(*args), fn(*args))
+
+    def test_precompile_entries(self):
+        from torch._C._dynamo.eval_frame import (
+            _load_precompile_entry,
+            _reset_precompile_entries,
+        )
+
+        def fn(x):
+            return x + 1
+
+        guard_manager_bool = torch._dynamo.guards.RootGuardManager()
+        guard_manager_bool.add_lambda_guard(lambda L: isinstance(L["x"], bool), [])
+
+        def injected_bool(x: bool):
+            return x + 102
+
+        guard_manager_int = torch._dynamo.guards.RootGuardManager()
+        guard_manager_int.add_lambda_guard(lambda L: isinstance(L["x"], int), [])
+
+        def injected_int(x: int):
+            return x + 42
+
+        guard_manager_tensor = torch._dynamo.guards.RootGuardManager()
+        guard_manager_tensor.add_lambda_guard(
+            lambda L: isinstance(L["x"], torch.Tensor), []
+        )
+
+        def injected_tensor(x: torch.Tensor):
+            return x + 100
+
+        guard_manager_str = torch._dynamo.guards.RootGuardManager()
+        guard_manager_str.add_lambda_guard(lambda L: isinstance(L["x"], str), [])
+
+        def injected_str(x: str):
+            return x + "1"
+
+        args = (torch.randn(3, 2),)
+
+        compiled_fn = torch.compile(fn)
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(guard_manager_bool),
+            injected_bool.__code__,
+        )
+
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(guard_manager_int),
+            injected_int.__code__,
+        )
+
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(guard_manager_tensor),
+            injected_tensor.__code__,
+        )
+
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(guard_manager_str),
+            injected_str.__code__,
+        )
+
+        self.assertEqual(compiled_fn(*args), injected_tensor(*args))
+        self.assertEqual(compiled_fn(True), injected_bool(True))
+        self.assertEqual(compiled_fn(10), injected_int(10))
+        self.assertEqual(compiled_fn("10"), injected_str("10"))
+        _reset_precompile_entries(fn.__code__)
+
+        self.assertEqual(compiled_fn(*args), fn(*args))
+
+    def test_precompile_fail_on_recompile(self):
+        from torch._C._dynamo.eval_frame import _load_precompile_entry
+
+        @torch.compiler.disable
+        def graph(x, s0):
+            return x + s0
+
+        def fn(x):
+            nonlocal graph  # Forcing fn and injected to have the same closure.
+            return x - 1
+
+        def injected(x):
+            s0 = call_size(x, 0)
+            return graph(x, s0)
+
+        args = (torch.randn(3, 2),)
+
+        compiled_fn = torch.compile(fn)
+        _load_precompile_entry(
+            fn.__code__,
+            torch._dynamo.guards.GuardManagerWrapper(),
+            injected.__code__,
+        )
+        with torch.compiler.set_stance("fail_on_recompile"):
+            self.assertEqual(compiled_fn(*args), injected(*args))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_shape_and_tuple_equality(self):
         def fn(x, y, t):
             z = x * y
@@ -7620,6 +8103,60 @@ utils_device.CURRENT_DEVICE == None""".split(
             torch.compile(dyn_fn, backend="eager")(y)
 
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+<<<<<<< HEAD
+=======
+    def test_unbacked_empty_tensor(self):
+        @torch.compile(backend="eager", fullgraph=True)
+        def fn(x):
+            n = x.item()
+            return torch.empty((n - 1) // 2)
+
+        self.assertEqual(fn(torch.tensor([4])).size(0), 1)
+        self.assertEqual(fn(torch.tensor([1])).size(0), 0)
+
+    def test_sym_and_terms(self):
+        from torch.fx.experimental.symbolic_shapes import sym_and
+
+        @torch.compile(fullgraph=True, dynamic=True, backend="eager")
+        def fn(xs):
+            u0, u1 = xs.tolist()
+            torch._check(sym_and(u0 >= 3, u0 <= 10, u1 >= 2))
+
+            # test individual checks
+            n = 0
+            if u0 >= 3:
+                n += 1
+            if u0 <= 11:
+                n += 1
+            if u1 >= 1:
+                n += 1
+            return u0 + u1 + n
+
+        fn(torch.tensor([5, 6]))
+        fn(torch.tensor([8, 7]))
+        with self.assertRaises(RuntimeError):
+            fn(torch.tensor([9, 0]))
+
+    def test_unbacked_2d_expand(self):
+        @torch.compile(fullgraph=True, dynamic=True, backend="inductor")
+        def func(a, b):
+            a.expand(b.shape)
+            return a * 10
+
+        a = torch.rand(1, 1)
+        b = torch.rand(1, 1)
+
+        torch._dynamo.decorators.mark_unbacked(a, 0)
+        torch._dynamo.decorators.mark_unbacked(a, 1)
+        torch._dynamo.decorators.mark_unbacked(b, 0)
+        torch._dynamo.decorators.mark_unbacked(b, 1)
+        func(a, b)
+        func(torch.rand(4, 5), torch.rand(4, 5))
+        with self.assertRaises(RuntimeError):
+            func(torch.rand(1, 1), torch.rand(2, 1))
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sym_constrain_range_on_replaced_unbacked_symbol(self):
         # Tests the following case:
         # Deferred runtime asserts adds sym_constrain_range(u0).
@@ -7635,11 +8172,29 @@ utils_device.CURRENT_DEVICE == None""".split(
             torch._check(u0 == s0 + s1)
             return x, y, z
 
+<<<<<<< HEAD
         inputs = (x := torch.randn(16, 10), y := torch.randn(16, 10), torch.tensor(32))
+=======
+        inputs = (
+            x := torch.randn(16, 10),
+            y := torch.randn(16, 10),
+            torch.tensor(32 - 7),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._dynamo.mark_dynamic(x, 0)
         torch._dynamo.mark_dynamic(y, 0)
         opt = torch.compile(fn, fullgraph=True)
         opt(*inputs)
+<<<<<<< HEAD
+=======
+        with self.assertRaises(RuntimeError):
+            inputs = (
+                x := torch.randn(16, 10),
+                y := torch.randn(16, 10),
+                torch.tensor(32),
+            )
+            opt(*inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     @torch._dynamo.config.patch(assume_static_by_default=True)
@@ -7812,6 +8367,34 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
+=======
+    @torch.compiler.config.patch(dynamic_sources="L['self']._modules['inner'].x")
+    def test_dynamic_sources_precedence_over_int_specialization(self):
+        builder._DYNAMIC_SOURCES = None
+
+        counter = CompileCounter()
+
+        class Model(torch.nn.Module):
+            def __init__(self, x) -> None:
+                super().__init__()
+                self.inner = torch.nn.Linear(10, 10)
+                # attach attribute to builtin nn module.
+                self.inner.x = x
+
+            @torch.compile(fullgraph=True, backend=counter)
+            def forward(self, a):
+                return a * self.inner.x
+
+        m1 = Model(50)
+        m2 = Model(60)
+        with fresh_cache():
+            m1(torch.rand(1, 2, 3))
+            m2(torch.rand(1, 2, 3))
+
+        self.assertEqual(counter.frame_count, 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.compiler.config.patch(dynamic_sources="L['x']")
     def test_dynamic_sources_int(self):
         counter = CompileCounter()
@@ -7840,6 +8423,37 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
+=======
+    @torch.compiler.config.patch(unbacked_sources="L['x']")
+    def test_unbacked_sources_tensor(self):
+        counter = CompileCounter()
+
+        @torch.compile(backend=counter)
+        def fn(x):
+            return x * x
+
+        fn(torch.randn(0))
+        fn(torch.randn(1))
+        fn(torch.randn(2))
+
+        self.assertEqual(counter.frame_count, 1)
+
+    @torch.compiler.config.patch(unbacked_sources="L['x']")
+    def test_unbacked_sources_scalar(self):
+        counter = CompileCounter()
+
+        @torch.compile(backend=counter)
+        def fn(x):
+            return x * x
+
+        fn(0)
+        fn(1)
+        fn(2)
+
+        self.assertEqual(counter.frame_count, 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.compiler.config.patch(dynamic_sources="L['x']")
     def test_dynamic_sources_graph_break(self):
         counter = CompileCounter()
@@ -7874,6 +8488,23 @@ utils_device.CURRENT_DEVICE == None""".split(
 
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
+=======
+    @torch.compiler.config.patch(dynamic_sources="L\\['x.*'\\], L\\['y.*'\\]")
+    def test_dynamic_sources_dynamic_override_regex(self):
+        counter = CompileCounter()
+
+        @torch.compile(dynamic=False, backend=counter)
+        def fn(x1, y1):
+            return x1 * y1
+
+        fn(2, torch.randn(2))
+        fn(3, torch.randn(3))
+        fn(4, torch.randn(4))
+
+        self.assertEqual(counter.frame_count, 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cannot_trace_mark_dynamic(self):
         y = torch.randn([3, 3, 3])
 
@@ -7912,8 +8543,14 @@ utils_device.CURRENT_DEVICE == None""".split(
         def f(a):
             return h(a)
 
+<<<<<<< HEAD
         with warnings.catch_warnings(record=True) as w, self.assertRaises(
             torch._dynamo.exc.BackendCompilerFailed
+=======
+        with (
+            warnings.catch_warnings(record=True) as w,
+            self.assertRaises(torch._dynamo.exc.BackendCompilerFailed),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             f(torch.randn(2, 2, requires_grad=True))
 
@@ -8106,8 +8743,12 @@ utils_device.CURRENT_DEVICE == None""".split(
 
     def test_torch_compile_ctx_on_forward_and_training_step(self):
         class MyModel(torch.nn.Module):
+<<<<<<< HEAD
             def forward(self):
                 ...
+=======
+            def forward(self): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def training_step(self):
                 self()
@@ -8276,6 +8917,7 @@ utils_device.CURRENT_DEVICE == None""".split(
         self.assertTrue(isinstance(compile_out, torch.Size))
         self.assertEqual(eager_out, compile_out)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_MULTIGPU, "need multiple GPU")
     def test_cuda_set_device(self):
         def fn():
@@ -8291,6 +8933,8 @@ utils_device.CURRENT_DEVICE == None""".split(
             self.assertEqual(res.device.index, 0)
             self.assertEqual(counter.frame_count, 2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nested_function_resuming_with_correct_globals(self):
         # https://github.com/pytorch/pytorch/issues/99665
         try:
@@ -8311,6 +8955,20 @@ utils_device.CURRENT_DEVICE == None""".split(
         res = opt_fn(x, y)
         self.assertTrue(same(ref, res))
 
+<<<<<<< HEAD
+=======
+    def test_recursion_depth_guards(self):
+        @torch.compile(dynamic=True)
+        def foo(*args, **kwargs):
+            if sum(args) == 0:
+                return 0
+            return 1
+
+        args = list(range(2000))
+        foo(*args)
+        # Previously would have crashed
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dataclasses.dataclass
     class CSETestCase:
         expr: str
@@ -9087,6 +9745,68 @@ def ___make_guard_fn():
         self.assertEqual(msg, "shape torch.Size([8, 8]) batch size 1.00")
         self.assertEqual(res, img1 + torch.sin(img1))
 
+<<<<<<< HEAD
+=======
+    def test_sourceless_namedtuple(self):
+        from collections import namedtuple
+
+        CustomDtype = namedtuple("CustomDtype", ["dtype", "higher_dtype"])
+
+        class CustomTensor(torch.Tensor):
+            _data: torch.Tensor
+            custom_dtype: CustomDtype
+            __torch_function__ = torch._C._disabled_torch_function_impl
+            __slots__ = [
+                "_data",
+                "custom_dtype",
+            ]
+
+            def __new__(
+                cls,
+                data: torch.Tensor,
+                custom_dtype: CustomDtype,
+            ):
+                self = torch.Tensor._make_wrapper_subclass(
+                    cls,
+                    data.size(),
+                    strides=data.stride(),
+                    storage_offset=data.storage_offset(),
+                    dtype=custom_dtype.dtype,
+                    layout=data.layout,
+                    requires_grad=data.requires_grad,
+                    device=data.device,
+                )
+                self._data = data
+                self.custom_dtype = custom_dtype
+                return self
+
+            def __tensor_flatten__(self):
+                meta = {
+                    "custom_dtype": self.custom_dtype,
+                }
+                return ["_data"], meta
+
+            @staticmethod
+            def __tensor_unflatten__(
+                inner_tensors: dict, metadata, outer_size, outer_stride
+            ):
+                return CustomTensor(
+                    inner_tensors["_data"],
+                    metadata["custom_dtype"],
+                )
+
+            @classmethod
+            def __torch_dispatch__(cls, func, types, args=(), kwargs={}):
+                return func(*args, **kwargs)
+
+        @torch.compile(backend="eager", fullgraph=True)
+        def fn(x):
+            y = CustomTensor(x, CustomDtype(torch.float32, torch.bfloat16))
+            return y, y.custom_dtype
+
+        fn(torch.ones(2, 2, device="cpu"))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Compiling autograd.Function traces fwd function twice, but the same unbacked symints were not identified
     # as the same across the two tracings. This is an unlikely situation in real use cases, so we add another
     # `test_validate_outputs_unbacked_by_custom_op` to mitigate it and keep this one as expected failure
@@ -9529,6 +10249,7 @@ def ___make_guard_fn():
         res = opt_func()
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     def test_torch_device_python_type(self):
         for device, device_type, index in [
             ("cpu", "cpu", None),
@@ -9559,6 +10280,8 @@ def ___make_guard_fn():
             res = opt_func(a)
             self.assertIsInstance(res, torch.Tensor)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torch_dtype_python_type(self):
         def fn(target):
             target_dtype = target.dtype
@@ -10063,6 +10786,29 @@ def ___make_guard_fn():
         actual = fn_opt(*inps)
         expected = fn(*inps)
 
+<<<<<<< HEAD
+=======
+    def test_nested_dataclass_reconstruct(self):
+        @dataclasses.dataclass(frozen=True)
+        class NestedDataClass:
+            x: int = 2
+
+        @dataclasses.dataclass(frozen=True)
+        class TestDataClass:
+            y: torch.Tensor
+            ndc: NestedDataClass = NestedDataClass()
+
+        def fn(y):
+            dc = TestDataClass(y)
+            z = dc.y + dc.ndc.x
+            return z, dc
+
+        fn_opt = torch.compile()(fn)
+        inps = (torch.ones(2, 2),)
+        actual = fn_opt(*inps)
+        expected = fn(*inps)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_frozen_dataclass_default_value(self):
         @dataclasses.dataclass(frozen=True)
         class TestDataClass:
@@ -10318,8 +11064,13 @@ def ___make_guard_fn():
 ShapeEnv not equal: field values don't match:
 
 ==> settings: values don't match.
+<<<<<<< HEAD
   >  Left: ShapeEnvSettings(allow_scalar_outputs=False, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, allow_complex_guards_as_runtime_asserts=False)
   > Right: ShapeEnvSettings(allow_scalar_outputs=True, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, allow_complex_guards_as_runtime_asserts=False)
+=======
+  >  Left: ShapeEnvSettings(allow_scalar_outputs=False, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, allow_complex_guards_as_runtime_asserts=False, trace_asserts=False)
+  > Right: ShapeEnvSettings(allow_scalar_outputs=True, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, allow_complex_guards_as_runtime_asserts=False, trace_asserts=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
         )
         self._replay_and_check(main)
@@ -10343,6 +11094,7 @@ ShapeEnv not equal: field values don't match:
   >  Left: {x.size()[0]: x.size()[0], x.size()[1]: x.size()[1], x.storage_offset(): x.storage_offset(), x.stride()[0]: x.stride()[0], x.stride()[1]: x.stride()[1]}
   > Right: {}
 ==> source_to_var: values don't match.
+<<<<<<< HEAD
   >  Left: {x.size()[0]: s0, x.size()[1]: s1}
   > Right: {}
 ==> val_to_var: values don't match.
@@ -10356,6 +11108,24 @@ ShapeEnv not equal: field values don't match:
   > Right: {}
 ==> var_to_val: values don't match.
   >  Left: {s0: 3, s1: 2}
+=======
+  >  Left: {x.size()[0]: s93, x.size()[1]: s44}
+  > Right: {}
+==> unique_ids: values don't match.
+  >  Left: {44, 93}
+  > Right: {}
+==> val_to_var: values don't match.
+  >  Left: {2: s44, 3: s93}
+  > Right: {}
+==> var_to_range: values don't match.
+  >  Left: {s44: VR[2, int_oo], s93: VR[2, int_oo]}
+  > Right: {}
+==> var_to_sources: values don't match.
+  >  Left: {s44: [TensorPropertySource(base=ConstantSource(source_name='x'), prop=<TensorProperty.SIZE: 0>, idx=1)], s93: [TensorPropertySource(base=ConstantSource(source_name='x'), prop=<TensorProperty.SIZE: 0>, idx=0)]}
+  > Right: {}
+==> var_to_val: values don't match.
+  >  Left: {s44: 2, s93: 3}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   > Right: {}
 """,
         )
@@ -10414,6 +11184,7 @@ ShapeEnv not equal: field values don't match:
 ShapeEnv not equal: field values don't match:
 
 ==> axioms: values don't match.
+<<<<<<< HEAD
   >  Left: {(Mod(s0, 3)) < 0: False, (Mod(s0, 3)) <= 0: True, 0 < (Mod(s0, 3)): False, 0 <= (Mod(s0, 3)): True, Eq(0, Mod(s0, 3)): True, Eq(Mod(s0, 3), 0): True, Ne(0, Mod(s0, 3)): False, Ne(Mod(s0, 3), 0): False}
   > Right: {}
 ==> divisible: values don't match.
@@ -10421,6 +11192,15 @@ ShapeEnv not equal: field values don't match:
   > Right: {}
 ==> guards: values don't match.
   >  Left: [Eq(Mod(s0, 3), 0)]
+=======
+  >  Left: {(Mod(s93, 3)) < 0: False, (Mod(s93, 3)) <= 0: True, 0 < (Mod(s93, 3)): False, 0 <= (Mod(s93, 3)): True, Eq(0, Mod(s93, 3)): True, Eq(Mod(s93, 3), 0): True, Ne(0, Mod(s93, 3)): False, Ne(Mod(s93, 3), 0): False}
+  > Right: {}
+==> divisible: values don't match.
+  >  Left: {Mod(s93, 3)}
+  > Right: {}
+==> guards: values don't match.
+  >  Left: [Eq(Mod(s93, 3), 0)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   > Right: []
 ==> name_to_node: values don't match.
   >  Left: {_assert, eq, mod, x_size_0_, x_size_1_, x_storage_offset, x_stride_0_, x_stride_1_}
@@ -10457,17 +11237,29 @@ ShapeEnv not equal: field values don't match:
   >  Left: {False: False, True: True}
   > Right: {}
 ==> guards: values don't match.
+<<<<<<< HEAD
   >  Left: [Eq(s0, 3)]
+=======
+  >  Left: [Eq(s93, 3)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   > Right: []
 ==> name_to_node: values don't match.
   >  Left: {_assert, eq, x_size_0_, x_size_1_, x_storage_offset, x_stride_0_, x_stride_1_}
   > Right: {x_size_0_, x_size_1_, x_storage_offset, x_stride_0_, x_stride_1_}
 ==> replacements: values don't match.
+<<<<<<< HEAD
   >  Left: {s0: 3}
   > Right: {}
 ==> var_to_range: values don't match.
   >  Left: {s0: VR[3, 3], s1: VR[2, int_oo]}
   > Right: {s0: VR[2, int_oo], s1: VR[2, int_oo]}
+=======
+  >  Left: {s93: 3}
+  > Right: {}
+==> var_to_range: values don't match.
+  >  Left: {s44: VR[2, int_oo], s93: VR[3, 3]}
+  > Right: {s44: VR[2, int_oo], s93: VR[2, int_oo]}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
         )
         self._replay_and_check(main)
@@ -10498,17 +11290,29 @@ ShapeEnv not equal: field values don't match:
 ShapeEnv not equal: field values don't match:
 
 ==> axioms: values don't match.
+<<<<<<< HEAD
   >  Left: {3 <= s0: True, s0 < 3: False}
   > Right: {}
 ==> guards: values don't match.
   >  Left: [s0 >= 3]
+=======
+  >  Left: {3 <= s93: True, s93 < 3: False}
+  > Right: {}
+==> guards: values don't match.
+  >  Left: [s93 >= 3]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   > Right: []
 ==> name_to_node: values don't match.
   >  Left: {_assert, ge, x_size_0_, x_size_1_, x_storage_offset, x_stride_0_, x_stride_1_}
   > Right: {x_size_0_, x_size_1_, x_storage_offset, x_stride_0_, x_stride_1_}
 ==> var_to_range: values don't match.
+<<<<<<< HEAD
   >  Left: {s0: VR[3, int_oo], s1: VR[2, int_oo]}
   > Right: {s0: VR[2, int_oo], s1: VR[2, int_oo]}
+=======
+  >  Left: {s44: VR[2, int_oo], s93: VR[3, int_oo]}
+  > Right: {s44: VR[2, int_oo], s93: VR[2, int_oo]}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
         )
         self._replay_and_check(main)
@@ -10626,6 +11430,13 @@ ShapeEnv not equal: field values don't match:
     @skipIfWindows(
         msg="AssertionError: False is not true : Encountered an unexpected fallback to 'aten pow' in dynamo compiled code"
     )
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        torch._inductor.config.cpu_backend != "cpp",
+        "Skip for non cpp backend CPU as comments contain 'aten.pow' ",
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torch_dynamo_codegen_pow(self):
         def pow(x):
             return x**2
@@ -10872,7 +11683,11 @@ fn
         torch._dynamo.decorators.mark_unbacked(x, 1, strict=True)
         y = torch.randn(5, 5)
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, "RelaxedUnspecConstraint"):
+=======
+        with self.assertRaisesRegex(RuntimeError, "specialized"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn(x, y)
 
     def test_sym_max_unbacked_sizelike_simplification(self):
@@ -10882,6 +11697,7 @@ fn
             torch._check_is_size(u0)
             torch._check_is_size(u1)
             torch._check(u0 + u1 == 20)
+<<<<<<< HEAD
             if guard_size_oblivious(torch.sym_max(1, u0 + u1) == 20):
                 return torch.tensor(True)
             else:
@@ -10889,6 +11705,20 @@ fn
 
         # Previously would have thrown guard on data dependent
         cf(torch.tensor([10, 10])).item()
+=======
+
+            y = 0
+            if guard_size_oblivious(torch.sym_max(1, u0 + u1) == 20):
+                y += 1
+            if guard_size_oblivious(torch.sym_max(1, u0**2 + u1 + 2) != 1):
+                y += 1
+            if guard_size_oblivious(torch.sym_min(1, u0) == 1):
+                y += 1
+            return y
+
+        # Previously would have thrown guard on data dependent
+        self.assertEqual(cf(torch.tensor([10, 10])), 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_guard_size_oblivious(self):
@@ -11473,6 +12303,7 @@ fn
         with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
             fn(torch.randn(4), d)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "requires cuda")
     @torch._dynamo.config.patch(
         capture_scalar_outputs=True, capture_dynamic_output_shape_ops=True
@@ -11490,6 +12321,8 @@ fn
 
         f(torch.tensor([30, 30], device="cuda"), torch.tensor([68, 32], device="cuda"))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_iter_type(self):
         @torch.compile(fullgraph=True)
         def fn(y):
@@ -11539,6 +12372,33 @@ fn
         res = fn(x)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
+=======
+    def test_descriptor_side_effect(self):
+        # This pattern (readonly descriptor but writable value in `__dict__`) is
+        # from scipy `_make_tuple_bunch`:
+        # https://github.com/scipy/scipy/blob/maintenance/1.9.x/scipy/_lib/_bunch.py#L32-L226
+        def fget(obj):
+            return obj.__dict__["field"]
+
+        class MyClass:
+            def __init__(self, n):
+                self.__dict__["field"] = n
+
+            field = property(fget)
+
+        def fn(x):
+            obj = MyClass(42)
+            return x + obj.field, obj
+
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        x = torch.randn(4)
+        ref_t, ref_obj = fn(x)
+        res_t, res_obj = opt_fn(x)
+        self.assertEqual(ref_t, res_t)
+        self.assertEqual(ref_obj.field, res_obj.field)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_assert_size_stride(self):
         x = torch.randn(2, 3, 4)
         with self.assertRaisesRegex(
@@ -12044,6 +12904,201 @@ fn
         x = torch.randn(4)
         self.assertEqual(fn(x), opt_fn(x))
 
+<<<<<<< HEAD
+=======
+    def test_guard_filter_fn_by_id(self):
+        def guard_filter_fn(entries):
+            return [entry.guard_type != "ID_MATCH" for entry in entries]
+
+        @torch.compile(fullgraph=True, options={"guard_filter_fn": guard_filter_fn})
+        def fn(x):
+            return id(x)
+
+        inputs = (torch.randn(3, 2),)
+        fn(*inputs)
+
+        inputs_1 = (torch.randn(3, 2),)
+        with torch.compiler.set_stance("fail_on_recompile"):
+            self.assertEqual(fn(*inputs_1), id(inputs[0]))
+
+    def test_guard_filter_fn_by_is_global(self):
+        def guard_filter_fn(entries):
+            return [not entry.is_global for entry in entries]
+
+        global GLOBAL_INT
+
+        @torch.compile(fullgraph=True, options={"guard_filter_fn": guard_filter_fn})
+        def fn(x):
+            return x + GLOBAL_INT
+
+        GLOBAL_INT = 1
+        fn(torch.randn(3, 2))
+
+        GLOBAL_INT = 2
+        inputs = (torch.randn(3, 2),)
+        with torch.compiler.set_stance("fail_on_recompile"):
+            self.assertEqual(fn(*inputs), inputs[0] + 1)
+
+    def test_guard_filter_fn_by_name_and_value(self):
+        def guard_filter_fn(entries):
+            return [
+                not (entry.name == "y" and entry.value is None) for entry in entries
+            ]
+
+        @torch.compile(fullgraph=True, options={"guard_filter_fn": guard_filter_fn})
+        def fn(x, y):
+            if y is not None:
+                x += y
+            return x
+
+        fn(torch.randn(3, 2), None)
+
+        inputs = (torch.randn(3, 2), torch.tensor(1))
+        with torch.compiler.set_stance("fail_on_recompile"):
+            self.assertEqual(fn(*inputs), inputs[0])
+
+    def test_guard_filter_inbuilt_nn_modules(self):
+        class Mod(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.norm = torch.nn.LayerNorm(8)
+
+            def forward(self, x):
+                return self.norm(x)
+
+        mod = Mod()
+        opt_mod = torch.compile(
+            mod,
+            options={
+                "guard_filter_fn": torch.compiler.skip_guard_on_inbuilt_nn_modules_unsafe
+            },
+        )
+
+        x = torch.rand(4, 8)
+        opt_mod(x)
+
+        mod.norm.eps = 1e-02
+        # Since the guards are skipped on inbuilt nn modules, we should not recompile
+        with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
+            opt_mod(x)
+
+    def test_guard_filter_nn_modules(self):
+        class Mod(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.c = 2
+                self.norm = torch.nn.LayerNorm(8)
+
+            def forward(self, x):
+                return self.norm(x) + self.c
+
+        mod = Mod()
+        opt_mod = torch.compile(
+            mod,
+            options={
+                "guard_filter_fn": torch.compiler.skip_guard_on_all_nn_modules_unsafe
+            },
+        )
+
+        x = torch.rand(4, 8)
+        opt_mod(x)
+
+        mod.c = 3
+        # Since the guards are skipped on all nn modules, we should not recompile
+        with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
+            opt_mod(x)
+
+    def test_guard_filter_tensors(self):
+        class Mod(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.c = 2.0
+                self.norm = torch.nn.LayerNorm(8)
+
+            def forward(self, x):
+                return self.norm(x) + self.c
+
+        mod = Mod()
+        opt_mod = torch.compile(
+            mod,
+            options={
+                "guard_filter_fn": torch.compiler.keep_tensor_guards_unsafe,
+            },
+        )
+
+        x = torch.rand(4, 8)
+        opt_mod(x)
+
+        mod.c = 3.0
+        # Since the guards are skipped on all tensors
+        with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
+            opt_mod(x)
+
+    def test_guard_filter_globals(self):
+        class Mod(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.c = 2
+                self.norm = torch.nn.LayerNorm(8)
+
+            def forward(self, x):
+                return self.norm(x) + self.c + GLOBAL_INT
+
+        mod = Mod()
+        opt_mod = torch.compile(
+            mod,
+            options={
+                "guard_filter_fn": torch.compiler.skip_guard_on_globals_unsafe,
+            },
+        )
+
+        global GLOBAL_INT
+        GLOBAL_INT = 1
+        x = torch.rand(4, 8)
+        opt_mod(x)
+
+        GLOBAL_INT = 2
+        # Since the guards are skipped on globals, we should not recompile
+        with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
+            opt_mod(x)
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_builtin_bool_on_symint(self):
+        def f(x):
+            return bool(x.item())
+
+        opt_f = torch.compile(f, backend="eager", fullgraph=True)
+        x = torch.randint(10, (1,))
+
+        ref = f(x)
+        res = opt_f(x)
+        self.assertEqual(ref, res)
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_builtin_bool_on_symfloat(self):
+        def f(x):
+            return bool(x.item())
+
+        opt_f = torch.compile(f, backend="eager", fullgraph=True)
+        x = torch.randn(1)
+
+        ref = f(x)
+        res = opt_f(x)
+        self.assertEqual(ref, res)
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_builtin_bool_on_symbool(self):
+        def f(x):
+            return bool(x.item())
+
+        opt_f = torch.compile(f, backend="eager", fullgraph=True)
+        x = torch.randn(1) == 1
+
+        ref = f(x)
+        res = opt_f(x)
+        self.assertEqual(ref, res)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestTracer(JitTestCase):
     def test_jit_save(self):
@@ -12138,6 +13193,302 @@ class TestCustomFunction(torch.testing._internal.common_utils.TestCase):
         self.assertTrue(y.grad is not None)
 
 
+<<<<<<< HEAD
+=======
+class MiscTestsDevice(torch._inductor.test_case.TestCase):
+    def test_rand(self, device):
+        cnts = torch._dynamo.testing.CompileCounter()
+        device = device
+
+        def fn():
+            return torch.randn(10, device=device)
+
+        torch.manual_seed(10)
+        ref_run1 = fn()
+
+        torch.manual_seed(10)
+        ref_run2 = fn()
+        self.assertTrue(same(ref_run1, ref_run2))
+
+        torch.manual_seed(10)
+        opt_fn = torch.compile(fn, backend=cnts, fullgraph=True)
+        res = opt_fn()
+
+        self.assertTrue(same(res, ref_run1))
+
+    @unittest.skipIf(
+        not PLATFORM_SUPPORTS_FLASH_ATTENTION,
+        "Can't run fused SDPA on this platform",
+    )
+    def test_parsing_sdpa(self, device):
+        class MyModule(torch.nn.Module):
+            def forward(self, query, key, value):
+                out = F.scaled_dot_product_attention(query, key, value, None, 0, True)
+                out = F.scaled_dot_product_attention(
+                    query, key, value, None, 0, True, scale=8
+                )
+                out = F.scaled_dot_product_attention(
+                    query=query,
+                    key=key,
+                    value=value,
+                    attn_mask=None,
+                    dropout_p=0,
+                    is_causal=True,
+                )
+                out = F.scaled_dot_product_attention(
+                    query,
+                    key=key,
+                    value=value,
+                    attn_mask=None,
+                    dropout_p=0,
+                    is_causal=True,
+                )
+                out = F.scaled_dot_product_attention(
+                    query, key, value, None, dropout_p=0, is_causal=True
+                )
+                out = F.scaled_dot_product_attention(query, key, value, None, scale=8)
+                return out
+
+        device = device
+        dtype = torch.float16
+        seq_len_q = 1
+        seq_len_k = 1
+        head_dim = 8
+        query = torch.ones(
+            1, 8, seq_len_q, head_dim, device=device, dtype=dtype, requires_grad=True
+        )
+        key = torch.ones(
+            1, 8, seq_len_k, head_dim, device=device, dtype=dtype, requires_grad=True
+        )
+        value = torch.ones(
+            1, 8, seq_len_k, head_dim, device=device, dtype=dtype, requires_grad=True
+        )
+        module = MyModule()
+        opt_mod = torch.compile(module, backend="inductor")
+        opt_mod(query, key, value)
+
+    def test_torch_device_is_available(self, device):
+        def fn(x):
+            if TEST_HPU or TEST_CUDA:
+                return x + 1
+            else:
+                return x - 1
+
+        x = torch.rand(4)
+        ref = fn(x)
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        res = opt_fn(x)
+        self.assertTrue(same(ref, res))
+
+    @unittest.skipIf(not TEST_CUDA, "requires cuda")
+    @unittest.skipIf(not torch.backends.cudnn.is_available(), "requires cudnn")
+    def test_torch_cudnn_is_acceptable(self, device):
+        def fn(x):
+            if torch.backends.cudnn.is_acceptable(tensor=x):
+                return x + 1
+            return x
+
+        x = torch.rand(4).to(device)
+        ref = fn(x)
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        res = opt_fn(x)
+        self.assertTrue(same(ref, res))
+
+    @unittest.skipIf(not TEST_CUDA, "requires cuda")
+    @unittest.skipIf(not torch.backends.cudnn.is_available(), "requires cudnn")
+    def test_torch_cudnn_is_acceptable_bad_inputs(self, device):
+        def fn1(x):
+            if torch.backends.cudnn.is_acceptable("invalid"):
+                return x + 1
+            return x
+
+        def fn2(x):
+            if torch.backends.cudnn.is_acceptable(x, 3.14):
+                return x + 1
+            return x
+
+        with self.assertRaisesRegex(
+            AssertionError, "Expect input to cudnn.is_acceptable to be a tensor"
+        ):
+            x1 = torch.rand(4).to(device)
+            opt_fn1 = torch.compile(fn1, backend="eager", fullgraph=True)
+            res1 = opt_fn1(x1)
+
+        with self.assertRaisesRegex(
+            AssertionError, "Expect 1 input to cudnn.is_acceptable"
+        ):
+            x2 = torch.rand(4).to(device)
+            opt_fn2 = torch.compile(fn2, backend="eager", fullgraph=True)
+            res = opt_fn2(x2)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "requires cuda")
+    @torch._dynamo.config.patch(recompile_limit=999)
+    def test_legacy_cuda_tensor(self):
+        typs = [
+            torch.cuda.FloatTensor,
+            torch.cuda.DoubleTensor,
+            torch.cuda.HalfTensor,
+            torch.cuda.BFloat16Tensor,
+            torch.cuda.ByteTensor,
+            torch.cuda.CharTensor,
+            torch.cuda.IntTensor,
+            torch.cuda.ShortTensor,
+            torch.cuda.LongTensor,
+        ]
+
+        def f2(typ):
+            return typ([1, 2, 3])
+
+        compiled_f2 = torch.compile(f2, backend="eager", fullgraph=True)
+        for typ in typs:
+            output = compiled_f2(typ)
+            expected = f2(typ)
+            self.assertEqual(output, expected)
+
+    def test_get_device(self, device):
+        def fn(x, y):
+            x = x + 1
+            y = y + 1
+            return x.get_device(), y.get_device()
+
+        x = torch.rand(4, device=device)
+        y = torch.rand(4, device="cpu")
+        ref = fn(x, y)
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        res = opt_fn(x, y)
+        self.assertTrue(same(ref, res))
+
+    def test_symint_as_device_kwarg(self, device):
+        def f(rank):
+            # -2 to make device id 0 for easier testing on CI
+            return torch.ones(10, device=rank.size(0) - 2)
+
+        x = torch.randn(2)
+        out = f(torch.randn(2))
+        opt_out = torch.compile(backend="eager", dynamic=True, fullgraph=True)(f)(x)
+        self.assertEqual(out, opt_out)
+
+    @unittest.skipIf(not TEST_MULTIGPU, "need multiple GPU")
+    def test_cuda_set_device(self, device):
+        def fn():
+            a = torch.ones(2, device=device)
+            torch.cuda.set_device(1)
+            return a + 1
+
+        with torch.cuda.device(0):
+            counter = CompileCounter()
+            opt_fn = torch.compile(fn, backend=counter)
+            res = opt_fn()
+            self.assertEqual(res.device.type, "cuda")
+            self.assertEqual(res.device.index, 0)
+            self.assertEqual(counter.frame_count, 2)
+
+    def test_torch_device_python_type(self):
+        for device, device_type, index in [
+            ("cpu", "cpu", None),
+            ("cuda:0", "cuda", 0),
+            ("hpu:0", "hpu", 0),
+        ]:
+            if (device == "cuda:0" and not TEST_CUDA) or (
+                device == "hpu:0" and not TEST_HPU
+            ):
+                continue
+
+            def fn(target):
+                target_device = target.device
+                a = torch.zeros(2, 3, device=target_device)
+                # Constant assert at trace time
+                assert isinstance(target_device, torch.device)
+                assert target_device.type == device_type
+                assert target_device.index == index
+                b = torch.zeros(2, 3, device=target_device)
+                c = torch.zeros(2, 3, device=target_device)
+                return a + b + c
+
+            from torch._dynamo.variables import ConstantVariable
+
+            device = torch.device(device)
+            expected_variable = ConstantVariable(device)
+            self.assertEqual(expected_variable.python_type(), type(device))
+
+            opt_func = torch.compile(fn, backend="eager", fullgraph=True)
+            a = torch.tensor([2, 3], device=device)
+            res = opt_func(a)
+            self.assertIsInstance(res, torch.Tensor)
+
+    @torch._dynamo.config.patch(
+        capture_scalar_outputs=True, capture_dynamic_output_shape_ops=True
+    )
+    @torch._functorch.config.patch(fake_tensor_propagate_real_tensors=True)
+    def test_interpolate_propagate_real_tensors(self, device):
+        @torch.compile(backend="eager", fullgraph=True)
+        def f(mask, box):
+            # u0, u1 = mask.tolist()
+            mask = torch.randn(1, 1, 30, 30, device=device)
+            h, w = box.tolist()
+            return torch.nn.functional.interpolate(
+                mask, (h, w), mode="bilinear", align_corners=False
+            )
+
+        f(torch.tensor([30, 30], device=device), torch.tensor([68, 32], device=device))
+
+    def test_scalar_isin_decomposition(self):
+        def f():
+            x = torch.tensor(0)
+            return torch.isin(x, x)
+
+        opt_f = torch.compile(f, backend="inductor", fullgraph=True)
+        ref = f()
+        res = opt_f()
+        self.assertEqual(ref, res)
+
+    def test_randint_no_graphbreak(self):
+        @torch.compile(backend="aot_eager", fullgraph=True)
+        def f(actions, n_act, epsilon=0.1):
+            actions_random = torch.randint_like(actions, n_act)
+
+            return actions_random
+
+        x = torch.ones([1], dtype=torch.int64)
+        y = torch.tensor(5)
+        f(x, y)
+
+    def test_dynamic_float_scalar_tensor_coersion(self):
+        # Minified version of https://github.com/pytorch/pytorch/issues/158376#issuecomment-3079591367
+        class Foo:
+            def __init__(self):
+                self.config = type(
+                    "Config", (), {"pad_val": 1123581321.0, "tolerance": 1e-6}
+                )
+
+            @torch.compile(fullgraph=True)
+            def forward(self, input):
+                outputs = torch.where(
+                    torch.abs(input - self.config.pad_val) < self.config.tolerance,
+                    torch.tensor(
+                        self.config.pad_val, dtype=input.dtype, device=input.device
+                    ),
+                    torch.tensor(
+                        self.config.pad_val + 1, dtype=input.dtype, device=input.device
+                    ),
+                )
+                return outputs
+
+        foo = Foo()
+        inputs = torch.randn(3, 4)
+        result = foo.forward(inputs)
+
+        original_pad_val = foo.config.pad_val
+        foo.config.pad_val += 1.0
+        result2 = foo.forward(inputs)
+
+        # Previously would crash with:
+        #   RuntimeError: value cannot be converted to type at::Half without overflow
+
+
+devices = ("cuda", "hpu")
+instantiate_device_type_tests(MiscTestsDevice, globals(), only_for=devices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
 

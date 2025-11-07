@@ -173,7 +173,11 @@ def bf16_compress_wrapper(
     Warning: This API is experimental, and it requires NCCL version later than 2.9.6.
 
     This wrapper casts the input gradient tensor of a given DDP communication hook to half-precision
+<<<<<<< HEAD
     `Brain floating point format <https://en.wikipedia.org/wiki/Bfloat16_floating-point_format> `_  (``torch.bfloat16``),
+=======
+    `Brain floating point format <https://en.wikipedia.org/wiki/Bfloat16_floating-point_format>`_  (``torch.bfloat16``),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     and casts the resulting tensor of the given hook back to the input data type, such as ``float32``.
 
     Therefore, ``bf16_compress_hook`` is equivalent to ``bf16_compress_wrapper(allreduce_hook)``.

@@ -210,7 +210,11 @@ class SubsetRandomSampler(Sampler[int]):
         self.generator = generator
 
     def __iter__(self) -> Iterator[int]:
+<<<<<<< HEAD
         for i in torch.randperm(len(self.indices), generator=self.generator):
+=======
+        for i in torch.randperm(len(self.indices), generator=self.generator).tolist():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield self.indices[i]
 
     def __len__(self) -> int:

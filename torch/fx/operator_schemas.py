@@ -366,6 +366,21 @@ def normalize_function(
     if kwargs is None:
         kwargs = {}
     new_args_and_kwargs = None
+<<<<<<< HEAD
+=======
+    if (
+        not isinstance(target, types.BuiltinFunctionType)
+        and not (isinstance(target, (OpOverloadPacket, OpOverload)))
+        and hasattr(target, "_op")
+    ):
+        # ExecuTorch's EdgeOpOverload are a wrapper around PyTorch's OpOverload,
+        # so we can unwrap it here to get its schema
+        # Can't import EdgeOpOverload directly because of a circular dependency,
+        # so checking for "_op" existing is the next best thing.
+        target = target._op
+
+    # Repeat the condition after checking for the inner _op field.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not isinstance(target, types.BuiltinFunctionType) and not (
         isinstance(target, (OpOverloadPacket, OpOverload))
     ):

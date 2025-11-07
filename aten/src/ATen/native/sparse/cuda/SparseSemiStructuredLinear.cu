@@ -3,7 +3,11 @@
 #include <ATen/cuda/CUDAUtils.h>
 #include <ATen/Dispatch.h>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 #include <cuda_runtime.h>
 #include <cutlass/cutlass.h>
@@ -16,7 +20,11 @@
 #include <type_traits>
 #include <tuple>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 #define CUTLASS_STATUS_CHECK(status)                                      \
   {                                                                       \
@@ -31,7 +39,11 @@ namespace {
 
 namespace at::native {
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 // Wrapper function for CUTLASS sparse GEMM implementation, used
 // solely to simplify dispatching from
@@ -75,12 +87,15 @@ Tensor two_four_sgemm(
     using LayoutC = LayoutOutput;
     constexpr int AlignmentC = 128 / cutlass::sizeof_bits<ElementC>::value;
 
+<<<<<<< HEAD
     using BiasTileThreadMap = cutlass::epilogue::threadblock::OutputTileThreadLayout<
         ThreadblockShape,
         WarpShape,
         ElementC,
         AlignmentC,
         NumEVTEpilogueStages>;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     using OutputTileThreadMap = cutlass::epilogue::threadblock::OutputTileThreadLayout<
         ThreadblockShape,
         WarpShape,
@@ -94,7 +109,11 @@ Tensor two_four_sgemm(
         cutlass::epilogue::threadblock::VisitorScalarBroadcast<ElementC>;
     using BiasTensor =
         cutlass::epilogue::threadblock::VisitorColBroadcast<
+<<<<<<< HEAD
             BiasTileThreadMap,
+=======
+            OutputTileThreadMap,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ElementC,
             cute::Stride<cute::_1, cute::_0, int64_t>>;
     using Bias = std::conditional_t<use_bias, BiasTensor, BiasScalar>;
@@ -251,7 +270,11 @@ Tensor two_four_sgemm(
                         ElementC(0),
                         {cute::_1{}, cute::_0{}, problem_size.m()}};
             } else {
+<<<<<<< HEAD
                 return {ElementC(0)};
+=======
+                return {{ElementC(0)}};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         }()
     };
@@ -619,7 +642,11 @@ Tensor _sparse_semi_structured_linear(
                     "removed in a future PyTorch release.  Please use "
                     "_sparse_semi_structured_mm/_sparse_semi_structured_addmm "
                     "instead.");
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "_sparse_semi_structured_linear: CUTLASS not supported");
     return Tensor{};
 #else

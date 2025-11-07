@@ -46,6 +46,11 @@ functions = [
     torch.nn.Softsign(),
     torch.nn.Tanh(),
     torch.nn.Tanhshrink(),
+<<<<<<< HEAD
+=======
+    torch.nn.Threshold(0, 0.5),
+    torch.nn.GLU(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -54,8 +59,19 @@ def plot_function(function, **args):
     Plot a function on the current plot. The additional arguments may
     be used to specify color, alpha, etc.
     """
+<<<<<<< HEAD
     xrange = torch.arange(-7.0, 7.0, 0.01)  # We need to go beyond 6 for ReLU6
     plt.plot(xrange.numpy(), function(xrange).detach().numpy(), **args)
+=======
+    if isinstance(function, torch.nn.GLU):
+        xrange = torch.arange(-7.0, 7.0, 0.01).unsqueeze(1).repeat(1, 2)
+        x = xrange.numpy()[:, 0]
+    else:
+        xrange = torch.arange(-7.0, 7.0, 0.01)  # We need to go beyond 6 for ReLU6
+        x = xrange.numpy()
+    y = function(xrange).detach().numpy()
+    plt.plot(x, y, **args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Step through all the functions

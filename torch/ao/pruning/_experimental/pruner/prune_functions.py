@@ -3,6 +3,10 @@
 Collection of conversion functions for linear / conv2d structured pruning
 Also contains utilities for bias propagation
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Callable, cast, Optional
 
 import torch
@@ -326,9 +330,15 @@ def prune_conv2d_pool_flatten_linear(
         linear_ic = linear.weight.shape[1]
 
     conv2d_oc = len(mask)
+<<<<<<< HEAD
     assert (
         linear_ic % conv2d_oc == 0
     ), f"Flattening from dimensions {conv2d_oc} to {linear_ic} not supported"
+=======
+    assert linear_ic % conv2d_oc == 0, (
+        f"Flattening from dimensions {conv2d_oc} to {linear_ic} not supported"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     flatten_scale = linear_ic // conv2d_oc
     flattened_mask = torch.tensor(

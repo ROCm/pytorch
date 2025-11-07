@@ -490,7 +490,11 @@ class OpCheckMode(TorchFunctionMode):
         # Location of the failures dict. Makes it so that the error message is better.
         self.failures_dict_path = failures_dict_path
 
+<<<<<<< HEAD
         # OpCheckMode surpresses errors, collects them here, and then raises them on exit.
+=======
+        # OpCheckMode suppresses errors, collects them here, and then raises them on exit.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Maps qualname -> List[(Exception, func, maybe args, maybe kwargs)]
         self.seen_ops_to_errors = {}
 
@@ -605,7 +609,11 @@ class OpCheckMode(TorchFunctionMode):
 
         option = self.failures_dict.get_status(qualname, self.test_name)
         if option == "xsuccess" or option == "xfail":
+<<<<<<< HEAD
             # Surpress all errors during execution. Raise them during __exit__.
+=======
+            # Suppress all errors during execution. Raise them during __exit__.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 if qualname not in self.seen_ops_to_errors:
                     self.seen_ops_to_errors[qualname] = []

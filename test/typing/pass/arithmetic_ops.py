@@ -109,9 +109,15 @@ assert_type(INT % TENSOR, Any)
 assert_type(INT**TENSOR, Any)
 assert_type(INT << TENSOR, Any)
 assert_type(INT >> TENSOR, Any)
+<<<<<<< HEAD
 assert_type(INT & TENSOR, Any)  # type: ignore[operator]
 assert_type(INT | TENSOR, Any)  # type: ignore[operator]
 assert_type(INT ^ TENSOR, Any)  # type: ignore[operator]
+=======
+assert_type(INT & TENSOR, Tensor)
+assert_type(INT | TENSOR, Tensor)
+assert_type(INT ^ TENSOR, Tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 assert_type(TENSOR == FLOAT, Tensor)
 assert_type(TENSOR != FLOAT, Tensor)
@@ -147,9 +153,12 @@ assert_type(FLOAT % TENSOR, Any)
 assert_type(FLOAT**TENSOR, Any)
 assert_type(FLOAT << TENSOR, Any)
 assert_type(FLOAT >> TENSOR, Any)
+<<<<<<< HEAD
 assert_type(FLOAT & TENSOR, Tensor)  # type: ignore[operator]
 assert_type(FLOAT | TENSOR, Tensor)  # type: ignore[operator]
 assert_type(FLOAT ^ TENSOR, Tensor)  # type: ignore[operator]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 NUMBER: TypeAlias = Union[int, float, bool]
@@ -408,6 +417,7 @@ assert_type(INT << TENSOR, Any)
 assert_type(BOOL >> TENSOR, Any)
 assert_type(FLOAT >> TENSOR, Any)
 assert_type(INT >> TENSOR, Any)
+<<<<<<< HEAD
 
 assert_type(FLOAT & TENSOR, Tensor)  # type: ignore[operator]
 assert_type(INT & TENSOR, Any)  # type: ignore[operator]
@@ -417,3 +427,5 @@ assert_type(INT | TENSOR, Any)  # type: ignore[operator]
 
 assert_type(FLOAT ^ TENSOR, Tensor)  # type: ignore[operator]
 assert_type(INT ^ TENSOR, Any)  # type: ignore[operator]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

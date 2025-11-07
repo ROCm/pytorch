@@ -77,6 +77,11 @@ class TORCH_API TCPStore : public Store {
 
   ~TCPStore() override;
 
+<<<<<<< HEAD
+=======
+  c10::intrusive_ptr<Store> clone() override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set(const std::string& key, const std::vector<uint8_t>& value) override;
 
   std::vector<uint8_t> compareSet(
@@ -112,6 +117,16 @@ class TORCH_API TCPStore : public Store {
 
   bool hasExtendedApi() const override;
 
+<<<<<<< HEAD
+=======
+  void queuePush(const std::string& key, const std::vector<uint8_t>& value)
+      override;
+
+  std::vector<uint8_t> queuePop(const std::string& key, bool block) override;
+
+  int64_t queueLen(const std::string& key) override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Waits for all workers to join.
   void waitForWorkers();
 

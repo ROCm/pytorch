@@ -73,6 +73,11 @@ class MinifierTestBase(torch._dynamo.test_case.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+<<<<<<< HEAD
+=======
+        if not os.path.exists(cls.DEBUG_DIR):
+            cls.DEBUG_DIR = tempfile.mkdtemp()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cls._exit_stack.enter_context(  # type: ignore[attr-defined]
             torch._dynamo.config.patch(debug_dir_root=cls.DEBUG_DIR)
         )

@@ -18,6 +18,10 @@ cmake_policy(SET CMP0012 NEW)
 #############################################
 
 set(ATen_CPU_SRCS)
+<<<<<<< HEAD
+=======
+set(ATen_MTIA_SRCS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 set(ATen_XPU_SRCS)
 set(ATen_XPU_INCLUDE)
 set(ATen_CPU_TEST_SRCS)
@@ -101,6 +105,16 @@ else()
   set(AT_CUSPARSELT_ENABLED 1)
 endif()
 
+<<<<<<< HEAD
+=======
+# Add hipSPARSELt support flag if the package is available.
+if(USE_ROCM AND hipsparselt_FOUND)
+  set(AT_HIPSPARSELT_ENABLED 1)
+else()
+  set(AT_HIPSPARSELT_ENABLED 0)
+endif()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 list(APPEND ATen_CPU_INCLUDE
   ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(src/ATen)
@@ -108,6 +122,10 @@ add_subdirectory(src/ATen)
 # Pass source, includes, and libs to parent
 set(ATen_CPU_SRCS ${ATen_CPU_SRCS} PARENT_SCOPE)
 set(ATen_CORE_SRCS ${ATen_CORE_SRCS} PARENT_SCOPE)
+<<<<<<< HEAD
+=======
+set(ATen_MTIA_SRCS ${ATen_MTIA_SRCS} PARENT_SCOPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 set(ATen_XPU_SRCS ${ATen_XPU_SRCS} PARENT_SCOPE)
 set(ATen_XPU_INCLUDE ${ATen_XPU_INCLUDE} PARENT_SCOPE)
 set(ATen_CUDA_CU_SRCS ${ATen_CUDA_CU_SRCS} PARENT_SCOPE)

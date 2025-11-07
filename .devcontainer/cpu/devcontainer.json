@@ -3,7 +3,11 @@
 {
   "name": "PyTorch - CPU",
   "build": {
+<<<<<<< HEAD
     "context": "../..",
+=======
+    "context": "./",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "dockerfile": "../Dockerfile",
     "args": {
       "USERNAME": "vscode",
@@ -11,6 +15,15 @@
       "CLANG_VERSION": ""
     }
   },
+<<<<<<< HEAD
+=======
+  // Mount the full repo only after the container starts
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/pytorch,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace/pytorch",
+  "containerEnv": {
+    "PIP_USER": "0" // <‑‑ disable implicit --user
+  },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {

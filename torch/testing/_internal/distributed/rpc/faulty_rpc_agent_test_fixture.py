@@ -6,6 +6,7 @@ from torch.testing._internal.distributed.rpc.rpc_agent_test_fixture import (
     RpcAgentTestFixture,
 )
 
+<<<<<<< HEAD
 # The following message types are currently retried in the RREF protocol and
 # distributed autograd. Thus only these messages should be tested with the
 # Faulty RPC Agent.
@@ -13,6 +14,18 @@ retryable_message_types = ["RREF_FORK_REQUEST",
                            "RREF_CHILD_ACCEPT",
                            "RREF_USER_DELETE",
                            "CLEANUP_AUTOGRAD_CONTEXT_REQ"]
+=======
+
+# The following message types are currently retried in the RREF protocol and
+# distributed autograd. Thus only these messages should be tested with the
+# Faulty RPC Agent.
+retryable_message_types = [
+    "RREF_FORK_REQUEST",
+    "RREF_CHILD_ACCEPT",
+    "RREF_USER_DELETE",
+    "CLEANUP_AUTOGRAD_CONTEXT_REQ",
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # The following messages incur the corresponding delay in seconds while being
 # processed in FaultyTensorPipeAgent's enqueueSend() function.
@@ -21,6 +34,10 @@ default_messages_to_delay = {
     "SCRIPT_CALL": 1.5,  # Script/Builtin
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FaultyRpcAgentTestFixture(RpcAgentTestFixture):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -29,9 +46,13 @@ class FaultyRpcAgentTestFixture(RpcAgentTestFixture):
 
     @property
     def rpc_backend(self):
+<<<<<<< HEAD
         return rpc.backend_registry.BackendType[
             "FAULTY_TENSORPIPE"
         ]
+=======
+        return rpc.backend_registry.BackendType["FAULTY_TENSORPIPE"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def rpc_backend_options(self):
@@ -54,7 +75,11 @@ class FaultyRpcAgentTestFixture(RpcAgentTestFixture):
         error_regexes = [
             "Exception in thread pool task",
             "Connection reset by peer",
+<<<<<<< HEAD
             "Connection closed by peer"
+=======
+            "Connection closed by peer",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         return "|".join([f"({error_str})" for error_str in error_regexes])
 

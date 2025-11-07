@@ -135,9 +135,15 @@ class TestIinfo(TestCase):
         [
             np.uint8,
             # xfail: unsupported add (uint[16,32,64])
+<<<<<<< HEAD
             subtest(np.uint16, decorators=[xfail]),
             subtest(np.uint32, decorators=[xfail]),
             subtest(np.uint64, decorators=[xfail]),
+=======
+            subtest(np.uint16, decorators=[] if TEST_WITH_TORCHDYNAMO else [xfail]),
+            subtest(np.uint32, decorators=[] if TEST_WITH_TORCHDYNAMO else [xfail]),
+            subtest(np.uint64, decorators=[] if TEST_WITH_TORCHDYNAMO else [xfail]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
     )
     def test_unsigned_max(self, T):

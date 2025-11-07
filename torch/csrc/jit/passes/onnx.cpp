@@ -18,7 +18,11 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 void removePrintOps(Block* block) {
+=======
+static void removePrintOps(Block* block) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto it = block->nodes().begin(), end = block->nodes().end(); it != end;
        ++it) {
     for (auto b : it->blocks()) {
@@ -46,7 +50,11 @@ void RemovePrintOps(std::shared_ptr<Graph>& graph) {
   GRAPH_DUMP("After RemovePrintOps: ", graph);
 }
 
+<<<<<<< HEAD
 void checkONNXCompatibility(const c10::FunctionSchema& schema) {
+=======
+static void checkONNXCompatibility(const c10::FunctionSchema& schema) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // in ONNX, all inputs are tensors, no support for tensor list
   // so at most one input tensor list is supported
   bool has_tensor_list = false;
@@ -74,7 +82,11 @@ void checkONNXCompatibility(const c10::FunctionSchema& schema) {
   }
 }
 
+<<<<<<< HEAD
 void preprocessCaffe2Ops(Block* block) {
+=======
+static void preprocessCaffe2Ops(Block* block) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto it = block->nodes().begin(), end = block->nodes().end(); it != end;
        ++it) {
     for (auto b : it->blocks()) {
@@ -246,7 +258,11 @@ py::dict BlockToONNX(
   return py::dict();
 }
 
+<<<<<<< HEAD
 bool ConstantFoldCondition(torch::jit::Value* output) {
+=======
+static bool ConstantFoldCondition(torch::jit::Value* output) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto fold_condition = output->node()->kind() != c10::onnx::Constant &&
       ConstantValueMap::HasValue(output->debugName());
   auto reliable_value =
@@ -448,7 +464,12 @@ void NodeToONNX(
       std::ostringstream ss;
       ss << "Error casting results of symbolic for " << op_name
          << ": expected to return list of op nodes, instead received type ''"
+<<<<<<< HEAD
          << py::str(raw_output.get_type()) << "': " << py::str(raw_output);
+=======
+         << py::str(py::type::handle_of(raw_output))
+         << "': " << py::str(raw_output);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       throw std::runtime_error(ss.str());
     }
 

@@ -84,7 +84,11 @@ TypePtr SchemaTypeParser::parseBaseType() {
     if (allow_typevars_ && !text.empty() && islower(text[0])) {
       // lower case identifiers that are not otherwise valid types
       // are treated as type variables
+<<<<<<< HEAD
       return c10::TypeFactory::createNamed<VarType>(text);
+=======
+      return c10::TypeFactory::createNamed<VarType>(std::move(text));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     if (text == "double") {
       throw(
@@ -116,9 +120,15 @@ TypePtr SchemaTypeParser::parseBaseType() {
 // Tensor(a! -> a|b) // Tensor is in set a, written to,
 //                      and after the write is in set a AND b.
 std::optional<AliasInfo> SchemaTypeParser::parseAliasAnnotation() {
+<<<<<<< HEAD
   AliasInfo alias_info;
   if (L.nextIf('(')) {
     // optional 'alias set annotation'
+=======
+  if (L.nextIf('(')) {
+    // optional 'alias set annotation'
+    AliasInfo alias_info;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parseList(TK_NOTHING, '|', TK_NOTHING, [&] {
       if (L.nextIf('*')) {
         alias_info.addBeforeSet(AliasInfo::wildcardSet());
@@ -153,6 +163,7 @@ std::optional<AliasInfo> SchemaTypeParser::parseAliasAnnotation() {
       }
     }
     L.expect(')');
+<<<<<<< HEAD
   } else if (L.nextIf('!')) {
     alias_info.addBeforeSet(
         Symbol::fromQualString("alias::$" + std::to_string(next_id++)));
@@ -162,6 +173,18 @@ std::optional<AliasInfo> SchemaTypeParser::parseAliasAnnotation() {
   }
 
   return alias_info;
+=======
+    return alias_info;
+  } else if (L.nextIf('!')) {
+    AliasInfo alias_info;
+    alias_info.addBeforeSet(
+        Symbol::fromQualString("alias::$" + std::to_string(next_id++)));
+    alias_info.setIsWrite(true);
+    return alias_info;
+  } else {
+    return std::nullopt;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::optional<at::ScalarType> SchemaTypeParser::parseTensorDType(
@@ -194,11 +217,19 @@ std::optional<c10::Device> SchemaTypeParser::tryToParseDeviceType() {
       const std::string& num = L.expect(TK_NUMBER).text();
       try {
         device_idx = static_cast<c10::DeviceIndex>(std::stoi(num));
+<<<<<<< HEAD
       } catch (const std::invalid_argument& e) {
         throw(
             ErrorReport(L.cur())
             << "Device index cannot be converted to integer");
       } catch (const std::out_of_range& e) {
+=======
+      } catch (const std::invalid_argument&) {
+        throw(
+            ErrorReport(L.cur())
+            << "Device index cannot be converted to integer");
+      } catch (const std::out_of_range&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         throw(ErrorReport(L.cur()) << "Device index is too long");
       }
     }
@@ -217,11 +248,19 @@ std::optional<bool> SchemaTypeParser::tryToParseRequiresGrad() {
   const std::string& num = L.expect(TK_NUMBER).text();
   try {
     return (bool)std::stoi(num);
+<<<<<<< HEAD
   } catch (const std::invalid_argument& e) {
     throw(
         ErrorReport(L.cur())
         << "Field requires_grad cannot be converted to integer");
   } catch (const std::out_of_range& e) {
+=======
+  } catch (const std::invalid_argument&) {
+    throw(
+        ErrorReport(L.cur())
+        << "Field requires_grad cannot be converted to integer");
+  } catch (const std::out_of_range&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw(ErrorReport(L.cur()) << "Field requires_grad is too long");
   }
 }
@@ -277,11 +316,19 @@ TypePtr SchemaTypeParser::parseRefinedTensor() {
           try {
             auto stride = std::stoll(num);
             strides.push_back(stride);
+<<<<<<< HEAD
           } catch (const std::invalid_argument& e) {
             throw(
                 ErrorReport(L.cur())
                 << "The stride value cannot be converted to int");
           } catch (const std::out_of_range& e) {
+=======
+          } catch (const std::invalid_argument&) {
+            throw(
+                ErrorReport(L.cur())
+                << "The stride value cannot be converted to int");
+          } catch (const std::out_of_range&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             throw(ErrorReport(L.cur()) << "The stride is too big");
           }
         });
@@ -307,7 +354,11 @@ TypePtr SchemaTypeParser::parseRefinedTensor() {
       return;
     }
     bool shape_symbol = false;
+<<<<<<< HEAD
     if (L.cur().kind == TK_IDENT && L.cur().text() == "SS") {
+=======
+    if (L.cur().kind == TK_IDENT && L.cur().text_view() == "SS") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       L.next();
       L.expect('(');
       L.expect('-');
@@ -317,9 +368,15 @@ TypePtr SchemaTypeParser::parseRefinedTensor() {
     int64_t dim = 0;
     try {
       dim = std::stoll(num);
+<<<<<<< HEAD
     } catch (const std::invalid_argument& e) {
       throw(ErrorReport(L.cur()) << "The number can't be converted to int");
     } catch (const std::out_of_range& e) {
+=======
+    } catch (const std::invalid_argument&) {
+      throw(ErrorReport(L.cur()) << "The number can't be converted to int");
+    } catch (const std::out_of_range&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       throw(ErrorReport(L.cur()) << "Number is too big");
     }
     if (shape_symbol) {
@@ -376,35 +433,61 @@ SchemaTypeParser::parseFakeAndRealType() {
     });
     fake_value = real_value =
         c10::TypeFactory::create<TupleType>(std::move(types));
+<<<<<<< HEAD
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "Future") {
+=======
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "Future") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     L.next(); // Future
     L.expect('(');
     auto p = parseType();
     auto subtype = std::move(p.first);
     auto subalias = std::move(p.second);
     L.expect(')');
+<<<<<<< HEAD
     fake_value = real_value = c10::TypeFactory::create<FutureType>(subtype);
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "Await") {
+=======
+    fake_value = real_value =
+        c10::TypeFactory::create<FutureType>(std::move(subtype));
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "Await") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     L.next(); // Await
     L.expect('(');
     auto p = parseType();
     auto subtype = std::move(p.first);
     auto subalias = std::move(p.second);
     L.expect(')');
+<<<<<<< HEAD
     fake_value = real_value = c10::TypeFactory::create<AwaitType>(subtype);
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "RRef") {
+=======
+    fake_value = real_value =
+        c10::TypeFactory::create<AwaitType>(std::move(subtype));
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "RRef") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     L.next(); // RRef
     L.expect('(');
     auto p = parseType();
     auto subtype = std::move(p.first);
     auto subalias = std::move(p.second);
     L.expect(')');
+<<<<<<< HEAD
     fake_value = real_value = c10::TypeFactory::create<RRefType>(subtype);
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "Tensor") {
     L.next();
     fake_value = real_value = c10::TypeFactory::get<TensorType>();
     alias_info = parseAliasAnnotation();
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "Dict") {
+=======
+    fake_value = real_value =
+        c10::TypeFactory::create<RRefType>(std::move(subtype));
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "Tensor") {
+    L.next();
+    fake_value = real_value = c10::TypeFactory::get<TensorType>();
+    alias_info = parseAliasAnnotation();
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "Dict") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     L.next();
     L.expect('(');
     auto key_type = parseType().first;
@@ -412,9 +495,15 @@ SchemaTypeParser::parseFakeAndRealType() {
     auto value_type = parseType().first;
     L.expect(')');
     alias_info = parseAliasAnnotation();
+<<<<<<< HEAD
     fake_value = real_value =
         c10::TypeFactory::create<DictType>(key_type, value_type);
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "Union") {
+=======
+    fake_value = real_value = c10::TypeFactory::create<DictType>(
+        std::move(key_type), std::move(value_type));
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "Union") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     L.next();
     L.expect('(');
     std::vector<TypePtr> types;
@@ -432,7 +521,11 @@ SchemaTypeParser::parseFakeAndRealType() {
       parseTensorDType(L.cur().text())) {
     fake_value = real_value = parseRefinedTensor();
     alias_info = parseAliasAnnotation();
+<<<<<<< HEAD
   } else if (L.cur().kind == TK_IDENT && L.cur().text() == "__torch__") {
+=======
+  } else if (L.cur().kind == TK_IDENT && L.cur().text_view() == "__torch__") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     L.next();
     L.expect('.');
     auto torch_tok = L.expect(TK_IDENT);
@@ -477,8 +570,13 @@ SchemaTypeParser::parseFakeAndRealType() {
     if (L.cur().kind == '[' && L.lookahead().kind == ']') {
       L.next(); // [
       L.next(); // ]
+<<<<<<< HEAD
       fake_value = c10::TypeFactory::create<ListType>(fake_value);
       real_value = c10::TypeFactory::create<ListType>(real_value);
+=======
+      fake_value = c10::TypeFactory::create<ListType>(std::move(fake_value));
+      real_value = c10::TypeFactory::create<ListType>(std::move(real_value));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto container = parseAliasAnnotation();
       if (alias_info) {
         if (!container) {

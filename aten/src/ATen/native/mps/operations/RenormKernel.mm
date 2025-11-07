@@ -38,7 +38,11 @@ void renorm_out_mps(const Tensor& self, const Scalar& p, int64_t dim, const Scal
   id<MTLBuffer> normBuffer = getMTLBufferStorage(norm);
   id<MTLBuffer> factorBuffer = getMTLBufferStorage(factor);
 
+<<<<<<< HEAD
   string key = "renorm_" + scalarToMetalTypeString(self);
+=======
+  std::string key = "renorm_" + scalarToMetalTypeString(self);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   MPSStream* mpsStream = getCurrentMPSStream();
   id<MTLComputeCommandEncoder> computeEncoder = mpsStream->commandEncoder();
   id<MTLComputePipelineState> renormPSO = lib.getPipelineStateForFunc(key);

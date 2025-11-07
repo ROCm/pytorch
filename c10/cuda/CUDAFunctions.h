@@ -27,7 +27,11 @@ C10_CUDA_API DeviceIndex device_count_ensure_non_zero();
 
 C10_CUDA_API DeviceIndex current_device();
 
+<<<<<<< HEAD
 C10_CUDA_API void set_device(DeviceIndex device);
+=======
+C10_CUDA_API void set_device(DeviceIndex device, const bool force = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 C10_CUDA_API void device_synchronize();
 
@@ -38,7 +42,12 @@ C10_CUDA_API cudaError_t GetDeviceCount(int* dev_count);
 
 C10_CUDA_API cudaError_t GetDevice(DeviceIndex* device);
 
+<<<<<<< HEAD
 C10_CUDA_API cudaError_t SetDevice(DeviceIndex device);
+=======
+C10_CUDA_API cudaError_t
+SetDevice(DeviceIndex device, const bool force = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 C10_CUDA_API cudaError_t MaybeSetDevice(DeviceIndex device);
 

@@ -1,4 +1,5 @@
 # pyre-strict
+<<<<<<< HEAD
 from typing import Union, Generic
 from collections.abc import Iterator, Iterable
 import torch
@@ -7,6 +8,17 @@ from typing import TypeVar
 
 _T = TypeVar("_T")
 
+=======
+from collections.abc import Iterable, Iterator
+from typing import Generic, TypeVar, Union
+
+import torch
+
+
+_T = TypeVar("_T")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ProxyValue(Generic[_T]):
     # pyre-ignore
     def __init__(self, data: Iterable[_T], proxy: Union[torch.fx.Proxy, torch.fx.Node]):

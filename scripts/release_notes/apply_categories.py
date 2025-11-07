@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Quick scipt to apply categorized items to the
+=======
+# Quick script to apply categorized items to the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # base commitlist . Useful if you are refactoring any code
 # but want to keep the previous data on categories
 

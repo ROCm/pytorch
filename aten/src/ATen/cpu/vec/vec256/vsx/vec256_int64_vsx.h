@@ -1,14 +1,25 @@
 #pragma once
 
 #include <ATen/cpu/vec/intrinsics.h>
+<<<<<<< HEAD
 #include <ATen/cpu/vec/vec_base.h>
 #include <ATen/cpu/vec/vec256/vsx/vsx_helpers.h>
+=======
+#include <ATen/cpu/vec/vec256/vsx/vsx_helpers.h>
+#include <ATen/cpu/vec/vec_base.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at {
 namespace vec {
 // See Note [CPU_CAPABILITY namespace]
 inline namespace CPU_CAPABILITY {
 
 template <>
+<<<<<<< HEAD
+=======
+struct is_vec_specialized_for<int64_t> : std::bool_constant<true> {};
+
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class Vectorized<int64_t> {
  private:
   union {
@@ -36,7 +47,12 @@ class Vectorized<int64_t> {
   C10_ALWAYS_INLINE Vectorized(vint64 v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vbool64 vmask) : _vecb0{vmask}, _vecb1{vmask} {}
   C10_ALWAYS_INLINE Vectorized(vint64 v1, vint64 v2) : _vec0{v1}, _vec1{v2} {}
+<<<<<<< HEAD
   C10_ALWAYS_INLINE Vectorized(vbool64 v1, vbool64 v2) : _vecb0{v1}, _vecb1{v2} {}
+=======
+  C10_ALWAYS_INLINE Vectorized(vbool64 v1, vbool64 v2)
+      : _vecb0{v1}, _vecb1{v2} {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_ALWAYS_INLINE Vectorized(int64_t scalar)
       : _vec0{vec_splats(scalar)}, _vec1{vec_splats(scalar)} {}
   C10_ALWAYS_INLINE Vectorized(
@@ -66,14 +82,26 @@ class Vectorized<int64_t> {
   }
 
   template <uint64_t mask>
+<<<<<<< HEAD
   static std::enable_if_t<(mask & 15) == 15, Vectorized<int64_t>> C10_ALWAYS_INLINE
   blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+=======
+  static std::enable_if_t<(mask & 15) == 15, Vectorized<int64_t>>
+      C10_ALWAYS_INLINE
+      blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return b;
   }
 
   template <uint64_t mask>
+<<<<<<< HEAD
   static std::enable_if_t<(mask > 0 && mask < 3), Vectorized<int64_t>> C10_ALWAYS_INLINE
   blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+=======
+  static std::enable_if_t<(mask > 0 && mask < 3), Vectorized<int64_t>>
+      C10_ALWAYS_INLINE
+      blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     constexpr uint64_t g0 = (mask & 1) * 0xffffffffffffffff;
     constexpr uint64_t g1 = ((mask & 2) >> 1) * 0xffffffffffffffff;
     const vbool64 mask_1st = (vbool64){g0, g1};
@@ -82,7 +110,12 @@ class Vectorized<int64_t> {
 
   template <uint64_t mask>
   static std::enable_if_t<(mask > 3) && (mask & 3) == 0, Vectorized<int64_t>>
+<<<<<<< HEAD
       C10_ALWAYS_INLINE blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+=======
+      C10_ALWAYS_INLINE
+      blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     constexpr uint64_t g0_2 = ((mask & 4) >> 2) * 0xffffffffffffffff;
     constexpr uint64_t g1_2 = ((mask & 8) >> 3) * 0xffffffffffffffff;
 
@@ -94,7 +127,12 @@ class Vectorized<int64_t> {
   static std::enable_if_t<
       (mask > 3) && (mask & 3) != 0 && (mask & 15) != 15,
       Vectorized<int64_t>>
+<<<<<<< HEAD
       C10_ALWAYS_INLINE blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+=======
+      C10_ALWAYS_INLINE
+      blend(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     constexpr uint64_t g0 = (mask & 1) * 0xffffffffffffffff;
     constexpr uint64_t g1 = ((mask & 2) >> 1) * 0xffffffffffffffff;
     constexpr uint64_t g0_2 = ((mask & 4) >> 2) * 0xffffffffffffffff;
@@ -118,8 +156,16 @@ class Vectorized<int64_t> {
         vec_sel(a._vec1, b._vec1, mask._vecb1)};
   }
   template <typename step_t>
+<<<<<<< HEAD
   static Vectorized<int64_t> arange(int64_t base = 0., step_t step = static_cast<step_t>(1)) {
     return Vectorized<int64_t>(base, base + step, base + 2 * step, base + 3 * step);
+=======
+  static Vectorized<int64_t> arange(
+      int64_t base = 0.,
+      step_t step = static_cast<step_t>(1)) {
+    return Vectorized<int64_t>(
+        base, base + step, base + 2 * step, base + 3 * step);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   static Vectorized<int64_t> C10_ALWAYS_INLINE
@@ -174,7 +220,13 @@ class Vectorized<int64_t> {
 
   Vectorized<int64_t> angle() const {
     return blendv(
+<<<<<<< HEAD
       Vectorized<int64_t>(0), Vectorized<int64_t>(c10::pi<int64_t>), *this < Vectorized<int64_t>(0));
+=======
+        Vectorized<int64_t>(0),
+        Vectorized<int64_t>(c10::pi<int64_t>),
+        *this < Vectorized<int64_t>(0));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   Vectorized<int64_t> real() const {
     return *this;
@@ -219,6 +271,7 @@ class Vectorized<int64_t> {
 };
 
 template <>
+<<<<<<< HEAD
 Vectorized<int64_t> inline operator<<(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
                 vuint64 shift_vec0 = reinterpret_cast<vuint64>(b.vec0());
                 vuint64 shift_vec1 = reinterpret_cast<vuint64>(b.vec1()) ;
@@ -230,6 +283,25 @@ Vectorized<int64_t> inline operator>>(const Vectorized<int64_t>& a, const Vector
                 vuint64 shift_vec0 = reinterpret_cast<vuint64>(b.vec0());
                 vuint64 shift_vec1 = reinterpret_cast<vuint64>(b.vec1()) ;
           return Vectorized<int64_t>{vec_sr(a.vec0(), shift_vec0), vec_sr(a.vec1(), shift_vec1)};
+=======
+Vectorized<int64_t> inline operator<<(
+    const Vectorized<int64_t>& a,
+    const Vectorized<int64_t>& b) {
+  vuint64 shift_vec0 = reinterpret_cast<vuint64>(b.vec0());
+  vuint64 shift_vec1 = reinterpret_cast<vuint64>(b.vec1());
+  return Vectorized<int64_t>{
+      vec_sl(a.vec0(), shift_vec0), vec_sl(a.vec1(), shift_vec1)};
+}
+
+template <>
+Vectorized<int64_t> inline operator>>(
+    const Vectorized<int64_t>& a,
+    const Vectorized<int64_t>& b) {
+  vuint64 shift_vec0 = reinterpret_cast<vuint64>(b.vec0());
+  vuint64 shift_vec1 = reinterpret_cast<vuint64>(b.vec1());
+  return Vectorized<int64_t>{
+      vec_sr(a.vec0(), shift_vec0), vec_sr(a.vec1(), shift_vec1)};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <>
@@ -247,6 +319,7 @@ Vectorized<int64_t> inline minimum(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<int64_t> C10_ALWAYS_INLINE operator+(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
   return Vectorized<int64_t>{vec_add(a.vec0(), b.vec0()), vec_add(a.vec1(), b.vec1())};
 }
@@ -282,5 +355,56 @@ Vectorized<int64_t> C10_ALWAYS_INLINE operator^(const Vectorized<int64_t>& a, co
 }
 
 } // namespace
+=======
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator+(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_add(a.vec0(), b.vec0()), vec_add(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator-(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_sub(a.vec0(), b.vec0()), vec_sub(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator*(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_mul(a.vec0(), b.vec0()), vec_mul(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator/(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_div(a.vec0(), b.vec0()), vec_div(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator&(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_and(a.vec0(), b.vec0()), vec_and(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator|(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_or(a.vec0(), b.vec0()), vec_or(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<int64_t> C10_ALWAYS_INLINE
+operator^(const Vectorized<int64_t>& a, const Vectorized<int64_t>& b) {
+  return Vectorized<int64_t>{
+      vec_xor(a.vec0(), b.vec0()), vec_xor(a.vec1(), b.vec1())};
+}
+
+} // namespace CPU_CAPABILITY
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace vec
 } // namespace at

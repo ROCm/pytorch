@@ -16,7 +16,10 @@
 #pragma once
 
 #include <c10/macros/Macros.h>
+<<<<<<< HEAD
 #include <c10/util/Deprecated.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/Exception.h>
 #include <c10/util/SmallVector.h>
 
@@ -377,8 +380,14 @@ bool operator!=(c10::ArrayRef<T> a1, const std::vector<T>& a2) {
 
 using IntArrayRef = ArrayRef<int64_t>;
 
+<<<<<<< HEAD
 // This alias is deprecated because it doesn't make ownership
 // semantics obvious.  Use IntArrayRef instead!
 C10_DEFINE_DEPRECATED_USING(IntList, ArrayRef<int64_t>)
+=======
+using IntList [[deprecated(
+    "This alias is deprecated because it doesn't make ownership semantics obvious. Use IntArrayRef instead!")]] =
+    ArrayRef<int64_t>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace c10

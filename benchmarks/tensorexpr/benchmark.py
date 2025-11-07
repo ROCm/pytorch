@@ -34,7 +34,11 @@ class Benchmark:
         for method in dir(self.engine):
             if not callable(getattr(self.engine, method)):
                 continue
+<<<<<<< HEAD
             # don't forward if this function is overriden here
+=======
+            # don't forward if this function is overridden here
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if hasattr(self, method):
                 continue
             # don't forward if it is a internal function
@@ -89,7 +93,11 @@ class Benchmark:
 
     @staticmethod
     def default_configs():
+<<<<<<< HEAD
         """return a list of defualt configs for this benchmark"""
+=======
+        """return a list of default configs for this benchmark"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise ValueError("this method should be reimplemented by subclass")
 
     def is_supported(self):

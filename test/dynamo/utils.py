@@ -39,6 +39,13 @@ def add(x):
     return x + 1
 
 
+<<<<<<< HEAD
+=======
+def break_it(x):
+    return x.sum().item()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def create_dummy_module_and_function():
     module = types.ModuleType("dummy_module")
     module.__spec__ = importlib.machinery.ModuleSpec(

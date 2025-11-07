@@ -130,6 +130,13 @@ struct PythonPrintImpl {
         stack->push_back(n->sourceRange());
       }
     }
+<<<<<<< HEAD
+=======
+    WithSourceRange(const WithSourceRange&) = delete;
+    WithSourceRange(WithSourceRange&&) = delete;
+    WithSourceRange& operator=(const WithSourceRange&) = delete;
+    WithSourceRange& operator=(WithSourceRange&&) = delete;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     ~WithSourceRange() {
       stack->pop_back();
@@ -361,8 +368,14 @@ struct PythonPrintImpl {
       std::unordered_set<std::string>& used) {
     std::string name = candidate;
     while (used.count(name) || reserved_names.count(name)) {
+<<<<<<< HEAD
       // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
       name = candidate + std::to_string(next_id[name]++);
+=======
+      auto suffix = (next_id[name]++);
+      name.resize(candidate.size());
+      name.append(std::to_string(suffix));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     used.insert(name);
     return name;

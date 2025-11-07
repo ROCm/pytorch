@@ -1,6 +1,10 @@
 # Owner(s): ["oncall: jit"]
 
 import torch
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -19,3 +23,10 @@ class TestFuserCommon(JitTestCase):
             # test fallback when optimization is not applicable
             y = fn(torch.randn(5, requires_grad=rq))
             self.assertEqual(y.requires_grad, rq)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit_fuser_te.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -69,5 +69,14 @@ TORCH_API bool isSupported(Node* node);
 /// @return Reference of the custome operator set
 ///
 TORCH_API OperatorSet& getCustomOperatorSet();
+<<<<<<< HEAD
 } // namespace tensorexpr
 } // namespace torch::jit
+=======
+
+} // namespace tensorexpr
+} // namespace torch::jit
+
+C10_DECLARE_bool(torch_jit_disable_cat);
+C10_DECLARE_bool(torch_jit_enable_dynamic_shape_fusion);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -1,5 +1,9 @@
 function(print_target_properties tgt)
+<<<<<<< HEAD
   # Get all propreties that cmake supports
+=======
+  # Get all properties that cmake supports
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
 
   # Convert command output into a CMake list

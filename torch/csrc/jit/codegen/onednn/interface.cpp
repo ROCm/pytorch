@@ -104,7 +104,11 @@ static Operation createLlgaKernel(const Node* node) {
   };
 }
 
+<<<<<<< HEAD
 RegisterOperators oneDNNFusionGroupOp({
+=======
+static RegisterOperators oneDNNFusionGroupOp({
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::jit::Operator(
         prim::oneDNNFusionGroup,
         createLlgaKernel,
@@ -169,7 +173,11 @@ static Operation createLlgaGuardKernel(const Node* node) {
   };
 }
 
+<<<<<<< HEAD
 RegisterOperators oneDNNGuardOp({
+=======
+static RegisterOperators oneDNNGuardOp({
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::jit::Operator(
         prim::oneDNNFusionGuard,
         createLlgaGuardKernel,

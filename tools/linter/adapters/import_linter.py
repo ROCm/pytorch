@@ -43,7 +43,11 @@ class LintMessage(NamedTuple):
     description: str | None
 
 
+<<<<<<< HEAD
 LINTER_CODE = "NEWLINE"
+=======
+LINTER_CODE = "IMPORT_LINTER"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CURRENT_FILE_NAME = os.path.basename(__file__)
 _MODULE_NAME_ALLOW_LIST: set[str] = set()
 

@@ -1,16 +1,30 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
 
 import torch
 from torch.onnx._internal.fx import _pass, diagnostics
+=======
+import logging
+from typing import TYPE_CHECKING
+
+import torch
+from torch.onnx._internal.fx import _pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+<<<<<<< HEAD
+=======
+logger = logging.getLogger(__name__)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RestoreParameterAndBufferNames(_pass.Transform):
     """Restore parameter and buffer names from original nn.module.
 
@@ -26,16 +40,26 @@ class RestoreParameterAndBufferNames(_pass.Transform):
 
     def __init__(
         self,
+<<<<<<< HEAD
         diagnostic_context: diagnostics.DiagnosticContext,
         fx_module: torch.fx.GraphModule,
         original_nn_module: torch.nn.Module,
     ):
         super().__init__(diagnostic_context, fx_module)
+=======
+        fx_module: torch.fx.GraphModule,
+        original_nn_module: torch.nn.Module,
+    ):
+        super().__init__(fx_module)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.original_nn_module = original_nn_module
 
     def _rename_param_and_buffer(
         self,
+<<<<<<< HEAD
         diagnostic: diagnostics.Diagnostic,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nodes: Sequence[torch.fx.Node],
         new_name: str,
     ) -> None:
@@ -57,7 +81,11 @@ class RestoreParameterAndBufferNames(_pass.Transform):
                 new_node.meta = node.meta
                 node.replace_all_uses_with(new_node)
                 self.module.graph.erase_node(node)
+<<<<<<< HEAD
         diagnostic.info(
+=======
+        logger.info(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "Renamed 'self.%s' to 'self.%s', "
             "normalized from original parameter name '%s'.",
             old_name,
@@ -86,7 +114,10 @@ class RestoreParameterAndBufferNames(_pass.Transform):
         state_to_readable_name.update(
             {v: k for k, v in self.original_nn_module.named_buffers()}
         )
+<<<<<<< HEAD
         diagnostic = self.diagnostic_context.inflight_diagnostic()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # old_name_to_nodes[old_name] returns a tuple of (nodes, new_name)
         # where `nodes` is a list of `get_attr` nodes with `old_name` as `target` and
@@ -117,11 +148,16 @@ class RestoreParameterAndBufferNames(_pass.Transform):
                     old_name_to_nodes[node.target] = ([node], readable_name)
                     continue
 
+<<<<<<< HEAD
                 diagnostic.info(
+=======
+                logger.info(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "Cannot find readable name for self.%s: %s. The name is unchanged.",
                     node.target,
                     type(attr_value),
                 )
+<<<<<<< HEAD
                 if isinstance(attr_value, torch.nn.Parameter):
                     # If it is a parameter we treat it more seriously.
                     diagnostic.level = diagnostics.levels.WARNING
@@ -130,5 +166,10 @@ class RestoreParameterAndBufferNames(_pass.Transform):
 
         for nodes, new_name in old_name_to_nodes.values():
             self._rename_param_and_buffer(diagnostic, nodes, new_name)
+=======
+
+        for nodes, new_name in old_name_to_nodes.values():
+            self._rename_param_and_buffer(nodes, new_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return self.module

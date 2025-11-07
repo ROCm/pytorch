@@ -164,9 +164,13 @@ TEST(LoopNest, ExprSliceHeadWithLoopOptions) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   loops[0]->set_gpu_block_index(LoopOptions::IDX_Y);
@@ -187,16 +191,24 @@ TEST(LoopNest, ExprSliceTailWithLoopOptions) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceTail(loops[0], 4, &head, &tail);
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr tail_head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr tail_head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail_tail;
   tail->set_gpu_block_index(LoopOptions::IDX_Y);
   LoopNest::sliceTail(tail, 2, &tail_head, &tail_tail);
@@ -219,9 +231,13 @@ TEST(LoopNest, ExprSliceHeadWhenFactorEqualsSize) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceHead(loops[0], 10, &head, &tail);
@@ -239,9 +255,13 @@ TEST(LoopNest, ExprSliceHeadWhenFactorLargerThanSize) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceHead(loops[0], 100, &head, &tail);
@@ -259,9 +279,13 @@ TEST(LoopNest, ExprSliceHead) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceHead(loops[0], 4, &head, &tail);
@@ -283,9 +307,13 @@ TEST(LoopNest, ExprSliceHeadWithNonZeroStart) {
   LoopNest l({tensor});
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   LoopNest::sliceTail(loops[0], 4, &head, &tail);
   // head: [0, 6)
@@ -307,9 +335,13 @@ TEST(LoopNest, ExprSliceTailWhenFactorEqualsSize) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceTail(loops[0], 10, &head, &tail);
@@ -329,9 +361,13 @@ TEST(LoopNest, ExprSliceTailWhenFactorLargerThanSize) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceTail(loops[0], 100, &head, &tail);
@@ -349,9 +385,13 @@ TEST(LoopNest, ExprSliceTail) {
   };
   Tensor tensor = Compute("f", {10}, func);
   LoopNest l({tensor});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   LoopNest::sliceTail(loops[0], 4, &head, &tail);
@@ -375,9 +415,13 @@ TEST(LoopNest, ExprSplitAndSlice) {
   Tensor tensor = Compute("f", {100}, func);
   LoopNest l({tensor});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr inner;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr inner;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
   // outer: [0, 4)
@@ -428,9 +472,13 @@ TEST(LoopNest, ExprSliceAndNormalize) {
   LoopNest l({tensor});
   std::vector<ForPtr> loops = l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr head;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   LoopNest::sliceHead(loops[0], 2, &head, &tail);
   // head: [0, 2)
@@ -460,9 +508,13 @@ TEST(LoopNest, ExprSliceWithVariableDimension) {
         std::vector<ForPtr> loops =
             l.getAllLoopNestsWritingToBuf(tensor.buf()).at(0);
 
+<<<<<<< HEAD
         // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
         ForPtr head;
         // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+        ForPtr head;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ForPtr tail;
         LoopNest::sliceHead(loops[0], 2, &head, &tail);
 
@@ -850,7 +902,10 @@ TEST(LoopNest, SplitWithTailWithLoopOptions) {
   Tensor tensor = Compute("f", {M}, [&](const ExprHandle& m) {
     return a_buf.load(m) + b_buf.load(m) + 1.0f;
   });
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr inner, tail;
 
   LoopNest l({tensor});
@@ -880,7 +935,10 @@ TEST(LoopNest, SplitWithMaskWithLoopOptions) {
   Tensor tensor = Compute("f", {M}, [&](const ExprHandle& m) {
     return a_buf.load(m) + b_buf.load(m) + 1.0f;
   });
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr inner;
 
   LoopNest l({tensor});
@@ -1433,7 +1491,10 @@ TEST(LoopNest, ScheduleSplitTwiceThenInline) {
   Tensor a = Compute("a", {18}, [&](const VarHandle& i) { return i * i; });
   Tensor b = Compute(
       "b", {2}, [&](const VarHandle& j) { return a.load(j + ExprHandle(8)); });
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr i_inner;
 
   LoopNest l({b}, {a, b});
@@ -3410,9 +3471,13 @@ TEST(LoopNest, NormalizeAndSplitWithTail) {
 
   LoopNest::normalize(for_stmt);
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr x_inner;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr x_inner;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr x_tail;
   LoopNest::splitWithTail(for_stmt, 10, &x_inner, &x_tail);
 
@@ -3454,9 +3519,13 @@ TEST(LoopNest, NotNormalizeAndSplitWithTail) {
   auto for_stmt = For::make(x, 5, 15, Store::make(a_buf, {x}, x * 2));
   auto parent_block = Block::make({for_stmt});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr x_inner;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr x_inner;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr x_tail;
   LoopNest::splitWithTail(for_stmt, 8, &x_inner, &x_tail);
 
@@ -5349,7 +5418,10 @@ TEST(LoopNest, fuseLoopsSimple) {
   auto forJ = For::make(j, 0, 100, Store::make(a_buf, {j}, Mul::make(10, j)));
   auto forK = For::make(k, 0, 100, Store::make(b_buf, {k}, Mul::make(20, k)));
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 
@@ -5389,7 +5461,10 @@ TEST(LoopNest, fuseLoopsMultiple) {
   auto forJ = For::make(j, 0, 100, Store::make(a_buf, {j}, Mul::make(10, j)));
   auto forK = For::make(k, 0, 100, Store::make(b_buf, {k}, Mul::make(20, k)));
   auto par = Block::make({forI, forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forI, forJ, forK}, &fused_loop));
 
@@ -5446,7 +5521,10 @@ TEST(LoopNest, fuseLoopsNested) {
   auto forM = For::make(m, 0, 20, Block::make({initA, forJ}));
   auto forN = For::make(n, 0, 20, Block::make({initB, forK}));
   auto par = Block::make({forM, forN});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forM, forN}, &fused_loop));
 
@@ -5506,7 +5584,10 @@ TEST(LoopNest, fuseLoopsNested2D) {
           50,
           Store::make(b_buf, {m, n}, Add::make(m, Mul::make(n, 100)))));
   auto par = Block::make({forI, forM});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 
@@ -5547,7 +5628,10 @@ TEST(LoopNest, fuseLoopsNested2DInner) {
   auto forN = For::make(
       n, 0, 100, Store::make(b_buf, {i, n}, Add::make(i, Mul::make(n, 100))));
   auto forI = For::make(i, 0, 20, Block::make({forJ, forN}));
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forJ, forN}, &fused_loop));
 
@@ -5583,7 +5667,10 @@ TEST(LoopNest, fuseLoopsDifferentStopBounds) {
   auto forK = For::make(k, 0, 50, Store::make(b_buf, {j}, Mul::make(20, k)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -5604,7 +5691,10 @@ TEST(LoopNest, fuseLoopsDifferentStartBounds) {
   auto forK = For::make(k, 50, 100, Store::make(b_buf, {j}, Mul::make(20, k)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -5627,7 +5717,10 @@ TEST(LoopNest, fuseLoopsNotContiguous) {
   auto forK = For::make(k, 0, 100, Store::make(b_buf, {j}, Mul::make(20, k)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forJ, initB, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -5654,7 +5747,10 @@ TEST(LoopNest, fuseLoopsWithDifferentParents) {
   auto forK = For::make(k, 50, 100, Store::make(b_buf, {j}, Mul::make(20, k)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forI, initB, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -5676,7 +5772,10 @@ TEST(LoopNest, fuseLoopsWithVariableBounds) {
   // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks,cppcoreguidelines-avoid-magic-numbers)
   auto forK = For::make(k, 0, N, Store::make(b_buf, {j}, Mul::make(20, k)));
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 
@@ -5712,7 +5811,10 @@ TEST(LoopNest, fuseLoopsWithExprBounds) {
   auto forJ = For::make(j, 0, M + N, Store::make(a_buf, {j}, Mul::make(10, j)));
   auto forK = For::make(k, 0, M + N, Store::make(b_buf, {j}, Mul::make(20, k)));
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 
@@ -5749,7 +5851,10 @@ TEST(LoopNest, fuseLoopsWithDifferentExprBounds) {
   // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks,cppcoreguidelines-avoid-magic-numbers)
   auto forK = For::make(k, M, N + N, Store::make(b_buf, {j}, Mul::make(20, k)));
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 
@@ -5784,7 +5889,10 @@ TEST(LoopNest, fuseLoopsWithNonOverlappingBufferAccesses) {
       For::make(k, 10, 100, Store::make(a_buf, {k + 100}, Mul::make(30, k)));
   auto par = Block::make({forJ, forK});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 
@@ -5830,7 +5938,10 @@ TEST(LoopNest, fuseLoopsWithNonOverlapping2DBufferAccesses) {
   auto forM = For::make(m, 0, 20, forN);
   auto par = Block::make({forI, forM});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 
@@ -5876,7 +5987,10 @@ TEST(LoopNest, fuseLoopsWithReductions) {
   auto forM =
       For::make(m, 0, 20, Store::make(c_buf, {m}, Load::make(a_buf, {m})));
   auto par = Block::make({forI, forM});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 
@@ -5932,7 +6046,10 @@ TEST(LoopNest, fuseLoopsWith2DReductions) {
   auto forM = For::make(m, 0, 20, For::make(n, 0, 40, storeC));
   auto par = Block::make({forI, forM});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 
@@ -5980,7 +6097,10 @@ TEST(LoopNest, fuseLoopsWithComplexIndices) {
   auto forM = For::make(m, 0, 20, For::make(n, 0, 20, storeB));
   auto par = Block::make({forI, forM});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_TRUE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 
@@ -6025,7 +6145,10 @@ TEST(LoopNest, fuseLoopsWithMixedLoopVarsAsIndices) {
   auto forM = For::make(m, 0, 20, For::make(n, 0, 20, storeB));
   auto par = Block::make({forI, forM});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 }
@@ -6054,7 +6177,10 @@ TEST(LoopNest, fuseLoopsWithTranspose) {
   auto forM = For::make(m, 0, 20, For::make(n, 0, 20, storeB));
   auto par = Block::make({forI, forM});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 }
@@ -6075,7 +6201,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies1) {
       For::make(k, 10, 100, Store::make(a_buf, {k - 1}, Mul::make(20, k)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -6096,7 +6225,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies2) {
       For::make(k, 10, 100, Store::make(a_buf, {k + 50}, Mul::make(20, k)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -6139,7 +6271,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies3) {
   auto forN = For::make(n, 0, 20, Block::make({initB, forK}));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forM, forN});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forM, forN}, &fused_loop));
 }
@@ -6181,7 +6316,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies4) {
           Store::make(a_buf, {m + 1, n}, Add::make(m, Mul::make(n, 100)))));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forI, forM});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forI, forM}, &fused_loop));
 }
@@ -6209,7 +6347,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies5) {
       Store::make(a_buf, {i, n + 1}, Add::make(i, Mul::make(n, 100))));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores,cppcoreguidelines-avoid-magic-numbers)
   auto forI = For::make(i, 0, 20, Block::make({forJ, forN}));
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forN}, &fused_loop));
 }
@@ -6235,7 +6376,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies6) {
           b_buf, {k}, Mul::make(20, Load::make(a_buf, {ExprHandle(99) - k}))));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forJ, forK});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forJ, forK}, &fused_loop));
 }
@@ -6261,7 +6405,10 @@ TEST(LoopNest, fuseLoopsThatViolateDependencies7) {
   auto forJ = For::make(j, 0, 100, Store::make(a_buf, {j}, Mul::make(10, j)));
   // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   auto par = Block::make({forK, forJ});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr fused_loop;
   ASSERT_FALSE(LoopNest::fuseLoops({forK, forJ}, &fused_loop));
 }

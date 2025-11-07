@@ -187,21 +187,35 @@ void nonzero_cuda_out_impl(const Tensor& self, Tensor& out) {
     cub::TransformInputIterator<bool, NonZeroOp<scalar_t>, const scalar_t*> itr(
         self_.const_data_ptr<scalar_t>() + idx * chunk_size,
         NonZeroOp<scalar_t>());
+<<<<<<< HEAD
     cub::DeviceReduce::Sum(
+=======
+    AT_CUDA_CHECK(cub::DeviceReduce::Sum(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nullptr,
         temp_storage_bytes,
         itr,
         ((int*)num_nonzeros.get()) + idx,
         remaining,
+<<<<<<< HEAD
         stream);
     auto temp_storage = allocator.allocate(temp_storage_bytes);
     cub::DeviceReduce::Sum(
+=======
+        stream));
+    auto temp_storage = allocator.allocate(temp_storage_bytes);
+    AT_CUDA_CHECK(cub::DeviceReduce::Sum(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         temp_storage.get(),
         temp_storage_bytes,
         itr,
         ((int*)num_nonzeros.get()) + idx,
         remaining,
+<<<<<<< HEAD
         stream);
+=======
+        stream));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   auto pinned_num_nonzeros_h = at::detail::empty_cpu(
       {num_chunks}, /* size */
@@ -248,7 +262,11 @@ void nonzero_cuda_out_impl(const Tensor& self, Tensor& out) {
           itr(self_.const_data_ptr<scalar_t>() + idx * chunk_size,
               NonZeroOp<scalar_t>());
       temp_storage_bytes = 0;
+<<<<<<< HEAD
       cub::DeviceSelect::Flagged(
+=======
+      AT_CUDA_CHECK(cub::DeviceSelect::Flagged(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           nullptr,
           temp_storage_bytes,
           counting_itr,
@@ -256,9 +274,15 @@ void nonzero_cuda_out_impl(const Tensor& self, Tensor& out) {
           out_temp.mutable_data_ptr<int64_t>(),
           ((int*)num_nonzeros.get()) + idx,
           remaining,
+<<<<<<< HEAD
           stream);
       auto temp_storage = allocator.allocate(temp_storage_bytes);
       cub::DeviceSelect::Flagged(
+=======
+          stream));
+      auto temp_storage = allocator.allocate(temp_storage_bytes);
+      AT_CUDA_CHECK(cub::DeviceSelect::Flagged(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           temp_storage.get(),
           temp_storage_bytes,
           counting_itr,
@@ -266,7 +290,11 @@ void nonzero_cuda_out_impl(const Tensor& self, Tensor& out) {
           out_temp.mutable_data_ptr<int64_t>() + curr_nonzeros,
           ((int*)num_nonzeros.get()) + idx,
           remaining,
+<<<<<<< HEAD
           stream);
+=======
+          stream));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       curr_nonzeros +=
           (int)*(pinned_num_nonzeros_h.const_data_ptr<int>() + idx);
     }
@@ -300,7 +328,11 @@ void nonzero_static_cuda_out_impl(
     int64_t size,
     int64_t fill_value,
     Tensor& out) {
+<<<<<<< HEAD
 # if (defined(CUDA_VERSION) && CUDA_VERSION > 11040) || defined(USE_ROCM)
+=======
+#if defined(CUDA_VERSION) || defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Tensor self_contiguous_ = self.contiguous();
   // see comment in nonzero_cuda_out_impl on reqs for out

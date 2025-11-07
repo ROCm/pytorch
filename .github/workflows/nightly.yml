@@ -5,8 +5,12 @@ on:
     - cron: 0 0 * * *
   push:
     tags:
+<<<<<<< HEAD
       # Final Release tags look like: v1.11.0
       - v[0-9]+.[0-9]+.[0-9]+
+=======
+      # NOTE: Doc build pipelines should only get triggered on release candidate builds
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # Release candidate tags look like: v1.11.0-rc1
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
       - ciflow/nightly/*
@@ -20,7 +24,11 @@ concurrency:
 jobs:
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -28,6 +36,18 @@ jobs:
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
 
+<<<<<<< HEAD
+=======
+  link-check:
+    name: Link checks
+    needs: get-label-type
+    uses: ./.github/workflows/_link_check.yml
+    with:
+      runner: ${{ needs.get-label-type.outputs.label-type }}
+      ref:    ${{ github.sha }}
+    secrets: inherit
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   docs-build:
     name: docs build
     uses: ./.github/workflows/_linux-build.yml
@@ -35,7 +55,11 @@ jobs:
     with:
       runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
       build-environment: linux-jammy-py3.9-gcc11
+<<<<<<< HEAD
       docker-image-name: pytorch-linux-jammy-py3.9-gcc11
+=======
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit
 
   docs-push:
@@ -48,7 +72,11 @@ jobs:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       build-environment: linux-jammy-py3.9-gcc11
       docker-image: ${{ needs.docs-build.outputs.docker-image }}
+<<<<<<< HEAD
       push: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (startsWith(github.event.ref, 'refs/tags/v') && !contains(github.event.ref, 'rc')) }}
+=======
+      push: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.event.ref, 'refs/tags/v') }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       run-doxygen: true
     secrets:
       GH_PYTORCHBOT_TOKEN: ${{ secrets.GH_PYTORCHBOT_TOKEN }}
@@ -79,7 +107,11 @@ jobs:
     if: github.repository_owner == 'pytorch' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     steps:
       - name: "${{ matrix.repo-owner }}/${{ matrix.repo-name }} update-commit-hash"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/update-commit-hash@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/update-commit-hash@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           repo-owner: ${{ matrix.repo-owner }}
           repo-name: ${{ matrix.repo-name }}

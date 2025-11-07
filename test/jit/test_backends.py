@@ -15,6 +15,10 @@ from torch.testing._internal.common_utils import (
     IS_MACOS,
     IS_SANDCASTLE,
     IS_WINDOWS,
+<<<<<<< HEAD
+=======
+    raise_on_run_directly,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfRocm,
     TEST_WITH_ROCM,
 )
@@ -25,6 +29,7 @@ from torch.testing._internal.jit_utils import JitTestCase
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -32,6 +37,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def to_test_backend(module, method_compile_spec):
     return torch._C._jit_to_backend(
@@ -822,3 +829,10 @@ class AddedAttributesTest(JitBackendTestCase):
         )
         self.assertEqual(pre_bundled, post_bundled)
         self.assertEqual(post_bundled, post_load)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

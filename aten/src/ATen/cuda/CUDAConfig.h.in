@@ -8,6 +8,10 @@
 // only be included from C++ files.
 #define AT_CUDNN_ENABLED() @AT_CUDNN_ENABLED@
 #define AT_CUSPARSELT_ENABLED() @AT_CUSPARSELT_ENABLED@
+<<<<<<< HEAD
+=======
+#define AT_HIPSPARSELT_ENABLED() @AT_HIPSPARSELT_ENABLED@
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define AT_ROCM_ENABLED() @AT_ROCM_ENABLED@
 #define AT_MAGMA_ENABLED() @AT_MAGMA_ENABLED@
 

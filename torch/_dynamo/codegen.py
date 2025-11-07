@@ -18,12 +18,20 @@ import re
 import sys
 import types
 from collections import Counter
+<<<<<<< HEAD
 from typing import Optional, Union
+=======
+from typing import Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.nn
 from torch.utils._ordered_set import OrderedSet
 
+<<<<<<< HEAD
 from . import graph_break_hints, utils
+=======
+from . import config, graph_break_hints, utils
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .bytecode_transformation import (
     add_push_null,
     add_push_null_call_function_ex,
@@ -54,6 +62,13 @@ from .variables.tensor import (
 from .variables.torch_function import TensorWithTFOverrideVariable
 
 
+<<<<<<< HEAD
+=======
+if TYPE_CHECKING:
+    from .symbolic_convert import InstructionTranslatorBase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class GraphOutputEntry:
     index: int
@@ -67,7 +82,11 @@ class PyCodegen:
 
     def __init__(
         self,
+<<<<<<< HEAD
         tx=None,
+=======
+        tx: "InstructionTranslatorBase",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         root: Optional[torch.nn.Module] = None,
         graph_output_var: Optional[str] = None,
         tempvars=None,
@@ -75,7 +94,11 @@ class PyCodegen:
     ) -> None:
         self.root = root
         self.top_of_stack: Optional[Union[VariableTracker, Source]] = None
+<<<<<<< HEAD
         self.uses: Counter[VariableTracker] = collections.Counter()
+=======
+        self.uses: Counter[Union[VariableTracker, Source]] = collections.Counter()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.graph_outputs: dict[int, GraphOutputEntry] = {}
         self._output: list[Instruction] = []
         # This determines which VariableTracker/Source should be stored as
@@ -177,9 +200,15 @@ class PyCodegen:
         Notable effects:
         1. `self.top_of_stack` will be set to `value`, if we don't codegen
            `value` based on source.
+<<<<<<< HEAD
         2. `self.uses[value]` will increment, if we don't codegen `value` based
            on source or cache/top-of-stack reuse; in other words, if we codegen
            as if `value` is modelling some brand new python value.
+=======
+        2. `self.uses[value]` will increment, unless (a). we codegen via
+            `top_of_stack` or cached `tempvars`, or (b). `value` has special VT
+            types like `NNModuleVariable`, etc.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         if isinstance(value, Source):
             # If the source needs to be overridden, use the new one.
@@ -194,6 +223,10 @@ class PyCodegen:
                 self.top_of_stack = source
                 return
 
+<<<<<<< HEAD
+=======
+            self.uses[source] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 self.call_reconstruct(source)
             except NotImplementedError:
@@ -203,9 +236,15 @@ class PyCodegen:
                     explanation=f"Dynamo has no bytecode reconstruction implemented for {type(source)} variable {source}.",
                     hints=[*graph_break_hints.DYNAMO_BUG],
                 )
+<<<<<<< HEAD
 
             self._output.append(create_dup_top())
             self.add_cache(source)
+=======
+            if source in self.tempvars:
+                self._output.append(create_dup_top())
+                self.add_cache(source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.top_of_stack = source
 
             return
@@ -248,7 +287,11 @@ class PyCodegen:
             # above, export _wants to_ obtain an identity FX graph (despite it
             # appears unnecessarily expensive for `torch.compile`), so we have
             # the following option to override Dynamo's preference for codegen
+<<<<<<< HEAD
             # from source. Morever, this option applies recursively, for cases
+=======
+            # from source. Moreover, this option applies recursively, for cases
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # like input tensor being returned in a new dictionary.
             #
             # And why the `ValueMutationExisting` check? Not sure, so leaving it
@@ -345,10 +388,17 @@ class PyCodegen:
                     context=str(value),
                     explanation=f"Dynamo has no bytecode reconstruction implemented for sourceless variable {value}.",
                     hints=[
+<<<<<<< HEAD
                         "If Dynamo attempting to trace a return statement and your code is attempting to return a variable "
                         "that Dynamo cannot reconstruct, then remove it from the return statement.",
                         *graph_break_hints.CAUSED_BY_EARLIER_GRAPH_BREAK,
                         "Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't have"
+=======
+                        "If Dynamo is attempting to trace a return statement and your code is attempting to return a variable "
+                        "that Dynamo cannot reconstruct, then remove it from the return statement.",
+                        *graph_break_hints.CAUSED_BY_EARLIER_GRAPH_BREAK,
+                        "Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't have "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         "reconstruction rules may be fundamentally unreconstructable.",
                     ],
                 )
@@ -503,6 +553,7 @@ class PyCodegen:
                 create_instruction("UNPACK_SEQUENCE", arg=n),
             ]
 
+<<<<<<< HEAD
     def pop_null(self):
         # POP_TOP doesn't work for null, so we pop nulls by pushing in a
         # nop function, calling it (which consumes the null), and popping the result.
@@ -519,6 +570,8 @@ class PyCodegen:
             create_instruction("POP_TOP"),
         ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def pop_top(self):
         self.append_output(create_instruction("POP_TOP"))
 
@@ -602,7 +655,11 @@ class PyCodegen:
 
         def collect_temp_source(source):
             if source in seen_sources:
+<<<<<<< HEAD
                 # This source is used atleast twice, so it can be reused
+=======
+                # This source is used at least twice, so it can be reused
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.mark_source_temp(source)
                 # Dont trace source further. This prevents us from marking too
                 # many nodes as temp sources.
@@ -625,6 +682,21 @@ class PyCodegen:
             if arg.source is not None:
                 collect_temp_source(arg.source)
 
+<<<<<<< HEAD
+=======
+        cm_var = None
+        if config.record_runtime_overhead:
+            # Record the pregraph bytecode start
+            self.add_push_null(
+                lambda: self.load_import_from(
+                    utils.__name__, "record_pregraph_bytecode_enter"
+                )
+            )
+            self.extend_output(create_call_function(0, False))
+            cm_var = self.new_var()
+            self.store(cm_var)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for arg in graphargs:
             if arg.pass_arg_as_tensor:
                 self.add_push_null(
@@ -640,6 +712,21 @@ class PyCodegen:
             else:
                 self.call_reconstruct(arg)
 
+<<<<<<< HEAD
+=======
+        if config.record_runtime_overhead:
+            # Record the pregraph bytecode end
+            self.add_push_null(
+                lambda: self.load_import_from(
+                    utils.__name__, "record_pregraph_bytecode_exit"
+                )
+            )
+            assert cm_var is not None
+            self.extend_output([self.create_load(cm_var)])
+            self.extend_output(create_call_function(1, False))
+            self.pop_top()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.extend_output(create_call_function(len(graphargs), False))
 
     def load_import_from(self, module_name, object_name) -> None:

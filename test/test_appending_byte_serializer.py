@@ -78,6 +78,22 @@ class TestAppendingByteSerializer(TestCase):
             ),
         )
 
+<<<<<<< HEAD
+=======
+    def test_checksum(self) -> None:
+        writer = BytesWriter()
+        writer.write_str("test")
+        b = writer.to_bytes()
+        b = bytearray(b)
+        b[0:1] = b"\x00"
+        b = bytes(b)
+
+        with self.assertRaisesRegex(
+            RuntimeError, r"Bytes object is corrupted, checksum does not match.*"
+        ):
+            BytesReader(b)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

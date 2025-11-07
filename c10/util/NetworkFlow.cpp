@@ -90,7 +90,11 @@ struct DinicFlowGraph {
     // The residual level graph is constructed by:
     //   1. doing a BFS on the residual graph, assigning levels
     //      to each vertex.
+<<<<<<< HEAD
     //   2. only include edges u->v where level[v] == leve[u] + 1
+=======
+    //   2. only include edges u->v where level[v] == level[u] + 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::queue<size_t> q;
     // let level[u] = 0 if it has not been visited yet.
     std::vector<size_t> level(graph_size, 0);
@@ -216,9 +220,13 @@ struct DinicFlowGraph {
     return seen;
   }
 
+<<<<<<< HEAD
   std::pair<std::vector<size_t>, std::vector<size_t>> partition(
       size_t s,
       size_t t) {
+=======
+  std::pair<std::vector<size_t>, std::vector<size_t>> partition(size_t t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Note: the partitioning returns "reachable" / "unreachable",
     //   but specifically, for "unreachable", it returns "all vertices
     //   that are reachable from t in the reverse residual graph"
@@ -258,7 +266,11 @@ struct DinicFlowGraph {
       };
     }
 
+<<<<<<< HEAD
     auto [reachable_idxs, unreachable_idxs] = partition(s_int, t_int);
+=======
+    auto [reachable_idxs, unreachable_idxs] = partition(t_int);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<std::string> reachable, unreachable;
 
     auto idxs_to_names = [&](std::vector<size_t>& src,

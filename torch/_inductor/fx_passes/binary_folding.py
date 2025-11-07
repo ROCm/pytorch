@@ -83,7 +83,11 @@ def recover_original_precision_folded_computation_ops(gm):
 _binary_ops = [aten.add.Tensor, aten.sub.Tensor, aten.mul.Tensor, aten.div.Tensor]
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def binary_folding_init():
     _conv_args = [Arg() for _ in range(9)]
     _addmm_args = [Arg() for _ in range(3)]

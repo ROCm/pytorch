@@ -11,7 +11,11 @@ if TYPE_CHECKING:
 
 
 # TODO: Remove after https://github.com/huggingface/safetensors/pull/318
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def has_safetensors_and_transformers():
     try:
         # safetensors is not an exporter requirement, but needed for some huggingface models

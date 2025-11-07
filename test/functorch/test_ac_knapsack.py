@@ -124,9 +124,13 @@ class TestGraphInfoProvider(TestCase):
         )
 
     def test_recomputable_node_only_graph_with_larger_graph_context(self):
+<<<<<<< HEAD
         recomputable_node_only_graph_with_larger_graph_context = (
             self.graph_info_provider.recomputable_node_only_graph_with_larger_graph_context
         )
+=======
+        recomputable_node_only_graph_with_larger_graph_context = self.graph_info_provider.recomputable_node_only_graph_with_larger_graph_context  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expected_nodes = self.all_recomputable_banned_nodes
         # node1 does not have an indirect path to node5 because of node2
         # node2 has an indirect path to node5
@@ -279,6 +283,7 @@ class TestKnapsackEvaluator(TestCase):
         )
 
     def test_get_knee_point_memory_budget(self):
+<<<<<<< HEAD
         max_mem_budget = 1.0
         min_mem_budget = 0.1
         iterations = 10
@@ -289,6 +294,35 @@ class TestKnapsackEvaluator(TestCase):
             iterations=iterations,
         )
         self.assertEqual(knee_point_memory_budget, 0.4)
+=======
+        """
+        Checks if the method correctly estimates the knee point in the memory budget
+        where the trade-off between memory usage and recomputation runtime is optimal.
+
+        If memory budget and runtime are considered as equal cost, then the knee point
+        is where the distance from 0 is smallest.
+        """
+        max_mem_budget_to_expected_knee_point = {
+            0.1: 0.1,
+            0.2: 0.1,
+            0.3: 0.3,
+            0.4: 0.4,  # 0.3 and 0.4 provide the same algo output so this is arbitrary
+            0.5: 0.4,
+        }
+        for (
+            max_mem_budget,
+            expected_knee_point,
+        ) in max_mem_budget_to_expected_knee_point.items():
+            knee_point_memory_budget = (
+                self.knapsack_evaluator.get_knee_point_memory_budget(
+                    knapsack_algo=self.knapsack_algo,
+                    max_mem_budget=max_mem_budget,
+                    min_mem_budget=0.1,
+                    iterations=5,
+                )
+            )
+            self.assertEqual(knee_point_memory_budget, expected_knee_point)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_get_backward_memory_from_topologically_sorted_graph(self):
         result = self.knapsack_evaluator._get_backward_memory_from_topologically_sorted_graph(

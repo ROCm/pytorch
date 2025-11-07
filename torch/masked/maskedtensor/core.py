@@ -25,7 +25,11 @@ def is_masked_tensor(obj: Any, /) -> TypeIs["MaskedTensor"]:
 
         >>> # xdoctest: +SKIP
         >>> from torch.masked import MaskedTensor
+<<<<<<< HEAD
         >>> data = torch.arange(6).reshape(2,3)
+=======
+        >>> data = torch.arange(6).reshape(2, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> mask = torch.tensor([[True, False, False], [True, True, False]])
         >>> mt = MaskedTensor(data, mask)
         >>> is_masked_tensor(mt)
@@ -174,7 +178,11 @@ class MaskedTensor(torch.Tensor):
                 UserWarning,
                 stacklevel=2,
             )
+<<<<<<< HEAD
         return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)  # type: ignore[attr-defined]
+=======
+        return torch.Tensor._make_wrapper_subclass(cls, data.size(), **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _preprocess_data(self, data, mask):
         from .._ops import _sparse_coo_where, _sparse_csr_where
@@ -304,7 +312,11 @@ class MaskedTensor(torch.Tensor):
         return MaskedTensor(fn(data), mask)
 
     @classmethod
+<<<<<<< HEAD
     def __torch_dispatch__(cls, func, types, args, kwargs):
+=======
+    def __torch_dispatch__(cls, func, types, args, kwargs):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         func = func.overloadpacket
 
         from ._ops_refs import _MASKEDTENSOR_DISPATCH_TABLE
@@ -355,5 +367,9 @@ class MaskedTensor(torch.Tensor):
 
     # Update later to support more sparse layouts
     @property
+<<<<<<< HEAD
     def is_sparse(self):
+=======
+    def is_sparse(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.is_sparse_coo() or self.is_sparse_csr()

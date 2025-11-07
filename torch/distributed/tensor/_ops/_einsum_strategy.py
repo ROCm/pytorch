@@ -3,7 +3,11 @@ from dataclasses import dataclass
 
 from torch.distributed.device_mesh import DeviceMesh
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
+<<<<<<< HEAD
 from torch.distributed.tensor._op_schema import OpStrategy, PlacementStrategy
+=======
+from torch.distributed.tensor._op_schema import OpSpec, OpStrategy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.placement_types import (
     Partial,
     Placement,
@@ -167,7 +171,11 @@ def gen_einsum_strategies(
     all_strategies = []
     for strategy_comb in strategy_combs:
         spec_list = [DTensorSpec(mesh, tuple(specs)) for specs in zip(*strategy_comb)]
+<<<<<<< HEAD
         strat = PlacementStrategy(output_specs=spec_list[0], input_specs=spec_list[1:])
+=======
+        strat = OpSpec(output_specs=spec_list[0], input_specs=spec_list[1:])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         all_strategies.append(strat)
 
     return OpStrategy(all_strategies)

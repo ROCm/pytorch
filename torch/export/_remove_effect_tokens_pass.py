@@ -53,6 +53,7 @@ def _remove_effect_tokens_from_graph_helper(
         assert isinstance(func, (torch._ops.OpOverload, torch._ops.HigherOrderOperator))
 
         if func == torch.ops.higher_order.call_torchbind:
+<<<<<<< HEAD
             custom_obj_meta = node.args[2].meta["val"]
             assert isinstance(custom_obj_meta, CustomObjArgument)
             if custom_obj_meta.fake_val:
@@ -60,6 +61,15 @@ def _remove_effect_tokens_from_graph_helper(
             elif node.args[2].name in inputs_to_lifted_custom_objs:
                 custom_obj = ep.constants[
                     inputs_to_lifted_custom_objs[node.args[2].name]
+=======
+            custom_obj_meta = node.args[2].meta["val"]  # type: ignore[union-attr]
+            assert isinstance(custom_obj_meta, CustomObjArgument)
+            if custom_obj_meta.fake_val:
+                custom_obj = custom_obj_meta.fake_val
+            elif node.args[2].name in inputs_to_lifted_custom_objs:  # type: ignore[union-attr]
+                custom_obj = ep.constants[
+                    inputs_to_lifted_custom_objs[node.args[2].name]  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             else:
                 raise RuntimeError(f"Unable to find custom obj for node {node}")
@@ -71,6 +81,16 @@ def _remove_effect_tokens_from_graph_helper(
             new_node = ep.graph.call_function(func, node.args[2:], node.kwargs)
         for k, v in node.meta.items():
             new_node.meta[k] = v
+<<<<<<< HEAD
+=======
+            if k == "unbacked_bindings":
+                # Remove the extra layer for effect token
+                old_bindings = new_node.meta[k]
+                new_bindings = {
+                    k: path[1:] if path else path for k, path in old_bindings.items()
+                }
+                new_node.meta[k] = new_bindings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         node.replace_all_uses_with(new_node)
 

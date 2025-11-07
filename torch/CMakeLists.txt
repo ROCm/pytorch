@@ -2,7 +2,11 @@
 # Now it only builds the Torch python bindings.
 
 if(NOT CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO)
+<<<<<<< HEAD
   cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+=======
+  cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   project(torch CXX C)
   find_package(torch REQUIRED)
   option(USE_CUDA "Use CUDA" ON)
@@ -74,6 +78,10 @@ set(TORCH_PYTHON_INCLUDE_DIRECTORIES
     ${TORCH_SRC_DIR}/csrc
     ${TORCH_SRC_DIR}/csrc/api/include
     ${TORCH_SRC_DIR}/lib
+<<<<<<< HEAD
+=======
+    ${TORCH_SRC_DIR}/standalone
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 list(APPEND TORCH_PYTHON_INCLUDE_DIRECTORIES ${LIBSHM_SRCDIR})
@@ -84,6 +92,10 @@ set(TORCH_PYTHON_LINK_LIBRARIES
     opentelemetry::api
     httplib
     nlohmann
+<<<<<<< HEAD
+=======
+    moodycamel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shm
     fmt::fmt-header-only
     ATEN_CPU_FILES_GEN_LIB)
@@ -144,6 +156,7 @@ if(USE_CUDA)
         list(APPEND TORCH_PYTHON_COMPILE_DEFINITIONS USE_CUFILE)
     endif()
 
+<<<<<<< HEAD
     if(TARGET torch::nvtx3)
       list(APPEND TORCH_PYTHON_LINK_LIBRARIES torch::nvtx3)
     else()
@@ -151,6 +164,9 @@ if(USE_CUDA)
         list(APPEND TORCH_PYTHON_LINK_LIBRARIES torch::nvtoolsext)
       endif()
     endif()
+=======
+    list(APPEND TORCH_PYTHON_LINK_LIBRARIES CUDA::nvtx3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 if(USE_ROCM)
@@ -251,6 +267,11 @@ add_custom_command(
       "${TORCH_ROOT}/aten/src/ATen/native/native_functions.yaml"
       "${TORCH_ROOT}/aten/src/ATen/native/tags.yaml"
       "${TORCH_ROOT}/tools/autograd/deprecated.yaml"
+<<<<<<< HEAD
+=======
+      "${TORCH_ROOT}/torch/_torch_docs.py"
+      "${TORCH_ROOT}/torch/_tensor_docs.py"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ${pyi_python}
       ${autograd_python}
       ${torchgen_python}
@@ -262,6 +283,10 @@ add_custom_command(
     OUTPUT
     "${TORCH_SRC_DIR}/utils/data/datapipes/datapipe.pyi"
     COMMAND
+<<<<<<< HEAD
+=======
+    ${CMAKE_COMMAND} -E env PYTHONPATH="${TORCH_ROOT}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "${Python_EXECUTABLE}" ${TORCH_SRC_DIR}/utils/data/datapipes/gen_pyi.py
     DEPENDS
     "${TORCH_SRC_DIR}/utils/data/datapipes/datapipe.pyi.in"

@@ -53,7 +53,10 @@ from torch.profiler._pattern_matcher import (
     SynchronizedDataLoaderPattern,
 )
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
+<<<<<<< HEAD
 from torch.testing._internal.common_device_type import skipCUDAVersionIn
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     IS_ARM64,
@@ -66,8 +69,15 @@ from torch.testing._internal.common_utils import (
     skipIfTorchDynamo,
     TemporaryDirectoryName,
     TemporaryFileName,
+<<<<<<< HEAD
     TEST_WITH_CROSSREF,
     TEST_WITH_ROCM,
+=======
+    TEST_CUDA,
+    TEST_WITH_CROSSREF,
+    TEST_WITH_ROCM,
+    TEST_XPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 
@@ -102,7 +112,10 @@ except ModuleNotFoundError:
 @unittest.skipIf(IS_WINDOWS, "Test is flaky on Windows")
 @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
 class TestProfilerCUDA(TestCase):
+<<<<<<< HEAD
     @skipCUDAVersionIn([(11, 5)])  # https://github.com/pytorch/pytorch/issues/69023
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mem_leak(self):
         """Checks that there's no memory leak when using profiler with CUDA"""
         t = torch.rand(1, 1).cuda()
@@ -605,6 +618,12 @@ class TestProfiler(TestCase):
         def create_cuda_tensor():
             return torch.rand(10, 10).cuda()
 
+<<<<<<< HEAD
+=======
+        def create_xpu_tensor():
+            return torch.rand(10, 10).xpu()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def create_mkldnn_tensor():
             return torch.rand(10, 10, dtype=torch.float32).to_mkldnn()
 
@@ -675,6 +694,33 @@ class TestProfiler(TestCase):
                 ],
             )
 
+<<<<<<< HEAD
+=======
+        if torch.xpu.is_available():
+            create_xpu_tensor()
+            stats = run_profiler(create_xpu_tensor)
+            check_metrics(
+                stats,
+                "device_memory_usage",
+                allocs=[
+                    "test_user_scope_alloc",
+                    "aten::to",
+                    "aten::empty_strided",
+                ],
+                deallocs=[
+                    "test_user_scope_dealloc",
+                ],
+            )
+            check_metrics(
+                stats,
+                "cpu_memory_usage",
+                allocs=[
+                    "aten::rand",
+                    "aten::empty",
+                ],
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch.backends.mkldnn.is_available():
             create_mkldnn_tensor()
             stats = run_profiler(create_mkldnn_tensor)
@@ -699,6 +745,12 @@ class TestProfiler(TestCase):
             if torch.cuda.is_available():
                 y = torch.rand(10, 10).cuda()
                 del y
+<<<<<<< HEAD
+=======
+            elif torch.xpu.is_available():
+                y = torch.rand(10, 10).to("xpu")
+                del y
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gc.collect()
         stats = prof.key_averages(group_by_input_shape=True)
         check_metrics(
@@ -709,6 +761,11 @@ class TestProfiler(TestCase):
         )
         if torch.cuda.is_available():
             check_metrics(stats, "device_memory_usage", deallocs=["[memory]"])
+<<<<<<< HEAD
+=======
+        elif torch.xpu.is_available():
+            check_metrics(stats, "device_memory_usage", deallocs=["[memory]"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(
         IS_JETSON, "Jetson has a guard against OOM since host and gpu memory are shared"
@@ -2001,16 +2058,45 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             else:
                 self.assertFalse(evt.is_user_annotation)
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
     @skipIfTorchDynamo("profiler gets ignored if dynamo activated")
     def test_dynamic_toggle(self):
         with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as p:
             with torch.profiler.record_function("test_user_annotation"):
                 x, y = (torch.rand(4, 4).to("cuda") for _ in range(2))
+=======
+    @unittest.skipUnless(TEST_CUDA or TEST_XPU, "requires gpu")
+    @skipIfTorchDynamo("profiler gets ignored if dynamo activated")
+    def test_basic_profile(self):
+        # test a really basic profile to make sure no erroneous aten ops are run
+        x = torch.randn(4, device="cuda")
+        with torch.profiler.profile(with_stack=True) as p:
+            x *= 2
+        names = [e.name for e in p.events()]
+        for name in names:
+            if name.startswith("aten") and name != "aten::mul_":
+                self.assertTrue(False, "Found unexpected event: " + name)
+        self.assertTrue("aten::mul_" in names)
+
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
+    @skipIfTorchDynamo("profiler gets ignored if dynamo activated")
+    def test_dynamic_toggle(self):
+        acc = torch.accelerator.current_accelerator()
+        self.assertIsNotNone(acc)
+        device = acc.type
+        gpu_activity = getattr(ProfilerActivity, device.upper(), None)
+        self.assertIsNotNone(gpu_activity)
+        activities = [ProfilerActivity.CPU, gpu_activity]
+        with profile(activities=activities) as p:
+            with torch.profiler.record_function("test_user_annotation"):
+                x, y = (torch.rand(4, 4).to(device) for _ in range(2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch.add(x, y)
 
         self.assertTrue(any("aten" in e.name for e in p.events()))
 
+<<<<<<< HEAD
         self.assertTrue(any("cuda" in e.name for e in p.events()))
 
         self.assertTrue(any("kernel" in e.name for e in p.events()))
@@ -2019,10 +2105,21 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             p1.toggle_collection_dynamic(False, [ProfilerActivity.CUDA])
             with torch.profiler.record_function("test_user_annotation"):
                 x, y = (torch.rand(4, 4).to("cuda") for _ in range(2))
+=======
+        self.assertTrue(any(device in e.name for e in p.events()))
+
+        self.assertTrue(any("kernel" in e.name.lower() for e in p.events()))
+
+        with profile(activities=activities) as p1:
+            p1.toggle_collection_dynamic(False, [gpu_activity])
+            with torch.profiler.record_function("test_user_annotation"):
+                x, y = (torch.rand(4, 4).to(device) for _ in range(2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch.add(x, y)
 
         self.assertTrue(any("aten" in e.name for e in p1.events()))
 
+<<<<<<< HEAD
         self.assertTrue(all("cuda" not in e.name for e in p1.events()))
 
         self.assertTrue(all("kernel" not in e.name for e in p1.events()))
@@ -2033,6 +2130,16 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             )
             with torch.profiler.record_function("test_user_annotation"):
                 x, y = (torch.rand(4, 4).to("cuda") for _ in range(2))
+=======
+        self.assertTrue(all(device not in e.name for e in p1.events()))
+
+        self.assertTrue(all("kernel" not in e.name.lower() for e in p1.events()))
+
+        with profile(activities=activities) as p2:
+            p2.toggle_collection_dynamic(False, activities)
+            with torch.profiler.record_function("test_user_annotation"):
+                x, y = (torch.rand(4, 4).to(device) for _ in range(2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch.add(x, y)
         self.assertTrue(len(p2.events()) == 0)
 
@@ -2933,6 +3040,20 @@ aten::mm""",
     def test_profiler_overload_names(self):
         from torch.library import _scoped_library, fallthrough_kernel
 
+<<<<<<< HEAD
+=======
+        def validate_json(prof):
+            print()
+            with TemporaryFileName(mode="w+") as fname:
+                prof.export_chrome_trace(fname)
+                with open(fname) as f:
+                    events = json.load(f)["traceEvents"]
+                    self.assertTrue(
+                        any("aten::add.Tensor" in e["name"] for e in events)
+                    )
+                    self.assertTrue(any("aten::add.out" in e["name"] for e in events))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with _scoped_library("aten", "IMPL") as my_lib:
             my_lib.impl("add.Tensor", fallthrough_kernel, "CPU")
             experimental_config = torch._C._profiler._ExperimentalConfig(
@@ -2983,6 +3104,10 @@ aten::mm""",
             key_averages = prof.key_averages(group_by_overload_name=True)
             assert len(key_averages) == 3
             assert "Overload Name" in key_averages.table()
+<<<<<<< HEAD
+=======
+            validate_json(prof)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

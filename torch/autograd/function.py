@@ -42,6 +42,10 @@ class FunctionCtx:
         with ``save_for_backward`` (as opposed to directly on ``ctx``) to prevent
         incorrect gradients and memory leaks, and enable the application of saved
         tensor hooks. See :class:`torch.autograd.graph.saved_tensors_hooks`.
+<<<<<<< HEAD
+=======
+        See :ref:`extending-autograd` for more details.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         Note that if intermediary tensors, tensors that are neither inputs
         nor outputs of :func:`forward`, are saved for backward, your custom Function
@@ -63,6 +67,10 @@ class FunctionCtx:
         See :ref:`extending-autograd` for more details on how to use this method.
 
         Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_AUTOGRAD)
             >>> class Func(Function):
             >>>     @staticmethod
@@ -106,6 +114,10 @@ class FunctionCtx:
         See :ref:`extending-autograd` for more details on how to use this method.
 
         Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> # xdoctest: +SKIP
             >>> class Func(torch.autograd.Function):
             >>>     @staticmethod
@@ -233,6 +245,10 @@ class FunctionCtx:
         prior to calling the :func:`backward` and :func:`jvp` methods.
 
         Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_AUTOGRAD)
             >>> class SimpleFunc(Function):
             >>>     @staticmethod
@@ -331,9 +347,12 @@ class FunctionMeta(type):
             name + "Backward", (BackwardCFunction,), {"_forward_cls": cls}
         )
         backward_fn._autograd_function_id = next(AUTOGRAD_FUNCTION_COUNTER)  # type: ignore[attr-defined]
+<<<<<<< HEAD
         backward_fn._bw_module = None  # type: ignore[attr-defined]
         if getattr(cls, "_lazy_backward_info", None):
             backward_fn._bw_module = cls._lazy_backward_info.bw_module  # type: ignore[attr-defined]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cls._backward_cls = backward_fn
 
         super().__init__(name, bases, attrs)
@@ -811,7 +830,11 @@ class NestedIOFunction(Function):
         self._to_save_nested = args
 
     @property
+<<<<<<< HEAD
     def saved_tensors(self):
+=======
+    def saved_tensors(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""
         See :meth:`Function.saved_tensors`.
         """

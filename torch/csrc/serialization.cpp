@@ -8,10 +8,17 @@
 #include <torch/csrc/serialization.h>
 
 template <class io>
+<<<<<<< HEAD
 Py_ssize_t doPartialRead(io fildes, void* buf, size_t nbytes);
 
 template <class io>
 Py_ssize_t doPartialWrite(io fildes, void* buf, size_t nbytes);
+=======
+static Py_ssize_t doPartialRead(io fildes, void* buf, size_t nbytes);
+
+template <class io>
+static Py_ssize_t doPartialWrite(io fildes, void* buf, size_t nbytes);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static Py_ssize_t doPartialPythonReadBuffered(
     PyObject* fildes,

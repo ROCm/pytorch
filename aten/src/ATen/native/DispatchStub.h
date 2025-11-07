@@ -44,6 +44,10 @@
 //   - MPS: Apple Silicon GPUs (Metal Performance Shaders)
 //   - MTIA: Meta Training and Inference Devices
 //   - XPU: Intel GPUs
+<<<<<<< HEAD
+=======
+//   - HPU: Reserved for HPU (Intel Gaudi) device types
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //   - PrivateUse1: Reserved for private/custom device types
 //
 // If you want to update the list of supported devices, add a new dispatch_ptr
@@ -63,7 +67,11 @@ enum class CPUCapability {
   VSX = 1,
 #elif defined(HAVE_ZVECTOR_CPU_DEFINITION)
   ZVECTOR = 1,
+<<<<<<< HEAD
 #elif defined(HAVE_SVE_CPU_DEFINITION)
+=======
+#elif defined(HAVE_SVE256_CPU_DEFINITION) && defined(HAVE_ARM_BF16_CPU_DEFINITION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SVE256 = 1,
 #else
   AVX2 = 1,
@@ -196,6 +204,10 @@ struct TORCH_API DispatchStubImpl {
   #if defined(USE_XPU)
     void* xpu_dispatch_ptr;
   #endif
+<<<<<<< HEAD
+=======
+    void* hpu_dispatch_ptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void* privateuse1_dispatch_ptr;
   #else
     std::atomic<void*> cpu_dispatch_ptr{nullptr};
@@ -206,6 +218,10 @@ struct TORCH_API DispatchStubImpl {
   #if defined(USE_XPU)
     void* xpu_dispatch_ptr = nullptr;
   #endif
+<<<<<<< HEAD
+=======
+    void* hpu_dispatch_ptr = nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void* privateuse1_dispatch_ptr = nullptr;
   #endif
 };
@@ -259,6 +275,13 @@ public:
   }
   #endif
 
+<<<<<<< HEAD
+=======
+  void set_hpu_dispatch_ptr(FnPtr fn_ptr) {
+    impl.hpu_dispatch_ptr = reinterpret_cast<void*>(fn_ptr);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set_hip_dispatch_ptr(FnPtr fn_ptr) {
     impl.hip_dispatch_ptr = reinterpret_cast<void*>(fn_ptr);
   }
@@ -338,6 +361,16 @@ struct RegisterXPUDispatch {
 };
 
 template <typename DispatchStub>
+<<<<<<< HEAD
+=======
+struct RegisterHPUDispatch {
+  RegisterHPUDispatch(DispatchStub &stub, typename DispatchStub::FnPtr value){
+    stub.set_hpu_dispatch_ptr(value);
+  }
+};
+
+template <typename DispatchStub>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct RegisterMPSDispatch {
   RegisterMPSDispatch(DispatchStub &stub, typename DispatchStub::FnPtr value) {
     stub.set_mps_dispatch_ptr(value);
@@ -437,6 +470,12 @@ struct RegisterPRIVATEUSE1Dispatch {
 #define REGISTER_XPU_DISPATCH(name, fn) \
   static RegisterXPUDispatch<struct name##_DECLARE_DISPATCH_type> name ## __register(name, fn);
 
+<<<<<<< HEAD
+=======
+#define REGISTER_HPU_DISPATCH(name, fn) \
+  static RegisterHPUDispatch<struct name##_DECLARE_DISPATCH_type> name ## __register(name, fn);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define REGISTER_HIP_DISPATCH(name, fn) \
   static RegisterHIPDispatch<struct name##_DECLARE_DISPATCH_type> name ## __register(name, fn);
 

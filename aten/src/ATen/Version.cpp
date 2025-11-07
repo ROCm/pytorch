@@ -105,7 +105,11 @@ std::string get_cpu_capability() {
       return "DEFAULT";
     case native::CPUCapability::ZVECTOR:
       return "Z VECTOR";
+<<<<<<< HEAD
 #elif defined(HAVE_SVE_CPU_DEFINITION)
+=======
+#elif defined(HAVE_SVE256_CPU_DEFINITION) && defined(HAVE_ARM_BF16_CPU_DEFINITION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case native::CPUCapability::DEFAULT:
       return "DEFAULT";
     case native::CPUCapability::SVE256:

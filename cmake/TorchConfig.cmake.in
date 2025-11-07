@@ -132,9 +132,12 @@ if(@USE_CUDA@)
   else()
     set(TORCH_CUDA_LIBRARIES ${CUDA_NVRTC_LIB})
   endif()
+<<<<<<< HEAD
   if(TARGET torch::nvtoolsext)
     list(APPEND TORCH_CUDA_LIBRARIES torch::nvtoolsext)
   endif()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if(@BUILD_SHARED_LIBS@)
     find_library(C10_CUDA_LIBRARY c10_cuda PATHS "${TORCH_INSTALL_PREFIX}/lib")
@@ -147,11 +150,14 @@ if(@USE_XPU@ AND @BUILD_SHARED_LIBS@)
     append_torchlib_if_found(c10_xpu torch_xpu)
 endif()
 
+<<<<<<< HEAD
 # When we build libtorch with the old libstdc++ ABI, dependent libraries must too.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(TORCH_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=@GLIBCXX_USE_CXX11_ABI@")
 endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 find_library(TORCH_LIBRARY torch PATHS "${TORCH_INSTALL_PREFIX}/lib")
 # the statements below changes target properties on
 # - the imported target from Caffe2Targets.cmake in shared library mode (see the find_package above)

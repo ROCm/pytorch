@@ -7,6 +7,10 @@
 
 import torch
 import torch._inductor
+<<<<<<< HEAD
+=======
+import operator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 aten = torch.ops.aten
 prims = torch.ops.prims

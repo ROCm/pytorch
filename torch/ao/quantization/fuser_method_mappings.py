@@ -34,9 +34,15 @@ def fuse_conv_bn(is_qat, conv, bn):
         >>> # xdoctest: +SKIP
         >>> m2 = fuse_conv_bn(m1, b1)
     """
+<<<<<<< HEAD
     assert (
         conv.training == bn.training
     ), "Conv and BN both must be in the same mode (train or eval)."
+=======
+    assert conv.training == bn.training, (
+        "Conv and BN both must be in the same mode (train or eval)."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     fused_module_class_map = {
         nn.Conv1d: nni.ConvBn1d,
@@ -45,6 +51,7 @@ def fuse_conv_bn(is_qat, conv, bn):
     }
 
     if is_qat:
+<<<<<<< HEAD
         assert (
             bn.num_features == conv.out_channels
         ), "Output channel of Conv2d must match num_features of BatchNorm2d"
@@ -52,6 +59,15 @@ def fuse_conv_bn(is_qat, conv, bn):
         assert (
             bn.track_running_stats
         ), "Only support fusing BatchNorm2d with tracking_running_stats set to True"
+=======
+        assert bn.num_features == conv.out_channels, (
+            "Output channel of Conv2d must match num_features of BatchNorm2d"
+        )
+        assert bn.affine, "Only support fusing BatchNorm2d with affine set to True"
+        assert bn.track_running_stats, (
+            "Only support fusing BatchNorm2d with tracking_running_stats set to True"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fused_module_class = fused_module_class_map.get((type(conv)), None)
         if fused_module_class is not None:
             return fused_module_class(conv, bn)
@@ -80,9 +96,15 @@ def fuse_conv_bn_relu(is_qat, conv, bn, relu):
         >>> # xdoctest: +SKIP
         >>> m2 = fuse_conv_bn_relu(m1, b1, r1)
     """
+<<<<<<< HEAD
     assert (
         conv.training == bn.training == relu.training
     ), "Conv and BN both must be in the same mode (train or eval)."
+=======
+    assert conv.training == bn.training == relu.training, (
+        "Conv and BN both must be in the same mode (train or eval)."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fused_module: Optional[type[nn.Sequential]] = None
     if is_qat:
         map_to_fused_module_train = {
@@ -90,6 +112,7 @@ def fuse_conv_bn_relu(is_qat, conv, bn, relu):
             nn.Conv2d: nni.ConvBnReLU2d,
             nn.Conv3d: nni.ConvBnReLU3d,
         }
+<<<<<<< HEAD
         assert (
             bn.num_features == conv.out_channels
         ), "Output channel of Conv must match num_features of BatchNorm"
@@ -97,6 +120,15 @@ def fuse_conv_bn_relu(is_qat, conv, bn, relu):
         assert (
             bn.track_running_stats
         ), "Only support fusing BatchNorm with tracking_running_stats set to True"
+=======
+        assert bn.num_features == conv.out_channels, (
+            "Output channel of Conv must match num_features of BatchNorm"
+        )
+        assert bn.affine, "Only support fusing BatchNorm with affine set to True"
+        assert bn.track_running_stats, (
+            "Only support fusing BatchNorm with tracking_running_stats set to True"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fused_module = map_to_fused_module_train.get(type(conv), None)
         if fused_module is not None:
             return fused_module(conv, bn, relu)
@@ -133,6 +165,7 @@ def fuse_linear_bn(is_qat, linear, bn):
         >>> # xdoctest: +SKIP
         >>> m2 = fuse_linear_bn(m1, b1)
     """
+<<<<<<< HEAD
     assert (
         linear.training == bn.training
     ), "Linear and BN both must be in the same mode (train or eval)."
@@ -145,6 +178,20 @@ def fuse_linear_bn(is_qat, linear, bn):
         assert (
             bn.track_running_stats
         ), "Only support fusing BatchNorm1d with tracking_running_stats set to True"
+=======
+    assert linear.training == bn.training, (
+        "Linear and BN both must be in the same mode (train or eval)."
+    )
+
+    if is_qat:
+        assert bn.num_features == linear.out_features, (
+            "Output features of Linear must match num_features of BatchNorm1d"
+        )
+        assert bn.affine, "Only support fusing BatchNorm1d with affine set to True"
+        assert bn.track_running_stats, (
+            "Only support fusing BatchNorm1d with tracking_running_stats set to True"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return nni.LinearBn1d(linear, bn)
     else:
         return nn.utils.fusion.fuse_linear_bn_eval(linear, bn)
@@ -166,9 +213,15 @@ def fuse_convtranspose_bn(is_qat, convt, bn):
         >>> # xdoctest: +SKIP
         >>> m2 = fuse_convtranspose_bn(m1, b1)
     """
+<<<<<<< HEAD
     assert (
         convt.training == bn.training
     ), "ConvTranspose and BN both must be in the same mode (train or eval)."
+=======
+    assert convt.training == bn.training, (
+        "ConvTranspose and BN both must be in the same mode (train or eval)."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if is_qat:
         raise Exception(  # noqa: TRY002

@@ -145,7 +145,12 @@ jobs:
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cpu
       GPU_ARCH_TYPE: cpu
+<<<<<<< HEAD
       DOCKER_IMAGE: pytorch/manylinux2_28-builder:cpu-2.7
+=======
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: "3.9"
       build_name: wheel-py3_9-cpu
       use_s3: False
@@ -267,7 +272,12 @@ jobs:
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cpu
       GPU_ARCH_TYPE: cpu
+<<<<<<< HEAD
       DOCKER_IMAGE: pytorch/manylinux2_28-builder:cpu-2.7
+=======
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: "3.10"
       build_name: wheel-py3_10-cpu
       use_s3: False
@@ -389,7 +399,12 @@ jobs:
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cpu
       GPU_ARCH_TYPE: cpu
+<<<<<<< HEAD
       DOCKER_IMAGE: pytorch/manylinux2_28-builder:cpu-2.7
+=======
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: "3.11"
       build_name: wheel-py3_11-cpu
       use_s3: False
@@ -511,7 +526,12 @@ jobs:
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cpu
       GPU_ARCH_TYPE: cpu
+<<<<<<< HEAD
       DOCKER_IMAGE: pytorch/manylinux2_28-builder:cpu-2.7
+=======
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: "3.12"
       build_name: wheel-py3_12-cpu
       use_s3: False
@@ -633,7 +653,12 @@ jobs:
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cpu
       GPU_ARCH_TYPE: cpu
+<<<<<<< HEAD
       DOCKER_IMAGE: pytorch/manylinux2_28-builder:cpu-2.7
+=======
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: "3.13"
       build_name: wheel-py3_13-cpu
       use_s3: False
@@ -755,7 +780,12 @@ jobs:
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cpu
       GPU_ARCH_TYPE: cpu
+<<<<<<< HEAD
       DOCKER_IMAGE: pytorch/manylinux2_28-builder:cpu-2.7
+=======
+      DOCKER_IMAGE: manylinux2_28-builder
+      DOCKER_IMAGE_TAG_PREFIX: cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: "3.13t"
       build_name: wheel-py3_13t-cpu
       use_s3: False

@@ -1543,6 +1543,7 @@ optim_db: list[OptimizerInfo] = [
         ),
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # addcdiv doesn't work for non-contiguous, see #118115
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -1550,6 +1551,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo("See #116028"),
                 "TestOptimRenewed",
                 "test_set_default_dtype_works_with_foreach",
@@ -1640,6 +1643,7 @@ optim_db: list[OptimizerInfo] = [
         ),
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # addcdiv doesn't work for non-contiguous, see #118115
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -1647,6 +1651,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo(
                     "Errors w/ Global state changed, see https://github.com/pytorch/pytorch/issues/116028"
                 ),
@@ -1677,6 +1683,7 @@ optim_db: list[OptimizerInfo] = [
         has_capturable_arg=True,
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # addcdiv doesn't work for non-contiguous, see #118115
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -1684,6 +1691,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo("See #116028"),
                 "TestOptimRenewed",
                 "test_set_default_dtype_works_with_foreach",
@@ -1764,6 +1773,7 @@ optim_db: list[OptimizerInfo] = [
         ),
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # addcdiv doesn't work for non-contiguous, see #118115
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -1771,6 +1781,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo(
                     "Errors w/ Global state changed, see https://github.com/pytorch/pytorch/issues/116028"
                 ),
@@ -1905,6 +1917,7 @@ optim_db: list[OptimizerInfo] = [
         has_capturable_arg=True,
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # addcdiv doesn't work for non-contiguous, see #118115
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -1912,6 +1925,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo(
                     "Errors w/ Global state changed, see https://github.com/pytorch/pytorch/issues/116028"
                 ),
@@ -1989,6 +2004,7 @@ optim_db: list[OptimizerInfo] = [
         has_capturable_arg=True,
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # addcdiv doesn't work for non-contiguous, see #118115
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -1996,6 +2012,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo("See #116028"),
                 "TestOptimRenewed",
                 "test_set_default_dtype_works_with_foreach",
@@ -2034,6 +2052,7 @@ optim_db: list[OptimizerInfo] = [
         has_capturable_arg=True,
         skips=(
             DecorateInfo(
+<<<<<<< HEAD
                 skipIfMPS,  # Rprop doesn't update for non-contiguous, see #118117
                 "TestOptimRenewed",
                 "test_forloop_goes_right_direction",
@@ -2041,6 +2060,8 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo("See #116028"),
                 "TestOptimRenewed",
                 "test_set_default_dtype_works_with_foreach",

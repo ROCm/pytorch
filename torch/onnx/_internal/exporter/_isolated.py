@@ -1,11 +1,15 @@
 """Isolated calls to methods that may segfault."""
 
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import multiprocessing
 import os
 import warnings
+<<<<<<< HEAD
 from typing import Callable
 
 
@@ -13,6 +17,22 @@ _IS_WINDOWS = os.name == "nt"
 
 
 def _call_function_and_return_exception(func, args, kwargs):
+=======
+from typing import Any, Callable, TypeVar, TypeVarTuple, Union, Unpack
+from typing_extensions import ParamSpec
+
+
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+_Ts = TypeVarTuple("_Ts")
+
+_IS_WINDOWS = os.name == "nt"
+
+
+def _call_function_and_return_exception(
+    func: Callable[[Unpack[_Ts]], _R], args: tuple[Unpack[_Ts]], kwargs: dict[str, Any]
+) -> Union[_R, Exception]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Call function and return a exception if there is one."""
 
     try:
@@ -21,7 +41,11 @@ def _call_function_and_return_exception(func, args, kwargs):
         return e
 
 
+<<<<<<< HEAD
 def safe_call(func: Callable, *args, **kwargs):
+=======
+def safe_call(func: Callable[_P, _R], *args: _P.args, **kwargs: _P.kwargs) -> _R:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Call a function in a separate process.
 
     Args:

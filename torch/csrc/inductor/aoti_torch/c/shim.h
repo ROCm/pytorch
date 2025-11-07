@@ -106,6 +106,10 @@ AOTI_TORCH_EXPORT int32_t aoti_torch_device_type_cpu();
 AOTI_TORCH_EXPORT int32_t aoti_torch_device_type_cuda();
 AOTI_TORCH_EXPORT int32_t aoti_torch_device_type_meta();
 AOTI_TORCH_EXPORT int32_t aoti_torch_device_type_xpu();
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT int32_t aoti_torch_device_type_mps();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT int32_t aoti_torch_device_type_privateuse1();
 
 AOTI_TORCH_EXPORT int32_t aoti_torch_dtype_float8_e5m2();
@@ -128,6 +132,10 @@ AOTI_TORCH_EXPORT int32_t aoti_torch_dtype_bool();
 AOTI_TORCH_EXPORT int32_t aoti_torch_dtype_complex32();
 AOTI_TORCH_EXPORT int32_t aoti_torch_dtype_complex64();
 AOTI_TORCH_EXPORT int32_t aoti_torch_dtype_complex128();
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT size_t aoti_torch_dtype_element_size(int32_t dtype);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 AOTI_TORCH_EXPORT int32_t aoti_torch_layout_strided();
 AOTI_TORCH_EXPORT int32_t aoti_torch_layout_sparse_coo();
@@ -272,6 +280,12 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_get_storage_offset(
     AtenTensorHandle tensor,
     int64_t* ret_storage_offset);
 
+<<<<<<< HEAD
+=======
+AOTI_TORCH_EXPORT AOTITorchError
+aoti_torch_is_contiguous(AtenTensorHandle tensor, bool* ret_is_contiguous);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_new_tensor_handle(
     AtenTensorHandle orig_handle,
     AtenTensorHandle* new_handle);
@@ -783,11 +797,14 @@ int32_t aoti_torch_dtype() = delete;
     return aoti_torch_dtype_##typename();            \
   }
 
+<<<<<<< HEAD
 namespace c10 {
 struct BFloat16;
 struct Half;
 } // namespace c10
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DEFINE_DTYPE_SPECIALIZATION(c10::BFloat16, bfloat16)
 DEFINE_DTYPE_SPECIALIZATION(c10::Half, float16)
 DEFINE_DTYPE_SPECIALIZATION(c10::complex<float>, complex64)

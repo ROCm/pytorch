@@ -57,7 +57,11 @@ static bool isDecomposableNorm(Node* normalize_op) {
   return false;
 }
 
+<<<<<<< HEAD
 RegisterOperators reg_ops(
+=======
+static RegisterOperators reg_ops(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {Operator(
          "aten::_ncf_unsqueeze(Tensor(a) self, int ndim) -> Tensor(a)",
          [](Stack& stack) {

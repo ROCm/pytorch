@@ -19,6 +19,13 @@
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/util/irange.h>
 
+<<<<<<< HEAD
+=======
+#if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
+#include <c10/cuda/driver_api.h>
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if AT_CUDNN_ENABLED()
 #include <ATen/cudnn/cudnn-wrapper.h>
 #endif
@@ -91,7 +98,31 @@ void CUDAHooks::init() const {
 
   // Sets the CUDA_MODULE_LOADING environment variable
   // if it's not set by the user.
+<<<<<<< HEAD
   c10::utils::set_env("CUDA_MODULE_LOADING", "LAZY", false);
+=======
+  // CUDA_MODULE_LOADING="LAZY" is default for all drivers released for CUDA 12.2+.
+  // Check the driver version and only set the env variable if needed.
+  bool set_lazy_module_loading = true;
+  #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
+  auto driver_api = c10::cuda::DriverAPI::get();
+  // Initialize NVML
+  if (driver_api->nvmlInit_v2_() == NVML_SUCCESS) {
+    // Get the driver version
+    int version = -1;
+    auto res = driver_api->nvmlSystemGetCudaDriverVersion_v2_(&version);
+    if (res == NVML_SUCCESS) {
+      // Check if driver is sufficiently new
+      if (version >= 12020) {
+        set_lazy_module_loading = false;
+      }
+    }
+  }
+  #endif
+  if (set_lazy_module_loading) {
+    c10::utils::set_env("CUDA_MODULE_LOADING", "LAZY", false);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto num_devices = c10::cuda::device_count_ensure_non_zero();
   c10::cuda::CUDACachingAllocator::init(num_devices);
   at::cuda::detail::init_p2p_access_cache(num_devices);
@@ -458,8 +489,19 @@ DeviceIndex CUDAHooks::getCurrentDevice() const {
 }
 
 #ifdef USE_ROCM
+<<<<<<< HEAD
 bool CUDAHooks::isGPUArch(DeviceIndex device_index, const std::vector<std::string>& archs) const {
   hipDeviceProp_t* prop = at::cuda::getDeviceProperties(device_index);
+=======
+bool CUDAHooks::isGPUArch(const std::vector<std::string>& archs, DeviceIndex device_index) const {
+  hipDeviceProp_t* prop;
+  if (device_index == -1){
+      prop = at::cuda::getCurrentDeviceProperties();
+  } else {
+      prop = at::cuda::getDeviceProperties(device_index);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string device_arch = prop->gcnArchName;
   for (std::string arch : archs) {
       size_t substring = device_arch.find(arch);

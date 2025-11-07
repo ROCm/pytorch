@@ -150,7 +150,11 @@ class ErasedTensor(torch.Tensor):
         self.owning_mod_ref = weakref.ref(mod)
 
     @classmethod
+<<<<<<< HEAD
     def __torch_dispatch__(cls, func, types, args=(), kwargs=None):
+=======
+    def __torch_dispatch__(cls, func, types, args=(), kwargs=None):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         erased_tensors = [
             e
             for e in pytree.arg_tree_leaves(*args, **kwargs)

@@ -8,6 +8,10 @@ This module implements observers which are used to collect statistics about
 the values observed during calibration (PTQ) or training (QAT).
 """
 
+<<<<<<< HEAD
+=======
+import operator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import warnings
 from abc import ABCMeta, abstractmethod
@@ -24,6 +28,10 @@ from torch.ao.quantization.utils import (
     is_per_tensor,
     validate_qmin_qmax,
 )
+<<<<<<< HEAD
+=======
+from torch.fx import Node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -253,9 +261,17 @@ class UniformQuantizationObserverBase(ObserverBase):
             torch.per_channel_affine,
             torch.per_channel_symmetric,
             torch.per_channel_affine_float_qparams,
+<<<<<<< HEAD
         ), "Default Observer only works for per_tensor_affine, \
                 per_tensor_symmetric, per_channel_affine, \
                 per_channel_symmetric and per_channel_float_qparams quantization scheme"
+=======
+        ), (
+            "Default Observer only works for per_tensor_affine, \
+                per_tensor_symmetric, per_channel_affine, \
+                per_channel_symmetric and per_channel_float_qparams quantization scheme"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         _ALLOWED_DTYPES = (
             torch.qint8,
@@ -271,9 +287,15 @@ class UniformQuantizationObserverBase(ObserverBase):
             torch.uint16,
         )
 
+<<<<<<< HEAD
         assert (
             self.dtype in _ALLOWED_DTYPES
         ), f"Default Observer only works for {_ALLOWED_DTYPES} data type"
+=======
+        assert self.dtype in _ALLOWED_DTYPES, (
+            f"Default Observer only works for {_ALLOWED_DTYPES} data type"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.has_customized_qrange = (quant_min is not None) and (quant_max is not None)
         if self.has_customized_qrange:
             validate_qmin_qmax(quant_min, quant_max)
@@ -329,12 +351,21 @@ class UniformQuantizationObserverBase(ObserverBase):
         """
         # The variable names are prefixed with "initial" because their values (qmin and qmax) might be adjusted
         # based on whether quantization range is reduced and the datatype (signed/unsigned) used by the observer.
+<<<<<<< HEAD
         assert (
             quant_min <= 0 <= quant_max
         ), "Used-specified quantization range must include 0."
         assert (
             quant_min < quant_max
         ), "qmin must be strictly less than qmax for user-specified quantization range."
+=======
+        assert quant_min <= 0 <= quant_max, (
+            "Used-specified quantization range must include 0."
+        )
+        assert quant_min < quant_max, (
+            "qmin must be strictly less than qmax for user-specified quantization range."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @torch.jit.export
     def _calculate_qparams(
@@ -491,6 +522,10 @@ class MinMaxObserver(UniformQuantizationObserverBase):
     .. note:: If the running minimum equals to the running maximum, the scale
               and zero_point are set to 1.0 and 0.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     min_val: torch.Tensor
     max_val: torch.Tensor
 
@@ -559,7 +594,11 @@ class MinMaxObserver(UniformQuantizationObserverBase):
         return x_orig
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Calculates the quantization parameters."""
         return self._calculate_qparams(self.min_val, self.max_val)
 
@@ -700,6 +739,10 @@ class PerChannelMinMaxObserver(UniformQuantizationObserverBase):
     .. note:: If the running minimum equals to the running maximum, the scales
               and zero_points are set to 1.0 and 0.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     min_val: torch.Tensor
     max_val: torch.Tensor
 
@@ -781,7 +824,11 @@ class PerChannelMinMaxObserver(UniformQuantizationObserverBase):
         return x_orig
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._calculate_qparams(self.min_val, self.max_val)
 
     def extra_repr(self):
@@ -995,6 +1042,10 @@ class HistogramObserver(UniformQuantizationObserverBase):
     3. Compute the scale and zero point the same way as in the
         :class:`~torch.ao.quantization.MinMaxObserver`
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     histogram: torch.Tensor
     min_val: torch.Tensor
     max_val: torch.Tensor
@@ -1263,9 +1314,15 @@ class HistogramObserver(UniformQuantizationObserverBase):
         self.min_val.copy_(min_val)
         self.max_val.resize_(max_val.shape)
         self.max_val.copy_(max_val)
+<<<<<<< HEAD
         assert (
             min_val.numel() == 1 and max_val.numel() == 1
         ), "histogram min/max values must be scalar."
+=======
+        assert min_val.numel() == 1 and max_val.numel() == 1, (
+            "histogram min/max values must be scalar."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_histogram = torch.histc(x, self.bins, min=min_val, max=max_val)  # type: ignore[arg-type]
         self.histogram.detach_().resize_(new_histogram.shape)
         self.histogram.copy_(new_histogram)
@@ -1300,7 +1357,14 @@ class HistogramObserver(UniformQuantizationObserverBase):
             # new_min and new_max should already have requires_grad set to False
             new_min, new_max = new_min.detach(), new_max.detach()
             update_histogram = torch.histc(
+<<<<<<< HEAD
                 x, self.bins, min=new_min, max=new_max  # type: ignore[arg-type]
+=======
+                x,
+                self.bins,
+                min=new_min,  # type: ignore[arg-type]
+                max=new_max,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).to(self.histogram.device)
             if new_min == current_min and new_max == current_max:
                 combined_histogram = self.histogram + update_histogram
@@ -1325,7 +1389,11 @@ class HistogramObserver(UniformQuantizationObserverBase):
         return x_orig
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is_uninitialized = self.min_val == float("inf") and self.max_val == float(
             "-inf"
         )
@@ -1438,7 +1506,11 @@ class FixedQParamsObserver(ObserverBase):
         return X
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.scale, self.zero_point
 
 
@@ -1507,7 +1579,11 @@ class PlaceholderObserver(ObserverBase):
         return f"dtype={self.dtype}, is_dynamic={self.is_dynamic}"
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise Exception(  # noqa: TRY002
             "calculate_qparams should not be called for PlaceholderObserver"
         )
@@ -1522,6 +1598,10 @@ class RecordingObserver(ObserverBase):
         qscheme: Quantization scheme to be used
         reduce_range: Reduces the range of the quantized data type by 1 bit
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __annotations__ = {"tensor_val": list[Optional[torch.Tensor]]}
 
     def __init__(self, dtype=torch.quint8):
@@ -1533,7 +1613,11 @@ class RecordingObserver(ObserverBase):
         return x
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise Exception(  # noqa: TRY002
             "calculate_qparams should not be called for RecordingObserver"
         )
@@ -1566,7 +1650,11 @@ class NoopObserver(ObserverBase):
         return x
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise Exception(  # noqa: TRY002
             "calculate_qparams should not be called for NoopObserver"
         )
@@ -1593,7 +1681,11 @@ class ReuseInputObserver(ObserverBase):
         return x
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise Exception(  # noqa: TRY002
             "calculate_qparams should not be called for ReuseInputObserver"
         )
@@ -1771,9 +1863,15 @@ def get_block_size(
         input_shape: The input tensor shape possibly more than 2 dimensions
         granularity: The granularity type of the quantization
     """
+<<<<<<< HEAD
     assert isinstance(
         granularity, Granularity
     ), "Please provide an instance of Granularity, not subclass of it"
+=======
+    assert isinstance(granularity, Granularity), (
+        "Please provide an instance of Granularity, not subclass of it"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(granularity, PerTensor):
         return input_shape
     elif isinstance(granularity, PerAxis):
@@ -1783,12 +1881,21 @@ def get_block_size(
     elif isinstance(granularity, PerRow):
         return (1,) * (len(input_shape) - 1) + (input_shape[-1],)
     elif isinstance(granularity, PerGroup):
+<<<<<<< HEAD
         assert (
             len(input_shape) == 2
         ), f"Expecting input shape dim to be 2 for per group quantization, gotinput shape: {input_shape}"
         return (1, granularity.group_size)
     elif isinstance(granularity, PerToken):
         block_size = list(input_shape)
+=======
+        assert len(input_shape) == 2, (
+            f"Expecting input shape dim to be 2 for per group quantization, gotinput shape: {input_shape}"
+        )
+        return (1, granularity.group_size)
+    elif isinstance(granularity, PerToken):
+        block_size = [1] * len(input_shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         block_size[-1] = input_shape[-1]
         return tuple(block_size)
     raise ValueError(f"Unsupported Granularity: {granularity}")
@@ -1850,6 +1957,87 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
         and returns a tuple of scale and zero_point Tensor
         """
 
+<<<<<<< HEAD
+=======
+    def convert(self, model: torch.fx.GraphModule, observer_node: Node):
+        """
+        Converts the observer node in the graph into its quantized representation
+
+        Args:
+            model: graph module to conver the observer node in
+            observer_node: the observer node to convert
+        """
+        from torch.ao.quantization.fx.utils import create_getattr_from_value
+
+        with model.graph.inserting_before(observer_node):
+            assert self.block_size is not None, "Expecting block_size to be populated"
+            assert self.original_dtype is not None, (
+                "Expecting original_dtype to be populated"
+            )
+            if hasattr(self, "is_dynamic") and self.is_dynamic:
+                choose_qparams_affine = model.graph.call_function(
+                    torch.ops.pt2e_quant.choose_qparams_affine,
+                    (
+                        observer_node.args[0],
+                        self.mapping_type.name,
+                        self.block_size,
+                        self.target_dtype,
+                        self.quant_min,
+                        self.quant_max,
+                        self.eps,
+                        self.scale_dtype,
+                        self.zero_point_dtype,
+                        self.preserve_zero,
+                        self.zero_point_domain.name,
+                    ),
+                )
+                scale_node = model.graph.call_function(
+                    operator.getitem, (choose_qparams_affine, 0)
+                )
+                zero_point_node = model.graph.call_function(
+                    operator.getitem, (choose_qparams_affine, 1)
+                )
+            else:
+                scale, zero_point = self.calculate_qparams()
+                scale_node = create_getattr_from_value(
+                    model, model.graph, "_scale", scale
+                )
+                zero_point_node = create_getattr_from_value(
+                    model, model.graph, "_zero_point", zero_point
+                )
+
+            q_node = model.graph.call_function(
+                torch.ops.pt2e_quant.quantize_affine,
+                (
+                    observer_node.args[0],
+                    self.block_size,
+                    scale_node,
+                    zero_point_node,
+                    self.target_dtype,
+                    self.quant_min,
+                    self.quant_max,
+                    self.zero_point_domain.name,
+                ),
+                {},
+            )
+            dq_node = model.graph.call_function(
+                torch.ops.pt2e_quant.dequantize_affine,
+                (
+                    q_node,
+                    self.block_size,
+                    scale_node,
+                    zero_point_node,
+                    self.target_dtype,
+                    self.quant_min,
+                    self.quant_max,
+                    self.zero_point_domain.name,
+                ),
+                {"output_dtype": self.original_dtype},
+            )
+            observer_node.replace_all_uses_with(dq_node)
+            model.graph.erase_node(observer_node)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _is_observer_script_module(mod, obs_type_name):
     """Returns true if given mod is an instance of Observer script module."""

@@ -59,13 +59,20 @@ struct TORCH_API StringCordView {
     return pieces_[index];
   }
 
+<<<<<<< HEAD
   struct Iterator {
     Iterator(
+=======
+  // General-case iterator implementation.
+  struct IteratorImpl {
+    IteratorImpl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         const StringCordView* str,
         size_t start_line,
         size_t start_pos,
         size_t size)
         : line_(start_line), pos_(start_pos), str_(str), size_(size) {}
+<<<<<<< HEAD
     explicit Iterator(const StringCordView* str)
         : Iterator(str, 0, 0, str->size()) {}
 
@@ -77,6 +84,19 @@ struct TORCH_API StringCordView {
     Iterator& operator=(Iterator&&) = default;
 
     Iterator operator++() {
+=======
+    explicit IteratorImpl(const StringCordView* str)
+        : IteratorImpl(str, 0, 0, str->size()) {}
+
+    IteratorImpl() : IteratorImpl(nullptr, 0, 0, 0) {}
+
+    IteratorImpl(const IteratorImpl&) = default;
+    IteratorImpl(IteratorImpl&&) = default;
+    IteratorImpl& operator=(const IteratorImpl&) = default;
+    IteratorImpl& operator=(IteratorImpl&&) = default;
+
+    IteratorImpl& operator++() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (size_ == 0) {
         return *this;
       }
@@ -89,18 +109,29 @@ struct TORCH_API StringCordView {
       return *this;
     }
 
+<<<<<<< HEAD
     Iterator operator++(int) {
       Iterator prev(*this);
+=======
+    IteratorImpl operator++(int) {
+      IteratorImpl prev(*this);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ++(*this);
       return prev;
     }
 
+<<<<<<< HEAD
     Iterator next_iter() const {
       Iterator next(*this);
+=======
+    IteratorImpl next_iter() const {
+      IteratorImpl next(*this);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ++next;
       return next;
     }
 
+<<<<<<< HEAD
     Iterator& operator+=(size_t num) {
       if (!has_next()) {
         return *this;
@@ -119,12 +150,28 @@ struct TORCH_API StringCordView {
     }
 
     bool operator==(const Iterator& rhs) const {
+=======
+    IteratorImpl& operator+=(size_t num);
+
+    IteratorImpl operator+(size_t num) const {
+      IteratorImpl it(*this);
+      it += num;
+      return it;
+    }
+
+    bool operator==(const IteratorImpl& rhs) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!has_next() && !rhs.has_next()) {
         return true;
       }
       return (str_ == rhs.str_) && (line_ == rhs.line_) && (pos_ == rhs.pos_);
     }
+<<<<<<< HEAD
     bool operator!=(const Iterator& rhs) {
+=======
+
+    bool operator!=(const IteratorImpl& rhs) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return !((*this) == rhs);
     }
     bool has_next() const {
@@ -162,6 +209,152 @@ struct TORCH_API StringCordView {
     friend struct StringCordView;
   };
 
+<<<<<<< HEAD
+=======
+  // Either an IteratorImpl, or a simple std::string_view::iterator
+  // (which is faster) if possible.
+  struct Iterator {
+    Iterator() = default;
+
+    Iterator(
+        const StringCordView* str,
+        size_t start_line,
+        size_t start_pos,
+        size_t size)
+        : repr_(
+              str->pieces_.size() == 1
+                  ? repr_type(FastRepr(
+                        start_line ? str->pieces_[0].end()
+                                   : str->pieces_[0].begin() + start_pos,
+                        str))
+                  : repr_type(IteratorImpl(str, start_line, start_pos, size))) {
+    }
+
+    Iterator(const StringCordView* str) : Iterator(str, 0, 0, str->size()) {}
+
+    Iterator& operator++() {
+      if (auto* pit = std::get_if<IteratorImpl>(&repr_)) {
+        ++(*pit);
+      } else {
+        ++fast_repr().it;
+      }
+      return *this;
+    }
+
+    Iterator operator++(int) {
+      Iterator prev(*this);
+      ++(*this);
+      return prev;
+    }
+
+    Iterator next_iter() const {
+      Iterator next(*this);
+      ++next;
+      return next;
+    }
+
+    Iterator& operator+=(size_t num) {
+      if (auto* pit = std::get_if<IteratorImpl>(&repr_)) {
+        *pit += num;
+      } else {
+        fast_repr().it += num;
+      }
+      return *this;
+    }
+
+    Iterator operator+(size_t num) const {
+      Iterator it(*this);
+      it += num;
+      return it;
+    }
+
+    bool operator==(const Iterator& rhs) const {
+      return repr_ == rhs.repr_;
+    }
+
+    bool operator!=(const Iterator& rhs) const {
+      return repr_ != rhs.repr_;
+    }
+
+    bool has_next() const {
+      if (const auto* pit = std::get_if<IteratorImpl>(&repr_)) {
+        return pit->has_next();
+      } else {
+        return fast_repr().it != fast_repr().str->pieces_[0].end();
+      }
+    }
+
+    char operator*() const {
+      if (const auto* pit = std::get_if<IteratorImpl>(&repr_)) {
+        return **pit;
+      } else {
+        return *fast_repr().it;
+      }
+    }
+
+    std::string_view rest_line() const {
+      if (const auto* pit = std::get_if<IteratorImpl>(&repr_)) {
+        return pit->rest_line();
+      } else {
+        // NOTE: std::string_view(it, end) ctor wasn't added until C++20.
+        const auto fast_repr_end = fast_repr().str->pieces_[0].end();
+        if (fast_repr().it != fast_repr_end) {
+          return std::string_view(
+              &*fast_repr().it, fast_repr_end - fast_repr().it);
+        }
+        return std::string_view();
+      }
+    }
+
+    size_t pos() const {
+      if (const auto* pit = std::get_if<IteratorImpl>(&repr_)) {
+        return pit->pos();
+      } else {
+        return fast_repr().it - fast_repr().str->pieces_[0].begin();
+      }
+    }
+
+   private:
+    // When we have only one entry in pieces_ (importantly, such as
+    // when called from torch::Library::def during startup), we can
+    // skip extra complexity and just use string_view::iterator
+    // directly.
+    struct FastRepr {
+      std::string_view::iterator it;
+      const StringCordView* str;
+
+      FastRepr() : str(nullptr) {}
+
+      explicit FastRepr(
+          std::string_view::iterator it_,
+          const StringCordView* str_)
+          : it(it_), str(str_) {}
+
+      bool operator==(const FastRepr& rhs) const {
+        return it == rhs.it && str == rhs.str;
+      }
+
+      bool operator!=(const FastRepr& rhs) const {
+        return !operator==(rhs);
+      }
+    };
+    using repr_type = std::variant<FastRepr, IteratorImpl>;
+    repr_type repr_;
+
+    FastRepr& fast_repr() {
+      // -Oz refuses to inline std::get.
+      TORCH_INTERNAL_ASSERT_DEBUG_ONLY(std::holds_alternative<FastRepr>(repr_));
+      return *std::get_if<FastRepr>(&repr_);
+    }
+
+    const FastRepr& fast_repr() const {
+      // -Oz refuses to inline std::get.
+      TORCH_INTERNAL_ASSERT_DEBUG_ONLY(std::holds_alternative<FastRepr>(repr_));
+      return *std::get_if<FastRepr>(&repr_);
+    }
+  };
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Iterator begin() const {
     return Iterator(this, 0, 0, size());
   }
@@ -171,6 +364,16 @@ struct TORCH_API StringCordView {
   Iterator iter_for_pos(size_t pos) const;
 
  private:
+<<<<<<< HEAD
+=======
+  IteratorImpl begin_impl() const {
+    return IteratorImpl(this, 0, 0, size());
+  }
+  IteratorImpl end_impl() const {
+    return IteratorImpl(this, pieces_.size(), 0, 0);
+  }
+  IteratorImpl iter_impl_for_pos(size_t pos) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<std::string_view> pieces_;
   std::vector<size_t> accumulated_sizes_;
   std::vector<std::shared_ptr<std::string>> owned_strings_;
@@ -192,6 +395,7 @@ struct TORCH_API Source {
       size_t starting_line_no = 0,
       std::shared_ptr<SourceRangeUnpickler> gen_ranges = nullptr,
       CopiesString copies_str = COPIES_STRING)
+<<<<<<< HEAD
       : filename_(std::move(filename)),
         starting_line_no_(starting_line_no),
         gen_ranges_(std::move(gen_ranges)) {
@@ -203,6 +407,12 @@ struct TORCH_API Source {
       text_view_ = StringCordView({text_view}, {});
     }
 
+=======
+      : text_view_(create_text_view(copies_str, text_view)),
+        filename_(std::move(filename)),
+        starting_line_no_(starting_line_no),
+        gen_ranges_(std::move(gen_ranges)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     calc_line_start_offsets();
   }
 
@@ -287,6 +497,21 @@ struct TORCH_API Source {
     }
   }
 
+<<<<<<< HEAD
+=======
+  static StringCordView create_text_view(
+      CopiesString copies_str,
+      std::string_view text_view) {
+    if (copies_str == COPIES_STRING) {
+      auto allocated_str =
+          std::make_shared<std::string>(text_view.data(), text_view.size());
+      return StringCordView({*allocated_str}, {allocated_str});
+    } else {
+      return StringCordView({text_view}, {});
+    }
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   StringCordView text_view_;
 
   std::optional<std::string> filename_;

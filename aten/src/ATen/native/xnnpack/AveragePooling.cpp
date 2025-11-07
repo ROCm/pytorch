@@ -7,7 +7,11 @@
 
 namespace at::native::xnnpack {
 
+<<<<<<< HEAD
 inline std::vector<size_t> get_mem_format_aware_shape(const at::Tensor& in) {
+=======
+static inline std::vector<size_t> get_mem_format_aware_shape(const at::Tensor& in) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto mem_format = in.suggest_memory_format();
   const auto& sizes = in.sizes();
   std::vector<size_t> ret(sizes.begin(), sizes.end());

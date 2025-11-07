@@ -2,6 +2,10 @@ r"""
 **This file is EXPERIMENTAL and is mostly used for testing purposes! Do not
 rely on it for anything!**
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import operator
 import sys
 

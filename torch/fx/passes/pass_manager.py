@@ -93,9 +93,15 @@ def loop_pass(
         predicate (Callable[Object, bool], optional):
 
     """
+<<<<<<< HEAD
     assert (n_iter is not None) ^ (
         predicate is not None
     ), "Exactly one of `n_iter`or `predicate` must be specified."
+=======
+    assert (n_iter is not None) ^ (predicate is not None), (
+        "Exactly one of `n_iter`or `predicate` must be specified."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @wraps(base_pass)
     def new_pass(source):

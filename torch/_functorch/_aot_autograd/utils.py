@@ -122,7 +122,11 @@ def call_func_at_runtime_with_args(
 
     context = torch._C._DisableAutocast if disable_amp else nullcontext
     with context():
+<<<<<<< HEAD
         if hasattr(f, "_boxed_call"):
+=======
+        if getattr(f, "_boxed_call", False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             out = normalize_as_list(f(args))
         else:
             # TODO: Please remove soon
@@ -500,3 +504,19 @@ def get_cuda_generator_meta_val(device_idx: int):
     it is fine to use in the meta.
     """
     return torch.cuda.default_generators[device_idx].clone_state()
+<<<<<<< HEAD
+=======
+
+
+def top_saved_tensors_hooks():
+    return torch._C._autograd._top_saved_tensors_default_hooks(True)
+
+
+def saved_tensors_hooks_are_inlineable(hooks) -> bool:
+    if not hooks:
+        return False
+    pack, unpack = hooks
+    return isinstance(pack, torch.fx.GraphModule) and isinstance(
+        unpack, torch.fx.GraphModule
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

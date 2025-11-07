@@ -16,6 +16,10 @@ from collections import defaultdict
 from contextlib import AbstractContextManager
 from inspect import currentframe
 from itertools import count
+<<<<<<< HEAD
+=======
+from operator import attrgetter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar, Union
 from typing_extensions import Never, override, ParamSpec, Protocol, TypedDict, Unpack
 from unittest import mock
@@ -70,17 +74,30 @@ from torch._inductor.output_code import (
     index_expanded_dims,
     OutputCode,
 )
+<<<<<<< HEAD
 from torch._inductor.runtime.runtime_utils import cache_dir
 from torch._inductor.utils import (
     BoxedBool,
     count_tangents,
     fresh_inductor_cache,
+=======
+from torch._inductor.runtime.cache_dir_utils import cache_dir
+from torch._inductor.utils import (
+    BoxedBool,
+    count_tangents,
+    fresh_cache,
+    get_all_devices,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     InputType,
     is_gpu,
     should_assume_input_aligned,
     should_use_remote_fx_graph_cache,
     tensor_is_aligned,
 )
+<<<<<<< HEAD
+=======
+from torch._library.fake_class_registry import FakeScriptObject
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import trace_structured
 from torch._utils_internal import compile_time_strobelight_meta
 from torch.fx import GraphModule
@@ -95,6 +112,10 @@ from ..fx._lazy_graph_module import _use_lazy_graph_module
 from ..fx.graph import _PyTreeCodeGen
 from ..utils._triton import has_triton
 from . import config, metrics
+<<<<<<< HEAD
+=======
+from .codegen.common import get_wrapper_codegen_for_device, init_backend_registration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .debug import DebugContext
 from .decomposition import select_decomp_table
 from .exc import InductorError
@@ -124,6 +145,10 @@ if TYPE_CHECKING:
 
     from torch._inductor.output_code import _StrideExprStr
     from torch._ops import OpOverload
+<<<<<<< HEAD
+=======
+    from torch.export.pt2_archive._package_weights import Weights
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     from .ir import ExternKernelNode
 
@@ -159,6 +184,7 @@ class FxCompileMode(enum.Enum):
     SUBPROCESS = 2
 
 
+<<<<<<< HEAD
 def _fx_compile_mode_default() -> FxCompileMode:
     name = "TORCHINDUCTOR_FX_COMPILE_MODE"
     value = os.environ.get(name)
@@ -167,6 +193,23 @@ def _fx_compile_mode_default() -> FxCompileMode:
     try:
         value = value.upper()
         return FxCompileMode[value]
+=======
+# Return compile mode and use_async flag
+def _fx_compile_mode_default() -> tuple[FxCompileMode, bool]:
+    name = "TORCHINDUCTOR_FX_COMPILE_MODE"
+    value = os.environ.get(name)
+    if value is None:
+        return FxCompileMode.NORMAL, False
+
+    use_async = False
+    if value.lower().startswith("async+"):
+        use_async = True
+        value = value[6:]
+
+    try:
+        value = value.upper()
+        return FxCompileMode[value], use_async
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except KeyError:
         import logging
 
@@ -179,10 +222,17 @@ def _fx_compile_mode_default() -> FxCompileMode:
         )
         # Remove from the environment so subprocesses don't ALSO complain.
         os.environ.pop(name)
+<<<<<<< HEAD
         return FxCompileMode.NORMAL
 
 
 fx_compile_mode = _fx_compile_mode_default()
+=======
+        return FxCompileMode.NORMAL, False
+
+
+fx_compile_mode, fx_compile_async = _fx_compile_mode_default()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 log = logging.getLogger(__name__)
 perf_hint_log = torch._logging.getArtifactLogger(__name__, "perf_hints")
@@ -191,6 +241,10 @@ post_grad_graphs_log = torch._logging.getArtifactLogger(__name__, "post_grad_gra
 static_inputs_log = torch._logging.getArtifactLogger(
     __name__, "cudagraph_static_inputs"
 )
+<<<<<<< HEAD
+=======
+inductor_metrics_log = torch._logging.getArtifactLogger(__name__, "inductor_metrics")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_static_input_idxs(num_fixed: int) -> list[int]:
@@ -209,7 +263,17 @@ def get_static_input_idxs(num_fixed: int) -> list[int]:
 def record_original_output_strides(gm: GraphModule) -> None:
     output_node = gm.graph.find_nodes(op="output")[0]
     output_strides = []
+<<<<<<< HEAD
     for output in output_node.args[0]:
+=======
+
+    if not isinstance(output_node.args[0], torch.fx.Node):
+        output_node_args = output_node.args[0]
+    else:
+        output_node_args = output_node.args
+
+    for output in output_node_args:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             isinstance(output, torch.fx.Node)
             and (val := output.meta.get("val")) is not None
@@ -221,12 +285,46 @@ def record_original_output_strides(gm: GraphModule) -> None:
     output_node.meta["original_output_strides"] = output_strides
 
 
+<<<<<<< HEAD
+=======
+def _recursive_record_original_output_strides(gm: GraphModule) -> None:
+    # invoke_subgraph HOP requires output strides to be respected
+    for node in gm.graph.find_nodes(
+        op="call_function", target=torch.ops.higher_order.invoke_subgraph
+    ):
+        subgraph = getattr(gm, node.args[0].target)
+        _recursive_record_original_output_strides(subgraph)
+
+    record_original_output_strides(gm)
+
+
+def _recursive_record_user_visible_output_idxs(gm: GraphModule) -> None:
+    # invoke_subgraph HOP requires output strides to be respected
+    for node in gm.graph.find_nodes(
+        op="call_function", target=torch.ops.higher_order.invoke_subgraph
+    ):
+        subgraph = getattr(gm, node.args[0].target)
+
+        for node in subgraph.graph.find_nodes(op="output"):
+            node.meta["user_visible_output_idxs"] = [
+                idx
+                for idx in range(len(node.args[0]))
+                if isinstance(node.args[0][idx], torch.fx.Node)
+            ]
+        _recursive_record_user_visible_output_idxs(subgraph)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.lru_cache(None)
 def _step_logger() -> Callable[..., None]:
     return dynamo_logging.get_step_logger(log)
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _warn_tf32_disabled() -> None:
     if (
         torch.cuda.is_available()
@@ -239,11 +337,85 @@ def _warn_tf32_disabled() -> None:
         )
 
 
+<<<<<<< HEAD
+=======
+def _resolve_name_collision(mod: GraphModule, gm: GraphModule) -> None:
+    """
+    In aot_export_module (make_fx), we create get_attr nodes with name prefix
+    "_tensor_constant" and "_torchbind_obj". See Tracer.create_arg() in
+    torch/fx/_symbolic_trace.py
+
+    However, this might result in name collision if the original mod already
+    has a different buffer with the same name.
+
+    We resolve this potential name collision here by changing the target name
+    with a new number post fix.
+    """
+
+    existing_keys = OrderedSet(
+        [name for name, val in mod.named_parameters(remove_duplicate=False)]
+    )
+    existing_keys.update(
+        OrderedSet([name for name, val in mod.named_buffers(remove_duplicate=False)])
+    )
+
+    def find_smallest_i(graph: fx.Graph, prefix: str) -> int:
+        i = 0
+        for node in graph.nodes:
+            if node.op == "get_attr" and node.target.startswith(prefix):
+                if len(node.target) > len(prefix):
+                    post_fix = node.target.split(prefix)[-1]
+                    if post_fix.isdigit():
+                        i = max(i, int(post_fix))
+        for key in existing_keys:
+            if key.startswith(prefix):
+                if len(key) > len(prefix):
+                    post_fix = key.split(prefix)[-1]
+                    if post_fix.isdigit():
+                        i = max(i, int(post_fix))
+        return i + 1
+
+    for node in gm.graph.nodes:
+        if node.op == "get_attr":
+            target_name = node.target
+            if not target_name.startswith(
+                "_tensor_constant"
+            ) and not target_name.startswith("_torchbind_obj"):
+                continue
+
+            if not hasattr(mod, target_name):
+                continue
+            gm_target = attrgetter(target_name)(gm)
+            model_target = attrgetter(target_name)(mod)
+            if (
+                torch.equal(gm_target, model_target)
+                and gm_target.dtype == model_target.dtype
+            ):
+                continue
+
+            prefix = (
+                "_tensor_constant"
+                if target_name.startswith("_tensor_constant")
+                else "_torchbind_obj"
+            )
+            new_id = find_smallest_i(gm.graph, prefix)
+            new_target_name = f"{prefix}{new_id}"
+            node.target = new_target_name
+            setattr(gm, new_target_name, gm_target)
+            existing_keys.add(new_target_name)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _unlift_graph(
     mod: GraphModule, gm: GraphModule, graph_signature: GraphSignature
 ) -> GraphModule:
     from torch.export.unflatten import _assign_attr, _AttrKind
 
+<<<<<<< HEAD
+=======
+    _resolve_name_collision(mod, gm)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     state_dict: dict[str, Union[torch.nn.parameter.Parameter, torch.Tensor]] = {}
     for name, param in mod.named_parameters(remove_duplicate=False):
         state_dict[name] = param
@@ -315,6 +487,7 @@ def _unlift_graph(
     return unlifted_gm
 
 
+<<<<<<< HEAD
 def _get_subgraph_names(gm: GraphModule) -> Generator[str, None, None]:
     for node in sorted(
         itertools.chain(
@@ -334,6 +507,30 @@ def _get_subgraph_names(gm: GraphModule) -> Generator[str, None, None]:
             body_subgraph_name = node.args[1].name
             yield cond_subgraph_name
             yield body_subgraph_name
+=======
+def _get_subgraph_names(
+    gm: GraphModule, skip_invoke_subgraph: bool = False
+) -> Generator[str, None, None]:
+    all_subgraph_names: OrderedSet[str] = OrderedSet(
+        x.target for x in gm.graph.find_nodes(op="get_attr")
+    )
+    fx_subgraph_names: OrderedSet[str] = OrderedSet()
+    for child_name, child_module in gm.named_children():
+        # Sometimes an owning_module can have unused children. Skip them
+        # by checking them from get_attr node targets.
+        if child_name in all_subgraph_names and isinstance(
+            child_module, torch.fx.GraphModule
+        ):
+            fx_subgraph_names.add(child_name)
+
+    if skip_invoke_subgraph:
+        for node in gm.graph.find_nodes(
+            op="call_function", target=torch.ops.higher_order.invoke_subgraph
+        ):
+            fx_subgraph_names.discard(node.args[0].target)
+
+    yield from fx_subgraph_names
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _recursive_pre_grad_passes(
@@ -355,15 +552,33 @@ def _recursive_pre_grad_passes(
         return pre_grad_passes(gm, example_inputs, add_passes, remove_passes)
 
 
+<<<<<<< HEAD
 def _recursive_joint_graph_passes(gm: GraphModule) -> None:
+=======
+def _recursive_joint_graph_passes(
+    gm: GraphModule, skip_invoke_subgraph: bool = False
+) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with dynamo_timed(
         "_recursive_joint_graph_passes",
         log_pt2_compile_event=True,
         dynamo_compile_column_us="joint_graph_pass_time_us",
     ):
+<<<<<<< HEAD
         for subgraph_name in _get_subgraph_names(gm):
             subgraph = getattr(gm, subgraph_name)
             _recursive_joint_graph_passes(subgraph)
+=======
+        # invoke_subgraph already runs the _recursive_joint_graph_passes.  In
+        # AOTAutograd, `run_joint_graph_passes_on_hops` partitions the
+        # invoke_subgraph HOP before calling the partitioner on the outer graph.
+        # AOTAutograd has access to partition_fn, which internally calls the
+        # `_recursive_joint_graph_passes` for the subgraph. So, skip recursing
+        # skip_invoke_subgraph.
+        for subgraph_name in _get_subgraph_names(gm, skip_invoke_subgraph):
+            subgraph = getattr(gm, subgraph_name)
+            _recursive_joint_graph_passes(subgraph, skip_invoke_subgraph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         joint_graph_passes(gm)
 
 
@@ -551,7 +766,11 @@ def with_fresh_cache_if_config() -> Generator[None, None, None]:
         # Don't delete the cache dir because it has to survive beyond the
         # compile_fx call. Let's put the temp dirs under the default cache
         # dir so they're easier to locate.
+<<<<<<< HEAD
         with fresh_inductor_cache(dir=cache_dir(), delete=False):
+=======
+        with fresh_cache(dir=cache_dir(), delete=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield
     else:
         yield
@@ -606,6 +825,7 @@ def compile_fx_inner(
                 "compile_fx_inner",
                 phase_name="inductor_compile",
                 log_pt2_compile_event=True,
+<<<<<<< HEAD
                 dynamo_compile_column_us="inductor_cumulative_compile_time_us",
             )
         )
@@ -619,6 +839,13 @@ def compile_fx_inner(
         if torch._dynamo.callback_handler.prevent_duplicate_callbacks:
             stack.enter_context(torch._dynamo.callback_handler.install_callbacks())
 
+=======
+                log_waitcounter=True,
+                waitcounter_name_override="compile_inductor",
+                dynamo_compile_column_us="inductor_cumulative_compile_time_us",
+            )
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stack.enter_context(with_fresh_cache_if_config())
         stack.enter_context(DebugContext())
         CompileEventLogger.pt2_compile(
@@ -646,12 +873,33 @@ def _compile_fx_inner(
     """
     aot_mode: bool = V.aot_compilation
 
+<<<<<<< HEAD
     if dynamo_utils.count_calls(gm.graph) == 0 and not aot_mode:
         # trigger the real recompilation for _LazyGraphModule before returning
         # the forward method.
         from torch.fx._lazy_graph_module import _LazyGraphModule
 
         _LazyGraphModule.force_recompile(gm)
+=======
+    # Clean up Compiled Triton Kernels per inductor compile, as the future objects
+    # may not be valid for use after they are run/autotuned
+    torch._inductor.async_compile.CompiledTritonKernels.cache_clear()
+
+    if dynamo_utils.count_calls(gm.graph) == 0 and not aot_mode:
+        # trigger the real recompilation for _LazyGraphModule before returning
+        # the forward method.
+        from torch._dynamo.utils import CompileEventLogLevel
+        from torch.fx._lazy_graph_module import _LazyGraphModule
+
+        _LazyGraphModule.force_recompile(gm)
+        compile_id = torch._guards.CompileContext.current_compile_id()
+        CompileEventLogger.log_instant_event(
+            "backward no-op",
+            metadata={"compile_id": compile_id},
+            log_level=CompileEventLogLevel.PT2_COMPILE,
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return make_boxed_func(gm.forward)
 
     static_input_idxs: Sequence[int] = graph_kwargs.setdefault("static_input_idxs", ())
@@ -662,8 +910,13 @@ def _compile_fx_inner(
         f"inductor can only compile FX graphs which return a tuple/list, but got {gm.graph}"
     )
 
+<<<<<<< HEAD
     if (cudagraphs := graph_kwargs.get("cudagraphs")) is None:
         graph_kwargs["cudagraphs"] = cudagraphs = BoxedBool(config.triton.cudagraphs)
+=======
+    if graph_kwargs.get("cudagraphs") is None:
+        graph_kwargs["cudagraphs"] = BoxedBool(config.triton.cudagraphs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if config.save_args:
         save_args_for_compile_fx_inner(
             gm,
@@ -675,19 +928,51 @@ def _compile_fx_inner(
 
     fx_graph_remote_cache = should_use_remote_fx_graph_cache()
 
+<<<<<<< HEAD
     with (
         _WaitCounter("pytorch.wait_counter.fx_codegen_and_compile").guard() as _,
         _WaitCounter("pytorch.wait_counter.all_compilation_types").guard(),
+=======
+    # Check if the registered backend(s) support caching.
+    init_backend_registration()
+    backends_support_caching = all(
+        backend.supports_caching
+        for backend in (
+            get_wrapper_codegen_for_device(device.type, config.cpp_wrapper)
+            for device in get_all_devices(gm)
+        )
+        if backend is not None
+    )
+
+    with dynamo_timed(
+        "fx_codegen_and_compile", log_pt2_compile_event=True, log_waitcounter=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         use_cache = (
             not config.force_disable_caches
             and (config.fx_graph_cache or fx_graph_remote_cache)
             and not aot_mode
+<<<<<<< HEAD
+=======
+            and backends_support_caching
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         local = config.fx_graph_cache
         remote = fx_graph_remote_cache
         set_feature_use("fx_cache", use_cache)
 
+<<<<<<< HEAD
+=======
+        log.debug(
+            "FX cache status: use_cache=%s, local=%s, remote=%s, aot_mode=%s, force_disable_caches=%s",
+            use_cache,
+            local,
+            remote,
+            aot_mode,
+            config.force_disable_caches,
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: This is a hack purely to get some info to extract_tensor_metadata_for_cache_key,
         # figure out how to not have to modify example inputs
         for i, input in enumerate(example_inputs):
@@ -715,8 +1000,15 @@ def _compile_fx_inner(
             # Attempt a cache lookup
             if key_info is not None:
                 key, debug_lines = key_info
+<<<<<<< HEAD
                 if remote:
                     remote_cache = FxGraphCache.get_remote_cache()
+=======
+                log.debug("FX cache key generated: %s", key)
+                if remote:
+                    remote_cache = FxGraphCache.get_remote_cache()
+                    log.debug("Using remote FX cache")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mb_compiled_graph, cache_info = FxGraphCache.load_with_key(
                     key,
                     debug_lines,
@@ -726,12 +1018,28 @@ def _compile_fx_inner(
                     is_backward=graph_kwargs.get("is_backward", False),
                     constants=constants,
                 )
+<<<<<<< HEAD
+=======
+            else:
+                log.debug("Failed to generate FX cache key")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # CACHE BYPASS: Compile the graph, don't save it to the cache
         # (this can happen either because cache was disabled, or we
         # determined the input is uncacheable)
         if cache_info is None or cache_info["cache_state"] == "bypass":
             assert mb_compiled_graph is None
+<<<<<<< HEAD
+=======
+            log.debug(
+                "FX cache bypass reason: %s",
+                (
+                    cache_info.get("cache_bypass_reason", "unknown")
+                    if cache_info is not None
+                    else "FX cache disabled or key generation failed"
+                ),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mb_compiled_graph = fx_codegen_and_compile(
                 gm, example_inputs, inputs_to_check, **graph_kwargs
             )
@@ -740,6 +1048,10 @@ def _compile_fx_inner(
         elif cache_info["cache_state"] == "miss":
             assert mb_compiled_graph is None
             assert key_info is not None
+<<<<<<< HEAD
+=======
+            log.debug("FX cache miss, compiling and saving to cache")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             TritonBundler.begin_compile()
             try:
                 mb_compiled_graph = fx_codegen_and_compile(
@@ -747,8 +1059,14 @@ def _compile_fx_inner(
                 )
                 assert mb_compiled_graph is not None
                 mb_compiled_graph._time_taken_ns = time.time_ns() - start_time
+<<<<<<< HEAD
                 cache_key = key_info[0]
                 mb_compiled_graph._fx_graph_cache_key = cache_key
+=======
+                cache_key, debug_lines = key_info
+                mb_compiled_graph._fx_graph_cache_key = cache_key
+                mb_compiled_graph._fx_graph_cache_debug_lines = debug_lines
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (
                     triton_bundle,
                     triton_bundler_meta,
@@ -765,6 +1083,10 @@ def _compile_fx_inner(
             if triton_bundler_meta is not None:
                 cache_info["triton_bundler_meta"] = str(triton_bundler_meta)
             cache_info["time_taken_ns"] = mb_compiled_graph._time_taken_ns
+<<<<<<< HEAD
+=======
+            log.debug("Saving compiled graph to FX cache with key: %s", cache_key)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             FxGraphCache._save_graph(
                 cache_key,
                 mb_compiled_graph,
@@ -779,8 +1101,15 @@ def _compile_fx_inner(
             assert cache_info["cache_state"] == "hit"
             assert mb_compiled_graph is not None
             assert key_info is not None
+<<<<<<< HEAD
             cache_key = key_info[0]
             mb_compiled_graph._fx_graph_cache_key = cache_key
+=======
+            (cache_key, debug_lines) = key_info
+            log.debug("FX cache hit with key: %s", cache_key)
+            mb_compiled_graph._fx_graph_cache_key = cache_key
+            mb_compiled_graph._fx_graph_cache_debug_lines = debug_lines
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         assert mb_compiled_graph is not None
         compiled_graph = mb_compiled_graph
@@ -829,6 +1158,7 @@ def _compile_fx_inner(
                 },
                 payload_fn=lambda: json.dumps(cache_info),
             )
+<<<<<<< HEAD
         compiled_graph.post_compile(example_inputs, cudagraphs, constants)
 
     log.debug("FX codegen and compilation took %.3fs", time.time() - start)
@@ -843,6 +1173,75 @@ def _compile_fx_inner(
 
     # Clear Compiled Triton Kernels per inductor compile, as the future objects
     # may not be valid for use after they are run/autotuned
+=======
+        compiled_graph.post_compile(example_inputs, constants, graph_kwargs)
+
+    log.debug("FX codegen and compilation took %.3fs", time.time() - start)
+
+    # Dump provenance artifacts for debugging trace
+    provenance_info = V.debug.log_inductor_triton_kernel_to_post_grad_node_info()
+    # provenance_info might be None if config.trace.enabled is not set
+    if provenance_info:
+        (
+            debug_info,
+            node_mappings,
+        ) = provenance_info
+        trace_structured(
+            "artifact",
+            metadata_fn=lambda: {
+                "name": "inductor_generated_kernel_to_post_grad_nodes",
+                "encoding": "json",
+            },
+            payload_fn=lambda: json.dumps(debug_info),
+        )
+        trace_structured(
+            "artifact",
+            metadata_fn=lambda: {
+                "name": "inductor_provenance_tracking_node_mappings",
+                "encoding": "json",
+            },
+            payload_fn=lambda: json.dumps(node_mappings),
+        )
+
+    # This message is for printing overview information of inductor mm counts, shapes,etc after lowering
+    if log.isEnabledFor(logging.INFO):
+        mm_table_data = []
+        for key, value in counters["aten_mm_info"].items():
+            parts = key.split("_")
+            if len(parts) < 3:
+                # Unexpected format, show as-is
+                mm_table_data.append([key, "-", "?", "?", "?", value])
+                continue
+
+            # Determine if this is a batched operation by checking the operation name
+            name = "_".join(parts[:-4]) if len(parts) >= 4 else "_".join(parts[:-3])
+            is_batched = name.endswith(("bmm", "baddbmm"))
+
+            if is_batched and len(parts) >= 4:
+                # Batched operation: last 4 parts are batch, m, n, k
+                batch, m, n, k = parts[-4:]
+                name = "_".join(parts[:-4])
+                mm_table_data.append([name, batch, m, n, k, value])
+            else:
+                # Non-batched operation: last 3 parts are m, n, k
+                m, n, k = parts[-3:]
+                name = "_".join(parts[:-3])
+                mm_table_data.append([name, "-", m, n, k, value])
+
+        log.info("Overview info of inductor aten mms: ")
+        log.info(
+            "{:<30} | {:<20} | {:<20} | {:<20} | {:<20} | {:<20}".format(  # noqa: G001
+                "Name", "B", "M", "N", "K", "Count"
+            )
+        )
+        log.info("-" * 130)
+        for row in mm_table_data:
+            log.info("{:<30} | {:<20} | {:<20} | {:<20} | {:<20} | {:<20}".format(*row))  # noqa: G001
+            log.info("-" * 130)
+
+    # Not strictly necessary, but good to clean up straggling futures
+    # that are unused to reclaim memory.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._inductor.async_compile.CompiledTritonKernels.cache_clear()
 
     _step_logger()(
@@ -897,6 +1296,12 @@ class _InProcessFxCompile(FxCompile):
         inputs_to_check: Sequence[int],
         graph_kwargs: _CompileFxKwargs,
     ) -> OutputCode:
+<<<<<<< HEAD
+=======
+        """
+        Generates the OutputCode from the GraphModule and example_inputs.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Sorry about the mess, we need graph_kwargs to continue to be able
         # to propagate it further on
         # TODO: _CompileFxKwargs actually has stronger types than in the
@@ -913,9 +1318,12 @@ class _InProcessFxCompile(FxCompile):
         extern_node_serializer: Optional[Callable[[list[ExternKernelNode]], Any]] = (
             graph_kwargs.get("extern_node_serializer", None)
         )
+<<<<<<< HEAD
         boxed_forward_device_index: Optional[BoxedDeviceIndex] = graph_kwargs.get(
             "boxed_forward_device_index", None
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with (
             _WaitCounter("pytorch.wait_counter.actual_codegen_and_compile").guard(),
@@ -945,12 +1353,20 @@ class _InProcessFxCompile(FxCompile):
                 f"graph {graph_id}",
             )
 
+<<<<<<< HEAD
             def log_graph_runnable() -> str:
                 fd = io.StringIO()
                 torch._dynamo.repro.after_aot.save_graph_repro(
                     fd, gm, example_inputs, "inductor", save_dir=None
                 )
                 return fd.getvalue()
+=======
+            fd = io.StringIO()
+            torch._dynamo.repro.after_aot.save_graph_repro(
+                fd, gm, example_inputs, "inductor", save_dir=None
+            )
+            runnable_graph_str = fd.getvalue()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             trace_structured(
                 "artifact",
@@ -958,7 +1374,11 @@ class _InProcessFxCompile(FxCompile):
                     "name": "fx_graph_runnable",
                     "encoding": "string",
                 },
+<<<<<<< HEAD
                 payload_fn=lambda: log_graph_runnable(),
+=======
+                payload_fn=lambda: runnable_graph_str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             V.debug.fx_graph(gm, example_inputs)
@@ -986,6 +1406,7 @@ class _InProcessFxCompile(FxCompile):
             # .view() call.
             view_to_reshape(gm)
 
+<<<<<<< HEAD
             # It is safe to run FakeTensorProp under no_grad because by the time
             # we're in inductor, we assume that AOTAutograd has already "taken care"
             # of autograd, so there should be no more autograd-related API's in the
@@ -994,11 +1415,37 @@ class _InProcessFxCompile(FxCompile):
                 fake_mode = fake_tensor_prop(gm, example_inputs)
 
             record_original_output_strides(gm)
+=======
+            with dynamo_timed(
+                "additional_fake_tensor_prop", log_pt2_compile_event=True
+            ):
+                # It is safe to run FakeTensorProp under no_grad because by the time
+                # we're in inductor, we assume that AOTAutograd has already "taken care"
+                # of autograd, so there should be no more autograd-related API's in the
+                # graph.
+                with torch.no_grad():
+                    fake_mode = fake_tensor_prop(gm, example_inputs)
+
+            _recursive_record_original_output_strides(gm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # pattern matcher passes might not preserve striding information
             # on node.meta["val"]. if in the future we rely on these being
             # correct we will need to fix.
+<<<<<<< HEAD
 
+=======
+            trace_structured(
+                "artifact",
+                metadata_fn=lambda: {
+                    "name": "before_post_grad_graph",
+                    "encoding": "string",
+                },
+                payload_fn=lambda: gm.print_readable(
+                    print_output=False, include_stride=True, include_device=True
+                ),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with V.set_fake_mode(fake_mode):
                 # has some issues with memory in training
                 cuda_context = get_cuda_device_context(gm)
@@ -1015,11 +1462,33 @@ class _InProcessFxCompile(FxCompile):
                         colored=True,
                     ),
                 )
+<<<<<<< HEAD
                 trace_structured(
                     "inductor_post_grad_graph",
                     payload_fn=lambda: gm.print_readable(
                         print_output=False, include_stride=True, include_device=True
                     ),
+=======
+
+                # We're printing the graph to be used as a cache key - so a
+                # printer which is a little less readable but faster is
+                # appropriate.
+                inductor_post_grad_graph_str = gm.print_readable(
+                    print_output=False,
+                    include_stride=True,
+                    include_device=True,
+                    fast_sympy_print=True,
+                )
+                # "after_post_grad_graph" is used in inductor provenance
+                # tracking highlighter front-end.
+                trace_structured(
+                    "artifact",
+                    metadata_fn=lambda: {
+                        "name": "after_post_grad_graph",
+                        "encoding": "string",
+                    },
+                    payload_fn=lambda: inductor_post_grad_graph_str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 if config.trace.enabled:
                     provenance_tracking_json = (
@@ -1054,7 +1523,11 @@ class _InProcessFxCompile(FxCompile):
                                 "pt2_configs": str(get_patched_config_dict())
                             }
                         )
+<<<<<<< HEAD
                     except ValueError:
+=======
+                    except Exception:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         # TODO(T216453900): need to work around for now to support vllm
                         # See details in vllm/compilation/pass_manager.py.
                         log.warning("failed to log pt2_configs")
@@ -1070,7 +1543,21 @@ class _InProcessFxCompile(FxCompile):
                 const_kernel_code = None
 
                 if aot_mode and config.aot_inductor.use_runtime_constant_folding:
+<<<<<<< HEAD
                     const_gm, const_output_index = split_const_gm(gm)
+=======
+                    # torchbind objects have name that starts with _torchbind_obj
+                    # See caffe2/torch/fx/_symbolic_trace.py?lines=406
+                    const_gm, const_output_index = split_const_gm(
+                        gm,
+                        skip_folding_node_fn=lambda node: node.op == "get_attr"
+                        and isinstance(node.target, str)
+                        and (
+                            node.target.startswith("_torchbind_obj")
+                            or isinstance(node.meta.get("val", None), FakeScriptObject)
+                        ),
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                     const_graph = GraphLowering(
                         const_gm,
@@ -1105,16 +1592,32 @@ class _InProcessFxCompile(FxCompile):
                     is_inference=is_inference,
                     is_backward=is_backward,
                     const_output_index=const_output_index,
+<<<<<<< HEAD
                     const_wrapper_code=const_wrapper_code.value
                     if const_wrapper_code
                     else None,
                     const_kernel_code=const_kernel_code.value
                     if const_kernel_code
                     else None,
+=======
+                    const_wrapper_code=(
+                        const_wrapper_code.value if const_wrapper_code else None
+                    ),
+                    const_kernel_code=(
+                        const_kernel_code.value if const_kernel_code else None
+                    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     const_module=const_graph,
                     inputs_to_check=inputs_to_check,
                 )
                 metrics_helper = metrics.CachedMetricsHelper()
+<<<<<<< HEAD
+=======
+
+                # We are going to start code generating runtime asserts, so make sure
+                # you don't start adding new ones in the lowering process
+                graph.freeze_runtime_asserts()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 with V.set_graph_handler(graph):
                     graph.run(*example_inputs)
                     output_strides: list[Optional[tuple[_StrideExprStr, ...]]] = []
@@ -1142,6 +1645,7 @@ class _InProcessFxCompile(FxCompile):
                     # not going to touch it for now
 
                     compiled_fn: Any
+<<<<<<< HEAD
 
                     with dynamo_timed(
                         "GraphLowering.compile_to_fn", log_pt2_compile_event=True
@@ -1150,6 +1654,12 @@ class _InProcessFxCompile(FxCompile):
                         # you don't start adding new ones in the lowering process
                         graph.freeze_runtime_asserts()
 
+=======
+                    compiled_fn_runner = None
+                    with dynamo_timed(
+                        "GraphLowering.compile_to_fn", log_pt2_compile_event=True
+                    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         if graph.aot_mode:
                             from .codecache import AotCodeCompiler
 
@@ -1190,16 +1700,46 @@ class _InProcessFxCompile(FxCompile):
                                     additional_files=[
                                         *dict.fromkeys(
                                             graph.wrapper_code.additional_files
+<<<<<<< HEAD
+=======
+                                            + (
+                                                const_graph.wrapper_code.additional_files
+                                                if const_graph
+                                                else []
+                                            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                         )
                                     ],
                                 )
                         else:
+<<<<<<< HEAD
                             compiled_fn = graph.compile_to_module().call
 
                     num_bytes, nodes_num_elem, node_runtimes = graph.count_bytes()
                     metrics.num_bytes_accessed += num_bytes
                     metrics.node_runtimes += node_runtimes
                     metrics.nodes_num_elem += nodes_num_elem
+=======
+                            compiled_module = graph.compile_to_module()
+                            compiled_fn = compiled_module.call
+                            compiled_fn_runner = getattr(
+                                compiled_module, "runner", None
+                            )
+
+                    if inductor_metrics_log.isEnabledFor(logging.INFO):
+                        num_bytes, nodes_num_elem, node_runtimes = graph.count_bytes()
+                        metrics.num_bytes_accessed += num_bytes
+                        metrics.node_runtimes += node_runtimes
+                        metrics.nodes_num_elem += nodes_num_elem
+                        inductor_metrics_log.info(
+                            "Graph Metrics:\n%s",
+                            {
+                                "num_bytes_accessed": num_bytes,
+                                "nodes_num_elem": nodes_num_elem,
+                                "node_runtimes": node_runtimes,
+                            },
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                     if (
                         cudagraphs
@@ -1267,7 +1807,13 @@ class _InProcessFxCompile(FxCompile):
                         static_input_idxs,
                         graph_kwargs,
                         inputs_to_check,
+<<<<<<< HEAD
                         boxed_forward_device_index,
+=======
+                        runnable_graph_str,
+                        inductor_post_grad_graph_str,
+                        compiled_fn_runner,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
 
@@ -1292,6 +1838,18 @@ def fx_codegen_and_compile(
 
         scheme = _SubprocessFxCompile()
 
+<<<<<<< HEAD
+=======
+    if fx_compile_async:
+        from .compile_fx_async import _AsyncFxCompile
+        from .compile_fx_ext import _OutOfProcessFxCompile
+
+        assert isinstance(scheme, _OutOfProcessFxCompile), (
+            "async is only valid with an out-of-process compile mode"
+        )
+        scheme = _AsyncFxCompile(scheme)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return scheme.codegen_and_compile(gm, example_inputs, inputs_to_check, graph_kwargs)
 
 
@@ -1368,8 +1926,13 @@ def cudagraphify(
         nonlocal compiled_fn
         if compiled_fn is None:
             with dynamo_utils.preserve_rng_state():
+<<<<<<< HEAD
                 compiled_fn = cudagraphify_fn(model, new_inputs, static_input_idxs)
         return compiled_fn(new_inputs)
+=======
+                compiled_fn = cudagraphify_fn(model, new_inputs, static_input_idxs)  # type: ignore[arg-type]
+        return compiled_fn(new_inputs)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return run
 
@@ -1484,7 +2047,11 @@ def cudagraphify_impl(
             graph.replay()
             return static_outputs
 
+<<<<<<< HEAD
     return align_inputs_from_check_idxs(run, check_input_idxs)
+=======
+    return align_inputs_from_check_idxs(run, check_input_idxs, OrderedSet())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def compile_fx_aot(
@@ -1492,7 +2059,11 @@ def compile_fx_aot(
     example_inputs_: list[InputType],
     inner_compile: _CompileFxCallable = compile_fx_inner,
     config_patches: Optional[dict[str, str]] = None,
+<<<<<<< HEAD
 ) -> Union[list[str], str]:
+=======
+) -> Union[list[Union[str, Weights]], str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert isinstance(model_, GraphModule), model_
 
     # [See NOTE] Unwrapping subclasses AOT
@@ -1680,6 +2251,7 @@ def get_cuda_device_context(gm: torch.fx.GraphModule) -> AbstractContextManager[
     if not torch.cuda.is_available():
         return contextlib.nullcontext()
 
+<<<<<<< HEAD
     placeholder_nodes = gm.graph.find_nodes(op="placeholder")
     input_devices: OrderedSet[torch.device] = OrderedSet(
         node.meta["val"].device
@@ -1694,6 +2266,10 @@ def get_cuda_device_context(gm: torch.fx.GraphModule) -> AbstractContextManager[
     )
     cuda_devices: OrderedSet[torch.device] = OrderedSet(
         device for device in (input_devices | out_devices) if device.type == "cuda"
+=======
+    cuda_devices: OrderedSet[torch.device] = OrderedSet(
+        device for device in get_all_devices(gm) if device.type == "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     return (
@@ -1709,7 +2285,12 @@ def compile_fx(
     inner_compile: Callable[..., OutputCode] = compile_fx_inner,
     config_patches: Optional[dict[str, Any]] = None,
     decompositions: Optional[dict[OpOverload, Callable[..., Any]]] = None,
+<<<<<<< HEAD
 ) -> Union[Callable[[list[object]], Sequence[torch.Tensor]], str, list[str]]:
+=======
+    ignore_shape_env: bool = False,
+) -> Union[Callable[[list[object]], Sequence[torch.Tensor]], str, list[str], Weights]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Main entry point for compiling given FX graph.  Despite the fact that this
     lives in :mod:`torch._inductor`, this function is responsible for calling
@@ -1733,6 +2314,10 @@ def compile_fx(
                 # need extra layer of patching as backwards is compiled out of scope
                 inner_compile=config.patch(config_patches)(inner_compile),
                 decompositions=decompositions,
+<<<<<<< HEAD
+=======
+                ignore_shape_env=ignore_shape_env,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     # TODO: This probably shouldn't be a recursive call
@@ -1773,17 +2358,41 @@ def compile_fx(
                                     "make sure torch.export() and torch.aot_compile() run on the same device."
                                 )
                     inputs_ = fake_inputs  # type: ignore[assignment]
+<<<<<<< HEAD
             return compile_fx(
                 model_,
                 inputs_,
                 inner_compile=functools.partial(inner_compile, cpp_wrapper=True),
                 decompositions=decompositions,
             )
+=======
+            from torch._export.non_strict_utils import _fakify_script_objects
+
+            fake_mode = detect_fake_mode(inputs_)
+            with _fakify_script_objects(model_, inputs_, {}, fake_mode) as (
+                patched_mod,
+                fake_args,
+                _,
+                _,
+                _,
+            ):
+                return compile_fx(
+                    patched_mod,
+                    fake_args,
+                    inner_compile=functools.partial(inner_compile, cpp_wrapper=True),
+                    decompositions=decompositions,
+                    ignore_shape_env=ignore_shape_env,
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     recursive_compile_fx = functools.partial(
         compile_fx,
         inner_compile=inner_compile,
         decompositions=decompositions,
+<<<<<<< HEAD
+=======
+        ignore_shape_env=ignore_shape_env,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     if not graph_returns_tuple(model_):
@@ -1816,8 +2425,19 @@ def compile_fx(
         # having AOTAutograd trace it.
         # TODO: Get rid of this?
         if isinstance(model_, GraphModule):
+<<<<<<< HEAD
             trace_structured(
                 "inductor_pre_grad_graph",
+=======
+            # "before_pre_grad_graph" is used in inductor provenance
+            # tracking highlighter front-end.
+            trace_structured(
+                "artifact",
+                metadata_fn=lambda: {
+                    "name": "before_pre_grad_graph",
+                    "encoding": "string",
+                },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 payload_fn=lambda: model_.print_readable(
                     print_output=False, include_stride=True, include_device=True
                 )
@@ -1836,6 +2456,20 @@ def compile_fx(
             torch._inductor.debug._pre_grad_graph_id = id(model_.graph)
 
             model_ = _recursive_pre_grad_passes(model_, example_inputs_)
+<<<<<<< HEAD
+=======
+            trace_structured(
+                "artifact",
+                metadata_fn=lambda: {
+                    "name": "after_pre_grad_graph",
+                    "encoding": "string",
+                },
+                payload_fn=lambda: model_.print_readable(
+                    print_output=False, include_stride=True, include_device=True
+                )
+                + f"\n\n # graph id: {id(model_.graph)}",
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TODO: Move this before recursive pre-grad passes
         # NB: This short circuit never occurs for Dynamo produced graphs
@@ -1940,6 +2574,14 @@ def compile_fx(
                 else:
                     model_outputs_node.meta["user_visible_output_idxs"] = []
 
+<<<<<<< HEAD
+=======
+                # We also mark the invoke_subgraph outputs as user_visible to
+                # force the outputs of invoke_subgraph subgraph to follow the
+                # original strides
+                _recursive_record_user_visible_output_idxs(gm)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return inner_compile(
                     gm,
                     example_inputs,
@@ -1978,11 +2620,34 @@ def compile_fx(
         ) -> tuple[GraphModule, GraphModule]:
             cuda_context = get_cuda_device_context(gm)
             with cuda_context:
+<<<<<<< HEAD
                 _recursive_joint_graph_passes(gm)
             return min_cut_rematerialization_partition(
                 gm, joint_inputs, **kwargs, compiler="inductor"
             )
 
+=======
+                # We can skip the invoke_subgraph because the
+                # entire_partition_fn is called recursively for invoke_subgraph
+                # in partitioning.
+                _recursive_joint_graph_passes(gm, skip_invoke_subgraph=True)
+
+            static_lifetime_input_indices: Optional[list[int]] = kwargs.pop(  # type: ignore[assignment]
+                "static_lifetime_input_indices", None
+            )
+
+            with dynamo_utils.dynamo_timed(
+                "min_cut_rematerialization_partition", log_pt2_compile_event=True
+            ):
+                return min_cut_rematerialization_partition(
+                    gm,
+                    joint_inputs,
+                    compiler="inductor",
+                    static_lifetime_input_indices=static_lifetime_input_indices,
+                    **kwargs,
+                )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @compile_time_strobelight_meta(phase_name="backward")
         def bw_compiler(
             gm: GraphModule, example_inputs: Sequence[InputType]
@@ -2050,11 +2715,26 @@ def compile_fx(
                 # this will go away.
                 for node in gm.graph.nodes:
                     if node.op == "get_attr" and "val" not in node.meta:
+<<<<<<< HEAD
                         target = getattr(gm, node.target)
+=======
+                        target = attrgetter(node.target)(gm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         if isinstance(target, torch.Tensor):
                             node.meta["val"] = fake_mode.from_tensor(
                                 target, static_shapes=True
                             )
+<<<<<<< HEAD
+=======
+                        elif isinstance(target, torch.ScriptObject):
+                            node.meta["val"] = (
+                                torch._library.fake_class_registry.maybe_to_fake_obj(
+                                    fake_mode, target
+                                )
+                            )
+                        elif isinstance(target, FakeScriptObject):
+                            node.meta["val"] = target
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             unlifted_gm = _unlift_graph(model_, gm, graph_signature)
             if "dynamo_flat_name_to_original_fqn" in model_.meta:
@@ -2093,6 +2773,11 @@ def compile_fx(
                     partition_fn=partition_fn,
                     keep_inference_input_mutations=True,
                     cudagraphs=cudagraphs,
+<<<<<<< HEAD
+=======
+                    boxed_forward_device_index=forward_device,
+                    ignore_shape_env=ignore_shape_env,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )(model_, example_inputs_)
             except ShortenTraceback as e:
                 # We will also shorten the traceback inside dynamo.
@@ -2244,6 +2929,18 @@ def _aoti_flatten_inputs(
         (args, kwargs or {})
     )
 
+<<<<<<< HEAD
+=======
+    if any(isinstance(x[1], torch.ScriptObject) for x in flat_args_with_path):
+        from torch._dynamo.exc import UserError, UserErrorType
+
+        raise UserError(
+            UserErrorType.INVALID_INPUT,
+            "TorchBind objects found in inputs. TorchBind object inputs are not supported in AOTInductor. "
+            "TorchBind objects can only be attributes.",
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Replace non-tensor (constant) inputs with Nones, since these are not being
     # used anyways by the graph
     flat_example_inputs = [

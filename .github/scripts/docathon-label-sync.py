@@ -28,12 +28,20 @@ def main() -> None:
     issue = repo.get_issue(issue_number)
     issue_labels = issue.labels
     docathon_label_present = any(
+<<<<<<< HEAD
         label.name == "docathon-h1-2024" for label in issue_labels
+=======
+        label.name == "docathon-h1-2025" for label in issue_labels
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     # if the issue has a docathon label, add all labels from the issue to the PR.
     if not docathon_label_present:
+<<<<<<< HEAD
         print("The 'docathon-h1-2024' label is not present in the issue.")
+=======
+        print("The 'docathon-h1-2025' label is not present in the issue.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
     pull_request_labels = pull_request.get_labels()
     pull_request_label_names = [label.name for label in pull_request_labels]

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Iterator, Sequence
 from typing import Union
 
@@ -63,7 +66,11 @@ class FileListerIterDataPipe(IterDataPipe[str]):
                 path, self.masks, self.recursive, self.abspath, self.non_deterministic
             )
 
+<<<<<<< HEAD
     def __len__(self):
+=======
+    def __len__(self) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.length == -1:
             raise TypeError(f"{type(self).__name__} instance doesn't have valid length")
         return self.length

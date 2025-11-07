@@ -85,8 +85,14 @@ def process_hf_whisper_output(out):
     out_ret = []
     for i, elem in enumerate(out):
         if i == 0:
+<<<<<<< HEAD
             assert isinstance(elem, dict)
             out_ret.append({k: v for k, v in elem.items() if k != "logits"})
+=======
+            if elem is not None:
+                assert isinstance(elem, dict)
+                out_ret.append({k: v for k, v in elem.items() if k != "logits"})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif i != 1:
             out_ret.append(elem)
 
@@ -470,7 +476,11 @@ class TorchBenchmarkRunner(BenchmarkRunner):
         self.grad_scaler.scale(loss).backward()
         self.optimizer_step()
         if collect_outputs:
+<<<<<<< HEAD
             return collect_results(mod, pred, loss, cloned_inputs)
+=======
+            return collect_results(mod, None, loss, cloned_inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
 

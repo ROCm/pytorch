@@ -1286,7 +1286,11 @@ void CudaCodeGen::CompileToNVRTC(
   args.push_back("-hip-pch");
 #else
   const std::string compute = std::string("--gpu-architecture=") +
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 11010
+=======
+#if !defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // CUDA 11.1 allows going directly to SASS (sm_) instead of PTX (compute_)
       // which gives better backwards compatibility to work on older driver,
       // (since older driver doesn't necessarily recognize PTX emitted by new
@@ -1321,7 +1325,11 @@ void CudaCodeGen::CompileToNVRTC(
   AT_CUDA_NVRTC_CHECK(result);
   size_t ptx_size = 0;
   std::vector<char> ptx;
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 11010
+=======
+#if !defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // compile_to_sass determines whether we are generating SASS or PTX, hence
   // the different API.
   auto getSize = compile_to_sass

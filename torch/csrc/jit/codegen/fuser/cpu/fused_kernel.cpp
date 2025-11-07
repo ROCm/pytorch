@@ -3,6 +3,10 @@
 #include <ATen/DynamicLibrary.h>
 #include <ATen/code_template.h>
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/codegen/fuser/compiler.h>
 #include <torch/csrc/jit/codegen/fuser/cpu/temp_file.h>
 #include <optional>
@@ -40,6 +44,7 @@ constexpr int so_suffix_len = 3;
 constexpr int cpp_suffix_len = 4;
 #endif
 
+<<<<<<< HEAD
 intptr_t run(const std::string& cmd);
 
 static bool programExists(const std::string& program) {
@@ -55,6 +60,8 @@ static bool programExists(const std::string& program) {
 #endif
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef _MSC_VER
 static std::optional<std::wstring> exec(const std::wstring& cmd) {
   std::array<wchar_t, 128> buffer;
@@ -143,9 +150,15 @@ static void activate() {
   }
 }
 
+<<<<<<< HEAD
 intptr_t run(const std::string& cmd) {
   // Getting the path of `cmd.exe`
   wchar_t* comspec = _wgetenv(L"COMSPEC");
+=======
+static intptr_t run(const std::string& cmd) {
+  // Getting the path of `cmd.exe`
+  const wchar_t* comspec = _wgetenv(L"COMSPEC");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!comspec) {
     comspec = L"C:\\Windows\\System32\\cmd.exe";
   }
@@ -168,14 +181,36 @@ intptr_t run(const std::string& cmd) {
 }
 #endif
 
+<<<<<<< HEAD
+=======
+static bool programExists(const std::string& program) {
+  std::stringstream ss;
+  c10::printQuotedString(ss, program);
+  at::jit::TemplateEnv env;
+  env.s("program", ss.str());
+  std::string cmd = format(check_exists_string, env);
+#ifdef _MSC_VER
+  return (run(cmd.c_str()) == 0);
+#else
+  return (system(cmd.c_str()) == 0);
+#endif
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // A single compiler config is accessed through getConfig() (below)
 // Controls compilation options and may be updated based on the result
 // of compilation attempts.
 struct CompilerConfig {
   CompilerConfig() {
+<<<<<<< HEAD
     const char* cxx_env = getenv("CXX");
     if (cxx_env != nullptr) {
       cxx = cxx_env;
+=======
+    const auto cxx_env = c10::utils::get_env("CXX");
+    if (cxx_env) {
+      cxx = cxx_env.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
 #ifdef _MSC_VER
@@ -353,5 +388,9 @@ static std::shared_ptr<FusedKernel> createFusionKernel(
       has_random);
 }
 
+<<<<<<< HEAD
 RegisterFusionBackend reg(DeviceType::CPU, createFusionKernel);
+=======
+static RegisterFusionBackend reg(DeviceType::CPU, createFusionKernel);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit::fuser::cpu

@@ -298,6 +298,7 @@ operators:
             valid_tags=set(),
         )
         self.assertTrue(selector.is_native_function_selected(native_function))
+<<<<<<< HEAD
 
 
 class TestExecuTorchSelectiveBuild(unittest.TestCase):
@@ -340,3 +341,5 @@ et_kernel_metadata:
                 "aten::add.out", ["v2/6;0,1|6;0,1|6;0,1|6;0,1"]
             ),
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -1,18 +1,38 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
+<<<<<<< HEAD
 import weakref
 from weakref import ref
 from _weakrefset import _IterationGuard  # type: ignore[attr-defined]
 from collections.abc import MutableMapping, Mapping
 from torch import Tensor
 import collections.abc as _collections_abc
+=======
+import collections.abc as _collections_abc
+import weakref
+
+from _weakrefset import _IterationGuard  # type: ignore[attr-defined]
+from collections.abc import Mapping, MutableMapping
+from weakref import ref
+
+from torch import Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 WeakRef = ref
 
 
+<<<<<<< HEAD
 __all__ = ['TensorWeakRef', 'WeakIdRef', 'WeakIdKeyDictionary', 'WeakTensorKeyDictionary']
+=======
+__all__ = [
+    "TensorWeakRef",
+    "WeakIdRef",
+    "WeakIdKeyDictionary",
+    "WeakTensorKeyDictionary",
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This file defines a variant of WeakKeyDictionary that overrides the hashing
@@ -41,7 +61,11 @@ __all__ = ['TensorWeakRef', 'WeakIdRef', 'WeakIdKeyDictionary', 'WeakTensorKeyDi
 # WeakIdRef(tensor) rather than weakref.ref(tensor); it handles a number of
 # easy to get wrong cases transparently for you.
 class WeakIdRef(weakref.ref):
+<<<<<<< HEAD
     __slots__ = ['_id']
+=======
+    __slots__ = ["_id"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, key, callback=None):
         # Unlike stock weakref, which preserves hash semantics of the
@@ -55,7 +79,11 @@ class WeakIdRef(weakref.ref):
     def __call__(self):
         r = super().__call__()
         # Special logic for Tensor PyObject resurrection
+<<<<<<< HEAD
         if hasattr(r, '_fix_weakref'):
+=======
+        if hasattr(r, "_fix_weakref"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             r._fix_weakref()  # type: ignore[union-attr]
         return r
 
@@ -81,10 +109,18 @@ class WeakIdRef(weakref.ref):
             return a is b
         return self is other
 
+<<<<<<< HEAD
 # This is the same as WeakIdRef but equality is checked using hash() rather than id.
 # This will be equivalent to the one above except for classes where hash is not their id.
 class _WeakHashRef(weakref.ref):
     __slots__ = ['_id']
+=======
+
+# This is the same as WeakIdRef but equality is checked using hash() rather than id.
+# This will be equivalent to the one above except for classes where hash is not their id.
+class _WeakHashRef(weakref.ref):
+    __slots__ = ["_id"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, key, callback=None):
         # Unlike stock weakref, which preserves hash semantics of the
@@ -98,7 +134,11 @@ class _WeakHashRef(weakref.ref):
     def __call__(self):
         r = super().__call__()
         # Special logic for Tensor PyObject resurrection
+<<<<<<< HEAD
         if hasattr(r, '_fix_weakref'):
+=======
+        if hasattr(r, "_fix_weakref"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             r._fix_weakref()  # type: ignore[union-attr]
         return r
 
@@ -115,6 +155,10 @@ class _WeakHashRef(weakref.ref):
             return hash(a) == hash(b)
         return self is other
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This is directly adapted from cpython/Lib/weakref.py
 class WeakIdKeyDictionary(MutableMapping):
     def __init__(self, dict=None, ref_type=WeakIdRef):  # CHANGED
@@ -132,6 +176,10 @@ class WeakIdKeyDictionary(MutableMapping):
                         del self.data[k]
                     except KeyError:
                         pass
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._remove = remove
         # A list of dead weakrefs (keys to be removed)
         self._pending_removals = []
@@ -196,6 +244,10 @@ class WeakIdKeyDictionary(MutableMapping):
 
     def __deepcopy__(self, memo):
         from copy import deepcopy
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new = self.__class__()
         with _IterationGuard(self):
             for key, value in self.data.items():
@@ -261,7 +313,13 @@ class WeakIdKeyDictionary(MutableMapping):
         return self.data.pop(self.ref_type(key), *args)  # CHANGED
 
     def setdefault(self, key, default=None):
+<<<<<<< HEAD
         return self.data.setdefault(self.ref_type(key, self._remove), default)  # CHANGED
+=======
+        return self.data.setdefault(
+            self.ref_type(key, self._remove), default
+        )  # CHANGED
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def update(self, dict=None, **kwargs):  # type: ignore[override]
         d = self.data
@@ -297,7 +355,14 @@ class WeakIdKeyDictionary(MutableMapping):
     def __eq__(self, other):
         if not isinstance(other, Mapping):
             return NotImplemented
+<<<<<<< HEAD
         return {id(k): v for k, v in self.items()} == {id(k): v for k, v in other.items()}
+=======
+        return {id(k): v for k, v in self.items()} == {
+            id(k): v for k, v in other.items()
+        }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Convenience alias
 WeakTensorKeyDictionary = WeakIdKeyDictionary

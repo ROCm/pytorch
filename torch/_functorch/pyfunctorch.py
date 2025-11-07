@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
 import contextlib
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
+=======
+from functools import cached_property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 
 import torch
@@ -79,6 +83,14 @@ class FuncTorchInterpreter(ABC):
     def check_state(self, state):
         return state == self.get_state()
 
+<<<<<<< HEAD
+=======
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state.pop("_cptr", None)
+        return state
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @contextlib.contextmanager
 def temporarily_pop_interpreter_stack():
@@ -123,7 +135,14 @@ class VmapInterpreter(FuncTorchInterpreter):
         # cdata is a generic CInterpreter. We wrap it in a CVmapInterpreterPtr
         # so that we can access methods specific to the vmap interpreter
         self._cdata = cdata
+<<<<<<< HEAD
         self._cptr = CVmapInterpreterPtr(cdata)
+=======
+
+    @cached_property
+    def _cptr(self):
+        return CVmapInterpreterPtr(self._cdata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def process(self, op, args, kwargs):
         kernel = op.functorch_table[TransformType.Vmap]
@@ -159,7 +178,14 @@ class GradInterpreter(FuncTorchInterpreter):
         assert cdata.key() == TransformType.Grad
         # See NOTE: [Interpreter cdata vs cptr]
         self._cdata = cdata
+<<<<<<< HEAD
         self._cptr = CGradInterpreterPtr(cdata)
+=======
+
+    @cached_property
+    def _cptr(self):
+        return CGradInterpreterPtr(self._cdata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def lift(self, args, kwargs):
         args, kwargs = pytree.tree_map_only(
@@ -193,7 +219,14 @@ class JvpInterpreter(FuncTorchInterpreter):
         assert cdata.key() == TransformType.Jvp
         # See NOTE: [Interpreter cdata vs cptr]
         self._cdata = cdata
+<<<<<<< HEAD
         self._cptr = CJvpInterpreterPtr(cdata)
+=======
+
+    @cached_property
+    def _cptr(self):
+        return CJvpInterpreterPtr(self._cdata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def lift(self, args, kwargs):
         args, kwargs = pytree.tree_map_only(
@@ -226,7 +259,14 @@ class FunctionalizeInterpreter(FuncTorchInterpreter):
     def __init__(self, cdata: CInterpreter):
         assert cdata.key() == TransformType.Functionalize
         self._cdata = cdata
+<<<<<<< HEAD
         self._cptr = CFunctionalizeInterpreterPtr(cdata)
+=======
+
+    @cached_property
+    def _cptr(self):
+        return CFunctionalizeInterpreterPtr(self._cdata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def process(self, op, args, kwargs):
         kernel = op.functorch_table[TransformType.Functionalize]

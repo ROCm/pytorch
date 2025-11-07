@@ -55,6 +55,21 @@ on:
         required: false
         type: boolean
         default: false
+<<<<<<< HEAD
+=======
+      monitor-log-interval:
+        description: |
+          Set the interval for the monitor script to log utilization.
+        required: false
+        type: number
+        default: 5
+      monitor-data-collect-interval:
+        description: |
+          Set the interval for the monitor script to collect data.
+        required: false
+        type: number
+        default: 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets:
       HUGGING_FACE_HUB_TOKEN:
         required: false
@@ -80,7 +95,11 @@ jobs:
     timeout-minutes: ${{ matrix.mem_leak_check == 'mem_leak_check' && 600 || inputs.timeout-minutes }}
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ !contains(matrix.runner, 'gcp.a100') && inputs.build-environment != 'linux-s390x-binary-manywheel' }}
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
@@ -89,7 +108,11 @@ jobs:
               docker exec -it $(docker container ps --format '{{.ID}}') bash
 
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: true
 
@@ -99,7 +122,11 @@ jobs:
 
       - name: configure aws credentials
         if : ${{ inputs.aws-role-to-assume != '' && inputs.build-environment != 'linux-s390x-binary-manywheel' }}
+<<<<<<< HEAD
         uses: aws-actions/configure-aws-credentials@v3
+=======
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           role-to-assume: ${{ inputs.aws-role-to-assume }}
           role-session-name: gha-linux-test
@@ -107,7 +134,11 @@ jobs:
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: inputs.build-environment != 'linux-s390x-binary-manywheel'
         with:
           docker-image-name: ${{ inputs.docker-image }}
@@ -119,11 +150,19 @@ jobs:
           ECR_DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
         shell: bash
         run: |
+<<<<<<< HEAD
           tag=${ECR_DOCKER_IMAGE##*/}
           echo "docker pull ghcr.io/pytorch/ci-image:${tag/:/-}"
 
       - name: Pull docker image
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.7
+=======
+          tag=${ECR_DOCKER_IMAGE##*:}
+          echo "docker pull ghcr.io/pytorch/ci-image:${tag/:/-}"
+
+      - name: Pull docker image
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: inputs.build-environment != 'linux-s390x-binary-manywheel'
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
@@ -135,7 +174,11 @@ jobs:
 
       - name: Install nvidia driver, nvidia-docker runtime, set GPU_FLAG
         id: install-nvidia-driver
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ contains(inputs.build-environment, 'cuda') && !contains(matrix.config, 'nogpu') && steps.check_container_runner.outputs.IN_CONTAINER_RUNNER == 'false' }}
 
       - name: Setup GPU_FLAG for docker run
@@ -172,9 +215,17 @@ jobs:
           JOB_NAME: ${{ steps.get-job-id.outputs.job-name }}
           WORKFLOW_NAME: ${{ github.workflow }}
           WORKFLOW_RUN_ID: ${{github.run_id}}
+<<<<<<< HEAD
         run: |
           python3 -m pip install psutil==5.9.1 nvidia-ml-py==11.525.84 dataclasses_json==0.6.7
           python3 -m tools.stats.monitor > usage_log.txt 2>&1 &
+=======
+          MONITOR_LOG_INTERVAL: ${{ inputs.monitor-log-interval }}
+          MONITOR_DATA_COLLECT_INTERVAL: ${{ inputs.monitor-data-collect-interval }}
+        run: |
+          python3 -m pip install psutil==5.9.1 dataclasses_json==0.6.7 nvidia-ml-py==11.525.84
+          python3 -m tools.stats.monitor --log-interval "$MONITOR_LOG_INTERVAL" --data-collect-interval "$MONITOR_DATA_COLLECT_INTERVAL" > usage_log.txt 2>&1 &
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           echo "monitor-script-pid=${!}" >> "${GITHUB_OUTPUT}"
 
       - name: Download build artifacts
@@ -193,7 +244,11 @@ jobs:
         run: .github/scripts/parse_ref.py
 
       - name: Check for keep-going label and re-enabled test issues
+<<<<<<< HEAD
         # This uses the filter-test-configs action because it conviniently
+=======
+        # This uses the filter-test-configs action because it conveniently
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # checks for labels and re-enabled test issues.  It does not actually do
         # any filtering.  All filtering is done in the build step.
         id: keep-going
@@ -362,7 +417,11 @@ jobs:
       - name: Upload pytest cache if tests failed
         uses: ./.github/actions/pytest-cache-upload
         continue-on-error: true
+<<<<<<< HEAD
         if: failure() && steps.test.conclusion && steps.test.conclusion == 'failure'
+=======
+        if: failure() && steps.test.conclusion && steps.test.conclusion == 'failure' && inputs.build-environment != 'linux-s390x-binary-manywheel'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           cache_dir: .pytest_cache
           shard: ${{ matrix.shard }}
@@ -371,7 +430,12 @@ jobs:
           job_identifier: ${{ github.workflow }}_${{ inputs.build-environment }}
 
       - name: Upload the benchmark results
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.8
+        if: inputs.build-environment != 'linux-s390x-binary-manywheel'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           benchmark-results-dir: test/test-reports
           dry-run: false
@@ -408,7 +472,11 @@ jobs:
           find . -iname "core.[1-9]*" -exec docker exec "${DOCKER_CONTAINER_ID}" sh -c "gdb python {} -ex 'bt' -ex 'q'" \;
 
       - name: Store Core dumps on S3
+<<<<<<< HEAD
         uses: seemethere/upload-artifact-s3@v5
+=======
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: failure()
         with:
           name: coredumps-${{ matrix.config }}-${{ matrix.shard }}-${{ matrix.num_shards }}-${{ matrix.runner }}
@@ -417,7 +485,11 @@ jobs:
           path: ./**/core.[1-9]*
 
       - name: Upload utilization stats
+<<<<<<< HEAD
         if: ${{ always() && steps.test.conclusion && steps.test.conclusion != 'skipped' && !inputs.disable-monitor }}
+=======
+        if: ${{ always() && steps.test.conclusion && steps.test.conclusion != 'skipped' && !inputs.disable-monitor && inputs.build-environment != 'linux-s390x-binary-manywheel' }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         uses: ./.github/actions/upload-utilization-stats
         with:
@@ -428,7 +500,11 @@ jobs:
           workflow_attempt: ${{github.run_attempt}}
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: always() && steps.check_container_runner.outputs.IN_CONTAINER_RUNNER == 'false'
 
       # NB: We are currently having an intermittent GPU-related issue on G5 runners with
@@ -445,8 +521,11 @@ jobs:
       - name: Check NVIDIA driver installation step
         if: failure() && steps.install-nvidia-driver.outcome && steps.install-nvidia-driver.outcome != 'skipped'
         shell: bash
+<<<<<<< HEAD
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run: |
           set +e
           set -x

@@ -8,7 +8,11 @@ from torch._inductor.metrics import get_metric_table, is_metric_table_enabled
 from torch.utils._ordered_set import OrderedSet
 
 from .. import config
+<<<<<<< HEAD
 from ..codecache import code_hash, CodeCacheFuture, get_path
+=======
+from ..codecache import code_hash, CodeCacheFuture, get_path, write_atomic
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..runtime.benchmarking import benchmarker
 from ..utils import cache_on_self, IndentedBuffer
 from ..virtualized import V
@@ -18,6 +22,7 @@ from .common import TensorArg, WorkspaceArg
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 def get_kernel_argdefs(kernel):
     arg_defs, _, _, _ = kernel.args.python_argdefs()
     return [x.name for x in arg_defs]
@@ -77,6 +82,8 @@ def get_numel_argdefs(kernel):
     return numel_argdefs
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class MultiKernelState:
     """
     Maintain state of multi-kernel compilation so we don't define duplicated
@@ -87,6 +94,10 @@ class MultiKernelState:
 
     def __init__(self):
         self.subkernel_to_kernel_name = {}
+<<<<<<< HEAD
+=======
+        self.kernel_defs = IndentedBuffer()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def define_kernel(self, kernels):
         """
@@ -116,7 +127,11 @@ class MultiKernelState:
             # the second pass of cpp-wrapper.
             return multi_kernel_name
 
+<<<<<<< HEAD
         buf = IndentedBuffer()
+=======
+        buf = self.kernel_defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         buf.writeline("")
         buf.writeline(
             f"{multi_kernel_name} = async_compile.multi_kernel({multi_kernel_name!r}, ["
@@ -126,12 +141,19 @@ class MultiKernelState:
                 buf.writeline(f"{name},")
         buf.writeline("])")
 
+<<<<<<< HEAD
         wrapper = V.graph.wrapper_code
         if config.triton.autotune_at_compile_time:
             wrapper.kernel_autotune_defs.splice(buf)
             wrapper.src_to_kernel["\n".join(kernel_names)] = multi_kernel_name
         else:
             wrapper.header.splice(buf)
+=======
+        if config.triton.autotune_at_compile_time:
+            V.graph.wrapper_code.src_to_kernel["\n".join(kernel_names)] = (
+                multi_kernel_name
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return multi_kernel_name
 
@@ -148,7 +170,11 @@ class MultiKernel:
     )
     ```
 
+<<<<<<< HEAD
     Here is an concrete example: https://gist.github.com/shunting314/d9f3fb6bc6cee3dbae005825ca196d39
+=======
+    Here is a concrete example: https://gist.github.com/shunting314/d9f3fb6bc6cee3dbae005825ca196d39
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def __init__(self, kernels):
@@ -225,7 +251,11 @@ class MultiKernel:
 
     def codegen_nan_check(self):
         wrapper = V.graph.wrapper_code
+<<<<<<< HEAD
         seen = OrderedSet[str]()
+=======
+        seen: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for k in self.kernels:
             _, call_args, precompile_args, _ = k.args.python_argdefs()
             for arg, precompile_arg in zip(call_args, precompile_args):
@@ -315,8 +345,12 @@ class MultiKernelCall:
         path = self.cache_file_path()
         path.parent.mkdir(parents=True, exist_ok=True)
 
+<<<<<<< HEAD
         with path.open("w") as fd:
             fd.write(str(self.picked_kernel))
+=======
+        write_atomic(path, str(self.picked_kernel))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.debug("Store picked kernel %d to cache file %s", self.picked_kernel, path)
 
     @property

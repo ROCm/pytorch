@@ -196,6 +196,15 @@ class set_grad_enabled(_DecoratorContextManager):
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         torch._C._set_grad_enabled(self.prev)
 
+<<<<<<< HEAD
+=======
+    def __str__(self) -> str:
+        return f"{torch.typename(self)}(mode={self.mode})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def clone(self) -> "set_grad_enabled":
         r"""
         Create a copy of this class

@@ -10,9 +10,15 @@ from torch.distributed.tensor import DeviceMesh, distribute_tensor, DTensor
 from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
 from torch.distributed.tensor._op_schema import (
     OpSchema,
+<<<<<<< HEAD
     OutputSharding,
     OutputSpecType,
     PlacementStrategy,
+=======
+    OpSpec,
+    OutputSharding,
+    OutputSpecType,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.distributed.tensor._redistribute import redistribute_local_tensor
 from torch.distributed.tensor.parallel.style import ColwiseParallel, ParallelStyle
@@ -69,8 +75,13 @@ def tensor_parallel_transformation(
 class _TensorParallelTransformPass(PassBase):
     """
     This pass is responsible for transforming a single-device graph into a tensor parallel
+<<<<<<< HEAD
     graph. It will mark the placement strategy of each node in the graph,
     partition the graph into distributed graph, then shard the parameters/buffers accordingly.
+=======
+    graph. It will mark the OpSpec of each node in the graph, partition the graph into
+    distributed graph, then shard the parameters/buffers accordingly.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def __init__(
@@ -132,11 +143,19 @@ def _mark_tensor_parallel_shardings(
     graph_signature: ExportGraphSignature,
     mesh: DeviceMesh,
     parameter_placements: dict[str, Placement],
+<<<<<<< HEAD
 ) -> dict[Node, PlacementStrategy]:
     """
     Mark the placement strategies of the parameter and buffer placeholder nodes.
     """
     placement_strategies: dict[Node, PlacementStrategy] = {}
+=======
+) -> dict[Node, OpSpec]:
+    """
+    Mark the placement strategies of the parameter and buffer placeholder nodes.
+    """
+    placement_strategies: dict[Node, OpSpec] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     num_params_and_buffers = len(graph_signature.inputs_to_parameters) + len(
         graph_signature.inputs_to_buffers
     )
@@ -184,6 +203,7 @@ def _mark_sharding(
     graph_signature: ExportGraphSignature,
     mesh: DeviceMesh,
     parameter_placements: dict[str, Placement],
+<<<<<<< HEAD
 ) -> dict[Node, PlacementStrategy]:
     """
     Mark the sharding strategy for each node in the graph module.
@@ -195,6 +215,17 @@ def _mark_sharding(
             mesh,
             parameter_placements,
         )
+=======
+) -> dict[Node, OpSpec]:
+    """
+    Mark the sharding strategy for each node in the graph module.
+    """
+    placement_strategies: dict[Node, OpSpec] = _mark_tensor_parallel_shardings(
+        gm,
+        graph_signature,
+        mesh,
+        parameter_placements,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     for node in gm.graph.nodes:
@@ -238,7 +269,11 @@ def _mark_sharding(
                     output_sharding = DTensor._op_dispatcher.sharding_propagator.propagate_op_sharding(  # type: ignore[assignment]
                         op_schema,
                     )
+<<<<<<< HEAD
                 placement_strategies[node] = PlacementStrategy(
+=======
+                placement_strategies[node] = OpSpec(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     output_specs=_get_output_spec_from_output_sharding(output_sharding),
                     input_specs=output_sharding.redistribute_schema.args_spec
                     if output_sharding.redistribute_schema is not None
@@ -273,11 +308,19 @@ def _create_placement_strategy(
     mesh: DeviceMesh,
     placements: tuple[Placement, ...],
     input_specs: Optional[Sequence[DTensorSpec]] = None,
+<<<<<<< HEAD
 ) -> PlacementStrategy:
     """
     Util function to construct a placement strategy for a given node.
     """
     placement = PlacementStrategy(
+=======
+) -> OpSpec:
+    """
+    Util function to construct an OpSpec for a given node.
+    """
+    placement = OpSpec(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_specs=input_specs,
         output_specs=DTensorSpec(
             mesh=mesh,
@@ -491,7 +534,11 @@ def _clean_up_graph_metadata(gm: torch.fx.GraphModule) -> None:
 
 
 def _get_input_node_specs(
+<<<<<<< HEAD
     node: Node, placement_strategies: dict[Node, PlacementStrategy]
+=======
+    node: Node, placement_strategies: dict[Node, OpSpec]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[DTensorSpec, ...]:
     """
     Get the input specs of a node.
@@ -507,9 +554,13 @@ def _get_input_node_specs(
     return tuple(input_specs_list)
 
 
+<<<<<<< HEAD
 def _get_op_schema(
     node: Node, placement_strategies: dict[Node, PlacementStrategy]
 ) -> OpSchema:
+=======
+def _get_op_schema(node: Node, placement_strategies: dict[Node, OpSpec]) -> OpSchema:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Util function to construct the operator schema of a node.
     """
@@ -526,14 +577,24 @@ def _get_op_schema(
 
 def _shard_state_dict(
     state_dict: dict[str, torch.Tensor],
+<<<<<<< HEAD
     placement_strategies: dict[Node, PlacementStrategy],
+=======
+    placement_strategies: dict[Node, OpSpec],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     graph_signature: ExportGraphSignature,
     mesh: DeviceMesh,
 ) -> None:
     """
+<<<<<<< HEAD
     Inplace partition the weights based on the placement strategy
     """
     for node, placement_strategy in placement_strategies.items():
+=======
+    Inplace partition the weights based on the OpSpec
+    """
+    for node, op_spec in placement_strategies.items():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if node.op != "placeholder":
             continue
         if node.name in graph_signature.inputs_to_parameters:
@@ -548,7 +609,11 @@ def _shard_state_dict(
         dtensor_param = distribute_tensor(
             original_param,
             mesh,
+<<<<<<< HEAD
             placement_strategy.output_spec.placements,
+=======
+            op_spec.output_spec.placements,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         local_param = dtensor_param.to_local()
         state_dict[fqn] = (

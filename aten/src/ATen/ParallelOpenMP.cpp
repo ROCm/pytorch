@@ -10,6 +10,7 @@
 #include <mkl.h>
 #endif
 
+<<<<<<< HEAD
 #include <caffe2/utils/threadpool/pthreadpool-cpp.h>
 
 namespace at {
@@ -19,6 +20,15 @@ namespace native::mkldnn {
 void clear_computation_cache();
 } // namespace native::mkldnn
 #endif
+=======
+#if AT_MKLDNN_ENABLED()
+#include <ATen/native/mkldnn/IDeepRegistration.h>
+#endif
+
+#include <caffe2/utils/threadpool/pthreadpool-cpp.h>
+
+namespace at {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace {
 // Number of threads set by the user

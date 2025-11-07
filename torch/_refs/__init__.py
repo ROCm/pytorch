@@ -19,6 +19,11 @@ import torch.utils._pytree as pytree
 from torch import sym_float, sym_int
 from torch._prims_common import (
     BoolLike,
+<<<<<<< HEAD
+=======
+    definitely_contiguous,
+    definitely_contiguous_for_memory_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DeviceLikeType,
     Dim,
     DimsSequenceType,
@@ -2767,7 +2772,14 @@ def cat(tensors: TensorSequenceType, dim: int = 0) -> TensorLikeType:
 
     utils.check_same_device(*tensors, allow_cpu_scalar_tensors=False)
 
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+=======
+    from torch.fx.experimental.symbolic_shapes import (
+        guard_or_false,
+        guard_size_oblivious,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # This is a bit tricky.  Naively, you would expect to just pick one
     # arbitrary tensor and check that all tensors match this tensor.  However,
@@ -2828,7 +2840,11 @@ def cat(tensors: TensorSequenceType, dim: int = 0) -> TensorLikeType:
             )
         else:
             # Remove inputs that are 1-D, zero size
+<<<<<<< HEAD
             if tensor.ndim == 1 and guard_size_oblivious(tensor.shape[0] == 0):
+=======
+            if tensor.ndim == 1 and guard_or_false(tensor.shape[0] == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             # Don't bother checking size match, prims.cat will handle it
             filtered.append(tensor)
@@ -2974,7 +2990,12 @@ def contiguous(
         lambda: "preserve memory format is unsupported by the contiguous operator",
     )
 
+<<<<<<< HEAD
     if utils.is_contiguous_for_memory_format(a, memory_format=memory_format):
+=======
+    # TODO: make logic consistent with aten contiguous
+    if definitely_contiguous_for_memory_format(a, memory_format=memory_format):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return a
 
     return torch.clone(a, memory_format=memory_format)
@@ -2989,7 +3010,11 @@ def dstack(tensors: TensorSequenceType) -> TensorLikeType:
 
 @register_decomposition(aten.expand)
 def expand(a: Tensor, *shape) -> Tensor:
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_or_false, sym_or
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NOTE: cannot use utils.extract_shape_from_varargs here
     # because that also validates the shape, but the shape
@@ -3007,6 +3032,7 @@ def expand(a: Tensor, *shape) -> Tensor:
     for idx, x in enumerate(a.shape):
         offset_idx = idx + offset
         requested_length = shape[offset_idx]
+<<<<<<< HEAD
         torch._check(
             guard_size_oblivious(requested_length == x)
             or guard_size_oblivious(x == 1)
@@ -3015,6 +3041,29 @@ def expand(a: Tensor, *shape) -> Tensor:
         )
 
         shape_[offset_idx] = requested_length if requested_length != -1 else x
+=======
+
+        # expand(in -> out) has 3 different semantics:
+        # 1) out == -1 -> size = in, stride unchanged
+        # 2) in == 1 -> size = out, stride = 0
+        # 3) in == out -> size = in, stride unchanged
+        #
+        # the code below is written for unbacked semantics s.t. we assume unbacked symbols don't
+        # represent -1 unless explicitly specified, and the user is opting for case 2) or 3).
+        # the sym_or allows either case, but in the decomposition's current state, broadcast_in_dim()
+        # will either assume case 3) (via validate_shape() marking the expanded shape size-like), or will
+        # raise a data-dependent error trying to figure out if the stride is 0, requiring the user to manually
+        # select between the semantics of cases 2) and 3).
+        if guard_or_false(requested_length == -1):
+            shape_[offset_idx] = x
+        else:
+            torch._check(
+                sym_or(x == 1, requested_length == x),
+                lambda: f"expand: attempting to expand a dimension of length {x} -> {requested_length}!",
+            )
+            torch._check(requested_length >= 0)
+            shape_[offset_idx] = requested_length
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # At this point shape must be valid
     utils.validate_shape(shape_)
@@ -3187,6 +3236,7 @@ def native_group_norm(
         + f"but got input of shape {input.shape} and num_groups = {num_groups}",
     )
 
+<<<<<<< HEAD
     # num_channels / num_groups and flattened inner dimension are the reduction axes
     reduction_dims = [2, 3]
     input_reshaped = torch.reshape(
@@ -3208,6 +3258,48 @@ def native_group_norm(
         out = out * unsqueeze_weight
     if unsqueeze_bias is not None:
         out = out + unsqueeze_bias
+=======
+    computation_dtype = utils.get_computation_dtype(input.dtype)
+    input_acc = _maybe_convert_to_dtype(input, computation_dtype)
+    # num_channels / num_groups and flattened inner dimension are the reduction axes
+    reduction_dims = [2, 3]
+    input_reshaped = torch.reshape(
+        input_acc,
+        [batch_size, num_groups, num_channels // num_groups, flattened_inner_size],
+    )
+    reduction_dims = utils.canonicalize_dims(input_reshaped.ndim, reduction_dims)
+    biased_var, mean = torch.var_mean(
+        input_reshaped, dim=reduction_dims, unbiased=False, keepdim=True
+    )
+    rstd = torch.rsqrt(biased_var + eps)
+    if input.device.type == "cpu" and weight is not None:
+        weight_reshaped = torch.reshape(
+            weight, [1, num_groups, num_channels // num_groups, 1]
+        )
+        w = rstd * weight_reshaped
+        b = -mean * w
+        if bias is not None:
+            bias_reshaped = torch.reshape(
+                bias, [1, num_groups, num_channels // num_groups, 1]
+            )
+            b = b + bias_reshaped
+        w = w.contiguous().as_strided([batch_size, num_channels], [num_channels, 1])
+        b = b.contiguous().as_strided([batch_size, num_channels], [num_channels, 1])
+        broadcast_dims = list(range(2, input.ndim))
+        unsqueeze_w = _unsqueeze_multiple(w, broadcast_dims)
+        unsqueeze_b = _unsqueeze_multiple(b, broadcast_dims)
+        out = input_acc * unsqueeze_w + unsqueeze_b
+    else:
+        out = (input_reshaped - mean) * rstd
+        out = out.view(input.shape)
+        broadcast_dims = [0] + list(range(2, input.ndim))
+        if weight is not None:
+            unsqueeze_weight = _unsqueeze_multiple(weight, broadcast_dims)
+            out = out * unsqueeze_weight
+        if bias is not None:
+            unsqueeze_bias = _unsqueeze_multiple(bias, broadcast_dims)
+            out = out + unsqueeze_bias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     out = _maybe_convert_to_dtype(out, input.dtype)  # type: ignore[assignment]
     mean = _maybe_convert_to_dtype(mean, input.dtype)  # type: ignore[assignment]
@@ -3265,11 +3357,19 @@ def native_layer_norm(
         + str(input.shape),
     )
 
+<<<<<<< HEAD
     input = input.contiguous()
     if weight is not None:
         weight = weight.contiguous()
     if bias is not None:
         bias = bias.contiguous()
+=======
+    input = contiguous(input)
+    if weight is not None:
+        weight = contiguous(weight)
+    if bias is not None:
+        bias = contiguous(bias)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     axis = input.ndim - normalized_ndim
     reduction_dims = list(range(axis, input.ndim))
@@ -3432,10 +3532,19 @@ def stft(
         left = (n_fft - win_length_) // 2
         window = aten.constant_pad_nd(window, [left, n_fft - win_length_ - left])
 
+<<<<<<< HEAD
     input = input.unfold(dimension=-1, size=n_fft, step=hop_length_)
     if not center and align_to_window:
         input_pad_amount = (n_fft - win_length_) // 2
         input = aten.pad(input, [input_pad_amount, input_pad_amount], pad_mode)
+=======
+    if not center and align_to_window:
+        input_pad_amount = (n_fft - win_length_) // 2
+        input = aten.pad(input, [input_pad_amount, input_pad_amount], pad_mode)
+
+    input = input.unfold(dimension=-1, size=n_fft, step=hop_length_)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if window is not None:
         input = input * window
 
@@ -3695,6 +3804,7 @@ def repeat(a: Tensor, *repeat_shape) -> Tensor:
     return permuted_result.reshape(target_shape)
 
 
+<<<<<<< HEAD
 def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorLikeType:
     from torch.fx.experimental.symbolic_shapes import guard_size_oblivious, sym_eq
 
@@ -3742,6 +3852,11 @@ def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorL
 
     # Handles general case: a 1+D tensor reshaped into a distinct 1+D shape
 
+=======
+def _reshape_view_helper_core_alg(
+    a: TensorLikeType, shape, allow_copy: bool
+) -> TensorLikeType:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NOTE [Reshape Algorithm]
     # This algorithm works by attempting to greedily construct the desired dimensions in
     # the output shape, left to right. It does this by, conceptually, accumulating
@@ -3773,6 +3888,7 @@ def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorL
             continue
 
         # Skips dimensions that are already the correct length
+<<<<<<< HEAD
         if guard_size_oblivious(length == a_.shape[idx]):
             idx = idx + 1
             continue
@@ -3785,6 +3901,17 @@ def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorL
         while guard_size_oblivious(accum % length != 0):
             end = end + 1
             accum = accum * a_.shape[end]
+=======
+        if length == a_.shape[idx]:
+            idx = idx + 1
+            continue
+
+        accum = a_.shape[idx]
+        end = idx
+        while accum % length != 0:
+            end += 1
+            accum *= a_.shape[end]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if end != idx:
             # NOTE: in this case multiple dimensions must be flatten to create the desired dimension
             # This flattening is why reshape sometimes creates a copy -- because flattening
@@ -3801,8 +3928,14 @@ def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorL
 
             a_ = flatten(a_, idx, end)
 
+<<<<<<< HEAD
         # Splits the (possibly flattened) dimension to create the desired dim length
         if guard_size_oblivious(accum != length):
+=======
+        # Splits the (possibly flattened) dimension to create the desired dim length.
+        # guard_or_true is safe due to the tail unsqueeze routine.
+        if accum != length:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a_ = prims.split_dim(a_, idx, length)
 
         idx = idx + 1
@@ -3821,6 +3954,62 @@ def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorL
         return a_
 
 
+<<<<<<< HEAD
+=======
+def _reshape_view_helper(a: TensorLikeType, *shape, allow_copy: bool) -> TensorLikeType:
+    # Creates a valid shape
+    shape = utils.extract_shape_from_varargs(shape, validate=False)
+    # Reshape may be given a shape with a -1 length
+    # This indicates that the dimension's length should be inferred
+    shape = utils.infer_size(shape, a.numel())
+
+    # Special-cases tensors with no elements
+    if a.numel() == 0:
+        return as_strided(a, shape, utils.make_contiguous_strides_for(shape))
+
+    # Special-cases reshaping zero dim tensors
+    if a.ndim == 0:
+        _a = a
+        for length in shape:
+            assert length == 1
+            _a = unsqueeze(_a, -1)
+        if _a is a:
+            return prims.view_of(a)
+        else:
+            return _a
+
+    # Special-cases reshaping to zero dim tensors
+    if len(shape) == 0:
+        _a = a
+        for length in a.shape:
+            assert length == 1
+            _a = squeeze(_a, -1)
+        if _a is a:
+            return prims.view_of(a)
+        else:
+            return _a
+
+    if definitely_contiguous(a):
+        # Special-cases for nd_to_1d
+        if len(shape) == 1 and a.ndim > 1:
+            return torch.as_strided(a, [a.numel()], [1])
+        # Special-cases for 1d_to_2d
+        if len(shape) == 2 and a.ndim == 1:
+            dim0 = shape[0]
+            dim1 = shape[1]
+            return torch.as_strided(a, [dim0, dim1], [dim1, 1])
+
+    shape_numel = reduce(operator.mul, shape, 1)
+    torch._check(
+        a.numel() == shape_numel,
+        f"Could not reshape a tensor with shape {a.shape} as a tensor with shape {shape}!",
+    )
+
+    # Handles general case: a 1+D tensor reshaped into a distinct 1+D shape
+    return _reshape_view_helper_core_alg(a, shape, allow_copy)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # CompositeImplicitAutograd - don't register decomp
 # NOTE: shape is a vararg because Tensor.reshape can be called with as
 # Tensor.reshape(a, b, c) or Tensor.reshape((a, b, c)) Function call
@@ -4964,6 +5153,18 @@ def new_full(
     )
 
 
+<<<<<<< HEAD
+=======
+@aten.empty.out.py_impl(DispatchKey.CompositeImplicitAutograd)
+def empty_out(
+    size: TensorLikeType,
+    out: TensorLikeType,
+    memory_format: Optional[torch.memory_format] = None,
+) -> TensorLikeType:
+    return out
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_decomposition(aten.empty_like)
 @out_wrapper()
 def empty_like(
@@ -5686,7 +5887,11 @@ def masked_fill(a: TensorLikeType, mask: TensorLikeType, value: TensorOrNumberLi
         # `masked_fill` allows cpu scalar to be moved to cuda, xpu and hpu but not otherwise.
         is_cpu_scalar = (
             a.device.type
+<<<<<<< HEAD
             in ["cuda", "xpu", torch._C._get_privateuse1_backend_name(), "hpu"]
+=======
+            in ["cuda", "xpu", "mps", torch._C._get_privateuse1_backend_name(), "hpu"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and value.device.type == "cpu"
         )
         torch._check(
@@ -6271,7 +6476,11 @@ def _dot_check_wrapper(fn):
 
 
 @register_decomposition(aten.dot)
+<<<<<<< HEAD
 @out_wrapper()
+=======
+@out_wrapper(exact_dtype=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @_dot_check_wrapper
 @elementwise_type_promotion_wrapper(
     type_promoting_args=("self", "other"),
@@ -6291,7 +6500,11 @@ def dot(self, other):
 
 
 @register_decomposition(aten.vdot)
+<<<<<<< HEAD
 @out_wrapper()
+=======
+@out_wrapper(exact_dtype=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @_dot_check_wrapper
 @elementwise_type_promotion_wrapper(
     type_promoting_args=("self", "other"),

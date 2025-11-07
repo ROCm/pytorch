@@ -37,7 +37,11 @@ _SEMI_STRUCTURED_SPARSE_CONFIG = namedtuple(
 
 class SparseSemiStructuredTensor(torch.Tensor):
     """
+<<<<<<< HEAD
     This class implementes semi-structured sparsity as a Tensor subclass.
+=======
+    This class implements semi-structured sparsity as a Tensor subclass.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Semi-structured sparsity describes a sparsity pattern where n in every 2n elements are sparse,
     depending on the datatype. It is also referred to as 2:4 sparsity or fine-grained
@@ -46,11 +50,19 @@ class SparseSemiStructuredTensor(torch.Tensor):
     There are two backends available for semi_structred sparsity, either cuSPARSELt or CUTLASS.
     This class is meant to serve as a base class for both implementations. SparseSemiStructuredCUTLASS
     and SparseSemiStructuredCUSPARSELT both inherit from this class and define three backend-specific items.
+<<<<<<< HEAD
     Note that as such, this class cannot be insantiated directly.
 
     -`_DTYPE_SHAPE_CONSTRAINTS` - A dictionary holding backend specific dense/sparse min shape constraints
     - `def from_dense()` - backend specific compression routines
     - `def _mm()` - backend specifc mm op (either torch._cslt_sparse_mm or torch._sparse_semi_structured_(mm|addmm))
+=======
+    Note that as such, this class cannot be instantiated directly.
+
+    -`_DTYPE_SHAPE_CONSTRAINTS` - A dictionary holding backend specific dense/sparse min shape constraints
+    - `def from_dense()` - backend specific compression routines
+    - `def _mm()` - backend specific mm op (either torch._cslt_sparse_mm or torch._sparse_semi_structured_(mm|addmm))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     _DEFAULT_ALG_ID: int = 0
@@ -123,7 +135,11 @@ class SparseSemiStructuredTensor(torch.Tensor):
             )
             cls._PROTOTYPE_WARNING_SHOWN = True
 
+<<<<<<< HEAD
             # Because this only runs onces, we also load the dispatch table here as well.
+=======
+            # Because this only runs once, we also load the dispatch table here as well.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # We can't define the dispatch table explicitly because of torch.ops import errors, so we do this instead
             # But this is useful since it allows users to overload the dispatch table for debugging / testing.
             cls._load_dispatch_table()
@@ -138,6 +154,7 @@ class SparseSemiStructuredTensor(torch.Tensor):
         else:
             raise ValueError("At least one of packed or packed_t must be provided")
 
+<<<<<<< HEAD
         kwargs = {
             "device": previous_tensor.device,
             "dtype": previous_tensor.dtype,
@@ -145,6 +162,16 @@ class SparseSemiStructuredTensor(torch.Tensor):
             "requires_grad": requires_grad,
         }
         tensor = torch.Tensor._make_wrapper_subclass(cls, shape, **kwargs)  # type: ignore[attr-defined]
+=======
+        tensor = torch.Tensor._make_wrapper_subclass(
+            cls,
+            shape,
+            device=previous_tensor.device,
+            dtype=previous_tensor.dtype,
+            layout=previous_tensor.layout,
+            requires_grad=requires_grad,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         tensor.packed = packed
         tensor.meta = meta
@@ -196,10 +223,17 @@ class SparseSemiStructuredTensor(torch.Tensor):
             requires_grad=requires_grad,
         )
 
+<<<<<<< HEAD
     __torch_function__ = torch._C._disabled_torch_function_impl
 
     @classmethod
     def __torch_dispatch__(cls, func, types, args, kwargs) -> Any:
+=======
+    __torch_function__ = torch._C._disabled_torch_function_impl  # type: ignore[assignment]
+
+    @classmethod
+    def __torch_dispatch__(cls, func, types, args, kwargs) -> Any:  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if func._overloadpacket not in cls.SPARSE_DISPATCH:
             raise NotImplementedError(
                 f"{cls.__name__} only supports a specific set of operations, "
@@ -324,7 +358,11 @@ def to_sparse_semi_structured(
 
     This function will check to ensure the dense tensor has the right dtype, size, dims, and device.
     We currently only support semi-structured sparse tensors for 2d CUDA tensors.
+<<<<<<< HEAD
     Additionally, your tensor must be a positive multiple of the mininum sparse block size, given in
+=======
+    Additionally, your tensor must be a positive multiple of the minimum sparse block size, given in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     `_DTYPE_TO_SHAPE_CONSTRAINTS` for each dtype (float32, float16, bfloat16, int8).
 
     Args:
@@ -387,7 +425,11 @@ class SparseSemiStructuredTensorCUTLASS(SparseSemiStructuredTensor):
     This class implements semi-structured sparsity for the CUTLASS backend.
 
 
+<<<<<<< HEAD
     In this implementation, the specified elements and metadata are stored seprately,
+=======
+    In this implementation, the specified elements and metadata are stored separately,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     in packed and meta respectively.
 
     When _FORCE_CUTLASS is set, or when cuSPARSELt is not available, this subclass calls into _sparse_semi_structured_(mm|addmm) and

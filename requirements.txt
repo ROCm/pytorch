@@ -8,7 +8,11 @@ hypothesis==5.35.1
 jinja2==3.1.6
 lintrunner==0.12.7 ; platform_machine != "s390x"
 networkx==2.8.8
+<<<<<<< HEAD
 ninja==1.11.1.4
+=======
+ninja==1.11.1.3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 numpy==2.0.2 ; python_version == "3.9"
 numpy==2.1.2 ; python_version > "3.9"
 optree==0.13.0
@@ -16,6 +20,10 @@ packaging==25.0
 psutil==7.0.0
 pyyaml==6.0.2
 requests==2.32.4
+<<<<<<< HEAD
+=======
+# setuptools develop deprecated on 80.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # issue on Windows after >= 75.8.2 - https://github.com/pytorch/pytorch/issues/148877
 setuptools==75.8.2
 sympy==1.13.3

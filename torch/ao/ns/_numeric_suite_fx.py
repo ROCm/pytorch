@@ -9,7 +9,11 @@ across models. Example usage::
     import torch.ao.ns._numeric_suite_fx as ns
 
     m = torch.nn.Sequential(torch.nn.Conv2d(1, 1, 1)).eval()
+<<<<<<< HEAD
     mp = quantize_fx.prepare_fx(m, {'': torch.ao.quantization.default_qconfig})
+=======
+    mp = quantize_fx.prepare_fx(m, {"": torch.ao.quantization.default_qconfig})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # We convert a copy because we need the original prepared model
     # to be available for comparisons, and `quantize_fx.convert_fx` is inplace.
     mq = quantize_fx.convert_fx(copy.deepcopy(mp))
@@ -19,12 +23,21 @@ across models. Example usage::
     #
 
     # extract weight pairs
+<<<<<<< HEAD
     weight_comparison = ns.extract_weights('a', mp, 'b', mq)
 
     # add SQNR for each comparison, inplace
     ns.extend_logger_results_with_comparison(
         weight_comparison, 'a', 'b', torch.ao.ns.fx.utils.compute_sqnr,
         'sqnr')
+=======
+    weight_comparison = ns.extract_weights("a", mp, "b", mq)
+
+    # add SQNR for each comparison, inplace
+    ns.extend_logger_results_with_comparison(
+        weight_comparison, "a", "b", torch.ao.ns.fx.utils.compute_sqnr, "sqnr"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # weight_comparison contains the weights from `mp` and `mq` stored
     # in pairs, and can be used for further analysis.
@@ -36,9 +49,14 @@ across models. Example usage::
 
     # add loggers
     mp_ns, mq_ns = ns.add_loggers(
+<<<<<<< HEAD
         'a', copy.deepcopy(mp),
         'b', copy.deepcopy(mq),
         ns.OutputLogger)
+=======
+        "a", copy.deepcopy(mp), "b", copy.deepcopy(mq), ns.OutputLogger
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # send an example datum to capture intermediate activations
     datum = torch.randn(1, 1, 1, 1)
@@ -46,6 +64,7 @@ across models. Example usage::
     mq_ns(datum)
 
     # extract intermediate activations
+<<<<<<< HEAD
     act_comparison = ns.extract_logger_info(
         mp_ns, mq_ns, ns.OutputLogger, 'b')
 
@@ -53,6 +72,14 @@ across models. Example usage::
     ns.extend_logger_results_with_comparison(
         act_comparison, 'a', 'b', torch.ao.ns.fx.utils.compute_sqnr,
         'sqnr')
+=======
+    act_comparison = ns.extract_logger_info(mp_ns, mq_ns, ns.OutputLogger, "b")
+
+    # add SQNR for each comparison, inplace
+    ns.extend_logger_results_with_comparison(
+        act_comparison, "a", "b", torch.ao.ns.fx.utils.compute_sqnr, "sqnr"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # act_comparison contains the activations from `mp_ns` and `mq_ns` stored
     # in pairs, and can be used for further analysis.
@@ -63,9 +90,14 @@ across models. Example usage::
 
     # create shadow model
     mp_shadows_mq = ns.add_shadow_loggers(
+<<<<<<< HEAD
         'a', copy.deepcopy(mp),
         'b', copy.deepcopy(mq),
         ns.OutputLogger)
+=======
+        "a", copy.deepcopy(mp), "b", copy.deepcopy(mq), ns.OutputLogger
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # send an example datum to capture intermediate activations
     datum = torch.randn(1, 1, 1, 1)
@@ -73,12 +105,22 @@ across models. Example usage::
 
     # extract intermediate activations
     shadow_act_comparison = ns.extract_shadow_logger_info(
+<<<<<<< HEAD
         mp_shadows_mq, ns.OutputLogger, 'b')
 
     # add SQNR for each comparison, inplace
     ns.extend_logger_results_with_comparison(
         shadow_act_comparison, 'a', 'b', torch.ao.ns.fx.utils.compute_sqnr,
         'sqnr')
+=======
+        mp_shadows_mq, ns.OutputLogger, "b"
+    )
+
+    # add SQNR for each comparison, inplace
+    ns.extend_logger_results_with_comparison(
+        shadow_act_comparison, "a", "b", torch.ao.ns.fx.utils.compute_sqnr, "sqnr"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # shadow_act_comparison contains the activations from `mp_ns` and `mq_ns` stored
     # in pairs, and can be used for further analysis.
@@ -596,9 +638,15 @@ def _extract_logger_info_one_model(
             key = mod.ref_name
             if key not in results:
                 results[key] = {}
+<<<<<<< HEAD
             assert (
                 mod.model_name not in results[key]
             ), f"{mod.model_name} is already present in results"
+=======
+            assert mod.model_name not in results[key], (
+                f"{mod.model_name} is already present in results"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if mod.results_type not in results[key]:
                 results[key][mod.results_type] = {}
             if mod.model_name not in results[key][mod.results_type]:
@@ -810,12 +858,21 @@ def extend_logger_results_with_comparison(
     """
     for results_type_to_results in results.values():
         for model_name_to_results in results_type_to_results.values():
+<<<<<<< HEAD
             assert (
                 model_name_1 in model_name_to_results
             ), f"{model_name_1} not found in results"
             assert (
                 model_name_2 in model_name_to_results
             ), f"{model_name_2} not found in results"
+=======
+            assert model_name_1 in model_name_to_results, (
+                f"{model_name_1} not found in results"
+            )
+            assert model_name_2 in model_name_to_results, (
+                f"{model_name_2} not found in results"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             results_1 = model_name_to_results[model_name_1]
             results_2 = model_name_to_results[model_name_2]

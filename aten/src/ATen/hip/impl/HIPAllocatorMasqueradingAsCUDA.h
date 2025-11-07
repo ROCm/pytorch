@@ -67,8 +67,13 @@ public:
     allocator_->setMemoryFraction(fraction, device);
   }
 
+<<<<<<< HEAD
   void emptyCache() override {
     allocator_->emptyCache();
+=======
+  void emptyCache(MempoolId_t mempool_id = {0, 0}) override {
+    allocator_->emptyCache(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void enable(bool value) override {
@@ -103,8 +108,13 @@ public:
     allocator_->resetPeakStats(device);
   }
 
+<<<<<<< HEAD
   HIPCachingAllocator::SnapshotInfo snapshot() override {
     return allocator_->snapshot();
+=======
+  HIPCachingAllocator::SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) override {
+    return allocator_->snapshot(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void beginAllocateToPool(
@@ -128,10 +138,22 @@ public:
     return allocator_->getPoolUseCount(device, mempool_id);
   }
 
+<<<<<<< HEAD
   void ensureExistsAndIncrefPool(
       c10::DeviceIndex device,
       MempoolId_t mempool_id) override {
     allocator_->ensureExistsAndIncrefPool(device, mempool_id);
+=======
+  void createOrIncrefPool(
+      c10::DeviceIndex device,
+      MempoolId_t mempool_id,
+      HIPAllocator* allocator = nullptr) override {
+    allocator_->createOrIncrefPool(device, mempool_id, allocator);
+  }
+
+  void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) override {
+    allocator_->setUseOnOOM(device, mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   bool checkPoolLiveAllocations(
@@ -157,8 +179,14 @@ public:
       bool enabled,
       HIPCachingAllocator::CreateContextFn context_recorder,
       size_t alloc_trace_max_entries,
+<<<<<<< HEAD
       HIPCachingAllocator::RecordContext when) override {
     allocator_->recordHistory(enabled, context_recorder, alloc_trace_max_entries, when);
+=======
+      HIPCachingAllocator::RecordContext when,
+      bool clearHistory) override {
+    allocator_->recordHistory(enabled, context_recorder, alloc_trace_max_entries, when, clearHistory);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void recordAnnotation(
@@ -166,6 +194,17 @@ public:
     allocator_->recordAnnotation(md);
   }
 
+<<<<<<< HEAD
+=======
+  void pushCompileContext(std::string& md) override {
+    allocator_->pushCompileContext(md);
+  }
+
+  void popCompileContext() override {
+    allocator_->popCompileContext();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void attachOutOfMemoryObserver(HIPCachingAllocator::OutOfMemoryObserver observer) override {
     allocator_->attachOutOfMemoryObserver(observer);
   }

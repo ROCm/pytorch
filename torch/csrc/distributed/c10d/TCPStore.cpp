@@ -128,9 +128,23 @@ class TCPClient {
   }
   template <typename T>
   std::optional<T> receiveValueWithTimeout(std::chrono::milliseconds timeout) {
+<<<<<<< HEAD
     if (!socket_.waitForInput(timeout))
       return {};
     return tcputil::recvValue<T>(socket_.handle());
+=======
+    if (!socket_.waitForInput(timeout)) {
+      return {};
+    }
+
+    try {
+      return tcputil::recvValue<T>(socket_.handle());
+    } catch (const std::exception& e) {
+      C10D_WARNING(
+          "recvValueWithTimeout failed on {}: {}", socket_.repr(), e.what());
+      throw;
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   void setTimeout(std::chrono::milliseconds value);
 
@@ -250,6 +264,7 @@ TCPStore::TCPStore(std::string host, const TCPStoreOptions& opts)
         DistStoreError,
         ::c10d::detail::is_libuv_tcpstore_backend_available(),
         "use_libuv was requested but PyTorch was built without libuv support, run with USE_LIBUV=0 to disable it.");
+<<<<<<< HEAD
 
     if (opts.masterListenFd.has_value()) {
       // TODO(xilunwu): support this init method after testing
@@ -261,6 +276,8 @@ TCPStore::TCPStore(std::string host, const TCPStoreOptions& opts)
       C10_THROW_ERROR(NotImplementedError, msg);
       return;
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   Socket::initialize();
@@ -361,6 +378,20 @@ TCPStore::TCPStore(std::string host, const TCPStoreOptions& opts)
 
 TCPStore::~TCPStore() = default;
 
+<<<<<<< HEAD
+=======
+c10::intrusive_ptr<Store> TCPStore::clone() {
+  TCPStoreOptions opts;
+  opts.port = addr_.port;
+  opts.isServer = false;
+  opts.waitWorkers = false;
+  opts.timeout = timeout_;
+  opts.useLibUV = usingLibUv_;
+
+  return c10::make_intrusive<TCPStore>(addr_.host, opts);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void TCPStore::waitForWorkers() {
   STATIC_SCOPED_WAIT_COUNTER(pytorch.wait_counter.TCPStore__waitForWorkers);
   if (!numWorkers_.has_value()) {
@@ -650,6 +681,68 @@ void TCPStore::multiSet(
   buffer.flush();
 }
 
+<<<<<<< HEAD
+=======
+void TCPStore::queuePush(
+    const std::string& key,
+    const std::vector<uint8_t>& data) {
+  TORCH_CHECK_WITH(
+      NotImplementedError,
+      usingLibUv_,
+      "queues not implemented on legacy TCPStore backend");
+
+  STATIC_SCOPED_WAIT_COUNTER(pytorch.wait_counter.TCPStore__queuePush);
+
+  const std::lock_guard<std::mutex> lock(activeOpLock_);
+
+  detail::SendBuffer buffer(*client_, detail::QueryType::QUEUE_PUSH);
+  buffer.appendString(keyPrefix_ + key);
+  buffer.appendBytes(data);
+  buffer.flush();
+}
+
+std::vector<uint8_t> TCPStore::queuePop(const std::string& key, bool block) {
+  TORCH_CHECK_WITH(
+      NotImplementedError,
+      usingLibUv_,
+      "queues not implemented on legacy TCPStore backend");
+
+  STATIC_SCOPED_WAIT_COUNTER(pytorch.wait_counter.TCPStore__queuePop);
+
+  const std::lock_guard<std::mutex> lock(activeOpLock_);
+
+  if (block) {
+    doWait(keyPrefix_ + key, timeout_);
+  }
+
+  detail::SendBuffer buffer(*client_, detail::QueryType::QUEUE_POP);
+  buffer.appendString(keyPrefix_ + key);
+  buffer.flush();
+
+  auto keys = client_->receiveValue<int64_t>();
+  TORCH_CHECK_WITH(DistQueueEmptyError, keys > 0, "queue is empty");
+
+  return client_->receiveBits();
+}
+
+int64_t TCPStore::queueLen(const std::string& key) {
+  TORCH_CHECK_WITH(
+      NotImplementedError,
+      usingLibUv_,
+      "queues not implemented on legacy TCPStore backend");
+
+  STATIC_SCOPED_WAIT_COUNTER(pytorch.wait_counter.TCPStore__queueLen);
+
+  const std::lock_guard<std::mutex> lock(activeOpLock_);
+
+  detail::SendBuffer buffer(*client_, detail::QueryType::QUEUE_LEN);
+  buffer.appendString(keyPrefix_ + key);
+  buffer.flush();
+
+  return client_->receiveValue<int64_t>();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool TCPStore::hasExtendedApi() const {
   return true;
 }

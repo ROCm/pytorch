@@ -4,7 +4,10 @@ import collections
 import copy
 import functools
 import itertools
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Optional, Union
 
 import torch
@@ -12,13 +15,20 @@ import torch.distributed as dist
 import torch.nn as nn
 from torch.distributed.fsdp import fully_shard
 from torch.nn.parallel.scatter_gather import _is_namedtuple
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_fsdp import (
     check_sharded_parity,
     DoubleLinear,
     FSDPTest,
     FSDPTestMultiThread,
+<<<<<<< HEAD
+=======
+    get_devtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MLP,
 )
 from torch.testing._internal.common_utils import run_tests
@@ -28,10 +38,20 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 )
 
 
+<<<<<<< HEAD
 class TestFullyShardAutograd(FSDPTest):
     @property
     def world_size(self) -> int:
         return min(4, torch.cuda.device_count())
+=======
+device_type = torch.device(get_devtype())
+
+
+class TestFullyShardAutograd(FSDPTest):
+    @property
+    def world_size(self) -> int:
+        return min(4, torch.get_device_module(device_type).device_count())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _reduce_1d_partial_grads(
         self, module: nn.Module, group: Optional[dist.ProcessGroup] = None
@@ -58,7 +78,11 @@ class TestFullyShardAutograd(FSDPTest):
         local_batch_size = 2
         global_batch_size, dim = (self.world_size * local_batch_size, 24)
         model = DoubleLinear(dim=dim, use_second_linear=True)
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).cuda()
+=======
+        ref_model = copy.deepcopy(model).to(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fully_shard(model.lin1, reshard_after_forward=reshard_after_forward)
         fully_shard(model, reshard_after_forward=reshard_after_forward)
         ref_optim = torch.optim.Adam(ref_model.parameters(), lr=1e-2)
@@ -68,7 +92,11 @@ class TestFullyShardAutograd(FSDPTest):
         for iter_idx in range(10):
             # Use all forward outputs in the loss/backward for the first half
             # of the iterations and only the 1st forward output for the rest
+<<<<<<< HEAD
             global_inp = torch.rand((global_batch_size, dim), device="cuda")
+=======
+            global_inp = torch.rand((global_batch_size, dim), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_inp = global_inp[
                 self.rank * local_batch_size : (self.rank + 1) * local_batch_size
             ].detach()
@@ -104,7 +132,11 @@ class TestFullyShardAutograd(FSDPTest):
         local_batch_size, dim = (2, 24)
         global_batch_size = self.world_size * local_batch_size
         model = DoubleLinear(dim=dim, use_second_linear=False)
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).cuda()
+=======
+        ref_model = copy.deepcopy(model).to(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fully_shard(model.lin1, reshard_after_forward=reshard_after_forward)
         fully_shard(model.lin2, reshard_after_forward=reshard_after_forward)
         fully_shard(model, reshard_after_forward=reshard_after_forward)
@@ -113,7 +145,11 @@ class TestFullyShardAutograd(FSDPTest):
 
         torch.manual_seed(1)  # same on all ranks
         for iter_idx in range(10):
+<<<<<<< HEAD
             global_inp = torch.rand((global_batch_size, dim), device="cuda")
+=======
+            global_inp = torch.rand((global_batch_size, dim), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_inp = global_inp[
                 self.rank * local_batch_size : (self.rank + 1) * local_batch_size
             ].detach()
@@ -214,7 +250,11 @@ class TestFullyShardAutograd(FSDPTest):
             Module(dim),
             FromContainerType(container_type),
         )
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).cuda()
+=======
+        ref_model = copy.deepcopy(model).to(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for module in model:
             fully_shard(module)
         fully_shard(model)
@@ -223,7 +263,11 @@ class TestFullyShardAutograd(FSDPTest):
 
         torch.manual_seed(1)  # same on all ranks
         for iter_idx in range(10):
+<<<<<<< HEAD
             global_inp = torch.rand((global_batch_size, dim), device="cuda")
+=======
+            global_inp = torch.rand((global_batch_size, dim), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_inp = global_inp[
                 self.rank * local_batch_size : (self.rank + 1) * local_batch_size
             ].detach()
@@ -245,7 +289,11 @@ class TestFullyShardPostAccGradHookMultiThread(FSDPTestMultiThread):
     def world_size(self) -> int:
         return 2
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_post_acc_grad_hook_runs(self):
         param_name_to_hook_count = collections.defaultdict(int)
 
@@ -260,7 +308,11 @@ class TestFullyShardPostAccGradHookMultiThread(FSDPTestMultiThread):
             param_hook = functools.partial(hook, param_name)
             param.register_post_accumulate_grad_hook(param_hook)
 
+<<<<<<< HEAD
         inp = torch.randn((2, 8), device="cuda")
+=======
+        inp = torch.randn((2, 8), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model(inp).sum().backward()
         param_names = {param_name for param_name, _ in model.named_parameters()}
         self.assertEqual(param_names, set(param_name_to_hook_count.keys()))
@@ -271,7 +323,11 @@ class TestFullyShardPostAccGradHookMultiThread(FSDPTestMultiThread):
 class TestFullyShardPostAccGradHookMultiProcess(FSDPTest):
     @property
     def world_size(self) -> int:
+<<<<<<< HEAD
         return min(torch.cuda.device_count(), 2)
+=======
+        return min(torch.get_device_module(device_type).device_count(), 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skip_if_lt_x_gpu(2)
     def test_post_acc_grad_hook_optim_parity(self):
@@ -283,7 +339,11 @@ class TestFullyShardPostAccGradHookMultiProcess(FSDPTest):
         model_args = ModelArgs(dropout_p=0.0)
         model = Transformer(model_args)
 
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).cuda()
+=======
+        ref_model = copy.deepcopy(model).to(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for module in itertools.chain(ref_model.layers, [ref_model]):
             fully_shard(module)
         optim_kwargs = {"lr": 1e-2, "foreach": False}
@@ -312,7 +372,11 @@ class TestFullyShardPostAccGradHookMultiProcess(FSDPTest):
             param.register_post_accumulate_grad_hook(optim_hook)
 
         torch.manual_seed(42 + self.rank)
+<<<<<<< HEAD
         inp = torch.randint(0, model_args.vocab_size, (2, 16), device="cuda")
+=======
+        inp = torch.randint(0, model_args.vocab_size, (2, 16), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(10):
             ref_loss = ref_model(inp).sum()
             ref_loss.backward()

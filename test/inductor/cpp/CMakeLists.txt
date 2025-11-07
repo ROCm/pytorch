@@ -43,5 +43,9 @@ FetchContent_MakeAvailable(googletest)
 # TODO(voz): This is a little assumptive of just this one test, rewrite with real dir includes
 include_directories(${ATEN_INCLUDE})
 add_executable(test_cpp_prefix test_cpp_prefix.cpp ../../torchinductor/codegen/cpp_prefix.h)
+<<<<<<< HEAD
 target_link_libraries(test_cpp_prefix gtest gtest_main)
+=======
+target_link_libraries(test_cpp_prefix gtest_main)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 add_test(NAME test_cpp_prefix COMMAND test_cpp_prefix)

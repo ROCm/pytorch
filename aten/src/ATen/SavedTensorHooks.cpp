@@ -26,9 +26,15 @@ bool SavedTensorDefaultHooks::is_enabled() {
   return !tls.disabled_error_message.has_value();
 }
 
+<<<<<<< HEAD
 void SavedTensorDefaultHooks::disable(const std::string& message) {
   tls.disabled_error_message = message;
   if (!tls.stack.empty()) {
+=======
+void SavedTensorDefaultHooks::disable(const std::string& message, const bool fail_if_non_empty) {
+  tls.disabled_error_message = message;
+  if (fail_if_non_empty && !tls.stack.empty()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertSavedTensorHooksNotDisabled();
   }
 }
@@ -72,9 +78,15 @@ std::pair<SafePyObject, SafePyObject> SavedTensorDefaultHooks::pop_hooks() {
   return hooks;
 }
 
+<<<<<<< HEAD
 std::optional<std::pair<SafePyObject, SafePyObject>> SavedTensorDefaultHooks::get_hooks() {
   // For tls.is_tracing, see NOTE: [Deferring tensor pack/unpack hooks until runtime]
   if (!is_initialized || tls.stack.empty() || tls.is_tracing) {
+=======
+std::optional<std::pair<SafePyObject, SafePyObject>> SavedTensorDefaultHooks::get_hooks(bool ignore_is_tracing) {
+  // For tls.is_tracing, see NOTE: [Deferring tensor pack/unpack hooks until runtime]
+  if (!is_initialized || tls.stack.empty() || (!ignore_is_tracing && tls.is_tracing)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::nullopt;
   }
   return tls.stack.top();

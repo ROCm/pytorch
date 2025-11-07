@@ -240,7 +240,11 @@ const c10::impl::GenericList GruPackedContext::unpack() const {
         packed_linear_context.toCustomClass<LinearPackedContext>()->unpack();
 
     TORCH_CHECK(
+<<<<<<< HEAD
         unpacked_linear_context.size() > 0u,
+=======
+        !unpacked_linear_context.empty(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "unpacked_linear_context does not have any elements!");
 
     params_cpu.emplace_back(

@@ -34,14 +34,22 @@ namespace torch::jit::tracer {
 namespace detail {
 
 template <typename T>
+<<<<<<< HEAD
 void genericAddInput(Node* n, T value) {
+=======
+static void genericAddInput(Node* n, T value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Value* v = n->owningGraph()->insertConstant(value);
   recordSourceLocation(v->node());
   n->addInput(v);
 }
 
 template <typename T>
+<<<<<<< HEAD
 void genericAddOptionalInput(
+=======
+static void genericAddOptionalInput(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Node* n,
     const char* name,
     const std::optional<T>& value) {
@@ -55,7 +63,11 @@ void genericAddOptionalInput(
 }
 
 template <typename T>
+<<<<<<< HEAD
 void badArgType(const T& v) {
+=======
+static void badArgType(const T& v) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       false,
       "Found an unsupported argument type in the JIT tracer: ",
@@ -63,7 +75,11 @@ void badArgType(const T& v) {
       ". File a bug report.");
 }
 
+<<<<<<< HEAD
 thread_local std::shared_ptr<TracingState> tracing_state;
+=======
+static thread_local std::shared_ptr<TracingState> tracing_state;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace detail
 
 static std::atomic<bool> tracer_state_warn_mode{true};
@@ -1055,8 +1071,13 @@ void ArgumentStash::stashValue(
 ////////////////////////////////////////////////////////////////////////////////
 // no python present so we just do not record source information
 static void defaultRecordSourceLocation(Node* n) {}
+<<<<<<< HEAD
 std::atomic<decltype(&defaultRecordSourceLocation)> record_source_location(
     defaultRecordSourceLocation);
+=======
+static std::atomic<decltype(&defaultRecordSourceLocation)>
+    record_source_location(defaultRecordSourceLocation);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void recordSourceLocation(Node* n) {
   return record_source_location.load()(n);
 }
@@ -1067,7 +1088,11 @@ void setRecordSourceLocation(void (*v)(Node*)) {
 static std::vector<StackEntry> defaultPythonCallstack() {
   return std::vector<StackEntry>();
 }
+<<<<<<< HEAD
 std::atomic<decltype(&defaultPythonCallstack)> python_callstack_fn(
+=======
+static std::atomic<decltype(&defaultPythonCallstack)> python_callstack_fn(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     defaultPythonCallstack);
 std::vector<StackEntry> pythonCallstack() {
   return python_callstack_fn.load()();
@@ -1079,7 +1104,11 @@ void setPythonCallstack(std::vector<StackEntry> (*v)()) {
 static void defaultWarn(const std::string& str) {
   TORCH_WARN(str);
 }
+<<<<<<< HEAD
 std::atomic<warn_fn_type> warn_callback{defaultWarn};
+=======
+static std::atomic<warn_fn_type> warn_callback{defaultWarn};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 const char* WARN_PYTHON_DATAFLOW =
     " might cause the trace to be incorrect. We can't record the data flow of "

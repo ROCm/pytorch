@@ -226,6 +226,12 @@ if(BLAS_FOUND)
   #Arm Performance Libraries
   IF((NOT LAPACK_INFO) AND (BLAS_INFO STREQUAL "apl"))
     SET(CMAKE_REQUIRED_LIBRARIES ${BLAS_LIBRARIES})
+<<<<<<< HEAD
+=======
+    if(UNIX)
+      list(APPEND CMAKE_REQUIRED_LIBRARIES -lm)
+    endif(UNIX)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     check_function_exists("cheev_" APL_LAPACK_WORKS)
     if(APL_LAPACK_WORKS)
       check_function_exists("cgesdd_" LAPACK_CGESDD_WORKS)

@@ -193,6 +193,10 @@ TORCH_LIBRARY_IMPL(aten, FuncTorchBatchedDecomposition, m) {
   OP_DECOMPOSE(_lu_with_info);
   OP_DECOMPOSE(matmul);
   OP_DECOMPOSE(matrix_H);
+<<<<<<< HEAD
+=======
+  OP_DECOMPOSE(matrix_exp);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   OP_DECOMPOSE(matrix_power);
   OP_DECOMPOSE2(max, other );
   OP_DECOMPOSE(max_pool1d);

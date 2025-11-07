@@ -96,7 +96,13 @@ Reducer::Reducer(
     bool find_unused_parameters,
     bool gradient_as_bucket_view,
     std::unordered_map<size_t, std::string> param_names,
+<<<<<<< HEAD
     int64_t first_bucket_bytes_cap)
+=======
+    int64_t first_bucket_bytes_cap,
+    bool skip_all_reduce_unused_params,
+    bool use_python_reducer)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     : params_(std::move(params)),
       process_group_(std::move(process_group)),
       expect_sparse_gradients_(std::move(expect_sparse_gradients)),
@@ -111,14 +117,27 @@ Reducer::Reducer(
       num_bwd_calls_(0),
       first_autograd_hook_called_(false),
       num_buckets_ready_(0),
+<<<<<<< HEAD
+=======
+      num_buckets_reduced_(0),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       has_rebuilt_bucket_(false),
       bucket_bytes_cap_(bucket_bytes_cap),
       div_factor_(kUnsetDivFactor),
       static_graph_(false),
+<<<<<<< HEAD
       comm_hook_(nullptr),
       ddp_debug_level_(debug_level()),
       param_names_(std::move(param_names)),
       first_bucket_bytes_cap_(first_bucket_bytes_cap) {
+=======
+      skip_all_reduce_unused_params_(skip_all_reduce_unused_params),
+      comm_hook_(nullptr),
+      ddp_debug_level_(debug_level()),
+      param_names_(std::move(param_names)),
+      first_bucket_bytes_cap_(first_bucket_bytes_cap),
+      use_python_reducer_(use_python_reducer) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_LOG_API_USAGE_ONCE("torch.distributed.ddp.reducer");
   TORCH_INTERNAL_ASSERT(!params_.empty(), "Expected at least one parameter.");
 
@@ -196,8 +215,14 @@ Reducer::Reducer(
                 this->autograd_hook(variable_index);
                 return outputs;
               },
+<<<<<<< HEAD
               [=](torch::autograd::CompiledNodeArgs& args) {
                 TORCH_INTERNAL_ASSERT(
+=======
+              [this](torch::autograd::CompiledNodeArgs& args) {
+                TORCH_CHECK(
+                    this->use_python_reducer_,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "Compiled autograd is not compatible with C++ DDP Reducer, please use torch._dynamo.config.optimize_ddp=\"python_reducer\".");
               })),
           grad_accumulator);
@@ -1020,6 +1045,25 @@ std::vector<at::Tensor> Reducer::get_variables_for_bucket(
   }
 }
 
+<<<<<<< HEAD
+=======
+bool Reducer::is_unused_bucket(Bucket& bucket) {
+  for (const auto& variable_index : bucket.variable_indices) {
+    if (std::find(
+            unused_parameters_.begin(),
+            unused_parameters_.end(),
+            variable_index) == unused_parameters_.end()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Reducer::should_skip_all_reduce_bucket(Bucket& bucket) {
+  return is_unused_bucket(bucket) && skip_all_reduce_unused_params_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Called when the bucket at the specified index is ready to be reduced.
 void Reducer::mark_bucket_ready(size_t bucket_index) {
   TORCH_INTERNAL_ASSERT(bucket_index >= next_bucket_);
@@ -1040,7 +1084,14 @@ void Reducer::mark_bucket_ready(size_t bucket_index) {
       record_backward_comm_start_time();
     }
     auto& bucket = buckets_[next_bucket_];
+<<<<<<< HEAD
     all_reduce_bucket(bucket);
+=======
+    if (!should_skip_all_reduce_bucket(bucket)) {
+      all_reduce_bucket(bucket);
+      num_buckets_reduced_++;
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1220,7 +1271,11 @@ void Reducer::initialize_buckets(
       // patterns when copy_ing grad data in and out of its bucket view.
       // However, numerics remain correct, because the bucket view is the same
       // on either end of the raw allreduce.  bucket_view_in.copy(grad)
+<<<<<<< HEAD
       // tranposes
+=======
+      // transposes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // (+ densifies) to the bucket view's layout, the data is allreduced,
       // then grad.copy_(bucket_view_out) transposes it back to grad's layout.
       //
@@ -1357,6 +1412,11 @@ void Reducer::reset_bucket_counting() {
   // in each iteration.
   num_buckets_ready_ = 0;
 
+<<<<<<< HEAD
+=======
+  num_buckets_reduced_ = 0;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto& bucket : buckets_) {
     bucket.pending = bucket.variables.size();
   }
@@ -1643,10 +1703,23 @@ void Reducer::finalize_backward() {
   // flattened `gradients` tensor.
   for (auto& bucket : buckets_) {
     // See Note [DDP Communication Hook]
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(
         bucket.future_work,
         "Expected bucket.future_work not to be null. "
         "This may indicate that communication hook was not properly installed.");
+=======
+    // It is possible that the bucket all_reduce is skipped if the bucket is
+    // unused bucket and skip_all_reduce_unused_params_ is true.
+    if (bucket.future_work == nullptr) {
+      TORCH_INTERNAL_ASSERT(
+          skip_all_reduce_unused_params_,
+          "currently only support to skip all reduce for unused params "
+          "when skip_all_reduce_unused_params_ is true.");
+      continue;
+    }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bucket.future_work->wait();
     auto future_result = comm_hook_ == nullptr
         ? detail::parseCppCommHookResult(bucket.future_work->value())
@@ -1815,6 +1888,14 @@ void Reducer::sync_bucket_indices(
   indices_accessor_Index = 0;
   for (const auto i : c10::irange(num_buckets)) {
     const auto& bucket_size = bucket_sizes_accessor[static_cast<int64_t>(i)];
+<<<<<<< HEAD
+=======
+    TORCH_CHECK_WITH(
+        IndexError,
+        bucket_size >= 0 && bucket_size <= indices_accessor.size(0),
+        "received invalid bucket_size, was abort called?");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<size_t> bucket;
     bucket.reserve(bucket_size);
     for (const auto j : c10::irange(bucket_size)) {

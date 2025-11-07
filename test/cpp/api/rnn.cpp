@@ -441,7 +441,11 @@ lstm_output_to_device(
 }
 
 // This test is a port of python code introduced here:
+<<<<<<< HEAD
 // https://towardsdatascience.com/understanding-bidirectional-rnn-in-pytorch-5bd25a5dd66
+=======
+// https://medium.com/data-science/understanding-bidirectional-rnn-in-pytorch-5bd25a5dd66
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Reverse forward of bidirectional GRU should act
 // as regular forward of unidirectional GRU
 void BidirectionalGRUReverseForward(bool cuda) {

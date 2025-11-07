@@ -85,6 +85,18 @@ constexpr hipDataType HipDataTypeFor<c10::Float8_e8m0fnu>() {
   return static_cast<hipDataType>(500);
 }
 
+<<<<<<< HEAD
+=======
+template <>
+constexpr hipDataType HipDataTypeFor<c10::Float4_e2m1fn_x2>() {
+#if ROCM_VERSION >= 70000
+  return HIP_R_4F_E2M1;
+#else
+  return static_cast<hipDataType>(33);
+#endif
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T>
 int GetBatchFromParams(const GemmParams<T>* params) {
   return 1;
@@ -591,6 +603,17 @@ auto GetHipBlasLtTypeStringAndOps() {
   auto b_datatype = HipDataTypeFor<BT>();
   auto in_out_datatype = HipDataTypeFor<CT>();
   std::vector<hipblasLtMatmulHeuristicResult_t> heuristic_result;
+<<<<<<< HEAD
+=======
+#if ROCM_VERSION == 60400
+  // hipblaslt TT fp32 regression on ROCm 6.4, cannot use
+  if ((a_datatype == HIP_R_32F || b_datatype == HIP_R_32F || in_out_datatype == HIP_R_32F)
+          && (transa_outer == HIPBLAS_OP_T && transb_outer == HIPBLAS_OP_T)) {
+    std::vector<std::pair<std::string, std::unique_ptr<Callable<ParamsT>>>> ignore;
+    return ignore;
+  }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   hipblasComputeType_t computeType = HIPBLAS_COMPUTE_32F;
   if (at::globalContext().allowTF32CuBLAS()) {

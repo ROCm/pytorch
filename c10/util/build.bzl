@@ -34,8 +34,15 @@ def define_targets(rules):
         visibility = ["//visibility:public"],
         deps = [
             ":bit_cast",
+<<<<<<< HEAD
             "//c10/macros",
             "@fmt",
+=======
+            "//torch/headeronly:torch_headeronly",
+            "//c10/macros",
+            "@fmt",
+            "@moodycamel//:moodycamel",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ] + rules.select({
             "//c10:using_gflags": ["@com_github_gflags_gflags//:gflags"],
             "//conditions:default": [],
@@ -89,6 +96,12 @@ def define_targets(rules):
                 "ssize.h",
             ],
         ),
+<<<<<<< HEAD
+=======
+        deps = [
+            "//torch/headeronly:torch_headeronly",
+        ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         visibility = ["//visibility:public"],
     )
 

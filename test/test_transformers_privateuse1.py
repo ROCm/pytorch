@@ -1,6 +1,9 @@
 # Owner(s): ["module: sdpa"]
 
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 from collections import namedtuple
 from functools import partial
@@ -8,6 +11,7 @@ from functools import partial
 import pytorch_openreg  # noqa: F401
 
 import torch
+<<<<<<< HEAD
 import torch.utils.cpp_extension
 from torch.nn.attention import SDPBackend
 from torch.testing._internal.common_nn import NNTestCase
@@ -17,12 +21,18 @@ from torch.testing._internal.common_utils import (
     skipIfTorchDynamo,
     TEST_XPU,
 )
+=======
+from torch.nn.attention import SDPBackend
+from torch.testing._internal.common_nn import NNTestCase
+from torch.testing._internal.common_utils import run_tests, skipIfTorchDynamo, TEST_XPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 SdpaShape = namedtuple("Sdpa_Shape", ["batch", "num_heads", "seq_len", "head_dim"])
 
 
 @unittest.skipIf(TEST_XPU, "XPU does not support cppextension currently")
+<<<<<<< HEAD
 @unittest.skipIf(
     IS_FBCODE,
     "Ninja is required to load C++ extensions and it's not compatible with Buck ",
@@ -41,6 +51,9 @@ class TestSDPAPrivateUse1Only(NNTestCase):
             verbose=True,
         )
 
+=======
+class TestSDPAPrivateUse1Only(NNTestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfTorchDynamo()
     def test_fused_sdp_choice_privateuseone(self):
         batch_size, seq_len, num_heads, head_dim = 4, 256, 2, 128

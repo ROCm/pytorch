@@ -257,6 +257,11 @@ void initDynamoBindings(PyObject* torch) {
       .def_readwrite("recursive_action", &FrameExecStrategy::recursive_action);
 
   m.def("_debug_get_cache_entry_list", &_debug_get_cache_entry_list);
+<<<<<<< HEAD
+=======
+  m.def("_reset_precompile_entries", &_reset_precompile_entries);
+  m.def("_load_precompile_entry", &_load_precompile_entry);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::bind_vector<std::vector<uint8_t>>(m, "VectorUInt8");
   m.attr("py_opcode_caches") = _PyOpcode_Caches_vec;
   m.def("code_framelocals_names", &code_framelocals_names);

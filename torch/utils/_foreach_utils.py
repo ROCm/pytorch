@@ -1,17 +1,40 @@
 from typing import Optional
+<<<<<<< HEAD
+=======
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
 from torch.autograd.grad_mode import no_grad
+<<<<<<< HEAD
 from typing_extensions import TypeAlias
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _get_foreach_kernels_supported_devices() -> list[str]:
     r"""Return the device type list that supports foreach kernels."""
     return ["cuda", "xpu", torch._C._get_privateuse1_backend_name()]
 
+<<<<<<< HEAD
 def _get_fused_kernels_supported_devices() -> list[str]:
     r"""Return the device type list that supports fused kernels in optimizer."""
     return ["mps", "cuda", "xpu", "hpu", "cpu", torch._C._get_privateuse1_backend_name()]
+=======
+
+def _get_fused_kernels_supported_devices() -> list[str]:
+    r"""Return the device type list that supports fused kernels in optimizer."""
+    return [
+        "mps",
+        "cuda",
+        "xpu",
+        "hpu",
+        "cpu",
+        torch._C._get_privateuse1_backend_name(),
+    ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TensorListList: TypeAlias = list[list[Optional[Tensor]]]
 Indices: TypeAlias = list[int]
@@ -36,9 +59,24 @@ def _group_tensors_by_device_and_dtype(
 ) -> dict[tuple[torch.device, torch.dtype], tuple[TensorListList, Indices]]:
     return torch._C._group_tensors_by_device_and_dtype(tensorlistlist, with_indices)
 
+<<<<<<< HEAD
 def _device_has_foreach_support(device: torch.device) -> bool:
     return device.type in (_get_foreach_kernels_supported_devices() + ["cpu"]) and not torch.jit.is_scripting()
 
 
 def _has_foreach_support(tensors: list[Tensor], device: torch.device) -> bool:
     return _device_has_foreach_support(device) and all(t is None or type(t) in _foreach_supported_types for t in tensors)
+=======
+
+def _device_has_foreach_support(device: torch.device) -> bool:
+    return (
+        device.type in (_get_foreach_kernels_supported_devices() + ["cpu"])
+        and not torch.jit.is_scripting()
+    )
+
+
+def _has_foreach_support(tensors: list[Tensor], device: torch.device) -> bool:
+    return _device_has_foreach_support(device) and all(
+        t is None or type(t) in _foreach_supported_types for t in tensors
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

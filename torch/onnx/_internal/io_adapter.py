@@ -1,7 +1,12 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import Any, Callable, Protocol, runtime_checkable, TYPE_CHECKING
+=======
+from typing import Any, Callable, TYPE_CHECKING
+from typing_extensions import Protocol, runtime_checkable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.export as torch_export
@@ -12,8 +17,11 @@ if TYPE_CHECKING:
     import inspect
     from collections.abc import Mapping, Sequence
 
+<<<<<<< HEAD
 # TODO(bowbao): Add diagnostics for IO adapters.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @runtime_checkable
 class InputAdaptStep(Protocol):
@@ -176,7 +184,10 @@ def _assert_identical_pytree_spec(
     Raises:
         ValueError: If the two `TreeSpec` objects are not identical.
     """
+<<<<<<< HEAD
     # TODO(bowbao): Turn this check into diagnostic. Consider warning instead of error.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_if_any_checks: Sequence[Callable[[], bool]] = [
         lambda: spec1 == spec2,
         # FIXME: Bug in `dynamo.export`. Sometimes outputs returned in 'list' instead of 'tuple'.

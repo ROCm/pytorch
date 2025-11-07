@@ -5,7 +5,10 @@
 #include <ATen/native/Resize.h>
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/ops/bitwise_and_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/bitwise_not_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/bitwise_or_native.h>
 #include <ATen/ops/bitwise_xor_native.h>
 #include <ATen/ops/logical_not_native.h>
@@ -100,11 +103,14 @@ kernel void bitwise_rshift_scalar_tensor(device {0}  *out [[buffer(0)]],
   out[offset] = static_cast<{0}>(a) >> b[offset];
 }}
 
+<<<<<<< HEAD
 kernel void bitwise_not(device {0}  *out [[buffer(0)]],
                          constant {1}  *a [[buffer(1)]],
                          uint offset [[thread_position_in_grid]]) {{
   out[offset] = ~a[offset];
 }}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )METAL",
                               3);
 
@@ -200,6 +206,7 @@ static void _bitwise_op_out_mps(const Tensor& self,
   return;
 }
 
+<<<<<<< HEAD
 static void _bitwise_not_out_mps(const Tensor& self, const Tensor& output_) {
   // Handle boolean tensor using logical not
   if (self.scalar_type() == c10::ScalarType::Bool) {
@@ -248,6 +255,8 @@ static void _bitwise_not_out_mps(const Tensor& self, const Tensor& output_) {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace mps
 namespace {
 void lshift_kernel_mps(TensorIteratorBase& iter) {
@@ -272,10 +281,13 @@ TORCH_IMPL_FUNC(bitwise_xor_out_mps)(const Tensor& self, const Tensor& other, co
   mps::_bitwise_op_out_mps(self, other, output, "xor");
 }
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(bitwise_not_out_mps)(const Tensor& self, const Tensor& output) {
   mps::_bitwise_not_out_mps(self, output);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_MPS_DISPATCH(lshift_stub, &lshift_kernel_mps)
 REGISTER_MPS_DISPATCH(rshift_stub, &rshift_kernel_mps)
 

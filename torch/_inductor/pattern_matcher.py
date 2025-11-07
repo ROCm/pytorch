@@ -251,14 +251,84 @@ class Match:
             else contextlib.nullcontext()
         )
 
+<<<<<<< HEAD
+=======
+        def should_propagate_eager_input_vals(nodes: list[torch.fx.Node]) -> bool:
+            if len(nodes) != 1:
+                return False
+            node = nodes[0]
+            if "eager_input_vals" not in node.meta:
+                return False
+            return node.target in OrderedSet(
+                [
+                    torch.ops.higher_order.triton_kernel_wrapper_functional,
+                    torch.ops.higher_order.auto_functionalized,
+                    torch.ops.higher_order.auto_functionalized_v2,
+                ]
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with context:
             if trace_fn is None:
                 trace_fn = functools.partial(
                     fwd_only, run_functional_passes=run_functional_passes
                 )
+<<<<<<< HEAD
             replacement = trace_fn(
                 replacement_fn, torch.fx.map_arg(args, lambda arg: arg.meta["val"])
             )
+=======
+
+            if should_propagate_eager_input_vals(self.nodes):
+                # Our strategy is:
+                # 1) trace out the graph with eager_input_vals (which have accurate eager-mode metadata)
+                # 2) trace out the graph with vals (which have the accurate Inductor metadata)
+                # 3) Propagate the eager_input_vals from the first graph to the second.
+                # 4) Use the second graph as the replacement graph.
+
+                # Construct a map of node -> FakeTensor val in eager_input_vals
+                node_to_val = {}
+
+                fake_args, fake_kwargs = self.nodes[0].meta["eager_input_vals"]
+                fake_kwargs = {**fake_kwargs}
+                match_args, match_kwargs = tuple(self.args), self.kwargs
+
+                def record(node: torch.fx.Node, val: Any) -> None:
+                    if isinstance(node, torch.fx.Node):
+                        node_to_val[node] = val
+
+                torch.utils._pytree.tree_map(
+                    record, (match_args, match_kwargs), (fake_args, fake_kwargs)
+                )
+                # map args to their FakeTensor val in eager_input_vals
+                example_vals = torch.fx.map_arg(args, lambda arg: node_to_val[arg])
+
+                # first graph
+                graph_with_eager_vals = trace_fn(replacement_fn, example_vals)
+
+                # second graph
+                example_vals = torch.fx.map_arg(args, lambda arg: arg.meta["val"])
+                replacement = trace_fn(graph_with_eager_vals, example_vals)
+
+                # propagate metadata from first graph to second
+                # NB: This assertion might not be true in general, but it is true for
+                # the two use cases we have
+                # (triton_kernel_wrapper_functional, auto_functionalized)
+                assert len(graph_with_eager_vals.graph.nodes) == len(
+                    replacement.graph.nodes
+                )
+                for old_node, new_node in zip(
+                    graph_with_eager_vals.graph.nodes, replacement.graph.nodes
+                ):
+                    if "eager_input_vals" in old_node.meta:
+                        new_node.meta["eager_input_vals"] = old_node.meta[
+                            "eager_input_vals"
+                        ]
+
+            else:
+                example_vals = torch.fx.map_arg(args, lambda arg: arg.meta["val"])
+                replacement = trace_fn(replacement_fn, example_vals)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if len(self.nodes) == 1:
                 for n in replacement.graph.nodes:
                     _transfer_meta(
@@ -949,7 +1019,11 @@ class PatternPrettyPrinter:
         self.memoized_objs_pp: dict[PatternExpr, str] = {}
 
     @staticmethod
+<<<<<<< HEAD
     @functools.lru_cache(None)
+=======
+    @functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run(obj: PatternExpr, output_name: str = "output") -> str:
         """
         Serializes obj to python code with obj written out to `output_name`
@@ -1073,9 +1147,15 @@ class ReplacementPatternEntry(PatternEntry):
             def run_node(self, node: torch.fx.Node) -> Any:
                 if node.op in ("placeholder", "output"):
                     return super().run_node(node)
+<<<<<<< HEAD
                 if node.op == "call_function":
                     target = node.target
                     args, kwargs = self.fetch_args_kwargs_from_env(node)
+=======
+                target = node.target
+                args, kwargs = self.fetch_args_kwargs_from_env(node)
+                if node.op == "call_function":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     assert callable(target)
                     result = graph.call_function(target, args, kwargs)
                     _transfer_meta(
@@ -1083,12 +1163,43 @@ class ReplacementPatternEntry(PatternEntry):
                         old_node=node,
                         pass_name="Interpreter_Replacer",
                     )
+<<<<<<< HEAD
+=======
+                    # This function copy-pastes the replacement graph into
+                    # the graph. If the replacement graph had any eager_input_vals,
+                    # or val/tensor_meta, we propagate those over.
+                    if "eager_input_vals" in node.meta:
+                        result.meta["eager_input_vals"] = node.meta["eager_input_vals"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if "val" in node.meta and "val" not in result.meta:
                         result.meta["val"] = node.meta["val"]
                         if isinstance(node.meta["val"], torch.Tensor):
                             assert "tensor_meta" in node.meta
                             result.meta["tensor_meta"] = node.meta["tensor_meta"]
                     return result
+<<<<<<< HEAD
+=======
+                if node.op == "get_attr":
+                    # If the replacement graph contains a HOP, the subgraphs of the HOP are "get_attr" nodes.
+                    # We need to fetch the subgraph of the HOP then register the subgraph to the replaced graph's root.
+                    from torch._higher_order_ops.utils import (
+                        unique_graph_name_with_root,
+                    )
+
+                    sub_gm = super().get_attr(target, args, kwargs)
+                    if not isinstance(sub_gm, torch.fx.GraphModule):
+                        raise NotImplementedError(
+                            f"NYI: replacement_graph.{target} is not a graph module. Got {sub_gm}."
+                        )
+
+                    assert graph.owning_module is not None
+                    _, graph_name = unique_graph_name_with_root(
+                        graph.owning_module, str(target)
+                    )
+                    graph.owning_module.register_module(graph_name, sub_gm)
+                    return graph.get_attr(graph_name)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raise NotImplementedError(f"unhandled {node}")
 
         output_nodes = match.output_nodes()
@@ -1472,10 +1583,17 @@ def register_replacement(
             normalize_args=normalize_args,
         )
         pattern.register(pass_dicts)
+<<<<<<< HEAD
         return pattern.pattern
 
 
 _serialized_patterns = OrderedSet[str]()
+=======
+        return pattern.pattern  # type: ignore[return-value]
+
+
+_serialized_patterns: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _serialize_pattern(
@@ -1513,8 +1631,18 @@ def _serialize_pattern(
         pattern_matcher_imports = []
         for name in dir(torch._inductor.pattern_matcher):
             attr = getattr(torch._inductor.pattern_matcher, name)
+<<<<<<< HEAD
             if isinstance(attr, type) and issubclass(attr, (PatternExpr, _TargetExpr)):
                 pattern_matcher_imports.append(name)
+=======
+            try:
+                if isinstance(attr, type) and issubclass(
+                    attr, (PatternExpr, _TargetExpr)
+                ):
+                    pattern_matcher_imports.append(name)
+            except TypeError:
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         formatted_imports = ",\n   ".join(pattern_matcher_imports)
         formatted_imports = f"from torch._inductor.pattern_matcher import (\n   {formatted_imports},\n)\n"
@@ -2104,7 +2232,11 @@ def stable_topological_sort(graph: torch.fx.Graph) -> None:
 def init_once_fakemode(fn: Callable[..., Any]) -> Callable[[], Any]:
     """Wrapper around lazy init functions in fx_passes/"""
 
+<<<<<<< HEAD
     @functools.lru_cache(None)
+=======
+    @functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @functools.wraps(fn)
     def lazy_init() -> Any:
         counters_ref = counters["inductor"].copy()
@@ -2144,7 +2276,11 @@ def clone_graph(input_graph: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 
 # TODO: remove in follow up diff, used internally
+<<<<<<< HEAD
 _seen_patterns = OrderedSet[str]()
+=======
+_seen_patterns: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_arg_value(

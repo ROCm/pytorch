@@ -136,7 +136,11 @@ SymInt operator-(const SymInt& s) {
     const auto val = *ma;
     // Note: Result of `-std::numeric_limits<decltype(val)>::min()` is undefined
     // But on many platforms it equals to self + setting Carry/Overflow flags
+<<<<<<< HEAD
     // Which in opimized code affects results of `check_range` condition
+=======
+    // Which in optimized code affects results of `check_range` condition
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Workaround by using ternary that avoids alterning the flags
 #if C10_HAS_BUILTIN_OVERFLOW()
     std::decay_t<decltype(val)> out = 0;

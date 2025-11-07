@@ -15,6 +15,7 @@ COPY ./common/install_user.sh install_user.sh
 RUN bash ./install_user.sh && rm install_user.sh
 
 # Install conda and other packages (e.g., numpy, pytest)
+<<<<<<< HEAD
 ARG ANACONDA_PYTHON_VERSION
 ARG CONDA_CMAKE
 ENV ANACONDA_PYTHON_VERSION=$ANACONDA_PYTHON_VERSION
@@ -29,6 +30,19 @@ COPY ./common/install_linter.sh install_linter.sh
 COPY ./common/common_utils.sh common_utils.sh
 RUN bash ./install_linter.sh
 RUN rm install_linter.sh common_utils.sh
+=======
+ARG PYTHON_VERSION
+ENV PATH /var/lib/jenkins/ci_env/bin:$PATH
+ENV VIRTUAL_ENV /var/lib/jenkins/ci_env
+COPY requirements-ci.txt /opt/requirements-ci.txt
+COPY ./common/install_python.sh install_python.sh
+RUN bash ./install_python.sh && rm install_python.sh /opt/requirements-ci.txt
+
+# Note that Docker build forbids copying file outside the build context
+COPY ./common/install_linter.sh install_linter.sh
+RUN bash ./install_linter.sh
+RUN rm install_linter.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 USER jenkins
 CMD ["bash"]

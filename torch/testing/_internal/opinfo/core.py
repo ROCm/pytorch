@@ -482,7 +482,11 @@ class AliasInfo:
 #   set with small tensors. An elaborated set of sample inputs
 #   can be specified using the "reference_inputs_func" attribute.
 #   The "reference inputs" for an operation are an extended
+<<<<<<< HEAD
 #   set of sample inputs that can more exhausively test an
+=======
+#   set of sample inputs that can more exhaustively test an
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #   operator. They are used by only a few tests that are careful
 #   not to take too long to run. Adding reference inputs
 #   is highly encouraged!
@@ -851,7 +855,11 @@ class OpInfo:
     # tolerance for nondeterminism while performing gradcheck
     gradcheck_nondet_tol: float = 0.0
 
+<<<<<<< HEAD
     # Whether to use the fast implmentation for gradcheck/gradgradcheck.
+=======
+    # Whether to use the fast implementation for gradcheck/gradgradcheck.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # When set to None, defers to the default value provided by the wrapper
     # function around gradcheck (testing._internal.common_utils.gradcheck)
     gradcheck_fast_mode: bool = None
@@ -1469,7 +1477,11 @@ def test_foo(self, device, dtype, op):
         sample_inputs_sparse_(coo|csr|csc|bsr|bsc)_func.
 
         To avoid this, either define the corresponding sample function,
+<<<<<<< HEAD
         or re-map unsupported samples to error inputs in an appropiate
+=======
+        or re-map unsupported samples to error inputs in an appropriate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           opinfo/definitions/sparse.py:_validate_sample_input_sparse_<op>
 
@@ -3125,6 +3137,15 @@ def gradcheck_wrapper_hermitian_input(op, input, *args, **kwargs):
     return op(input + input.mH, *args, **kwargs)
 
 
+<<<<<<< HEAD
+=======
+def gradcheck_wrapper_ctc_loss(op, input, *args, **kwargs):
+    """Gradcheck wrapper for ctc loss to project onto log-simplex space."""
+    # See https://github.com/pytorch/pytorch/issues/52241
+    return op(input.log_softmax(dim=2), *args, **kwargs)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def gradcheck_wrapper_triangular_input(op, *args, upper=False, idx=0, **kwargs):
     """Gradcheck wrapper for functions that take lower or upper triangular matrices as input.
 

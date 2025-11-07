@@ -94,7 +94,11 @@ class AHTrainDecisionTree(AHTrain):
 
     def get_grid_search_values(self):
         """
+<<<<<<< HEAD
         Standard values for grid search. Can be overriden.
+=======
+        Standard values for grid search. Can be overridden.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         return {
             "max_depth": [5, 6, 7],

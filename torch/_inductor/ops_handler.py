@@ -681,6 +681,7 @@ class OpsHandler(Generic[T]):
     ) -> None:
         raise NotImplementedError
 
+<<<<<<< HEAD
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # In CUDA, optimized implementations of other mathematical operations are
     # offered separately via libdevice for double precision computation (in
@@ -715,6 +716,8 @@ class OpsHandler(Generic[T]):
     def libdevice_log(self, x0: T) -> T:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # halide-only
     def halide_clamp(self, value: T, size: sympy.Expr, check: bool) -> T:
         raise NotImplementedError

@@ -5,11 +5,17 @@ from typing import cast
 import torch
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
 from torch.distributed.tensor._op_schema import (
+<<<<<<< HEAD
     _is_inplace_op,
     _is_out_variant_op,
     OpSchema,
     OpStrategy,
     PlacementStrategy,
+=======
+    OpSchema,
+    OpSpec,
+    OpStrategy,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RuntimeSchemaInfo,
     StrategyType,
     TupleStrategy,
@@ -422,24 +428,48 @@ pointwise_ops = [
 def pointwise_strategy(op_schema: OpSchema, linearity: bool = False) -> OpStrategy:
     max_shards_strategy_index = -1
     max_shards = -1
+<<<<<<< HEAD
 
     if _is_inplace_op(op_schema.op):
         # inplace op should follow the first arg strategy
         followed_strategy = op_schema.args_schema[0]
     elif _is_out_variant_op(op_schema.op):
+=======
+    max_ndim = -1
+
+    if op_schema.is_inplace_op():
+        # inplace op should follow the first arg strategy
+        followed_strategy = op_schema.args_schema[0]
+    elif op_schema.is_out_variant_op():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # out variant op should follow the out kwarg strategy
         followed_strategy = op_schema.kwargs_schema["out"]
     else:
         # normal pointwise op, we choose to follow the arg with
         # the max shards in case operands needs reshard
+<<<<<<< HEAD
+=======
+        # in case of multiple operands with max shard, we take
+        # the one with the max number of dimensions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for idx, arg_strategy in enumerate(op_schema.args_schema):
             if not isinstance(arg_strategy, OpStrategy):
                 continue
 
             arg_max_shards = arg_strategy.max_num_shards()
+<<<<<<< HEAD
             if arg_max_shards > max_shards:
                 max_shards_strategy_index = idx
                 max_shards = arg_max_shards
+=======
+            arg_max_ndim = arg_strategy.ndim
+            if (arg_max_shards > max_shards) or (
+                arg_max_shards == max_shards and arg_max_ndim > max_ndim
+            ):
+                max_shards_strategy_index = idx
+                max_shards = arg_max_shards
+                max_ndim = arg_max_ndim
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         followed_strategy = op_schema.args_schema[max_shards_strategy_index]
 
@@ -512,7 +542,11 @@ def common_pointwise_strategy(
                 )
 
         pointwise_strategy.strategies.append(
+<<<<<<< HEAD
             PlacementStrategy(
+=======
+            OpSpec(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 output_specs=DTensorSpec(
                     mesh=followed_strategy.mesh,
                     placements=tuple(out_placements),

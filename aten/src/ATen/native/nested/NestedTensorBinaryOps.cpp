@@ -72,7 +72,11 @@ static get_elementwise_nested_tensor_impl(
 }
 
 template <typename Func>
+<<<<<<< HEAD
 Tensor NestedTensor_elementwise_Tensor(
+=======
+static Tensor NestedTensor_elementwise_Tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     const Tensor& other,
     const std::string& op_name,
@@ -234,7 +238,11 @@ Tensor NestedTensor_masked_fill(
 
 
 template <typename Func>
+<<<<<<< HEAD
 Tensor& NestedTensor_elementwise__Tensor(
+=======
+static Tensor& NestedTensor_elementwise__Tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& self,
     const Tensor& other,
     const std::string& op_name,

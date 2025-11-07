@@ -155,7 +155,11 @@ def maybe_to_fake_obj(
 
     for name in x._method_names():  # type: ignore[attr-defined]
         attr = getattr(fake_x, name, None)
+<<<<<<< HEAD
         if attr:
+=======
+        if attr is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not callable(attr):
                 raise RuntimeError(f"Expect {name} to be a callable but got {attr}.")
 

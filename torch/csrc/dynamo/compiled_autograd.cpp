@@ -3,7 +3,11 @@
 
 namespace torch::dynamo::autograd {
 
+<<<<<<< HEAD
 std::unique_ptr<PyCompilerInterface> kActivePyCompilerInterface;
+=======
+static std::unique_ptr<PyCompilerInterface> kActivePyCompilerInterface;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 const std::unique_ptr<PyCompilerInterface>& getPyCompilerInterface() {
   TORCH_INTERNAL_ASSERT(kActivePyCompilerInterface != nullptr);

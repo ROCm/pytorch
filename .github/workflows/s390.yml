@@ -2,8 +2,11 @@ name: s390
 
 on:
   push:
+<<<<<<< HEAD
     branches:
       - main
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tags:
       - ciflow/s390/*
   workflow_dispatch:
@@ -21,6 +24,10 @@ jobs:
     uses: ./.github/workflows/_linux-build.yml
     with:
       build-environment: linux-s390x-binary-manywheel
+<<<<<<< HEAD
       docker-image-name: pytorch/manylinuxs390x-builder:cpu-s390x-main
+=======
+      docker-image-name: pytorch/manylinuxs390x-builder:cpu-s390x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       runner: linux.s390x
     secrets: inherit

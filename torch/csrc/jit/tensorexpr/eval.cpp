@@ -10,7 +10,11 @@
 
 namespace torch::jit::tensorexpr {
 
+<<<<<<< HEAD
 RegisterCodeGen<SimpleIREvaluator> ir_eval_codegen_reg("simple_ir_eval");
+=======
+static RegisterCodeGen<SimpleIREvaluator> ir_eval_codegen_reg("simple_ir_eval");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 int64_t InterpValue::intValue() const {
 #define TYPE_CASE(Type, Name)        \
@@ -24,33 +28,58 @@ int64_t InterpValue::intValue() const {
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::enable_if_t<std::is_integral_v<T>, T> mod_value(T lhs, T rhs) {
+=======
+static inline std::enable_if_t<std::is_integral_v<T>, T> mod_value(
+    T lhs,
+    T rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return lhs % rhs;
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::enable_if_t<std::is_floating_point_v<T>, T> mod_value(
+=======
+static inline std::enable_if_t<std::is_floating_point_v<T>, T> mod_value(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     T lhs,
     T rhs) {
   return std::fmod(lhs, rhs);
 }
 
+<<<<<<< HEAD
 inline bool mod_value(bool lhs, bool rhs) {
+=======
+static inline bool mod_value(bool lhs, bool rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   throw std::runtime_error("Attempted modulus of bool");
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::enable_if_t<std::is_integral_v<T>, T> div_value(T lhs, T rhs) {
+=======
+static inline std::enable_if_t<std::is_integral_v<T>, T> div_value(
+    T lhs,
+    T rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(rhs != 0, "Division by zero");
   return lhs / rhs;
 }
 
 template <typename T>
+<<<<<<< HEAD
 inline std::enable_if_t<std::is_floating_point_v<T>, T>
+=======
+static inline std::enable_if_t<std::is_floating_point_v<T>, T>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __ubsan_ignore_float_divide_by_zero__ div_value(T lhs, T rhs) {
   return lhs / rhs;
 }
 
+<<<<<<< HEAD
 inline bool div_value(bool lhs, bool rhs) {
   LOG(FATAL) << "Attempted division of bool";
   return false;
@@ -61,6 +90,13 @@ inline c10::Half div_value(c10::Half lhs, c10::Half rhs) {
 }
 
 inline c10::BFloat16 div_value(c10::BFloat16 lhs, c10::BFloat16 rhs) {
+=======
+static inline c10::Half div_value(c10::Half lhs, c10::Half rhs) {
+  return lhs / rhs;
+}
+
+static inline c10::BFloat16 div_value(c10::BFloat16 lhs, c10::BFloat16 rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return lhs / rhs;
 }
 

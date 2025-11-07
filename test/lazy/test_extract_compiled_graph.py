@@ -206,3 +206,13 @@ class OptimizeTest(unittest.TestCase):
     test_return_multi = maketest(ModuleReturnMulti)
     test_return_dup_tensor = maketest(ModuleReturnDupTensor)
     test_inplace_update = maketest(ModuleInplaceUpdate)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

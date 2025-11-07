@@ -97,6 +97,12 @@ meta_nonzero_assume_all_nonzero = False
 # Currently an experimental option for export.
 backed_size_oblivious = False
 
+<<<<<<< HEAD
+=======
+# Skip dtype check in meta registrations. Only used for systems that does its own dtype checking.
+skip_dtype_check_in_meta_registrations = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._config_module import install_config_module
 
 

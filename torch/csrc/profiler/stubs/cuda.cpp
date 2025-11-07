@@ -1,11 +1,15 @@
 #include <sstream>
 
 #ifndef ROCM_ON_WINDOWS
+<<<<<<< HEAD
 #ifdef TORCH_CUDA_USE_NVTX3
 #include <nvtx3/nvtx3.hpp>
 #else
 #include <nvToolsExt.h>
 #endif
+=======
+#include <nvtx3/nvtx3.hpp>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else // ROCM_ON_WINDOWS
 #include <c10/util/Exception.h>
 #endif // ROCM_ON_WINDOWS

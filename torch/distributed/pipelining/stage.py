@@ -55,7 +55,11 @@ def _normalize_model_output_as_tuple(output: Any) -> tuple[Any]:
         # output in list format
         output = tuple(output)
 
+<<<<<<< HEAD
     # Unify output form to tuple for easy correspondance with
+=======
+    # Unify output form to tuple for easy correspondence with
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # `act_send_info`
     output_tuple = output if type(output) is tuple else (output,)
     return output_tuple
@@ -267,7 +271,11 @@ class _PipelineStageBase(ABC):
         def map_recv_to_send(a):
             # Note: we send gradients back to previous stage as long as in
             # forward it is a received input, regardless of whether it requires
+<<<<<<< HEAD
             # grad. It is up to the previous stage to disgard this gradient.
+=======
+            # grad. It is up to the previous stage to discard this gradient.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(a, _RecvInfo):
                 grad_send_info.append(a.source)
                 return a.source
@@ -433,10 +441,14 @@ class _PipelineStageBase(ABC):
         """
         Get the activation send ops for current stage's forward.
         """
+<<<<<<< HEAD
         output = self.output_chunks[fwd_chunk_id]
         # Unify output form to tuple for easy correspondance with
         # `act_send_info`
         output_tuple = output if type(output) is tuple else (output,)
+=======
+        output_tuple, _ = self.fwd_cache[fwd_chunk_id]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ops: list[dist.P2POp] = []
 
@@ -719,7 +731,13 @@ class _PipelineStageBase(ABC):
         output_tuple = _normalize_model_output_as_tuple(output)
 
         # Prepare for final output merge or reduction
+<<<<<<< HEAD
         self.output_chunks.append(output)
+=======
+        # Output chunks is only used for the last stage since we only merge the output of the last stage
+        if self.is_last:
+            self.output_chunks.append(output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Save activations and inputs for backward
         flat_args = flatten_args(composite_args)
@@ -920,7 +938,11 @@ class _PipelineStageBase(ABC):
 
     def _validate_fwd_outputs(self, outputs: tuple[torch.Tensor, ...]):
         """Raises a RuntimeError if this stage produces an output of unexpected shape/dtype.
+<<<<<<< HEAD
         Most likely, this could be cause either by incorrect user specification of output shapes, or becuase
+=======
+        Most likely, this could be cause either by incorrect user specification of output shapes, or because
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shape inference was done on the original model but then at runtime the model is wrapped with something like
         mixed precision which changes output dtype.
         """
@@ -1011,7 +1033,11 @@ class _PipelineStage(_PipelineStageBase):
         """
         # TODO(whc)
         # this method should be deleted once lazy buffer allocation is implemented
+<<<<<<< HEAD
         # for now, it ignores args/kwargs becuase it should not need to do shape inference
+=======
+        # for now, it ignores args/kwargs because it should not need to do shape inference
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for chunk in range(num_microbatches):
             self.args_recv_info[chunk] = self._create_act_recv_info()
 
@@ -1273,7 +1299,11 @@ class PipelineStage(_PipelineStageBase):
         super().__init__(submodule, stage_index, num_stages, device, group, dw_builder)
         self.inputs: Optional[list[torch.Tensor]] = None
         self.inputs_meta: Optional[tuple[torch.Tensor, ...]] = None
+<<<<<<< HEAD
         # Note: inputs and submod should ideally be on meta device. We decided not to assert this (yet) becuase it
+=======
+        # Note: inputs and submod should ideally be on meta device. We decided not to assert this (yet) because it
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # might be breaking for existing users.
         if input_args is None:
             assert output_args is None, (

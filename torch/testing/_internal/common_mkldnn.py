@@ -60,8 +60,12 @@ def bf32_on_and_off(bf32_precision=1e-5):
 
         @functools.wraps(f)
         def wrapped(*args, **kwargs):
+<<<<<<< HEAD
             for k, v in zip(arg_names, args):
                 kwargs[k] = v
+=======
+            kwargs.update(zip(arg_names, args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cond = bf32_is_not_fp32()
             if "device" in kwargs:
                 cond = cond and (torch.device(kwargs["device"]).type == "cpu")

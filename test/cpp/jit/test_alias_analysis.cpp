@@ -1033,9 +1033,14 @@ TEST(ContainerAliasingTest, MovesAcrossContainedWrites) {
   auto ops = torch::RegisterOperators().op(
       "uses::list",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](torch::List<at::Tensor> in) {
             return torch::rand({2, 3});
           })
+=======
+          .catchAllKernel(
+              [](torch::List<at::Tensor> in) { return torch::rand({2, 3}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::PURE_FUNCTION));
   // Write to the inside of a list. Check that we can't reorder a
   // print across it.
@@ -1073,9 +1078,14 @@ TEST(ContainerAliasingTest, MovesAcrossContainedWritesNested) {
   auto ops = torch::RegisterOperators().op(
       "uses::list",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](torch::List<at::Tensor> in) {
             return torch::rand({2, 3});
           })
+=======
+          .catchAllKernel(
+              [](torch::List<at::Tensor> in) { return torch::rand({2, 3}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::PURE_FUNCTION));
   // Write to the inside of a list. Check that we can't reorder a
   // print across it.
@@ -1257,9 +1267,14 @@ TEST(AliasRegistrationTest, ConservativeWithInferredSchema) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand1",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::CONSERVATIVE));
   const auto rand_op = Symbol::fromQualString("foo::rand1");
   auto graph = std::make_shared<Graph>();
@@ -1274,9 +1289,14 @@ TEST(AliasRegistrationTest, ConservativeWithSpecifiedSchema) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand2(Tensor arg1) -> Tensor",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::CONSERVATIVE));
   const auto rand_op = Symbol::fromQualString("foo::rand2");
   auto graph = std::make_shared<Graph>();
@@ -1291,9 +1311,14 @@ TEST(AliasRegistrationTest, ConservativeWithAliasingAnnotationsShouldError) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand3(Tensor(a) arg1) -> Tensor(b)",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::CONSERVATIVE));
 
   const auto rand_op = Symbol::fromQualString("foo::rand3");
@@ -1312,9 +1337,14 @@ TEST(AliasRegistrationTest, ConservativeWithAliasingAnnotationsShouldError2) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand4(Tensor(a) arg1) -> Tensor(a)",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::CONSERVATIVE));
   const auto rand_op = Symbol::fromQualString("foo::rand4");
   auto graph = std::make_shared<Graph>();
@@ -1334,9 +1364,14 @@ TEST(AliasRegistrationTest, FromSchemaWithInferredSchemaShouldError) {
         torch::RegisterOperators().op(
             "foo::rand5",
             torch::RegisterOperators::options()
+<<<<<<< HEAD
                 .catchAllKernel([](at::Tensor) -> at::Tensor {
                   return at::rand({2, 2});
                 })
+=======
+                .catchAllKernel(
+                    [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 .aliasAnalysis(AliasAnalysisKind::FROM_SCHEMA));
       },
       "Tried to register operator foo::rand5(Tensor _0) -> Tensor _0 with AliasAnalysisKind::FROM_SCHEMA, but the schema is inferred");
@@ -1346,9 +1381,14 @@ TEST(AliasRegistrationTest, FromSchemaInferredPure) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand6(Tensor arg1) -> Tensor",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::FROM_SCHEMA));
   const auto rand_op = Symbol::fromQualString("foo::rand6");
   auto graph = std::make_shared<Graph>();
@@ -1395,9 +1435,14 @@ TEST(AliasRegistrationTest, PureNoSchema) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand9",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::PURE_FUNCTION));
   const auto rand_op = Symbol::fromQualString("foo::rand9");
   auto graph = std::make_shared<Graph>();
@@ -1412,9 +1457,14 @@ TEST(AliasRegistrationTest, PureWithSchema) {
   auto registry = torch::RegisterOperators().op(
       "foo::rand10(Tensor arg1) -> Tensor",
       torch::RegisterOperators::options()
+<<<<<<< HEAD
           .catchAllKernel([](at::Tensor) -> at::Tensor {
             return at::rand({2, 2});
           })
+=======
+          .catchAllKernel(
+              [](at::Tensor) -> at::Tensor { return at::rand({2, 2}); })
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .aliasAnalysis(AliasAnalysisKind::PURE_FUNCTION));
   const auto rand_op = Symbol::fromQualString("foo::rand10");
   auto graph = std::make_shared<Graph>();

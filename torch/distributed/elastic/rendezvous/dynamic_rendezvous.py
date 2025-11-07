@@ -805,7 +805,11 @@ class _DistributedRendezvousOpExecutor(_RendezvousOpExecutor):
 
     def _remove_from_redundancy_list(self) -> None:
         msg = (
+<<<<<<< HEAD
             f"The node '{self._node}' removed itself from the redunant list of round "
+=======
+            f"The node '{self._node}' removed itself from the redundant list of round "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"{self._state.round + 1} of the rendezvous '{self._settings.run_id}'. Pending sync."
         )
         self._record(message=msg)
@@ -880,7 +884,11 @@ class _RendezvousJoinOp:
             return _Action.ERROR_CLOSED
 
         if ctx.node in state.redundancy_list:
+<<<<<<< HEAD
             msg = f"The node {ctx.node} is in redunancy list"
+=======
+            msg = f"The node {ctx.node} is in redundancy list"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             logger.debug(msg)
             # don't apply the timeout logic here, since we want to allow the node to rejoin
             if len(state.participants) == ctx.settings.max_nodes:
@@ -890,7 +898,11 @@ class _RendezvousJoinOp:
                     return _Action.SYNC
             else:
                 # transition to waiting state that will respect timeouts.
+<<<<<<< HEAD
                 msg = f"The node {ctx.node} is removed from redunancy list"
+=======
+                msg = f"The node {ctx.node} is removed from redundancy list"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 logger.debug(msg)
                 return _Action.REMOVE_FROM_REDUNDANCY_LIST
 

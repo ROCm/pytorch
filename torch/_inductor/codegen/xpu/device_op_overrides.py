@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from typing import Optional
 
+<<<<<<< HEAD
 from ..common import DeviceOpOverrides, register_device_op_overrides
+=======
+from ..common import (
+    DeviceOpOverrides,
+    register_device_op_overrides,
+    TritonScratchWorkspace,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class XPUDeviceOpOverrides(DeviceOpOverrides):
@@ -54,7 +62,13 @@ class XPUDeviceOpOverrides(DeviceOpOverrides):
     def cpp_device_ptr(self) -> str:
         return "void *"
 
+<<<<<<< HEAD
     def cpp_global_scratch(self, idx: int) -> Optional[tuple[str, str]]:
+=======
+    def cpp_global_scratch(
+        self, idx: int, workspace: TritonScratchWorkspace
+    ) -> Optional[tuple[list[str], str]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
 

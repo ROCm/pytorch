@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+#include <cuda_runtime.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/distributed/c10d/cuda/utils.hpp>
 
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)

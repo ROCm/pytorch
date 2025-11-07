@@ -130,11 +130,23 @@ class TORCH_API PyTorchStreamReader final {
   explicit PyTorchStreamReader(std::shared_ptr<ReadAdapterInterface> in);
 
   // return dataptr, size
+<<<<<<< HEAD
   std::tuple<at::DataPtr, size_t> getRecord(const std::string& name);
   // multi-thread getRecord
   std::tuple<at::DataPtr, size_t> getRecord(
       const std::string& name,
       std::vector<std::shared_ptr<ReadAdapterInterface>>& additionalReaders);
+=======
+  // set allocator to override default cpu allocator
+  std::tuple<at::DataPtr, size_t> getRecord(
+      const std::string& name,
+      std::optional<at::Allocator*> allocator = std::nullopt);
+  // multi-thread getRecord
+  std::tuple<at::DataPtr, size_t> getRecord(
+      const std::string& name,
+      std::vector<std::shared_ptr<ReadAdapterInterface>>& additionalReaders,
+      std::optional<at::Allocator*> allocator = std::nullopt);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // inplace memory writing
   size_t getRecord(const std::string& name, void* dst, size_t n);
   // inplace memory writing, multi-threads.

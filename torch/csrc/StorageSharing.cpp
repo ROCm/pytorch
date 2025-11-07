@@ -331,8 +331,12 @@ static PyObject* THPStorage_shareCuda(PyObject* self, PyObject* noargs) {
     _ref_counter = PyBytes_FromString((sent_data->handle()).c_str());
     _ref_counter_offset = THPUtils_packUInt64(sent_data->offset());
 
+<<<<<<< HEAD
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     cudaIpcEventHandle_t ipc_event_handle;
+=======
+    cudaIpcEventHandle_t ipc_event_handle{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (sent_data->event_sync_required_) {
       C10_CUDA_CHECK(

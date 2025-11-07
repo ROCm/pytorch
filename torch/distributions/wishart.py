@@ -64,24 +64,44 @@ class Wishart(ExponentialFamily):
     [5] Ku, Y.-C. & Bloomfield, P., 2010. `Generating Random Wishart Matrices with Fractional Degrees of Freedom in OX`.
     """
 
+<<<<<<< HEAD
     arg_constraints = {
         "covariance_matrix": constraints.positive_definite,
         "precision_matrix": constraints.positive_definite,
         "scale_tril": constraints.lower_cholesky,
         "df": constraints.greater_than(0),
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     support = constraints.positive_definite
     has_rsample = True
     _mean_carrier_measure = 0
 
+<<<<<<< HEAD
+=======
+    @property
+    def arg_constraints(self):
+        return {
+            "covariance_matrix": constraints.positive_definite,
+            "precision_matrix": constraints.positive_definite,
+            "scale_tril": constraints.lower_cholesky,
+            "df": constraints.greater_than(self.event_shape[-1] - 1),
+        }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         df: Union[Tensor, Number],
         covariance_matrix: Optional[Tensor] = None,
         precision_matrix: Optional[Tensor] = None,
         scale_tril: Optional[Tensor] = None,
+<<<<<<< HEAD
         validate_args=None,
     ):
+=======
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert (covariance_matrix is not None) + (scale_tril is not None) + (
             precision_matrix is not None
         ) == 1, (
@@ -119,7 +139,10 @@ class Wishart(ExponentialFamily):
         elif precision_matrix is not None:
             self.precision_matrix = param.expand(batch_shape + (-1, -1))
 
+<<<<<<< HEAD
         self.arg_constraints["df"] = constraints.greater_than(event_shape[-1] - 1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.df.lt(event_shape[-1]).any():
             warnings.warn(
                 "Low df values detected. Singular samples are highly likely to occur for ndim - 1 < df < ndim."

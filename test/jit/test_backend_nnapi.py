@@ -7,7 +7,15 @@ from pathlib import Path
 
 import torch
 import torch._C
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_FBCODE, skipIfTorchDynamo
+=======
+from torch.testing._internal.common_utils import (
+    IS_FBCODE,
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # hacky way to skip these tests in fbcode:
@@ -28,6 +36,7 @@ else:
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -35,6 +44,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Unit Tests for Nnapi backend with delegate
 Inherits most tests from TestNNAPI, which loads Android NNAPI models
@@ -139,3 +150,10 @@ method_compile_spec must use the following format:
     def tearDown(self):
         # Change dtype back to default (Otherwise, other unit tests will complain)
         torch.set_default_dtype(self.default_dtype)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

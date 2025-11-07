@@ -9,6 +9,14 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+<<<<<<< HEAD
+=======
+#ifndef USE_ROCM
+#include <cuda_bf16.h>
+#include <cuda_fp16.h>
+#include <cuda_fp8.h>
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::aot_inductor {
 

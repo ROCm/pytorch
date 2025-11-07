@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import math
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import inf, nan, Tensor
@@ -60,7 +64,17 @@ class StudentT(Distribution):
         m[self.df <= 1] = nan
         return m
 
+<<<<<<< HEAD
     def __init__(self, df, loc=0.0, scale=1.0, validate_args=None):
+=======
+    def __init__(
+        self,
+        df: Union[Tensor, float],
+        loc: Union[Tensor, float] = 0.0,
+        scale: Union[Tensor, float] = 1.0,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.df, self.loc, self.scale = broadcast_all(df, loc, scale)
         self._chi2 = Chi2(self.df)
         batch_shape = self.df.size()

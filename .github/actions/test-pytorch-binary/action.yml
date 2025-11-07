@@ -15,7 +15,10 @@ runs:
           -e BINARY_ENV_FILE \
           -e BUILD_ENVIRONMENT \
           -e DESIRED_CUDA \
+<<<<<<< HEAD
           -e DESIRED_DEVTOOLSET \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           -e DESIRED_PYTHON \
           -e GITHUB_ACTIONS \
           -e GPU_ARCH_TYPE \

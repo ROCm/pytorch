@@ -1,10 +1,17 @@
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 #include <torch/csrc/lazy/core/shape.h>
 #include <torch/csrc/lazy/core/tensor.h>
 
 #include <utility>
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(misc-use-internal-linkage)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_DEFINE_bool(
     ltc_enable_symbolic_shapes,
     false,
@@ -58,7 +65,11 @@ Shape Shape::with_symbolic_dims(
 }
 
 bool symbolicShapeEnabled() {
+<<<<<<< HEAD
   static bool enabled = std::getenv("LTC_ENABLE_SYMBOLIC_SHAPES") != nullptr;
+=======
+  static bool enabled = c10::utils::has_env("LTC_ENABLE_SYMBOLIC_SHAPES");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return enabled || FLAGS_ltc_enable_symbolic_shapes;
 }
 

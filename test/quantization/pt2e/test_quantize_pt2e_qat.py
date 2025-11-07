@@ -43,6 +43,10 @@ from torch.testing._internal.common_quantization import (
     skipIfNoQNNPACK,
 )
 from torch.testing._internal.common_quantized import override_quantized_engine
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class PT2EQATTestCase(QuantizationTestCase):
@@ -140,8 +144,12 @@ class PT2EQATTestCase(QuantizationTestCase):
             )
         )
         model_pt2e = export_for_training(
+<<<<<<< HEAD
             model_pt2e,
             example_inputs,
+=======
+            model_pt2e, example_inputs, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ).module()
         model_pt2e = prepare_qat_pt2e(model_pt2e, quantizer)
         torch.manual_seed(MANUAL_SEED)
@@ -229,10 +237,14 @@ class PT2EQATTestCase(QuantizationTestCase):
         quantizer.set_global(
             get_symmetric_quantization_config(is_per_channel, is_qat=True)
         )
+<<<<<<< HEAD
         m = export_for_training(
             m,
             example_inputs,
         ).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_qat_pt2e(m, quantizer)
         m(*example_inputs)
 
@@ -621,7 +633,11 @@ class TestQuantizePT2EQAT_ConvBn_Base(PT2EQATTestCase):
         m = M(self.conv_class, self.bn_class, backbone)
         quantizer = XNNPACKQuantizer()
         quantizer.set_global(get_symmetric_quantization_config(is_qat=True))
+<<<<<<< HEAD
         m = export_for_training(m, example_inputs).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_qat_pt2e(m, quantizer)
         m(*example_inputs)
         m = convert_pt2e(m)
@@ -679,7 +695,11 @@ class TestQuantizePT2EQAT_ConvBn_Base(PT2EQATTestCase):
     def test_qat_conv_bn_bias_derived_qspec(self):
         m = self._get_conv_bn_model()
         example_inputs = self.example_inputs
+<<<<<<< HEAD
         m = export_for_training(m, example_inputs).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = ConvBnDerivedBiasQuantizer()
         m = prepare_qat_pt2e(m, quantizer)
         m(*example_inputs)
@@ -726,7 +746,11 @@ class TestQuantizePT2EQAT_ConvBn_Base(PT2EQATTestCase):
     def test_qat_per_channel_weight_custom_dtype(self):
         m = self._get_conv_bn_model()
         example_inputs = self.example_inputs
+<<<<<<< HEAD
         m = export_for_training(m, example_inputs).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = ConvBnInt32WeightQuantizer()
         m = prepare_qat_pt2e(m, quantizer)
         m(*example_inputs)
@@ -780,7 +804,11 @@ class TestQuantizePT2EQAT_ConvBn_Base(PT2EQATTestCase):
     def test_qat_conv_bn_per_channel_weight_bias(self):
         m = self._get_conv_bn_model()
         example_inputs = self.example_inputs
+<<<<<<< HEAD
         m = export_for_training(m, example_inputs).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = ConvBnDerivedBiasQuantizer(is_per_channel=True)
         m = prepare_qat_pt2e(m, quantizer)
         m(*example_inputs)
@@ -837,7 +865,11 @@ class TestQuantizePT2EQAT_ConvBn_Base(PT2EQATTestCase):
         it into conv in `convert_pt2e` even in train mode.
         """
         m = self._get_conv_bn_model(has_conv_bias=False, has_bn=True, has_relu=False)
+<<<<<<< HEAD
         m = export_for_training(m, self.example_inputs).module()
+=======
+        m = export_for_training(m, self.example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = XNNPACKQuantizer()
         quantizer.set_global(
             get_symmetric_quantization_config(is_per_channel=False, is_qat=True),
@@ -848,6 +880,42 @@ class TestQuantizePT2EQAT_ConvBn_Base(PT2EQATTestCase):
         self.assertTrue(conv_node is not None)
         self.assertTrue(bn_node is None)
 
+<<<<<<< HEAD
+=======
+    def test_fold_bn_erases_add_node(self):
+        """
+        Test that batch norm stat tracking (which results in an add_ tensor) is removed when folding batch norm.
+        """
+        m = self._get_conv_bn_model(has_conv_bias=False, has_bn=True, has_relu=False)
+        m = export_for_training(m, self.example_inputs, strict=True).module()
+
+        def _has_add_(graph):
+            for node in graph.nodes:
+                if node.target == torch.ops.aten.add_.Tensor:
+                    return True
+            return False
+
+        # Verify that add_ tensor exists in the exported model (for tracking batch norm stats)
+        has_add_tensor_before = _has_add_(m.graph)
+        self.assertTrue(
+            has_add_tensor_before, "Expected to find add_ tensor in the exported model"
+        )
+
+        quantizer = XNNPACKQuantizer()
+        quantizer.set_global(
+            get_symmetric_quantization_config(is_per_channel=False, is_qat=True),
+        )
+        m = prepare_qat_pt2e(m, quantizer)
+        m = convert_pt2e(m)
+
+        # Verify that add_ tensor is removed in the quantized model
+        has_add_tensor_after = _has_add_(m.graph)
+        self.assertFalse(
+            has_add_tensor_after,
+            "Expected add_ tensor to be removed in the quantized model",
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @skipIfNoQNNPACK
 class TestQuantizePT2EQAT_ConvBn1d(TestQuantizePT2EQAT_ConvBn_Base):
@@ -1085,7 +1153,13 @@ class TestQuantizeMixQATAndPTQ(QuantizationTestCase):
                     in_channels = child.linear1.weight.size(1)
 
                 example_input = (torch.rand((1, in_channels)),)
+<<<<<<< HEAD
                 traced_child = export_for_training(child, example_input).module()
+=======
+                traced_child = export_for_training(
+                    child, example_input, strict=True
+                ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 quantizer = XNNPACKQuantizer()
                 quantization_config = get_symmetric_quantization_config(
                     is_per_channel=True, is_qat=True
@@ -1116,10 +1190,14 @@ class TestQuantizeMixQATAndPTQ(QuantizationTestCase):
         self._convert_qat_linears(model)
         model(*example_inputs)
 
+<<<<<<< HEAD
         model_pt2e = export_for_training(
             model,
             example_inputs,
         ).module()
+=======
+        model_pt2e = export_for_training(model, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         quantizer = XNNPACKQuantizer()
         quantizer.set_module_type(torch.nn.Linear, None)
@@ -1149,3 +1227,10 @@ class TestQuantizeMixQATAndPTQ(QuantizationTestCase):
         self.checkGraphModuleNodes(
             exported_model.graph_module, expected_node_occurrence=node_occurrence
         )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

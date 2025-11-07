@@ -124,7 +124,11 @@ def multidim_slicer(dims, slices, *tensors):
         for d, d_slice in zip(dims, slices):
             if d is not None:
                 s[d] = d_slice
+<<<<<<< HEAD
         yield t[s]
+=======
+        yield t[tuple(s)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def ptr_stride_extractor(*tensors):
@@ -333,7 +337,11 @@ def scatter_mm(blocks, others, indices_data, *, accumulators=None):
       this property enables defining swizzle operators via
       rearrangements of ``r_offsets`` items..
 
+<<<<<<< HEAD
     Auxilary functions are provided for pre-computing
+=======
+    Auxiliary functions are provided for pre-computing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     :attr:`indices_data`. For example,
     :func:`bsr_scatter_mm_indices_data` is used to define indices data
     for matrix multiplication of BSR and strided tensors.
@@ -836,7 +844,11 @@ def bsr_dense_addmm_meta(
 
 class TensorAsKey:
     """A light-weight wrapper of a tensor that enables storing tensors as
+<<<<<<< HEAD
     keys with efficient memory reference based comparision as an
+=======
+    keys with efficient memory reference based comparison as an
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     approximation to data equality based keys.
 
     Motivation: the hash value of a torch tensor is tensor instance

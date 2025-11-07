@@ -36,7 +36,10 @@ from torch._dynamo.variables.lists import RangeVariable
 from torch.nn import functional as F
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     disable_translation_validation_if_dynamic_shapes,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instantiate_parametrized_tests,
     parametrize,
 )
@@ -152,6 +155,31 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
     def test_inline_lru_cache_fn_with_default_args(a, b):
         return inline_lru_cache_fn_with_default_args(a, 2, b)
 
+<<<<<<< HEAD
+=======
+    def test_lru_cache_warning_issued_during_tracing(self):
+        import warnings
+        from functools import lru_cache
+
+        @lru_cache
+        def foo(x):
+            return x + 1
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            torch.compile(foo, backend="eager")(torch.randn(4))
+
+        for warning in w:
+            warning_message = str(warning.message)
+            if (
+                "Dynamo detected a call to a `functools.lru_cache`-wrapped"
+                in warning_message
+            ):
+                break
+        else:
+            self.assertTrue(False, "Expected warning about lru_cache not found")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_test
     def test_add(a, b):
         return a + b
@@ -498,6 +526,20 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         args = [a, b]
         return sub(*args)
 
+<<<<<<< HEAD
+=======
+    def test_size_tuple_add(self):
+        def fn():
+            size = torch.Size([])
+            assert isinstance(size + size, torch.Size)
+            assert isinstance(size + (), tuple)
+            assert isinstance(size + (), torch.Size)
+
+        fn()
+        compiled_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        compiled_fn()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_test
     def test_is_in_onnx_export(x, y):
         if torch.onnx.is_in_onnx_export():
@@ -1003,6 +1045,7 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         fn = torch.Tensor.dim
         return fn(x + 1)
 
+<<<<<<< HEAD
     @make_test
     def test_tensor_is_inference(x):
         if x.is_inference():
@@ -1010,6 +1053,8 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         else:
             return x - 1
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_is_inference_recompilation(self):
         def fn(x):
             if x.is_inference():
@@ -1021,8 +1066,12 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
             x_inference = torch.randn(2, 2)
 
         cnts = torch._dynamo.testing.CompileCounter()
+<<<<<<< HEAD
         opt_fn = torch.compile(fn, backend=cnts, fullgraph=True)
 
+=======
+        opt_fn = torch.compile(fn, backend=cnts, fullgraph=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(2, 2)
 
         self.assertEqual(fn(x), opt_fn(x))
@@ -1031,6 +1080,24 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(fn(x_inference), opt_fn(x_inference))
         self.assertEqual(cnts.frame_count, 2)  # Recompiles
 
+<<<<<<< HEAD
+=======
+    def test_is_inference_mode_global_recompilation(self):
+        def fn(x):
+            if torch.is_inference_mode_enabled():
+                return x + 1
+            else:
+                return x - 1
+
+        cnts = torch._dynamo.testing.CompileCounter()
+        opt_fn = torch.compile(fn, backend=cnts, fullgraph=False)
+
+        x = torch.randn(2, 2)
+
+        self.assertEqual(fn(x), opt_fn(x))
+        self.assertEqual(cnts.frame_count, 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_test
     def test_get_privateuse1_name(x):
         if torch._C._get_privateuse1_backend_name() == "privateuseone":
@@ -1664,6 +1731,51 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         return a - b
 
     @make_test
+<<<<<<< HEAD
+=======
+    def test_set_invalid_ConstantVariable_op(a, b):
+        s = set({"banana", "apple", "orange"})
+        try:
+            s - 1
+        except TypeError:
+            return a + b
+        except Exception:
+            return a - b
+        else:
+            return a * b
+
+    @make_test
+    def test_set_pop_raise_KeyError(a, b):
+        s = set()
+        try:
+            s.pop()
+        except KeyError:
+            return a + b
+        except Exception:
+            return a - b
+        else:
+            return a * b
+
+    @make_test
+    def test_set_issubset(a, b):
+        vals1 = {"a", "b", "c"}
+        vals2 = {"b", "c"}
+        vals3 = {"b", "e", "f"}
+        if vals2.issubset(vals1) and not vals2.issubset(vals3):
+            return a + b
+        return a - b
+
+    @make_test
+    def test_set_issuperset(a, b):
+        vals1 = {"a", "b", "c"}
+        vals2 = {"b", "c"}
+        vals3 = {"b", "e", "f"}
+        if vals1.issuperset(vals2) and not vals1.issuperset(vals3):
+            return a + b
+        return a - b
+
+    @make_test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_set_update_bytecode(x):
         # This produces bytecode SET_UPDATE since python 3.9
         var = {"apple", "banana", "cherry"}
@@ -1711,7 +1823,12 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
     def test_set_intersection(a, b):
         set1 = {"apple", "banana", "cherry"}
         set2 = {"google", "microsoft", "apple"}
+<<<<<<< HEAD
         intersection_set = set1.intersection(set2)
+=======
+        set3 = {"shoes", "flipflops", "apple"}
+        intersection_set = set1.intersection(set2, set3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if "apple" in intersection_set:
             x = a + b
         else:
@@ -1720,6 +1837,7 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
             y = a + b
         else:
             y = a - b
+<<<<<<< HEAD
         return x, y
 
     @make_test
@@ -1732,12 +1850,130 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         else:
             x = a - b
         if "banana" in union_set:
+=======
+        if "shoes" in intersection_set:
+            z = a + b
+        else:
+            z = a - b
+        return x, y, z
+
+    @make_test
+    def test_set_intersection_update(a, b):
+        set1 = {"apple", "banana", "cherry"}
+        set2 = {"google", "microsoft", "apple"}
+        set3 = {"shoes", "flipflops", "apple"}
+        set1.intersection_update(set2, set3)
+        if "apple" in set1:
+            x = a + b
+        else:
+            x = a - b
+        if "banana" in set1:
+            y = a + b
+        else:
+            y = a - b
+        if "shoes" in set1:
+            z = a + b
+        else:
+            z = a - b
+        return x, y, z
+
+    @parametrize("_type", [set])
+    def test_set_union(self, _type):
+        @make_test
+        def fn(a, b):
+            set1 = _type({"apple", "banana", "cherry"})
+            set2 = _type({"google", "microsoft", "apple"})
+            set3 = _type({"shoes", "flipflops", "sneakers"})
+            union_set = set1.union(set2, set3)
+            if "apple" in union_set:
+                x = a + b
+            else:
+                x = a - b
+            if "banana" in union_set:
+                y = a + b
+            else:
+                y = a - b
+            if "shoes" in union_set:
+                z = a + b
+            else:
+                z = a - b
+            return x, y, z
+
+        fn(self)
+
+    @parametrize(
+        "fn_name", ["add", "symmetric_difference", "symmetric_difference_update"]
+    )
+    def test_set_raise_TypeError(self, fn_name):
+        @make_test
+        def fn(a, b):
+            set1 = {"apple", "banana", "cherry"}
+            try:
+                getattr(set1, fn_name)()
+            except TypeError:
+                return a + b
+            return a - b
+
+        fn(self)
+
+    @make_test
+    def test_set_difference(a, b):
+        set1 = {"apple", "banana", "cherry"}
+        set2 = {"google", "microsoft", "apple"}
+        set3 = {"shoes", "flipflops", "sneakers"}
+        difference_set = set1.difference(set2, set3)
+        if "apple" in difference_set:
+            x = a + b
+        else:
+            x = a - b
+        if "banana" in difference_set:
+            y = a + b
+        else:
+            y = a - b
+        if "shoes" in difference_set:
+            z = a + b
+        else:
+            z = a - b
+        return x, y, z
+
+    @make_test
+    def test_set_difference_update(a, b):
+        set1 = {"apple", "banana", "cherry"}
+        set2 = {"google", "microsoft", "apple"}
+        set3 = {"shoes", "flipflops", "sneakers"}
+        set1.difference_update(set2, set3)
+        if "apple" in set1:
+            x = a + b
+        else:
+            x = a - b
+        if "banana" in set1:
+            y = a + b
+        else:
+            y = a - b
+        if "shoes" in set1:
+            z = a + b
+        else:
+            z = a - b
+        return x, y, z
+
+    @make_test
+    def test_set_symmetric_difference(a, b):
+        set1 = {"apple", "banana", "cherry"}
+        set2 = {"google", "microsoft", "apple"}
+        symmetric_diff_set = set1.difference(set2)
+        if "apple" in symmetric_diff_set:
+            x = a + b
+        else:
+            x = a - b
+        if "banana" in symmetric_diff_set:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y = a + b
         else:
             y = a - b
         return x, y
 
     @make_test
+<<<<<<< HEAD
     def test_set_difference(a, b):
         set1 = {"apple", "banana", "cherry"}
         set2 = {"google", "microsoft", "apple"}
@@ -1747,6 +1983,17 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         else:
             x = a - b
         if "banana" in difference_set:
+=======
+    def test_set_symmetric_difference_update(a, b):
+        set1 = {"apple", "banana", "cherry"}
+        set2 = {"google", "microsoft", "apple"}
+        set1.difference(set2)
+        if "apple" in set1:
+            x = a + b
+        else:
+            x = a - b
+        if "banana" in set1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y = a + b
         else:
             y = a - b
@@ -1784,6 +2031,26 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         x = torch.rand(4)
         self.assertEqual(fn(x), opt_fn(x))
 
+<<<<<<< HEAD
+=======
+    @parametrize("method", ["add", "__contains__"])
+    def test_set_raise_TypeError_on_unshashable_obj(self, method):
+        @make_test
+        def fn(a, b):
+            s = set({1, 2, 3, 4})
+            try:
+                m = getattr(s, method)
+                m([[]])
+            except TypeError:
+                return a + b
+            except Exception:
+                return a - b
+            else:
+                return a * b
+
+        fn(self)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_constant_set(self):
         s = set([1, 2])
 
@@ -2235,7 +2502,10 @@ class FunctionTests(torch._dynamo.test_case.TestCase):
         else:
             return x - 1
 
+<<<<<<< HEAD
     @disable_translation_validation_if_dynamic_shapes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_test
     def test_torch_distributions_functions(x):
         normal = torch.distributions.Normal(x, torch.tensor(1))
@@ -2648,7 +2918,11 @@ class GraphModule(torch.nn.Module):
                 normalize_gm(backend.graphs[0].print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
+<<<<<<< HEAD
     def forward(self, s0: "Sym(s0)", L_x_: "f32[s0]"):
+=======
+    def forward(self, s77: "Sym(s77)", L_x_: "f32[s77]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         l_x_ = L_x_
 
         sum_1: "f32[]" = l_x_.sum();  l_x_ = None
@@ -2878,6 +3152,7 @@ class GraphModule(torch.nn.Module):
                 normalize_gm(backend.graphs[0].print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
+<<<<<<< HEAD
     def forward(self, s0: "Sym(s0)", L_lambda0_keywords_y_: "f32[s0, s0]"):
         l_lambda0_keywords_y_ = L_lambda0_keywords_y_
 
@@ -2885,6 +3160,15 @@ class GraphModule(torch.nn.Module):
         mul_1: "f32[s0, s0]" = l_lambda0_keywords_y_ * l_lambda0_keywords_y_;  l_lambda0_keywords_y_ = None
 
         mul_2: "f32[s0, s0]" = torch.mul(mul, mul_1);  mul = mul_1 = None
+=======
+    def forward(self, s9: "Sym(s9)", L_lambda0_keywords_y_: "f32[s9, s9]"):
+        l_lambda0_keywords_y_ = L_lambda0_keywords_y_
+
+        mul: "f32[s9, s9]" = l_lambda0_keywords_y_ * l_lambda0_keywords_y_
+        mul_1: "f32[s9, s9]" = l_lambda0_keywords_y_ * l_lambda0_keywords_y_;  l_lambda0_keywords_y_ = None
+
+        mul_2: "f32[s9, s9]" = torch.mul(mul, mul_1);  mul = mul_1 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (mul_2,)
 """,
             )
@@ -2925,6 +3209,7 @@ class GraphModule(torch.nn.Module):
                 normalize_gm(backend.graphs[0].print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
+<<<<<<< HEAD
     def forward(self, s0: "Sym(s0)", L_lambda0_keywords_y_: "f32[s0, s0]"):
         l_lambda0_keywords_y_ = L_lambda0_keywords_y_
 
@@ -2933,6 +3218,16 @@ class GraphModule(torch.nn.Module):
         add: "f32[s0, s0]" = l_lambda0_keywords_y_ + l_lambda0_keywords_y_;  l_lambda0_keywords_y_ = None
 
         mul_1: "f32[s0, s0]" = torch.mul(mul, add);  mul = add = None
+=======
+    def forward(self, s9: "Sym(s9)", L_lambda0_keywords_y_: "f32[s9, s9]"):
+        l_lambda0_keywords_y_ = L_lambda0_keywords_y_
+
+        mul: "f32[s9, s9]" = l_lambda0_keywords_y_ * l_lambda0_keywords_y_
+
+        add: "f32[s9, s9]" = l_lambda0_keywords_y_ + l_lambda0_keywords_y_;  l_lambda0_keywords_y_ = None
+
+        mul_1: "f32[s9, s9]" = torch.mul(mul, add);  mul = add = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (mul_1,)
 """,
             )
@@ -2975,6 +3270,7 @@ class GraphModule(torch.nn.Module):
                 normalize_gm(backend.graphs[0].print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
+<<<<<<< HEAD
     def forward(self, s0: "Sym(s0)", L_lambda0_keywords_y_: "f32[s0, s0]"):
         l_lambda0_keywords_y_ = L_lambda0_keywords_y_
 
@@ -2983,6 +3279,16 @@ class GraphModule(torch.nn.Module):
         add: "f32[s0, s0]" = l_lambda0_keywords_y_ + l_lambda0_keywords_y_;  l_lambda0_keywords_y_ = None
 
         mul_1: "f32[s0, s0]" = torch.mul(mul, add);  mul = add = None
+=======
+    def forward(self, s9: "Sym(s9)", L_lambda0_keywords_y_: "f32[s9, s9]"):
+        l_lambda0_keywords_y_ = L_lambda0_keywords_y_
+
+        mul: "f32[s9, s9]" = l_lambda0_keywords_y_ * l_lambda0_keywords_y_
+
+        add: "f32[s9, s9]" = l_lambda0_keywords_y_ + l_lambda0_keywords_y_;  l_lambda0_keywords_y_ = None
+
+        mul_1: "f32[s9, s9]" = torch.mul(mul, add);  mul = add = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (mul_1,)
 """,
             )
@@ -3022,6 +3328,7 @@ class GraphModule(torch.nn.Module):
                 normalize_gm(backend.graphs[0].print_readable(print_output=False)),
                 """\
 class GraphModule(torch.nn.Module):
+<<<<<<< HEAD
     def forward(self, s0: "Sym(s0)", L_x_: "f32[s0, s0]"):
         l_x_ = L_x_
 
@@ -3030,6 +3337,16 @@ class GraphModule(torch.nn.Module):
         mul_2: "f32[s0, s0]" = 20 * l_x_;  l_x_ = None
 
         mul_3: "f32[s0, s0]" = torch.mul(mul_1, mul_2);  mul_1 = mul_2 = None
+=======
+    def forward(self, s77: "Sym(s77)", L_x_: "f32[s77, s77]"):
+        l_x_ = L_x_
+
+        mul: "f32[s77, s77]" = l_x_ * 4
+        mul_1: "f32[s77, s77]" = mul * l_x_;  mul = None
+        mul_2: "f32[s77, s77]" = 20 * l_x_;  l_x_ = None
+
+        mul_3: "f32[s77, s77]" = torch.mul(mul_1, mul_2);  mul_1 = mul_2 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (mul_3,)
 """,
             )
@@ -3814,6 +4131,44 @@ class GraphModule(torch.nn.Module):
         x, y = map(lambda x: x + 1, [a, b])
         return x + y
 
+<<<<<<< HEAD
+=======
+    @make_test
+    def test_map_list_extend(a):
+        y = [1]
+
+        def inner(z):
+            return z + y[-1]
+
+        y.extend(map(inner, range(3)))
+        return a + 1, y
+
+    @make_test
+    def test_map_deque_extendleft(a):
+        y = collections.deque([1])
+
+        def inner(z):
+            return z + y[0]
+
+        y.extendleft(map(inner, range(3)))
+        return a + 1, y
+
+    def test_unsqueeze_inplace(self):
+        def fn(x):
+            return torch.Tensor.unsqueeze_(x, dim=1) + 1
+
+        def self_fn(x):
+            return x.unsqueeze_(dim=1) + 1
+
+        v = torch.ones([3], device="cpu")
+        # identical tensor since modify inplace
+        v2 = torch.ones([3], device="cpu")
+        opt_fn = torch.compile(fn)
+        opt_self_fn = torch.compile(self_fn)
+        self.assertEqual(v, v2)
+        self.assertEqual(opt_fn(v), opt_self_fn(v2))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_enumerate_custom(self):
         class MyClass:
             def __iter__(self):
@@ -3858,6 +4213,42 @@ class GraphModule(torch.nn.Module):
         self.assertTrue(same(res, torch.ones(1)))
         self.assertTrue(f is f())
 
+<<<<<<< HEAD
+=======
+    def test_functools_partial_binding(self):
+        class Foo:
+            def __init__(self, x):
+                self.x = x
+
+            @functools.lru_cache  # noqa: B019
+            def incr(self, val):
+                self.x += val
+
+        def fn(x):
+            f = Foo(4)
+            f.incr(3)
+            return x + f.x
+
+        x = torch.randn(2)
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        self.assertEqual(fn(x), opt_fn(x))
+
+    def test_functools_cache_guard(self):
+        class Foo:
+            @functools.lru_cache  # noqa: B019
+            def run(self, val, c=1.0):
+                return val * c * 2
+
+        f = Foo()
+
+        def fn(x):
+            return f.run(x)
+
+        x = torch.randn(2)
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        self.assertEqual(fn(x), opt_fn(x))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def udf_mul(x, y):
     return x * y
@@ -4137,6 +4528,23 @@ class DefaultsTests(torch._dynamo.test_case.TestCase):
         ref = opt_fn(x)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
+=======
+    @parametrize("_type", [set, frozenset], name_fn=lambda t: t.__name__)
+    def test_set_call___init__(self, _type):
+        @make_test
+        def fn(a, b):
+            s = _type({"apple", "banana", "cherry"})
+            s.__init__({"google", "microsoft", "apple"})
+            # frozenset should remain the same while set gets updated
+            if "banana" in s:
+                return a + b
+            else:
+                return a - b
+
+        fn(self)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_frozenset_construction(self):
         def fn(x):
             s = frozenset({x})
@@ -4603,6 +5011,71 @@ class DefaultsTests(torch._dynamo.test_case.TestCase):
         self.assertTrue(ref_tup.checked)
         self.assertTrue(res_tup.checked)
 
+<<<<<<< HEAD
+=======
+    def test_udf_tuple_construction(self):
+        class MyTuple(tuple):  # noqa: SLOT001
+            pass
+
+        def fn(x):
+            tup = MyTuple([1, 2, 3])
+            if 3 in tup:
+                x = torch.cos(x)
+            else:
+                x = torch.sin(x)
+            return x, tup
+
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        x = torch.randn(4)
+        ref_x, ref_tup = fn(x)
+        res_x, res_tup = opt_fn(x)
+        self.assertEqual(ref_x, res_x)
+        self.assertEqual(ref_tup, res_tup)
+
+    def test_udf_tuple_construction_custom_new(self):
+        class MyTuple(tuple):  # noqa: SLOT001
+            def __new__(cls, *args, **kwargs):
+                return super().__new__(cls, [1, 2, 3])
+
+        def fn(x):
+            tup = MyTuple()
+            if 3 in tup:
+                x = torch.cos(x)
+            else:
+                x = torch.sin(x)
+            return x, tup
+
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        x = torch.randn(4)
+        ref_x, ref_tup = fn(x)
+        res_x, res_tup = opt_fn(x)
+        self.assertEqual(ref_x, res_x)
+        self.assertEqual(ref_tup, res_tup)
+
+    def test_udf_namedtuple(self):
+        class MyTuple(NamedTuple):
+            a: torch.Tensor
+            b: torch.Tensor
+
+        class PairTensor(MyTuple):
+            def __new__(cls, a, b):
+                return super().__new__(cls, a, b)
+
+            def __add__(self, other):
+                return PairTensor(self.a + other.a, self.b + other.b)
+
+        def fn(pair1, pair2):
+            return pair1 + pair2
+
+        opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
+        pair1 = PairTensor(torch.randn(4), torch.randn(2, 8))
+        pair2 = PairTensor(torch.randn(1), torch.randn(2, 1))
+        ref = fn(pair1, pair2)
+        res = opt_fn(pair1, pair2)
+        self.assertEqual(ref.a, res.a)
+        self.assertEqual(ref.b, res.b)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_udf_tuple_reconstruction(self):
         class MyTuple(tuple):  # noqa: SLOT001
             pass
@@ -4786,6 +5259,10 @@ class DefaultsTests(torch._dynamo.test_case.TestCase):
 
 
 instantiate_parametrized_tests(FunctionTests)
+<<<<<<< HEAD
+=======
+instantiate_parametrized_tests(DefaultsTests)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

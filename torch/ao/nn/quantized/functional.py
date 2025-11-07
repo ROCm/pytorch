@@ -1,5 +1,10 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 r""" Functional interface (quantized)."""
+=======
+r"""Functional interface (quantized)."""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from typing import Optional
 

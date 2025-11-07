@@ -25,8 +25,12 @@ at::Tensor _nnpack_spatial_convolution(
     const Tensor& weight, const std::optional<Tensor>& bias_opt,
     const IntArrayRef padding,
     const IntArrayRef stride) {
+<<<<<<< HEAD
   throw std::runtime_error(
       "nnpack_spatial_convolution: ATen not compiled with NNPACK support");
+=======
+  TORCH_CHECK(false, "nnpack_spatial_convolution: ATen not compiled with NNPACK support");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool _nnpack_available() {
@@ -143,6 +147,7 @@ Tensor _nnpack_spatial_convolution(
       input.options());
 
   // Our input Tensor must be in the form N,C,H,W
+<<<<<<< HEAD
   if (input.ndimension() != 4) {
     throw std::runtime_error(
         "NNPack convolutionOutput expects 4D input Tensor N,C,H,W");
@@ -180,14 +185,58 @@ Tensor _nnpack_spatial_convolution(
         << ") in NNPack convolutionOutput";
     throw std::runtime_error(err.str());
   }
+=======
+  TORCH_CHECK(
+      input.ndimension() == 4,
+      "NNPack convolutionOutput expects 4D input Tensor N,C,H,W");
+
+  // Our weight Tensor must be in the form oC,iC,kH,kW
+  TORCH_CHECK(
+      weight.ndimension() == 4,
+      "NNPack convolutionOutput expects 4D weight Tensor oC,iC,kH,kW");
+
+  // Our output Tensor must be in the form N,oC,oH,oW
+  TORCH_CHECK(
+      output.ndimension() == 4,
+      "NNPack convolutionOutput expects 4D output Tensor N,oC,oH,oW");
+
+  // Some basic shape checking, not comprehensive
+  TORCH_CHECK(
+      input.size(1) == weight.size(1),
+      "Mismatch between number of input channels in input Tensor (",
+      input.size(1),
+      ") and weight Tensor (",
+      weight.size(1),
+      ") in NNPack convolutionOutput");
+
+  TORCH_CHECK(
+      weight.size(0) == output.size(1),
+      "Mismatch between number of output channels in weight Tensor (",
+      weight.size(0),
+      ") and output Tensor (",
+      output.size(1),
+      ") in NNPack convolutionOutput");
+
+  TORCH_CHECK(
+      input.size(0) == output.size(0),
+      "Mismatch between batch size in input Tensor (",
+      input.size(0),
+      ") and output Tensor (",
+      output.size(0),
+      ") in NNPack convolutionOutput");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // All Tensors must be float Tensors
   if (input.device().type() != kCPU || input.scalar_type() != kFloat ||
       weight.device().type() != kCPU || weight.scalar_type() != kFloat ||
       output.device().type() != kCPU || output.scalar_type() != kFloat ||
       (bias.defined() && (bias.device().type() != kCPU || bias.scalar_type() != kFloat))) {
+<<<<<<< HEAD
     throw std::runtime_error(
         "Mismatched Tensor types in NNPack convolutionOutput");
+=======
+    TORCH_CHECK(false, "Mismatched Tensor types in NNPack convolutionOutput");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   const auto algorithm = nnp_convolution_algorithm_auto;
@@ -281,9 +330,15 @@ Tensor _nnpack_spatial_convolution(
   auto size_and_allocate_ws = [&]() {
     // Run a single pass to get the size of memory workspace buffer
     const auto status = compute(batch_size);
+<<<<<<< HEAD
     if (status != nnp_status_success) {
       throw std::runtime_error("NNPACK SpatialConvolution_updateOutput failed");
     }
+=======
+    TORCH_CHECK(
+        status == nnp_status_success,
+        "NNPACK SpatialConvolution_updateOutput failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     workspace.allocate();
   };
 
@@ -304,9 +359,15 @@ Tensor _nnpack_spatial_convolution(
     status = compute(batch_size);
   }
 
+<<<<<<< HEAD
   if (status != nnp_status_success) {
     throw std::runtime_error("NNPACK SpatialConvolution_updateOutput failed");
   }
+=======
+  TORCH_CHECK(
+      status == nnp_status_success,
+      "NNPACK SpatialConvolution_updateOutput failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return output;
 }

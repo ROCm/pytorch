@@ -115,12 +115,22 @@ class MultiKernelTest(TestCase):
             picked_kernel = self.picked_kernel
             return out
 
+<<<<<<< HEAD
         with unittest.mock.patch.object(
             MultiKernelCall, "run", mock_run
         ), unittest.mock.patch.object(
             MultiKernelCall,
             "benchmark_sub_kernels",
             lambda *args, **kwargs: mock_latency,
+=======
+        with (
+            unittest.mock.patch.object(MultiKernelCall, "run", mock_run),
+            unittest.mock.patch.object(
+                MultiKernelCall,
+                "benchmark_sub_kernels",
+                lambda *args, **kwargs: mock_latency,
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             torch.compile(f)(x)
         self.assertEqual(picked_kernel, force_kernel)

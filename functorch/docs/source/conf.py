@@ -13,20 +13,32 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import functorch
 
 
+<<<<<<< HEAD
 # import sys
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # source code directory, relative to this file, for sphinx-autobuild
 # sys.path.insert(0, os.path.abspath('../..'))
 
 
 RELEASE = os.environ.get("RELEASE", False)
 
+<<<<<<< HEAD
 
 import pytorch_sphinx_theme
+=======
+sys.path.insert(0, os.path.abspath(".."))
+import pytorch_sphinx_theme2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # -- General configuration ------------------------------------------------
@@ -77,8 +89,15 @@ napoleon_use_ivar = True
 autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
+<<<<<<< HEAD
 templates_path = ["_templates"]
 
+=======
+templates_path = [
+    "_templates",
+    os.path.join(os.path.dirname(pytorch_sphinx_theme2.__file__), "templates"),
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
@@ -161,13 +180,19 @@ autodoc_docstring_signature = True
 #
 #
 
+<<<<<<< HEAD
 html_theme = "pytorch_sphinx_theme"
 html_theme_path = [pytorch_sphinx_theme.get_html_theme_path()]
+=======
+html_theme = "pytorch_sphinx_theme2"
+html_theme_path = [pytorch_sphinx_theme2.get_html_theme_path()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
+<<<<<<< HEAD
 html_theme_options = {
     "collapse_navigation": False,
     "display_version": True,
@@ -175,6 +200,61 @@ html_theme_options = {
     "pytorch_project": "functorch",
     "navigation_with_keys": True,
     "analytics_id": "UA-117752657-2",
+=======
+
+switcher_version = "main" if not RELEASE else version
+
+html_theme_options = {
+    "icon_links": [
+        {
+            "name": "X",
+            "url": "https://x.com/PyTorch",
+            "icon": "fa-brands fa-x-twitter",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/pytorch/pytorch",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyTorch Forum",
+            "url": "https://discuss.pytorch.org/",
+            "icon": "fa-brands fa-discourse",
+        },
+        {
+            "name": "PyPi",
+            "url": "https://pypi.org/project/torch/",
+            "icon": "fa-brands fa-python",
+        },
+    ],
+    "collapse_navigation": False,
+    "display_version": True,
+    "pytorch_project": "functorch",
+    "navigation_with_keys": True,
+    "analytics_id": "UA-117752657-2",
+    "logo": {"text": "Home"},
+    "switcher": {
+        "json_url": "https://pytorch.org/functorch/functorch-versions.json",
+        "version_match": switcher_version,
+    },
+    "navbar_start": ["version-switcher"],
+}
+
+theme_variables = pytorch_sphinx_theme2.get_theme_variables()
+
+html_context = {
+    "theme_variables": theme_variables,
+    "display_github": True,
+    "github_url": "https://github.com",
+    "github_user": "pytorch",
+    "github_repo": "pytorch",
+    "feedback_url": "https://github.com/pytorch/pytorch",
+    "github_version": "main",
+    "doc_path": "functorch/docs/source",
+    "library_links": theme_variables.get("library_links", []),
+    "community_links": theme_variables.get("community_links", []),
+    "language_bindings_links": html_theme_options.get("language_bindings_links", []),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -184,10 +264,15 @@ html_static_path = ["_static"]
 
 html_css_files = [
     "css/custom.css",
+<<<<<<< HEAD
+=======
+    "https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
 # Called automatically by Sphinx, making this `conf.py` an "extension".
+<<<<<<< HEAD
 def setup(app):
     # NOTE: in Sphinx 1.8+ `html_css_files` is an official configuration value
     # and can be moved outside of this function (and the setup(app) function
@@ -201,6 +286,8 @@ def setup(app):
     add_css = getattr(app, "add_css_file", app.add_stylesheet)
     for css_file in html_css_files:
         add_css(css_file)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # -- Options for HTMLHelp output ------------------------------------------

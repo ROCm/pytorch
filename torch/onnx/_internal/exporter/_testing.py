@@ -35,7 +35,11 @@ def assert_onnx_program(
         kwargs: The keyword arguments to pass to the program.
             If None, the default example inputs in the ExportedProgram will be used.
         strategy: Assert the capture strategy used to export the program. Values can be
+<<<<<<< HEAD
             class names like "TorchExportStrategy" or "TorchExportNonStrictStrategy" etc.
+=======
+            class names like "TorchExportNonStrictStrategy".
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             If None, the strategy is not asserted.
     """
     if strategy is not None:
@@ -66,15 +70,30 @@ def assert_onnx_program(
     torch_module = exported_program.module()
     torch_outputs, _ = _pytree.tree_flatten(torch_module(*args, **kwargs))
     # ONNX outputs are always real, so we need to convert torch complex outputs to real representations
+<<<<<<< HEAD
     torch_outputs = [
         torch.view_as_real(output) if torch.is_complex(output) else output
         for output in torch_outputs
     ]
+=======
+    torch_outputs_adapted = []
+    for output in torch_outputs:
+        if not isinstance(output, torch.Tensor):
+            torch_outputs_adapted.append(torch.tensor(output))
+        elif torch.is_complex(output):
+            torch_outputs_adapted.append(torch.view_as_real(output))
+        else:
+            torch_outputs_adapted.append(output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     onnx_outputs = program(*args, **kwargs)
     # TODO(justinchuby): Include output names in the error message
     torch.testing.assert_close(
         tuple(onnx_outputs),
+<<<<<<< HEAD
         tuple(torch_outputs),
+=======
+        tuple(torch_outputs_adapted),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         rtol=rtol,
         atol=atol,
         equal_nan=True,

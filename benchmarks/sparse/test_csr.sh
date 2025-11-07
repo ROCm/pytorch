@@ -8,8 +8,12 @@ echo "----- USE_MKL=1 -----" >> $OUTFILE
 rm -rf build
 
 export USE_MKL=1
+<<<<<<< HEAD
 export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
 python setup.py build --cmake-only
+=======
+CMAKE_ONLY=1 python setup.py build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ccmake build  # or cmake-gui build
 
 python setup.py install

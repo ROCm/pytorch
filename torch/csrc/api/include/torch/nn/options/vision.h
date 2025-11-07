@@ -16,7 +16,13 @@ namespace torch::nn::functional {
 /// F::GridSampleFuncOptions().mode(torch::kBilinear).padding_mode(torch::kZeros).align_corners(true));
 /// ```
 struct TORCH_API GridSampleFuncOptions {
+<<<<<<< HEAD
   typedef std::variant<enumtype::kBilinear, enumtype::kNearest> mode_t;
+=======
+  typedef std::
+      variant<enumtype::kBilinear, enumtype::kNearest, enumtype::kBicubic>
+          mode_t;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   typedef std::
       variant<enumtype::kZeros, enumtype::kBorder, enumtype::kReflection>
           padding_mode_t;

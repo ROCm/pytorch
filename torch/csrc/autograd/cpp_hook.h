@@ -22,6 +22,12 @@ struct CppFunctionSingleTensorPreHook : public FunctionPreHook {
       size_t value_idx);
   variable_list operator()(const variable_list& values) override;
 
+<<<<<<< HEAD
+=======
+  void compiled_args(
+      torch::dynamo::autograd::CompiledNodeArgs& args) const override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::function<at::TensorBase(const at::TensorBase&)> hook_;
   size_t value_idx_;
 };

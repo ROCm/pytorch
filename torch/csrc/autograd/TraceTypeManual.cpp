@@ -278,7 +278,11 @@ static void general_trace_function(
           tracer::addOutput(node, iter->toTensorList());
         } else {
           throw std::runtime_error(
+<<<<<<< HEAD
               "unsupported ouptut list type: " + elem_type->str());
+=======
+              "unsupported output list type: " + elem_type->str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
       } else if (type->kind() == TypeKind::ClassType) {
         AT_ASSERT(iter->isObject());

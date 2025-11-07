@@ -18,7 +18,11 @@ namespace torch::jit::tensorexpr {
 using namespace analysis;
 
 template <typename Container>
+<<<<<<< HEAD
 BoundsInfo mergeTensorAccesses(
+=======
+static BoundsInfo mergeTensorAccesses(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Container& accesses,
     const std::unordered_map<VarPtr, BufPtr>& varToBuf,
     bool distinctAccessKinds) {

@@ -19,6 +19,10 @@ class BNReLU2d(nnq.BatchNorm2d):
         Same as torch.ao.nn.quantized.BatchNorm2d
 
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _FLOAT_MODULE = torch.ao.nn.intrinsic.BNReLU2d
 
     def __init__(self, num_features, eps=1e-5, momentum=0.1, device=None, dtype=None):
@@ -46,7 +50,11 @@ class BNReLU2d(nnq.BatchNorm2d):
         return "QuantizedBNReLU2d"
 
     @classmethod
+<<<<<<< HEAD
     def from_float(cls, mod, use_precomputed_fake_quant=False):
+=======
+    def from_float(cls, mod, use_precomputed_fake_quant=False):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Add qat support for BNReLU2d
         return super().from_float(
             mod, use_precomputed_fake_quant=use_precomputed_fake_quant
@@ -67,6 +75,10 @@ class BNReLU3d(nnq.BatchNorm3d):
         Same as torch.ao.nn.quantized.BatchNorm3d
 
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _FLOAT_MODULE = torch.ao.nn.intrinsic.BNReLU3d
 
     def __init__(self, num_features, eps=1e-5, momentum=0.1, device=None, dtype=None):
@@ -94,7 +106,11 @@ class BNReLU3d(nnq.BatchNorm3d):
         return "QuantizedBNReLU3d"
 
     @classmethod
+<<<<<<< HEAD
     def from_float(cls, mod, use_precomputed_fake_quant=False):
+=======
+    def from_float(cls, mod, use_precomputed_fake_quant=False):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Add qat support for BNReLU3d
         return super().from_float(
             mod, use_precomputed_fake_quant=use_precomputed_fake_quant

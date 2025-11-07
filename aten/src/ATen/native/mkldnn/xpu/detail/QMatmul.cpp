@@ -101,18 +101,30 @@ void quantized_matmul(
     std::optional<at::Tensor> other, // extra input for binary-post-op
     double other_scale,
     int64_t other_zero_point,
+<<<<<<< HEAD
     const c10::string_view& binary_post_op,
     double binary_alpha,
     const c10::string_view& unary_post_op,
     torch::List<std::optional<at::Scalar>>& unary_post_op_args,
     c10::string_view unary_post_op_algorithm,
+=======
+    const std::string_view& binary_post_op,
+    double binary_alpha,
+    const std::string_view& unary_post_op,
+    torch::List<std::optional<at::Scalar>>& unary_post_op_args,
+    std::string_view unary_post_op_algorithm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool m2_trans) {
   // [Note] Quantized Matrix Multiplication at XPU
   // The following code integrates oneDNN quantized gemm. The quantization
   // config we support:
   // activation: s8&u8; per tensor calibrated; symmetric&asymmetric
   // weight: s8; per_tensor/per_channel calibrated; symmetric
+<<<<<<< HEAD
   auto attr = Attr(1.0 / output_scale, output_zero_point);
+=======
+  auto attr = Attr(static_cast<float>(1.0 / output_scale), output_zero_point);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   construct_attr_by_post_op(
       binary_post_op,
       binary_alpha,
@@ -125,9 +137,14 @@ void quantized_matmul(
       attr);
 
   size_t dims = result.dim();
+<<<<<<< HEAD
   at::Device cur_device = at::Device(at::kXPU, c10::xpu::current_device());
   auto engine = GpuEngineManager::Instance().get_engine(cur_device);
   auto stream = GpuStreamManager::Instance().get_stream();
+=======
+  auto& engine = GpuEngineManager::Instance().get_engine();
+  auto& stream = GpuStreamManager::Instance().get_stream();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   at::Tensor m1 = is_onednn_matmul_strides(mat1) ? mat1 : mat1.contiguous();
   at::Tensor m2 = is_onednn_matmul_strides(mat2) ? mat2 : mat2.contiguous();
@@ -274,7 +291,11 @@ void quantized_matmul(
 
   int scratchpad_size = matmul_pd.scratchpad_desc().get_size();
   at::Tensor scratchpad_tensor =
+<<<<<<< HEAD
       at::empty({scratchpad_size}, m1.options().dtype(at::kByte), c10::nullopt);
+=======
+      at::empty({scratchpad_size}, m1.options().dtype(at::kByte), std::nullopt);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto scratchpad_memory = make_onednn_memory(
       matmul_pd.scratchpad_desc(), engine, scratchpad_tensor.data_ptr());
   args.insert({DNNL_ARG_SCRATCHPAD, scratchpad_memory});

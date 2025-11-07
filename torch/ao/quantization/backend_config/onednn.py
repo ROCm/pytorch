@@ -88,9 +88,15 @@ def _fuse_linear_bn_leaky_relu(is_qat, linear, bn, leaky_relu):
         >>> lr = nn.LeakyReLU(0.01)
         >>> m2 = _fuse_linear_bn_leaky_relu(m1, b1, lr)
     """
+<<<<<<< HEAD
     assert (
         linear.training == bn.training and bn.training == leaky_relu.training
     ), "Linear, BN and LeakyReLU all must be in the same mode (train or eval)."
+=======
+    assert linear.training == bn.training and bn.training == leaky_relu.training, (
+        "Linear, BN and LeakyReLU all must be in the same mode (train or eval)."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if is_qat:
         raise NotImplementedError(
@@ -200,9 +206,13 @@ for with_bn, add_op in conv_add_left_optioins:
     else:
         conv_configs.append(
             BackendPatternConfig()
+<<<<<<< HEAD
             ._set_pattern_complex_format(
                 (add_op, nn.Conv2d, MatchAllNode)
             )  # noqa: E131
+=======
+            ._set_pattern_complex_format((add_op, nn.Conv2d, MatchAllNode))  # noqa: E131
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .set_observation_type(observation_type)
             .set_dtype_configs(conv_dtype_configs)
             .set_fuser_method(_fuse_conv_add_left)
@@ -285,9 +295,13 @@ for with_bn, add_op in conv_add_optioins:
     else:
         conv_configs.append(
             BackendPatternConfig()
+<<<<<<< HEAD
             ._set_pattern_complex_format(
                 (add_op, MatchAllNode, nn.Conv2d)
             )  # noqa: E131
+=======
+            ._set_pattern_complex_format((add_op, MatchAllNode, nn.Conv2d))  # noqa: E131
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .set_observation_type(observation_type)
             .set_dtype_configs(conv_dtype_configs)
             .set_fuser_method(_fuse_conv_add_right)
@@ -390,9 +404,13 @@ for with_bn, add_op in conv_add_relu_left_optioins:
     else:
         conv_configs.append(
             BackendPatternConfig()
+<<<<<<< HEAD
             ._set_pattern_complex_format(
                 (nn.ReLU, (add_op, nn.Conv2d, MatchAllNode))
             )  # noqa: E131
+=======
+            ._set_pattern_complex_format((nn.ReLU, (add_op, nn.Conv2d, MatchAllNode)))  # noqa: E131
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .set_observation_type(observation_type)
             .set_dtype_configs(conv_dtype_configs)
             .set_fuser_method(_fuse_conv_add_relu_left)
@@ -485,9 +503,13 @@ for with_bn, add_op in conv_add_relu_left_optioins:
     else:
         conv_configs.append(
             BackendPatternConfig()
+<<<<<<< HEAD
             ._set_pattern_complex_format(
                 (nn.ReLU, (add_op, MatchAllNode, nn.Conv2d))
             )  # noqa: E131
+=======
+            ._set_pattern_complex_format((nn.ReLU, (add_op, MatchAllNode, nn.Conv2d)))  # noqa: E131
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .set_observation_type(observation_type)
             .set_dtype_configs(conv_dtype_configs)
             .set_fuser_method(_fuse_conv_add_relu_right)

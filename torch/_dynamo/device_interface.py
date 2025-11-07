@@ -17,6 +17,10 @@ The abstraction layer enables device-agnostic code in TorchDynamo while allowing
 specialized implementations for each hardware backend's unique features.
 """
 
+<<<<<<< HEAD
+=======
+import inspect
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -31,8 +35,11 @@ if torch.cuda._is_compiled():
 else:
     get_cuda_stream = None
 
+<<<<<<< HEAD
 _device_t = Union[torch.device, str, int, None]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Recording the device properties in the main process but used in worker process.
 caching_worker_device_properties: dict[str, Any] = {}
 caching_worker_current_devices: dict[str, int] = {}
@@ -45,7 +52,11 @@ class DeviceInterface:
     """
 
     class device:
+<<<<<<< HEAD
         def __new__(cls, device: _device_t):
+=======
+        def __new__(cls, device: torch.types.Device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise NotImplementedError
 
     class Event:
@@ -77,7 +88,11 @@ class DeviceInterface:
             raise NotImplementedError
 
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: _device_t = None):
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise NotImplementedError
 
     @staticmethod
@@ -85,7 +100,11 @@ class DeviceInterface:
         raise NotImplementedError
 
     @staticmethod
+<<<<<<< HEAD
     def set_device(device: _device_t):
+=======
+    def set_device(device: torch.types.Device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     @staticmethod
@@ -125,6 +144,7 @@ class DeviceInterface:
         raise NotImplementedError
 
     @staticmethod
+<<<<<<< HEAD
     def synchronize(device: _device_t = None):
         raise NotImplementedError
 
@@ -134,6 +154,17 @@ class DeviceInterface:
 
     @staticmethod
     def get_compute_capability(device: _device_t = None):
+=======
+    def synchronize(device: torch.types.Device = None):
+        raise NotImplementedError
+
+    @classmethod
+    def get_device_properties(cls, device: torch.types.Device = None):
+        return cls.Worker.get_device_properties(device)
+
+    @staticmethod
+    def get_compute_capability(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     @staticmethod
@@ -147,9 +178,36 @@ class DeviceInterface:
         return dtype != torch.bfloat16 or cls.is_bf16_supported(including_emulation)
 
     @staticmethod
+<<<<<<< HEAD
     def memory_allocated(device: _device_t = None) -> int:
         raise NotImplementedError
 
+=======
+    def memory_allocated(device: torch.types.Device = None) -> int:
+        raise NotImplementedError
+
+    @staticmethod
+    def is_triton_capable(device: torch.types.Device = None) -> bool:
+        """
+        Returns True if the device has Triton support, False otherwise, even if
+        the appropriate Triton backend is not available.
+        """
+        return False
+
+    @classmethod
+    def raise_if_triton_unavailable(cls, device: torch.types.Device = None) -> None:
+        """
+        Raises a `RuntimeError` with the appropriate human-readable instructions
+        to resolve the issue if Triton is not available for the given device, or
+        the default device if `device` is `None`.
+
+        The caller should ensure the presence of the 'triton' package before
+        calling this method.
+        """
+        if not cls.is_triton_capable():
+            raise RuntimeError("This device is not capable of supporting Triton")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DeviceGuard:
     """
@@ -179,12 +237,21 @@ class DeviceGuard:
 
 
 class CudaInterface(DeviceInterface):
+<<<<<<< HEAD
     device = torch.cuda.device
 
     # register Event and Stream class into the backend interface
     # make sure Event and Stream are implemented and inherited from the torch.Event and torch.Stream
     Event = torch.cuda.Event
     Stream = torch.cuda.Stream
+=======
+    device = torch.cuda.device  # type: ignore[assignment]
+
+    # register Event and Stream class into the backend interface
+    # make sure Event and Stream are implemented and inherited from the torch.Event and torch.Stream
+    Event = torch.cuda.Event  # type: ignore[assignment]
+    Stream = torch.cuda.Stream  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class Worker:
         @staticmethod
@@ -198,7 +265,11 @@ class CudaInterface(DeviceInterface):
             return torch.cuda.current_device()
 
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: _device_t = None):
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if device is not None:
                 if isinstance(device, str):
                     device = torch.device(device)
@@ -238,13 +309,43 @@ class CudaInterface(DeviceInterface):
         return torch.cuda.is_available()
 
     @staticmethod
+<<<<<<< HEAD
     def get_compute_capability(device: _device_t = None):
+=======
+    def get_compute_capability(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch.version.hip is None:
             major, min = torch.cuda.get_device_capability(device)
             return major * 10 + min
         else:
             return torch.cuda.get_device_properties(device).gcnArchName.split(":", 1)[0]
 
+<<<<<<< HEAD
+=======
+    @staticmethod
+    def is_triton_capable(device: torch.types.Device = None) -> bool:
+        return (
+            torch.version.hip is not None
+            or torch.cuda.get_device_properties(device).major >= 7
+        )
+
+    @staticmethod
+    def raise_if_triton_unavailable(device: torch.types.Device = None) -> None:
+        from torch._inductor.exc import GPUTooOldForTriton
+
+        if not CudaInterface.is_triton_capable(device):
+            device_props = torch.cuda.get_device_properties(device)
+            raise GPUTooOldForTriton(device_props, inspect.currentframe())
+
+        import triton.backends
+
+        if torch.version.hip is not None:
+            if "amd" not in triton.backends.backends:
+                raise RuntimeError("triton not built with the 'amd' backend")
+        elif "nvidia" not in triton.backends.backends:
+            raise RuntimeError("triton not built with the 'nvidia' backend")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 get_xpu_stream: Optional[Callable[[int], int]]
 if torch.xpu._is_compiled():
@@ -254,9 +355,15 @@ else:
 
 
 class XpuInterface(DeviceInterface):
+<<<<<<< HEAD
     device = torch.xpu.device
     Event = torch.xpu.Event
     Stream = torch.xpu.Stream
+=======
+    device = torch.xpu.device  # type: ignore[assignment]
+    Event = torch.xpu.Event  # type: ignore[assignment]
+    Stream = torch.xpu.Stream  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class Worker:
         @staticmethod
@@ -270,7 +377,11 @@ class XpuInterface(DeviceInterface):
             return torch.xpu.current_device()
 
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: _device_t = None):
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if device is not None:
                 if isinstance(device, str):
                     device = torch.device(device)
@@ -309,7 +420,11 @@ class XpuInterface(DeviceInterface):
         return torch.xpu.is_available()
 
     @staticmethod
+<<<<<<< HEAD
     def get_compute_capability(device: _device_t = None):
+=======
+    def get_compute_capability(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cc = torch.xpu.get_device_capability(device)
         return cc
 
@@ -317,6 +432,20 @@ class XpuInterface(DeviceInterface):
     def is_bf16_supported(including_emulation: bool = False) -> bool:
         return torch.xpu.is_bf16_supported()
 
+<<<<<<< HEAD
+=======
+    @staticmethod
+    def is_triton_capable(device: torch.types.Device = None) -> bool:
+        return True
+
+    @staticmethod
+    def raise_if_triton_unavailable(evice: torch.types.Device = None) -> None:
+        import triton.backends
+
+        if "intel" not in triton.backends.backends:
+            raise RuntimeError("triton not built with the 'intel' backend")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclass
 class CpuDeviceProperties:
@@ -334,6 +463,17 @@ class CpuInterface(DeviceInterface):
         def record(self, stream=None):
             self.time = time.perf_counter()
 
+<<<<<<< HEAD
+=======
+    class Worker:
+        @staticmethod
+        def get_device_properties(device: torch.types.Device = None):
+            import multiprocessing
+
+            cpu_count = multiprocessing.cpu_count()
+            return CpuDeviceProperties(cpu_count)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @staticmethod
     def is_available() -> bool:
         return True
@@ -343,7 +483,11 @@ class CpuInterface(DeviceInterface):
         return True
 
     @staticmethod
+<<<<<<< HEAD
     def get_compute_capability(device: _device_t = None) -> str:
+=======
+    def get_compute_capability(device: torch.types.Device = None) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ""
 
     @staticmethod
@@ -355,6 +499,7 @@ class CpuInterface(DeviceInterface):
         return 0
 
     @staticmethod
+<<<<<<< HEAD
     def synchronize(device: _device_t = None):
         pass
 
@@ -365,6 +510,21 @@ class CpuInterface(DeviceInterface):
 
             cpu_count = multiprocessing.cpu_count()
             return CpuDeviceProperties(cpu_count)
+=======
+    def synchronize(device: torch.types.Device = None):
+        pass
+
+    @staticmethod
+    def is_triton_capable(device: torch.types.Device = None) -> bool:
+        return True
+
+    @staticmethod
+    def raise_if_triton_unavailable(device: torch.types.Device = None) -> None:
+        import triton.backends
+
+        if "cpu" not in triton.backends.backends:
+            raise RuntimeError("triton not built with the 'cpu' backend")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class MpsInterface(DeviceInterface):
@@ -376,7 +536,11 @@ class MpsInterface(DeviceInterface):
     def is_dtype_supported(
         cls, dtype: torch.dtype, including_emulation: bool = False
     ) -> bool:
+<<<<<<< HEAD
         if dtype == torch.float64:
+=======
+        if dtype in [torch.float64, torch.complex128]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
         return dtype != torch.bfloat16 or cls.is_bf16_supported(including_emulation)
 
@@ -389,16 +553,28 @@ class MpsInterface(DeviceInterface):
         return 0
 
     @staticmethod
+<<<<<<< HEAD
     def get_compute_capability(device: _device_t = None) -> str:
         return ""
 
     @staticmethod
     def synchronize(device: _device_t = None):
+=======
+    def get_compute_capability(device: torch.types.Device = None) -> str:
+        return ""
+
+    @staticmethod
+    def synchronize(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.mps.synchronize()
 
     class Worker:
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: _device_t = None):
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return {}
 
         @staticmethod

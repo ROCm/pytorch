@@ -4,7 +4,15 @@ import io
 import unittest
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_WINDOWS, TEST_MKL
+=======
+from torch.testing._internal.common_utils import (
+    IS_WINDOWS,
+    raise_on_run_directly,
+    TEST_MKL,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -118,3 +126,10 @@ class TestSparse(JitTestCase):
         loaded_result = loaded_model.forward(x)
 
         self.assertEqual(expected_result.to_dense(), loaded_result.to_dense())
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

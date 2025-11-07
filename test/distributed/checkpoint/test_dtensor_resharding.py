@@ -1,6 +1,7 @@
 # Owner(s): ["oncall: distributed"]
 import torch
 import torch.distributed.checkpoint as dist_cp
+<<<<<<< HEAD
 from torch.distributed._tensor import (
     distribute_tensor,
     init_device_mesh,
@@ -9,6 +10,11 @@ from torch.distributed._tensor import (
     zeros,
 )
 from torch.distributed.checkpoint._extension import ZStandard
+=======
+from torch.distributed.checkpoint._extension import ZStandard
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import distribute_tensor, Replicate, Shard, zeros
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,

@@ -35,6 +35,13 @@ on:
         required: false
         type: string
         description: Docker image to use
+<<<<<<< HEAD
+=======
+      DOCKER_IMAGE_TAG_PREFIX:
+        required: false
+        type: string
+        description: Docker image tag to use
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       LIBTORCH_CONFIG:
         required: false
         type: string
@@ -43,10 +50,13 @@ on:
         required: false
         type: string
         description: Desired libtorch variant (for libtorch builds only)
+<<<<<<< HEAD
       DESIRED_DEVTOOLSET:
         required: false
         type: string
         description: Desired dev toolset
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON:
         required: false
         type: string
@@ -80,7 +90,10 @@ jobs:
       SKIP_ALL_TESTS: 1
       LIBTORCH_CONFIG: ${{ inputs.LIBTORCH_CONFIG }}
       LIBTORCH_VARIANT: ${{ inputs.LIBTORCH_VARIANT }}
+<<<<<<< HEAD
       DESIRED_DEVTOOLSET: ${{ inputs.DESIRED_DEVTOOLSET }}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DESIRED_PYTHON: ${{ inputs.DESIRED_PYTHON }}
       BINARY_ENV_FILE: /tmp/env
       GITHUB_TOKEN: ${{ secrets.github-token }}
@@ -90,20 +103,32 @@ jobs:
       USE_SPLIT_BUILD: ${{ inputs.use_split_build }}
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: true
 
       - name: Configure AWS credentials(PyTorch account) for nightly
         if: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/nightly' }}
+<<<<<<< HEAD
         uses: aws-actions/configure-aws-credentials@v3
+=======
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           role-to-assume: arn:aws:iam::749337293305:role/gha_workflow_nightly_build_wheels
           aws-region: us-east-1
 
       - name: Configure AWS credentials(PyTorch account) for RC builds
         if: ${{ github.event_name == 'push' &&  (startsWith(github.event.ref, 'refs/tags/') && !startsWith(github.event.ref, 'refs/tags/ciflow/')) }}
+<<<<<<< HEAD
         uses: aws-actions/configure-aws-credentials@v3
+=======
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           role-to-assume: arn:aws:iam::749337293305:role/gha_workflow_test_build_wheels
           aws-region: us-east-1
@@ -113,7 +138,11 @@ jobs:
         # NB: When the previous build job is skipped, there won't be any artifacts and
         # this step will fail. Binary build jobs can only be skipped on CI, not nightly
         continue-on-error: true
+<<<<<<< HEAD
         uses: actions/download-artifact@v4.1.7
+=======
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           name: ${{ inputs.build_name }}
           path: "${{ runner.temp }}/artifacts/"

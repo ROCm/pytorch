@@ -135,7 +135,11 @@ def contains_tensor_types(type):
     )
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def non_compute_operator(op):
     schema = op._schema
 
@@ -274,7 +278,11 @@ class OperatorInputsLoader:
             yield
             return
 
+<<<<<<< HEAD
         # line[1] represents number of times these inputs occured, ignored for now
+=======
+        # line[1] represents number of times these inputs occurred, ignored for now
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for line in self.operator_db[str(operator)].items():
             inps = line[0]
 

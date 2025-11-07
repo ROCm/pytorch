@@ -159,7 +159,11 @@ def main():
             print(
                 f"WIN: benchmark {key} failed, actual result {result} is {ratio:+.2f}% lower than "
                 f"expected {entry.expected_value} ±{entry.noise_margin * 100:.2f}% "
+<<<<<<< HEAD
                 f"please update the expected results. \n"
+=======
+                f"please OPEN THE TEST RESULTS update ALL BENCHMARKS RESULT with the new printed expected results. ALL ALL ALL\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             print(
                 "please update all results that changed significantly, and not only the failed ones"

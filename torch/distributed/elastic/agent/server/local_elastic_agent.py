@@ -275,15 +275,24 @@ class LocalElasticAgent(SimpleElasticAgent):
         event = events.Event(
             name=name, source=events.EventSource.AGENT, metadata=metadata
         )
+<<<<<<< HEAD
         events.record(event)
+=======
+        events.record(event, self._worker_group.spec.event_log_handler)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
     #  `torch.distributed.elastic.metrics.prof`.
     @prof
+<<<<<<< HEAD
     def _stop_workers(
         self, worker_group: WorkerGroup, is_restart: bool = False
     ) -> None:
         self._shutdown(is_restart=is_restart)
+=======
+    def _stop_workers(self, worker_group: WorkerGroup) -> None:
+        self._shutdown()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
     #  `torch.distributed.elastic.metrics.prof`.
@@ -359,9 +368,13 @@ class LocalElasticAgent(SimpleElasticAgent):
 
         return self._pcontext.pids()
 
+<<<<<<< HEAD
     def _shutdown(
         self, death_sig: signal.Signals = signal.SIGTERM, is_restart: bool = False
     ) -> None:
+=======
+    def _shutdown(self, death_sig: signal.Signals = signal.SIGTERM) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self._worker_watchdog is not None:
             self._worker_watchdog.stop()
             self._worker_watchdog = None
@@ -370,8 +383,11 @@ class LocalElasticAgent(SimpleElasticAgent):
             self._health_check_server = None
         if self._pcontext:
             self._pcontext.close(death_sig)
+<<<<<<< HEAD
         if not is_restart and self._rdzv_handler:
             self._rdzv_handler.shutdown()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
     #  `torch.distributed.elastic.metrics.prof`.

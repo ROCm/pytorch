@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions import constraints
@@ -12,7 +17,11 @@ from torch.distributions.utils import (
     logits_to_probs,
     probs_to_logits,
 )
+<<<<<<< HEAD
 from torch.types import _Number, _size
+=======
+from torch.types import _Number, _size, Number
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["LogitRelaxedBernoulli", "RelaxedBernoulli"]
@@ -41,7 +50,17 @@ class LogitRelaxedBernoulli(Distribution):
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
     support = constraints.real
 
+<<<<<<< HEAD
     def __init__(self, temperature, probs=None, logits=None, validate_args=None):
+=======
+    def __init__(
+        self,
+        temperature: Tensor,
+        probs: Optional[Union[Tensor, Number]] = None,
+        logits: Optional[Union[Tensor, Number]] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.temperature = temperature
         if (probs is None) == (logits is None):
             raise ValueError(
@@ -51,6 +70,10 @@ class LogitRelaxedBernoulli(Distribution):
             is_scalar = isinstance(probs, _Number)
             (self.probs,) = broadcast_all(probs)
         else:
+<<<<<<< HEAD
+=======
+            assert logits is not None  # helps mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             is_scalar = isinstance(logits, _Number)
             (self.logits,) = broadcast_all(logits)
         self._param = self.probs if probs is not None else self.logits
@@ -131,8 +154,20 @@ class RelaxedBernoulli(TransformedDistribution):
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
     support = constraints.unit_interval
     has_rsample = True
+<<<<<<< HEAD
 
     def __init__(self, temperature, probs=None, logits=None, validate_args=None):
+=======
+    base_dist: LogitRelaxedBernoulli
+
+    def __init__(
+        self,
+        temperature: Tensor,
+        probs: Optional[Union[Tensor, Number]] = None,
+        logits: Optional[Union[Tensor, Number]] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         base_dist = LogitRelaxedBernoulli(temperature, probs, logits)
         super().__init__(base_dist, SigmoidTransform(), validate_args=validate_args)
 

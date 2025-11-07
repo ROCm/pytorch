@@ -9,7 +9,11 @@ Python polyfills for common builtins.
 # mypy: allow-untyped-defs
 
 import types
+<<<<<<< HEAD
 from collections.abc import MutableMapping, Sequence
+=======
+from collections.abc import Iterable, MutableMapping, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from itertools import repeat as _repeat
 from typing import Any, Callable, TYPE_CHECKING
 
@@ -75,6 +79,7 @@ def radians(x):
 
 
 def accumulate_grad(x, new_grad):
+<<<<<<< HEAD
     if new_grad is None:
         return
     new_grad = torch.clone(new_grad)
@@ -82,6 +87,19 @@ def accumulate_grad(x, new_grad):
         x.grad = new_grad
     else:
         x.grad.add_(new_grad)
+=======
+    # polyfills according to the Gradient Layout Contract
+    if new_grad is None:
+        return
+    new_grad_strided = torch.empty_like(x)
+    new_grad_strided.copy_(new_grad)
+    if x.grad is None:
+        x.grad = new_grad_strided
+    elif torch.is_grad_enabled():
+        x.grad = x.grad + new_grad_strided
+    else:
+        x.grad.add_(new_grad_strided)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This mirrors
@@ -97,6 +115,26 @@ def list_cmp(op: Callable[[Any, Any], bool], left: Sequence[Any], right: Sequenc
     return op(len(left), len(right))
 
 
+<<<<<<< HEAD
+=======
+def set_symmetric_difference(set1, set2):
+    symmetric_difference_set = set()
+    for x in set1:
+        if x not in set2:
+            symmetric_difference_set.add(x)
+    for x in set2:
+        if x not in set1:
+            symmetric_difference_set.add(x)
+    return symmetric_difference_set
+
+
+def set_symmetric_difference_update(set1, set2):
+    result = set1.symmetric_difference(set2)
+    set1.clear()
+    set1.update(result)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def set_isdisjoint(set1, set2):
     for x in set1:
         if x in set2:
@@ -104,14 +142,28 @@ def set_isdisjoint(set1, set2):
     return True
 
 
+<<<<<<< HEAD
 def set_intersection(set1, set2):
     intersection_set = set()
     for x in set1:
         if x in set2:
+=======
+def set_intersection(set1, *others):
+    if len(others) == 0:
+        return set1.copy()
+
+    intersection_set = set()
+    for x in set1:
+        for set2 in others:
+            if x not in set2:
+                break
+        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             intersection_set.add(x)
     return intersection_set
 
 
+<<<<<<< HEAD
 def set_union(set1, set2):
     union_set = set1.copy()
     set_update(union_set, set2)
@@ -129,10 +181,58 @@ def set_difference(set1, set2):
     difference_set = set()
     for x in set1:
         if x not in set2:
+=======
+def set_intersection_update(set1, *others):
+    result = set1.intersection(*others)
+    set1.clear()
+    set1.update(result)
+
+
+def set_union(set1, *others):
+    # frozenset also uses this function
+    union_set = set(set1.copy())
+    for set2 in others:
+        set_update(union_set, set2)
+    return type(set1)(union_set)
+
+
+def set_update(set1, *others):
+    if len(others) == 0:
+        return set1
+
+    for set2 in others:
+        for x in set2:
+            if x not in set1:
+                set1.add(x)
+
+
+def set_difference(set1, *others):
+    if len(others) == 0:
+        return set1.copy()
+
+    if not all(isinstance(s, Iterable) for s in others):
+        raise TypeError(f"set.difference expected an iterable, got {type(others)}")
+
+    difference_set = set()
+    for x in set1:
+        for set2 in others:
+            if x in set2:
+                break
+        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             difference_set.add(x)
     return difference_set
 
 
+<<<<<<< HEAD
+=======
+def set_difference_update(set1, *others):
+    result = set1.difference(*others)
+    set1.clear()
+    set1.update(result)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def getattr_and_trace(*args, **kwargs):
     wrapper_obj = args[0]
     attr_name = args[1]
@@ -165,7 +265,11 @@ def construct_dict(cls, /, *args, **kwargs):
         src = args[0]
 
         # Ensure that the overridden __iter__ method is invoked
+<<<<<<< HEAD
         if isinstance(src, (dict, MutableMapping)):
+=======
+        if isinstance(src, (dict, MutableMapping, types.MappingProxyType)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for key in src:
                 # This will inline the __getitem__ of the src object
                 dst[key] = src[key]

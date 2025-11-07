@@ -344,7 +344,11 @@ namespace detail {
 inline Tensor glu(const Tensor& input, int64_t dim) {
   TORCH_CHECK(
       input.dim() != 0,
+<<<<<<< HEAD
       "glu does not suppport scalars because halving size must be even");
+=======
+      "glu does not support scalars because halving size must be even");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return torch::glu(input, dim);
 }
 } // namespace detail
@@ -370,7 +374,11 @@ inline Tensor glu(const Tensor& input, const GLUFuncOptions& options = {}) {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace detail {
+<<<<<<< HEAD
 inline Tensor gelu(const Tensor& input, const string& approximate) {
+=======
+inline Tensor gelu(const Tensor& input, const std::string& approximate) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return torch::gelu(input, approximate);
 }
 } // namespace detail

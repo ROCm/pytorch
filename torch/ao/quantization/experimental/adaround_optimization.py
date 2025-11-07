@@ -186,9 +186,15 @@ class AdaptiveRoundingOptimizer:
         inp, out, fp_in = self.get_data_inp_out(module, q_module, self.data)
 
         print("==================== Before adaround ====================")
+<<<<<<< HEAD
         assert (
             torch.abs(out[0] - module(fp_in[0])).sum().item() == 0
         ), "In-placed activation is detected, please do not use activation in-placed"
+=======
+        assert torch.abs(out[0] - module(fp_in[0])).sum().item() == 0, (
+            "In-placed activation is detected, please do not use activation in-placed"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Stack the tensors in each list into a single tensor
         # Assuming inp and out are your lists of tensors
         inp_tensor = torch.vstack(inp)

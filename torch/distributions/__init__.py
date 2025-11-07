@@ -86,6 +86,10 @@ from .exp_family import ExponentialFamily
 from .exponential import Exponential
 from .fishersnedecor import FisherSnedecor
 from .gamma import Gamma
+<<<<<<< HEAD
+=======
+from .generalized_pareto import GeneralizedPareto
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .geometric import Geometric
 from .gumbel import Gumbel
 from .half_cauchy import HalfCauchy
@@ -135,6 +139,10 @@ __all__ = [
     "ExponentialFamily",
     "FisherSnedecor",
     "Gamma",
+<<<<<<< HEAD
+=======
+    "GeneralizedPareto",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "Geometric",
     "Gumbel",
     "HalfCauchy",

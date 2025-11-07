@@ -38,7 +38,10 @@
 #include <iterator>
 #include <limits>
 #include <sstream>
+<<<<<<< HEAD
 #include <stdexcept>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifdef FBCODE_CAFFE2
 #include <common/logging/logging.h>
@@ -953,11 +956,18 @@ BlockRunner::BlockRunner(
   }
 }
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BlockRunner::BlockRunner(BlockRunner&&) noexcept = default;
 
 BlockRunner::~BlockRunner() = default;
 
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void BlockRunner::set_arg(const size_t idx, std::vector<IValue>&& args) {
   DCHECK(idx < args.size());
   Input(idx + first_input_is_self_) = std::move(args[idx]);
@@ -983,7 +993,12 @@ void check_type(const Argument& schema_arg, const IValue& arg) {
     return;
   }
   TORCH_CHECK(
+<<<<<<< HEAD
       arg.type()->isSubtypeOf(schema_arg.type()),
+=======
+      arg.type()->isSubtypeOf(schema_arg.type()) ||
+      arg.type()->isSubtypeOfExt(schema_arg.type(), /*why_not=*/nullptr),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       arg.type()->annotation_str(),
       " is not a subtype of ",
       schema_arg.type()->annotation_str(),

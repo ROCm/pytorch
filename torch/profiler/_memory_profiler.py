@@ -91,7 +91,11 @@ class _Storage:
 
 @dataclasses.dataclass(eq=True, unsafe_hash=True, frozen=True)
 class TensorKey(Key):
+<<<<<<< HEAD
     """Hashable identifier for a storage which has been asigned an ID.
+=======
+    """Hashable identifier for a storage which has been assigned an ID.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     A detailed description of Tensor IDs and why they are needed is given in
     `torch/csrc/profiler/collection.h` when `TensorID` is declared. To

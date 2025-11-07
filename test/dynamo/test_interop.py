@@ -28,6 +28,22 @@ class InteropTests(torch._dynamo.test_case.TestCase):
         trace_fn = torch.jit.trace(fn, [torch.zeros(10), torch.zeros(10)])
         self._common(lambda a, b: trace_fn(a, b) + 1)
 
+<<<<<<< HEAD
+=======
+    def test_staticmethod_script_fn(self):
+        class Foo:
+            @staticmethod
+            @torch.jit.script
+            def _g(a):
+                return a**2
+
+            def g(self, a, b):
+                return self._g(a) + b
+
+        foo = Foo()
+        self._common(lambda a, b: foo.g(a, b) + 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_vmap_in_graph(self):
         from functools import wraps
 

@@ -8,7 +8,11 @@ import sys
 import tempfile
 from typing import Callable
 
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -62,7 +66,11 @@ def _run_torchbench_from_args(
     warm_compile_time: list[float] = []
 
     for _ in range(cmd_args.repeat):
+<<<<<<< HEAD
         with fresh_inductor_cache():
+=======
+        with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             env = os.environ.copy()
             with tempfile.NamedTemporaryFile(suffix=".csv") as file:
                 args.append("--output=" + file.name)

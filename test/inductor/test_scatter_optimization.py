@@ -13,6 +13,12 @@ from torch._inductor.test_case import TestCase
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 
 
+<<<<<<< HEAD
+=======
+# set so that metrics appear
+torch._logging.set_logs(inductor_metrics=True)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DO_PERF_TEST = os.environ.get("DO_PERF_TEST") == "1"
 
 
@@ -177,9 +183,15 @@ class TestScatterOpt(TestCase):
         ref_grad = ref_model.weight.grad
         opt_f(opt_model, x, label)
         act_grad = opt_model.weight.grad
+<<<<<<< HEAD
         assert torch.allclose(
             ref_grad, act_grad, atol=1e-3, rtol=1e-3
         ), f"{ref_grad=}\n{act_grad=}"
+=======
+        assert torch.allclose(ref_grad, act_grad, atol=1e-3, rtol=1e-3), (
+            f"{ref_grad=}\n{act_grad=}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.check_metric()
 

@@ -73,9 +73,15 @@ def _wrap_jagged_dims(ndim, dims, op_name, ragged_idx=1):
     """
     from torch._prims_common import canonicalize_dims
 
+<<<<<<< HEAD
     assert isinstance(
         dims, (tuple, list)
     ), f"_wrap_jagged_dims(): cannot iterate over dimensions of type {type(dims)}"
+=======
+    assert isinstance(dims, (tuple, list)), (
+        f"_wrap_jagged_dims(): cannot iterate over dimensions of type {type(dims)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     wrapped_dims = [
         canonicalize_dims(ndim, d) for d in dims
@@ -535,9 +541,15 @@ def clone_default(func, *args, **kwargs):
             from .nested_tensor import jagged_from_list
 
             # TODO: We probably want the output to have the same ragged structure / nested int.
+<<<<<<< HEAD
             assert (
                 inp._ragged_idx == 1
             ), "NJT with ragged_idx != 1 not supported for contiguous clone"
+=======
+            assert inp._ragged_idx == 1, (
+                "NJT with ragged_idx != 1 not supported for contiguous clone"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             contig, _ = jagged_from_list(inp.unbind(), offsets=None)
             return contig
 
@@ -1730,8 +1742,13 @@ def native_layer_norm_default(func, *args, **kwargs):
         )  # a sum over (1, 2) ensures layer norm, whereas a sum over (1) would be an instance norm
 
         padded_normalized = (
+<<<<<<< HEAD
             padded_input - mean
         ) * padded_mask  # mask elements outside of the ragged dimension size for correct variance calculation
+=======
+            (padded_input - mean) * padded_mask
+        )  # mask elements outside of the ragged dimension size for correct variance calculation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         variance = (
             torch.sum(

@@ -45,9 +45,15 @@ void hardswish_backward_kernel(TensorIterator& iter) {
       [zero, three, neg_three, one_half]GPU_LAMBDA(scalar_t grad_val_, scalar_t self_val_) -> scalar_t {
         opmath_t grad_val = static_cast<opmath_t>(grad_val_);
         opmath_t self_val = static_cast<opmath_t>(self_val_);
+<<<<<<< HEAD
         if (self_val < neg_three) {
           return zero;
         } else if (self_val <= three) {
+=======
+        if (self_val <= neg_three) {
+          return zero;
+        } else if (self_val < three) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return grad_val * ((self_val / three) + one_half);
         } else {
           return grad_val;

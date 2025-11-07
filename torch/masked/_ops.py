@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import warnings
 from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar, Union
+<<<<<<< HEAD
 from typing_extensions import ParamSpec
+=======
+from typing_extensions import ParamSpec, TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import sym_float, Tensor
@@ -12,6 +16,7 @@ from torch.masked.maskedtensor.creation import as_masked_tensor
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from torch.types import _dtype as DType
 
     DimOrDims = Optional[Union[int, tuple[int], list[int]]]
@@ -19,6 +24,16 @@ else:
     # The JIT doesn't understand Union, nor torch.dtype here
     DType = int
     DimOrDims = Optional[tuple[int]]
+=======
+    from torch._prims_common import DimsType
+    from torch.types import _dtype as DType
+
+    DimOrDims: TypeAlias = Optional[DimsType]
+else:
+    # The JIT doesn't understand Union, nor torch.dtype here
+    DType = int
+    DimOrDims = Optional[tuple[int, ...]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__: list[str] = []
@@ -308,14 +323,22 @@ defined as ``prod(x[:i])``.""",
     operation_args, operation_kwargs = args_and_kwargs[func.__name__]
     arg_declarations = [
         "\n    ".join(
+<<<<<<< HEAD
             argument_declarations.get(a, f'{a.split("__", 1)[0]}: TBD.').splitlines()
+=======
+            argument_declarations.get(a, f"{a.split('__', 1)[0]}: TBD.").splitlines()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         for a in operation_args
     ]
     kwarg_declarations = [
         "\n    ".join(
             argument_declarations.get(
+<<<<<<< HEAD
                 a.split("=", 1)[0], f'{a.split("__", 1)[0]}: TBD.'
+=======
+                a.split("=", 1)[0], f"{a.split('__', 1)[0]}: TBD."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             .format(default=a.split("=", 1)[1])
             .splitlines()
@@ -744,9 +767,15 @@ def _sparse_csr_segment_reduction_helper(
 ) -> Tensor:
     # Currently, while sparse CSR is always 2D with no dense dimensions keepdim must be True
     # FIXME: when dense dimensions are implemented for CSR tensors
+<<<<<<< HEAD
     assert (
         keepdim
     ), "reduction operations on CSR tensors with keepdim=False is unsupported"
+=======
+    assert keepdim, (
+        "reduction operations on CSR tensors with keepdim=False is unsupported"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reduce = op.__name__
     valid_reductions = ["sum", "prod", "mean", "amax", "amin"]
     if reduce not in valid_reductions:
@@ -780,9 +809,15 @@ def _sparse_csr_segment_reduction_helper(
             )
             new_shape = [1, mask_input.size(1)]
         else:
+<<<<<<< HEAD
             assert (
                 dims[0] == 1
             ), "Sparse CSR tensors are 2D and only support reduction along dim 0 or 1."
+=======
+            assert dims[0] == 1, (
+                "Sparse CSR tensors are 2D and only support reduction along dim 0 or 1."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # all intervals new_crow_indices[i] - new_crow_indices[i-1] are 1
             # except for where crow_indices[i] == crow_indices[i-1] where the interval remains as 0
             new_crow_indices = torch.cat(
@@ -793,7 +828,11 @@ def _sparse_csr_segment_reduction_helper(
                 0,
             )
             new_nnz = new_crow_indices[-1]
+<<<<<<< HEAD
             new_col_indices = col_indices.new_zeros(new_nnz)
+=======
+            new_col_indices = col_indices.new_zeros(new_nnz)  # type: ignore[call-overload]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_values = torch._segment_reduce(values, reduce, offsets=crow_indices)  # type: ignore[attr-defined]
             new_shape = [mask_input.size(0), 1]
     else:
@@ -1597,9 +1636,15 @@ def _std_var(
     mask: Optional[Tensor],
     take_sqrt: Optional[bool],
 ) -> Tensor:
+<<<<<<< HEAD
     assert (
         unbiased is None or correction_opt is None
     ), "Only one of unbiased and correction may be given"
+=======
+    assert unbiased is None or correction_opt is None, (
+        "Only one of unbiased and correction may be given"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     correction = 1.0
     if unbiased is not None:
         correction = 1.0 if unbiased else 0.0
@@ -1635,7 +1680,15 @@ def _std_var(
             total = sum(x * x.conj(), dim, keepdim=keepdim, dtype=compute_dtype)
         else:
             total = sum(
+<<<<<<< HEAD
                 x * x.conj(), dim, keepdim=keepdim, dtype=compute_dtype, mask=inmask  # type: ignore[possibly-undefined]
+=======
+                x * x.conj(),
+                dim,
+                keepdim=keepdim,
+                dtype=compute_dtype,
+                mask=inmask,  # type: ignore[possibly-undefined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         if not keepdim:
             count = count.reshape(total.shape)

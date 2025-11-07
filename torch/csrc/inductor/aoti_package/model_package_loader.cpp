@@ -1,6 +1,10 @@
 #if !defined(C10_MOBILE) && !defined(ANDROID)
 
 #include <c10/util/error.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/string_view.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/inductor/aoti_package/model_package_loader.h>
 #include <torch/csrc/inductor/aoti_runner/model_container_runner.h>
 #include <torch/csrc/inductor/aoti_runner/model_container_runner_cpu.h>
@@ -34,11 +38,19 @@ namespace fs = std::filesystem;
 #endif
 
 namespace {
+<<<<<<< HEAD
 bool file_exists(std::string& path) {
 #ifdef _WIN32
   return fs::exists(path);
 #else
   struct stat rc {};
+=======
+bool file_exists(const std::string& path) {
+#ifdef _WIN32
+  return fs::exists(path);
+#else
+  struct stat rc{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return lstat(path.c_str(), &rc) == 0;
 #endif
 }
@@ -62,13 +74,20 @@ const std::string k_separator = "\\";
 #else
 const std::string k_separator = "/";
 #endif
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 namespace torch::inductor {
 
 namespace {
+<<<<<<< HEAD
 const nlohmann::json& load_json_file(std::string json_path) {
+=======
+const nlohmann::json& load_json_file(const std::string& json_path) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!file_exists(json_path)) {
     throw std::runtime_error("File not found: " + json_path);
   }
@@ -187,7 +206,11 @@ bool recursive_mkdir(const std::string& dir) {
   }
 
   // Find folder separator and check if we are at the top
+<<<<<<< HEAD
   auto pos = dir.find_last_of("/\\");
+=======
+  auto pos = dir.find_last_of(k_separator);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (pos == std::string::npos) {
     return false;
   }
@@ -217,7 +240,11 @@ bool recursive_rmdir(const std::string& path) {
   }
 
   struct dirent* entry = nullptr;
+<<<<<<< HEAD
   struct stat statbuf {};
+=======
+  struct stat statbuf{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool success = true;
 
   // Iterate through directory entries
@@ -264,7 +291,11 @@ bool recursive_rmdir(const std::string& path) {
 
 std::string compile_so(
     const std::string& cpp_filename,
+<<<<<<< HEAD
     const std::string& consts_filename) {
+=======
+    std::vector<std::string>& obj_filenames) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Compile the cpp file into a .so
 
   size_t lastindex = cpp_filename.find_last_of('.');
@@ -280,8 +311,14 @@ std::string compile_so(
       cpp_filename.substr(0, lastindex) + "_linker_flags.json";
   const nlohmann::json linker_flags = load_json_file(linker_flags_path);
 
+<<<<<<< HEAD
   auto [link_cmd, output_so] = get_cpp_compile_command(
       filename, {output_o, consts_filename}, linker_flags);
+=======
+  obj_filenames.push_back(output_o);
+  auto [link_cmd, output_so] =
+      get_cpp_compile_command(filename, obj_filenames, linker_flags);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Run the commands to generate a .so file
   int status = system(compile_cmd.c_str());
@@ -341,7 +378,25 @@ void AOTIModelPackageLoader::load_metadata(const std::string& cpp_filename) {
 AOTIModelPackageLoader::AOTIModelPackageLoader(
     const std::string& model_package_path,
     const std::string& model_name,
+<<<<<<< HEAD
     const bool run_single_threaded) {
+=======
+    const bool run_single_threaded,
+    const size_t num_runners,
+    const c10::DeviceIndex device_index) {
+  if (run_single_threaded) {
+    if (num_runners != 1) {
+      throw std::runtime_error(
+          "num_runners must be 1 when run_single_threaded is true");
+    }
+  } else {
+    if (num_runners < 1) {
+      throw std::runtime_error(
+          "num_runners must be >=1 when run_single_threaded is false");
+    }
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Extract all files within the zipfile to a temporary directory
   mz_zip_archive zip_archive;
   memset(&zip_archive, 0, sizeof(zip_archive));
@@ -352,6 +407,7 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
         mz_zip_get_error_string(mz_zip_get_last_error(&zip_archive)));
   }
 
+<<<<<<< HEAD
   temp_dir_ = create_temp_dir();
   std::string so_filename;
   std::string cpp_filename;
@@ -360,12 +416,16 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
   std::string model_directory =
       "data" + k_separator + "aotinductor" + k_separator + model_name;
 
+=======
+  std::vector<std::string> found_filenames;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (uint32_t i = 0; i < zip_archive.m_total_files; i++) {
     uint32_t filename_len =
         mz_zip_reader_get_filename(&zip_archive, i, nullptr, 0);
     if (filename_len == 0) {
       throw std::runtime_error("Failed to read filename");
     }
+<<<<<<< HEAD
     char* filename = new char[filename_len + 1];
     if (!mz_zip_reader_get_filename(&zip_archive, i, filename, filename_len)) {
       throw std::runtime_error("Failed to read filename");
@@ -384,6 +444,77 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
 
       // Create the parent directory if it doesn't exist
       size_t parent_path_idx = output_path_str.find_last_of("/\\");
+=======
+    // filename_len returned by mz_zip_reader_get_filename includes the null
+    // terminator, so we need to subtract 1 here
+    std::string filename_str(filename_len - 1, '\0');
+    if (!mz_zip_reader_get_filename(
+            &zip_archive, i, filename_str.data(), filename_len)) {
+      throw std::runtime_error("Failed to read filename");
+    }
+    found_filenames.push_back(filename_str);
+  }
+
+  if (found_filenames.empty()) {
+    throw std::runtime_error("No files found in zip archive.");
+  }
+
+  // All the paths are prepended with a tmp/ directory. We need to find the
+  // prefix.
+  std::string file_prefix;
+  size_t pos = found_filenames[0].find('/');
+  std::string prefix0 = found_filenames[0].substr(0, pos);
+  pos = found_filenames[1].find('/');
+  std::string prefix1 = found_filenames[1].substr(0, pos);
+
+  if (!prefix0.empty() && !prefix1.empty() && prefix0 == prefix1) {
+    file_prefix = prefix0 + "/";
+  } else {
+    LOG(WARNING)
+        << "You are using an outdated version of the pt2 archive which do not have a prefix in front of each filename. Example: \n"
+        << found_filenames[0] << "\n"
+        << found_filenames[1];
+  }
+
+  temp_dir_ = create_temp_dir();
+
+  std::string so_filename;
+  std::string cpp_filename;
+  std::vector<std::string> obj_filenames;
+  std::string model_directory = file_prefix + "data" + k_separator +
+      "aotinductor" + k_separator + model_name;
+  std::string const_directory =
+      file_prefix + "data" + k_separator + "constants";
+
+  for (const std::string& filename_str : found_filenames) {
+    // Only compile files in the specified model directory
+    if (c10::starts_with(filename_str, model_directory) ||
+        c10::starts_with(filename_str, const_directory)) {
+      std::string output_path_str = temp_dir_;
+
+      if (c10::starts_with(filename_str, model_directory)) {
+        output_path_str += k_separator;
+        output_path_str += filename_str;
+      } else { // startsWith(filename_str, const_directory)
+        // Extract constants to the same directory as the rest of the files
+        // to be consistent with internal implementation
+        size_t lastSlash = filename_str.find_last_of(k_separator);
+        std::string filename = filename_str;
+        if (lastSlash != std::string::npos) {
+          filename = filename_str.substr(lastSlash + 1);
+        }
+        output_path_str.append(k_separator)
+            .append(model_directory)
+            .append(k_separator)
+            .append(filename);
+      }
+
+      LOG(INFO) << "Extract file: " << filename_str << " to "
+                << output_path_str;
+
+      // Create the parent directory if it doesn't exist
+      size_t parent_path_idx = output_path_str.find_last_of(k_separator);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (parent_path_idx == std::string::npos) {
         throw std::runtime_error(
             "Failed to find parent path in " + output_path_str);
@@ -398,7 +529,11 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
 
       // Extracts file to the temp directory
       mz_zip_reader_extract_file_to_file(
+<<<<<<< HEAD
           &zip_archive, filename, output_path_str.c_str(), 0);
+=======
+          &zip_archive, filename_str.c_str(), output_path_str.c_str(), 0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       // Save the file for bookkeeping
       size_t extension_idx = output_path_str.find_last_of('.');
@@ -406,11 +541,17 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
         std::string filename_extension = output_path_str.substr(extension_idx);
         if (filename_extension == ".cpp") {
           cpp_filename = output_path_str;
+<<<<<<< HEAD
         }
         if (filename_extension == ".o") {
           consts_filename = output_path_str;
         }
         if (filename_extension == ".so") {
+=======
+        } else if (filename_extension == ".o") {
+          obj_filenames.push_back(output_path_str);
+        } else if (filename_extension == ".so") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           so_filename = output_path_str;
         }
       }
@@ -426,29 +567,50 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
   }
 
   if (cpp_filename.empty() && so_filename.empty()) {
+<<<<<<< HEAD
     throw std::runtime_error(
         "No AOTInductor generate cpp file or so file found in zip archive. Loaded the following:\n" +
         found_filenames);
+=======
+    std::string found_filenames_str;
+    for (const std::string& filename : found_filenames) {
+      found_filenames_str += filename + "\n";
+    }
+    throw std::runtime_error(
+        "No AOTInductor generate cpp file or so file found in zip archive with the prefix " +
+        model_directory + "Loaded the following:\n" + found_filenames_str);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Compile the .so
   std::string so_path = !so_filename.empty()
       ? so_filename
+<<<<<<< HEAD
       : compile_so(cpp_filename, consts_filename);
+=======
+      : compile_so(cpp_filename, obj_filenames);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Load metadata which can be queried by user
   load_metadata(cpp_filename);
 
   // Construct the runner depending on the device information
+<<<<<<< HEAD
   std::string device = metadata_["AOTI_DEVICE_KEY"];
 
   if (device.empty()) {
+=======
+  std::string device_key = metadata_["AOTI_DEVICE_KEY"];
+
+  if (device_key.empty()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw std::runtime_error("No device information found.");
   }
 
   std::unordered_map<std::string, CreateAOTIModelRunnerFunc>
       registered_aoti_runner = getAOTIModelRunnerRegistry();
 
+<<<<<<< HEAD
   if (registered_aoti_runner.find(device) == registered_aoti_runner.end()) {
     throw std::runtime_error("Unsupported device found: " + device);
   }
@@ -456,6 +618,18 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
   std::string cubin_dir = temp_dir_ + k_separator + model_directory;
   runner_ = registered_aoti_runner[device](
       so_path, 1, device, cubin_dir, run_single_threaded);
+=======
+  if (registered_aoti_runner.find(device_key) == registered_aoti_runner.end()) {
+    throw std::runtime_error("Unsupported device key found: " + device_key);
+  }
+
+  c10::Device device = c10::Device(device_key);
+  device.set_index(device_index);
+
+  std::string cubin_dir = temp_dir_ + k_separator + model_directory;
+  runner_ = registered_aoti_runner[device_key](
+      so_path, num_runners, device.str(), cubin_dir, run_single_threaded);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 AOTIModelPackageLoader::~AOTIModelPackageLoader() {
@@ -493,10 +667,18 @@ std::vector<std::string> AOTIModelPackageLoader::get_call_spec() {
 void AOTIModelPackageLoader::load_constants(
     std::unordered_map<std::string, at::Tensor>& constants_map,
     bool use_inactive,
+<<<<<<< HEAD
     bool check_full_update) {
   std::unordered_map<std::string, std::string> constant_name_to_fqn =
       runner_->getConstantNamesToOriginalFQNs();
   std::unordered_map<std::string, at::string> fqn_to_constant_name;
+=======
+    bool check_full_update,
+    bool user_managed) {
+  std::unordered_map<std::string, std::string> constant_name_to_fqn =
+      runner_->getConstantNamesToOriginalFQNs();
+  std::unordered_map<std::string, std::string> fqn_to_constant_name;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& it : constant_name_to_fqn) {
     fqn_to_constant_name.emplace(it.second, it.first);
   }
@@ -511,7 +693,11 @@ void AOTIModelPackageLoader::load_constants(
   }
 
   return runner_->update_constant_buffer(
+<<<<<<< HEAD
       updated_constants_map, use_inactive, check_full_update);
+=======
+      updated_constants_map, use_inactive, check_full_update, user_managed);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::vector<std::string> AOTIModelPackageLoader::get_constant_fqns() {
@@ -525,5 +711,16 @@ std::vector<std::string> AOTIModelPackageLoader::get_constant_fqns() {
   return constant_fqns;
 }
 
+<<<<<<< HEAD
+=======
+void AOTIModelPackageLoader::update_constant_buffer(
+    std::unordered_map<std::string, at::Tensor>& tensor_map,
+    bool use_inactive,
+    bool validate_full_updates,
+    bool user_managed) {
+  runner_->update_constant_buffer(
+      tensor_map, use_inactive, validate_full_updates, user_managed);
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::inductor
 #endif

@@ -96,7 +96,13 @@ class MultiheadAttention(nn.MultiheadAttention):
             self.vdim, self.embed_dim, bias=bias, **factory_kwargs
         )
         # for the type: ignore, see https://github.com/pytorch/pytorch/issues/58969
+<<<<<<< HEAD
         self.out_proj = nn.Linear(self.embed_dim, self.embed_dim, bias=bias, **factory_kwargs)  # type: ignore[assignment]
+=======
+        self.out_proj = nn.Linear(
+            self.embed_dim, self.embed_dim, bias=bias, **factory_kwargs
+        )  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Functionals
         self.q_scaling_product = torch.ao.nn.quantized.FloatFunctional()
@@ -375,9 +381,15 @@ class MultiheadAttention(nn.MultiheadAttention):
         assert key.size(0) == value.size(0) and key.size(1) == value.size(1)
 
         head_dim = self.embed_dim // self.num_heads
+<<<<<<< HEAD
         assert (
             head_dim * self.num_heads == self.embed_dim
         ), "embed_dim must be divisible by num_heads"
+=======
+        assert head_dim * self.num_heads == self.embed_dim, (
+            "embed_dim must be divisible by num_heads"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         scaling = float(head_dim) ** -0.5
 
         q = self.linear_Q(query)
@@ -394,9 +406,15 @@ class MultiheadAttention(nn.MultiheadAttention):
                     stacklevel=3,
                 )
                 attn_mask = attn_mask.to(torch.bool)
+<<<<<<< HEAD
             assert (
                 attn_mask.is_floating_point() or attn_mask.dtype == torch.bool
             ), f"Only float and bool types are supported for attn_mask, not {attn_mask.dtype}"
+=======
+            assert attn_mask.is_floating_point() or attn_mask.dtype == torch.bool, (
+                f"Only float and bool types are supported for attn_mask, not {attn_mask.dtype}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if attn_mask.dim() == 2:
                 attn_mask = attn_mask.unsqueeze(0)

@@ -213,6 +213,10 @@ def debug_insert_nops(
             global_scope=globals(),
             f_code=frame.f_code,
             torch_function_mode_stack=[],
+<<<<<<< HEAD
+=======
+            package=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         return wrap_guarded_code(
@@ -312,6 +316,29 @@ class AotEagerAndRecordGraphs:
         )
 
 
+<<<<<<< HEAD
+=======
+class InductorAndRecordGraphs:
+    def __init__(self) -> None:
+        self.graphs: list[torch.fx.GraphModule] = []
+        self.inductor_graphs: list[torch.fx.GraphModule] = []
+
+    def __call__(self, gm, example_inputs):  # type: ignore[no-untyped-def]
+        import torch._inductor.compile_fx as compile_fx_mod
+
+        self.graphs.append(gm)
+
+        old_compile_fx_inner = compile_fx_mod._compile_fx_inner
+
+        def patched(*args, **kwargs):  # type: ignore[no-untyped-def]
+            self.inductor_graphs.append(args[0])
+            return old_compile_fx_inner(*args, **kwargs)
+
+        with patch.object(compile_fx_mod, "_compile_fx_inner", new=patched):
+            return compile_fx_mod.compile_fx(gm, example_inputs)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def strip_comment(code: str) -> str:
     return re.sub(r"(?m)^ *#.*\n?", "", code)
 
@@ -465,31 +492,51 @@ def make_test_cls_with_patches(
 
 
 # test Python 3.11+ specific features
+<<<<<<< HEAD
 def skipIfNotPy311(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def skipIfNotPy311(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 11):
         return fn
     return unittest.skip(fn)
 
 
+<<<<<<< HEAD
 def skipIfNotPy312(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def skipIfNotPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 12):
         return fn
     return unittest.skip("Requires Python 3.12+")(fn)
 
 
+<<<<<<< HEAD
 def xfailIfPy312(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def xfailIfPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 12):
         return unittest.expectedFailure(fn)
     return fn
 
 
+<<<<<<< HEAD
 def skipIfPy312(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def skipIfPy312(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 12):
         return unittest.skip("Not supported in Python 3.12+")(fn)
     return fn
 
 
+<<<<<<< HEAD
 def requiresPy310(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def requiresPy310(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 10):
         return fn
     else:
@@ -498,19 +545,31 @@ def requiresPy310(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 # Controls tests generated in test/inductor/test_torchinductor_dynamic_shapes.py
 # and test/dynamo/test_dynamic_shapes.py
+<<<<<<< HEAD
 def expectedFailureDynamic(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def expectedFailureDynamic(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fn._expected_failure_dynamic = True  # type: ignore[attr-defined]
     return fn
 
 
 # Controls tests generated in test/inductor/test_torchinductor_codegen_dynamic_shapes.py
+<<<<<<< HEAD
 def expectedFailureCodegenDynamic(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def expectedFailureCodegenDynamic(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fn._expected_failure_codegen_dynamic = True  # type: ignore[attr-defined]
     return fn
 
 
 # Controls test generated in test/inductor/test_cpp_wrapper.py
+<<<<<<< HEAD
 def expectedFailureDynamicWrapper(fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+def expectedFailureDynamicWrapper(fn: Callable[_P, _T]) -> Callable[_P, _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fn._expected_failure_dynamic_wrapper = True  # type: ignore[attr-defined]
     return fn
 
@@ -524,3 +583,12 @@ def reset_rng_state(use_xla: bool = False) -> None:
         import torch_xla.core.xla_model as xm
 
         xm.set_rng_state(1337, str(xm.xla_device()))
+<<<<<<< HEAD
+=======
+
+
+def _skipped_function_for_test_reconstruct(
+    f: Callable[_P, _T], *args: _P.args, **kwargs: _P.kwargs
+) -> _T:
+    return f(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

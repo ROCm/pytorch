@@ -20,13 +20,21 @@ import operator
 import sys
 from typing import Optional, TYPE_CHECKING, Union
 
+<<<<<<< HEAD
 from .. import polyfills, variables
+=======
+from .. import graph_break_hints, polyfills, variables
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..bytecode_transformation import create_call_function, create_instruction
 from ..exc import (
     handle_observed_exception,
     ObservedUserStopIteration,
     raise_observed_exception,
+<<<<<<< HEAD
     unimplemented,
+=======
+    unimplemented_v2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     UserError,
 )
 from .base import ValueMutationNew, VariableTracker
@@ -34,6 +42,10 @@ from .constant import ConstantVariable
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+=======
+    from torch._dynamo.codegen import PyCodegen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._dynamo.symbolic_convert import InstructionTranslator
 
 
@@ -75,6 +87,7 @@ class ItertoolsVariable(VariableTracker):
             from .builtin import BuiltinVariable
 
             if any(key not in ["initial", "func"] for key in kwargs.keys()):
+<<<<<<< HEAD
                 unimplemented(
                     "Unsupported kwargs for itertools.accumulate: "
                     f"{','.join(set(kwargs.keys()) - {'initial', 'func'})}"
@@ -82,6 +95,16 @@ class ItertoolsVariable(VariableTracker):
 
             acc = kwargs.get("initial")
 
+=======
+                unimplemented_v2(
+                    gb_type="Unsupported kwargs for itertools.accumulate",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation=f"Expected kwargs: 'initial', 'func', but got "
+                    f"{','.join(set(kwargs.keys()) - {'initial', 'func'})}",
+                    hints=[*graph_break_hints.USER_ERROR],
+                )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if len(args) in [1, 2] and args[0].has_unpack_var_sequence(tx):
                 seq = args[0].unpack_var_sequence(tx)
 
@@ -93,6 +116,7 @@ class ItertoolsVariable(VariableTracker):
                     # Default to operator.add
                     func = BuiltinVariable(operator.add).call_function
                 else:
+<<<<<<< HEAD
                     unimplemented(
                         "itertools.accumulate can only accept one of: `func` kwarg, pos 2 arg"
                     )
@@ -100,6 +124,34 @@ class ItertoolsVariable(VariableTracker):
                 unimplemented("Unsupported arguments for itertools.accumulate")
 
             items = []
+=======
+                    unimplemented_v2(
+                        gb_type="Unsupported `func` in itertools.accumulate",
+                        context=f"call_function {self} {args} {kwargs}",
+                        explanation="Dynamo does not know how to get the "
+                        "function to use for itertools.accumulate. "
+                        "itertools.accumulate expects the `func` as the second "
+                        "argument or as a keyword argument.",
+                        hints=[*graph_break_hints.USER_ERROR],
+                    )
+            else:
+                unimplemented_v2(
+                    gb_type="Unsupported arguments for itertools.accumulate",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation="Dynamo does not know how to trace "
+                    f"itertools.accumulate with args: {args} and kwargs: {kwargs}. "
+                    "itertools.accumulate expects an iterable, an optional "
+                    "binary function for accumulation, and an optional initial "
+                    "value to set the starting state.",
+                    hints=[
+                        "Make sure the arguments to itertools.accumulate are correct.",
+                        *graph_break_hints.SUPPORTABLE,
+                    ],
+                )
+
+            items = []
+            acc = kwargs.get("initial")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if acc is not None:
                 items.append(acc)
             for item in seq:
@@ -109,8 +161,17 @@ class ItertoolsVariable(VariableTracker):
                     try:
                         acc = func(tx, [acc, item], {})
                     except Exception as e:
+<<<<<<< HEAD
                         unimplemented(
                             f"Unexpected failure in invoking function during accumulate. Failed running func {func}({item}{acc})",
+=======
+                        unimplemented_v2(
+                            gb_type="Unexpected failure during itertools.accumulate() iteration",
+                            context=f"call_function {self} {args} {kwargs}",
+                            explanation="Unexpected failure in invoking function during accumulate. "
+                            f"Failed running func {func}({item}{acc})",
+                            hints=[*graph_break_hints.DIFFICULT],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             from_exc=e,
                         )
                 items.append(acc)
@@ -136,9 +197,18 @@ class ItertoolsVariable(VariableTracker):
             )
         elif self.value is itertools.groupby:
             if any(kw != "key" for kw in kwargs.keys()):
+<<<<<<< HEAD
                 unimplemented(
                     "Unsupported kwargs for itertools.groupby: "
                     f"{','.join(set(kwargs.keys()) - {'key'})}"
+=======
+                unimplemented_v2(
+                    gb_type="Unsupported kwargs for itertools.groupby",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation=f"Expected kwargs: 'key', but got "
+                    f"{','.join(set(kwargs.keys()) - {'key'})}",
+                    hints=[*graph_break_hints.USER_ERROR],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             def retrieve_const_key(key):
@@ -147,14 +217,39 @@ class ItertoolsVariable(VariableTracker):
                 elif isinstance(key, variables.ConstantVariable):
                     return key.as_python_constant()
                 else:
+<<<<<<< HEAD
                     unimplemented(
                         "Unsupported key type for itertools.groupby: " + str(type(key))
+=======
+                    unimplemented_v2(
+                        gb_type="Unsupported key type for itertools.groupby",
+                        context=f"call_function {self} {args} {kwargs}",
+                        explanation="Dynamo does not know how to trace "
+                        f"itertools.groupby with key type: {str(type(key))}. "
+                        "We only support grouping keys that are constants (int, float, str, etc.)",
+                        hints=[*graph_break_hints.SUPPORTABLE],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
             if len(args) == 1 and args[0].has_unpack_var_sequence(tx):
                 seq = args[0].unpack_var_sequence(tx)
             else:
+<<<<<<< HEAD
                 unimplemented("Unsupported arguments for itertools.groupby")
+=======
+                unimplemented_v2(
+                    gb_type="Unsupported arguments for itertools.groupby",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation="Dynamo does not know how to trace "
+                    f"itertools.groupby with args: {args} and kwargs: {kwargs}. "
+                    "itertools.groupby expects an iterable to group and an "
+                    "optional key function to determine groupings.",
+                    hints=[
+                        "Make sure the arguments to itertools.groupby are correct.",
+                        *graph_break_hints.SUPPORTABLE,
+                    ],
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if "key" in kwargs:
 
@@ -185,8 +280,16 @@ class ItertoolsVariable(VariableTracker):
                         )
                     )
             except Exception as e:
+<<<<<<< HEAD
                 unimplemented(
                     "Unexpected failure when calling itertools.groupby",
+=======
+                unimplemented_v2(
+                    gb_type="Unexpected failure during itertools.groupby() iteration",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation="Unexpected failure in invoking function during groupby",
+                    hints=[*graph_break_hints.SUPPORTABLE],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     from_exc=e,
                 )
             return variables.ListIteratorVariable(
@@ -218,7 +321,16 @@ class IteratorVariable(VariableTracker):
         super().__init__(**kwargs)
 
     def next_variable(self, tx):
+<<<<<<< HEAD
         unimplemented("abstract method, must implement")
+=======
+        unimplemented_v2(
+            gb_type="Unimplemented next() call",
+            context=f"next({self})",
+            explanation="This abstract method must be implemented",
+            hints=[*graph_break_hints.DYNAMO_BUG],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NOTE: only call when unpacking this iterator safely done eagerly!
     # Normally, iterators are accessed lazily.
@@ -226,6 +338,7 @@ class IteratorVariable(VariableTracker):
     # Example of unsafe eager unpacking: list(islice(map(f, seq), 5))
     def force_unpack_var_sequence(self, tx) -> list[VariableTracker]:
         result = []
+<<<<<<< HEAD
         while True:
             try:
                 result.append(self.next_variable(tx))
@@ -233,6 +346,18 @@ class IteratorVariable(VariableTracker):
                 handle_observed_exception(tx)
                 break
         return result
+=======
+        self.force_apply_to_var_sequence(tx, result.append)
+        return result
+
+    def force_apply_to_var_sequence(self, tx, fn) -> None:
+        while True:
+            try:
+                fn(self.next_variable(tx))
+            except ObservedUserStopIteration:
+                handle_observed_exception(tx)
+                break
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # don't call force_unpack_var_sequence since it can mutate
     # IteratorVariable state!
@@ -249,7 +374,11 @@ class RepeatIteratorVariable(IteratorVariable):
     def next_variable(self, tx):
         return self.item
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.extend_output(
                 [
@@ -279,7 +408,11 @@ class CountIteratorVariable(IteratorVariable):
         self.item = self.item.call_method(tx, "__add__", [self.step], {})
         return old_item
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.extend_output(
                 [
@@ -317,8 +450,16 @@ class CycleIteratorVariable(IteratorVariable):
             try:
                 new_item = self.iterator.next_variable(tx)
                 if len(self.saved) > MAX_ITERATOR_LIMIT:
+<<<<<<< HEAD
                     unimplemented(
                         "input iterator to itertools.cycle has too many items"
+=======
+                    unimplemented_v2(
+                        gb_type="input iterator to itertools.cycle has too many items",
+                        context=f"next({self})",
+                        explanation=f"Has reached internal Dynamo max iterator limit: {MAX_ITERATOR_LIMIT}",
+                        hints=[],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 tx.output.side_effects.mutation(self)
                 self.saved.append(new_item)
@@ -425,7 +566,11 @@ class ZipVariable(IteratorVariable):
         self.index += 1
         return variables.TupleVariable(args)
 
+<<<<<<< HEAD
     def reconstruct_items(self, codegen):
+=======
+    def reconstruct_items(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for it in self.iterables:
             if isinstance(it, list):
                 remaining_items = it[self.index :]
@@ -436,7 +581,11 @@ class ZipVariable(IteratorVariable):
             else:
                 codegen(it)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.load_import_from("builtins", "zip"), call_function_ex=True
         )
@@ -481,7 +630,11 @@ class MapVariable(ZipVariable):
         args = super().next_variable(tx)
         return self.fn.call_function(tx, args.items, {})
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.load_import_from("builtins", "map"), call_function_ex=True
         )
@@ -555,7 +708,11 @@ class FilterVariable(IteratorVariable):
             if pred_res.as_python_constant():
                 return item
 
+<<<<<<< HEAD
     def reconstruct_items(self, codegen):
+=======
+    def reconstruct_items(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(self.iterable, list):
             remaining_items = self.iterable[self.index :]
             codegen.foreach(remaining_items)
@@ -565,7 +722,11 @@ class FilterVariable(IteratorVariable):
         else:
             codegen(self.iterable)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(lambda: codegen.load_import_from("builtins", "filter"))
         codegen(self.fn)
         self.reconstruct_items(codegen)

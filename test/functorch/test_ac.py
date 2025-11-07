@@ -8,6 +8,10 @@ import torch._functorch.config as config
 from torch.testing._internal.common_utils import run_tests, TEST_WITH_ROCM, TestCase
 from torch.testing._internal.inductor_utils import HAS_CUDA
 from torch.utils._triton import has_triton
+<<<<<<< HEAD
+=======
+from torch.utils.checkpoint import checkpoint
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils.flop_counter import FlopCounterMode, register_flop_formula
 
 
@@ -374,6 +378,36 @@ class MemoryBudgetTest(TestCase):
         try_seq_length(4, 7, "mm")
         try_seq_length(4, 9, "attn")
 
+<<<<<<< HEAD
+=======
+    def test_manual_ac(self):
+        # test that manual checkpoint boundaries are respected
+        # when autoac is set
+        def f(x):
+            tmp1 = torch.matmul(x, x.T)
+            tmp1 = torch.matmul(tmp1, tmp1)
+            tmp1 = torch.matmul(tmp1, tmp1)
+            out = torch.matmul(tmp1, x)
+            return out
+
+        def g(x):
+            x = checkpoint(f, x, use_reentrant=False)
+            x = checkpoint(f, x, use_reentrant=False)
+            return x
+
+        x = torch.randn(64, 1024, requires_grad=True)
+
+        def call():
+            return g(x).sum()
+
+        eager_mem, eager_flops = get_mem_and_flops(call)
+        # give the memory budget logic a value that should cause it to run,
+        # but not recompute the matmuls
+        mem, flops = get_mem_and_flops(call, memory_budget=0.01)
+        self.assertEqual(mem, eager_mem)
+        self.assertEqual(flops, eager_flops)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     # I'm using the cuda memory allocator to verify memory allocations

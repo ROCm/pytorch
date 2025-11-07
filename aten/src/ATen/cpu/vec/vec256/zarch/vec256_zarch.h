@@ -31,8 +31,12 @@ constexpr bool is_zarch_implemented() {
 template <typename T>
 constexpr bool is_zarch_implemented_quant() {
   return (
+<<<<<<< HEAD
       std::is_same_v<T, c10::qint32> ||
       std::is_same_v<T, c10::qint8> ||
+=======
+      std::is_same_v<T, c10::qint32> || std::is_same_v<T, c10::qint8> ||
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::is_same_v<T, c10::quint8>);
 }
 
@@ -364,6 +368,13 @@ constexpr auto GetSwapMaskFloat() {
 }
 
 template <typename T>
+<<<<<<< HEAD
+=======
+struct is_vec_specialized_for<T, std::enable_if_t<is_zarch_implemented<T>()>>
+    : std::bool_constant<true> {};
+
+template <typename T>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
  public:
   using value_type = T;
@@ -386,7 +397,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
   Vectorized() {}
 
   C10_ALWAYS_INLINE Vectorized(vtype v) : _vec0{v}, _vec1{v} {}
+<<<<<<< HEAD
   C10_ALWAYS_INLINE Vectorized(const vinner_data &v) : _vec0{v.first}, _vec1{v.second} {}
+=======
+  C10_ALWAYS_INLINE Vectorized(const vinner_data& v)
+      : _vec0{v.first}, _vec1{v.second} {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_ALWAYS_INLINE Vectorized(vtype v1, vtype v2) : _vec0{v1}, _vec1{v2} {}
   C10_ALWAYS_INLINE Vectorized(T s)
       : _vec0{vec_splats((ElementType)s)}, _vec1{vec_splats((ElementType)s)} {}
@@ -396,7 +412,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     static Vectorized<T> C10_ALWAYS_INLINE
     loadu(const U* ptr, int count = size()) {
       __at_align__ ElementType tmp_values[size()] = {};
+<<<<<<< HEAD
       std::memcpy(tmp_values, ptr, std::min(count, size()) * sizeof(ElementType));
+=======
+      std::memcpy(
+          tmp_values, ptr, std::min(count, size()) * sizeof(ElementType));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       return {
           vec_xl(offset0, &(tmp_values[0])),
@@ -409,6 +430,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     static Vectorized<T> C10_ALWAYS_INLINE
     loadu(const ElementType* ptr, int count = size()) {
       if (count == size()) {
+<<<<<<< HEAD
         return {
             vec_xl(offset0, ptr),
             vec_xl(offset16, ptr)};
@@ -416,6 +438,14 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
 
       __at_align__ ElementType tmp_values[size()] = {};
       std::memcpy(tmp_values, ptr, std::min(count, size()) * sizeof(ElementType));
+=======
+        return {vec_xl(offset0, ptr), vec_xl(offset16, ptr)};
+      }
+
+      __at_align__ ElementType tmp_values[size()] = {};
+      std::memcpy(
+          tmp_values, ptr, std::min(count, size()) * sizeof(ElementType));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       return {
           vec_xl(offset0, &(tmp_values[0])),
@@ -430,8 +460,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
   }
 
   template <typename U>
+<<<<<<< HEAD
   static Vectorized<T> C10_ALWAYS_INLINE
   loadu_one_fourth(const U* ptr) {
+=======
+  static Vectorized<T> C10_ALWAYS_INLINE loadu_one_fourth(const U* ptr) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // load only first 8 bytes
     // only intended to be used with uint8_t
     return loadu(ptr, 8 / sizeof(ElementType));
@@ -439,7 +473,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
 
   template <typename U, typename DUMMY = void>
   struct StoreHelper {
+<<<<<<< HEAD
     static void C10_ALWAYS_INLINE store(const Vectorized<T> &vec, U* ptr, int count = size()) {
+=======
+    static void C10_ALWAYS_INLINE
+    store(const Vectorized<T>& vec, U* ptr, int count = size()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (count > 0) {
         __at_align__ ElementType tmp_values[size()];
         vec_xst(vec._vec0, offset0, &(tmp_values[0]));
@@ -452,7 +491,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
 
   template <typename DUMMY>
   struct StoreHelper<ElementType, DUMMY> {
+<<<<<<< HEAD
     static void C10_ALWAYS_INLINE store(const Vectorized<T> &vec, ElementType* ptr, int count = size()) {
+=======
+    static void C10_ALWAYS_INLINE
+    store(const Vectorized<T>& vec, ElementType* ptr, int count = size()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (count == size()) {
         vec_xst(vec._vec0, offset0, ptr);
         vec_xst(vec._vec1, offset16, ptr);
@@ -788,16 +832,24 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     return (*this <= other) & Vectorized<T>((T)1.0);
   }
 
+<<<<<<< HEAD
   template <
       typename U = T,
       std::enable_if_t<!std::is_unsigned_v<U>, int> = 0>
+=======
+  template <typename U = T, std::enable_if_t<!std::is_unsigned_v<U>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<U> C10_ALWAYS_INLINE abs() const {
     return {vec_abs(_vec0), vec_abs(_vec1)};
   }
 
+<<<<<<< HEAD
   template <
       typename U = T,
       std::enable_if_t<std::is_unsigned_v<U>, int> = 0>
+=======
+  template <typename U = T, std::enable_if_t<std::is_unsigned_v<U>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<U> C10_ALWAYS_INLINE abs() const {
     return {_vec0, _vec1};
   }
@@ -813,6 +865,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
   }
 
   bool has_inf_nan() const {
+<<<<<<< HEAD
     for (const auto i : c10::irange(size()/2)) {
       if(_isnan(_vec0[i]) || _isinf(_vec0[i])) {
         return true;
@@ -820,6 +873,15 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     }
     for (const auto i : c10::irange(size()/2)) {
       if(_isnan(_vec1[i]) || _isinf(_vec1[i])) {
+=======
+    for (const auto i : c10::irange(size() / 2)) {
+      if (_isnan(_vec0[i]) || _isinf(_vec0[i])) {
+        return true;
+      }
+    }
+    for (const auto i : c10::irange(size() / 2)) {
+      if (_isnan(_vec1[i]) || _isinf(_vec1[i])) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return true;
       }
     }
@@ -900,9 +962,13 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     return sqrt().reciprocal();
   }
 
+<<<<<<< HEAD
   template <
       typename U = T,
       std::enable_if_t<std::is_same_v<U, float>, int> = 0>
+=======
+  template <typename U = T, std::enable_if_t<std::is_same_v<U, float>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   inline Vectorized<T> mapOrdinary(float (*const f)(float)) const {
     float a00 = f(_vec0[0]);
     float a01 = f(_vec0[1]);
@@ -922,9 +988,13 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     return Vectorized<T>(f(_vec0[0]), f(_vec0[1]), f(_vec1[0]), f(_vec1[1]));
   }
 
+<<<<<<< HEAD
   template <
       typename U = T,
       std::enable_if_t<std::is_same_v<U, float>, int> = 0>
+=======
+  template <typename U = T, std::enable_if_t<std::is_same_v<U, float>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   inline Vectorized<T> mapOrdinary(
       float (*const f)(float, float),
       const Vectorized<T>& b) const {
@@ -1122,7 +1192,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
       typename U = T,
       std::enable_if_t<std::is_floating_point_v<U>, int> = 0>
   Vectorized<T> minimum(const Vectorized<T>& other) const {
+<<<<<<< HEAD
     Vectorized<T> tmp = {vec_min(_vec0, other._vec0), vec_min(_vec1, other._vec1)};
+=======
+    Vectorized<T> tmp = {
+        vec_min(_vec0, other._vec0), vec_min(_vec1, other._vec1)};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tmp = blendv(tmp, *this, isnan());
     return blendv(tmp, other, other.isnan());
   }
@@ -1139,7 +1214,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
       typename U = T,
       std::enable_if_t<std::is_floating_point_v<U>, int> = 0>
   Vectorized<T> maximum(const Vectorized<T>& other) const {
+<<<<<<< HEAD
     Vectorized<T> tmp = {vec_max(_vec0, other._vec0), vec_max(_vec1, other._vec1)};
+=======
+    Vectorized<T> tmp = {
+        vec_max(_vec0, other._vec0), vec_max(_vec1, other._vec1)};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tmp = blendv(tmp, *this, isnan());
     return blendv(tmp, other, other.isnan());
   }
@@ -1176,9 +1256,13 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
     return blendv(tmp, *this, isnan());
   }
 
+<<<<<<< HEAD
   template <
       typename U = T,
       std::enable_if_t<std::is_same_v<U, float>, int> = 0>
+=======
+  template <typename U = T, std::enable_if_t<std::is_same_v<U, float>, int> = 0>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<T> swapped() const {
     auto swap_mask = GetSwapMaskFloat();
     vtype v0 = vec_perm(_vec0, _vec0, swap_mask);
@@ -1260,6 +1344,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
       std::enable_if_t<std::is_same_v<U, uint8_t>, int> = 0>
   Vectorized<int32_t> to_vec_float_helper() const {
     int32_t values[8] = {
+<<<<<<< HEAD
       _vec0[0],
       _vec0[1],
       _vec0[2],
@@ -1274,6 +1359,27 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
       values[0], values[1], values[2], values[3],
       values[4], values[5], values[6], values[7]
     };
+=======
+        _vec0[0],
+        _vec0[1],
+        _vec0[2],
+        _vec0[3],
+        _vec0[4],
+        _vec0[5],
+        _vec0[6],
+        _vec0[7],
+    };
+
+    return Vectorized<int32_t>{
+        values[0],
+        values[1],
+        values[2],
+        values[3],
+        values[4],
+        values[5],
+        values[6],
+        values[7]};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   template <
@@ -1282,6 +1388,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
   Vectorized<uint8_t> to_vec_uint8_helper() const {
     // helper function for float to uint8_t conversion
     uint8_t values[8] = {
+<<<<<<< HEAD
       static_cast<uint8_t>(_vec0[0]),
       static_cast<uint8_t>(_vec0[1]),
       static_cast<uint8_t>(_vec0[2]),
@@ -1301,10 +1408,30 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
       0, 0, 0, 0,
       0, 0, 0, 0,
       0, 0, 0, 0,
+=======
+        static_cast<uint8_t>(_vec0[0]),
+        static_cast<uint8_t>(_vec0[1]),
+        static_cast<uint8_t>(_vec0[2]),
+        static_cast<uint8_t>(_vec0[3]),
+        static_cast<uint8_t>(_vec1[0]),
+        static_cast<uint8_t>(_vec1[1]),
+        static_cast<uint8_t>(_vec1[2]),
+        static_cast<uint8_t>(_vec1[3]),
+    };
+
+    return Vectorized<uint8_t>{
+        values[0], values[1], values[2], values[3], values[4], values[5],
+        values[6], values[7], 0,         0,         0,         0,
+        0,         0,         0,         0,         0,         0,
+        0,         0,         0,         0,         0,         0,
+        0,         0,         0,         0,         0,         0,
+        0,         0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     };
   }
 };
 
+<<<<<<< HEAD
 #define ZVECTOR_OPERATORS(typex)                                                                           \
   template <>                                                                                              \
   Vectorized<typex> C10_ALWAYS_INLINE operator+(const Vectorized<typex>& a, const Vectorized<typex>& b) {  \
@@ -1376,6 +1503,92 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
   Vectorized<typex> C10_ALWAYS_INLINE operator<=(const Vectorized<typex>& a, const Vectorized<typex>& b) { \
     return Vectorized<typex>{                                                                              \
         vec_cmple(a.vec0(), b.vec0()), vec_cmple(a.vec1(), b.vec1())};                                     \
+=======
+#define ZVECTOR_OPERATORS(typex)                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator+(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{a.vec0() + b.vec0(), a.vec1() + b.vec1()}; \
+  }                                                                     \
+                                                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator-(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{a.vec0() - b.vec0(), a.vec1() - b.vec1()}; \
+  }                                                                     \
+                                                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator*(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{a.vec0() * b.vec0(), a.vec1() * b.vec1()}; \
+  }                                                                     \
+                                                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator/(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{a.vec0() / b.vec0(), a.vec1() / b.vec1()}; \
+  }                                                                     \
+                                                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator&(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        (Vectorized<typex>::vtype)(a.vecb0() & b.vecb0()),              \
+        (Vectorized<typex>::vtype)(a.vecb1() & b.vecb1())};             \
+  }                                                                     \
+                                                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator|(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        (Vectorized<typex>::vtype)(a.vecb0() | b.vecb0()),              \
+        (Vectorized<typex>::vtype)(a.vecb1() | b.vecb1())};             \
+  }                                                                     \
+                                                                        \
+  template <>                                                           \
+  Vectorized<typex> C10_ALWAYS_INLINE operator^(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        (Vectorized<typex>::vtype)(a.vecb0() ^ b.vecb0()),              \
+        (Vectorized<typex>::vtype)(a.vecb1() ^ b.vecb1())};             \
+  }                                                                     \
+                                                                        \
+  Vectorized<typex> C10_ALWAYS_INLINE operator==(                       \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        vec_cmpeq(a.vec0(), b.vec0()), vec_cmpeq(a.vec1(), b.vec1())};  \
+  }                                                                     \
+                                                                        \
+  Vectorized<typex> C10_ALWAYS_INLINE operator!=(                       \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        vec_cmpeq(a.vec0(), b.vec0()), vec_cmpeq(a.vec1(), b.vec1())}   \
+        ._not();                                                        \
+  }                                                                     \
+                                                                        \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        vec_cmpgt(a.vec0(), b.vec0()), vec_cmpgt(a.vec1(), b.vec1())};  \
+  }                                                                     \
+                                                                        \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>=(                       \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        vec_cmpge(a.vec0(), b.vec0()), vec_cmpge(a.vec1(), b.vec1())};  \
+  }                                                                     \
+                                                                        \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<(                        \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        vec_cmplt(a.vec0(), b.vec0()), vec_cmplt(a.vec1(), b.vec1())};  \
+  }                                                                     \
+                                                                        \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<=(                       \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {         \
+    return Vectorized<typex>{                                           \
+        vec_cmple(a.vec0(), b.vec0()), vec_cmple(a.vec1(), b.vec1())};  \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 ZVECTOR_OPERATORS(float)
@@ -1389,6 +1602,7 @@ ZVECTOR_OPERATORS(int64_t)
 
 #undef ZVECTOR_OPERATORS
 
+<<<<<<< HEAD
 #define ZVECTOR_OPERATORS(typex)                                                                           \
   template <>                                                                                              \
   Vectorized<typex> C10_ALWAYS_INLINE operator<<(const Vectorized<typex>& a, const Vectorized<typex>& b) { \
@@ -1442,6 +1656,67 @@ ZVECTOR_OPERATORS(int64_t)
   template <>                                                                                              \
   inline Vectorized<typex> operator~(const Vectorized<typex>& a) {                                         \
     return a._not();                                                                                       \
+=======
+#define ZVECTOR_OPERATORS(typex)                                          \
+  template <>                                                             \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<<(                         \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {           \
+    constexpr Vectorized<typex>::ElementType max_shift =                  \
+        sizeof(Vectorized<typex>::ElementType) * CHAR_BIT;                \
+                                                                          \
+    Vectorized<typex>::ElementType a_array[Vectorized<typex>::size()];    \
+    Vectorized<typex>::ElementType b_array[Vectorized<typex>::size()];    \
+    Vectorized<typex>::ElementType c_array[Vectorized<typex>::size()];    \
+                                                                          \
+    a.store(a_array);                                                     \
+    b.store(b_array);                                                     \
+                                                                          \
+    for (int i = 0; i != Vectorized<typex>::size(); i++) {                \
+      typex shift = b_array[i];                                           \
+      if ((static_cast<std::make_signed_t<typex>>(shift) < 0) ||          \
+          (shift >= max_shift)) {                                         \
+        c_array[i] = 0;                                                   \
+      } else {                                                            \
+        c_array[i] = static_cast<std::make_unsigned_t<typex>>(a_array[i]) \
+            << shift;                                                     \
+      }                                                                   \
+    }                                                                     \
+                                                                          \
+    return Vectorized<typex>::loadu(c_array);                             \
+  }                                                                       \
+                                                                          \
+  template <>                                                             \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>>(                         \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {           \
+    /* right shift value to retain sign bit for signed and no bits for    \
+     * unsigned */                                                        \
+    constexpr Vectorized<typex>::ElementType max_shift =                  \
+        sizeof(typex) * CHAR_BIT - std::is_signed_v<typex>;               \
+                                                                          \
+    Vectorized<typex>::ElementType a_array[Vectorized<typex>::size()];    \
+    Vectorized<typex>::ElementType b_array[Vectorized<typex>::size()];    \
+    Vectorized<typex>::ElementType c_array[Vectorized<typex>::size()];    \
+                                                                          \
+    a.store(a_array);                                                     \
+    b.store(b_array);                                                     \
+                                                                          \
+    for (int i = 0; i != Vectorized<typex>::size(); i++) {                \
+      typex shift = b_array[i];                                           \
+      if ((static_cast<std::make_signed_t<typex>>(shift) < 0) ||          \
+          (shift >= max_shift)) {                                         \
+        c_array[i] = a_array[i] >> max_shift;                             \
+      } else {                                                            \
+        c_array[i] = a_array[i] >> shift;                                 \
+      }                                                                   \
+    }                                                                     \
+                                                                          \
+    return Vectorized<typex>::loadu(c_array);                             \
+  }                                                                       \
+                                                                          \
+  template <>                                                             \
+  inline Vectorized<typex> operator~(const Vectorized<typex>& a) {        \
+    return a._not();                                                      \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 ZVECTOR_OPERATORS(int8_t)
@@ -1727,6 +2002,15 @@ C10_DIAGNOSTIC_POP()
 
 //////////////////////////////////QUANT///////////////////////////////////////////
 template <typename T>
+<<<<<<< HEAD
+=======
+struct is_vec_specialized_for<
+    T,
+    std::enable_if_t<is_zarch_implemented_quant<T>()>>
+    : std::bool_constant<true> {};
+
+template <typename T>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct Vectorized<T, std::enable_if_t<is_zarch_implemented_quant<T>()>> {
  public:
   using value_type = typename T::underlying;
@@ -1906,7 +2190,11 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_quant<T>()>> {
         (vecf_0 - zero_point) * scale,
         (vecf_1 - zero_point) * scale,
         (vecf_2 - zero_point) * scale,
+<<<<<<< HEAD
         (vecf_3 - zero_point) * scale };
+=======
+        (vecf_3 - zero_point) * scale};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   template <
@@ -2034,6 +2322,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_quant<T>()>> {
   }
 };
 
+<<<<<<< HEAD
 #define ZVECTOR_OPERATORS(typex)                                                                           \
   template <>                                                                                              \
   Vectorized<typex> C10_ALWAYS_INLINE operator+(const Vectorized<typex>& a, const Vectorized<typex>& b) {  \
@@ -2092,6 +2381,79 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_quant<T>()>> {
                                                                                                            \
   Vectorized<typex> C10_ALWAYS_INLINE operator<=(const Vectorized<typex>& a, const Vectorized<typex>& b) { \
     return Vectorized<typex>{a.vec() <= b.vec()};                                                          \
+=======
+#define ZVECTOR_OPERATORS(typex)                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator+(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() + b.vec()};                \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator-(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() - b.vec()};                \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator*(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() * b.vec()};                \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator/(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() / b.vec()};                \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator&(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() & b.vec()};                \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator|(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() | b.vec()};                \
+  }                                                             \
+                                                                \
+  template <>                                                   \
+  Vectorized<typex> C10_ALWAYS_INLINE operator^(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() ^ b.vec()};                \
+  }                                                             \
+                                                                \
+  Vectorized<typex> C10_ALWAYS_INLINE operator==(               \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() == b.vec()};               \
+  }                                                             \
+                                                                \
+  Vectorized<typex> C10_ALWAYS_INLINE operator!=(               \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() != b.vec()};               \
+  }                                                             \
+                                                                \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() > b.vec()};                \
+  }                                                             \
+                                                                \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>=(               \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() >= b.vec()};               \
+  }                                                             \
+                                                                \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<(                \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() < b.vec()};                \
+  }                                                             \
+                                                                \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<=(               \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) { \
+    return Vectorized<typex>{a.vec() <= b.vec()};               \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 ZVECTOR_OPERATORS(c10::qint32)
@@ -2185,6 +2547,15 @@ constexpr U log10e_inv() {
 }
 
 template <typename T>
+<<<<<<< HEAD
+=======
+struct is_vec_specialized_for<
+    T,
+    std::enable_if_t<is_zarch_implemented_complex<T>()>>
+    : std::bool_constant<true> {};
+
+template <typename T>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
  public:
   using underline_type = decltype(std::declval<T>().imag());
@@ -2205,7 +2576,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
  public:
   Vectorized() {}
 
+<<<<<<< HEAD
   C10_ALWAYS_INLINE Vectorized(const vinner_data &v) : _vec{v.first, v.second} {}
+=======
+  C10_ALWAYS_INLINE Vectorized(const vinner_data& v)
+      : _vec{v.first, v.second} {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   template <typename U = T, std::enable_if_t<(sizeof(U) == 16), int> = 0>
   C10_ALWAYS_INLINE Vectorized(T s1, T s2)
@@ -2406,10 +2782,17 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
   template <
       typename U = T,
       std::enable_if_t<std::is_same<U, c10::complex<float>>::value, int> = 0>
+<<<<<<< HEAD
   static typename Vectorized<T>::vinner_type real_neg(const typename Vectorized<T>::vinner_type &a)
   {
     const auto swap_mask = ZSimdVectBinary<uint8_t>{
       0, 1, 2, 3, 20, 21, 22, 23, 8, 9, 10, 11, 28, 29, 30, 31};
+=======
+  static typename Vectorized<T>::vinner_type real_neg(
+      const typename Vectorized<T>::vinner_type& a) {
+    const auto swap_mask = ZSimdVectBinary<uint8_t>{
+        0, 1, 2, 3, 20, 21, 22, 23, 8, 9, 10, 11, 28, 29, 30, 31};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto a_neg = a.neg();
     vtype v0 = vec_perm(a_neg.vec0(), a.vec0(), swap_mask);
@@ -2420,12 +2803,21 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
   template <
       typename U = T,
       std::enable_if_t<std::is_same<U, c10::complex<double>>::value, int> = 0>
+<<<<<<< HEAD
   static typename Vectorized<T>::vinner_type real_neg(const typename Vectorized<T>::vinner_type &a)
   {
     auto a_neg = a.neg();
     vtype v0 = {a_neg.vec0()[0], a.vec0()[1]};
     vtype v1 = {a_neg.vec1()[0], a.vec1()[1]};
     return { v0, v1 };
+=======
+  static typename Vectorized<T>::vinner_type real_neg(
+      const typename Vectorized<T>::vinner_type& a) {
+    auto a_neg = a.neg();
+    vtype v0 = {a_neg.vec0()[0], a.vec0()[1]};
+    vtype v1 = {a_neg.vec1()[0], a.vec1()[1]};
+    return {v0, v1};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   Vectorized<T> angle2_() const {
@@ -2516,15 +2908,27 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
   }
 
   Vectorized<T> C10_ALWAYS_INLINE eq(const Vectorized<T>& other) const {
+<<<<<<< HEAD
     auto eq = _vec.eq(other._vec);  // compares real and imag individually
     // If both real numbers and imag numbers are equal, then the complex numbers are equal
+=======
+    auto eq = _vec.eq(other._vec); // compares real and imag individually
+    // If both real numbers and imag numbers are equal, then the complex numbers
+    // are equal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto real = eq & vinner_type(real_mask<underline_type>());
     auto imag = (eq & vinner_type(image_mask<underline_type>())).swapped();
     return Vectorized<T>{real & imag};
   }
   Vectorized<T> C10_ALWAYS_INLINE ne(const Vectorized<T>& other) const {
+<<<<<<< HEAD
     auto ne = _vec.ne(other._vec);  // compares real and imag individually
     // If either real numbers or imag numbers are not equal, then the complex numbers are not equal
+=======
+    auto ne = _vec.ne(other._vec); // compares real and imag individually
+    // If either real numbers or imag numbers are not equal, then the complex
+    // numbers are not equal
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto real = ne & vinner_type(real_mask<underline_type>());
     auto imag = (ne & vinner_type(image_mask<underline_type>())).swapped();
     return Vectorized<T>{real | imag};
@@ -2551,8 +2955,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
     return a.mergee().data();
   }
 
+<<<<<<< HEAD
   static T abs_helper(const T &value)
   {
+=======
+  static T abs_helper(const T& value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return T(std::abs(value));
   }
 
@@ -2633,6 +3041,7 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
   }
 };
 
+<<<<<<< HEAD
 #define ZVECTOR_OPERATORS(typex)                                                                           \
   template <>                                                                                              \
   Vectorized<typex> C10_ALWAYS_INLINE operator+(const Vectorized<typex>& a, const Vectorized<typex>& b) {  \
@@ -2721,6 +3130,114 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented_complex<T>()>> {
                                                                                                            \
   Vectorized<typex> C10_ALWAYS_INLINE operator>=(const Vectorized<typex>& a, const Vectorized<typex>& b) { \
     TORCH_CHECK(false, "not supported for complex numbers");                                               \
+=======
+#define ZVECTOR_OPERATORS(typex)                                              \
+  template <>                                                                 \
+  Vectorized<typex> C10_ALWAYS_INLINE operator+(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() + b.vec()};                              \
+  }                                                                           \
+                                                                              \
+  template <>                                                                 \
+  Vectorized<typex> C10_ALWAYS_INLINE operator-(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() - b.vec()};                              \
+  }                                                                           \
+                                                                              \
+  template <>                                                                 \
+  Vectorized<typex> inline operator*(                                         \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    /* (a + bi)  * (c + di) = (ac - bd) + (ad + bc)i */                       \
+    Vectorized<typex>::vinner_type bv = b.vec();                              \
+                                                                              \
+    /* this is more z arch friendly than simulating horizontal from x86 */    \
+    Vectorized<typex>::vinner_type vi = bv.mergeo();                          \
+    Vectorized<typex>::vinner_type vr = bv.mergee();                          \
+    vi = vi ^                                                                 \
+        Vectorized<typex>::vinner_type(                                       \
+             rsign_mask<Vectorized<typex>::underline_type>());                \
+    Vectorized<typex>::vinner_type ret = a.vec() * vr;                        \
+    Vectorized<typex>::vinner_type vx_swapped = a.vec().swapped();            \
+    ret = fmadd(vx_swapped, vi, ret);                                         \
+                                                                              \
+    return Vectorized<typex>{ret};                                            \
+  }                                                                           \
+                                                                              \
+  template <>                                                                 \
+  Vectorized<typex> inline operator/(                                         \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    /* Unfortunately, this breaks some tests */                               \
+    /* Implement it like it's done for avx2 */                                \
+    auto fabs_cd = b.vec().abs(); /* |c|    |d| */                            \
+    auto fabs_dc = fabs_cd.swapped(); /* |d|    |c| */                        \
+    auto scale = Vectorized<typex>::vinner_type{1.0} /                        \
+        maximum(fabs_cd, fabs_dc); /* 1/sc     1/sc */                        \
+    auto a2 = a.vec() * scale; /* a/sc     b/sc */                            \
+    auto b2 = b.vec() * scale; /* c/sc     d/sc */                            \
+    auto acbd2 = a2 * b2; /* ac/sc^2  bd/sc^2 */                              \
+                                                                              \
+    auto dc2 = b2.swapped(); /* d/sc         c/sc */                          \
+    dc2 = Vectorized<typex>::real_neg(dc2); /* -d/|c,d|        c/sc */        \
+    auto adbc2 = a2 * dc2; /* -ad/sc^2      bc/sc^2 */                        \
+    auto sum1 = acbd2 + acbd2.swapped(); /* (ac+bd)/sc^2  (ac+bd)/sc^2 */     \
+    auto sum2 = adbc2 + adbc2.swapped(); /* (bc-ad)/sc^2  (bc-ad)/sc^2 */     \
+    auto res2 = Vectorized<typex>::vinner_type::mergee(                       \
+        sum1, sum2); /* (ac+bd)/sc^2  (bc-ad)/sc^2 */                         \
+                                                                              \
+    /* get the denominator */                                                 \
+    Vectorized<typex>::vinner_type denom2 =                                   \
+        Vectorized<typex>{b2}.abs_2_(); /* (c^2+d^2)/sc^2   (c^2+d^2)/sc^2 */ \
+    res2 = res2 / denom2;                                                     \
+    return Vectorized<typex>{res2};                                           \
+  }                                                                           \
+                                                                              \
+  template <>                                                                 \
+  Vectorized<typex> C10_ALWAYS_INLINE operator&(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() & b.vec()};                              \
+  }                                                                           \
+                                                                              \
+  template <>                                                                 \
+  Vectorized<typex> C10_ALWAYS_INLINE operator|(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() | b.vec()};                              \
+  }                                                                           \
+                                                                              \
+  template <>                                                                 \
+  Vectorized<typex> C10_ALWAYS_INLINE operator^(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() ^ b.vec()};                              \
+  }                                                                           \
+                                                                              \
+  Vectorized<typex> C10_ALWAYS_INLINE operator==(                             \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() == b.vec()};                             \
+  }                                                                           \
+                                                                              \
+  Vectorized<typex> C10_ALWAYS_INLINE operator!=(                             \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    return Vectorized<typex>{a.vec() != b.vec()};                             \
+  }                                                                           \
+                                                                              \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    TORCH_CHECK(false, "not supported for complex numbers");                  \
+  }                                                                           \
+                                                                              \
+  Vectorized<typex> C10_ALWAYS_INLINE operator<=(                             \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    TORCH_CHECK(false, "not supported for complex numbers");                  \
+  }                                                                           \
+                                                                              \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>(                              \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    TORCH_CHECK(false, "not supported for complex numbers");                  \
+  }                                                                           \
+                                                                              \
+  Vectorized<typex> C10_ALWAYS_INLINE operator>=(                             \
+      const Vectorized<typex>& a, const Vectorized<typex>& b) {               \
+    TORCH_CHECK(false, "not supported for complex numbers");                  \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 ZVECTOR_OPERATORS(c10::complex<float>)
@@ -2872,28 +3389,55 @@ std::pair<Vectorized<int64_t>, Vectorized<int64_t>> inline deinterleave2<
 }
 
 template <typename T>
+<<<<<<< HEAD
 std::enable_if_t<std::is_same_v<T, uint8_t>, at::vec::Vectorized<float>>
 inline convert_int8_to_float(const Vectorized<T> &src) {
   // Note: this function only convert inputs number of elements equal to at::vec::Vectorized<float>.size()
   // Only handle first 64 bits
+=======
+std::enable_if_t<
+    std::is_same_v<T, uint8_t>,
+    at::vec::Vectorized<
+        float>> inline convert_int8_to_float(const Vectorized<T>& src) {
+  // Note: this function only convert inputs number of elements equal to
+  // at::vec::Vectorized<float>.size() Only handle first 64 bits
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto vec_int = src.to_vec_float_helper();
 
   return zvec_convert_to_float(vec_int);
 }
 
 template <typename T>
+<<<<<<< HEAD
 std::enable_if_t<std::is_same_v<T, uint8_t>, at::vec::Vectorized<T>>
 inline convert_float_to_int8(const Vectorized<float> &src) {
   constexpr auto min_val = std::numeric_limits<T>::min();
   constexpr auto max_val = std::numeric_limits<T>::max();
 
   auto vec_int = clamp(zvec_convert_to_int(src), Vectorized<int32_t>(min_val), Vectorized<int32_t>(max_val));
+=======
+std::enable_if_t<
+    std::is_same_v<T, uint8_t>,
+    at::vec::Vectorized<
+        T>> inline convert_float_to_int8(const Vectorized<float>& src) {
+  constexpr auto min_val = std::numeric_limits<T>::min();
+  constexpr auto max_val = std::numeric_limits<T>::max();
+
+  auto vec_int = clamp(
+      zvec_convert_to_int(src),
+      Vectorized<int32_t>(min_val),
+      Vectorized<int32_t>(max_val));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return vec_int.to_vec_uint8_helper();
 }
 
 #undef DEFINE_CLAMP_MAXMIN_FUNCS
 #undef DEFINE_MAXMIN_FUNCS
+<<<<<<< HEAD
 } // namespace
+=======
+} // namespace CPU_CAPABILITY
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace vec
 } // namespace at

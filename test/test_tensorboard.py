@@ -82,6 +82,37 @@ class BaseTestCase(TestCase):
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
 
+<<<<<<< HEAD
+=======
+    def assertProto(self, str_to_compare):
+        if expecttest.ACCEPT:
+            write_proto(str_to_compare, self)
+            return True
+        expected = read_expected_content(self)
+        str_to_compare = str(str_to_compare)
+        self.assertEqual(remove_whitespace(str_to_compare), remove_whitespace(expected))
+
+    def assertImageProto(self, actual_proto):
+        if expecttest.ACCEPT:
+            expected_file = get_expected_file(self)
+            with open(expected_file, "w") as f:
+                f.write(text_format.MessageToString(actual_proto))
+            return True
+        expected_str = read_expected_content(self)
+        expected_proto = Summary()
+        text_format.Parse(expected_str, expected_proto)
+
+        [actual, expected] = [actual_proto.value[0], expected_proto.value[0]]
+        actual_img = Image.open(io.BytesIO(actual.image.encoded_image_string))
+        expected_img = Image.open(io.BytesIO(expected.image.encoded_image_string))
+
+        self.assertEqual(actual.tag, expected.tag)
+        self.assertEqual(actual.image.height, expected.image.height)
+        self.assertEqual(actual.image.width, expected.image.width)
+        self.assertEqual(actual.image.colorspace, expected.image.colorspace)
+        self.assertEqual(actual_img, expected_img)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TEST_TENSORBOARD:
     from google.protobuf import text_format
@@ -94,6 +125,13 @@ if TEST_TENSORBOARD:
     from torch.utils.tensorboard._pytorch_graph import graph
     from torch.utils.tensorboard._utils import _prepare_video, convert_to_HWC
     from torch.utils.tensorboard.summary import int_to_half, tensor_proto
+<<<<<<< HEAD
+=======
+else:
+    # Dummy for parametrization
+    class DataType:
+        DT_FLOAT, DT_HALF, DT_BFLOAT16, DT_INT32 = [None] * 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestTensorBoardPyTorchNumpy(BaseTestCase):
@@ -417,16 +455,23 @@ class TestTensorBoardSummary(BaseTestCase):
             summary.histogram("dummy", np.ndarray(0), "tensorflow")
 
     def test_image_with_boxes(self):
+<<<<<<< HEAD
         self.assertTrue(
             compare_image_proto(
                 summary.image_boxes(
                     "dummy", tensor_N(shape=(3, 32, 32)), np.array([[10, 10, 40, 40]])
                 ),
                 self,
+=======
+        self.assertImageProto(
+            summary.image_boxes(
+                "dummy", tensor_N(shape=(3, 32, 32)), np.array([[10, 10, 40, 40]])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
     def test_image_with_one_channel(self):
+<<<<<<< HEAD
         self.assertTrue(
             compare_image_proto(
                 summary.image("dummy", tensor_N(shape=(1, 8, 8)), dataformats="CHW"),
@@ -460,15 +505,41 @@ class TestTensorBoardSummary(BaseTestCase):
                 summary.image("dummy", tensor_N(shape=(8, 8)), dataformats="HW"), self
             )
         )  # noqa: E131
+=======
+        self.assertImageProto(
+            summary.image("dummy", tensor_N(shape=(1, 8, 8)), dataformats="CHW")
+        )
+
+    def test_image_with_one_channel_batched(self):
+        self.assertImageProto(
+            summary.image("dummy", tensor_N(shape=(2, 1, 8, 8)), dataformats="NCHW")
+        )
+
+    def test_image_with_3_channel_batched(self):
+        self.assertImageProto(
+            summary.image("dummy", tensor_N(shape=(2, 3, 8, 8)), dataformats="NCHW")
+        )
+
+    def test_image_without_channel(self):
+        self.assertImageProto(
+            summary.image("dummy", tensor_N(shape=(8, 8)), dataformats="HW")
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_video(self):
         try:
             import moviepy  # noqa: F401
         except ImportError:
             return
+<<<<<<< HEAD
         self.assertTrue(
             compare_proto(summary.video("dummy", tensor_N(shape=(4, 3, 1, 8, 8))), self)
         )
+=======
+
+        self.assertProto(summary.video("dummy", tensor_N(shape=(4, 3, 1, 8, 8))))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         summary.video("dummy", np.random.rand(16, 48, 1, 28, 28))
         summary.video("dummy", np.random.rand(20, 7, 1, 8, 8))
 
@@ -477,20 +548,29 @@ class TestTensorBoardSummary(BaseTestCase):
     )
     @xfailIfS390X
     def test_audio(self):
+<<<<<<< HEAD
         self.assertTrue(
             compare_proto(summary.audio("dummy", tensor_N(shape=(42,))), self)
         )
+=======
+        self.assertProto(summary.audio("dummy", tensor_N(shape=(42,))))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(
         IS_MACOS, "Skipping on mac, see https://github.com/pytorch/pytorch/pull/109349 "
     )
     def test_text(self):
+<<<<<<< HEAD
         self.assertTrue(compare_proto(summary.text("dummy", "text 123"), self))
+=======
+        self.assertProto(summary.text("dummy", "text 123"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(
         IS_MACOS, "Skipping on mac, see https://github.com/pytorch/pytorch/pull/109349 "
     )
     def test_histogram_auto(self):
+<<<<<<< HEAD
         self.assertTrue(
             compare_proto(
                 summary.histogram(
@@ -498,12 +578,17 @@ class TestTensorBoardSummary(BaseTestCase):
                 ),
                 self,
             )
+=======
+        self.assertProto(
+            summary.histogram("dummy", tensor_N(shape=(1024,)), bins="auto", max_bins=5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(
         IS_MACOS, "Skipping on mac, see https://github.com/pytorch/pytorch/pull/109349 "
     )
     def test_histogram_fd(self):
+<<<<<<< HEAD
         self.assertTrue(
             compare_proto(
                 summary.histogram(
@@ -511,18 +596,28 @@ class TestTensorBoardSummary(BaseTestCase):
                 ),
                 self,
             )
+=======
+        self.assertProto(
+            summary.histogram("dummy", tensor_N(shape=(1024,)), bins="fd", max_bins=5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @unittest.skipIf(
         IS_MACOS, "Skipping on mac, see https://github.com/pytorch/pytorch/pull/109349 "
     )
     def test_histogram_doane(self):
+<<<<<<< HEAD
         self.assertTrue(
             compare_proto(
                 summary.histogram(
                     "dummy", tensor_N(shape=(1024,)), bins="doane", max_bins=5
                 ),
                 self,
+=======
+        self.assertProto(
+            summary.histogram(
+                "dummy", tensor_N(shape=(1024,)), bins="doane", max_bins=5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
@@ -548,14 +643,22 @@ class TestTensorBoardSummary(BaseTestCase):
         )
         f = np.array([[[0, 2, 3], [0, 3, 1], [0, 1, 2], [1, 3, 2]]], dtype=int)
         mesh = summary.mesh("my_mesh", vertices=v, colors=c, faces=f, config_dict=None)
+<<<<<<< HEAD
         self.assertTrue(compare_proto(mesh, self))
+=======
+        self.assertProto(mesh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(
         IS_MACOS, "Skipping on mac, see https://github.com/pytorch/pytorch/pull/109349 "
     )
     def test_scalar_new_style(self):
         scalar = summary.scalar("test_scalar", 1.0, new_style=True)
+<<<<<<< HEAD
         self.assertTrue(compare_proto(scalar, self))
+=======
+        self.assertProto(scalar)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaises(AssertionError):
             summary.scalar("test_scalar2", torch.Tensor([1, 2, 3]), new_style=True)
 
@@ -585,6 +688,7 @@ def read_expected_content(function_ptr):
         return f.read()
 
 
+<<<<<<< HEAD
 def compare_image_proto(actual_proto, function_ptr):
     if expecttest.ACCEPT:
         expected_file = get_expected_file(function_ptr)
@@ -617,6 +721,8 @@ def compare_proto(str_to_compare, function_ptr):
     return remove_whitespace(str_to_compare) == remove_whitespace(expected)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def write_proto(str_to_compare, function_ptr):
     expected_file = get_expected_file(function_ptr)
     with open(expected_file, "w") as f:
@@ -657,7 +763,10 @@ class TestTensorBoardPytorchGraph(BaseTestCase):
             )
 
     def test_nested_nn_squential(self):
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dummy_input = torch.randn(2, 3)
 
         class InnerNNSquential(torch.nn.Module):

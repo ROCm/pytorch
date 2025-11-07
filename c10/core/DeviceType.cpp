@@ -119,7 +119,11 @@ std::ostream& operator<<(std::ostream& stream, DeviceType type) {
 //     Whenever a user prints a privateuse1 device name, they need to read this
 //     variable. Although unlikely, we'll data race if someone else is trying to
 //     set this variable at the same time that another thread is print the
+<<<<<<< HEAD
 //     device name. We could re-use the same mutex, but reading the atomic will
+=======
+//     device name. We could reuse the same mutex, but reading the atomic will
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //     be much faster.
 static std::atomic<bool> privateuse1_backend_name_set;
 static std::string privateuse1_backend_name;

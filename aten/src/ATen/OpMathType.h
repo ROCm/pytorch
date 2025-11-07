@@ -41,6 +41,13 @@ struct OpMathType<at::Float8_e4m3fnuz> {
   using type = float;
 };
 template <>
+<<<<<<< HEAD
+=======
+struct OpMathType<at::Float8_e8m0fnu> {
+  using type = float;
+};
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct OpMathType<c10::complex<Half>> {
   using type = c10::complex<float>;
 };

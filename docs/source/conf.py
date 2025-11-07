@@ -12,11 +12,14 @@
 # serve to show the default.
 
 import inspect
+<<<<<<< HEAD
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 
 # import sys
@@ -29,6 +32,14 @@ from os import path
 import torch
 
 
+<<<<<<< HEAD
+=======
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 try:
     import torchvision  # noqa: F401
 except ImportError:
@@ -38,15 +49,26 @@ except ImportError:
 
 RELEASE = os.environ.get("RELEASE", False)
 
+<<<<<<< HEAD
 import pytorch_sphinx_theme
+=======
+import pytorch_sphinx_theme2
+
+
+html_theme = "pytorch_sphinx_theme2"
+html_theme_path = [pytorch_sphinx_theme2.get_html_theme_path()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # -- General configuration ------------------------------------------------
 
+<<<<<<< HEAD
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 needs_sphinx = "3.1.2"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -58,6 +80,7 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
+<<<<<<< HEAD
     "sphinx.ext.viewcode",
     "sphinxcontrib.katex",
     "sphinx.ext.autosectionlabel",
@@ -67,13 +90,46 @@ extensions = [
     "sphinx.ext.linkcode",
 ]
 
+=======
+    "sphinx.ext.autosectionlabel",
+    "sphinxcontrib.katex",
+    "sphinx_copybutton",
+    "sphinx_design",
+    "myst_parser",
+    "sphinx.ext.linkcode",
+    "sphinxcontrib.mermaid",
+    "sphinx_sitemap",
+]
+
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "html_image",
+]
+
+html_baseurl = "https://docs.pytorch.org/docs/stable/"  # needed for sphinx-sitemap
+sitemap_locales = [None]
+sitemap_excludes = [
+    "search.html",
+    "genindex.html",
+]
+sitemap_url_scheme = "{link}"
+
+html_additional_pages = {
+    "404": "404.html",
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # build the templated autosummary files
 autosummary_generate = True
 numpydoc_show_class_members = False
 
+<<<<<<< HEAD
 # Theme has bootstrap already
 panels_add_bootstrap_css = False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # autosectionlabel throws warnings if section names are duplicated.
 # The following tells autosectionlabel to not throw a warning for
 # duplicated section names that are in different documents.
@@ -85,6 +141,7 @@ autosectionlabel_prefix_document = True
 
 katex_prerender = True
 
+<<<<<<< HEAD
 napoleon_use_ivar = True
 
 # Add any paths that contain templates here, relative to this directory.
@@ -94,6 +151,115 @@ templates_path = ["_templates"]
 
 html_domain_indices = False
 
+=======
+# General information about the project.
+project = "PyTorch"
+copyright = "PyTorch Contributors"
+author = "PyTorch Contributors"
+torch_version = str(torch.__version__)
+
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# The short X.Y version.
+# TODO: change to [:2] at v1.0
+version = "main (" + torch_version + " )"
+# The full version, including alpha/beta/rc tags.
+release = "main"
+
+# Customized html_title here.
+# Default is " ".join(project, release, "documentation") if not set
+if RELEASE:
+    # Turn 1.11.0aHASH into 1.11
+    # Note: the release candidates should no longer have the aHASH suffix, but in any
+    # case we wish to leave only major.minor, even for rc builds.
+    version = ".".join(torch_version.split(".")[:2])
+    html_title = " ".join((project, version, "documentation"))
+    release = version
+
+switcher_version = "main" if not RELEASE else version
+
+html_static_path = ["_static"]
+html_theme_options = {
+    "logo": {"text": "Home"},
+    "analytics_id": "GTM-T8XT4PS",
+    "canonical_url": "https://pytorch.org/docs/stable/",
+    "switcher": {
+        "json_url": "https://docs.pytorch.org/docs/pytorch-versions.json",
+        "version_match": switcher_version,
+    },
+    "show_toc_level": 2,
+    "navigation_with_keys": False,
+    "external_links": [
+        {
+            "name": "Tutorials",
+            "url": "https://pytorch.org/tutorials/",
+        },
+    ],
+    "show_version_warning_banner": True,
+    "icon_links": [
+        {
+            "name": "X",
+            "url": "https://x.com/PyTorch",
+            "icon": "fa-brands fa-x-twitter",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/pytorch/pytorch",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyTorch Forum",
+            "url": "https://discuss.pytorch.org/",
+            "icon": "fa-brands fa-discourse",
+        },
+        {
+            "name": "PyPi",
+            "url": "https://pypi.org/project/torch/",
+            "icon": "fa-brands fa-python",
+        },
+    ],
+    "navbar_align": "left",
+    "navbar_start": ["version-switcher", "navbar-logo"],
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["search-field-custom", "theme-switcher", "navbar-icon-links"],
+    "header_links_before_dropdown": 6,
+    "navbar_persistent": [],
+    "use_edit_page_button": True,
+    "pytorch_project": "docs",
+}
+
+theme_variables = pytorch_sphinx_theme2.get_theme_variables()
+html_context = {
+    "theme_variables": theme_variables,
+    "github_url": "https://github.com",
+    "github_user": "pytorch",
+    "github_repo": "pytorch",
+    "feedback_url": "https://github.com/pytorch/pytorch",
+    "github_version": "main",
+    "pytorch_project": "docs",
+    "doc_path": "docs/source",
+    "theme_variables": theme_variables,  # noqa: F601
+    # library links are defined in
+    # pytorch_sphinx_theme2/pytorch_sphinx_theme2/links.json
+    "library_links": theme_variables.get("library_links", []),
+    "version": version,
+    "date_info": {
+        "paths_to_skip": ["generated/", "index"],
+    },
+}
+
+napoleon_use_ivar = True
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = [
+    "_templates",
+    os.path.join(os.path.dirname(pytorch_sphinx_theme2.__file__), "templates"),
+]
+# TODO: document these and remove them from here.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 coverage_ignore_functions = [
     # torch
     "typename",
@@ -406,6 +572,7 @@ coverage_ignore_functions = [
     "graph_pool_handle",
     "is_current_stream_capturing",
     "make_graphed_callables",
+<<<<<<< HEAD
     # torch.cuda.memory
     "caching_allocator_alloc",
     "caching_allocator_delete",
@@ -434,6 +601,10 @@ coverage_ignore_functions = [
     "reset_peak_memory_stats",
     "reset_peak_host_memory_stats",
     "set_per_process_memory_fraction",
+=======
+    # torch.mtia.memory
+    "reset_peak_memory_stats",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.cuda.nccl
     "all_gather",
     "all_reduce",
@@ -890,7 +1061,10 @@ coverage_ignore_functions = [
     "to_node",
     "wrap_node",
     "sym_sqrt",
+<<<<<<< HEAD
     "sym_ite",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.fx.experimental.symbolic_shapes
     "bind_symbols",
     "cast_symbool_to_symint_guardless",
@@ -1215,10 +1389,13 @@ coverage_ignore_functions = [
     "scatter_kwargs",
     # torch.nn.parameter
     "is_lazy",
+<<<<<<< HEAD
     # torch.nn.utils.clip_grad
     "clip_grad_norm",
     "clip_grad_norm_",
     "clip_grad_value_",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.nn.utils.convert_parameters
     "parameters_to_vector",
     "vector_to_parameters",
@@ -1833,8 +2010,11 @@ coverage_ignore_functions = [
     # torch.utils.backend_registration
     "generate_methods_for_privateuse1_backend",
     "rename_privateuse1_backend",
+<<<<<<< HEAD
     # torch.utils.benchmark.examples.blas_compare_setup
     "conda_run",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.utils.benchmark.examples.op_benchmark
     "assert_dicts_equal",
     # torch.utils.benchmark.op_fuzzers.spectral
@@ -2176,7 +2356,10 @@ coverage_ignore_classes = [
     "UnsynchronizedAccessError",
     # torch.cuda.memory
     "MemPool",
+<<<<<<< HEAD
     "MemPoolContext",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.elastic.multiprocessing.errors
     "ChildFailedError",
     "ProcessFailure",
@@ -2510,6 +2693,12 @@ coverage_ignore_classes = [
     # torch.distributed.checkpoint.filesystem
     "FileSystemReader",
     "FileSystemWriter",
+<<<<<<< HEAD
+=======
+    # torch.distributed.checkpoint.hf_storage
+    "HuggingFaceStorageReader",
+    "HuggingFaceStorageWriter",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.distributed.checkpoint.metadata
     "BytesStorageMetadata",
     "ChunkStorageMetadata",
@@ -3177,8 +3366,11 @@ coverage_ignore_classes = [
     "TorchVersion",
     # torch.types
     "SymInt",
+<<<<<<< HEAD
     # torch.utils.benchmark.examples.blas_compare_setup
     "SubEnvSpec",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # torch.utils.benchmark.examples.compare
     "FauxTorch",
     # torch.utils.benchmark.examples.spectral_ops_fuzz_test
@@ -3364,6 +3556,7 @@ source_suffix = ".rst"
 # The master toctree document.
 master_doc = "index"
 
+<<<<<<< HEAD
 # General information about the project.
 project = "PyTorch"
 copyright = "PyTorch Contributors"
@@ -3391,6 +3584,8 @@ if RELEASE:
     html_title = " ".join((project, version, "documentation"))
     release = version
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Use the linkcode extension to override [SOURCE] links to point
 # to the repo. Use the torch_version variable defined above to
@@ -3446,8 +3641,11 @@ exclude_patterns = []
 pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
+<<<<<<< HEAD
 todo_include_todos = True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Disable docstring inheritance
 autodoc_inherit_docstrings = False
 
@@ -3497,13 +3695,17 @@ autodoc_docstring_signature = True
 #
 #
 
+<<<<<<< HEAD
 html_theme = "pytorch_sphinx_theme"
 html_theme_path = [pytorch_sphinx_theme.get_html_theme_path()]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 
+<<<<<<< HEAD
 html_theme_options = {
     "pytorch_project": "docs",
     "canonical_url": "https://pytorch.org/docs/stable/",
@@ -3524,6 +3726,17 @@ if RELEASE:
 html_static_path = ["_static"]
 
 html_css_files = ["css/jit.css", "css/custom.css"]
+=======
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+
+html_css_files = [
+    "css/jit.css",
+    "css/custom.css",
+    "https://cdn.jsdelivr.net/npm/katex@0.10.0-beta/dist/katex.min.css",
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from sphinx.ext.coverage import CoverageBuilder
 
@@ -3626,7 +3839,10 @@ def process_docstring(app, what_, name, obj, options, lines):
         lines (List[str]): the lines of the docstring, see above
 
     References:
+<<<<<<< HEAD
         https://www.sphinx-doc.org/en/1.5.1/_modules/sphinx/ext/autodoc.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     """
     import re
@@ -3647,6 +3863,7 @@ def process_docstring(app, what_, name, obj, options, lines):
         lines.append("")
 
 
+<<<<<<< HEAD
 # Called automatically by Sphinx, making this `conf.py` an "extension".
 def setup(app):
     # NOTE: in Sphinx 1.8+ `html_css_files` is an official configuration value
@@ -3664,6 +3881,19 @@ def setup(app):
 
     app.connect("build-finished", coverage_post_process)
     app.connect("autodoc-process-docstring", process_docstring)
+=======
+def setup(app):
+    app.connect("build-finished", coverage_post_process)
+    app.connect("autodoc-process-docstring", process_docstring)
+    app.connect("html-page-context", hide_edit_button_for_pages)
+    app.config.add_last_updated = True
+    return {"version": "0.1", "parallel_read_safe": True}
+
+
+def hide_edit_button_for_pages(app, pagename, templatename, context, doctree):
+    if pagename.startswith("generated/"):
+        context["theme_use_edit_page_button"] = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # From PyTorch 1.5, we now use autogenerated files to document classes and
@@ -3711,6 +3941,7 @@ htmlhelp_basename = "PyTorchdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
+<<<<<<< HEAD
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
@@ -3724,11 +3955,37 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
+=======
+latex_engine = "lualatex"
+latex_show_urls = "footnote"
+
+latex_elements = {
+    "papersize": "letterpaper",
+    "pointsize": "10pt",
+    "tableofcontents": r"\pdfbookmark[0]{Contents}{toc}\tableofcontents",
+    "preamble": r"""
+       \usepackage{tocloft}
+       \setcounter{tocdepth}{3}
+       \setcounter{secnumdepth}{3}
+       % Fix table column widths
+       \renewenvironment{tabulary}{\begin{longtable}{p{0.3\linewidth}p{0.7\linewidth}}}{\end{longtable}}
+
+       % Ensure tables don't overflow
+       \AtBeginEnvironment{tabular}{\sloppy}
+    """,
+    "fncychap": r"\usepackage[Bjornstrup]{fncychap}",
+    "extraclassoptions": "oneside",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 latex_documents = [
     (
         master_doc,
@@ -3738,6 +3995,10 @@ latex_documents = [
         "manual",
     ),
 ]
+<<<<<<< HEAD
+=======
+latex_use_xindy = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # -- Options for manual page output ---------------------------------------

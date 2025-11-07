@@ -737,7 +737,11 @@ bool isFunctionalTensor(const c10::List<::std::optional<Tensor>>& t_list) {
 }
 
 template <typename T>
+<<<<<<< HEAD
 bool isFunctionalTensorIListRef(c10::IListRef<T> list) {
+=======
+static bool isFunctionalTensorIListRef(c10::IListRef<T> list) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (list.size() == 0) return false;
   auto functional_count = 0;
   for (const auto& tensor : list) {
@@ -803,7 +807,11 @@ void set_sizes_strides_offset(const std::vector<Tensor>& outs, const std::vector
   }
 }
 
+<<<<<<< HEAD
 thread_local bool _functionalizationReapplyViews;
+=======
+thread_local static bool _functionalizationReapplyViews;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool getFunctionalizationReapplyViewsTLS() {
   return _functionalizationReapplyViews;

@@ -10,7 +10,11 @@ namespace onnx {
 using namespace ::c10::onnx;
 }
 
+<<<<<<< HEAD
 void DeduplicateInitializers(
+=======
+static void DeduplicateInitializers(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::shared_ptr<Graph>& g,
     ValueToParamPairMap& valsToParamsMap,
     bool (*comp)(at::Tensor&, at::Tensor&)) {
@@ -62,12 +66,20 @@ void DeduplicateInitializers(
   }
 }
 
+<<<<<<< HEAD
 bool DeduplicateInitializersByDataPtr(at::Tensor& t1, at::Tensor& t2) {
+=======
+static bool DeduplicateInitializersByDataPtr(at::Tensor& t1, at::Tensor& t2) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return t1.sizes().equals(t2.sizes()) && t1.strides().equals(t2.strides()) &&
       (t1.has_storage() && t2.has_storage() && t1.data_ptr() == t2.data_ptr());
 }
 
+<<<<<<< HEAD
 bool DeduplicateInitializersByValue(at::Tensor& t1, at::Tensor& t2) {
+=======
+static bool DeduplicateInitializersByValue(at::Tensor& t1, at::Tensor& t2) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (t1.dtype() != t2.dtype() || !t1.sizes().equals(t2.sizes()) ||
       !t1.strides().equals(t2.strides())) {
     return false;

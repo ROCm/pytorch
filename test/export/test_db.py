@@ -40,6 +40,10 @@ class ExampleTests(TestCase):
             args_export,
             kwargs_export,
             dynamic_shapes=case.dynamic_shapes,
+<<<<<<< HEAD
+=======
+            strict=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         exported_program.graph_module.print_readable()
 
@@ -72,6 +76,10 @@ class ExampleTests(TestCase):
                 case.example_args,
                 case.example_kwargs,
                 dynamic_shapes=case.dynamic_shapes,
+<<<<<<< HEAD
+=======
+                strict=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     exportdb_not_supported_rewrite_cases = [
@@ -97,6 +105,10 @@ class ExampleTests(TestCase):
                 rewrite_case.example_args,
                 rewrite_case.example_kwargs,
                 dynamic_shapes=rewrite_case.dynamic_shapes,
+<<<<<<< HEAD
+=======
+                strict=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 

@@ -654,9 +654,18 @@ class TestFSDPUseOrigParamsUnshardReshard(FSDPTest):
             losses1 = []
             losses2 = []
             losses = []
+<<<<<<< HEAD
             for _model, _optim in (fsdp_model, optim), (
                 fsdp_model_orig_params,
                 optim_orig_params,
+=======
+            for _model, _optim in (
+                (fsdp_model, optim),
+                (
+                    fsdp_model_orig_params,
+                    optim_orig_params,
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 _optim.zero_grad()
                 loss1 = _model(*inp1)
@@ -1166,9 +1175,15 @@ class TestFSDPUseOrigParamsFQNs(FSDPTest):
                     clean_tensor_name(tup[0]) for tup in self.named_parameters()
                 ]
                 params = [tup[1] for tup in self.named_parameters()]
+<<<<<<< HEAD
                 assert (
                     param_shapes[0] is not None and param_shapes[1] is not None
                 ), "`param_sizes` should be set"
+=======
+                assert param_shapes[0] is not None and param_shapes[1] is not None, (
+                    "`param_sizes` should be set"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert_equal_fn(
                     param_names,
                     [

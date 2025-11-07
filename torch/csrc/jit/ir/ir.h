@@ -1490,7 +1490,10 @@ struct WithCurrentScope {
   ScopePtr prev_scope_;
 };
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Value::Value(Node* node_, size_t offset_)
     : node_(node_),
       offset_(offset_),
@@ -1651,7 +1654,10 @@ struct TORCH_API OperatorSet {
 };
 
 template <typename T>
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct OperatorMap {
   // Type aliasing
   using OpMapType = typename std::pair<std::shared_ptr<Operator>, T>;
@@ -1659,12 +1665,18 @@ struct OperatorMap {
   using MapType = std::unordered_map<Symbol, ValueType>;
 
   OperatorMap() = default;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   explicit OperatorMap(
       std::initializer_list<std::pair<std::shared_ptr<Operator>, T>> init) {
     insert(init);
   }
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   explicit OperatorMap(std::initializer_list<std::pair<const char*, T>> init) {
     insert(init);
   }
@@ -1760,7 +1772,10 @@ struct OperatorMap {
 };
 
 template <typename T>
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct FunctionSchemaMap {
   // Type aliasing
   using FuncSchemaMapType = typename std::pair<FunctionSchema, T>;

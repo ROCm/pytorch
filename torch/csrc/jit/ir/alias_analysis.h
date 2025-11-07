@@ -9,6 +9,11 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
+=======
+class ValueAndMemoryLocationSet;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /**
  * Alias analysis pass.
  *
@@ -70,6 +75,15 @@ class AliasDb {
   // if `recurseBlocks` is true, consider writes on the nodes in `n`s sub-blocks
   TORCH_API bool writesToAlias(Node* n, const ValueSet& vs) const;
 
+<<<<<<< HEAD
+=======
+  // Does `n` write to any of the values in `vls`?
+  TORCH_API bool writesToAlias(Node* n, const ValueAndMemoryLocationSet& vls)
+      const;
+
+  TORCH_API ValueAndMemoryLocationSet getValueAndMemoryLocationSet() const;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Does `a` and `b` potentially share a memory location or do either
   // hold in memory any element that exists in the other
   TORCH_API bool mayContainAlias(Value* a, Value* b) const;
@@ -170,6 +184,10 @@ class AliasDb {
   void enablePreciseTupleContainerAnalysis();
 
   friend struct MutationRemover;
+<<<<<<< HEAD
+=======
+  friend class ValueAndMemoryLocationSet;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   // Helper for topologically-safe node moves.
@@ -197,6 +215,10 @@ class AliasDb {
   // if `recurseBlocks` is true, gather reads on the nodes in `n`s sub-blocks
   MemoryLocations getReads(Node* n) const;
   void getReadsImpl(Node* n, MemoryLocations& ret) const;
+<<<<<<< HEAD
+=======
+  MemoryLocations getMemoryLocations(Value* v) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /**
    * Wildcard methods
@@ -317,4 +339,40 @@ class AliasDb {
 // the right thing.
 TORCH_API void Lint(const AliasDb* db);
 
+<<<<<<< HEAD
+=======
+/**
+ * ValueAndMemoryLocationSet
+ *
+ * A insert-only set of values which also maintains a MemoryLocations bitset
+ * of the memory locations that the values alias. It is insert-only. It
+ * should be constructed by calling aliasDb.getValueAndMemoryLocationSet().
+ *
+ * WARNING:
+ *  * The AliasDb must not be mutated after construction of a
+ *    ValueAndMemoryLocationsSet, or else the MemoryLocations stored in the
+ *    ValueAndMemoryLocationSet will no longer be accurate.
+ *  * A ValueAndMemoryLocationsSet is tied to an instsance of AliasDb but
+ *    does not own the AliasDb. It is the user's responsibility to ensure
+ *    that the AliasDb outlives the ValuesAndMemoryLocationsSet.
+ *
+ * The use case for this is to be able to implement writesToAlias
+ * more efficiently for a set of values.
+ */
+class ValueAndMemoryLocationSet {
+ public:
+  TORCH_API void insert(Value* v);
+  TORCH_API ValueSet& getValueSet();
+
+  friend class AliasDb;
+
+ private:
+  ValueAndMemoryLocationSet(const AliasDb* db) : aliasDb_(db) {}
+
+  const AliasDb* aliasDb_;
+  ValueSet valueSet_;
+  MemoryLocations memoryLocations_;
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit

@@ -68,8 +68,13 @@ size_t nCompiledKernels() {
 
 int debugFuser() {
   if (debug_fusion < 0) {
+<<<<<<< HEAD
     const char* debug_env = getenv("PYTORCH_FUSION_DEBUG");
     debug_fusion = debug_env ? atoi(debug_env) : 0;
+=======
+    const auto debug_env = c10::utils::get_env("PYTORCH_FUSION_DEBUG");
+    debug_fusion = debug_env ? atoi(debug_env->c_str()) : 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return debug_fusion;
 }

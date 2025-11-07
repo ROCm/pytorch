@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 cmake_minimum_required(VERSION 3.4.1)
+=======
+cmake_minimum_required(VERSION 3.5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 project(pytorch_vision_jni CXX)
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "The C++ standard whose features are requested to build this target.")
 set(CMAKE_VERBOSE_MAKEFILE ON)

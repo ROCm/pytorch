@@ -158,7 +158,11 @@ class StoreUtilTest(TestCase):
         with ThreadPool(N - 1) as pool:
             outputs: list[str] = pool.map(run_barrier_for_rank, range(N - 1))
 
+<<<<<<< HEAD
         self.assertTrue(any("missing_ranks=[Rank 2 host]" in msg for msg in outputs))
+=======
+        self.assertTrue(any("missing_ranks=[Rank " in msg for msg in outputs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertTrue(
             any(

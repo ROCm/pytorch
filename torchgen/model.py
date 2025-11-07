@@ -6,8 +6,14 @@ import re
 from dataclasses import dataclass
 from enum import auto, Enum
 from typing import Callable, Optional, TYPE_CHECKING
+<<<<<<< HEAD
 
 from torchgen.utils import assert_never, NamespaceHelper, OrderedSet
+=======
+from typing_extensions import assert_never
+
+from torchgen.utils import NamespaceHelper, OrderedSet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -270,6 +276,10 @@ STRUCTURED_DISPATCH_KEYS = {
     DispatchKey.CUDA,
     DispatchKey.CPU,
     DispatchKey.XPU,
+<<<<<<< HEAD
+=======
+    DispatchKey.MTIA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 UFUNC_DISPATCH_KEYS = {DispatchKey.CUDA, DispatchKey.CPU}
 
@@ -295,6 +305,10 @@ dispatch_keys = [
     DispatchKey.NestedTensorCPU,
     DispatchKey.NestedTensorCUDA,
     DispatchKey.NestedTensorXPU,
+<<<<<<< HEAD
+=======
+    DispatchKey.NestedTensorHPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Meta is a magic key: it is automatically generated for structured
     # kernels
     DispatchKey.Meta,
@@ -303,6 +317,10 @@ dispatch_keys = [
     DispatchKey.QuantizedMeta,
     DispatchKey.NestedTensorMeta,
     DispatchKey.ZeroTensor,
+<<<<<<< HEAD
+=======
+    DispatchKey.MTIA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -589,7 +607,11 @@ class NativeFunction:
     has_composite_explicit_autograd_non_functional_kernel: bool
 
     # Tags are used to describe semantic information about (groups of) operators,
+<<<<<<< HEAD
     # That aren't easily inferrable directly from the operator's schema.
+=======
+    # That aren't easily inferable directly from the operator's schema.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tags: set[str]
 
     # NB: The benefit of defining a dataclass is that we automatically get

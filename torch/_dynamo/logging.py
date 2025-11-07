@@ -33,7 +33,11 @@ def get_loggers() -> list[logging.Logger]:
 # get_step_logger should be lazily called (i.e. at runtime, not at module-load time)
 # so that step numbers are initialized properly. e.g.:
 
+<<<<<<< HEAD
 # @functools.lru_cache(None)
+=======
+# @functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # def _step_logger():
 #     return get_step_logger(logging.getLogger(...))
 

@@ -47,7 +47,11 @@ class TypeGen:
             all_base_tys = [TypeGen.from_example(x) for x in obj]
             if len(set(all_base_tys)) > 1:
                 raise RuntimeError(
+<<<<<<< HEAD
                     f"Cannot generate schema for a seqeunce of args of heterogeneous types: {all_base_tys}. "
+=======
+                    f"Cannot generate schema for a sequence of args of heterogeneous types: {all_base_tys}. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "Consider unpacking the argument and give proper names to them if possible "
                     "instead of using *args."
                 )

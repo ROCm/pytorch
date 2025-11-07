@@ -33,6 +33,7 @@ macro(custom_protobuf_find)
   set(__caffe2_CMAKE_POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE})
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+<<<<<<< HEAD
   if(MSVC)
     foreach(flag_var
         CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_MINSIZEREL
@@ -52,6 +53,8 @@ macro(custom_protobuf_find)
     endif(MSVC_Z7_OVERRIDE)
   endif(MSVC)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
     message(WARNING "Ancient protobuf forces CMake compatibility")
     set(CMAKE_POLICY_VERSION_MINIMUM 3.5)

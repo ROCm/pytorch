@@ -5,6 +5,10 @@
 #include <ATen/mps/MPSAllocator.h>
 #include <c10/core/Allocator.h>
 #include <c10/core/Storage.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <iostream>
 
@@ -21,19 +25,34 @@ void MPSHeapAllocatorImpl::init_allocator() {
   init_buffer_pools();
 
   // debug verbosity flags (see DebugVerbosity enum)
+<<<<<<< HEAD
   static const char* verbosity_str = getenv("PYTORCH_DEBUG_MPS_ALLOCATOR");
   m_debug_verbosity = verbosity_str ? strtol(verbosity_str, nullptr, 0) : DebugVerbosity::SILENT;
 
   static const char* high_watermark_ratio_str = getenv("PYTORCH_MPS_HIGH_WATERMARK_RATIO");
   const double high_watermark_ratio =
       high_watermark_ratio_str ? strtod(high_watermark_ratio_str, nullptr) : default_high_watermark_ratio;
+=======
+  static const auto verbosity_str = c10::utils::get_env("PYTORCH_DEBUG_MPS_ALLOCATOR");
+  m_debug_verbosity = verbosity_str ? strtol(verbosity_str->c_str(), nullptr, 0) : DebugVerbosity::SILENT;
+
+  static const auto high_watermark_ratio_str = c10::utils::get_env("PYTORCH_MPS_HIGH_WATERMARK_RATIO");
+  const double high_watermark_ratio =
+      high_watermark_ratio_str ? strtod(high_watermark_ratio_str->c_str(), nullptr) : default_high_watermark_ratio;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   setHighWatermarkRatio(high_watermark_ratio);
 
   const double default_low_watermark_ratio =
       m_device.hasUnifiedMemory ? default_low_watermark_ratio_unified : default_low_watermark_ratio_discrete;
+<<<<<<< HEAD
   static const char* low_watermark_ratio_str = getenv("PYTORCH_MPS_LOW_WATERMARK_RATIO");
   const double low_watermark_ratio =
       low_watermark_ratio_str ? strtod(low_watermark_ratio_str, nullptr) : default_low_watermark_ratio;
+=======
+  static const auto low_watermark_ratio_str = c10::utils::get_env("PYTORCH_MPS_LOW_WATERMARK_RATIO");
+  const double low_watermark_ratio =
+      low_watermark_ratio_str ? strtod(low_watermark_ratio_str->c_str(), nullptr) : default_low_watermark_ratio;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   setLowWatermarkRatio(low_watermark_ratio);
 }
 
@@ -638,7 +657,11 @@ IntArrayRef MPSHeapAllocatorImpl::getBufferShape(const void* ptr) {
   std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
   BufferBlock* buffer_block = get_allocated_buffer_block(ptr);
+<<<<<<< HEAD
   if (buffer_block && buffer_block->shape.size() > 0) {
+=======
+  if (buffer_block && !buffer_block->shape.empty()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return IntArrayRef{buffer_block->shape};
   }
   return IntArrayRef();
@@ -699,6 +722,7 @@ ssize_t MPSHeapAllocatorImpl::getLowWatermarkValue() {
 }
 
 inline std::string MPSHeapAllocatorImpl::format_size(uint64_t size) const {
+<<<<<<< HEAD
   std::ostringstream os;
   os.precision(2);
   os << std::fixed;
@@ -712,6 +736,9 @@ inline std::string MPSHeapAllocatorImpl::format_size(uint64_t size) const {
     os << ((float)size / 1073741824.0) << " GB";
   }
   return os.str();
+=======
+  return c10::CachingAllocator::format_size(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace HeapAllocator

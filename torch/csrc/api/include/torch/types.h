@@ -7,9 +7,12 @@
 #include <torch/csrc/autograd/generated/variable_factories.h>
 #include <torch/csrc/autograd/variable.h>
 
+<<<<<<< HEAD
 // TODO: These don't really belong here but torchvision builds in CI need them
 // Remove once the torchvision version being compiled in CI is updated
 #include <ATen/core/dispatch/Dispatcher.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/library.h>
 
 namespace torch {

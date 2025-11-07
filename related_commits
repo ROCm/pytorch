@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ubuntu|pytorch|apex|release/1.7.0|20a62dc5a91c85fdc9bfd1b389919316f6476951|https://github.com/ROCm/apex
 centos|pytorch|apex|release/1.7.0|20a62dc5a91c85fdc9bfd1b389919316f6476951|https://github.com/ROCm/apex
 ubuntu|pytorch|torchvision|release/0.22|59a3e1f9f78cfe44cb989877cc6f4ea77c8a75ca|https://github.com/pytorch/vision
@@ -8,3 +9,15 @@ ubuntu|pytorch|torchdata|release/0.11|377e64c1be69a9be6649d14c9e3664070323e464|h
 centos|pytorch|torchdata|release/0.11|377e64c1be69a9be6649d14c9e3664070323e464|https://github.com/pytorch/data
 ubuntu|pytorch|torchaudio|release/2.7|95c61b4168fc5133be8dd8c1337d929d066ae6cf|https://github.com/pytorch/audio
 centos|pytorch|torchaudio|release/2.7|95c61b4168fc5133be8dd8c1337d929d066ae6cf|https://github.com/pytorch/audio
+=======
+ubuntu|pytorch|apex|release/1.8.0|3f26640cff501d67d35acf424ed2566d50949f5b|https://github.com/ROCm/apex
+centos|pytorch|apex|release/1.8.0|3f26640cff501d67d35acf424ed2566d50949f5b|https://github.com/ROCm/apex
+ubuntu|pytorch|torchvision|release/0.23|824e8c8726b65fd9d5abdc9702f81c2b0c4c0dc8|https://github.com/pytorch/vision
+centos|pytorch|torchvision|release/0.23|824e8c8726b65fd9d5abdc9702f81c2b0c4c0dc8|https://github.com/pytorch/vision
+ubuntu|pytorch|torchdata|release/0.11|377e64c1be69a9be6649d14c9e3664070323e464|https://github.com/pytorch/data
+centos|pytorch|torchdata|release/0.11|377e64c1be69a9be6649d14c9e3664070323e464|https://github.com/pytorch/data
+ubuntu|pytorch|torchaudio|release/2.8|6e1c7fe9ff6d82b8665d0a46d859d3357d2ebaaa|https://github.com/pytorch/audio
+centos|pytorch|torchaudio|release/2.8|6e1c7fe9ff6d82b8665d0a46d859d3357d2ebaaa|https://github.com/pytorch/audio
+ubuntu|pytorch|ao|main|a96eeb1c7d7ba24cf0ccfc105141729acfed22bf|https://github.com/pytorch/ao
+centos|pytorch|ao|main|a96eeb1c7d7ba24cf0ccfc105141729acfed22bf|https://github.com/pytorch/ao
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

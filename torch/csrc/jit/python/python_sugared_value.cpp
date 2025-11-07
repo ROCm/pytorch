@@ -21,7 +21,11 @@
 namespace torch::jit {
 
 std::string typeString(py::handle h) {
+<<<<<<< HEAD
   return py::str(h.get_type().attr("__name__"));
+=======
+  return py::str(py::type::handle_of(h).attr("__name__"));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::optional<StrongFunctionPtr> as_function(const py::object& obj) {
@@ -381,7 +385,11 @@ SugaredValuePtr ModuleValue::getitem(
       << "ParameterList, and ParameterDict modules are subscriptable");
 }
 
+<<<<<<< HEAD
 void checkInterface(
+=======
+static void checkInterface(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const SourceRange& loc,
     GraphFunction& m,
     const std::shared_ptr<ModuleValue>& self,
@@ -582,7 +590,11 @@ std::shared_ptr<SugaredValue> SugaredDict::attr(
   TORCH_INTERNAL_ASSERT(false);
 }
 
+<<<<<<< HEAD
 std::shared_ptr<SugaredEnumClass> createSugaredEnumClassFromObj(
+=======
+static std::shared_ptr<SugaredEnumClass> createSugaredEnumClassFromObj(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const py::object& obj,
     GraphFunction& m,
     const SourceRange& loc) {
@@ -595,7 +607,11 @@ std::shared_ptr<SugaredEnumClass> createSugaredEnumClassFromObj(
 }
 
 // helper function for instantiating a SugaredValue from an IValue
+<<<<<<< HEAD
 std::shared_ptr<SugaredValue> toSugaredValue(
+=======
+static std::shared_ptr<SugaredValue> toSugaredValue(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const IValue& v,
     GraphFunction& m,
     const SourceRange& loc) {
@@ -1057,7 +1073,11 @@ TypePtr registerNamedTuple(
   return tt;
 }
 
+<<<<<<< HEAD
 bool isEnumClass(py::object obj) {
+=======
+static bool isEnumClass(py::object obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto enum_type_obj =
       py::cast<py::object>(py::module::import("enum").attr("Enum"));
   int ret = PyObject_IsSubclass(obj.ptr(), enum_type_obj.ptr());
@@ -1068,7 +1088,11 @@ bool isEnumClass(py::object obj) {
   return ret == 1;
 }
 
+<<<<<<< HEAD
 std::shared_ptr<SugaredValue> createSimpleEnumValue(
+=======
+static std::shared_ptr<SugaredValue> createSimpleEnumValue(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const py::object& obj,
     GraphFunction& m,
     const SourceRange& loc) {

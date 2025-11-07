@@ -1,5 +1,10 @@
 #include <torch/csrc/distributed/c10d/GlooDeviceFactory.hpp>
 
+<<<<<<< HEAD
+=======
+#include <torch/csrc/distributed/c10d/Utils.hpp>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_C10D_GLOO
 
 #include <cstdlib>
@@ -19,6 +24,13 @@
 #include <gloo/transport/uv/device.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#if GLOO_HAVE_TRANSPORT_IBVERBS
+#include <gloo/transport/ibverbs/device.h>
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // On Linux, check that the tcp transport is available.
 #ifdef __linux__
 #if !GLOO_HAVE_TRANSPORT_TCP
@@ -39,12 +51,22 @@ C10_DEFINE_SHARED_REGISTRY_WITHOUT_WARNING(
     GlooDeviceRegistry,
     ::gloo::transport::Device,
     const std::string& /* interface */,
+<<<<<<< HEAD
     const std::string& /* hostname */)
+=======
+    const std::string& /* hostname */,
+    bool /* lazyInit */)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if GLOO_HAVE_TRANSPORT_TCP
 static std::shared_ptr<::gloo::transport::Device> makeTCPDevice(
     const std::string& interfaceName,
+<<<<<<< HEAD
     const std::string& hostname) {
+=======
+    const std::string& hostname,
+    bool lazyInit) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       !interfaceName.empty() || !hostname.empty(),
       "GlooDeviceFactory::makeTCPDevice(): interface or hostname "
@@ -56,7 +78,15 @@ static std::shared_ptr<::gloo::transport::Device> makeTCPDevice(
   } else {
     attr.hostname = hostname;
   }
+<<<<<<< HEAD
   return ::gloo::transport::tcp::CreateDevice(attr);
+=======
+  if (lazyInit) {
+    return ::gloo::transport::tcp::CreateLazyDevice(attr);
+  } else {
+    return ::gloo::transport::tcp::CreateDevice(attr);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Registry priority is per key identifier. We register TCP to `LINUX` for
@@ -69,12 +99,22 @@ C10_REGISTER_CREATOR(GlooDeviceRegistry, TCP, makeTCPDevice)
 #if GLOO_HAVE_TRANSPORT_TCP_TLS
 static std::shared_ptr<::gloo::transport::Device> makeTCPTLSDevice(
     const std::string& interface,
+<<<<<<< HEAD
     const std::string& hostname) {
+=======
+    const std::string& hostname,
+    bool lazyInit) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       !interface.empty() || !hostname.empty(),
       "GlooDeviceFactory::makeTCPTLSDevice(): interface or hostname "
       "can't be empty");
 
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(!lazyInit, "TCP_TLS transport does not support lazy init");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ::gloo::transport::tcp::attr attr;
   if (!interface.empty()) {
     attr.iface = interface;
@@ -105,12 +145,22 @@ C10_REGISTER_CREATOR(GlooDeviceRegistry, TCP_TLS, makeTCPTLSDevice)
 #if GLOO_HAVE_TRANSPORT_UV
 static std::shared_ptr<::gloo::transport::Device> makeUVDevice(
     const std::string& interfaceName,
+<<<<<<< HEAD
     const std::string& hostname) {
+=======
+    const std::string& hostname,
+    bool lazyInit) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       !interfaceName.empty() || !hostname.empty(),
       "GlooDeviceFactory::makeUVDevice(): interface or hostname "
       "can't be empty");
 
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(!lazyInit, "UV transport does not support lazy init");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ::gloo::transport::uv::attr attr;
   if (!interfaceName.empty()) {
     attr.iface = interfaceName;
@@ -128,6 +178,7 @@ C10_REGISTER_CREATOR(GlooDeviceRegistry, WIN32, makeUVDevice)
 C10_REGISTER_CREATOR(GlooDeviceRegistry, UV, makeUVDevice)
 #endif
 
+<<<<<<< HEAD
 namespace {
 std::shared_ptr<::gloo::transport::Device> makeGlooDevice(
     const std::string& interfaceName,
@@ -148,6 +199,74 @@ std::shared_ptr<::gloo::transport::Device> makeGlooDevice(
 
 #ifdef _WIN32
   return GlooDeviceRegistry()->Create("WIN32", interfaceName, hostName);
+=======
+#if GLOO_HAVE_TRANSPORT_IBVERBS
+static std::shared_ptr<::gloo::transport::Device> makeIBVerbsDevice(
+    const std::string& interface,
+    const std::string& hostname,
+    bool lazyInit) {
+  if (!hostname.empty()) {
+    TORCH_WARN(
+        "ibverbs transport does not support hostname, defaulting to any");
+  }
+
+  TORCH_CHECK(!lazyInit, "transport does not support lazy init");
+
+  ::gloo::transport::ibverbs::attr attr;
+  attr.name = getCvarString(
+      {
+          "TORCH_GLOO_IBV_NAME",
+      },
+      "");
+  attr.port = getCvarInt(
+      {
+          "TORCH_GLOO_IBV_PORT",
+      },
+      1);
+  attr.index = getCvarInt(
+      {
+          "TORCH_GLOO_IBV_INDEX",
+      },
+      0);
+
+  if (!interface.empty()) {
+    attr.name = interface;
+  }
+
+  // use global port
+  attr.port = 1;
+
+  return ::gloo::transport::ibverbs::CreateDevice(attr);
+}
+
+C10_REGISTER_CREATOR(GlooDeviceRegistry, IBVERBS, makeIBVerbsDevice)
+#endif
+
+namespace {
+std::shared_ptr<::gloo::transport::Device> makeGlooDevice(
+    const std::string& interfaceName,
+    const std::string& hostName,
+    bool lazyInit) {
+  static auto transportName = c10::utils::get_env("GLOO_DEVICE_TRANSPORT");
+  if (transportName.has_value()) {
+    return GlooDeviceRegistry()->Create(
+        transportName.value().c_str(), interfaceName, hostName, lazyInit);
+  }
+
+#ifdef __linux__
+  return GlooDeviceRegistry()->Create(
+      "LINUX", interfaceName, hostName, lazyInit);
+#endif
+
+#ifdef __APPLE__
+  return GlooDeviceRegistry()->Create(
+      "APPLE", interfaceName, hostName, lazyInit);
+#endif
+
+#ifdef _WIN32
+  return GlooDeviceRegistry()->Create(
+      "WIN32", interfaceName, hostName, lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
   return nullptr;
@@ -155,8 +274,13 @@ std::shared_ptr<::gloo::transport::Device> makeGlooDevice(
 } // anonymous namespace
 
 std::shared_ptr<::gloo::transport::Device> GlooDeviceFactory::
+<<<<<<< HEAD
     makeDeviceForInterface(const std::string& interfaceName) {
   auto device = makeGlooDevice(interfaceName, "");
+=======
+    makeDeviceForInterface(const std::string& interfaceName, bool lazyInit) {
+  auto device = makeGlooDevice(interfaceName, "", lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!device) {
     TORCH_CHECK(false, "makeDeviceForInterface(): unsupported gloo device");
   }
@@ -164,8 +288,13 @@ std::shared_ptr<::gloo::transport::Device> GlooDeviceFactory::
 }
 
 std::shared_ptr<::gloo::transport::Device> GlooDeviceFactory::
+<<<<<<< HEAD
     makeDeviceForHostname(const std::string& hostname) {
   auto device = makeGlooDevice("", hostname);
+=======
+    makeDeviceForHostname(const std::string& hostname, bool lazyInit) {
+  auto device = makeGlooDevice("", hostname, lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!device) {
     TORCH_CHECK(false, "makeDeviceForHostname(): unsupported gloo device");
   }

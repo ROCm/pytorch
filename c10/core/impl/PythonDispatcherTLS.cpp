@@ -4,7 +4,11 @@
 
 namespace c10::impl {
 
+<<<<<<< HEAD
 thread_local PyInterpreter* pythonDispatcherState;
+=======
+thread_local static PyInterpreter* pythonDispatcherState;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void PythonDispatcherTLS::set_state(PyInterpreter* state) {
   if (state) {

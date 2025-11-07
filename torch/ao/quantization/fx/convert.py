@@ -509,9 +509,15 @@ def _replace_observer_or_dequant_stub_with_dequantize_node(
     node: Node, graph: Graph
 ) -> None:
     call_custom_module_node = node.args[0]
+<<<<<<< HEAD
     assert isinstance(
         call_custom_module_node, Node
     ), f"Expecting the for call custom module node to be a Node, but got {call_custom_module_node}"
+=======
+    assert isinstance(call_custom_module_node, Node), (
+        f"Expecting the for call custom module node to be a Node, but got {call_custom_module_node}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     node.replace_all_uses_with(call_custom_module_node)
     graph.erase_node(node)
     _insert_dequantize_node(call_custom_module_node, graph)
@@ -604,9 +610,15 @@ def _get_module_path_and_prefix(
     # operator (they can be the same)
     # this flag identifies if the observer is inserted only because the observed node is
     # the input of the next operator
+<<<<<<< HEAD
     assert isinstance(
         observed_node, Node
     ), f"Expecting observed node to be a Node, but got {observed_node}"
+=======
+    assert isinstance(observed_node, Node), (
+        f"Expecting observed node to be a Node, but got {observed_node}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_input_observer_only = (
         node_name_to_qconfig[observed_node.name] is None
         if observed_node.name in node_name_to_qconfig
@@ -865,9 +877,15 @@ def convert_weighted_module(
     ref_qmodule_cls = root_module_to_quantized_reference_module.get(
         type_before_parametrizations(float_module), None
     )
+<<<<<<< HEAD
     assert (
         ref_qmodule_cls is not None
     ), f"No reference quantized module class configured for {type_before_parametrizations(float_module)}"
+=======
+    assert ref_qmodule_cls is not None, (
+        f"No reference quantized module class configured for {type_before_parametrizations(float_module)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ref_qmodule = ref_qmodule_cls.from_float(float_module, wq_or_wq_dict)  # type: ignore[attr-defined]
     if fused_module is not None:
         fused_module[0] = ref_qmodule  # type: ignore[operator]
@@ -887,9 +905,15 @@ def _remove_previous_dequantize_in_custom_module(
                  \\ - dequantize
     """
     # expecting the input node for a custom module node to be a Node
+<<<<<<< HEAD
     assert isinstance(
         prev_node, Node
     ), f"Expecting the argument for custom module node to be a Node, but got {prev_node}"
+=======
+    assert isinstance(prev_node, Node), (
+        f"Expecting the argument for custom module node to be a Node, but got {prev_node}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if prev_node.op == "call_method" and prev_node.target == "dequantize":
         node.replace_input_with(prev_node, prev_node.args[0])
         # Remove the dequantize node if it doesn't have other users
@@ -1060,14 +1084,26 @@ def convert(
 
     assert _is_observed_module(model), "incoming model must be produced by prepare_fx"
     observed_graph_module_attrs = model.meta["_observed_graph_module_attrs"]
+<<<<<<< HEAD
     node_name_to_scope: dict[
         str, tuple[str, type]
     ] = observed_graph_module_attrs.node_name_to_scope
+=======
+    node_name_to_scope: dict[str, tuple[str, type]] = (
+        observed_graph_module_attrs.node_name_to_scope
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     prepare_custom_config: PrepareCustomConfig = (
         observed_graph_module_attrs.prepare_custom_config
     )
     observed_node_names: set[str] = observed_graph_module_attrs.observed_node_names
+<<<<<<< HEAD
     node_name_to_qconfig: dict[str, QConfigAny] = observed_graph_module_attrs.node_name_to_qconfig  # type: ignore[assignment]
+=======
+    node_name_to_qconfig: dict[str, QConfigAny] = (
+        observed_graph_module_attrs.node_name_to_qconfig
+    )  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # mapping from fully qualified module name to module instance
     # for example,
@@ -1083,14 +1119,26 @@ def convert(
     # TODO refactor this code once we update the prepare logic to have additional information on
     # which graph nodes have been observed and share that with convert to decide which observers to ignore.
     if qconfig_mapping:
+<<<<<<< HEAD
         prepare_qconfig_mapping: QConfigMapping = observed_graph_module_attrs.qconfig_mapping  # type: ignore[assignment]
+=======
+        prepare_qconfig_mapping: QConfigMapping = (
+            observed_graph_module_attrs.qconfig_mapping
+        )  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         modules_copy = copy.deepcopy(modules)
 
         if observed_graph_module_attrs.is_qat:
             _update_qconfig_for_qat(qconfig_mapping, backend_config)
         _update_qconfig_for_fusion(model, qconfig_mapping)
 
+<<<<<<< HEAD
         _compare_prepare_convert_qconfig_mappings(prepare_qconfig_mapping, qconfig_mapping)  # type: ignore[arg-type]
+=======
+        _compare_prepare_convert_qconfig_mappings(
+            prepare_qconfig_mapping, qconfig_mapping
+        )  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         convert_node_name_to_qconfig = _generate_node_name_to_qconfig(
             model, modules_copy, model.graph, qconfig_mapping, node_name_to_scope
         )
@@ -1098,9 +1146,15 @@ def convert(
         # all the values either match what was set in prepare node_name_to_qconfig
         # or are set to None in the convert_node_name_to_qconfig.
         for k, v in node_name_to_qconfig.items():
+<<<<<<< HEAD
             assert (
                 k in convert_node_name_to_qconfig
             ), f"Expected key {k} in convert node_name_to_qconfig"
+=======
+            assert k in convert_node_name_to_qconfig, (
+                f"Expected key {k} in convert node_name_to_qconfig"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if convert_node_name_to_qconfig[k] is not None:
                 assert qconfig_equals(v, convert_node_name_to_qconfig[k]), (
                     f"Expected k {k} to have the same value in prepare and convert QConfigMappings, "

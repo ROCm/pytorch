@@ -12,6 +12,7 @@ namespace c10 {
 
 template <typename T>
 bool _compute_contiguous(ArrayRef<T> sizes, ArrayRef<T> strides, T numel) {
+<<<<<<< HEAD
   bool is_contiguous = true;
   if (TORCH_GUARD_SIZE_OBLIVIOUS(sym_eq(numel, 0))) {
     return is_contiguous;
@@ -30,6 +31,51 @@ bool _compute_contiguous(ArrayRef<T> sizes, ArrayRef<T> strides, T numel) {
     }
   }
   return is_contiguous;
+=======
+  if (TORCH_GUARD_SIZE_OBLIVIOUS(sym_eq(numel, 0))) {
+    return true;
+  }
+
+  T expected_stride = 1;
+  // NB: make sure we do signed arithmetic
+  for (int64_t d = int64_t(sizes.size()) - 1; d >= 0; d--) {
+    const auto& size_d = sizes[d];
+    if (TORCH_GUARD_SIZE_OBLIVIOUS(sym_eq(size_d, 1))) {
+      continue;
+    }
+
+    if (TORCH_GUARD_SIZE_OBLIVIOUS(sym_ne(strides[d], expected_stride))) {
+      return false;
+    }
+    expected_stride *= size_d;
+  }
+  return true;
+}
+
+// This function will return True if the tensor is contiguous, and False if the
+// its not or if we can't determine if it is contiguous due to unbacked symbols
+// (it could be either in that case based on the actual runtime data).
+template <typename T>
+bool definitely_contiguous(ArrayRef<T> sizes, ArrayRef<T> strides, T numel) {
+  if (TORCH_GUARD_OR_FALSE(sym_eq(numel, 0))) {
+    return true;
+  }
+
+  T expected_stride = 1;
+  // NB: make sure we do signed arithmetic
+  for (int64_t d = int64_t(sizes.size()) - 1; d >= 0; d--) {
+    const auto& size_d = sizes[d];
+    if (TORCH_GUARD_OR_FALSE(sym_eq(size_d, 1))) {
+      continue;
+    }
+
+    if (TORCH_GUARD_OR_TRUE(sym_ne(strides[d], expected_stride))) {
+      return false;
+    }
+    expected_stride *= size_d;
+  }
+  return true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename T>

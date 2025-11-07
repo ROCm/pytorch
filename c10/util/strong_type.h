@@ -1604,12 +1604,15 @@ struct hash<::strong::type<T, Tag, M...>>
     return hash<T>::operator()(value_of(tt));
   }
 };
+<<<<<<< HEAD
 template <typename T, typename Tag, typename ... M>
 struct is_arithmetic<::strong::type<T, Tag, M...>>
   : is_base_of<::strong::arithmetic::modifier<::strong::type<T, Tag, M...>>,
                ::strong::type<T, Tag, M...>>
 {
 };
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if STRONG_HAS_STD_FORMAT
 template<typename T, typename Tag, typename... M, typename Char>

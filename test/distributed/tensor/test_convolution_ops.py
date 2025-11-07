@@ -187,7 +187,11 @@ class DistConvolutionOpsTest(DTensorTestBase):
     @skip_if_lt_x_gpu(2)
     def test_conv_backward_none_grad_inp(self):
         device_mesh = init_device_mesh(
+<<<<<<< HEAD
             device_type="cuda", mesh_shape=(self.world_size,)
+=======
+            device_type=self.device_type, mesh_shape=(self.world_size,)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         conv = nn.Conv2d(64, 64, 3, padding=1).train()
         x = torch.randn(1, 64, 32, 32)

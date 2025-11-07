@@ -113,9 +113,15 @@ bool IsNUMAEnabled() {
   return false;
 }
 
+<<<<<<< HEAD
 void NUMABind(int numa_node_id) {}
 
 int GetNUMANode(const void* ptr) {
+=======
+void NUMABind(int /*numa_node_id*/) {}
+
+int GetNUMANode(const void* /*ptr*/) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return -1;
 }
 
@@ -123,7 +129,11 @@ int GetNumNUMANodes() {
   return -1;
 }
 
+<<<<<<< HEAD
 void NUMAMove(void* ptr, size_t size, int numa_node_id) {}
+=======
+void NUMAMove(void* /*ptr*/, size_t /*size*/, int /*numa_node_id*/) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 int GetCurrentNUMANode() {
   return -1;

@@ -161,9 +161,15 @@ def bfs_trace_with_node_process(
 ) -> None:
     """Traverse the graph module and apply node_op to each node."""
 
+<<<<<<< HEAD
     assert isinstance(
         model, (ExportedProgram, torch.fx.GraphModule)
     ), f"Expected GraphModule or ExportedProgram, got {type(model)}"
+=======
+    assert isinstance(model, (ExportedProgram, torch.fx.GraphModule)), (
+        f"Expected GraphModule or ExportedProgram, got {type(model)}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gm = model.graph_module if isinstance(model, ExportedProgram) else model
     queue = [gm]
     while queue:

@@ -246,7 +246,11 @@ FunctionDefaults calcOverloadedFunctionDefaults(
 
 } // namespace
 
+<<<<<<< HEAD
 bool checkMutableFunctionDefault(const py::object& def_arg) {
+=======
+static bool checkMutableFunctionDefault(const py::object& def_arg) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (py::isinstance<py::list>(def_arg) || py::isinstance<py::dict>(def_arg)) {
     return true;
   }
@@ -262,7 +266,11 @@ bool checkMutableFunctionDefault(const py::object& def_arg) {
   return false;
 }
 
+<<<<<<< HEAD
 void checkMutableFunctionDefault(
+=======
+static void checkMutableFunctionDefault(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const SourceRange& range,
     const Argument& arg,
     const py::object& def_arg) {
@@ -272,11 +280,19 @@ void checkMutableFunctionDefault(
         << "Mutable default parameters are not supported because Python binds them to the function"
         << " and they persist across function calls.\n As a workaround, make the default None and instantiate"
         << " the default parameter within the body of the function. Found "
+<<<<<<< HEAD
         << def_arg.get_type() << " on parameter " << arg.name());
   }
 }
 
 FunctionSchema getSchemaWithNameAndDefaults(
+=======
+        << py::type::handle_of(def_arg) << " on parameter " << arg.name());
+  }
+}
+
+static FunctionSchema getSchemaWithNameAndDefaults(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const SourceRange& range,
     const FunctionSchema& schema,
     const std::optional<std::string>& new_name,
@@ -472,7 +488,11 @@ static std::shared_ptr<Graph> _propagate_and_assign_input_shapes(
   return retval;
 }
 
+<<<<<<< HEAD
 void addFunctionToModule(Module& module, const StrongFunctionPtr& func) {
+=======
+static void addFunctionToModule(Module& module, const StrongFunctionPtr& func) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Make a graph with a fake self argument
   auto graph = toGraphFunction(*func.function_).graph()->copy();
   auto v = graph->insertInput(0, "self");
@@ -484,7 +504,11 @@ void addFunctionToModule(Module& module, const StrongFunctionPtr& func) {
 }
 
 // this is used in our test suite to check that we correctly preserved type tags
+<<<<<<< HEAD
 bool ivalue_tags_match(const Module& lhs, const Module& rhs) {
+=======
+static bool ivalue_tags_match(const Module& lhs, const Module& rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct Work {
     IValue a;
     IValue b;
@@ -605,7 +629,11 @@ struct slot_dict_impl {
 };
 
 template <typename T>
+<<<<<<< HEAD
 py::list debugMakeList(const T& list) {
+=======
+static py::list debugMakeList(const T& list) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::list result;
   for (const auto& elem : list) {
     result.append(py::cast(elem));
@@ -613,7 +641,11 @@ py::list debugMakeList(const T& list) {
   return result;
 }
 template <typename T>
+<<<<<<< HEAD
 py::list debugMakeNamedList(const T& list) {
+=======
+static py::list debugMakeNamedList(const T& list) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::list result;
   for (auto elem : list) {
     result.append(py::cast(std::make_pair(elem.name, elem.value)));
@@ -621,7 +653,11 @@ py::list debugMakeNamedList(const T& list) {
   return result;
 }
 template <typename T>
+<<<<<<< HEAD
 py::set debugMakeSet(const T& list) {
+=======
+static py::set debugMakeSet(const T& list) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::set result;
   for (const auto& elem : list) {
     result.add(py::cast(elem));
@@ -674,7 +710,11 @@ struct DeepCopyMemoTable {
   std::shared_ptr<IValue::HashIdentityIValueMap> map;
 };
 
+<<<<<<< HEAD
 IValue pyIValueDeepcopy(const IValue& ivalue, const py::dict& memo) {
+=======
+static IValue pyIValueDeepcopy(const IValue& ivalue, const py::dict& memo) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!memo.contains(py::str("__torch_script_memo_table"))) {
     memo["__torch_script_memo_table"] =
         DeepCopyMemoTable{std::make_shared<IValue::HashIdentityIValueMap>()};
@@ -684,7 +724,11 @@ IValue pyIValueDeepcopy(const IValue& ivalue, const py::dict& memo) {
   return ivalue.deepcopy(ivalue_memo);
 }
 
+<<<<<<< HEAD
 ExtraFilesMap extra_files_from_python(const py::dict& pydict) {
+=======
+static ExtraFilesMap extra_files_from_python(const py::dict& pydict) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ExtraFilesMap r;
   for (const auto& it : pydict) {
     r[py::cast<std::string>(it.first)] = "";
@@ -692,14 +736,24 @@ ExtraFilesMap extra_files_from_python(const py::dict& pydict) {
   return r;
 }
 
+<<<<<<< HEAD
 void extra_files_to_python(const ExtraFilesMap& m, const py::dict& pydict) {
+=======
+static void extra_files_to_python(
+    const ExtraFilesMap& m,
+    const py::dict& pydict) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // py::dict is pointer-like type so it gets modified despite const&
   for (const auto& it : m) {
     pydict[py::str(it.first)] = py::bytes(it.second);
   }
 }
 
+<<<<<<< HEAD
 void pyCompilationUnitDefine(
+=======
+static void pyCompilationUnitDefine(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompilationUnit& cu,
     const std::string& src,
     const ResolutionCallback* rcb,
@@ -1428,7 +1482,11 @@ void initJitScriptBindings(PyObject* module) {
               return StrongFunctionPtr(std::move(self), fn);
             } else {
               throw AttributeError(
+<<<<<<< HEAD
                   "'CompilationUnit' has no attribute '%s'", name.c_str());
+=======
+                  fmt::format("'CompilationUnit' has no attribute '{}'", name));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
           })
       .def(
@@ -1483,12 +1541,39 @@ void initJitScriptBindings(PyObject* module) {
           "__call__",
           [](py::args args, const py::kwargs& kwargs) {
             HANDLE_TH_ERRORS
+<<<<<<< HEAD
             // see: [pybind11 varargs]
             auto strongPtr = py::cast<StrongFunctionPtr>(args[0]);
             Function& callee = *strongPtr.function_;
             py::object result = invokeScriptFunctionFromPython(
                 callee, tuple_slice(std::move(args), 1), kwargs);
             return result;
+=======
+            auto strongPtr = py::cast<StrongFunctionPtr>(args[0]);
+            if (py::module::import("torch")
+                    .attr("compiler")
+                    .attr("is_exporting")()
+                    .cast<bool>()) {
+              TORCH_INTERNAL_ASSERT(
+                  py::hasattr(args[0], py::str("_torchdynamo_inline")),
+                  "During PT2 exporting, we encountered TorchScripted function",
+                  strongPtr.function_->name(),
+                  "When tracing through it, we cannot find its _torchdynamo_inline attribute, ",
+                  "which stores non scripted kcallable. ",
+                  "Please file an issue to PyTorch if you see this error.");
+
+              // remove the function itself with args[1:]
+              py::slice slice0(1, args.size(), 1);
+              return args[0].attr("_torchdynamo_inline")(
+                  *args[slice0], **kwargs);
+            } else {
+              // see: [pybind11 varargs]
+              Function& callee = *strongPtr.function_;
+              py::object result = invokeScriptFunctionFromPython(
+                  callee, tuple_slice(std::move(args), 1), kwargs);
+              return result;
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             END_HANDLE_TH_ERRORS_PYBIND
           })
       .def(
@@ -1588,12 +1673,38 @@ void initJitScriptBindings(PyObject* module) {
       .def(
           "__call__",
           [](py::args args, const py::kwargs& kwargs) {
+<<<<<<< HEAD
             // see: [pybind11 varargs]
             HANDLE_TH_ERRORS
             Method& method = py::cast<Method&>(args[0]);
 
             return invokeScriptMethodFromPython(
                 method, tuple_slice(std::move(args), 1), kwargs);
+=======
+            HANDLE_TH_ERRORS
+            if (py::module::import("torch")
+                    .attr("compiler")
+                    .attr("is_exporting")()
+                    .cast<bool>() &&
+                // TODO: fix all cases where ScriptMethod doesn't have
+                // __wrapped__, which is the non-scripted original method. E.g.
+                // it seems the top-level script module's scriptMethod doesn't
+                // have __wrapped__ attributes:
+                //  class M(torch.nn.Module):
+                //    def forward(self, x):
+                //        return x.cos() + x.sin()
+                //  traced_module = torch.jit.trace(M(), example_inputs=inps)
+                // , where traced_module.forward is a ScriptMethod but doesn't
+                // have __wrapped__.
+                py::hasattr(args[0], "__wrapped__")) {
+              return args[0].attr("__wrapped__")(*args, **kwargs);
+            } else {
+              // see: [pybind11 varargs]
+              Method& method = py::cast<Method&>(args[0]);
+              return invokeScriptMethodFromPython(
+                  method, tuple_slice(std::move(args), 1), kwargs);
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             END_HANDLE_TH_ERRORS_PYBIND
           })
       .def_property_readonly("graph", &Method::graph)

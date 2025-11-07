@@ -88,6 +88,7 @@ Tensor unsqueeze(const at::Tensor& self, int64_t dim) {
     }
 
     // Create the params buffer
+<<<<<<< HEAD
     struct Block block {
       {
         // Dimension to unsqueeze
@@ -97,6 +98,15 @@ Tensor unsqueeze(const at::Tensor& self, int64_t dim) {
                 std::ceil(static_cast<float>(output_size[channel_index]) / 4)),
       }
     };
+=======
+    struct Block block{{
+        // Dimension to unsqueeze
+        static_cast<int32_t>(dim),
+        // Keep track of the channel in Image3D
+        static_cast<int32_t>(
+            std::ceil(static_cast<float>(output_size[channel_index]) / 4)),
+    }};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     api::UniformParamsBuffer params(context, block);
 

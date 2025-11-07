@@ -14,7 +14,11 @@ using namespace ::c10::onnx;
 // many constant operators would have already been removed in the export before
 // this step. On the other hand if cast is inserted in symbolic, subsequent node
 // conversion will break if it depends on certain inputs being constant.
+<<<<<<< HEAD
 void CastAllConstantToFloating(Block* block) {
+=======
+static void CastAllConstantToFloating(Block* block) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto graph = block->owningGraph();
   auto it = block->nodes().begin();
   while (it != block->nodes().end()) {

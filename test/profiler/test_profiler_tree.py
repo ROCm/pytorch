@@ -3,7 +3,10 @@
 import functools
 import os
 import re
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import textwrap
 import traceback
 import unittest
@@ -560,7 +563,10 @@ class TestProfilerTree(TestCase):
         )
 
     @skipIfTorchDynamo("too slow")
+<<<<<<< HEAD
     @unittest.skipIf(sys.version_info >= (3, 13), "segfaults")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         TEST_WITH_CROSSREF, "crossref intercepts calls and changes the callsite."
     )

@@ -9,6 +9,10 @@
 #include <stdexcept>
 
 #if defined(__linux__)
+<<<<<<< HEAD
+=======
+#include <fmt/printf.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <linux/perf_event.h>
 #include <sys/ioctl.h>
 #include <sys/syscall.h>
@@ -17,7 +21,11 @@
 
 namespace torch::instruction_counter {
 
+<<<<<<< HEAD
 long start() {
+=======
+static long start() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if !defined(__linux__)
   throw std::runtime_error("This systems seems not to be Linux");
 #else
@@ -36,7 +44,11 @@ long start() {
 
   long fd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
   if (fd == -1) {
+<<<<<<< HEAD
     fprintf(
+=======
+    fmt::fprintf(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stderr,
         "Failed to open instruction count event: %s.\n",
         c10::utils::str_error(errno).c_str());
@@ -48,13 +60,21 @@ long start() {
 #endif
 }
 
+<<<<<<< HEAD
 uint64_t end(int fd) {
+=======
+static uint64_t end(int fd) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if !defined(__linux__)
   throw std::runtime_error("This systems seems not to be Linux");
 #else
   // Disable the event group
   if (ioctl(fd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP) == -1) {
+<<<<<<< HEAD
     fprintf(
+=======
+    fmt::fprintf(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stderr,
         "Error disabling perf event (fd: %d): %s\n",
         fd,
@@ -67,7 +87,11 @@ uint64_t end(int fd) {
   // Read results
   long ret_val = read(fd, &total_instructions, sizeof(total_instructions));
   if (ret_val == -1) {
+<<<<<<< HEAD
     fprintf(
+=======
+    fmt::fprintf(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stderr,
         "Error reading perf event results: %s\n",
         c10::utils::str_error(errno).c_str());

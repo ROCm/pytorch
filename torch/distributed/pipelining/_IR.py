@@ -1003,9 +1003,13 @@ class Pipe(torch.nn.Module):
         logger.info("Tracing model ...")
         try:
             ep = torch.export.export_for_training(
+<<<<<<< HEAD
                 mod,
                 example_args,
                 example_kwargs,
+=======
+                mod, example_args, example_kwargs, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         except Exception as e:
             raise RuntimeError(
@@ -1211,7 +1215,11 @@ def pipeline(
     Arguments
     ---------
     module:
+<<<<<<< HEAD
         The module to be splitted.
+=======
+        The module to be split.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mb_args:
         Example positional inputs, in micro-batch form.
     mb_kwargs:

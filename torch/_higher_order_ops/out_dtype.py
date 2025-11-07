@@ -130,9 +130,13 @@ def out_dtype_fallback(op, output_dtype, *args):
     return res
 
 
+<<<<<<< HEAD
 out_dtype.py_impl(DispatchKey.Autograd)(
     autograd_not_implemented(out_dtype, deferred_error=True)
 )
+=======
+out_dtype.py_autograd_impl(autograd_not_implemented(out_dtype, deferred_error=True))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @out_dtype.py_impl(ProxyTorchDispatchMode)

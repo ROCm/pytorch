@@ -6,7 +6,11 @@ namespace torch::jit {
 
 // Avoid storing objects with destructor in thread_local for mobile build.
 #ifndef C10_MOBILE
+<<<<<<< HEAD
 thread_local std::vector<Call> calls;
+=======
+static thread_local std::vector<Call> calls;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // C10_MOBILE
 
 ErrorReport::ErrorReport(const ErrorReport& e)

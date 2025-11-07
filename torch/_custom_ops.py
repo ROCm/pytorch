@@ -52,6 +52,10 @@ def custom_op(qualname, func_or_schema=None):
             schema string.
 
     Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_CUDA)
         >>> import torch
         >>> import numpy as np
@@ -134,6 +138,10 @@ def impl(qualname, *, device_types=("cpu", "cuda"), func=None):
         device_types (str or Iterable[str]): the device type(s) to register the function for.
 
     Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_CUDA)
         >>> import torch
         >>> import numpy as np

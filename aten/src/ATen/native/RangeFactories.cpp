@@ -157,12 +157,17 @@ Tensor& range_out(const Scalar& start, const Scalar& end, const Scalar& step, Te
     auto xend = end.to<accscalar_t>();
     auto xstep = step.to<accscalar_t>();
 
+<<<<<<< HEAD
     TORCH_CHECK(xstep > 0 || xstep < 0, "step must be nonzero");
     TORCH_CHECK(std::isfinite(static_cast<double>(xstart)) &&
              std::isfinite(static_cast<double>(xend)),
              "unsupported range: ", xstart, " -> ", xend);
     TORCH_CHECK(((xstep > 0) && (xend >= xstart)) || ((xstep < 0) && (xend <= xstart)),
              "upper bound and lower bound inconsistent with step sign");
+=======
+    arange_check_bounds(start, end, step);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t size = static_cast<int64_t>(((xend - xstart) / xstep) + 1);
     if (result.numel() != size) {
       result.resize_({size});

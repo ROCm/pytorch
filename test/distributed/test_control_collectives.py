@@ -207,8 +207,14 @@ class TestCollectives(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     assert (
         not torch.cuda._initialized
     ), "test_distributed must not have initialized CUDA context on main process"
+=======
+    assert not torch.cuda._initialized, (
+        "test_distributed must not have initialized CUDA context on main process"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     run_tests()

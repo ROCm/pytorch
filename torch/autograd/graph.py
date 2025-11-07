@@ -272,7 +272,11 @@ class saved_tensors_hooks:
         >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_AUTOGRAD)
         >>> def pack_hook(x):
         ...     print("Packing", x)
+<<<<<<< HEAD
         ...     return x
+=======
+        ...     return x.detach()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>>
         >>> def unpack_hook(x):
         ...     print("Unpacking", x)
@@ -295,6 +299,14 @@ class saved_tensors_hooks:
     .. warning ::
         Only one pair of hooks is allowed at a time. When recursively nesting this
         context-manager, only the inner-most pair of hooks will be applied.
+<<<<<<< HEAD
+=======
+
+    .. warning ::
+        To avoid reference cycle, the return value of ``pack_hook`` cannot hold a
+        reference to the input tensor. For example, use `lambda x: x.detach()`
+        instead of `lambda x: x` as the pack hook.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def __init__(
@@ -791,7 +803,11 @@ def _register_logging_hooks_on_whole_graph(
 
     def fmt(t: Optional[torch.Tensor]) -> str:
         # Avoid circular import
+<<<<<<< HEAD
         from torch.testing._internal.common_utils import dtype_abbrs
+=======
+        from torch.utils._dtype_abbrs import dtype_abbrs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if t is None:
             return "None"

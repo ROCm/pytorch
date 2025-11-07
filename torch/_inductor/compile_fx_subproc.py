@@ -4,7 +4,11 @@ import atexit
 import functools
 import os
 from typing import Optional, TYPE_CHECKING
+<<<<<<< HEAD
 from typing_extensions import override
+=======
+from typing_extensions import final, override
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncCompile pools
 import torch.fx
@@ -13,7 +17,11 @@ from torch._inductor.compile_worker.subproc_pool import (
     SubprocKind,
     SubprocPool,
 )
+<<<<<<< HEAD
 from torch._inductor.utils import clear_inductor_caches
+=======
+from torch._inductor.utils import clear_caches
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .compile_fx_ext import (
     _OutOfProcessFxCompile,
@@ -25,6 +33,7 @@ from .output_code import complex_memory_overlap as complex_memory_overlap  # noq
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+<<<<<<< HEAD
 
 
 class _SubprocessFxCompile(_OutOfProcessFxCompile):
@@ -32,6 +41,17 @@ class _SubprocessFxCompile(_OutOfProcessFxCompile):
     def _send_to_child(
         self, input: _WireProtocolPickledInput
     ) -> _WireProtocolPickledOutput:
+=======
+    from concurrent.futures import Future
+
+
+@final
+class _SubprocessFxCompile(_OutOfProcessFxCompile):
+    @override
+    def _send_to_child_async(
+        self, input: _WireProtocolPickledInput
+    ) -> Future[_WireProtocolPickledOutput]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Do we need to copy across some kind of logging IDs? (ChromiumEventLogger)
 
         pool = self.process_pool()
@@ -41,6 +61,7 @@ class _SubprocessFxCompile(_OutOfProcessFxCompile):
         env_vars = ["TORCHINDUCTOR_CACHE_DIR", "TRITON_CACHE_DIR"]
         extra_env = {v: os.environ[v] for v in env_vars if v in os.environ}
 
+<<<<<<< HEAD
         f = pool.submit(_SubprocessFxCompile._run_in_child_subprocess, input, extra_env)
 
         # For debugging: If we want to print status updates...
@@ -55,6 +76,11 @@ class _SubprocessFxCompile(_OutOfProcessFxCompile):
         output = f.result()
 
         return output
+=======
+        return pool.submit(
+            _SubprocessFxCompile._run_in_child_subprocess, input, extra_env
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     @functools.cache
@@ -86,14 +112,22 @@ class _SubprocessFxCompile(_OutOfProcessFxCompile):
         #      tmpdir still exists and fails to compile.
         #
         # TODO: We probably should be using a separate tmpdir in the worker
+<<<<<<< HEAD
         # anyway... but we should probably still respect clear_inductor_caches()
+=======
+        # anyway... but we should probably still respect clear_caches()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # in the parent... maybe?
         #
         # TODO: We could be less aggressive by keeping a clock which gets
         # incremented when we clear the cache, send the clock to the worker and
         # only clear caches if the clock changed since last time.
         #
+<<<<<<< HEAD
         clear_inductor_caches()
+=======
+        clear_caches()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._inductor.metrics.reset()
 
         # TODO: turn off config.fx_graph_async_compile

@@ -15,12 +15,16 @@ from torch.distributed.elastic.control_plane import (
     TORCH_WORKER_SERVER_SOCKET,
     worker_main,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     requires_cuda,
     run_tests,
     skipIfRocm,
     TestCase,
 )
+=======
+from torch.testing._internal.common_utils import requires_cuda, run_tests, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class UnixHTTPConnection(HTTPConnection):
@@ -62,9 +66,16 @@ class WorkerServerTest(TestCase):
             self.assertEqual(resp.status, 200)
             self.assertEqual(
                 resp.data,
+<<<<<<< HEAD
                 b"""<h1>torch.distributed.WorkerServer</h1>
 <a href="/handler/">Handler names</a>
 """,
+=======
+                b"<h1>torch.distributed.WorkerServer</h1>\n"
+                b'<a href="'
+                b"/handler/"
+                b'">Handler names</a>\n',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             resp = pool.request("POST", "/handler/ping")
@@ -156,7 +167,10 @@ class WorkerServerTest(TestCase):
             )
             self.assertEqual(resp.status, 200)
 
+<<<<<<< HEAD
     @skipIfRocm  # skipped upstream too
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tcp(self) -> None:
         import requests
 

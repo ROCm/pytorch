@@ -58,8 +58,13 @@ from torch._dynamo.debug_utils import (
     NopInputReader,
     same_two_models,
 )
+<<<<<<< HEAD
 from torch._dynamo.trace_rules import is_fbcode
 from torch._dynamo.utils import clone_inputs, counters, same
+=======
+from torch._dynamo.utils import clone_inputs, counters, same
+from torch._environment import is_fbcode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.output_code import OutputCode
 from torch._library.fake_class_registry import FakeScriptObject
 from torch.fx.experimental.proxy_tensor import make_fx
@@ -81,7 +86,11 @@ log = logging.getLogger(__name__)
 
 
 inductor_config = import_module("torch._inductor.config")
+<<<<<<< HEAD
 use_buck = inductor_config.is_fbcode()
+=======
+use_buck = is_fbcode()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 #                           MAIN ENTRY POINT
@@ -250,7 +259,11 @@ def wrap_compiler_debug(
 
 
 def maybe_fbcode_instructions():
+<<<<<<< HEAD
     if is_fbcode:
+=======
+    if is_fbcode():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_deps_formatted = "\n".join([f'        "{dep}",' for dep in extra_deps])
         if len(extra_deps_formatted) > 0:
             extra_deps_formatted = "\n" + extra_deps_formatted
@@ -465,7 +478,11 @@ def isolate_fails(
     if use_buck:
         cmd = BuckTargetWriter(file_name).write(print_msg=False)
     else:
+<<<<<<< HEAD
         cmd = ["python", file_name]
+=======
+        cmd = [sys.executable, file_name]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     p = subprocess.Popen(
         cmd,

@@ -27,7 +27,12 @@ namespace at::native {
 
 constexpr int CAT_ARRAY_BATCH_SIZE = 128;
 constexpr int CAT_ARRAY_MAX_INPUT_DIMS = 4;
+<<<<<<< HEAD
 constexpr int ALIGNED_VEC_LOAD_BYTES = 16;
+=======
+constexpr int ALIGNED_VEC_LOAD_BYTES_16 = 16;
+constexpr int ALIGNED_VEC_LOAD_BYTES_8 = 8;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace {
 
@@ -72,14 +77,22 @@ inline std::tuple<dim3, dim3> getCatGridRocm(unsigned int max_elements_per_tenso
   return std::make_tuple(grid, block);
 }
 
+<<<<<<< HEAD
 template<typename T>
+=======
+template<typename T, int aligned_vec_load_bytes>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline std::tuple<dim3, dim3> getCatGridContig(unsigned int max_elements_per_tensor,
   ptrdiff_t nTensors) {
   constexpr unsigned int threads_per_block = 128;
   constexpr unsigned int min_aligned_vec_per_thread = 1;
   constexpr unsigned int max_tb_per_sm = 32;
 
+<<<<<<< HEAD
   unsigned int elements_per_thread = ALIGNED_VEC_LOAD_BYTES / sizeof(T) *
+=======
+  unsigned int elements_per_thread = aligned_vec_load_bytes / sizeof(T) *
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     min_aligned_vec_per_thread;
   unsigned int max_threads = ceil_div(max_elements_per_tensor, elements_per_thread);
   unsigned int thread_blocks = ceil_div(max_threads, threads_per_block);
@@ -230,16 +243,29 @@ __global__ void CatArrayBatchedCopy_contig(
   to improve memory bandwidth throughput.
 */
 
+<<<<<<< HEAD
 template <typename T, typename IndexType, int Dims, int batch_size, int stride_size>
 __global__ void CatArrayBatchedCopy_aligned16_contig(
+=======
+template <typename T, typename IndexType, int Dims, int batch_size, int stride_size, int aligned_vec_load_bytes>
+__global__ void CatArrayBatchedCopy_alignedK_contig(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     T* output,
     CatArrInputTensorMetadata<T, IndexType, batch_size, stride_size> inputs,
     TensorSizeStride<IndexType, CAT_ARRAY_MAX_INPUT_DIMS> os,
     const int concatDim,
     IndexType dimStride) {
 
+<<<<<<< HEAD
     // This kernel tries to use 128 bit loads
     constexpr int kILP = ALIGNED_VEC_LOAD_BYTES / sizeof(T);
+=======
+    // This kernel tries to use aligned_vec_load_bytes*8 bit loads
+    // Special case 2-byte types to use 8-byte vec loads to reduce register pressure
+    // The below lambda is to allow cc compiler to pass kILP>0 checks for large types (e.g. ComplexDouble, 16 bytes)
+    constexpr int kILP = aligned_vec_load_bytes / sizeof(T) > 0 ? aligned_vec_load_bytes / sizeof(T) : ALIGNED_VEC_LOAD_BYTES_16/sizeof(T);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IndexType inputOffset = (blockIdx.x * blockDim.x + threadIdx.x) * kILP;
     IndexType inputStride = gridDim.x * blockDim.x * kILP;
 
@@ -349,7 +375,11 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
       isAligned = false;
 #else
       // If at least one of the inputs is not aligned, we can't call the
+<<<<<<< HEAD
       // CatArrayBatchedCopy_aligned16_contig
+=======
+      // CatArrayBatchedCopy_alignedK_contig
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       isAligned &= is_aligned_vec4(catMetaData.input[batchCounter]);
 #endif
 
@@ -385,7 +415,14 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
 #else
     dim3 applyBlock, catGrid;
     if (isContig && sizeof(scalar_t) > 2) {
+<<<<<<< HEAD
       std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t>(
+=======
+      std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t, ALIGNED_VEC_LOAD_BYTES_16>(
+          max_elements_per_tensor, batchCounter);
+    } else if (isContig && sizeof(scalar_t) == 2) {
+      std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t, ALIGNED_VEC_LOAD_BYTES_8>(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           max_elements_per_tensor, batchCounter);
     } else {
       applyBlock = dim3(32 * 16);
@@ -406,8 +443,17 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
     }
     // Template Declarations for dim = 1, 2, 3, 4
 #define HANDLE_CASE(DIMS) \
+<<<<<<< HEAD
     if (isContig && isAligned && sizeof(scalar_t) >= 4 && sizeof(scalar_t) <= 8) {\
       CatArrayBatchedCopy_aligned16_contig<scalar_t, unsigned int, DIMS, batch_size, stride_size><<<\
+=======
+    if (isContig && isAligned && sizeof(scalar_t) > 2 && sizeof(scalar_t) <= 8) {\
+      CatArrayBatchedCopy_alignedK_contig<scalar_t, unsigned int, DIMS, batch_size, stride_size, ALIGNED_VEC_LOAD_BYTES_16><<<\
+          catGrid, applyBlock, 0, stream.stream()>>>(\
+              data, catMetaData, outputParam, dimension, outputParam.tensorStride[dimension]);\
+    } else if (isContig && isAligned && sizeof(scalar_t) == 2) { \
+      CatArrayBatchedCopy_alignedK_contig<scalar_t, unsigned int, DIMS, batch_size, stride_size, ALIGNED_VEC_LOAD_BYTES_8><<<\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           catGrid, applyBlock, 0, stream.stream()>>>(\
               data, catMetaData, outputParam, dimension, outputParam.tensorStride[dimension]);\
     } else if (isContig) {\
@@ -507,7 +553,12 @@ TORCH_IMPL_FUNC(cat_out_cuda)
             kBool,
             kBFloat16,
             AT_EXPAND(AT_FLOAT8_TYPES),
+<<<<<<< HEAD
             AT_EXPAND(AT_BAREBONES_UNSIGNED_TYPES));
+=======
+            AT_EXPAND(AT_BAREBONES_UNSIGNED_TYPES),
+            kFloat4_e2m1fn_x2);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
   } else if (materialized.size() > 1 &&
       result.dim() <= CAT_ARRAY_MAX_INPUT_DIMS &&
@@ -542,7 +593,13 @@ TORCH_IMPL_FUNC(cat_out_cuda)
             kFloat8_e4m3fnuz,
             kFloat8_e5m2,
             kFloat8_e5m2fnuz,
+<<<<<<< HEAD
             AT_EXPAND(AT_BAREBONES_UNSIGNED_TYPES));
+=======
+            AT_EXPAND(AT_BAREBONES_UNSIGNED_TYPES),
+            // TODO(#146647): extend this to other shell dtypes
+            kFloat4_e2m1fn_x2);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
   } else {
     int64_t offset = 0;

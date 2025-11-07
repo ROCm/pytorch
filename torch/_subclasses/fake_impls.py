@@ -12,6 +12,10 @@ import torch._logging
 from torch._dispatch.python import no_python_dispatcher
 from torch._ops import OpOverload
 from torch._prims_common import (
+<<<<<<< HEAD
+=======
+    definitely_contiguous_for_memory_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elementwise_dtypes,
     ELEMENTWISE_TYPE_PROMOTION_KIND,
     is_boolean_dtype,
@@ -68,6 +72,11 @@ _like_tensor_constructors = ordered_set(
     aten.randn_like.default,
     aten.randn_like.out,
     aten.randint_like.default,
+<<<<<<< HEAD
+=======
+    aten.randint_like.Tensor,
+    aten.randint_like.Tensor_out,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aten.randint_like.out,
     aten.randint_like.low_dtype,
     aten.randint_like.low_dtype_out,
@@ -111,7 +120,11 @@ def contains_tensor_types(type):
     )
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _is_tensor_constructor(func: OpOverload):
     assert isinstance(func, OpOverload)
     schema = func._schema
@@ -559,6 +572,43 @@ def masked_select(fake_mode, func, self, mask):
     return self.new_empty((nnz,))
 
 
+<<<<<<< HEAD
+=======
+@register_op_impl(torch.ops.aten._assert_tensor_metadata.default)
+def assert_tensor_metadata(
+    fake_mode,
+    func,
+    t,
+    sizes=None,
+    strides=None,
+    dtype=None,
+    *,
+    device=None,
+    layout=None,
+) -> None:
+    if sizes is not None:
+        assert (
+            t.size() == sizes
+        ), f"Tensor sizes mismatch! Expected: {sizes}, Got: {t.size()}"
+    if strides is not None:
+        assert (
+            t.stride() == strides
+        ), f"Tensor strides mismatch! Expected: {strides}, Got: {t.stride()}"
+    if dtype is not None:
+        assert (
+            t.dtype == dtype
+        ), f"Tensor dtype mismatch! Expected: {dtype}, Got: {t.dtype}"
+    if layout is not None:
+        assert (
+            t.layout == layout
+        ), f"Tensor layout mismatch! Expected: {layout}, Got: {t.layout()}"
+    if device is not None:
+        assert (
+            t.device == device
+        ), f"Tensor device mismatch! Expected: {device}, Got: {t.device}"
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # NB: this must be ordered after local_scalar_dense
 @register_op_impl(lambda func: torch.Tag.data_dependent_output in func.tags)
 def data_dep(fake_mode, func, *args, **kwargs):
@@ -600,8 +650,16 @@ def has_meta(func):
     return torch._C._dispatch_has_computed_kernel_for_dispatch_key(func.name(), "Meta")
 
 
+<<<<<<< HEAD
 @register_op_impl(
     lambda func: is_builtin(func) and "foreach" in func.name() and has_meta(func)
+=======
+# These are for the `torch._foreach_...` ops like `torch._foreach_add`.
+@register_op_impl(
+    lambda func: is_builtin(func)
+    and func.name().startswith("aten::_foreach_")
+    and has_meta(func)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 def foreach_run_and_map_input_device(fake_mode, func, *args, **kwargs):
     tensor_lists = [
@@ -810,7 +868,12 @@ def bincount(fake_mode, func, inputs, weights=None, minlength=0):
 
     from torch.fx.experimental.symbolic_shapes import _constrain_range_for_size
 
+<<<<<<< HEAD
     _constrain_range_for_size(new_size, min=minlength)
+=======
+    _constrain_range_for_size(new_size)
+    torch._check(new_size >= minlength)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return inputs.new_empty(new_size)
 
 
@@ -854,7 +917,11 @@ def register_fast_op_impl(func: OpOverload):
 
 # infer_size_impl in ExpandUtils
 def infer_size(a, b):
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_or_false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     dimsA = len(a)
     dimsB = len(b)
@@ -879,18 +946,32 @@ def infer_size(a, b):
         # were not the case, we'd need to write this using torch.sym_or() or
         # something like that).
         torch._check(
+<<<<<<< HEAD
             guard_size_oblivious(sizeA == 1)
             or guard_size_oblivious(sizeB == 1)
             or sizeA == sizeB,
+=======
+            guard_or_false(sizeA == 1) or guard_or_false(sizeB == 1) or sizeA == sizeB,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             lambda: f"The size of tensor a ({sizeA}) "
             f"must match the size of tensor b ({sizeB}) "
             f"at non-singleton dimension {i})",
         )
+<<<<<<< HEAD
         expandedSizes[i] = sizeB if guard_size_oblivious(sizeA == 1) else sizeA
     return tuple(expandedSizes)
 
 
 def make_fast_binary_impl(slow_ref):
+=======
+        expandedSizes[i] = sizeB if guard_or_false(sizeA == 1) else sizeA
+    return tuple(expandedSizes)
+
+
+def make_fast_binary_impl(
+    slow_ref, type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.DEFAULT
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def fast_binary_impl(mode, *args, **kwargs):
         def slow(msg):
             count_label(f"slow {msg}")
@@ -921,7 +1002,11 @@ def make_fast_binary_impl(slow_ref):
             final_shape = infer_size(final_shape, shape)
         assert final_shape is not None
 
+<<<<<<< HEAD
         from torch.fx.experimental.symbolic_shapes import guard_size_oblivious, sym_eq
+=======
+        from torch.fx.experimental.symbolic_shapes import guard_or_false, sym_eq
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Do some extra safety checks to see if the output
         # stride is obvious
@@ -929,10 +1014,19 @@ def make_fast_binary_impl(slow_ref):
             if (
                 isinstance(op, torch.Tensor)
                 and len(op.shape) == len(final_shape)
+<<<<<<< HEAD
                 and guard_size_oblivious(sym_eq(op.shape, final_shape))
             ):
                 break
         else:
+=======
+                # take the slow path if result is not determined.
+                and guard_or_false(sym_eq(op.shape, final_shape))
+            ):
+                break
+        else:
+            # if we never break in the for loop above we take the slow path.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return slow("both tensors nontrivially broadcast")
 
         # compute_types
@@ -957,7 +1051,11 @@ def make_fast_binary_impl(slow_ref):
             # compute promotion
             # TODO: we don't need the compute type
             _, common_dtype = elementwise_dtypes(
+<<<<<<< HEAD
                 *operands, type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.DEFAULT
+=======
+                *operands, type_promotion_kind=type_promotion_kind
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # check all tensors on same device
@@ -975,8 +1073,13 @@ def make_fast_binary_impl(slow_ref):
                 return slow("error")
 
         # compute_fast_setup_type
+<<<<<<< HEAD
         is_contiguous = True
         is_channels_last = True
+=======
+        definitely_contiguous = True
+        definitely_channels_last = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: is_non-overlapping_and_dense (not bound from Python
         # no inplace, no out, everything defined
 
@@ -984,6 +1087,7 @@ def make_fast_binary_impl(slow_ref):
             for op in operands:
                 if not isinstance(op, torch.Tensor):
                     continue
+<<<<<<< HEAD
                 is_contiguous = is_contiguous and op.is_contiguous(
                     memory_format=torch.contiguous_format
                 )
@@ -991,6 +1095,21 @@ def make_fast_binary_impl(slow_ref):
                     memory_format=torch.channels_last
                 )
         if is_contiguous:
+=======
+                definitely_contiguous = (
+                    definitely_contiguous
+                    and definitely_contiguous_for_memory_format(
+                        op, memory_format=torch.contiguous_format
+                    )
+                )
+                definitely_channels_last = (
+                    definitely_channels_last
+                    and definitely_contiguous_for_memory_format(
+                        op, memory_format=torch.channels_last
+                    )
+                )
+        if definitely_contiguous:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # do contiguous
             count_label("fast is_contiguous")
             return FakeTensor(
@@ -1003,7 +1122,11 @@ def make_fast_binary_impl(slow_ref):
                 ),
                 device=common_device,
             )
+<<<<<<< HEAD
         if is_channels_last:
+=======
+        if definitely_channels_last:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             count_label("fast channels_last")
             # do channels last
             return FakeTensor(
@@ -1024,6 +1147,7 @@ def make_fast_binary_impl(slow_ref):
 
 # disable the python dispatcher to avoid decomposing detach() further
 # (proxy_mode should still decompose detach() though)
+<<<<<<< HEAD
 def fast_detach(fake_mode, x):
     with no_python_dispatcher(), in_kernel_invocation_manager(fake_mode):
         out = torch.ops.aten.detach.default(x)
@@ -1031,6 +1155,17 @@ def fast_detach(fake_mode, x):
 
 
 @functools.lru_cache(None)
+=======
+def fast_detach(fake_mode, x, include_real=False):
+    with no_python_dispatcher(), in_kernel_invocation_manager(fake_mode):
+        out = torch.ops.aten.detach.default(x)
+    if include_real:
+        return FakeTensor(fake_mode, out, x.device, real_tensor=x.real_tensor)
+    return FakeTensor(fake_mode, out, x.device)
+
+
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_fast_op_impls():
     import torch._refs
 
@@ -1042,7 +1177,14 @@ def get_fast_op_impls():
     )
     register_fast_op_impl(torch.ops.aten.mul.Tensor)(make_fast_binary_impl(torch._refs.mul))  # type: ignore[has-type]
     register_fast_op_impl(torch.ops.aten.div.Tensor)(
+<<<<<<< HEAD
         make_fast_binary_impl(torch._refs.div)
+=======
+        make_fast_binary_impl(
+            torch._refs.div,
+            type_promotion_kind=ELEMENTWISE_TYPE_PROMOTION_KIND.INT_TO_FLOAT,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     register_fast_op_impl(torch.ops.aten.detach.default)(fast_detach)
     return FAST_OP_IMPLEMENTATIONS

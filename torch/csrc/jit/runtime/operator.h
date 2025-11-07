@@ -60,7 +60,10 @@ const std::array<at::Tag, 1> kJitOnlyOperatorTags = {
 // the concrete operator nature.
 struct TORCH_API Operator {
  private:
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct C10Operator final {
     c10::OperatorHandle handle_;
     Operation op_;
@@ -69,7 +72,10 @@ struct TORCH_API Operator {
     std::string schema_string_;
     mutable std::optional<c10::AliasAnalysisKind> alias_analysis_;
   };
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct JitOnlyOperator final {
     // The only valid transition for schema_ is from right->left, i.e.
     // when the schema gets parsed.

@@ -15,7 +15,12 @@ from torch.testing._internal.common_cuda import TEST_CUDA, TEST_CUDNN
 from torch.testing._internal.common_quantization import skipIfNoFBGEMM
 from torch.testing._internal.common_quantized import override_quantized_engine
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     NAVI_ARCH,
+=======
+    raise_on_run_directly,
+    NAVI4_ARCH,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_default_dtype,
     skipCUDAMemoryLeakCheckIf,
     skipIfRocmArch,
@@ -34,6 +39,7 @@ except ImportError:
     HAS_TORCHVISION = False
 skipIfNoTorchVision = unittest.skipIf(not HAS_TORCHVISION, "no torchvision")
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -41,6 +47,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST_ROCM = torch.cuda.is_available() and torch.version.hip is not None
 
 
@@ -57,7 +65,11 @@ class TestFreezing(JitTestCase):
                 self.a = 1  # folded
                 self.b = 1.2  # folded
                 self.c = "hello"  # folded
+<<<<<<< HEAD
                 self.c2 = "hi\xA1"  # not folded
+=======
+                self.c2 = "hi\xa1"  # not folded
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.d = [1, 1]  # folded
                 self.e = [1.0, 1.1]  # folded
                 self.f = ["hello", "world"]  # folded
@@ -69,7 +81,11 @@ class TestFreezing(JitTestCase):
                     torch.tensor([5.5], requires_grad=True),
                 )  # folded
                 self.h = {"layer": [torch.tensor([7.7], requires_grad=True)]}
+<<<<<<< HEAD
                 self.h2 = {"layer\xB1": [torch.tensor([8.8], requires_grad=True)]}
+=======
+                self.h2 = {"layer\xb1": [torch.tensor([8.8], requires_grad=True)]}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.t = torch.tensor([1.2, 2.4], requires_grad=True)  # folded
                 self.ts = [
                     torch.tensor([1.0, 2.0], requires_grad=True),
@@ -2975,7 +2991,11 @@ class TestFrozenOptimizations(JitTestCase):
             self.assertEqual(frozen(inp), mod(inp))
 
     @unittest.skipIf(not (TEST_CUDNN or TEST_WITH_ROCM), "requires CUDNN")
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI_ARCH)  # not supported by MIOPEN on NAVI
+=======
+    @skipIfRocmArch(NAVI4_ARCH)  # not supported by MIOPEN on NAVI4x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_freeze_conv_relu_fusion(self):
         with set_default_dtype(torch.float):
             conv_bias = [True, False]
@@ -3038,7 +3058,11 @@ class TestFrozenOptimizations(JitTestCase):
                 self.assertEqual(mod_eager(inp), frozen_mod(inp))
 
     @unittest.skipIf(not (TEST_CUDNN or TEST_WITH_ROCM), "requires CUDNN")
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI_ARCH)  # not supported by MIOPEN on NAVI
+=======
+    @skipIfRocmArch(NAVI4_ARCH)  # not supported by MIOPEN on NAVI4x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_freeze_conv_relu_fusion_not_forward(self):
         with set_default_dtype(torch.float):
 
@@ -3465,3 +3489,10 @@ class TestMKLDNNReinplacing(JitTestCase):
         mod = self.freezeAndConvert(mod_eager)
         FileCheck().check("aten::add_").run(mod.graph)
         self.checkResults(mod_eager, mod)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

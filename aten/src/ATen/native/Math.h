@@ -1680,7 +1680,11 @@ inline C10_HOST_DEVICE T calc_ndtri(T y0) {
   return x;
 }
 
+<<<<<<< HEAD
 /* The next function is taken from http://ab-initio.mit.edu/Faddeev */
+=======
+/* The next function is taken from http://ab-initio.mit.edu/faddeeva */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /* Copyright (c) 2012 Massachusetts Institute of Technology
  *

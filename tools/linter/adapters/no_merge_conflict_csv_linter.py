@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, NamedTuple
 
 
@@ -15,6 +16,9 @@ IS_WINDOWS: bool = os.name == "nt"
 
 def eprint(*args: Any, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, flush=True, **kwargs)
+=======
+from typing import NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LintSeverity(str, Enum):

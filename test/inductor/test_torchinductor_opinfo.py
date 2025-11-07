@@ -30,7 +30,10 @@ from torch.testing._internal.common_device_type import (
 )
 from torch.testing._internal.common_methods_invocations import op_db, skipOps
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     dtype_abbrs,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_MACOS,
     IS_X86,
     skipCUDAMemoryLeakCheckIf,
@@ -45,9 +48,17 @@ from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CPU,
     HAS_CUDA,
+<<<<<<< HEAD
     HAS_XPU,
     maybe_skip_size_asserts,
 )
+=======
+    has_triton,
+    HAS_XPU,
+    maybe_skip_size_asserts,
+)
+from torch.utils._dtype_abbrs import dtype_abbrs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import TorchDispatchMode
 from torch.utils._pytree import tree_map
 
@@ -135,7 +146,11 @@ def print_seen():
                 if idx >= 0:
                     x = f"{x[:idx]}..."
                 if len(x) > length:
+<<<<<<< HEAD
                     return f"{x[:length - 3]}..."
+=======
+                    return f"{x[: length - 3]}..."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return x
 
             reasons = sorted(set(map(maybe_truncate, failed_reasons[key])))
@@ -466,6 +481,46 @@ inductor_override_kwargs["cuda"] = {
     ("index_reduce.amax", f32): {"check_gradient": False},
     ("index_reduce.amax", f16): {"check_gradient": False},
     ("tanh", f16): {"atol": 1e-4, "rtol": 1e-2},
+<<<<<<< HEAD
+=======
+    ("_unsafe_masked_index", f16): {
+        "reference_in_float": True,
+        "atol": 3e-4,
+        "rtol": 2e-3,
+    },
+    ("nn.functional.interpolate.linear", f16): {"reference_in_float": True},
+    ("nn.functional.prelu", f16): {
+        "reference_in_float": True,
+        "atol": 1e-3,
+        "rtol": 4e-3,
+    },
+    ("addmm", f16): {"reference_in_float": True},
+    ("logaddexp", f16): {"reference_in_float": True},
+    ("std_mean", f16): {"reference_in_float": True},
+    ("hypot", f16): {"reference_in_float": True, "atol": 3e-4, "rtol": 2e-3},
+    ("cummin", f16): {"reference_in_float": True, "atol": 5e-5, "rtol": 2e-3},
+    ("unfold_copy", f16): {"reference_in_float": True, "atol": 2e-5, "rtol": 1e-2},
+    ("nn.functional.upsample_bilinear", f16): {
+        "reference_in_float": True,
+        "atol": 1e-4,
+        "rtol": 2e-3,
+    },
+    ("nn.functional.embedding_bag", f16): {
+        "reference_in_float": True,
+        "atol": 1e-4,
+        "rtol": 1e-2,
+    },
+    ("fft.irfft2", f16): {
+        "reference_in_float": True,
+        "atol": 1e-4,
+        "rtol": 7e-1,
+    },
+    ("fft.irfftn", f16): {
+        "reference_in_float": True,
+        "atol": 1e-4,
+        "rtol": 7e-1,
+    },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inductor_override_kwargs["xpu"] = {
@@ -483,6 +538,10 @@ inductor_override_kwargs["xpu"] = {
     ("baddbmm", f16): {"atol": 2e-3, "rtol": 0.002},  # decomp affects accuracy
     ("angle", f64): {"reference_in_float": True},
     ("asin", f16): {"reference_in_float": True},
+<<<<<<< HEAD
+=======
+    ("asin", f32): {"reference_in_float": True, "atol": 1e-4, "rtol": 1e-4},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ("atanh", f16): {"reference_in_float": True},
     "cauchy": {"reference_in_float": True},
     ("cummax", f16): {"atol": 5e-4, "rtol": 0.002},
@@ -502,7 +561,11 @@ inductor_override_kwargs["xpu"] = {
     ("linalg.vecdot", f16): {"atol": 1e-5, "rtol": 2e-2},
     "log_normal": {"reference_in_float": True},
     ("logsumexp", f16): {"atol": 1e-5, "rtol": 1e-2},
+<<<<<<< HEAD
     ("masked.cumprod", f16): {"atol": 1e-5, "rtol": 5e-2},
+=======
+    ("masked.cumprod", f16): {"reference_in_float": True, "atol": 1e-5, "rtol": 5e-2},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ("masked.cumsum", f16): {"atol": 1e-5, "rtol": 5e-3},
     ("masked.softmin", f16): {"atol": 1e-4, "rtol": 0.01},
     ("masked.softmax", f16): {"atol": 2e-4, "rtol": 0.01},
@@ -552,7 +615,10 @@ inductor_override_kwargs["xpu"] = {
         "rtol": 0.02,
     },
     ("remainder", f16): {"atol": 1e-4, "rtol": 0.005},
+<<<<<<< HEAD
     ("nn.functional.upsample_bilinear", f16): {"atol": 1e-5, "rtol": 0.002},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ("sinc", f16): {"atol": 0.008, "rtol": 0.002},
     ("softmax", f16): {"atol": 1e-4, "rtol": 0.02},
     ("_softmax_backward_data", f16): {"atol": 0.008, "rtol": 0.002},
@@ -585,6 +651,7 @@ inductor_override_kwargs["xpu"] = {
     ("index_reduce.amax", f32): {"check_gradient": False},
     ("index_reduce.amax", f16): {"check_gradient": False},
     ("tanh", f16): {"atol": 1e-4, "rtol": 1e-2},
+<<<<<<< HEAD
     ("nn.functional.embedding_bag", f16): {"check_gradient": False},
     ("nn.functional.embedding_bag", f32): {"check_gradient": False},
     ("nn.functional.embedding_bag", f64): {"check_gradient": False},
@@ -596,6 +663,50 @@ if TEST_WITH_ROCM:
         {
             ("cummin", f16): {"atol": 1e-3, "rtol": 1e-5}
         }
+=======
+    ("nn.functional.embedding_bag", f32): {"check_gradient": False},
+    ("nn.functional.embedding_bag", f64): {"check_gradient": False},
+    ("_unsafe_masked_index_put_accumulate", f16): {"atol": 1e-5, "rtol": 5e-3},
+    ("_unsafe_masked_index", f16): {
+        "reference_in_float": True,
+        "atol": 3e-4,
+        "rtol": 2e-3,
+    },
+    ("nn.functional.interpolate.linear", f16): {"reference_in_float": True},
+    ("nn.functional.prelu", f16): {
+        "reference_in_float": True,
+        "atol": 1e-3,
+        "rtol": 4e-3,
+    },
+    ("addmm", f16): {"reference_in_float": True},
+    ("logaddexp", f16): {"reference_in_float": True},
+    ("std_mean", f16): {"reference_in_float": True},
+    ("hypot", f16): {"reference_in_float": True, "atol": 3e-4, "rtol": 2e-3},
+    ("cummin", f16): {"reference_in_float": True, "atol": 5e-5, "rtol": 2e-3},
+    ("unfold_copy", f16): {"reference_in_float": True, "atol": 2e-5, "rtol": 1e-2},
+    ("nn.functional.upsample_bilinear", f16): {
+        "reference_in_float": True,
+        "atol": 1e-4,
+        "rtol": 2e-3,
+    },
+    ("nn.functional.embedding_bag", f16): {
+        "check_gradient": False,
+        "atol": 1e-4,
+        "rtol": 1e-2,
+    },
+    ("nn.functional.max_pool2d", f16): {
+        "reference_in_float": True,
+        "atol": 1e-4,
+        "rtol": 2e-3,
+    },
+    ("nn.functional.unfold", f16): {
+        "reference_in_float": True,
+    },
+}
+if TEST_WITH_ROCM:
+    inductor_override_kwargs["cuda"].update(
+        {("cummin", f16): {"atol": 1e-3, "rtol": 1e-5}}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -921,6 +1032,10 @@ class TestInductorOpInfo(TestCase):
         {"implicit_fallbacks": False, "triton.autotune_pointwise": False}
     )
     @torch._inductor.config.patch("test_configs.runtime_triton_dtype_assert", True)
+<<<<<<< HEAD
+=======
+    @torch._inductor.config.patch("test_configs.static_cpp_dtype_assert", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @collection_decorator
     def test_comprehensive(self, device, dtype, op):
         device_type = torch.device(device).type
@@ -945,6 +1060,11 @@ class TestInductorOpInfo(TestCase):
             "nn.functional.interpolate.bicubic",
             "nn.functional.upsample_bilinear",
             "nn.functional.upsample_nearest",
+<<<<<<< HEAD
+=======
+            "fill",
+            "full_like",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             if dtype not in allowed_dtypes:
                 raise unittest.SkipTest("Skipped!")
@@ -963,9 +1083,13 @@ class TestInductorOpInfo(TestCase):
             op_name, set()
         ) or dtype in inductor_gradient_expected_failures_single_sample[
             device_type
+<<<<<<< HEAD
         ].get(
             op_name, set()
         ):
+=======
+        ].get(op_name, set()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             test_expect = ExpectedTestResult.XFAILURE  # noqa: F841
         else:
             test_expect = ExpectedTestResult.SUCCESS  # noqa: F841
@@ -1074,6 +1198,7 @@ class TestInductorOpInfo(TestCase):
                 #     print(f"RUNNING OP {op_name} on {device_type} with {dtype}", flush=True, file=f)
                 #     print(f"RUNNING OP {op_name} on {device_type} with {dtype}", flush=True)
                 rtol, atol = _get_tolerances(dtype)
+<<<<<<< HEAD
                 if device_type == GPU_TYPE:
                     # opinfo test case have already place the input on the correct device
                     # so we don't need do additional copy by setting copy_to_gpu=False
@@ -1094,12 +1219,49 @@ class TestInductorOpInfo(TestCase):
                             }
                             adjusted_kwargs.update(overridden_kwargs)
                             adjusted_kwargs.update(kwarg_overrides)
+=======
+                no_python, has_rng_op = do_nopython_and_has_rng(fn, args, kwargs)
+                for context_fn, kwarg_overrides in get_contexts(has_rng_op):
+                    with context_fn():
+                        # Base kwargs
+                        adjusted_kwargs = {
+                            "check_lowp": False,
+                            "nopython": no_python,
+                            "check_has_compiled": no_python,
+                            "atol": atol,
+                            "rtol": rtol,
+                        }
+
+                        # Backend-specific adjustments
+                        # Triton
+                        if has_triton():
+                            adjusted_kwargs.update(
+                                copy_to_gpu=False, reference_in_float=False
+                            )
+
+                        # skip checking gradient on CPU for now
+                        if device_type == GPU_TYPE:
+                            adjusted_kwargs.update(
+                                check_gradient=requires_grad,
+                                output_process_fn_grad=sample_input.output_process_fn_grad,
+                            )
+                        else:
+                            adjusted_kwargs["check_gradient"] = False
+
+                        # Update with overridden kwargs and context-specific overrides
+                        adjusted_kwargs.update(overridden_kwargs)
+                        adjusted_kwargs.update(kwarg_overrides)
+
+                        # Call the appropriate check method based on device type
+                        if device_type == GPU_TYPE:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.check_model_gpu(
                                 fn,
                                 args,
                                 kwargs,
                                 **adjusted_kwargs,
                             )
+<<<<<<< HEAD
                 elif device_type == "cpu":
                     no_python, has_rng_op = do_nopython_and_has_rng(fn, args, kwargs)
                     for context_fn, kwarg_overrides in get_contexts(has_rng_op):
@@ -1116,6 +1278,9 @@ class TestInductorOpInfo(TestCase):
                             adjusted_kwargs.update(overridden_kwargs)
                             adjusted_kwargs.update(kwarg_overrides)
 
+=======
+                        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.check_model(
                                 fn,
                                 args,

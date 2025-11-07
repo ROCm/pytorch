@@ -120,7 +120,10 @@ xfail_not_implemented = {
     "aten::lu_solve",
     "aten::margin_ranking_loss",
     "aten::masked_select_backward",
+<<<<<<< HEAD
     "aten::matrix_exp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "aten::matrix_exp_backward",
     "aten::max.names_dim",
     "aten::max.names_dim_max",

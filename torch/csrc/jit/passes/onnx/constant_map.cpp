@@ -234,7 +234,11 @@ DimSymbolMap& ConstantValueMap::GetDimSymbolMap() {
 }
 
 template <typename Map>
+<<<<<<< HEAD
 void UpdateStrKey(
+=======
+static void UpdateStrKey(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Map& map,
     const std::string& old_key,
     const std::string& new_key) {

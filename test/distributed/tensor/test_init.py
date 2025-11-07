@@ -2,7 +2,11 @@
 # Owner(s): ["oncall: distributed"]
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor import DeviceMesh, DTensor, Replicate, Shard, zeros
+=======
+from torch.distributed.tensor import DeviceMesh, DTensor, Replicate, Shard, zeros
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
@@ -94,7 +98,11 @@ class DTensorConstructorTest(DTensorTestBase):
     def test_ones(self):
         self._run_init_op(
             torch.ones,
+<<<<<<< HEAD
             torch.distributed._tensor.ones,
+=======
+            torch.distributed.tensor.ones,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual,
             requires_grad=True,
         )
@@ -103,7 +111,11 @@ class DTensorConstructorTest(DTensorTestBase):
     def test_empty(self):
         self._run_init_op(
             torch.empty,
+<<<<<<< HEAD
             torch.distributed._tensor.empty,
+=======
+            torch.distributed.tensor.empty,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             lambda x, y: (x.shape == y.shape)
             and (x.dtype == y.dtype)
             and (x.layout == y.layout),
@@ -114,7 +126,11 @@ class DTensorConstructorTest(DTensorTestBase):
     def test_full(self):
         self._run_init_op(
             torch.full,
+<<<<<<< HEAD
             torch.distributed._tensor.full,
+=======
+            torch.distributed.tensor.full,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual,
             123.4,
             requires_grad=True,
@@ -124,7 +140,11 @@ class DTensorConstructorTest(DTensorTestBase):
     def test_zeros(self):
         self._run_init_op(
             torch.zeros,
+<<<<<<< HEAD
             torch.distributed._tensor.zeros,
+=======
+            torch.distributed.tensor.zeros,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual,
             requires_grad=True,
         )

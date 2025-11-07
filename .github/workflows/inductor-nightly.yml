@@ -4,6 +4,12 @@ on:
   pull_request:
     paths:
       - .github/workflows/inductor-nightly.yml
+<<<<<<< HEAD
+=======
+      - benchmarks/dynamo/ci_expected_accuracy/dynamic_cpu_max_autotune_inductor_amp_freezing_huggingface_inference.csv
+      - benchmarks/dynamo/ci_expected_accuracy/dynamic_cpu_max_autotune_inductor_amp_freezing_timm_inference.csv
+      - benchmarks/dynamo/ci_expected_accuracy/dynamic_cpu_max_autotune_inductor_amp_freezing_torchbench_inference.csv
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   workflow_dispatch:
   schedule:
     # Run every day at 7:00 AM UTC
@@ -18,13 +24,21 @@ permissions: read-all
 jobs:
   get-default-label-prefix:
     name: get-default-label-prefix
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
+<<<<<<< HEAD
+=======
+      opt_out_experiments: lf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   linux-jammy-cpu-py3_9-gcc11-nightly-dynamo-benchmarks-build:
     name: linux-jammy-cpu-py3.9-gcc11-nightly-dynamo-benchmarks
@@ -32,7 +46,11 @@ jobs:
     needs: get-default-label-prefix
     with:
       build-environment: linux-jammy-py3.9-gcc11-build
+<<<<<<< HEAD
       docker-image-name: pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks
+=======
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       runner_prefix: "${{ needs.get-default-label-prefix.outputs.label-type }}"
       test-matrix: |
         { include: [

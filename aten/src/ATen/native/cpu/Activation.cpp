@@ -15,6 +15,10 @@
 #include <ATen/cpu/vec/functional.h>
 #include <ATen/cpu/vec/vec.h>
 #include <ATen/native/TensorIterator.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/cpu/Elu.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/cpu/Gelu.h>
 #include <ATen/native/cpu/Loops.h>
 #include <ATen/Parallel.h>
@@ -190,6 +194,7 @@ static void threshold_kernel(
 void elu_kernel(TensorIteratorBase& it, const Scalar& alpha, const Scalar& scale, const Scalar& input_scale) {
   if (at::isReducedFloatingType(it.common_dtype())) {
     AT_DISPATCH_REDUCED_FLOATING_TYPES(it.common_dtype(), "elu_cpu", [&]() {
+<<<<<<< HEAD
       auto negcoef = alpha.to<float>() * scale.to<float>();
       auto poscoef = scale.to<float>();
       auto negiptcoef = input_scale.to<float>();
@@ -240,6 +245,19 @@ void elu_kernel(TensorIteratorBase& it, const Scalar& alpha, const Scalar& scale
               return Vec::blendv(((a * negiptcoef_vec).exp() - one_vec) * negcoef_vec, a * poscoef_vec, cmp);
             }
           });
+=======
+      cpu_kernel_vec(
+        it,
+        get_scalar_elu_elementwise_func<scalar_t, float>(alpha.to<float>(), scale.to<float>(), input_scale.to<float>()),
+        get_vectorized_elu_elementwise_func<scalar_t>(alpha.to<float>(), scale.to<float>(), input_scale.to<float>()));
+    });
+  } else {
+    AT_DISPATCH_FLOATING_TYPES(it.common_dtype(), "elu_cpu", [&]() {
+      cpu_kernel_vec(
+          it,
+          get_scalar_elu_elementwise_func<scalar_t>(alpha.to<scalar_t>(), scale.to<scalar_t>(), input_scale.to<scalar_t>()),
+          get_vectorized_elu_elementwise_func<scalar_t>(alpha.to<scalar_t>(), scale.to<scalar_t>(), input_scale.to<scalar_t>()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     });
   }
 }
@@ -832,9 +850,15 @@ void hardswish_backward_kernel(TensorIterator& iter) {
     cpu_kernel_vec(
       iter,
       [&](scalar_t grad_val, scalar_t self_val) -> scalar_t {
+<<<<<<< HEAD
         if (float(self_val) < neg_three) {
           return zero;
         } else if (float(self_val) <= three) {
+=======
+        if (float(self_val) <= neg_three) {
+          return zero;
+        } else if (float(self_val) < three) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return float(grad_val) * ((float(self_val) / three) + one_half);
         } else {
           return grad_val;
@@ -847,19 +871,33 @@ void hardswish_backward_kernel(TensorIterator& iter) {
           Vec::blendv(
             grad_val0 * ((self_val0 / kThreeVec) + kOneHalfVec),
             grad_val0,
+<<<<<<< HEAD
             self_val0 > kThreeVec
           ),
           kZeroVec,
           self_val0 < kNegThreeVec
+=======
+            self_val0 >= kThreeVec
+          ),
+          kZeroVec,
+          self_val0 <= kNegThreeVec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         );
         self_val1 = Vec::blendv(
           Vec::blendv(
             grad_val1 * ((self_val1 / kThreeVec) + kOneHalfVec),
             grad_val1,
+<<<<<<< HEAD
             self_val1 > kThreeVec
           ),
           kZeroVec,
           self_val1 < kNegThreeVec
+=======
+            self_val1 >= kThreeVec
+          ),
+          kZeroVec,
+          self_val1 <= kNegThreeVec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         );
         return convert_from_float<scalar_t>(self_val0, self_val1);
       });
@@ -878,9 +916,15 @@ void hardswish_backward_kernel(TensorIterator& iter) {
     cpu_kernel_vec(
       iter,
       [&](scalar_t grad_val, scalar_t self_val) {
+<<<<<<< HEAD
         if (self_val < neg_three) {
           return zero;
         } else if (self_val <= three) {
+=======
+        if (self_val <= neg_three) {
+          return zero;
+        } else if (self_val < three) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return grad_val * ((self_val / three) + one_half);
         } else {
           return grad_val;
@@ -891,10 +935,17 @@ void hardswish_backward_kernel(TensorIterator& iter) {
           Vec::blendv(
             grad_val * ((self_val / kThreeVec) + kOneHalfVec),
             grad_val,
+<<<<<<< HEAD
             self_val > kThreeVec
           ),
           kZeroVec,
           self_val < kNegThreeVec
+=======
+            self_val >= kThreeVec
+          ),
+          kZeroVec,
+          self_val <= kNegThreeVec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         );
       }
     );

@@ -699,7 +699,11 @@ def _post_state_dict_hook(
     if fsdp_state.sharding_strategy == ShardingStrategy.NO_SHARD:
         context = _replace_with_full_state_dict_type(fsdp_state)
         warnings.warn(
+<<<<<<< HEAD
             "When using ``NO_SHARD`` for ``ShardingStrategy``, full_state_dict will"
+=======
+            "When using ``NO_SHARD`` for ``ShardingStrategy``, full_state_dict will "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "be returned."
         )
     else:
@@ -761,7 +765,11 @@ def _pre_state_dict_hook(
     if fsdp_state.sharding_strategy == ShardingStrategy.NO_SHARD:
         context = _replace_with_full_state_dict_type(fsdp_state)
         warnings.warn(
+<<<<<<< HEAD
             "When using ``NO_SHARD`` for ``ShardingStrategy``, full_state_dict will"
+=======
+            "When using ``NO_SHARD`` for ``ShardingStrategy``, full_state_dict will "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "be returned."
         )
     else:
@@ -784,7 +792,11 @@ def _pre_state_dict_hook(
 
 @no_type_check
 def _set_use_dtensor(fsdp_state: _FSDPState) -> None:
+<<<<<<< HEAD
     # If device_mesh is passed in when initalizing FSDP, we automatically turn the
+=======
+    # If device_mesh is passed in when initializing FSDP, we automatically turn the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # _use_dtensor flag to be true for ShardedStateDictConfig().
     if getattr(fsdp_state, "_device_mesh", None):
         state_dict_type = fsdp_state._state_dict_type

@@ -17,7 +17,11 @@ from torch._inductor.codegen.rocm.rocm_kernel import ROCmTemplateKernel
 from torch._inductor.ir import Buffer, Layout
 from torch._inductor.runtime.runtime_utils import next_power_of_2
 
+<<<<<<< HEAD
 from ...utils import IndentedBuffer, try_import_ck_lib
+=======
+from ...utils import IndentedBuffer, is_dynamic, try_import_ck_lib
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _, gen_ops_library, gen_ops_preselected, CKGemmOperation = try_import_ck_lib()
@@ -887,6 +891,11 @@ class CKGemmTemplate(CKTemplate):
         M = X_meta.size[-2]
         K = X_meta.size[-1]
         N = W_meta.size[-1]
+<<<<<<< HEAD
+=======
+        if is_dynamic(*self.input_nodes):
+            return [1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if K // max(M, N) < config.rocm.split_k_threshold:
             return [1]
         # if the user is telling us which kBatches to sweep, just use those
@@ -945,9 +954,15 @@ class CKGemmTemplate(CKTemplate):
         chosen_instances = (
             random.sample(
                 filtered_instances,
+<<<<<<< HEAD
                 min(len(filtered_instances), config.rocm.n_max_profiling_configs),
             )
             if config.rocm.n_max_profiling_configs
+=======
+                min(len(filtered_instances), config.rocm.ck_max_profiling_configs),
+            )
+            if config.rocm.ck_max_profiling_configs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else filtered_instances
         )
         log.debug(

@@ -10,6 +10,7 @@ import sys
 import time
 from enum import Enum
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, NamedTuple
 
 
@@ -18,6 +19,9 @@ IS_WINDOWS: bool = os.name == "nt"
 
 def eprint(*args: Any, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, flush=True, **kwargs)
+=======
+from typing import NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LintSeverity(str, Enum):
@@ -39,10 +43,13 @@ class LintMessage(NamedTuple):
     description: str | None
 
 
+<<<<<<< HEAD
 def as_posix(name: str) -> str:
     return name.replace("\\", "/") if IS_WINDOWS else name
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # tools/linter/flake8_linter.py:15:13: error: Incompatibl...int")  [assignment]
 RESULTS_RE: re.Pattern[str] = re.compile(
     r"""(?mx)

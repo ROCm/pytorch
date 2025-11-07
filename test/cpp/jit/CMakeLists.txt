@@ -39,6 +39,10 @@ endif()
 
 # Build the cpp gtest binary containing the cpp-only tests.
 set(JIT_TEST_SRCS
+<<<<<<< HEAD
+=======
+  ${JIT_TEST_ROOT}/source_range_test.cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ${JIT_TEST_ROOT}/test_add_if_then_else.cpp
   ${JIT_TEST_ROOT}/test_alias_analysis.cpp
   ${JIT_TEST_ROOT}/test_argument_spec.cpp
@@ -70,6 +74,10 @@ set(JIT_TEST_SRCS
   ${JIT_TEST_ROOT}/test_ir.cpp
   ${JIT_TEST_ROOT}/test_irparser.cpp
   ${JIT_TEST_ROOT}/test_jit_type.cpp
+<<<<<<< HEAD
+=======
+  ${JIT_TEST_ROOT}/test_lexer.cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ${JIT_TEST_ROOT}/test_lite_interpreter.cpp
   ${JIT_TEST_ROOT}/test_lite_interpreter_direct.cpp
   ${JIT_TEST_ROOT}/test_lite_trainer.cpp
@@ -115,13 +123,22 @@ target_compile_definitions(test_jit PRIVATE USE_GTEST)
 
 if(USE_SYSTEM_ONNX)
   target_link_libraries(test_jit PRIVATE onnx_proto onnx)
+<<<<<<< HEAD
+=======
+else()
+  target_link_libraries(test_jit PRIVATE onnx_library)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 
 if(USE_MKLDNN)
   target_link_libraries(test_jit PRIVATE caffe2::mkldnn)
 endif()
 
+<<<<<<< HEAD
 set(JIT_TEST_DEPENDENCIES torch gtest jitbackend_test backend_with_compiler)
+=======
+set(JIT_TEST_DEPENDENCIES torch gtest_main jitbackend_test backend_with_compiler gmock)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if(MSVC)
   list(APPEND JIT_TEST_DEPENDENCIES onnx_library)

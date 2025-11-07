@@ -4,12 +4,16 @@ from typing import cast, Optional
 
 import torch
 from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+<<<<<<< HEAD
 from torch.distributed.tensor._op_schema import (
     _is_inplace_op,
     _is_out_variant_op,
     OpSchema,
     OutputSharding,
 )
+=======
+from torch.distributed.tensor._op_schema import OpSchema, OutputSharding
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._ops.utils import prod
 from torch.distributed.tensor._utils import compute_local_shape_and_global_offset
 
@@ -265,13 +269,17 @@ def pointwise_rule(op_schema: OpSchema, linearity: bool = False) -> OutputShardi
     # check if we replace the all inputs dim char with singleton dimension,
     # if we replace all inputs, we also need to replace the output dimension.
     for output_dim_idx in range(len(out_dimchars)):
+<<<<<<< HEAD
         out_dimchar = out_dimchars[output_dim_idx]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if singleton_counter[output_dim_idx] == len(input_specs):
             out_dimchars = _replace_char_in_str(out_dimchars, "1", output_dim_idx)
 
     fmt = f"{','.join(p for p in dimchars)}->{out_dimchars}"
 
     enforce_sharding: dict[str, int] = {}
+<<<<<<< HEAD
     if _is_inplace_op(op_schema.op):
         # inplace op should keep the input sharding it writes to
         for out_dimchar, mesh_dim in zip(out_dimchars, input_specs[0].dim_map):
@@ -280,6 +288,14 @@ def pointwise_rule(op_schema: OpSchema, linearity: bool = False) -> OutputShardi
         out_spec = cast(DTensorSpec, op_schema.kwargs_schema["out"])
         for out_dimchar, mesh_dim in zip(out_dimchars, out_spec.dim_map):
             enforce_sharding[out_dimchar] = mesh_dim
+=======
+    if op_schema.is_inplace_op():
+        follow_spec = op_schema.args_spec[0]
+        enforce_sharding.update(zip(out_dimchars, follow_spec.dim_map))
+    elif op_schema.is_out_variant_op():
+        follow_spec = cast(DTensorSpec, op_schema.kwargs_schema["out"])
+        enforce_sharding.update(zip(out_dimchars, follow_spec.dim_map))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return einop_rule(
         fmt,

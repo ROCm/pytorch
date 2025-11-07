@@ -1,9 +1,17 @@
 # mypy: allow-untyped-defs
 from typing import Optional
+<<<<<<< HEAD
 import torch
 from torch._ops import OpOverload, HigherOrderOperator
 from torch._export.error import InternalError
 from torch._export.pass_base import _ExportPassBaseDeprecatedDoNotUse
+=======
+
+import torch
+from torch._export.error import InternalError
+from torch._export.pass_base import _ExportPassBaseDeprecatedDoNotUse
+from torch._ops import HigherOrderOperator, OpOverload
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["ReplaceViewOpsWithViewCopyOpsPass"]
@@ -25,9 +33,13 @@ def get_view_copy_of_view_op(schema: torch._C.FunctionSchema) -> Optional[OpOver
     if is_view_op(schema) and schema.name.startswith("aten::"):
         view_op_name = schema.name.split("::")[1]
         view_op_overload = (
+<<<<<<< HEAD
             schema.overload_name
             if schema.overload_name != ""
             else "default"
+=======
+            schema.overload_name if schema.overload_name != "" else "default"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         view_copy_op_name = view_op_name + "_copy"
         if not hasattr(torch.ops.aten, view_copy_op_name):
@@ -50,6 +62,10 @@ class ReplaceViewOpsWithViewCopyOpsPass(_ExportPassBaseDeprecatedDoNotUse):
     program. This pass replaces view ops with view copy ops for backends that
     need AOT memory planning.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_operator(self, op, args, kwargs, meta):
         if op in _NON_FUNCTIONAL_OPS_TO_FUNCTIONAL_OPS:
             return super().call_operator(

@@ -129,6 +129,10 @@ Tensor run(
 
   const IntArrayRef input_size = padded_input.sizes();
   std::vector<int64_t> output_size(input_size.cbegin(), input_size.cend());
+<<<<<<< HEAD
+=======
+  // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   output_size.back() = context.output_channels;
 
   Tensor output = mobile::empty_with_tail_padding(

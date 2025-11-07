@@ -2,7 +2,11 @@
 
 The contents of this file are placeholders, and will be replaced by more
 expressive and robust components (e.g. better runner and result display
+<<<<<<< HEAD
 components) in future iterations. However this allows us to excercise the
+=======
+components) in future iterations. However this allows us to exercise the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 underlying benchmark generation infrastructure in the mean time.
 """
 

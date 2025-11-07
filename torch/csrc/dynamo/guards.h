@@ -43,6 +43,10 @@ class TensorCheck {
       const LocalState& state,
       PyTypeObject* pt,
       const at::Tensor& v,
+<<<<<<< HEAD
+=======
+      c10::DispatchKeySet dispatch_key_set,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::vector<std::optional<c10::SymInt>> dynamic_dims_sizes,
       std::vector<std::optional<c10::SymInt>> dynamic_dims_strides);
 

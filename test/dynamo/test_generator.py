@@ -12,6 +12,10 @@ from torch._dynamo.testing import EagerAndRecordGraphs, normalize_gm
 from torch._dynamo.utils import counters
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
+<<<<<<< HEAD
+=======
+    make_dynamo_test,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parametrize,
 )
 
@@ -861,6 +865,33 @@ class GraphModule(torch.nn.Module):
         y = fn(t)
         self.assertEqual(y, t + sum(range(6)))
 
+<<<<<<< HEAD
+=======
+    def test_list_extend(self):
+        def f(x):
+            y = [1]
+            y.extend(y[-1] + z for z in range(3))
+            return x + 1, y
+
+        self.assertEqual(
+            f(torch.ones(3)),
+            torch.compile(f, backend="eager", fullgraph=True)(torch.ones(3)),
+        )
+
+    def test_deque_extendleft(self):
+        import collections
+
+        def f(x):
+            y = collections.deque([1])
+            y.extendleft(y[0] + z for z in range(3))
+            return x + 1, y
+
+        self.assertEqual(
+            f(torch.ones(3)),
+            torch.compile(f, backend="eager", fullgraph=True)(torch.ones(3)),
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestGeneratorSend(GeneratorTestsBase):
     def test_send(self):
@@ -1069,6 +1100,10 @@ class TestGeneratorClose(GeneratorTestsBase):
         self.assertEqual(L, [1, -123, -1, 456])
 
     @parametrize("exc", [RuntimeError, AttributeError])
+<<<<<<< HEAD
+=======
+    @make_dynamo_test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_close_capture_and_reraise_exc(self, exc):
         def whoo(t):
             try:
@@ -1079,7 +1114,10 @@ class TestGeneratorClose(GeneratorTestsBase):
             finally:
                 pass
 
+<<<<<<< HEAD
         @torch.compile(backend="eager", fullgraph=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def fn(t):
             gen = whoo(t)
             i = next(gen)
@@ -1087,8 +1125,19 @@ class TestGeneratorClose(GeneratorTestsBase):
             return i
 
         t = torch.randn(2)
+<<<<<<< HEAD
         with self.assertRaises(exc):
             fn(t)
+=======
+
+        z = 0
+        try:
+            fn(t)
+        except exc:
+            z = 1
+        finally:
+            assert z == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_close_with_subgen(self):
         L = []
@@ -1450,6 +1499,7 @@ class TestGeneratorThrow(GeneratorTestsBase):
         self._compile_check(fn)
 
 
+<<<<<<< HEAD
 class GeneratorCloseCPythonTests(GeneratorTestsBase):
     # Taken from commit
     # https://github.com/python/cpython/blob/d51a4ca1123e3e49e5cae4273355bdfd9e419a10
@@ -1775,6 +1825,8 @@ class GeneratorCPythonTests(GeneratorTestsBase):
         self._compile_check(fn)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_parametrized_tests(GeneratorTests)
 instantiate_parametrized_tests(TestGeneratorSend)
 instantiate_parametrized_tests(TestGeneratorClose)

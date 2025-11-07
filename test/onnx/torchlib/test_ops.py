@@ -220,7 +220,13 @@ def run_test_output_match(
 
                 test_name = test_suite.id()
                 function_output, model_proto = function_executor(
+<<<<<<< HEAD
                     test_name, reference_torch_outputs
+=======
+                    test_name,
+                    reference_torch_outputs,
+                    opset_version=torchlib_op_info.opset_introduced,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )(onnx_function, input_onnx, kwargs_onnx)
                 # Finally we re-flatten everything
                 # TODO: add pytree structure comparison.

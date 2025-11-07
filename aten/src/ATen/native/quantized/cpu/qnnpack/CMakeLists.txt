@@ -331,6 +331,12 @@ if(NOT TARGET clog)
     "${CONFU_DEPENDENCIES_BINARY_DIR}/clog")
   # We build static version of clog but a dynamic library may indirectly depend on it
   set_property(TARGET clog PROPERTY POSITION_INDEPENDENT_CODE ON)
+<<<<<<< HEAD
+=======
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(clog PRIVATE "-Wno-unused-result")
+  endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endif()
 target_link_libraries(pytorch_qnnpack PUBLIC clog)
 

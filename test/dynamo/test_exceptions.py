@@ -2,7 +2,10 @@
 
 import contextlib
 import sys
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo.config
@@ -20,7 +23,20 @@ from torch.testing._internal.common_utils import (
 
 
 class CustomException(Exception):
+<<<<<<< HEAD
     ...
+=======
+    pass
+
+
+class CustomExceptionMeta(type):
+    def __instancecheck__(cls, instance):
+        return True
+
+
+class CustomExceptionWithInstanceCheck(Exception, metaclass=CustomExceptionMeta):
+    pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CustomExceptionWithArgs(Exception):
@@ -151,6 +167,17 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         self.assertTrue(torch.equal(out, inp + 1))
 
     @make_dynamo_test
+<<<<<<< HEAD
+=======
+    def test_isinstance_CustomException(self):
+        assert isinstance(CustomException, type)
+        assert not isinstance(CustomException(), type)
+        C = CustomExceptionWithInstanceCheck
+        assert isinstance(C, C)
+        assert isinstance(C(), C)
+
+    @make_dynamo_test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_propagate_exception_inside_ctx_manager(self):
         @contextlib.contextmanager
         def cm():
@@ -199,7 +226,10 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         res = opt_fn(x)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     @unittest.skipIf(sys.version_info < (3, 11), "Python 3.11+")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_dynamo_test
     def test_raise_match(self):
         a = AttributeError
@@ -281,7 +311,10 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         opt_fn = torch.compile(fn, backend="eager")
         opt_fn(x)
 
+<<<<<<< HEAD
     @unittest.skipIf(sys.version_info < (3, 11), "Python 3.11+")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_exception_with_ctx_manager(self):
         def fn(x):
             x = torch.cos(x)
@@ -344,7 +377,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
 
     def test_raise_custom_exception(self):
         class Exc(Exception):
+<<<<<<< HEAD
             ...
+=======
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile(backend="eager", fullgraph=True)
         def fn(t):
@@ -361,7 +398,11 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
 
     def test_raise_custom_exception_with_args(self):
         class Exc(Exception):
+<<<<<<< HEAD
             ...
+=======
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile(backend="eager", fullgraph=True)
         def fn(t):
@@ -568,6 +609,37 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(ref[1], res[1])
 
     @make_dynamo_test
+<<<<<<< HEAD
+=======
+    def test_raise_from_None_2(self):
+        def fn():
+            try:
+                raise ValueError
+            except Exception:
+                raise TypeError from None
+
+        try:
+            fn()
+        except TypeError as e:
+            assert e.__cause__ is None
+            assert e.__suppress_context__ is True
+
+    @make_dynamo_test
+    def test_raise_from_other(self):
+        def fn():
+            try:
+                raise ValueError
+            except Exception as e:
+                raise TypeError from e
+
+        try:
+            fn()
+        except TypeError as e:
+            assert isinstance(e.__cause__, ValueError)
+            assert e.__suppress_context__ is True
+
+    @make_dynamo_test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reraise_first_exc(self):
         def fn():
             try:
@@ -847,7 +919,10 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         t = torch.randn(2)
         fn(t)
 
+<<<<<<< HEAD
     @unittest.skipIf(sys.version_info < (3, 11), "Python 3.11+")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_user_defined_exception_with_args(self):
         @torch.compile(backend="eager", fullgraph=True)
         def fn(t):
@@ -880,6 +955,7 @@ class ExceptionTests(torch._dynamo.test_case.TestCase):
         assert exc2.__context__ is None
 
 
+<<<<<<< HEAD
 class CPythonExceptionTests(torch._dynamo.test_case.TestCase):
     # Tests taken from CPython source code in cpython/Lib/test/test_exceptions.py
     # https://github.com/python/cpython/blob/v3.13.1/Lib/test/test_exceptions.py
@@ -1109,6 +1185,8 @@ class CPythonExceptionTests(torch._dynamo.test_case.TestCase):
         self.assertIs(a.__context__, c)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_parametrized_tests(ExceptionTests)
 
 

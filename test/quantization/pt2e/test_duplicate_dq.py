@@ -26,7 +26,11 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import (
 )
 from torch.export import export_for_training
 from torch.testing._internal.common_quantization import QuantizationTestCase
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_WINDOWS
+=======
+from torch.testing._internal.common_utils import IS_WINDOWS, raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestHelperModules:
@@ -101,10 +105,14 @@ class TestDuplicateDQPass(QuantizationTestCase):
 
         # program capture
         m = copy.deepcopy(m_eager)
+<<<<<<< HEAD
         m = export_for_training(
             m,
             example_inputs,
         ).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         m = prepare_pt2e(m, quantizer)
         # Calibrate
@@ -310,3 +318,10 @@ class TestDuplicateDQPass(QuantizationTestCase):
             example_inputs,
             BackendAQuantizer(),
         )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

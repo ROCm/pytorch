@@ -6,9 +6,23 @@ import torch
 import torch.distributed as c10d
 
 
+<<<<<<< HEAD
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+=======
+FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+log = logging.getLogger("log")
+log.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter(FORMAT)
+handler.setFormatter(formatter)
+
+log.addHandler(handler)
+log.propagate = False  # Prevent log duplication
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -29,6 +43,7 @@ if __name__ == "__main__":
 
     store = c10d.TCPStore(args.addr, port, world_size, rank == 0)
     process_group = c10d.ProcessGroupNCCL(store, rank, world_size)
+<<<<<<< HEAD
     logging.info("Running first allreduce")
     process_group.allreduce(torch.rand(10).cuda(rank)).wait()
     if rank == 0:
@@ -39,4 +54,16 @@ if __name__ == "__main__":
         logging.info("Second allreduce successful: %s", work.is_success())
     else:
         logging.info("Aborting all other ranks.")
+=======
+    log.info("Running first allreduce")
+    process_group.allreduce(torch.rand(10).cuda(rank)).wait()
+    if rank == 0:
+        log.info("Running second allreduce only on rank 0")
+        work = process_group.allreduce(torch.rand(10).cuda(rank))
+        log.info("Waiting for allreduce to complete...")
+        work.wait()
+        log.info("Second allreduce successful: %s", work.is_success())
+    else:
+        log.info("Aborting all other ranks.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         os.abort()

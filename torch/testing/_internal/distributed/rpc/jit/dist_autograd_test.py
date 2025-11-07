@@ -32,9 +32,14 @@ def fork_add(t1, t2, dst: str):
 class JitDistAutogradTest(RpcAgentTestFixture):
     @dist_init
     def test_get_gradients(self):
+<<<<<<< HEAD
 
         @torch.jit.script
         def dist_get_gradients(context_id: int) -> (dict[Tensor, Tensor]):
+=======
+        @torch.jit.script
+        def dist_get_gradients(context_id: int) -> dict[Tensor, Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return dist_autograd.get_gradients(context_id)
 
         FileCheck().check("get_gradients").run(str(dist_get_gradients.graph))

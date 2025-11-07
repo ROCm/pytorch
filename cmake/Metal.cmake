@@ -8,7 +8,11 @@ if(WERROR)
 endif()
 
 function(metal_to_air SRC TARGET FLAGS)
+<<<<<<< HEAD
     add_custom_command(COMMAND xcrun metal -c ${SRC} -I ${CMAKE_SOURCE_DIR} -o ${TARGET} ${FLAGS} ${METAL_CFLAGS}
+=======
+    add_custom_command(COMMAND xcrun metal -c ${SRC} -I ${CMAKE_SOURCE_DIR} -I ${CMAKE_SOURCE_DIR}/aten/src -o ${TARGET} ${FLAGS} ${METAL_CFLAGS}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                        DEPENDS ${SRC}
                        OUTPUT ${TARGET}
                        COMMENT "Compiling ${SRC} to ${TARGET}"

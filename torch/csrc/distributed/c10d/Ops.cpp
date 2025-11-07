@@ -17,6 +17,7 @@ TORCH_LIBRARY(c10d, m) {
       .def("wait", [](const c10::intrusive_ptr<Work>& self) { self->wait(); });
   m.class_<ReduceOp>("ReduceOp").def(torch::init<>());
   m.def(
+<<<<<<< HEAD
       "broadcast_(Tensor[] tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, int root_rank, int root_tensor, bool asyncOp, int timeout) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
   m.def(
       "allreduce_(Tensor[] tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, Tensor? sparse_indices, int timeout) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
@@ -48,6 +49,39 @@ TORCH_LIBRARY(c10d, m) {
       "alltoall_base_(Tensor output, Tensor input, __torch__.torch.classes.c10d.ProcessGroup process_group, int[] output_split_sizes, int[] input_split_sizes, int timeout) -> __torch__.torch.classes.c10d.Work");
   m.def(
       "barrier(Tensor tensor, __torch__.torch.classes.c10d.ProcessGroup process_group, int[] device_ids, int timeout) -> __torch__.torch.classes.c10d.Work");
+=======
+      "broadcast_(Tensor[] tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, int root_rank, int root_tensor, bool async_op=True, int timeout=-1) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "allreduce_(Tensor[] tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, Tensor? sparse_indices, bool async_op=True, int timeout=-1) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "allreduce_coalesced_(Tensor[] tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, bool async_op=True, int timeout=-1) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "allgather_(Tensor[][] output_tensors, Tensor[] input_tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, bool async_op=True, int timeout=-1) -> (Tensor[][], __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "_allgather_base_(Tensor output_tensor, Tensor input_tensor, __torch__.torch.classes.c10d.ProcessGroup process_group, bool async_op=True, int timeout=-1) -> (Tensor, __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "allgather_coalesced_(Tensor[][] output_lists, Tensor[] input_list, __torch__.torch.classes.c10d.ProcessGroup process_group, bool async_op=True) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "allgather_into_tensor_coalesced_(Tensor[] outputs, Tensor[] inputs, __torch__.torch.classes.c10d.ProcessGroup process_group, bool async_op=True) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "reduce_scatter_(Tensor[] output_tensors, Tensor[][] input_tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, bool async_op=True, int timeout=-1) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "_reduce_scatter_base_(Tensor output_tensor, Tensor input_tensor, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, bool async_op=True, int timeout=-1) -> (Tensor, __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "reduce_scatter_tensor_coalesced_(Tensor[] outputs, Tensor[] inputs, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, bool async_op=True, int timeout=-1) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "reduce_(Tensor[] tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, __torch__.torch.classes.c10d.ReduceOp reduce_op, int root_rank, int root_tensor, bool async_op=True, int timeout=-1) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "gather_(Tensor[][] output_tensors, Tensor[] input_tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, int root_rank, bool async_op=True, int timeout=-1) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "scatter_(Tensor[] output_tensors, Tensor[][] input_tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, int root_rank, bool async_op=True, int timeout=-1) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "alltoall_(Tensor[] output_tensors, Tensor[] input_tensors, __torch__.torch.classes.c10d.ProcessGroup process_group, bool async_op=True, int timeout=-1) -> (Tensor[], __torch__.torch.classes.c10d.Work)");
+  m.def(
+      "alltoall_base_(Tensor output, Tensor input, __torch__.torch.classes.c10d.ProcessGroup process_group, int[] output_split_sizes, int[] input_split_sizes, bool async_op=True, int timeout=-1) -> __torch__.torch.classes.c10d.Work");
+  m.def(
+      "barrier(Tensor tensor, __torch__.torch.classes.c10d.ProcessGroup process_group, int[] device_ids, bool async_op=True, int timeout=-1) -> __torch__.torch.classes.c10d.Work");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def(
       "monitored_barrier_(Tensor tensor, __torch__.torch.classes.c10d.ProcessGroup process_group, int[] device_ids, int timeout, bool wait_all_ranks) -> ()");
   m.def(
@@ -118,6 +152,10 @@ IMPL_RECV_ANY_SOURCE(PrivateUse1)
       const c10::intrusive_ptr<ReduceOp>& reduce_op,         \
       int64_t root_rank,                                     \
       int64_t root_tensor,                                   \
+<<<<<<< HEAD
+=======
+      bool asyncOp,                                          \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t timeout) {                                     \
     auto tensor_vec = tensors.vec();                         \
     return process_group->getBackend(c10::DeviceType::DEV)   \
@@ -127,13 +165,19 @@ IMPL_RECV_ANY_SOURCE(PrivateUse1)
                 *reduce_op.get(),                            \
                 root_rank,                                   \
                 root_tensor,                                 \
+<<<<<<< HEAD
                 std::chrono::milliseconds(timeout)});        \
+=======
+                std::chrono::milliseconds(timeout),          \
+                asyncOp});                                   \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_REDUCE(CPU)
 IMPL_REDUCE(CUDA)
 IMPL_REDUCE(PrivateUse1)
 
+<<<<<<< HEAD
 #define IMPL_BROADCAST(DEV)                                                   \
   std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>               \
       broadcast_##DEV(                                                        \
@@ -153,6 +197,28 @@ IMPL_REDUCE(PrivateUse1)
             asyncOp});                                                        \
     return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(     \
         std::move(tensor_vec), work);                                         \
+=======
+#define IMPL_BROADCAST(DEV)                                               \
+  std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>           \
+      broadcast_##DEV(                                                    \
+          at::TensorList tensors,                                         \
+          const c10::intrusive_ptr<ProcessGroup>& process_group,          \
+          int64_t root_rank,                                              \
+          int64_t root_tensor,                                            \
+          bool asyncOp,                                                   \
+          int64_t timeout) {                                              \
+    auto tensor_vec = tensors.vec();                                      \
+    auto work = process_group->getBackend(c10::DeviceType::DEV)           \
+                    ->broadcast(                                          \
+                        tensor_vec,                                       \
+                        BroadcastOptions{                                 \
+                            root_rank,                                    \
+                            root_tensor,                                  \
+                            std::chrono::milliseconds(timeout),           \
+                            asyncOp});                                    \
+    return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>( \
+        std::move(tensor_vec), work);                                     \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_BROADCAST(CPU)
@@ -162,6 +228,7 @@ IMPL_BROADCAST(PrivateUse1)
 // Return input tensors as output tensors to make inplace allreduce look like
 // a functional API, so that make_fx can correctly build the dependencies in
 // the graph later.
+<<<<<<< HEAD
 #define IMPL_ALLREDUCE(DEV)                                                   \
   std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>               \
       allreduce_##DEV(                                                        \
@@ -177,6 +244,27 @@ IMPL_BROADCAST(PrivateUse1)
             *reduce_op.get(), std::chrono::milliseconds(timeout)});           \
     return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(     \
         std::move(tensor_vec), work);                                         \
+=======
+#define IMPL_ALLREDUCE(DEV)                                               \
+  std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>           \
+      allreduce_##DEV(                                                    \
+          at::TensorList tensors,                                         \
+          const c10::intrusive_ptr<ProcessGroup>& process_group,          \
+          const c10::intrusive_ptr<ReduceOp>& reduce_op,                  \
+          const std::optional<at::Tensor>& sparse_indices,                \
+          bool asyncOp,                                                   \
+          int64_t timeout) {                                              \
+    auto tensor_vec = tensors.vec();                                      \
+    auto work = process_group->getBackend(c10::DeviceType::DEV)           \
+                    ->allreduce(                                          \
+                        tensor_vec,                                       \
+                        AllreduceOptions{                                 \
+                            *reduce_op.get(),                             \
+                            std::chrono::milliseconds(timeout),           \
+                            asyncOp});                                    \
+    return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>( \
+        std::move(tensor_vec), work);                                     \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_ALLREDUCE(CPU)
@@ -188,11 +276,19 @@ IMPL_ALLREDUCE(PrivateUse1)
       at::TensorList tensors,                                     \
       const c10::intrusive_ptr<ProcessGroup>& process_group,      \
       const c10::intrusive_ptr<ReduceOp>& reduce_op,              \
+<<<<<<< HEAD
+=======
+      bool asyncOp,                                               \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t timeout) {                                          \
     auto tensor_vec = tensors.vec();                              \
     AllreduceCoalescedOptions opts = AllreduceCoalescedOptions{}; \
     opts.reduceOp = *reduce_op.get();                             \
     opts.timeout = std::chrono::milliseconds(timeout);            \
+<<<<<<< HEAD
+=======
+    opts.asyncOp = asyncOp;                                       \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return process_group->getBackend(c10::DeviceType::DEV)        \
         ->allreduce_coalesced(tensor_vec, opts);                  \
   }
@@ -209,12 +305,25 @@ IMPL_ALLREDUCE_COALESCED(PrivateUse1)
           const std::vector<std::vector<at::Tensor>>& output_tensors,          \
           at::TensorList input_tensors,                                        \
           const c10::intrusive_ptr<ProcessGroup>& process_group,               \
+<<<<<<< HEAD
           int64_t timeout) {                                                   \
     auto input_tensors_vec = input_tensors.vec();                              \
     auto work = process_group->getBackend(c10::DeviceType::DEV) -> allgather(  \
         const_cast<std::vector<std::vector<at::Tensor>>&>(output_tensors),     \
         input_tensors_vec,                                                     \
         AllgatherOptions{std::chrono::milliseconds(timeout)});                 \
+=======
+          bool asyncOp,                                                        \
+          int64_t timeout) {                                                   \
+    auto input_tensors_vec = input_tensors.vec();                              \
+    auto work = process_group->getBackend(c10::DeviceType::DEV)                \
+                    ->allgather(                                               \
+                        const_cast<std::vector<std::vector<at::Tensor>>&>(     \
+                            output_tensors),                                   \
+                        input_tensors_vec,                                     \
+                        AllgatherOptions{                                      \
+                            std::chrono::milliseconds(timeout), asyncOp});     \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::                                                               \
         tuple<std::vector<std::vector<at::Tensor>>, c10::intrusive_ptr<Work>>( \
             output_tensors, work);                                             \
@@ -225,6 +334,7 @@ IMPL_ALLGATHER(CPU)
 IMPL_ALLGATHER(CUDA)
 IMPL_ALLGATHER(PrivateUse1)
 
+<<<<<<< HEAD
 #define IMPL__ALLGATHER_BASE(DEV)                                           \
   std::tuple<at::Tensor, c10::intrusive_ptr<Work>> _allgather_base_##DEV(   \
       at::Tensor& output_tensor,                                            \
@@ -239,6 +349,23 @@ IMPL_ALLGATHER(PrivateUse1)
             AllgatherOptions{std::chrono::milliseconds(timeout), asyncOp}); \
     return std::tuple<at::Tensor, c10::intrusive_ptr<Work>>(                \
         output_tensor, work);                                               \
+=======
+#define IMPL__ALLGATHER_BASE(DEV)                                          \
+  std::tuple<at::Tensor, c10::intrusive_ptr<Work>> _allgather_base_##DEV(  \
+      at::Tensor& output_tensor,                                           \
+      at::Tensor& input_tensor,                                            \
+      const c10::intrusive_ptr<ProcessGroup>& process_group,               \
+      bool asyncOp,                                                        \
+      int64_t timeout) {                                                   \
+    auto work = process_group->getBackend(c10::DeviceType::DEV)            \
+                    ->_allgather_base(                                     \
+                        output_tensor,                                     \
+                        input_tensor,                                      \
+                        AllgatherOptions{                                  \
+                            std::chrono::milliseconds(timeout), asyncOp}); \
+    return std::tuple<at::Tensor, c10::intrusive_ptr<Work>>(               \
+        output_tensor, work);                                              \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL__ALLGATHER_BASE(CPU)
@@ -249,12 +376,25 @@ IMPL__ALLGATHER_BASE(PrivateUse1)
   c10::intrusive_ptr<Work> allgather_coalesced_##DEV(                        \
       const std::vector<std::vector<at::Tensor>>& output_lists,              \
       const at::TensorList& input_list,                                      \
+<<<<<<< HEAD
       const c10::intrusive_ptr<ProcessGroup>& process_group) {               \
     auto input_list_vec = input_list.vec();                                  \
     return process_group->getBackend(c10::DeviceType::DEV)                   \
         ->allgather_coalesced(                                               \
             const_cast<std::vector<std::vector<at::Tensor>>&>(output_lists), \
             input_list_vec);                                                 \
+=======
+      const c10::intrusive_ptr<ProcessGroup>& process_group,                 \
+      bool asyncOp) {                                                        \
+    auto input_list_vec = input_list.vec();                                  \
+    auto opts = AllgatherOptions{};                                          \
+    opts.asyncOp = asyncOp;                                                  \
+    return process_group->getBackend(c10::DeviceType::DEV)                   \
+        ->allgather_coalesced(                                               \
+            const_cast<std::vector<std::vector<at::Tensor>>&>(output_lists), \
+            input_list_vec,                                                  \
+            opts);                                                           \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_ALLGATHER_COALESCED(CPU)
@@ -265,17 +405,29 @@ IMPL_ALLGATHER_COALESCED(PrivateUse1)
   c10::intrusive_ptr<c10d::Work> allgather_into_tensor_coalesced_##DEV( \
       at::TensorList outputs,                                           \
       at::TensorList inputs,                                            \
+<<<<<<< HEAD
       const c10::intrusive_ptr<ProcessGroup>& process_group) {          \
     auto output_vec = outputs.vec();                                    \
     auto input_vec = inputs.vec();                                      \
     return process_group->getBackend(c10::DeviceType::DEV)              \
         ->allgather_into_tensor_coalesced(output_vec, input_vec);       \
+=======
+      const c10::intrusive_ptr<ProcessGroup>& process_group,            \
+      bool asyncOp) {                                                   \
+    auto output_vec = outputs.vec();                                    \
+    auto input_vec = inputs.vec();                                      \
+    auto opts = AllgatherOptions{};                                     \
+    opts.asyncOp = asyncOp;                                             \
+    return process_group->getBackend(c10::DeviceType::DEV)              \
+        ->allgather_into_tensor_coalesced(output_vec, input_vec, opts); \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_ALLGATHER_INTO_TENSOR_COALESCED(CPU)
 IMPL_ALLGATHER_INTO_TENSOR_COALESCED(CUDA)
 IMPL_ALLGATHER_INTO_TENSOR_COALESCED(PrivateUse1)
 
+<<<<<<< HEAD
 #define IMPL_REDUCE_SCATTER(DEV)                                              \
   std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>               \
       reduce_scatter_##DEV(                                                   \
@@ -293,6 +445,29 @@ IMPL_ALLGATHER_INTO_TENSOR_COALESCED(PrivateUse1)
                 *reduce_op.get(), std::chrono::milliseconds(timeout)});       \
     return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(     \
         output_tensors_vec, work);                                            \
+=======
+#define IMPL_REDUCE_SCATTER(DEV)                                           \
+  std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>            \
+      reduce_scatter_##DEV(                                                \
+          const at::TensorList& output_tensors,                            \
+          const std::vector<std::vector<at::Tensor>>& input_tensors,       \
+          const c10::intrusive_ptr<ProcessGroup>& process_group,           \
+          const c10::intrusive_ptr<ReduceOp>& reduce_op,                   \
+          bool asyncOp,                                                    \
+          int64_t timeout) {                                               \
+    auto output_tensors_vec = output_tensors.vec();                        \
+    auto work = process_group->getBackend(c10::DeviceType::DEV)            \
+                    ->reduce_scatter(                                      \
+                        output_tensors_vec,                                \
+                        const_cast<std::vector<std::vector<at::Tensor>>&>( \
+                            input_tensors),                                \
+                        ReduceScatterOptions{                              \
+                            *reduce_op.get(),                              \
+                            std::chrono::milliseconds(timeout),            \
+                            asyncOp});                                     \
+    return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(  \
+        output_tensors_vec, work);                                         \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_REDUCE_SCATTER(CPU)
@@ -308,7 +483,11 @@ IMPL_REDUCE_SCATTER(PrivateUse1)
       bool asyncOp,                                                            \
       int64_t timeout) {                                                       \
     auto work = process_group->getBackend(c10::DeviceType::DEV)                \
+<<<<<<< HEAD
                     -> _reduce_scatter_base(                                   \
+=======
+                    ->_reduce_scatter_base(                                    \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         output_tensor,                                         \
                         input_tensor,                                          \
                         ReduceScatterOptions{                                  \
@@ -329,6 +508,10 @@ IMPL__REDUCE_SCATTER_BASE(PrivateUse1)
       at::TensorList inputs,                                            \
       const c10::intrusive_ptr<ProcessGroup>& process_group,            \
       const c10::intrusive_ptr<ReduceOp>& reduce_op,                    \
+<<<<<<< HEAD
+=======
+      bool asyncOp,                                                     \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t timeout) {                                                \
     auto output_vec = outputs.vec();                                    \
     auto input_vec = inputs.vec();                                      \
@@ -337,7 +520,13 @@ IMPL__REDUCE_SCATTER_BASE(PrivateUse1)
             output_vec,                                                 \
             input_vec,                                                  \
             ReduceScatterOptions{                                       \
+<<<<<<< HEAD
                 *reduce_op.get(), std::chrono::milliseconds(timeout)}); \
+=======
+                *reduce_op.get(),                                       \
+                std::chrono::milliseconds(timeout),                     \
+                asyncOp});                                              \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_REDUCE_SCATTER_TENSOR_COALESCED(CPU)
@@ -350,13 +539,22 @@ IMPL_REDUCE_SCATTER_TENSOR_COALESCED(PrivateUse1)
       const at::TensorList& input_tensors,                                     \
       const c10::intrusive_ptr<ProcessGroup>& process_group,                   \
       int64_t root_rank,                                                       \
+<<<<<<< HEAD
+=======
+      bool asyncOp,                                                            \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       int64_t timeout) {                                                       \
     auto input_tensors_vec = input_tensors.vec();                              \
     return process_group->getBackend(c10::DeviceType::DEV)                     \
         ->gather(                                                              \
             const_cast<std::vector<std::vector<at::Tensor>>&>(output_tensors), \
             input_tensors_vec,                                                 \
+<<<<<<< HEAD
             GatherOptions{root_rank, std::chrono::milliseconds(timeout)});     \
+=======
+            GatherOptions{                                                     \
+                root_rank, std::chrono::milliseconds(timeout), asyncOp});      \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_GATHER(CPU)
@@ -372,11 +570,22 @@ IMPL_GATHER(PrivateUse1)
       bool asyncOp,                                                            \
       int64_t timeout) {                                                       \
     auto output_tensors_vec = output_tensors.vec();                            \
+<<<<<<< HEAD
     auto work = process_group->getBackend(c10::DeviceType::DEV) -> scatter(    \
         output_tensors_vec,                                                    \
         const_cast<std::vector<std::vector<at::Tensor>>&>(input_tensors),      \
         ScatterOptions{                                                        \
             root_rank, std::chrono::milliseconds(timeout), asyncOp});          \
+=======
+    auto work =                                                                \
+        process_group->getBackend(c10::DeviceType::DEV)                        \
+            ->scatter(                                                         \
+                output_tensors_vec,                                            \
+                const_cast<std::vector<std::vector<at::Tensor>>&>(             \
+                    input_tensors),                                            \
+                ScatterOptions{                                                \
+                    root_rank, std::chrono::milliseconds(timeout), asyncOp});  \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(      \
         std::move(output_tensors_vec), work);                                  \
   }
@@ -385,6 +594,7 @@ IMPL_SCATTER(CPU)
 IMPL_SCATTER(CUDA)
 IMPL_SCATTER(PrivateUse1)
 
+<<<<<<< HEAD
 #define IMPL_ALLTOALL(DEV)                                                   \
   std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>              \
       alltoall_##DEV(                                                        \
@@ -400,12 +610,33 @@ IMPL_SCATTER(PrivateUse1)
         AllToAllOptions{std::chrono::milliseconds(timeout)});                \
     return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(    \
         std::move(output_tensors_vec), work);                                \
+=======
+#define IMPL_ALLTOALL(DEV)                                                     \
+  std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>                \
+      alltoall_##DEV(                                                          \
+          const at::TensorList& output_tensors,                                \
+          const at::TensorList& input_tensors,                                 \
+          const c10::intrusive_ptr<ProcessGroup>& process_group,               \
+          bool asyncOp,                                                        \
+          int64_t timeout) {                                                   \
+    auto output_tensors_vec = output_tensors.vec();                            \
+    auto input_tensors_vec = input_tensors.vec();                              \
+    auto work =                                                                \
+        process_group->getBackend(c10::DeviceType::DEV)                        \
+            ->alltoall(                                                        \
+                output_tensors_vec,                                            \
+                input_tensors_vec,                                             \
+                AllToAllOptions{std::chrono::milliseconds(timeout), asyncOp}); \
+    return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(      \
+        std::move(output_tensors_vec), work);                                  \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_ALLTOALL(CPU)
 IMPL_ALLTOALL(CUDA)
 IMPL_ALLTOALL(PrivateUse1)
 
+<<<<<<< HEAD
 #define IMPL_ALLTOALL_BASE(DEV)                                   \
   c10::intrusive_ptr<Work> alltoall_base_##DEV(                   \
       at::Tensor& output,                                         \
@@ -421,6 +652,24 @@ IMPL_ALLTOALL(PrivateUse1)
             output_split_sizes,                                   \
             input_split_sizes,                                    \
             AllToAllOptions{std::chrono::milliseconds(timeout)}); \
+=======
+#define IMPL_ALLTOALL_BASE(DEV)                                            \
+  c10::intrusive_ptr<Work> alltoall_base_##DEV(                            \
+      at::Tensor& output,                                                  \
+      at::Tensor& input,                                                   \
+      const c10::intrusive_ptr<ProcessGroup>& process_group,               \
+      std::vector<int64_t> output_split_sizes,                             \
+      std::vector<int64_t> input_split_sizes,                              \
+      bool asyncOp,                                                        \
+      int64_t timeout) {                                                   \
+    return process_group->getBackend(c10::DeviceType::DEV)                 \
+        ->alltoall_base(                                                   \
+            output,                                                        \
+            input,                                                         \
+            output_split_sizes,                                            \
+            input_split_sizes,                                             \
+            AllToAllOptions{std::chrono::milliseconds(timeout), asyncOp}); \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_ALLTOALL_BASE(CPU)
@@ -428,6 +677,7 @@ IMPL_ALLTOALL_BASE(CUDA)
 IMPL_ALLTOALL_BASE(PrivateUse1)
 
 // NOLINTBEGIN(performance-unnecessary-value-param)
+<<<<<<< HEAD
 #define IMPL_BARRIER(DEV)                                                    \
   c10::intrusive_ptr<Work> barrier##DEV(                                     \
       at::Tensor /* unused */,                                               \
@@ -437,6 +687,20 @@ IMPL_ALLTOALL_BASE(PrivateUse1)
     return process_group->getBackend(c10::DeviceType::DEV)                   \
         ->barrier(                                                           \
             BarrierOptions{device_ids, std::chrono::milliseconds(timeout)}); \
+=======
+#define IMPL_BARRIER(DEV)                                                  \
+  c10::intrusive_ptr<Work> barrier##DEV(                                   \
+      at::Tensor /* unused */,                                             \
+      const c10::intrusive_ptr<ProcessGroup>& process_group,               \
+      const std::vector<int64_t>& device_ids,                              \
+      bool asyncOp,                                                        \
+      int64_t timeout) {                                                   \
+    auto opts = BarrierOptions{};                                          \
+    opts.device_ids = device_ids;                                          \
+    opts.timeout = std::chrono::milliseconds(timeout);                     \
+    opts.asyncOp = asyncOp;                                                \
+    return process_group->getBackend(c10::DeviceType::DEV)->barrier(opts); \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 IMPL_BARRIER(CPU)
@@ -464,6 +728,10 @@ allreduce_sparse_cuda_(
     const c10::intrusive_ptr<ProcessGroup>& process_group,
     const c10::intrusive_ptr<ReduceOp>& reduce_op,
     const std::optional<at::Tensor>& sparse_indices,
+<<<<<<< HEAD
+=======
+    bool asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t timeout) {
   auto tensor_vec = tensors.vec();
   auto work = process_group->getBackend(c10::DeviceType::CUDA)
@@ -472,6 +740,10 @@ allreduce_sparse_cuda_(
                       AllreduceOptions{
                           *reduce_op,
                           std::chrono::milliseconds(timeout),
+<<<<<<< HEAD
+=======
+                          asyncOp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                           sparse_indices});
 
   return std::tuple<std::vector<at::Tensor>, c10::intrusive_ptr<Work>>(

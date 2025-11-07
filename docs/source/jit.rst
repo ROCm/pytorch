@@ -310,7 +310,11 @@ your model code correctly.
 
 Interpreting Graphs
 ~~~~~~~~~~~~~~~~~~~
+<<<<<<< HEAD
 TorchScript also has a representation at a lower level than the code pretty-
+=======
+TorchScript also has a representation at a lower level than the code pretty-\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 printer, in the form of IR graphs.
 
 TorchScript uses a static single assignment (SSA) intermediate representation

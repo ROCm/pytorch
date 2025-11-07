@@ -13,8 +13,13 @@ namespace six {
 // by a pytorch operator.
 
 inline bool isStructSeq(pybind11::handle input) {
+<<<<<<< HEAD
   return pybind11::cast<std::string>(input.get_type().attr("__module__")) ==
       "torch.return_types";
+=======
+  return pybind11::cast<std::string>(pybind11::type::handle_of(input).attr(
+             "__module__")) == "torch.return_types";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline bool isStructSeq(PyObject* obj) {

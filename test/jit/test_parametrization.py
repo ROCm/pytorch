@@ -4,6 +4,7 @@
 import torch
 import torch.nn.utils.parametrize as parametrize
 from torch import nn
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -15,6 +16,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestParametrization(JitTestCase):
     # Define some parametrization
     class Symmetric(nn.Module):
@@ -68,3 +75,10 @@ class TestParametrization(JitTestCase):
                 # Check the scripting process throws an error when caching
                 with self.assertRaisesRegex(RuntimeError, "Caching is not implemented"):
                     scripted_model = torch.jit.trace_module(model)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

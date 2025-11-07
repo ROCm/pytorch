@@ -66,7 +66,11 @@ during the rendezvous process. Should a process crash (or lose network
 connectivity, etc), between joining the rendezvous and it being completed, then
 a re-rendezvous with remaining healthy nodes will happen automatically.
 
+<<<<<<< HEAD
 A node can also fail *after* it has completed (or *has been observered* by other
+=======
+A node can also fail *after* it has completed (or *has been observed* by other
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 nodes to have completed) the rendezvous - this scenario will be handled by the
 Torch Distributed Elastic ``train_loop`` instead (where it will also trigger a
 re-rendezvous).

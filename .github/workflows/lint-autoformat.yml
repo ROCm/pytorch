@@ -1,10 +1,15 @@
 name: Apply lint suggestions
 
 on:
+<<<<<<< HEAD
 
   push:
     tags:
       - ciflow/autoformat/*
+=======
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   lintrunner-autoformat:
@@ -12,6 +17,7 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: lf.linux.2xlarge
+<<<<<<< HEAD
     if: ${{ github.repository_owner == 'pytorch' && github.event.pull_request.user.login != 'ezyang' && github.event.pull_request.user.login != 'malfet' && !startsWith(github.head_ref, 'export-') }}
     steps:
       - name: Checkout pytorch
@@ -28,6 +34,22 @@ jobs:
         # we can't run all files here because only changes around where the diff are shown in the PR UI
         run: |
           export ADDITIONAL_LINTRUNNER_ARGS="format"
+=======
+    if: ${{ github.repository_owner == 'pytorch' && contains(github.event.pull_request.labels.*.name, 'autoformat') }}
+    steps:
+      - name: Checkout pytorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Run lintrunner (nonretryable)
+        continue-on-error: true
+        run: |
+          set -ex
+          python3 -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          export ADDITIONAL_LINTRUNNER_ARGS="format --all-files"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           bash .github/scripts/lintrunner.sh
       - name: Check for changes
         id: git-check
@@ -37,7 +59,11 @@ jobs:
       - name: Suggest changes
         if: steps.git-check.outputs.changes == 'true'
         continue-on-error: true
+<<<<<<< HEAD
         uses: parkerbxyz/suggest-changes@v1
+=======
+        uses: parkerbxyz/suggest-changes@a2ec1653b0c4cc8287d682f0066dba4a173cc7f3 # v1.0.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           comment: "Please commit the suggested changes from pytorch's linter."
 

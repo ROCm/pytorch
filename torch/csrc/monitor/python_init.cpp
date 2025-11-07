@@ -14,6 +14,10 @@
 
 #include <torch/csrc/monitor/counters.h>
 #include <torch/csrc/monitor/events.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/monitor/python_init.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace pybind11::detail {
 template <>

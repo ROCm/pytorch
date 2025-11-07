@@ -1,7 +1,11 @@
 """
 NOTE: This file must be imported like
 ``import torch.distributed.fsdp._traversal_utils`` and not like
+<<<<<<< HEAD
 ``from torch.distirbuted.fsdp._traversal_utils import ...`` to avoid circular
+=======
+``from torch.distributed.fsdp._traversal_utils import ...`` to avoid circular
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 imports. For brevity, we may import the file as ``traversal_utils``.
 """
 

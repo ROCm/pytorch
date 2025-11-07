@@ -620,7 +620,11 @@ def convolution(
                     PADDING_W=padding[1],
                     GROUPS=groups,
                     # TODO(jansel): try unroll for bigger kernels once fixed:
+<<<<<<< HEAD
                     #               https://github.com/openai/triton/issues/1254
+=======
+                    #               https://github.com/triton-lang/triton/issues/1254
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     UNROLL=is_ones(kernel_shape),
                     ALLOW_TF32=torch.backends.cudnn.allow_tf32,
                     num_stages=cfg.num_stages,
@@ -643,7 +647,11 @@ def convolution(
                     PADDING_W=padding[2],
                     GROUPS=groups,
                     # TODO(jansel): try unroll for bigger kernels once fixed:
+<<<<<<< HEAD
                     #               https://github.com/openai/triton/issues/1254
+=======
+                    #               https://github.com/triton-lang/triton/issues/1254
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     UNROLL=is_ones(kernel_shape),
                     ALLOW_TF32=torch.backends.cudnn.allow_tf32,
                     num_stages=cfg.num_stages,

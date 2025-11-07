@@ -4,12 +4,17 @@ set -ex
 
 # Optionally install conda
 if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
+<<<<<<< HEAD
   BASE_URL="https://repo.anaconda.com/miniconda"
   CONDA_FILE="Miniconda3-latest-Linux-x86_64.sh"
   if [[ $(uname -m) == "aarch64" ]] || [[ "$BUILD_ENVIRONMENT" == *xpu* ]] || [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
     BASE_URL="https://github.com/conda-forge/miniforge/releases/latest/download"
     CONDA_FILE="Miniforge3-Linux-$(uname -m).sh"
   fi
+=======
+  BASE_URL="https://github.com/conda-forge/miniforge/releases/latest/download"  # @lint-ignore
+  CONDA_FILE="Miniforge3-Linux-$(uname -m).sh"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   MAJOR_PYTHON_VERSION=$(echo "$ANACONDA_PYTHON_VERSION" | cut -d . -f 1)
   MINOR_PYTHON_VERSION=$(echo "$ANACONDA_PYTHON_VERSION" | cut -d . -f 2)
@@ -21,7 +26,10 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
       exit 1
       ;;
   esac
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mkdir -p /opt/conda
   chown jenkins:jenkins /opt/conda
 
@@ -45,6 +53,7 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
 
   # Prevent conda from updating to 4.14.0, which causes docker build failures
   # See https://hud.pytorch.org/pytorch/pytorch/commit/754d7f05b6841e555cea5a4b2c505dd9e0baec1d
+<<<<<<< HEAD
   # Uncomment the below when resolved to track the latest conda update,
   # but this is required for CentOS stream 9 builds
   ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
@@ -52,6 +61,10 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
   if [[ $ID == centos && $OS_VERSION == 9 ]]; then
     as_jenkins conda update -y -n base conda
   fi
+=======
+  # Uncomment the below when resolved to track the latest conda update
+  # as_jenkins conda update -y -n base conda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if [[ $(uname -m) == "aarch64" ]]; then
     export SYSROOT_DEP="sysroot_linux-aarch64=2.17"
@@ -85,6 +98,7 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
   # and libpython-static for torch deploy
   conda_install llvmdev=8.0.0 "libpython-static=${ANACONDA_PYTHON_VERSION}"
 
+<<<<<<< HEAD
   # Use conda cmake in some cases. Conda cmake will be newer than our supported
   # min version (3.5 for xenial and 3.10 for bionic), so we only do it in those
   # following builds that we know should use conda. Specifically, Ubuntu bionic
@@ -93,11 +107,17 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
     conda_install cmake=3.31.6
   fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Magma package names are concatenation of CUDA major and minor ignoring revision
   # I.e. magma-cuda102 package corresponds to CUDA_VERSION=10.2 and CUDA_VERSION=10.2.89
   # Magma is installed from a tarball in the ossci-linux bucket into the conda env
   if [ -n "$CUDA_VERSION" ]; then
+<<<<<<< HEAD
     ${SCRIPT_FOLDER}/install_magma_conda.sh $(cut -f1-2 -d'.' <<< ${CUDA_VERSION}) ${ANACONDA_PYTHON_VERSION}
+=======
+    conda_run ${SCRIPT_FOLDER}/install_magma_conda.sh $(cut -f1-2 -d'.' <<< ${CUDA_VERSION})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   fi
 
   if [[ "$UBUNTU_VERSION" == "24.04"* ]] ; then

@@ -1,4 +1,8 @@
 #include <ATen/core/Vitals.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cstdlib>
 #include <iostream>
 
@@ -41,9 +45,15 @@ bool torchVitalEnabled() {
   // If this is a performance hit, make `enabled` variable static
   // and return `const bool&` instead
   bool enabled = []() {
+<<<<<<< HEAD
     auto e = getenv("TORCH_VITAL");
     if (e != nullptr) {
       return e[0] != '\0';
+=======
+    auto const e = c10::utils::get_env("TORCH_VITAL");
+    if (e.has_value()) {
+      return !e.value().empty();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return false;
   }();

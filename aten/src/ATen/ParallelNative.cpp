@@ -222,8 +222,12 @@ void set_num_threads(int nthreads) {
     int stored_nthreads = num_intraop_threads.load();
     if (stored_nthreads <= 0) {
       // plus one because of master thread
+<<<<<<< HEAD
       // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
       stored_nthreads = _get_intraop_pool().size() + 1;
+=======
+      stored_nthreads = static_cast<int>(_get_intraop_pool().size() + 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     if (stored_nthreads != nthreads) {
       TORCH_WARN(
@@ -251,8 +255,12 @@ int get_num_threads() {
     return intraop_default_num_threads();
   } else {
     TORCH_INTERNAL_ASSERT(nthreads == CONSUMED);
+<<<<<<< HEAD
     // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
     return _get_intraop_pool().size() + 1;
+=======
+    return static_cast<int>(_get_intraop_pool().size() + 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 #else
   caffe2::PThreadPool* const pool = caffe2::pthreadpool();

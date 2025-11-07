@@ -2,7 +2,11 @@
 
 #include <c10/xpu/XPUFunctions.h>
 
+<<<<<<< HEAD
 bool has_xpu() {
+=======
+static bool has_xpu() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return c10::xpu::device_count() > 0;
 }
 

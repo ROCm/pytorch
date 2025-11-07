@@ -47,7 +47,11 @@ def save_model_states(
         state_dict (Dict)
             The state_dict() as dumped by dlrm_s_pytorch.py. Only the model state will be extracted
             from this dictionary. This corresponds to the 'state_dict' key in the state_dict dictionary.
+<<<<<<< HEAD
             >>> model_state = state_dict['state_dict']
+=======
+            >>> model_state = state_dict["state_dict"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         save_file_name (str)
             The filename (not path) when saving the model state dictionary
         sparse_block_shape (Tuple)

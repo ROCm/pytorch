@@ -51,7 +51,11 @@ mkdir libtorch\test
 
 mkdir build
 pushd build
+<<<<<<< HEAD
 python ../tools/build_libtorch.py
+=======
+%PYTHON_EXEC% ../tools/build_libtorch.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 popd
 
 IF ERRORLEVEL 1 exit /b 1
@@ -86,7 +90,11 @@ copy /Y "%LIBTORCH_PREFIX%-%PYTORCH_BUILD_VERSION%.zip" "%PYTORCH_FINAL_PACKAGE_
 goto build_end
 
 :pytorch
+<<<<<<< HEAD
 python setup.py bdist_wheel -d "%PYTORCH_FINAL_PACKAGE_DIR%"
+=======
+%PYTHON_EXEC% setup.py bdist_wheel -d "%PYTORCH_FINAL_PACKAGE_DIR%"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 :build_end
 IF ERRORLEVEL 1 exit /b 1

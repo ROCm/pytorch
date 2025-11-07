@@ -452,7 +452,11 @@ ONNX operators that represent the function's behavior in ONNX. For example::
 .. . ``torch::jit::Value::setType``). This is not required, but it can help the exporter's
 .. shape and type inference for down-stream nodes. For a non-trivial example of ``setType``, see
 .. ``test_aten_embedding_2`` in
+<<<<<<< HEAD
 .. `test_operators.py <https://github.com/pytorch/pytorch/blob/main/test/onnx/test_operators.py>`_.
+=======
+.. `test_operators.py <https://github.com/pytorch/pytorch/blob/release/2.5/test/onnx/test_operators.py#L1179>`_.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. The example below shows how you can access ``requires_grad`` via the ``Node`` object:
 
@@ -697,10 +701,18 @@ Functions
 ^^^^^^^^^
 
 .. autofunction:: export
+<<<<<<< HEAD
+=======
+    :noindex:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. autofunction:: register_custom_op_symbolic
 .. autofunction:: unregister_custom_op_symbolic
 .. autofunction:: select_model_mode_for_export
 .. autofunction:: is_in_onnx_export
+<<<<<<< HEAD
+=======
+    :noindex:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Classes
 ^^^^^^^
@@ -710,4 +722,8 @@ Classes
     :nosignatures:
     :template: classtemplate.rst
 
+<<<<<<< HEAD
     JitScalarType
+=======
+    JitScalarType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -5,20 +5,36 @@
 
 #if !defined(_WIN32)
 static bool file_exists(const char* path) {
+<<<<<<< HEAD
   struct stat st {};
   return stat(path, &st) == 0 && S_ISREG(st.st_mode);
 }
 static bool directory_exists(const char* path) {
   struct stat st {};
+=======
+  struct stat st{};
+  return stat(path, &st) == 0 && S_ISREG(st.st_mode);
+}
+static bool directory_exists(const char* path) {
+  struct stat st{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
 }
 #else
 static bool file_exists(const char* path) {
+<<<<<<< HEAD
   struct _stat st {};
   return _stat(path, &st) == 0 && ((st.st_mode & _S_IFMT) == _S_IFREG);
 }
 static bool directory_exists(const char* path) {
   struct _stat st {};
+=======
+  struct _stat st{};
+  return _stat(path, &st) == 0 && ((st.st_mode & _S_IFMT) == _S_IFREG);
+}
+static bool directory_exists(const char* path) {
+  struct _stat st{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _stat(path, &st) == 0 && ((st.st_mode & _S_IFMT) == _S_IFDIR);
 }
 #endif // !defined(_WIN32)

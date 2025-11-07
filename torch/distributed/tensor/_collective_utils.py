@@ -9,6 +9,10 @@ import torch
 import torch.distributed._functional_collectives as funcol
 import torch.distributed.tensor._dtensor_spec as dtensor_spec
 from torch._C._distributed_c10d import _resolve_process_group
+<<<<<<< HEAD
+=======
+from torch._logging import warning_once
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _mesh_resources, DeviceMesh
 from torch.distributed.distributed_c10d import (
     _get_group_size_by_name,
@@ -50,10 +54,16 @@ else:
 def shard_dim_alltoall(input, gather_dim, shard_dim, mesh, mesh_dim):
     if mesh.device_type == "cpu":
         # Gloo does not support alltoall, so falling back to allgather + chunk
+<<<<<<< HEAD
 
         # TODO: This logs way too much
         logger.warning(
             "CPU process group does not support alltoall yet, falling back with allgather + chunk!"
+=======
+        warning_once(
+            logger,
+            "CPU process group does not support alltoall yet, falling back with allgather + chunk!",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         out = funcol.all_gather_tensor(input, gather_dim, (mesh, mesh_dim))
         if isinstance(out, funcol.AsyncCollectiveTensor):
@@ -200,9 +210,13 @@ def fill_empty_tensor_to_shards(
     if num_empty_tensors == 0:
         return shards
     tensor_size = list(shards[0].size())
+<<<<<<< HEAD
     tensor_size = [
         size if idx != shard_dim else 0 for idx, size in enumerate(tensor_size)
     ]
+=======
+    tensor_size[shard_dim] = 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tensor = shards[0].new_zeros(tensor_size)
     shards.extend(tensor for _ in range(num_empty_tensors))
     return shards

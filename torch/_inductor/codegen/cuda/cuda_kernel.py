@@ -1,12 +1,30 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import logging
+=======
+import functools
+import itertools
+import logging
+from collections import defaultdict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from typing import Any, Callable, Literal, Optional, TYPE_CHECKING, Union
 
 from sympy import Expr, symbols
 
+<<<<<<< HEAD
 from torch import dtype as torch_dtype
 from torch._inductor.codegen.cpp_wrapper_cpu import CppWrapperCpu
+=======
+import torch._inductor.config as config
+from torch import dtype as torch_dtype
+from torch._inductor.codegen.cpp_wrapper_cpu import CppWrapperCpu
+from torch._inductor.scheduler import BaseSchedulerNode
+from torch._inductor.utils import do_bench_using_profiling, OrderedSet, Placeholder
+from torch.utils._sympy.value_ranges import ValueRanges
+
+from .cutlass_utils import DTYPE_TO_CUTLASS_TYPE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -25,6 +43,10 @@ from ...ir import (
 from ...utils import sympy_product
 from ...virtualized import V
 from ..common import (
+<<<<<<< HEAD
+=======
+    CSEVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IndentedBuffer,
     Kernel,
     OpOverrides,
@@ -46,7 +68,11 @@ def _normalize_idx(index: int, total_length: int) -> int:
     return index if index >= 0 else index + total_length
 
 
+<<<<<<< HEAD
 ValidLayoutSymbols = Literal["M", "N", "K", "lda", "ldb", "ldc", "ldd"]
+=======
+ValidLayoutSymbols = Literal["M", "N", "K", "B", "lda", "ldb", "ldc", "ldd"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ValidLayoutAttrs = Literal["size", "stride"]
 
 
@@ -70,7 +96,12 @@ class CUDAKernel(Kernel):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+<<<<<<< HEAD
         self.layout_args: dict[str, LayoutArg] = {}
+=======
+        self.layout_args: dict[str, list[LayoutArg]] = defaultdict(list)
+        self.size_args: list[Union[Expr, int]] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Mapping from arg name to IRNode.
         self.named_nodes: dict[str, IRNode] = {}
 
@@ -84,7 +115,13 @@ class CUDAKernel(Kernel):
         self, node: IRNode, attr: ValidLayoutAttrs, dim: int
     ) -> Optional[LayoutArg]:
         matches = [
+<<<<<<< HEAD
             arg for arg in self.layout_args.values() if arg.matches(node, attr, dim)
+=======
+            arg
+            for arg in itertools.chain.from_iterable(self.layout_args.values())
+            if arg.matches(node, attr, dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         if len(matches) >= 1:
             # Verify all matches have the same node, attribute, and dimension
@@ -105,19 +142,40 @@ class CUDAKernel(Kernel):
         self, symbol: ValidLayoutSymbols, node: IRNode, attr: ValidLayoutAttrs, dim: int
     ):
         arg = LayoutArg(node, symbol, attr, dim)
+<<<<<<< HEAD
         self.layout_args.setdefault(symbol, arg)
+=======
+        self.layout_args[symbol].append(arg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def init_layout_args(self) -> None:
         X = self.named_nodes["X"]
         W = self.named_nodes["W"]
         Y = self.named_nodes["Y"]
         Bias = self.named_nodes.get("Bias", None)
+<<<<<<< HEAD
         mdim = _normalize_idx(-2, len(X.get_size()))
         ndim = _normalize_idx(-1, len(W.get_size()))
         kdim = _normalize_idx(-1, len(X.get_size()))
         self.add_layout_arg("M", X, "size", mdim)
         self.add_layout_arg("N", W, "size", ndim)
         self.add_layout_arg("K", X, "size", kdim)
+=======
+        x_mdim = _normalize_idx(-2, len(X.get_size()))
+        x_kdim = _normalize_idx(-1, len(X.get_size()))
+        w_kdim = _normalize_idx(-2, len(W.get_size()))
+        w_ndim = _normalize_idx(-1, len(W.get_size()))
+        y_mdim = _normalize_idx(-2, len(Y.get_size()))
+        y_ndim = _normalize_idx(-1, len(Y.get_size()))
+        self.add_layout_arg("M", X, "size", x_mdim)
+        self.add_layout_arg("K", X, "size", x_kdim)
+        self.add_layout_arg("K", W, "size", w_kdim)
+        self.add_layout_arg("N", W, "size", w_ndim)
+        self.add_layout_arg("M", Y, "size", y_mdim)
+        self.add_layout_arg("N", Y, "size", y_ndim)
+        if len(X.get_size()) > 2:
+            self.add_layout_arg("B", X, "size", 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         lda_dim = self.find_ld_idx(X)
         ldb_dim = self.find_ld_idx(W)
@@ -145,11 +203,22 @@ class CUDAKernel(Kernel):
         M = X.get_size()[mdim]
         N = W.get_size()[ndim]
         K = X.get_size()[kdim]
+<<<<<<< HEAD
+=======
+        B = X.get_size()[0] if len(X.get_size()) > 2 else 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         LDA = get_ld(X)
         LDB = get_ld(W)
         LDC = get_ld(Bias) if Bias else 0
         LDD = get_ld(Y)
+<<<<<<< HEAD
         return (M, N, K, LDA, LDB, LDC, LDD)
+=======
+        return (M, N, K, B, LDA, LDB, LDC, LDD)
+
+    def get_dynamic_shape_args(self) -> list[Union[Expr, int]]:
+        return [*self.get_layout_args(), *self.size_args]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def find_ld_idx(node: IRNode) -> int:
@@ -236,6 +305,10 @@ class CUDATemplateKernel(CUDAKernel):
                            e.g. The template might have input argument defined as [X, W, Bias],
                            and the actual input passed into this template could be [Bias, X, W].
                            In this case, the `input_reorder` would be [2, 0, 1].
+<<<<<<< HEAD
+=======
+            additional_size_args: Additional size arguments for epilogue inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         names = [x.strip() for x in names_str.strip().split(",")]
         if len(inputs) + len(outputs) != len(names):
@@ -255,17 +328,42 @@ class CUDATemplateKernel(CUDAKernel):
                 self.named_nodes[name] = node
                 self.args.input_buffers[node.get_name()] = name
 
+<<<<<<< HEAD
+=======
+        free_symbols: OrderedSet[Expr] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for name, node in zip(names[len(inputs) : len(inputs) + len(outputs)], outputs):
             if node is not None:
                 self.named_nodes[name] = node
                 self.args.output_buffers[node.get_name()] = name
 
+<<<<<<< HEAD
         arg_defs, *_ = self.args.cpp_argdefs()
 
         self.init_layout_args()
         size_args = [
             f"const int {s}" for s in ("M", "N", "K", "lda", "ldb", "ldc", "ldd")
         ]
+=======
+                if name not in (
+                    "X",
+                    "W",
+                    "Bias",
+                    "Y",
+                ):  # we handle these symbolic shapes explicitly
+                    for expr in itertools.chain(node.get_size(), node.get_stride()):
+                        if isinstance(expr, Expr):
+                            for s in expr.free_symbols:
+                                free_symbols.add(s)  # type: ignore[arg-type]
+
+        arg_defs, *_ = self.args.cpp_argdefs(DTYPE_TO_CUTLASS_TYPE)
+
+        self.init_layout_args()
+        size_vars = ["M", "N", "K", "B", "lda", "ldb", "ldc", "ldd"]
+        size_vars.extend(str(s) for s in free_symbols)
+        self.size_args.extend(free_symbols)
+        size_args = [f"const int {s}" for s in size_vars]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         runtime_arg_decls = ",".join(
             [f"{arg.ty} {arg.name}" for arg in self.runtime_arg_info]
@@ -300,6 +398,7 @@ class CUDATemplateKernel(CUDAKernel):
             wrapper.initialized_kernels[name] = self
             # We always originally initialize name with "KERNEL_NAME". So, we
             # we replace with the real kernel name passed as an arg to this function.
+<<<<<<< HEAD
             self.signature = self.signature.replace("KERNEL_NAME", name)
             _, call_args, arg_types = self.args.cpp_argdefs()
         else:
@@ -310,6 +409,18 @@ class CUDATemplateKernel(CUDAKernel):
         for arg in self.runtime_arg_values:
             call_args.append(arg)
         arg_types.extend("int" for a in layout_args)
+=======
+            self.signature = self.signature.replace(str(Placeholder.KERNEL_NAME), name)
+            _, call_args, arg_types = self.args.cpp_argdefs(DTYPE_TO_CUTLASS_TYPE)
+        else:
+            _, call_args, _, arg_types = self.args.python_argdefs()
+
+        dynamic_shape_args = self.get_dynamic_shape_args()
+        call_args.extend(dynamic_shape_args)  # type: ignore[arg-type]
+        for arg in self.runtime_arg_values:
+            call_args.append(arg)
+        arg_types.extend("int" for _ in dynamic_shape_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for arg in self.runtime_arg_info:
             arg_types.append(arg.ty)
         # dynamo wraps unspec variable as 0d CPU tensor, need convert to scalar
@@ -461,6 +572,32 @@ class CUDATemplateKernel(CUDAKernel):
             return str(stride)
         return self.find_symbol(node, "stride", dim=index) or str(stride)
 
+<<<<<<< HEAD
+=======
+    def batch_stride(self, node: IRNode, default_value: int = 0) -> str:
+        """
+        Hook called from template code to get the batch stride of an arg.
+        Returns 0 if batch dim is not present.
+
+        This method assumes that batch stride is the largest stride.
+        """
+
+        if node is None:
+            return str(default_value)
+
+        if len(node.get_size()) < 3:
+            return str(default_value)
+
+        batch_stride = node.get_stride()[0]
+        if V.graph.sizevars.statically_known_leq(batch_stride, 1):
+            return str(batch_stride)
+
+        return "{}*{}".format(
+            self.find_symbol(node, "size", dim=1) or node.get_size()[1],
+            self.find_symbol(node, "size", dim=2) or node.get_size()[2],
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def row_or_column_stride(self, node: IRNode, default_value: int = 0) -> str:
         """
         Hook called from template code to get the row or column stride of an arg.
@@ -485,6 +622,21 @@ class CUDATemplateKernel(CUDAKernel):
                 f"At least 1 stride should be 1. Strides: {node.get_stride()=}"
             )
 
+<<<<<<< HEAD
+=======
+    def load(self, name: str, index: Expr, mode: Any = None) -> CSEVariable:
+        """
+        Mock load function for memory planning to optimize allocations properly.
+        """
+        return self.create_cse_var(name, bounds=ValueRanges.unknown())
+
+    def store(self, name: str, index: Expr, value: Any, mode: Any = None) -> None:
+        """
+        Mock store function for memory planning to optimize allocations properly.
+        """
+        self.store_buffer_names.add(name)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class CUDATemplateCaller(ChoiceCaller):
     """
@@ -504,8 +656,17 @@ class CUDATemplateCaller(ChoiceCaller):
         category: str,
         input_nodes: list[Buffer],
         layout: Layout,
+<<<<<<< HEAD
         make_kernel_render: Callable[[CUDATemplateBuffer, Optional[list[IRNode]]], str],
         bmreq: CUDABenchmarkRequest,
+=======
+        make_kernel_render: Callable[
+            [CUDATemplateBuffer, Optional[list[BaseSchedulerNode]]],
+            tuple[CUDATemplateKernel, functools.partial[str]],
+        ],
+        bmreq: CUDABenchmarkRequest,
+        supports_epilogue_fusion: bool,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         template: "CUDATemplate",  # type: ignore[name-defined]
         info_kwargs: Optional[
             dict[str, Union[PrimitiveInfoType, list[PrimitiveInfoType]]]
@@ -516,6 +677,10 @@ class CUDATemplateCaller(ChoiceCaller):
         self.category = category
         self.make_kernel_render = make_kernel_render
         self.bmreq = bmreq
+<<<<<<< HEAD
+=======
+        self.supports_epilogue_fusion = supports_epilogue_fusion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.template = template
         self.info_kwargs = info_kwargs
 
@@ -525,9 +690,16 @@ class CUDATemplateCaller(ChoiceCaller):
 
     def benchmark(self, *args, out) -> float:
         assert self.bmreq is not None
+<<<<<<< HEAD
         return self.bmreq.benchmark(
             *args, output_tensor=out
         )  # @TODO: Hack for ensuring that Cutlass Kernel is preferred
+=======
+        if config.profile_bandwidth_with_do_bench_using_profiling:
+            algo = self.bmreq.make_run_fn(*args, out=out)
+            return do_bench_using_profiling(algo)
+        return self.bmreq.benchmark(*args, out=out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __str__(self) -> str:
         return f"CUDATemplateCaller(source_file={self.bmreq.source_file})"
@@ -535,7 +707,14 @@ class CUDATemplateCaller(ChoiceCaller):
     def call_name(self) -> str:
         return f"cuda_template_kernels.{self.name}"
 
+<<<<<<< HEAD
     def hash_key(self) -> str:
+=======
+    def kernel_hash_key(self) -> str:
+        """
+        Return kernel hash key that does not depend on swizzle.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return "-".join(
             [
                 self.category,
@@ -543,6 +722,21 @@ class CUDATemplateCaller(ChoiceCaller):
             ]
         )
 
+<<<<<<< HEAD
+=======
+    def hash_key(self) -> str:
+        """
+        Return kernel hash key that does not depend on swizzle.
+        """
+        return "-".join(
+            [
+                self.category,
+                self.bmreq.hash_key,
+                str(self.info_dict().get("swizzle")),
+            ]
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def info_dict(self) -> dict[str, Union[PrimitiveInfoType, list[PrimitiveInfoType]]]:
         """Information returned here is logged to the autotune log file when that is enabled."""
         if self.info_kwargs is not None and "op" in self.info_kwargs:
@@ -560,6 +754,10 @@ class CUDATemplateCaller(ChoiceCaller):
                 "instruction_shape": str(
                     op.tile_description.math_instruction.instruction_shape
                 ),
+<<<<<<< HEAD
+=======
+                "swizzle": str(self.info_kwargs["swizzle"]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         else:
             return {"backend": "CUDA", "op_type": "unknown"}
@@ -572,6 +770,10 @@ class CUDATemplateCaller(ChoiceCaller):
                 inputs=self.input_nodes,
                 make_kernel_render=self.make_kernel_render,
                 workspace_size=self.bmreq.workspace_size,
+<<<<<<< HEAD
+=======
+                supports_epilogue_fusion=self.supports_epilogue_fusion,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 template=self.template,
             )
         )

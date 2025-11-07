@@ -8,6 +8,11 @@ import pandas as pd
 from torch._functorch.benchmark_utils import compute_utilization
 
 
+<<<<<<< HEAD
+=======
+log = logging.getLogger(__name__)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # process the chrome traces output by the pytorch profiler
 # require the json input file's name to be in format {model_name}_chrome_trace_*.json
 # the runtimes file should have format (model_name, runtime)
@@ -65,7 +70,11 @@ def main():
             )
             print(f"{modelname}, {utilization}, {mm_conv_utilization}")
         except BaseException:
+<<<<<<< HEAD
             logging.exception("%s, ERROR", filename)
+=======
+            log.exception("%s, ERROR", filename)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             print(f"{filename}, ERROR")
 
 

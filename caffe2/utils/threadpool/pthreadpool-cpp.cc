@@ -1,9 +1,15 @@
 #include <caffe2/utils/threadpool/pthreadpool-cpp.h>
 #include <caffe2/utils/threadpool/thread_pool_guard.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
 
 #include <atomic>
 
+=======
+#include <caffe2/utils/threadpool/ThreadPool.h>
+#include <c10/util/Exception.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 // After fork, the child process inherits the data-structures of the parent
 // process' thread-pool, but since those threads don't exist, the thread-pool
@@ -102,9 +108,12 @@ PThreadPool* pthreadpool(size_t thread_count) {
   return threadpool.get();
 }
 
+<<<<<<< HEAD
 // Forward declaration
 size_t getDefaultNumThreads();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PThreadPool* pthreadpool() {
   return pthreadpool(getDefaultNumThreads());
 }

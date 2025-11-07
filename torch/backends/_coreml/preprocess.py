@@ -55,6 +55,10 @@ def CompileSpec(
     allow_low_precision=True,
     quantization_mode=CoreMLQuantizationMode.NONE,
     mlmodel_export_path=None,
+<<<<<<< HEAD
+=======
+    convert_to=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     return (
         inputs,
@@ -63,6 +67,10 @@ def CompileSpec(
         allow_low_precision,
         quantization_mode,
         mlmodel_export_path,
+<<<<<<< HEAD
+=======
+        convert_to,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -91,6 +99,10 @@ def preprocess(script_module: torch._C.ScriptObject, compile_spec: dict[str, tup
         allow_low_precision,
         quantization_mode,
         mlmodel_export_path,
+<<<<<<< HEAD
+=======
+        convert_to,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) = spec
     mil_inputs = []
     inputs = []
@@ -101,7 +113,11 @@ def preprocess(script_module: torch._C.ScriptObject, compile_spec: dict[str, tup
         ml_type = _convert_to_mil_type(shape, dtype, name)
         mil_inputs.append(ml_type)
     model = torch.jit.RecursiveScriptModule._construct(script_module, lambda x: None)
+<<<<<<< HEAD
     mlmodel = ct.convert(model, inputs=mil_inputs)
+=======
+    mlmodel = ct.convert(model, inputs=mil_inputs, convert_to=convert_to)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if quantization_mode != CoreMLQuantizationMode.NONE:
         quant_model_spec = quantization_utils.quantize_weights(

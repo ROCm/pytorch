@@ -4,9 +4,14 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+<<<<<<< HEAD
 from typing import Any, Optional, Protocol, runtime_checkable, TYPE_CHECKING, Union
 
 import numpy
+=======
+from typing import Any, Optional, TYPE_CHECKING, Union
+from typing_extensions import Protocol, runtime_checkable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import onnx
 
@@ -15,7 +20,11 @@ from torch._subclasses import fake_tensor
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     import onnx.defs.OpSchema.AttrType  # type: ignore[import]  # noqa: TCH004
+=======
+    import onnx.defs  # noqa: TCH004
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Enable both TorchScriptTensor and torch.Tensor to be tested
@@ -71,6 +80,7 @@ def from_python_type_to_onnx_attribute_type(
     return _PYTHON_TYPE_TO_ONNX_ATTRIBUTE_TYPE.get(dtype)
 
 
+<<<<<<< HEAD
 def from_python_type_to_onnx_tensor_element_type(type: type):
     """
     Converts a Python type to the corresponding ONNX tensor element type.
@@ -92,6 +102,8 @@ def from_python_type_to_onnx_tensor_element_type(type: type):
     return _PYTHON_TYPE_TO_ONNX_TENSOR_ELEMENT_TYPE.get(type)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_torch_symbolic_type(value: Any) -> bool:
     return isinstance(value, (torch.SymBool, torch.SymInt, torch.SymFloat))
 
@@ -183,6 +195,7 @@ _TORCH_DTYPE_TO_ABBREVIATION = {
     torch.uint8: "u8",
 }
 
+<<<<<<< HEAD
 _TORCH_DTYPE_TO_NUMPY_DTYPE = {
     torch.float16: numpy.float16,
     torch.float32: numpy.float32,
@@ -214,6 +227,8 @@ _ONNX_TENSOR_ELEMENT_TYPE_TO_TORCH_DTYPE = {
 _TORCH_DTYPE_TO_ONNX_TENSOR_ELEMENT_TYPE = {
     value: key for key, value in _ONNX_TENSOR_ELEMENT_TYPE_TO_TORCH_DTYPE.items()
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 SYM_VALUE_TYPE = Union[torch.SymInt, torch.SymFloat, torch.SymBool]
 META_VALUE_TYPE = Union[fake_tensor.FakeTensor, SYM_VALUE_TYPE, int, float, bool]

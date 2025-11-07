@@ -19,14 +19,26 @@ from torch.testing._internal.common_quantized import (
     qengine_is_qnnpack,
     qengine_is_x86,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests, skipIfTorchDynamo, TestCase
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+    TestCase,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # TODO: Once more test files are created, move the contents to a ao folder.
 
+<<<<<<< HEAD
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+=======
+logger = logging.getLogger(__name__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestQuantizedSparseKernels(TestCase):
@@ -78,10 +90,17 @@ class TestQuantizedSparseKernels(TestCase):
 
             for use_channelwise, dynamic_mode in product([True, False], [True, False]):
                 if qengine_is_fbgemm() and dynamic_mode:
+<<<<<<< HEAD
                     logging.info("dynamic sparse qlinear is only available in qnnpack")
                     continue
                 if qengine_is_qnnpack() and not dynamic_mode:
                     logging.info("static sparse qlinear is only available in fbgemm")
+=======
+                    logger.info("dynamic sparse qlinear is only available in qnnpack")
+                    continue
+                if qengine_is_qnnpack() and not dynamic_mode:
+                    logger.info("static sparse qlinear is only available in fbgemm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     continue
                 if use_channelwise:
                     W_q = torch.quantize_per_channel(
@@ -216,12 +235,21 @@ def _sparse_layer_test_helper(
         qmodule_to_check = fqn_to_module(qmodel, fqn_to_check)
 
         # check that the modules were converted as expected
+<<<<<<< HEAD
         assert isinstance(
             sqmodule_to_check, sqmodule_expected_converted_class
         ), "Convert failed"
         assert isinstance(
             qmodule_to_check, qmodule_expected_converted_class
         ), "Mapping failed"
+=======
+        assert isinstance(sqmodule_to_check, sqmodule_expected_converted_class), (
+            "Convert failed"
+        )
+        assert isinstance(qmodule_to_check, qmodule_expected_converted_class), (
+            "Mapping failed"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         row_block_size, col_block_size = sqmodel.linear._packed_params._weight_bias()[
             2:
@@ -325,4 +353,8 @@ class TestQuantizedSparseLayers(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     run_tests()
+=======
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

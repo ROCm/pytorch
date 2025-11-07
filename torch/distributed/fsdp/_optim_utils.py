@@ -314,11 +314,17 @@ def _unflatten_communicated_optim_state(
             unflat_state_param[state_name] = optim_state
 
         # Add zero-dimension tensor state: take the target rank's value
+<<<<<<< HEAD
         for state_name, zero_dim_tensor in sorted_items(zero_dim_tensor_state):
             unflat_state_param[state_name] = zero_dim_tensor
         # Add non-tensor state: take the target rank's value
         for state_name, non_tensor in sorted_items(non_tensor_state):
             unflat_state_param[state_name] = non_tensor
+=======
+        unflat_state_param.update(sorted_items(zero_dim_tensor_state))
+        # Add non-tensor state: take the target rank's value
+        unflat_state_param.update(sorted_items(non_tensor_state))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unflat_param_state.append(unflat_state_param)
     return unflat_param_state
 
@@ -1419,7 +1425,11 @@ def _unflatten_orig_param_states(
 ) -> None:
     """
     Given a output state dict, ``output_states``, which the keys are FQNs to the
+<<<<<<< HEAD
     original parameters (not FlatParameters nor parmeter ID), and the values
+=======
+    original parameters (not FlatParameters nor parameter ID), and the values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     are gathered states, unflatten the states to the original dimensions.
 
     This function performs the unflattening process in-place.
@@ -1658,7 +1668,11 @@ def _gather_all_orig_param_state(
 ) -> dict[str, Any]:
     """
     Given a optimizer state dict, ``input_states``, which the keys are FQNs to the
+<<<<<<< HEAD
     original parameters (not FlatParameters nor parmeter ID), gather all the
+=======
+    original parameters (not FlatParameters nor parameter ID), gather all the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     states and unflatten them to the original dimensions. Note that all the
     params referred by the ``input_states`` must be managed by FSDP.
     """
@@ -1827,11 +1841,20 @@ def _convert_state_with_flat_params(
             )
             if to_save:
                 assert len(unflat_state) == len(optim_state_key.unflat_param_names)
+<<<<<<< HEAD
                 for unflat_param_name, unflat_param_state in zip(
                     optim_state_key.unflat_param_names,
                     unflat_state,
                 ):
                     fsdp_osd_state[unflat_param_name] = unflat_param_state
+=======
+                fsdp_osd_state.update(
+                    zip(
+                        optim_state_key.unflat_param_names,
+                        unflat_state,
+                    )
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif to_save:
             assert len(optim_state_key.unflat_param_names) == 1
             unflat_param_name = optim_state_key.unflat_param_names[0]
@@ -2058,7 +2081,11 @@ def _set_optim_use_dtensor(
     fsdp_state: _FSDPState,
     state_dict_settings: StateDictSettings,
 ) -> None:
+<<<<<<< HEAD
     # If device_mesh is passed in when initalizing FSDP, we automatically turn the
+=======
+    # If device_mesh is passed in when initializing FSDP, we automatically turn the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # _use_dtensor flag to be true for ShardedOptimStateDictConfig() if state_dict_type
     # has to be set to SHARDED_STATE_DICT.
     if getattr(fsdp_state, "_device_mesh", None):

@@ -1475,9 +1475,15 @@ class TestNNParametrization(NNTestCase):
             snm.load_state_dict(non_strict_state_dict, strict=False)
             del non_strict_state_dict["parametrizations.weight.0._v"]
             snm.load_state_dict(non_strict_state_dict, strict=False)
+<<<<<<< HEAD
             non_strict_state_dict[
                 "weight"
             ] = snm.weight.detach().clone()  # set W as a buffer
+=======
+            non_strict_state_dict["weight"] = (
+                snm.weight.detach().clone()
+            )  # set W as a buffer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             snm.load_state_dict(non_strict_state_dict, strict=False)
             del non_strict_state_dict._metadata[
                 "parametrizations.weight.0"

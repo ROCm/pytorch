@@ -22,7 +22,13 @@ from torch.testing._internal.common_utils import IS_WINDOWS, run_tests, TestCase
         {"strict": False},
         {"strict": True},
     ],
+<<<<<<< HEAD
     class_name_func=lambda cls, _, params: f"{cls.__name__}_{'strict' if params['strict'] else 'nonstrict'}",
+=======
+    class_name_func=lambda cls,
+    _,
+    params: f"{cls.__name__}_{'strict' if params['strict'] else 'nonstrict'}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 class TestSwap(TestCase):
     def test_unflatten_preserve_signature(self):

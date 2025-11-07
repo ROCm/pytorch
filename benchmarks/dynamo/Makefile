@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 # Makefile for the dashboard setup
 PIP ?= python -m pip
+=======
+# Usage:
+#   make build-deps TORCHBENCH_MODELS=<model_names>
+#   Support install a single torchbench model (e.g., "alexnet"),
+#   or multiple torchbench model names (e.g., "alexnet basic_gnn_gcn BERT_pytorch"),
+#   or empty (i.e., "") for installing all torchbench models.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 clone-deps:
 	(cd ../../.. \
@@ -24,6 +32,7 @@ pull-deps: clone-deps
 	(cd ../../../torchbenchmark && git fetch && git checkout "$$(cat ../pytorch/.github/ci_commit_pins/torchbench.txt)" && git submodule update --init --recursive)
 
 build-deps: clone-deps
+<<<<<<< HEAD
 	# conda env remove --name torchdynamo
 	# conda create --name torchdynamo -y python=3.8
 	# conda activate torchdynamo
@@ -40,3 +49,15 @@ build-deps: clone-deps
 	(cd ../../../detectron2  && python setup.py clean && python setup.py develop)
 	(cd ../../../torchbenchmark && python install.py --continue_on_fail)
 	pip uninstall -y torchrec-nightly fbgemm-gpu-nightly
+=======
+	uv pip install astunparse numpy scipy ninja pyyaml mkl mkl-include setuptools cmake \
+		typing-extensions requests protobuf numba cython scikit-learn librosa
+	(cd ../../../torchvision && uv pip install -e . --no-build-isolation)
+	(cd ../../../torchdata && uv pip install -e .)
+	(cd ../../../torchaudio && uv pip install -e . --no-build-isolation)
+	(cd ../../../FBGEMM/fbgemm_gpu && uv pip install -r requirements.txt && uv pip install -e . --no-build-isolation)
+	(cd ../../../torchrec && uv pip install -e .)
+	(cd ../../../detectron2 && uv pip install -e . --no-build-isolation)
+	(cd ../../../torchbenchmark && python install.py --continue_on_fail $(if $(TORCHBENCH_MODELS),models $(TORCHBENCH_MODELS)))
+	uv pip uninstall torchrec-nightly fbgemm-gpu-nightly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

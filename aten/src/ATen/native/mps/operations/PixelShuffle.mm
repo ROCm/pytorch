@@ -44,7 +44,11 @@ static Tensor pixel_shuffle_helper(const Tensor& self, int64_t factor, bool upsc
   }
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = (upscale ? "pixel_shuffle_" : "pixel_unshuffle_") + getTensorsStringKey({self}) + "_factor_" +
+=======
+    std::string key = (upscale ? "pixel_shuffle_" : "pixel_unshuffle_") + getTensorsStringKey({self}) + "_factor_" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(factor);
     CachedGraph* cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       const auto ndims = self.ndimension();

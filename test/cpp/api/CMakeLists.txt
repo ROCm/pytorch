@@ -50,7 +50,11 @@ endif()
 
 add_executable(test_api ${TORCH_API_TEST_SOURCES})
 target_include_directories(test_api PRIVATE ${ATen_CPU_INCLUDE})
+<<<<<<< HEAD
 target_link_libraries(test_api PRIVATE torch gtest)
+=======
+target_link_libraries(test_api PRIVATE torch gtest_main gmock)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if(USE_CUDA)
   target_compile_definitions(test_api PRIVATE "USE_CUDA")

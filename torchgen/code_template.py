@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
 import re
+=======
+import itertools
+import re
+import textwrap
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import TYPE_CHECKING
 
 
@@ -45,9 +51,18 @@ class CodeTemplate:
             return kwargs[v] if v in kwargs else env[v]
 
         def indent_lines(indent: str, v: Sequence[object]) -> str:
+<<<<<<< HEAD
             return "".join(
                 [indent + l + "\n" for e in v for l in str(e).splitlines()]
             ).rstrip()
+=======
+            content = "\n".join(
+                itertools.chain.from_iterable(str(e).splitlines() for e in v)
+            )
+            content = textwrap.indent(content, prefix=indent)
+            # Remove trailing whitespace on each line
+            return "\n".join(map(str.rstrip, content.splitlines())).rstrip()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def replace(match: re.Match[str]) -> str:
             indent = match.group(1)

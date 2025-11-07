@@ -19,7 +19,11 @@
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 void createFusionGroups(Block* block, AliasDb* aliasDb, size_t min_size);
+=======
+static void createFusionGroups(Block* block, AliasDb* aliasDb, size_t min_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void fuseStaticSubgraphs(std::shared_ptr<Graph> graph, size_t min_size) {
   Inline(*graph);
@@ -60,7 +64,11 @@ static Operation createStaticSubgraphRuntime(const Node* node) {
   };
 }
 
+<<<<<<< HEAD
 RegisterOperators StaticSubgraphOps({torch::jit::Operator(
+=======
+static RegisterOperators StaticSubgraphOps({torch::jit::Operator(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     prim::StaticSubgraph,
     createStaticSubgraphRuntime,
     AliasAnalysisKind::INTERNAL_SPECIAL_CASE)});

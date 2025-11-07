@@ -33,7 +33,11 @@ def _maybe_duplicate_dq(
     gm: torch.fx.GraphModule, dq_node: torch.fx.Node, user: torch.fx.Node
 ):
     annotation = user.meta.get("quantization_annotation", None)
+<<<<<<< HEAD
     if not _is_valid_annotation(annotation):
+=======
+    if not _is_valid_annotation(annotation):  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
     with gm.graph.inserting_after(dq_node):
         new_node = gm.graph.node_copy(dq_node)

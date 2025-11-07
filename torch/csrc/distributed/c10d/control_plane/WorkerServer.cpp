@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+#include <filesystem>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <sstream>
 #include <unordered_map>
 
@@ -7,6 +11,7 @@
 #include <torch/csrc/distributed/c10d/control_plane/WorkerServer.hpp>
 #include <torch/csrc/distributed/c10d/logging.h>
 
+<<<<<<< HEAD
 // NS: TODO: Use `std::filesystem` regardless of OS when it's possible
 // to use it without leaking symbols on PRECXX11 ABI Linux OSes
 // See https://github.com/pytorch/pytorch/issues/133437 for more details
@@ -16,6 +21,8 @@
 #include <sys/stat.h>
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace c10d::control_plane {
 
 namespace {
@@ -80,6 +87,7 @@ std::string jsonStrEscape(const std::string& str) {
   }
   return ostream.str();
 }
+<<<<<<< HEAD
 
 bool file_exists(const std::string& path) {
 #ifdef _WIN32
@@ -89,6 +97,8 @@ bool file_exists(const std::string& path) {
   return lstat(path.c_str(), &rc) == 0;
 #endif
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 WorkerServer::WorkerServer(const std::string& hostOrFile, int port) {
@@ -96,9 +106,14 @@ WorkerServer::WorkerServer(const std::string& hostOrFile, int port) {
       "/",
       [](const httplib::Request& req [[maybe_unused]], httplib::Response& res) {
         res.set_content(
+<<<<<<< HEAD
             R"BODY(<h1>torch.distributed.WorkerServer</h1>
 <a href="/handler/">Handler names</a>
 )BODY",
+=======
+            "<h1>torch.distributed.WorkerServer</h1>\n"
+            "<a href=\"/handler/\">Handler names</a>\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "text/html");
       });
   server_.Get(
@@ -163,7 +178,11 @@ WorkerServer::WorkerServer(const std::string& hostOrFile, int port) {
     // using unix sockets
     server_.set_address_family(AF_UNIX);
 
+<<<<<<< HEAD
     if (file_exists(hostOrFile)) {
+=======
+    if (std::filesystem::exists(hostOrFile)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       throw std::runtime_error(fmt::format("{} already exists", hostOrFile));
     }
 

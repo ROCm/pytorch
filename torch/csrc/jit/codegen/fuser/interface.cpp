@@ -15,11 +15,19 @@ namespace detail {
 #ifdef TORCH_ENABLE_LLVM
 bool cpu_fuser_enabled = true;
 #else
+<<<<<<< HEAD
 bool cpu_fuser_enabled = false;
 #endif
 
 // note: this doesn't necessarily enable NNC because NVFuser might override it
 bool gpu_fuser_enabled = true;
+=======
+static bool cpu_fuser_enabled = false;
+#endif
+
+// note: this doesn't necessarily enable NNC because NVFuser might override it
+static bool gpu_fuser_enabled = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace detail
 

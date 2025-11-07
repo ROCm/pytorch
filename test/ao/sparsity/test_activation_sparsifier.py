@@ -1,7 +1,10 @@
 # Owner(s): ["module: unknown"]
 
 import copy
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -10,11 +13,18 @@ from torch.ao.pruning._experimental.activation_sparsifier.activation_sparsifier 
     ActivationSparsifier,
 )
 from torch.ao.pruning.sparsifier.utils import module_to_fqn
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchDynamo, TestCase
 
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+    TestCase,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -405,3 +415,10 @@ class TestActivationSparsifier(TestCase):
 
         # check state_dict() after squash_mask()
         self._check_state_dict(activation_sparsifier)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

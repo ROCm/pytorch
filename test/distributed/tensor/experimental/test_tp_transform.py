@@ -2,7 +2,11 @@
 from collections import defaultdict
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor.experimental._tp_transform import (
+=======
+from torch.distributed.tensor.experimental._tp_transform import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tensor_parallel_transformation,
 )
 from torch.distributed.tensor.parallel.style import (

@@ -1,5 +1,10 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 """ This module contains functions and classes that alter the behavior of torch.nn.functional.scaled_dot_product_attention """
+=======
+"""This module contains functions and classes that alter the behavior of torch.nn.functional.scaled_dot_product_attention"""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import contextlib
 from collections.abc import Iterable
 from typing import Union
@@ -73,6 +78,7 @@ def _backend_from_string(name: str):
     return getattr(SDPBackend, name)
 
 
+<<<<<<< HEAD
 def _cur_sdpa_kernel_backends():
     backends: list[SDPBackend] = []
     for name, val in _backend_names.items():
@@ -85,6 +91,33 @@ def _sdpa_kernel(backends: Iterable[SDPBackend]):
     for name, val in _backend_names.items():
         enabled = getattr(SDPBackend, val) in backends
         getattr(torch.backends.cuda, f"enable_{name}_sdp")(enabled)
+=======
+def _cur_sdpa_kernel_backends(with_priority: bool = False):
+    backends = []
+    for name, val in _backend_names.items():
+        if getattr(torch.backends.cuda, f"{name}_sdp_enabled")():
+            backends.append(getattr(SDPBackend, val))
+    if with_priority:
+        curr_priority = torch._C._get_sdp_priority_order()
+        backends = sorted(
+            backends, key=lambda backend: curr_priority.index(int(backend))
+        )
+    return backends
+
+
+def _sdpa_kernel(backends: Iterable, set_priority: bool = False):
+    for name, val in _backend_names.items():
+        enabled = getattr(SDPBackend, val) in backends
+        getattr(torch.backends.cuda, f"enable_{name}_sdp")(enabled)
+    if set_priority:
+        # backends should be a unique list
+        user_priority = [int(backend) for backend in backends]
+        previous_priority = torch._C._get_sdp_priority_order()
+        for backend in previous_priority:
+            if backend not in user_priority:
+                user_priority.append(int(backend))
+        torch._C._set_sdp_priority_order(user_priority)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @contextlib.contextmanager
@@ -106,6 +139,10 @@ def sdpa_kernel(
 
         from torch.nn.functional import scaled_dot_product_attention
         from torch.nn.attention import SDPBackend, sdpa_kernel
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Only enable flash attention backend
         with sdpa_kernel(SDPBackend.FLASH_ATTENTION):
             scaled_dot_product_attention(...)
@@ -117,13 +154,20 @@ def sdpa_kernel(
     This context manager can be used to select which backend to use for scaled dot product attention.
     Upon exiting the context manager, the previous state of the flags will be restored, enabling all backends.
     """
+<<<<<<< HEAD
     assert isinstance(
         backends, (list, SDPBackend)
     ), "Backend must be an instance of SDPBackend or a list of SDPBackend instances"
+=======
+    assert isinstance(backends, (list, SDPBackend)), (
+        "Backend must be an instance of SDPBackend or a list of SDPBackend instances"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if isinstance(backends, SDPBackend):
         backends = [backends]
 
+<<<<<<< HEAD
     backends_set = set(backends)
     user_priority = None
     previous_priority = None
@@ -146,6 +190,16 @@ def sdpa_kernel(
         _sdpa_kernel(previous_backends)
         if set_priority:
             torch._C._set_sdp_priority_order(previous_priority)  # type: ignore[arg-type]
+=======
+    backends = list(dict.fromkeys(backends))
+
+    previous_backends = _cur_sdpa_kernel_backends(with_priority=set_priority)
+    try:
+        _sdpa_kernel(backends, set_priority)
+        yield {}
+    finally:
+        _sdpa_kernel(previous_backends, set_priority)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # variadic version of sdpa_kernel for dynamo to use while reconstructing

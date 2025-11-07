@@ -212,7 +212,13 @@ struct RawAllocation {
 };
 
 // For performance.
+<<<<<<< HEAD
 static_assert(c10::is_pod_v<RawAllocation>, "Non-POD member of RawAllocation.");
+=======
+static_assert(
+    std::is_trivial_v<RawAllocation>,
+    "Non-Trivial member of RawAllocation.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <>
 struct ExtraFields<EventType::Allocation> : RawAllocation {
@@ -238,8 +244,13 @@ struct ExtraFields<EventType::OutOfMemory> {
 
 // For performance.
 static_assert(
+<<<<<<< HEAD
     c10::is_pod_v<ExtraFields<EventType::OutOfMemory>>,
     "Non-POD member of ExtraFields<EventType::OutOfMemory>.");
+=======
+    std::is_trivial_v<ExtraFields<EventType::OutOfMemory>>,
+    "Non-Trivial member of ExtraFields<EventType::OutOfMemory>.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 struct PyFrameState {
   int line_no_;

@@ -10,6 +10,7 @@ import torch
 # Make the helper files in test/ importable
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -21,6 +22,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Tests that Python slice class is supported in TorchScript
 class TestSlice(JitTestCase):
     def test_slice_kwarg(self):
@@ -178,3 +185,10 @@ class TestSlice(JitTestCase):
         self.assertEqual(result2[0].identifier, "B")
         self.assertEqual(result2[1].identifier, "C")
         self.assertEqual(result2[2].identifier, "D")
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

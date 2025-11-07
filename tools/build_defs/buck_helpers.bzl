@@ -24,7 +24,11 @@ ONLY_AVAILABLE_IN_BUCK2 = [
 def filter_attributes(kwgs):
     keys = list(kwgs.keys())
 
+<<<<<<< HEAD
     # drop unncessary attributes
+=======
+    # drop unnecessary attributes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for key in keys:
         if key in IGNORED_ATTRIBUTES or key in ONLY_AVAILABLE_IN_BUCK2:
             kwgs.pop(key)

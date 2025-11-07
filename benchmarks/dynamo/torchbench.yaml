@@ -48,6 +48,10 @@ tolerance:
     - doctr_reco_predictor
     - drq
     - hf_Whisper
+<<<<<<< HEAD
+=======
+    - phlippe_resnet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   higher_bf16:
     - doctr_reco_predictor
@@ -228,7 +232,11 @@ skip:
       - doctr_det_predictor
       - doctr_reco_predictor
       - moondream
+<<<<<<< HEAD
       # doesnt fit in memory
+=======
+      # doesn't fit in memory
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - phi_1_5
       - detectron2_fcos_r_50_fpn
 

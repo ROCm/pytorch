@@ -484,7 +484,11 @@ class TestGroupBatchFusion(TestCase):
         self.assertEqual(counters["inductor"]["batch_aten_tanh"], 1)
         self.assertEqual(counters["inductor"]["batch_aten_relu"], 1)
         self.assertEqual(counters["inductor"]["batch_aten_sigmoid"], 1)
+<<<<<<< HEAD
         self.assertEqual(counters["inductor"]["unbind_stack_aten_pass"], 1)
+=======
+        self.assertEqual(counters["inductor"]["unbind_stack_aten_pass"], 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref.sum().backward()
         res.sum().backward()
         self.compare_parameters(module, traced, rtol=1e-8, atol=1e-8)

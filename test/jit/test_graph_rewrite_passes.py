@@ -3,6 +3,10 @@
 import torch
 import torch._C
 from torch.testing import FileCheck
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -59,3 +63,10 @@ class TestGraphRewritePasses(JitTestCase):
         FileCheck().check_not("aten::linear").run(model.graph)
         # make sure it runs
         model(x)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

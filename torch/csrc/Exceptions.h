@@ -82,8 +82,21 @@ inline void PyErr_SetString(PyObject* type, const std::string& message) {
       DistBackendError, THPException_DistBackendError, retstmnt)              \
   _CATCH_GENERIC_ERROR(                                                       \
       DistNetworkError, THPException_DistNetworkError, retstmnt)              \
+<<<<<<< HEAD
   _CATCH_GENERIC_ERROR(DistStoreError, THPException_DistStoreError, retstmnt) \
   _CATCH_GENERIC_ERROR(DistError, THPException_DistError, retstmnt)           \
+=======
+  _CATCH_GENERIC_ERROR(                                                       \
+      DistQueueEmptyError, THPException_DistQueueEmptyError, retstmnt)        \
+  _CATCH_GENERIC_ERROR(DistStoreError, THPException_DistStoreError, retstmnt) \
+  _CATCH_GENERIC_ERROR(DistError, THPException_DistError, retstmnt)           \
+  catch (c10::AcceleratorError & e) {                                         \
+    auto exc = torch::detail::_new_accelerator_error_object(e);               \
+    PyErr_SetObject(THPException_AcceleratorError, exc);                      \
+    Py_XDECREF(exc);                                                          \
+    retstmnt;                                                                 \
+  }                                                                           \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _CATCH_GENERIC_ERROR(Error, PyExc_RuntimeError, retstmnt)                   \
   catch (torch::PyTorchError & e) {                                           \
     auto msg = torch::processErrorMsg(e.what());                              \
@@ -108,6 +121,7 @@ inline void PyErr_SetString(PyObject* type, const std::string& message) {
     throw;                                                          \
   }                                                                 \
   }                                                                 \
+<<<<<<< HEAD
   catch (py::error_already_set & e) {                               \
     throw;                                                          \
   }                                                                 \
@@ -118,6 +132,18 @@ inline void PyErr_SetString(PyObject* type, const std::string& message) {
     throw;                                                          \
   }                                                                 \
   catch (const std::exception& e) {                                 \
+=======
+  catch (py::error_already_set&) {                                  \
+    throw;                                                          \
+  }                                                                 \
+  catch (py::builtin_exception&) {                                  \
+    throw;                                                          \
+  }                                                                 \
+  catch (torch::jit::JITException&) {                               \
+    throw;                                                          \
+  }                                                                 \
+  catch (const std::exception&) {                                   \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::translate_exception_to_python(std::current_exception()); \
     throw py::error_already_set();                                  \
   }
@@ -139,7 +165,12 @@ inline void PyErr_SetString(PyObject* type, const std::string& message) {
 extern PyObject *THPException_FatalError, *THPException_LinAlgError,
     *THPException_OutOfMemoryError, *THPException_DistError,
     *THPException_DistBackendError, *THPException_DistNetworkError,
+<<<<<<< HEAD
     *THPException_DistStoreError;
+=======
+    *THPException_DistStoreError, *THPException_DistQueueEmptyError,
+    *THPException_AcceleratorError;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Throwing this exception means that the python error flags have been already
 // set and control should be immediately returned to the interpreter.
@@ -294,7 +325,11 @@ struct TypeError : public PyTorchError {
 
 // Translates to Python AttributeError
 struct AttributeError : public PyTorchError {
+<<<<<<< HEAD
   AttributeError(const char* format, ...) TORCH_FORMAT_FUNC(2, 3);
+=======
+  using PyTorchError::PyTorchError;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PyObject* python_type() override {
     return PyExc_AttributeError;
   }
@@ -320,7 +355,11 @@ struct PyWarningHandler {
 
   /** Call if an exception has been thrown
 
+<<<<<<< HEAD
    *  Necessary to determine if it is safe to throw from the desctructor since
+=======
+   *  Necessary to determine if it is safe to throw from the destructor since
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    *  std::uncaught_exception is buggy on some platforms and generally
    *  unreliable across dynamic library calls.
    */
@@ -367,6 +406,11 @@ auto wrap_pybind_function_impl_(
     END_HANDLE_TH_ERRORS_PYBIND
   };
 }
+<<<<<<< HEAD
+=======
+
+PyObject* _new_accelerator_error_object(const c10::AcceleratorError&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace detail
 
 // Wrap a function with TH error and warning handling.

@@ -863,8 +863,17 @@ void checkScopeCallbacks() {
 
   {
     RECORD_TORCHSCRIPT_FUNCTION("test_method", {});
+<<<<<<< HEAD
     { RECORD_FUNCTION("test_function", {}); }
     { RECORD_USER_SCOPE("test_user_scope"); }
+=======
+    {
+      RECORD_FUNCTION("test_function", {});
+    }
+    {
+      RECORD_USER_SCOPE("test_user_scope");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   TORCH_CHECK(!bad_scope);
@@ -1057,7 +1066,13 @@ TEST(RecordFunctionTest, RecordFunctionGuard) {
           RECORD_USER_SCOPE("C");
         }
       }
+<<<<<<< HEAD
       { RECORD_USER_SCOPE("D"); }
+=======
+      {
+        RECORD_USER_SCOPE("D");
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   TORCH_CHECK(fn_names.size() == 1);
@@ -1084,7 +1099,13 @@ TEST(RecordFunctionTest, Callbacks) {
   add_remove_test_add_cb<2>();
   auto h3 = add_remove_test_add_cb<3>();
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(ids.size() == 3);
   TORCH_CHECK(std::find(ids.begin(), ids.end(), 1) != ids.end());
@@ -1094,7 +1115,13 @@ TEST(RecordFunctionTest, Callbacks) {
   ids.clear();
   removeCallback(h1);
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(ids.size() == 2);
   TORCH_CHECK(std::find(ids.begin(), ids.end(), 2) != ids.end());
@@ -1103,7 +1130,13 @@ TEST(RecordFunctionTest, Callbacks) {
   ids.clear();
   removeCallback(h3);
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(ids.size() == 1);
   TORCH_CHECK(std::find(ids.begin(), ids.end(), 2) != ids.end());
@@ -1115,7 +1148,13 @@ TEST(RecordFunctionTest, Callbacks) {
   ids.clear();
   add_remove_test_add_cb<1>();
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(ids.size() == 1);
   TORCH_CHECK(ids[0] == 1);
@@ -1128,7 +1167,13 @@ TEST(RecordFunctionTest, Callbacks) {
           return nullptr;
         }));
 
+<<<<<<< HEAD
     { RECORD_USER_SCOPE("test_thread"); }
+=======
+    {
+      RECORD_USER_SCOPE("test_thread");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
   th.join();
   TORCH_CHECK(ids.size() == 2);
@@ -1136,7 +1181,13 @@ TEST(RecordFunctionTest, Callbacks) {
   TORCH_CHECK(std::find(ids.begin(), ids.end(), 2) != ids.end());
   ids.clear();
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(ids.size() == 1);
   TORCH_CHECK(ids[0] == 1);
@@ -1167,7 +1218,13 @@ TEST(RecordFunctionTest, Callbacks) {
           TORCH_CHECK(ctx->b == "test_str");
         }));
 
+<<<<<<< HEAD
     { RECORD_USER_SCOPE("test"); }
+=======
+    {
+      RECORD_USER_SCOPE("test");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     TORCH_CHECK(ids.size() == 1);
     TORCH_CHECK(ids[0] == 1);
@@ -1193,7 +1250,13 @@ TEST(RecordFunctionTest, Callbacks) {
           }));
 
       // Will call both global and thread local callbacks.
+<<<<<<< HEAD
       { RECORD_USER_SCOPE("test_thread"); }
+=======
+      {
+        RECORD_USER_SCOPE("test_thread");
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     });
     ctx_th.join();
     TORCH_CHECK(ids.size() == 2);
@@ -1216,21 +1279,39 @@ TEST(RecordFunctionTest, ShouldRun) {
         return nullptr;
       }));
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_TRUE(ran) << "first run didn't happen";
   ran = false;
 
   disableCallback(handle);
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_FALSE(ran) << "second run happened but shouldn't have";
   ran = false;
 
   reenableCallback(handle);
 
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_TRUE(ran) << "run after re-enable didn't happen";
   ran = false;
@@ -1273,7 +1354,13 @@ TEST(RecordFunctionTest, Basic) {
             return nullptr;
           })
           .needsIds(true));
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(has_ids);
   clearCallbacks();
   has_ids = false;
@@ -1282,7 +1369,13 @@ TEST(RecordFunctionTest, Basic) {
         has_ids = fn.handle() > 0;
         return nullptr;
       }));
+<<<<<<< HEAD
   { RECORD_USER_SCOPE("test"); }
+=======
+  {
+    RECORD_USER_SCOPE("test");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(!has_ids);
   clearCallbacks();
 }

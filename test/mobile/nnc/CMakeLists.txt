@@ -11,7 +11,11 @@ add_executable(test_mobile_nnc
   ${MOBILE_NNC_TEST_SRCS}
 )
 
+<<<<<<< HEAD
 target_link_libraries(test_mobile_nnc PRIVATE torch gtest)
+=======
+target_link_libraries(test_mobile_nnc PRIVATE torch gtest_main)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 target_include_directories(test_mobile_nnc PRIVATE ${ATen_CPU_INCLUDE})
 target_compile_definitions(test_mobile_nnc PRIVATE USE_GTEST)
 

@@ -20,6 +20,10 @@ from torch.distributed.checkpoint.metadata import (
 __all__ = [
     "WriteItemType",
     "LoadItemType",
+<<<<<<< HEAD
+=======
+    "BytesIOWriteData",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "TensorWriteData",
     "WriteItem",
     "ReadItem",
@@ -42,6 +46,14 @@ class LoadItemType(Enum):
 
 
 @dataclass(frozen=True)
+<<<<<<< HEAD
+=======
+class BytesIOWriteData:
+    nbytes: int
+
+
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TensorWriteData:
     chunk: ChunkStorageMetadata
     properties: TensorProperties
@@ -55,6 +67,12 @@ class WriteItem:
     index: MetadataIndex
     type: WriteItemType
 
+<<<<<<< HEAD
+=======
+    # Size of bytesIO data to be written.
+    bytes_io_data: Optional[BytesIOWriteData] = None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Value present if it's a tensor write
     tensor_data: Optional[TensorWriteData] = None
 
@@ -223,6 +241,12 @@ class SavePlanner(abc.ABC):
     # Global checkpoint plan as computed by `create_global_plan` API.
     # Cached on the coordinator rank.
     _cached_global_plan: dict[str, list[SavePlan]] = {}
+<<<<<<< HEAD
+=======
+    # Metadata for the global checkpoint plan as computed by `create_global_plan` API.
+    # Cached on the coordinator rank.
+    _cached_metadata: dict[str, Metadata] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abc.abstractmethod
     def set_up_planner(

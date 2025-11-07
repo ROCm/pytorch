@@ -7,7 +7,11 @@ from collections.abc import Iterable, Iterator
 from typing import Any, Optional
 
 import torch
+<<<<<<< HEAD
 from torch._dynamo.utils import counters
+=======
+from torch._dynamo.utils import counters, is_node_meta_valid
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import trace_structured
 from torch.fx.passes.graph_transform_observer import GraphTransformObserver
 from torch.utils._ordered_set import OrderedSet
@@ -18,6 +22,10 @@ from ..pattern_matcher import (
     get_arg_value,
     stable_topological_sort,
 )
+<<<<<<< HEAD
+=======
+from ..utils import OPTIMUS_EXCLUDE_POST_GRAD
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -574,10 +582,13 @@ class BatchLinearLHSFusion(BatchFusion):
         counters["inductor"]["batch_linear_lhs"] += 1
 
 
+<<<<<<< HEAD
 def is_node_meta_valid(node: Optional[torch.fx.Node]):
     return node is None or "example_value" in node.meta or "val" in node.meta
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Poor person's check for if a node in the graph mutates its input.
 # (the graph is torch IR, so we will see torch fns and python operators)
 def _is_mutable_node(tgt):
@@ -1055,7 +1066,11 @@ class BatchMathOpsPreGradFusion(BatchPointwiseOpsFusionFactory):
     def match(self, node: torch.fx.Node):
         input = get_arg_value(node, 0, "input")
         if CallFunctionVarArgs(self.op).match(node) and is_node_meta_valid(node):
+<<<<<<< HEAD
             # check the input has the same shape and its uers have the same target
+=======
+            # check the input has the same shape and its users have the same target
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # check all clamp operators have the same min and max values, and
             # nan_to_num operators use the same default value.
             child = next(iter(node.users.keys()))
@@ -1403,7 +1418,14 @@ def group_batch_fusion_passes(graph: torch.fx.Graph, pre_grad=True):
         fbgemm_fusion_keys = [
             x
             for x in config.post_grad_fusion_options
+<<<<<<< HEAD
             if config.post_grad_fusion_options[x].get("require_fbgemm", False)
+=======
+            if (
+                x not in OPTIMUS_EXCLUDE_POST_GRAD
+                and config.post_grad_fusion_options[x].get("require_fbgemm", False)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         fbgemm_fusions = {
             fusion: config.post_grad_fusion_options[fusion]

@@ -367,7 +367,11 @@ class TestONNXExport(pytorch_test_common.ExportTestCase):
         f = io.BytesIO()
         torch.onnx.export(mod, (x_in,), f)
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, r"DictConstruct.+is not supported."):
+=======
+        with self.assertRaisesRegex(RuntimeError, r"DictConstruct.+is not supported"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f = io.BytesIO()
             torch.onnx.export(torch.jit.script(mod), (x_in,), f)
 

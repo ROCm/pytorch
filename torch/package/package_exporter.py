@@ -675,7 +675,11 @@ class PackageExporter:
                         memo_count += 1
                     elif opcode.name == "STACK_GLOBAL":
                         if module is None:
+<<<<<<< HEAD
                             # If not module was passed on in the entries preceeding this one, continue.
+=======
+                            # If not module was passed on in the entries preceding this one, continue.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             continue
                         assert isinstance(module, str)
                         if module not in all_dependencies:

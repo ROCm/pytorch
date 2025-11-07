@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 r"""Implementation for the Resilient backpropagation."""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import cast, Optional, Union
 
 import torch
@@ -15,6 +19,10 @@ from .optimizer import (
     _get_scalar_dtype,
     _maximize_doc,
     _params_doc,
+<<<<<<< HEAD
+=======
+    _to_scalar,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _use_grad_for_differentiable,
     _view_as_real,
     Optimizer,
@@ -105,7 +113,11 @@ class Rprop(Optimizer):  # noqa: D101
                         grad, complex(group["lr"], group["lr"])
                     )
                 else:
+<<<<<<< HEAD
                     state["step_size"] = torch.full_like(grad, group["lr"])
+=======
+                    state["step_size"] = torch.full_like(grad, _to_scalar(group["lr"]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             prevs.append(state["prev"])
             step_sizes.append(state["step_size"])
@@ -247,7 +259,13 @@ def _single_tensor_rprop(
             assert (
                 param.device.type == step.device.type
                 and param.device.type in capturable_supported_devices
+<<<<<<< HEAD
             ), f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+            ), (
+                f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         step += 1
 
@@ -314,7 +332,13 @@ def _multi_tensor_rprop(
             p.device.type == step.device.type
             and p.device.type in capturable_supported_devices
             for p, step in zip(params, state_steps)
+<<<<<<< HEAD
         ), f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+=======
+        ), (
+            f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     grouped_tensors = Optimizer._group_tensors_by_device_and_dtype(
         [params, grads, prevs, step_sizes, state_steps]  # type: ignore[list-item]

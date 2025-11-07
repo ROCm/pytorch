@@ -3,6 +3,10 @@
  - [**Reporting a Vulnerability**](#reporting-a-vulnerability)
  - [**Using Pytorch Securely**](#using-pytorch-securely)
    - [Untrusted models](#untrusted-models)
+<<<<<<< HEAD
+=======
+   - [TorchScript models](#torchscript-models)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    - [Untrusted inputs](#untrusted-inputs)
    - [Data privacy](#data-privacy)
    - [Using distributed features](#using-distributed-features)
@@ -38,6 +42,13 @@ Important Note: The trustworthiness of a model is not binary. You must always de
     https://arxiv.org/abs/2312.04748
     https://arxiv.org/abs/2401.05566
 
+<<<<<<< HEAD
+=======
+### TorchScript models
+
+TorchScript models should treated the same way as locally executable code from an unknown source. Only run TorchScript models if you trust the provider. Please note, that tools for introspecting TorchScript models (such as `torch.utils.model_dump`) may also execute partial or full code stored in those models, therefore they should be used only if you trust the provider of the binary you are about to load.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ### Untrusted inputs during training and prediction
 
 If you plan to open your model to untrusted inputs, be aware that inputs can also be used as vectors by malicious agents. To minimize risks, make sure to give your model only the permissions strictly required, and keep your libraries updated with the latest security patches.

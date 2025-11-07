@@ -15,6 +15,10 @@ from ..common import KernelTemplate
 from .rocm_benchmark_request import ROCmBenchmarkRequest
 from .rocm_kernel import ROCmTemplateCaller, ROCmTemplateKernel
 from .rocm_template_buffer import ROCmTemplateBuffer
+<<<<<<< HEAD
+=======
+from .rocm_utils import DTYPE_TO_ROCM_TYPE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
@@ -29,6 +33,10 @@ class ArgInfo:
 
 class ROCmTemplate(KernelTemplate):
     index_counter = itertools.count()
+<<<<<<< HEAD
+=======
+    gfx9_threads_per_warp = 64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -83,7 +91,11 @@ class ROCmTemplate(KernelTemplate):
             log.debug("Autotune key: %s, Generated Code:\n%s", kernel_hash_name, code)
             log.debug(
                 "Args: cpp_argdefs: %s, python_argdefs: %s",
+<<<<<<< HEAD
                 kernel.args.cpp_argdefs(),
+=======
+                kernel.args.cpp_argdefs(DTYPE_TO_ROCM_TYPE),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kernel.args.python_argdefs(),
             )
 
@@ -176,11 +188,14 @@ class ROCmTemplate(KernelTemplate):
                 #define PT_EXPORT
                 #endif
                 #endif
+<<<<<<< HEAD
 
                 // as long as there is no custom arithmetic it's fine
                 using bfloat16 = uint16_t;
                 using float8_e4m3fnuz = uint8_t;
                 using float8_e5m2fnuz = uint8_t;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """
         )
         return res

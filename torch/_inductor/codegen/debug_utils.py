@@ -5,7 +5,11 @@ import functools
 import logging
 import os
 from enum import Enum
+<<<<<<< HEAD
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import dtype as torch_dtype
@@ -23,6 +27,12 @@ def _print_debugging_tensor_value_info(msg, arg):
     # at jit inductor level codegen
     max_numel_to_print = 64
     print(msg)
+<<<<<<< HEAD
+=======
+    if not isinstance(arg, torch.Tensor):
+        print("Value: ", arg)
+        return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     numel = arg.float().numel()
     # print the debug printing stats
     if numel <= max_numel_to_print:
@@ -54,6 +64,10 @@ class DebugPrinterManager:
         self,
         debug_printer_level,
         use_array_ref: bool,
+<<<<<<< HEAD
+=======
+        writeline: Optional[Callable[..., None]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args_to_print_or_save: Optional[list[str]] = None,
         kernel_name: str = "",
         kernel=None,

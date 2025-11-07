@@ -80,7 +80,11 @@ if [ "${VERBOSE:-}" == '1' ]; then
   CMAKE_ARGS+=("-DCMAKE_VERBOSE_MAKEFILE=1")
 fi
 
+<<<<<<< HEAD
 # Use-specified CMake arguments go last to allow overridding defaults
+=======
+# Use-specified CMake arguments go last to allow overriding defaults
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CMAKE_ARGS+=("$@")
 
 # Now, actually build the Android target.

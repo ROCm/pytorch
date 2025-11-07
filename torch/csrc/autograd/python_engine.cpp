@@ -160,8 +160,11 @@ c10::intrusive_ptr<at::ivalue::Future> PythonEngine::execute_with_graph_task(
 }
 } // namespace torch::autograd::python
 
+<<<<<<< HEAD
 PyObject* THPEngineClass = nullptr;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static Edge parseGradientEdge(PyObject* obj, int64_t index) {
   PyObject* grad_fn = PyTuple_GetItem(obj, 0);
   auto output_nr = THPUtils_unpackLong(PyTuple_GetItem(obj, 1));
@@ -181,7 +184,11 @@ static Edge parseGradientEdge(PyObject* obj, int64_t index) {
 }
 
 // Implementation of torch._C._EngineBase.run_backward
+<<<<<<< HEAD
 PyObject* THPEngine_run_backward(
+=======
+static PyObject* THPEngine_run_backward(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* self,
     PyObject* args,
     PyObject* kwargs) {
@@ -396,7 +403,11 @@ PyObject* THPEngine_run_backward(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPEngine_queue_callback(PyObject* self, PyObject* _callback) {
+=======
+static PyObject* THPEngine_queue_callback(PyObject* self, PyObject* _callback) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   auto& engine = python::PythonEngine::get_python_engine();
   std::shared_ptr<PyObject> callback(_callback, [](PyObject* obj) {
@@ -431,7 +442,13 @@ PyObject* THPEngine_queue_callback(PyObject* self, PyObject* _callback) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPEngine_is_checkpoint_valid(PyObject* self, PyObject* noargs) {
+=======
+static PyObject* THPEngine_is_checkpoint_valid(
+    PyObject* self,
+    PyObject* noargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   auto& engine = python::PythonEngine::get_python_engine();
   if (engine.is_checkpoint_valid()) {
@@ -442,24 +459,44 @@ PyObject* THPEngine_is_checkpoint_valid(PyObject* self, PyObject* noargs) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyObject* THPEngine_new(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
+=======
+static PyObject* THPEngine_new(
+    PyTypeObject* type,
+    PyObject* args,
+    PyObject* kwargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return type->tp_alloc(type, 0);
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
 static struct PyMethodDef THPEngine_methods[] = {
+<<<<<<< HEAD
     {(char*)"run_backward",
      castPyCFunctionWithKeywords(THPEngine_run_backward),
      METH_VARARGS | METH_KEYWORDS,
      nullptr},
     {(char*)"queue_callback", THPEngine_queue_callback, METH_O, nullptr},
     {(char*)"is_checkpoint_valid",
+=======
+    {"run_backward",
+     castPyCFunctionWithKeywords(THPEngine_run_backward),
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
+    {"queue_callback", THPEngine_queue_callback, METH_O, nullptr},
+    {"is_checkpoint_valid",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
      THPEngine_is_checkpoint_valid,
      METH_NOARGS,
      nullptr},
     {nullptr}};
 
+<<<<<<< HEAD
 PyTypeObject THPEngineType = {
+=======
+static PyTypeObject THPEngineType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C._EngineBase", /* tp_name */
     sizeof(THPEngine), /* tp_basicsize */

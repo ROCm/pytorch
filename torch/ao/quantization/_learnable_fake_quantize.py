@@ -56,19 +56,34 @@ class _LearnableFakeQuantize(torch.ao.quantization.FakeQuantizeBase):
             self.scale = Parameter(torch.tensor([scale]))
             self.zero_point = Parameter(torch.tensor([zero_point]))
         else:
+<<<<<<< HEAD
             assert (
                 isinstance(channel_len, int) and channel_len > 0
             ), "Channel size must be a positive integer."
+=======
+            assert isinstance(channel_len, int) and channel_len > 0, (
+                "Channel size must be a positive integer."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.scale = Parameter(torch.tensor([scale] * channel_len))
             self.zero_point = Parameter(torch.tensor([zero_point] * channel_len))
 
         self.activation_post_process = observer(**observer_kwargs)
+<<<<<<< HEAD
         assert (
             torch.iinfo(self.activation_post_process.dtype).min <= quant_min
         ), "quant_min out of bound"
         assert (
             quant_max <= torch.iinfo(self.activation_post_process.dtype).max
         ), "quant_max out of bound"
+=======
+        assert torch.iinfo(self.activation_post_process.dtype).min <= quant_min, (
+            "quant_min out of bound"
+        )
+        assert quant_max <= torch.iinfo(self.activation_post_process.dtype).max, (
+            "quant_max out of bound"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.dtype = self.activation_post_process.dtype
         self.qscheme = self.activation_post_process.qscheme
         self.ch_axis = (
@@ -145,7 +160,11 @@ class _LearnableFakeQuantize(torch.ao.quantization.FakeQuantizeBase):
         print(f"_LearnableFakeQuantize Zero Point: {self.zero_point.detach()}")
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.scale.data.clamp_(min=self.eps.item())  # type: ignore[operator]
         scale = self.scale.detach()
         zero_point = (

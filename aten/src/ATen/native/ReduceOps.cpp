@@ -472,7 +472,11 @@ Tensor& logcumsumexp_out(const Tensor& self, int64_t dim, Tensor& result) {
 }
 
 template <class Stub>
+<<<<<<< HEAD
 void impl_func_cum_ops(
+=======
+static void impl_func_cum_ops(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     int64_t dim,
     const Tensor& result,
@@ -769,7 +773,11 @@ inline bool isnan_(T x) {
 }
 
 template<typename T1, typename T2, typename Operation>
+<<<<<<< HEAD
 void cummax_cummin_helper(const T1* self_data, T1* values_data, T2* indices_data,
+=======
+static void cummax_cummin_helper(const T1* self_data, T1* values_data, T2* indices_data,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           int self_dim_size, int self_stride, int values_stride, int indices_stride) {
       Operation op;
       T1 out = c10::load(self_data);
@@ -1182,7 +1190,11 @@ std::vector<Tensor> gradient(const Tensor& self, IntArrayRef dim, int64_t edge_o
 
 // ALL REDUCE #################################################################
 
+<<<<<<< HEAD
 inline bool should_use_acc_buffer(at::TensorIterator& iter) {
+=======
+static inline bool should_use_acc_buffer(at::TensorIterator& iter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto ndim = iter.ndim();
   if (!iter.device().is_cpu() || iter.noutputs() != 1) {
     return false;
@@ -1244,7 +1256,11 @@ Tensor& sum_out(const Tensor& self, DimnameList dim,
 Tensor& nansum_out(const Tensor& self, at::OptionalIntArrayRef dim,
                        bool keepdim, std::optional<ScalarType> opt_dtype, Tensor& result) {
   if (self.device().is_cpu()) {
+<<<<<<< HEAD
     TORCH_CHECK(!c10::isComplexType(self.scalar_type()), "nansum does not support complex inputs");
+=======
+    TORCH_CHECK(!c10::isComplexType(self.scalar_type()), "nansum on CPU does not support complex inputs");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // For integral types, use existing sum as
@@ -1591,7 +1607,11 @@ Tensor norm(const Tensor& self, const Scalar& p) {
   return at::norm(self, p, IntArrayRef{}, false);
 }
 
+<<<<<<< HEAD
 inline TensorIterator get_allany_iter(
+=======
+static inline TensorIterator get_allany_iter(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     const Tensor& result,
     OptionalIntArrayRef dims,
@@ -1608,7 +1628,11 @@ inline TensorIterator get_allany_iter(
 }
 
 template <int identity, typename Stub>
+<<<<<<< HEAD
 inline void allany_impl(
+=======
+static inline void allany_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     const Tensor& result,
     OptionalIntArrayRef dims,
@@ -1653,7 +1677,11 @@ TORCH_IMPL_FUNC(any_all_out)(const Tensor& self, const Tensor& result) {
 }
 
 template <bool is_all>
+<<<<<<< HEAD
 Tensor allany_dims_default(const Tensor &self, OptionalIntArrayRef dim, bool keepdim) {
+=======
+static Tensor allany_dims_default(const Tensor &self, OptionalIntArrayRef dim, bool keepdim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Default implementation in terms of all-reduce or single dim reduce
   if (!dim) {
     Tensor out;
@@ -1732,7 +1760,11 @@ TORCH_IMPL_FUNC(amax_out) (const Tensor& self, IntArrayRef dim, bool keepdim, co
 }
 
 template <class Stub>
+<<<<<<< HEAD
 void argmax_argmin_impl(
+=======
+static void argmax_argmin_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     std::optional<int64_t> dim,
     bool keepdim,

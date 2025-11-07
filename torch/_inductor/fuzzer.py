@@ -174,6 +174,10 @@ TYPE_OVERRIDES: dict[str, list[Any]] = {
     "autoheuristic_collect": ["pad_mm", "mixed_mm"],
     "autoheuristic_use": ["pad_mm", "mixed_mm"],
     "traceable_tensor_subclasses": [OrderedSet()],
+<<<<<<< HEAD
+=======
+    "nontraceable_tensor_subclasses": [OrderedSet()],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 SamplingType = Callable[[str, type[Any], Any], Any]
 
@@ -219,9 +223,15 @@ class SamplingMethod(Enum):
             elem_type = getattr(
                 type_hint,
                 "__args__",
+<<<<<<< HEAD
                 [type(default[0])] if len(default) else [type(None)],
             )[0]
             new_default = default[0] if len(default) > 0 else None
+=======
+                [type(default[0])] if default and len(default) else [type(None)],
+            )[0]
+            new_default = default[0] if default and len(default) > 0 else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return [
                 SamplingMethod._generate_value_for_type(
                     random_sample, field_name, elem_type, new_default
@@ -233,9 +243,15 @@ class SamplingMethod(Enum):
             elem_type = getattr(
                 type_hint,
                 "__args__",
+<<<<<<< HEAD
                 [type(indexable[0])] if len(default) else [type(None)],
             )[0]
             new_default = indexable[0] if len(default) > 0 else None
+=======
+                [type(indexable[0])] if default and len(default) else [type(None)],
+            )[0]
+            new_default = indexable[0] if default and len(default) > 0 else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return {  # noqa: set_linter
                 SamplingMethod._generate_value_for_type(
                     random_sample, field_name, elem_type, new_default
@@ -247,9 +263,15 @@ class SamplingMethod(Enum):
             elem_type = getattr(
                 type_hint,
                 "__args__",
+<<<<<<< HEAD
                 [type(indexable[0])] if len(default) else [type(None)],
             )[0]
             new_default = indexable[0] if len(default) > 0 else None
+=======
+                [type(indexable[0])] if default and len(default) else [type(None)],
+            )[0]
+            new_default = indexable[0] if default and len(default) > 0 else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return OrderedSet(
                 [
                     SamplingMethod._generate_value_for_type(
@@ -362,6 +384,11 @@ class SamplingMethod(Enum):
                 )
 
             return dummy_function
+<<<<<<< HEAD
+=======
+        elif type_hint == torch._ops.OpOverload:
+            return torch.ops.aten.add.default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif TypeExemplars.contains(type_hint):
             return TypeExemplars.example(type_hint)
         elif type_hint == Any:
@@ -499,6 +526,10 @@ MODULE_DEFAULTS: dict[str, ConfigType] = {
     },
     "torch._dynamo.config": {
         "traceable_tensor_subclasses": DEFAULT,  # Typing
+<<<<<<< HEAD
+=======
+        "nontraceable_tensor_subclasses": DEFAULT,  # Typing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "compiled_autograd_kwargs_override": DEFAULT,  # Typing
         "fail_on_recompile_limit_hit": DEFAULT,  # fails in combo with suppress_errors
         "suppress_errors": DEFAULT,

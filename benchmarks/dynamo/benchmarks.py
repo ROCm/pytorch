@@ -6,7 +6,11 @@ import sys
 
 
 # Note - hf and timm have their own version of this, torchbench does not
+<<<<<<< HEAD
 # TOOD(voz): Someday, consolidate all the files into one runner instead of a shim like this...
+=======
+# TODO(voz): Someday, consolidate all the files into one runner instead of a shim like this...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def model_names(filename: str) -> set[str]:
     names = set()
     with open(filename) as fh:

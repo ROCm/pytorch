@@ -24,7 +24,11 @@ TORCH_API std::unordered_map<std::string, worker_id_t> collectCurrentNames(
     const worker_id_t selfId,
     const std::string& selfName);
 
+<<<<<<< HEAD
 // Remove name frmo Store, used in dynamic RPC groups.
+=======
+// Remove name from Store, used in dynamic RPC groups.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NOTE: This needs to be called with the Dynamic RPC group
 // membership management token held.
 TORCH_API void removeCurrentName(

@@ -5,6 +5,10 @@ import os
 import shutil
 import tempfile
 import types
+<<<<<<< HEAD
+=======
+from typing import Any, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._export
@@ -15,11 +19,22 @@ from torch._dynamo.testing import same
 from torch._inductor import config
 from torch._inductor.test_case import TestCase
 from torch.testing import FileCheck
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_FBCODE
+=======
+from torch.testing._internal.common_utils import IS_FBCODE, run_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import clone_preserve_strides_offset
 from torch.utils import _pytree as pytree
 
 
+<<<<<<< HEAD
+=======
+if TYPE_CHECKING:
+    from torch._C._aoti import AOTIModelContainerRunner
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class WrapperModule(torch.nn.Module):
     def __init__(self, model):
         super().__init__()
@@ -31,7 +46,11 @@ class WrapperModule(torch.nn.Module):
 
 class AOTIRunnerUtil:
     @staticmethod
+<<<<<<< HEAD
     def compile(
+=======
+    def legacy_compile(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model,
         example_inputs,
         options=None,
@@ -72,7 +91,11 @@ class AOTIRunnerUtil:
         return so_path
 
     @staticmethod
+<<<<<<< HEAD
     def load_runner(device, so_path):
+=======
+    def legacy_load_runner(device, so_path: str) -> "AOTIModelContainerRunner":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if IS_FBCODE:
             from .fb import test_aot_inductor_model_runner_pybind  # @manual
 
@@ -101,10 +124,17 @@ class AOTIRunnerUtil:
                 return torch._C._aoti.AOTIModelContainerRunnerCuda(so_path, 1, device)
 
     @staticmethod
+<<<<<<< HEAD
     def load(device, so_path):
         # TODO: unify fbcode and oss behavior to only use torch._export.aot_load
         if IS_FBCODE:
             runner = AOTIRunnerUtil.load_runner(device, so_path)
+=======
+    def legacy_load(device, so_path):
+        # TODO: unify fbcode and oss behavior to only use torch._export.aot_load
+        if IS_FBCODE:
+            runner = AOTIRunnerUtil.legacy_load_runner(device, so_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def optimized(*args, **kwargs):
                 call_spec = runner.get_call_spec()
@@ -120,26 +150,77 @@ class AOTIRunnerUtil:
             return torch._export.aot_load(so_path, device)
 
     @staticmethod
+<<<<<<< HEAD
     def run(
         device,
+=======
+    def legacy_run(
+        device: str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model,
         example_inputs,
         options=None,
         dynamic_shapes=None,
         disable_constraint_solver=False,
     ):
+<<<<<<< HEAD
         so_path = AOTIRunnerUtil.compile(
+=======
+        so_path = AOTIRunnerUtil.legacy_compile(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model,
             example_inputs,
             options=options,
             dynamic_shapes=dynamic_shapes,
             disable_constraint_solver=disable_constraint_solver,
         )
+<<<<<<< HEAD
         optimized = AOTIRunnerUtil.load(device, so_path)
+=======
+        optimized = AOTIRunnerUtil.legacy_load(device, so_path)
+        return optimized(*example_inputs)
+
+    @staticmethod
+    def compile(
+        model: Union[torch.nn.Module, types.FunctionType],
+        example_inputs: list[torch.Tensor],
+        inductor_configs: Optional[dict[str, Any]] = None,
+        dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
+    ):
+        if not isinstance(model, torch.nn.Module):
+            # This should really be the default behavior of torch.export.export
+            model = WrapperModule(model)
+
+        with torch.no_grad():
+            # strict=False needs extra migration work
+            ep = torch.export.export(
+                model, example_inputs, dynamic_shapes=dynamic_shapes, strict=True
+            )
+            package_path = torch._inductor.aoti_compile_and_package(
+                ep, inductor_configs=inductor_configs
+            )
+        return package_path
+
+    @staticmethod
+    def run(
+        model: Union[torch.nn.Module, types.FunctionType],
+        example_inputs: list[torch.Tensor],
+        inductor_configs: Optional[dict[str, Any]] = None,
+        dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
+    ):
+        package_path = AOTIRunnerUtil.compile(
+            model,
+            example_inputs,
+            inductor_configs=inductor_configs,
+            dynamic_shapes=dynamic_shapes,
+        )
+        optimized = torch._inductor.aoti_load_package(package_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return optimized(*example_inputs)
 
     @staticmethod
     def run_multiple(
+<<<<<<< HEAD
         device,
         model,
         list_example_inputs,
@@ -153,6 +234,20 @@ class AOTIRunnerUtil:
             dynamic_shapes=dynamic_shapes,
         )
         optimized = AOTIRunnerUtil.load(device, so_path)
+=======
+        model: Union[torch.nn.Module, types.FunctionType],
+        list_example_inputs: list[list[torch.Tensor]],
+        inductor_configs: Optional[dict[str, Any]] = None,
+        dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
+    ):
+        package_path = AOTIRunnerUtil.compile(
+            model,
+            list_example_inputs[0],
+            inductor_configs=inductor_configs,
+            dynamic_shapes=dynamic_shapes,
+        )
+        optimized = torch._inductor.aoti_load_package(package_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         list_output_tensors = []
         for example_inputs in list_example_inputs:
             list_output_tensors.append(optimized(*example_inputs))
@@ -165,6 +260,7 @@ def check_model(
     example_inputs,
     options=None,
     dynamic_shapes=None,
+<<<<<<< HEAD
     disable_constraint_solver=False,
     atol=None,
     rtol=None,
@@ -174,6 +270,19 @@ def check_model(
             "aot_inductor.allow_stack_allocation": self.allow_stack_allocation,
             "aot_inductor.use_minimal_arrayref_interface": self.use_minimal_arrayref_interface,
         }
+=======
+    atol=None,
+    rtol=None,
+):
+    with (
+        torch.no_grad(),
+        config.patch(
+            {
+                "aot_inductor.allow_stack_allocation": self.allow_stack_allocation,
+                "aot_inductor.use_minimal_arrayref_interface": self.use_minimal_arrayref_interface,
+            }
+        ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         torch.manual_seed(0)
         if not isinstance(model, types.FunctionType):
@@ -196,12 +305,18 @@ def check_model(
 
         torch.manual_seed(0)
         actual = AOTIRunnerUtil.run(
+<<<<<<< HEAD
             self.device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model,
             example_inputs,
             options,
             dynamic_shapes,
+<<<<<<< HEAD
             disable_constraint_solver,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     self.assertEqual(actual, expected, atol=atol, rtol=rtol)
@@ -214,11 +329,22 @@ def check_model_with_multiple_inputs(
     options=None,
     dynamic_shapes=None,
 ):
+<<<<<<< HEAD
     with torch.no_grad(), config.patch(
         {
             "aot_inductor.allow_stack_allocation": self.allow_stack_allocation,
             "aot_inductor.use_minimal_arrayref_interface": self.use_minimal_arrayref_interface,
         }
+=======
+    with (
+        torch.no_grad(),
+        config.patch(
+            {
+                "aot_inductor.allow_stack_allocation": self.allow_stack_allocation,
+                "aot_inductor.use_minimal_arrayref_interface": self.use_minimal_arrayref_interface,
+            }
+        ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         torch.manual_seed(0)
         model = model.to(self.device)
@@ -228,7 +354,11 @@ def check_model_with_multiple_inputs(
 
         torch.manual_seed(0)
         list_actual = AOTIRunnerUtil.run_multiple(
+<<<<<<< HEAD
             self.device, model, list_example_inputs, options, dynamic_shapes
+=======
+            model, list_example_inputs, options, dynamic_shapes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     self.assertTrue(same(list_actual, list_expected))
@@ -241,6 +371,7 @@ def code_check_count(
     target_str: str,
     target_count: int,
 ):
+<<<<<<< HEAD
     with torch.no_grad(), config.patch(
         {
             "aot_inductor.allow_stack_allocation": self.allow_stack_allocation,
@@ -250,9 +381,30 @@ def code_check_count(
         so_path = torch._export.aot_compile(model, example_inputs)
 
     with open(os.path.splitext(so_path)[0] + ".cpp") as cpp:
+=======
+    with (
+        torch.no_grad(),
+        config.patch(
+            {
+                "aot_inductor.allow_stack_allocation": self.allow_stack_allocation,
+                "aot_inductor.use_minimal_arrayref_interface": self.use_minimal_arrayref_interface,
+            }
+        ),
+    ):
+        package_path = torch._export.aot_compile(model, example_inputs)
+
+    with open(os.path.splitext(package_path)[0] + ".cpp") as cpp:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         src_code = cpp.read()
         FileCheck().check_count(
             target_str,
             target_count,
             exactly=True,
         ).run(src_code)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    run_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

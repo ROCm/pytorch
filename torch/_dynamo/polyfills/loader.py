@@ -21,6 +21,10 @@ POLYFILLED_MODULE_NAMES: tuple[str, ...] = (
     "pytree",
     "sys",
     "fx",
+<<<<<<< HEAD
+=======
+    "tensor",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 POLYFILLED_MODULES: tuple["ModuleType", ...] = tuple(
     importlib.import_module(f".{submodule}", package=polyfills.__name__)

@@ -103,7 +103,13 @@ static inline void transpose_pad_2x32_block(
     _mm512_storeu_si512(reinterpret_cast<__m512i*>(dst + 32), d1);
   }
 #else
+<<<<<<< HEAD
 TORCH_CHECK(false, "transpose_pad_2x32_block is only supported when avx512 is supported")
+=======
+  TORCH_CHECK(
+      false,
+      "transpose_pad_2x32_block is only supported when avx512 is supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 }
 
@@ -124,16 +130,27 @@ static inline void pack_vnni2(
   for (; bk < _K; bk += 2) {
     int64_t bn = 0;
     for (; bn < _N; bn += 32) {
+<<<<<<< HEAD
       transpose_pad_2x32_block(src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src);
     }
     int64_t nrem = N - bn;
     if (nrem > 0) {
       transpose_pad_2x32_block(src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src, 2, nrem);
+=======
+      transpose_pad_2x32_block(
+          src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src);
+    }
+    int64_t nrem = N - bn;
+    if (nrem > 0) {
+      transpose_pad_2x32_block(
+          src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src, 2, nrem);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   if (K % 2 == 1) {
     int64_t bn = 0;
     for (; bn < _N; bn += 32) {
+<<<<<<< HEAD
       transpose_pad_2x32_block(src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src, 1);
     }
     int64_t nrem = N - bn;
@@ -147,5 +164,21 @@ TORCH_CHECK(false, "pack_vnni2 is only supported when avx512 is supported")
 }
 
 
+=======
+      transpose_pad_2x32_block(
+          src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src, 1);
+    }
+    int64_t nrem = N - bn;
+    if (nrem > 0) {
+      transpose_pad_2x32_block(
+          src + bk * ld_src + bn, dst + bk * N + bn * 2, ld_src, 1, nrem);
+    }
+  }
+#else
+  TORCH_CHECK(false, "pack_vnni2 is only supported when avx512 is supported")
+#endif
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace CPU_CAPABILITY
 } // namespace at::vec

@@ -67,7 +67,11 @@ struct DescriptorDeleter {
 // function.
 template <typename T, miopenStatus_t (*ctor)(T**), miopenStatus_t (*dtor)(T*)>
 // NOLINTNEXTLINE(bugprone-exception-escape)
+<<<<<<< HEAD
 class TORCH_CUDA_CPP_API Descriptor {
+=======
+class TORCH_HIP_CPP_API Descriptor {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  public:
   // Use desc() to access the underlying descriptor pointer in
   // a read-only fashion.  Most client code should use this.
@@ -93,7 +97,11 @@ private:
   std::unique_ptr<T, DescriptorDeleter<T, dtor>> desc_;
 };
 
+<<<<<<< HEAD
 class TORCH_CUDA_CPP_API TensorDescriptor : public Descriptor<
+=======
+class TORCH_HIP_CPP_API TensorDescriptor : public Descriptor<
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                                miopenTensorDescriptor,
                                                &miopenCreateTensorDescriptor,
                                                &miopenDestroyTensorDescriptor> {
@@ -122,7 +130,11 @@ private:
 
 std::ostream& operator<<(std::ostream & out, const TensorDescriptor& d);
 
+<<<<<<< HEAD
 class TORCH_CUDA_CPP_API FilterDescriptor : public Descriptor<
+=======
+class TORCH_HIP_CPP_API FilterDescriptor : public Descriptor<
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                                miopenTensorDescriptor,
                                                &miopenCreateTensorDescriptor,
                                                &miopenDestroyTensorDescriptor> {
@@ -141,7 +153,11 @@ private:
   }
 };
 
+<<<<<<< HEAD
 struct TORCH_CUDA_CPP_API ConvolutionDescriptor
+=======
+struct TORCH_HIP_CPP_API ConvolutionDescriptor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     : public Descriptor<
           miopenConvolutionDescriptor,
           &miopenCreateConvolutionDescriptor,
@@ -156,11 +172,20 @@ struct TORCH_CUDA_CPP_API ConvolutionDescriptor
   }
 };
 
+<<<<<<< HEAD
 struct DropoutDescriptor
   : public Descriptor<miopenDropoutDescriptor,
                       &miopenCreateDropoutDescriptor,
                       &miopenDestroyDropoutDescriptor>
 {
+=======
+// NOLINTNEXTLINE(bugprone-exception-escape)
+struct TORCH_HIP_CPP_API DropoutDescriptor
+    : public Descriptor<
+          miopenDropoutDescriptor,
+          &miopenCreateDropoutDescriptor,
+          &miopenDestroyDropoutDescriptor> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void set(miopenHandle_t handle, float dropout, void* states, size_t stateSizeInBytes,
              unsigned long long seed, bool use_mask, bool state_evo, miopenRNGType_t rng_mode) {
       MIOPEN_CHECK(miopenSetDropoutDescriptor(mut_desc(), handle, dropout, states, stateSizeInBytes, seed, use_mask, state_evo, rng_mode));
@@ -172,7 +197,11 @@ struct DropoutDescriptor
     }
 };
 
+<<<<<<< HEAD
 struct TORCH_CUDA_CPP_API RNNDescriptor
+=======
+struct TORCH_HIP_CPP_API RNNDescriptor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   : public Descriptor<miopenRNNDescriptor,
                       &miopenCreateRNNDescriptor,
                       &miopenDestroyRNNDescriptor>

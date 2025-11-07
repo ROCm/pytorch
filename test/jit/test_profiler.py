@@ -4,7 +4,14 @@ import os
 import sys
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchDynamo
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Make the helper files in test/ importable
@@ -13,6 +20,7 @@ sys.path.append(pytorch_test_dir)
 from torch.testing._internal.jit_utils import FileCheck, JitTestCase, warmup_backward
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -21,6 +29,8 @@ if __name__ == "__main__":
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @skipIfTorchDynamo()
 class TestProfiler(JitTestCase):
     def setUp(self):
@@ -284,3 +294,10 @@ class TestProfiler(JitTestCase):
 
         g = torch.jit.last_executed_optimized_graph()
         self.assertEqual(len(list(g.findAllNodes("prim::TensorExprGroup"))), 2)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -756,7 +756,11 @@ static DimVector default_alldims(const Tensor& self, at::OptionalIntArrayRef dim
     IntArrayRef dim_unwrapped = *dim_opt;
     dim.resize(dim_unwrapped.size());
     for (const auto i : c10::irange(dim.size())) {
+<<<<<<< HEAD
       dim[i] = maybe_wrap_dim(dim_unwrapped[i], self.dim(), /*wrap_scalars=*/false);
+=======
+      dim[i] = maybe_wrap_dim(dim_unwrapped[i], self.dim(), /*wrap_scalar=*/false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   } else {
     dim.resize(self.dim());

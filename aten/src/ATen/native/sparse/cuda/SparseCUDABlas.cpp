@@ -7,6 +7,7 @@
 
 #include <cusparse.h>
 
+<<<<<<< HEAD
 // LIMITATION (cusparseSpMM):
 // The generic APIs are available on all platforms on CUDA 11.0
 // For CUDA 10.1+ it is available for all platforms except Windows.
@@ -68,6 +69,9 @@ const char* cusparseGetErrorString(cusparseStatus_t status) {
   }
 }
 #endif
+=======
+#include <library_types.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::native::sparse::cuda {
 
@@ -92,8 +96,11 @@ cusparseOperation_t convertTransToCusparseOperation(char trans) {
   }
 }
 
+<<<<<<< HEAD
 #if IS_SPMM_AVAILABLE() || IS_SPMM_HIP_AVAILABLE()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 template<typename T>
 void _csrmm2(
@@ -259,6 +266,7 @@ template<> void csrmm2<c10::complex<double>>(
     reinterpret_cast<cuDoubleComplex*>(c), ldc, CUDA_C_64F);
 }
 
+<<<<<<< HEAD
 #else
 
 void adjustLd(char transb, int64_t m, int64_t n, int64_t k, int64_t *ldb, int64_t *ldc)
@@ -464,6 +472,8 @@ template<> void csrmm2<c10::complex<double>>(
 
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /* format conversion */
 void CreateIdentityPermutation(int64_t nnz, int *P) {
   TORCH_CHECK((nnz <= INT_MAX),

@@ -51,9 +51,14 @@ TensorBase TensorBase::to(
 }
 
 void TensorBase::enforce_invariants() {
+<<<<<<< HEAD
   if (impl_.get() == nullptr) {
     throw std::runtime_error("TensorImpl with nullptr is not supported");
   }
+=======
+  TORCH_CHECK(
+      impl_.get() != nullptr, "TensorImpl with nullptr is not supported");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Following line throws if the method is not a POD data type or is not
   // supported by ATen
   scalar_type();

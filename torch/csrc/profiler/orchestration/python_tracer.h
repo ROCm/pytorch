@@ -56,5 +56,24 @@ struct TORCH_API PythonTracerBase {
 
 using MakeFn = std::unique_ptr<PythonTracerBase> (*)(RecordQueue*);
 TORCH_API void registerTracer(MakeFn make_tracer);
+<<<<<<< HEAD
+=======
+
+/**
+ * Memory Tracer Implementation
+ */
+struct TORCH_API PythonMemoryTracerBase {
+  static std::unique_ptr<PythonMemoryTracerBase> make();
+  virtual ~PythonMemoryTracerBase() = default;
+
+  virtual void start() = 0;
+  virtual void stop() = 0;
+  virtual void export_memory_history(const std::string& path) = 0;
+};
+
+using MakeMemoryFn = std::unique_ptr<PythonMemoryTracerBase> (*)();
+TORCH_API void registerMemoryTracer(MakeMemoryFn make_memory_tracer);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace python_tracer
 } // namespace torch::profiler::impl

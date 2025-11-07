@@ -45,9 +45,15 @@ class ShareMemoryRPCPickler(_InternalRPCPickler):
         for t in torch._tensor_classes:
             self._dispatch_table[t] = TorchMpReductions.reduce_tensor
         self._dispatch_table[torch.Tensor] = TorchMpReductions.reduce_tensor
+<<<<<<< HEAD
         self._dispatch_table[
             torch.nn.parameter.Parameter
         ] = TorchMpReductions.reduce_tensor
+=======
+        self._dispatch_table[torch.nn.parameter.Parameter] = (
+            TorchMpReductions.reduce_tensor
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def worker_loop(a):

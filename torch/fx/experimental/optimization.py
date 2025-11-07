@@ -368,12 +368,21 @@ def optimize_for_inference(
                 supports_mkldnn = MklSupport.YES
                 sample_parameter = next(cur_module.parameters(), None)
                 if sample_parameter is not None:
+<<<<<<< HEAD
                     assert (
                         sample_parameter.dtype == torch.float
                     ), "this pass is only for torch.float modules"
                     assert sample_parameter.device == torch.device(
                         "cpu"
                     ), "this pass is only for CPU modules"
+=======
+                    assert sample_parameter.dtype == torch.float, (
+                        "this pass is only for torch.float modules"
+                    )
+                    assert sample_parameter.device == torch.device("cpu"), (
+                        "this pass is only for CPU modules"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif node.op == "call_function":
             if node.target in mkldnn_supported:
                 supports_mkldnn = MklSupport.YES
@@ -471,7 +480,11 @@ def optimize_for_inference(
         if not use_mkl_heuristic(graph):
             for node in graph.start_nodes + graph.end_nodes:
                 prv = node.args[0]
+<<<<<<< HEAD
                 node.replace_all_uses_with(prv)
+=======
+                node.replace_all_uses_with(prv)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fx_graph.erase_node(node)
             reset_modules(graph.nodes, modules, old_modules)
 

@@ -7,7 +7,16 @@
 #include <torch/csrc/dynamo/framelocals_mapping.h>
 #include <torch/csrc/utils/python_compat.h>
 
+<<<<<<< HEAD
 const char* cache_lookup_profiler_str = "TorchDynamo Cache Lookup";
+=======
+extern "C" {
+extern PyObject* guard_complete_hook;
+}
+
+static constexpr const char* cache_lookup_profiler_str =
+    "TorchDynamo Cache Lookup";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Remember to update the type signature for DynamoCallbackFn.__call__ in
 // torch/_dynamo/types.py if this function's signature changes.
@@ -196,7 +205,27 @@ PyObject* dynamo__custom_eval_frame(
     // guard eval failed, keep propagating
     fail();
     return eval_result;
+<<<<<<< HEAD
   } else if (maybe_cached_code != Py_None) {
+=======
+  }
+
+  // NB: We only do guard collectives when there are any compiled code entries
+  // at all; these reduces overtriggering and we don't need to do guard
+  // collectives the very first time we've seen a frame
+  // TODO: We could also check if we had just created extra for the first
+  // time?  Not too sure the best condition for extra->cache_entry_list
+  if (guard_complete_hook != nullptr && !extra->cache_entry_list.empty()) {
+    py::handle guard_complete_hook_handle(guard_complete_hook);
+    // False means force compilation (someone cache missed)
+    py::object res = guard_complete_hook_handle(maybe_cached_code != Py_None);
+    if (!py::cast<bool>(res)) {
+      maybe_cached_code = Py_None; // NB: non-owning
+    }
+  }
+
+  if (maybe_cached_code != Py_None) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cached_code = (PyCodeObject*)maybe_cached_code;
     // used cached version
     DEBUG_TRACE("cache hit %s", get_frame_name(frame));
@@ -273,7 +302,11 @@ PyObject* dynamo__custom_eval_frame(
     // NB: We could use extract_cache_entry to get the cache_entry, but
     // extract_cache_entry returns a borrowed reference. Modifying a borrowed
     // reference seems wrong. Therefore, we directly access the
+<<<<<<< HEAD
     // extra->cache_entry. extra wont be NULL here.
+=======
+    // extra->cache_entry. extra won't be NULL here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CacheEntry* new_cache_entry =
         create_cache_entry(extra, guarded_code, backend);
 

@@ -2,7 +2,10 @@
 import functools
 import gc
 import itertools as it
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import textwrap
 import unittest
 from collections.abc import Iterator
@@ -104,7 +107,10 @@ class RecordInputOutputDispatchMode(torch.utils._python_dispatch.TorchDispatchMo
         return out
 
 
+<<<<<<< HEAD
 @unittest.skipIf(sys.version_info >= (3, 13), "many segfaults")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @skipIfTorchDynamo("TorchDynamo changes Python calls that memory profiling relies on.")
 class TestIdentifyGradients(TestCase):
     def gradient_detected(
@@ -828,7 +834,10 @@ class TestDataFlow(TestCase):
         )
 
 
+<<<<<<< HEAD
 @unittest.skipIf(sys.version_info >= (3, 13), "many segfaults")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @skipIfTorchDynamo("TorchDynamo changes Python calls that memory profiling relies on.")
 class TestMemoryProfilerE2E(TestCase):
     @staticmethod

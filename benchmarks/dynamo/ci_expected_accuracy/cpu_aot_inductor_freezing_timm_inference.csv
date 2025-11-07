@@ -42,7 +42,11 @@ cspdarknet53,pass,0
 
 
 
+<<<<<<< HEAD
 deit_base_distilled_patch16_224,fail_to_run,0
+=======
+deit_base_distilled_patch16_224,pass,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -114,7 +118,11 @@ lcnet_050,pass,0
 
 
 
+<<<<<<< HEAD
 levit_128,fail_to_run,0
+=======
+levit_128,pass,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -238,7 +246,11 @@ vit_base_patch16_224,pass,0
 
 
 
+<<<<<<< HEAD
 volo_d1_224,fail_to_run,0
+=======
+volo_d1_224,pass,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

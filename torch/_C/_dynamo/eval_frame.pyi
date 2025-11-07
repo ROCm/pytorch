@@ -1,8 +1,19 @@
 import enum
 import types
+<<<<<<< HEAD
 from typing import overload
 
 from torch._dynamo.types import DynamoCallback, DynamoGuardHook
+=======
+from typing import Optional, overload
+
+from torch._dynamo.types import (
+    DynamoCallback,
+    DynamoGuardCompleteHook,
+    DynamoGuardHook,
+    GuardFn,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def set_eval_frame(callback: DynamoCallback) -> DynamoCallback: ...
 def set_skip_guard_eval_unsafe(value: bool) -> bool: ...
@@ -13,6 +24,12 @@ def set_code_exec_strategy(
     code: types.CodeType, strategy: _FrameExecStrategy
 ) -> None: ...
 def set_guard_error_hook(hook: DynamoGuardHook) -> None: ...
+<<<<<<< HEAD
+=======
+def set_guard_complete_hook(
+    hook: Optional[DynamoGuardCompleteHook],
+) -> Optional[DynamoGuardCompleteHook]: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def raise_sigtrap() -> None: ...
 
 class _CacheEntry:
@@ -57,3 +74,10 @@ def _debug_get_cache_entry_list(code: types.CodeType) -> list[_CacheEntry]: ...
 py_opcode_caches: list[int]
 
 def code_framelocals_names(code: types.CodeType) -> tuple[str]: ...
+<<<<<<< HEAD
+=======
+def _load_precompile_entry(
+    code: types.CodeType, guard_manager: GuardFn, dynamo_code: types.CodeType
+) -> None: ...
+def _reset_precompile_entries(code: types.CodeType) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -28,7 +28,10 @@ RUN bash ./install_docs_reqs.sh && rm install_docs_reqs.sh
 
 # Install conda and other packages (e.g., numpy, pytest)
 ARG ANACONDA_PYTHON_VERSION
+<<<<<<< HEAD
 ARG CONDA_CMAKE
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ARG DOCS
 ARG BUILD_ENVIRONMENT
 ENV ANACONDA_PYTHON_VERSION=$ANACONDA_PYTHON_VERSION
@@ -73,6 +76,7 @@ ARG TRITON
 COPY ./common/install_triton.sh install_triton.sh
 COPY ./common/common_utils.sh common_utils.sh
 COPY ci_commit_pins/triton-xpu.txt triton-xpu.txt
+<<<<<<< HEAD
 COPY triton_version.txt triton_version.txt
 RUN if [ -n "${TRITON}" ]; then bash ./install_triton.sh; fi
 RUN rm install_triton.sh common_utils.sh triton-xpu.txt triton_version.txt
@@ -84,6 +88,12 @@ RUN if [ -n "${DB}" ]; then bash ./install_db.sh; fi
 RUN rm install_db.sh
 ENV INSTALLED_DB ${DB}
 
+=======
+COPY triton_xpu_version.txt triton_version.txt
+RUN if [ -n "${TRITON}" ]; then bash ./install_triton.sh; fi
+RUN rm install_triton.sh common_utils.sh triton-xpu.txt triton_version.txt
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (optional) Install vision packages like OpenCV
 ARG VISION
 COPY ./common/install_vision.sh ./common/cache_vision_models.sh ./common/common_utils.sh ./
@@ -91,12 +101,15 @@ RUN if [ -n "${VISION}" ]; then bash ./install_vision.sh; fi
 RUN rm install_vision.sh cache_vision_models.sh common_utils.sh
 ENV INSTALLED_VISION ${VISION}
 
+<<<<<<< HEAD
 # (optional) Install non-default CMake version
 ARG CMAKE_VERSION
 COPY ./common/install_cmake.sh install_cmake.sh
 RUN if [ -n "${CMAKE_VERSION}" ]; then bash ./install_cmake.sh; fi
 RUN rm install_cmake.sh
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (optional) Install non-default Ninja version
 ARG NINJA_VERSION
 COPY ./common/install_ninja.sh install_ninja.sh

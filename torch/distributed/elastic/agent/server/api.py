@@ -71,7 +71,12 @@ class WorkerSpec:
         tee: tees the specified std stream(s) to console + file,
              selectively tee for a particular local rank by passing a map,
              takes precedence over ``redirects`` settings.
+<<<<<<< HEAD
 
+=======
+        event_log_handler: name of the event logging handler as registered in
+          `elastic/events/handlers.py <https://docs.pytorch.org/docs/stable/elastic/events.html>`_.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     role: str
@@ -86,6 +91,10 @@ class WorkerSpec:
     master_port: Optional[int] = None
     master_addr: Optional[str] = None
     local_addr: Optional[str] = None
+<<<<<<< HEAD
+=======
+    event_log_handler: str = "null"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         assert self.local_world_size > 0
@@ -424,7 +433,11 @@ class ElasticAgent(abc.ABC):
 
         Note that the worker group is a mutable object and hence in a
         multi-threaded/process environment it may change state.
+<<<<<<< HEAD
         Implementors are encouraged (but not required) to return
+=======
+        Implementers are encouraged (but not required) to return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         a defensive read-only copy.
         """
         raise NotImplementedError
@@ -457,12 +470,19 @@ class SimpleElasticAgent(ElasticAgent):
         raise NotImplementedError
 
     @abc.abstractmethod
+<<<<<<< HEAD
     def _stop_workers(
         self, worker_group: WorkerGroup, is_restart: bool = False
     ) -> None:
         r"""Stop all workers in the given worker group.
 
         Implementors must deal with workers in all states defined by
+=======
+    def _stop_workers(self, worker_group: WorkerGroup) -> None:
+        r"""Stop all workers in the given worker group.
+
+        Implementers must deal with workers in all states defined by
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ``WorkerState``. That is, it must gracefully handle stopping
         non-existent workers, unhealthy (stuck) workers, etc.
         """
@@ -477,9 +497,13 @@ class SimpleElasticAgent(ElasticAgent):
         raise NotImplementedError
 
     @abc.abstractmethod
+<<<<<<< HEAD
     def _shutdown(
         self, death_sig: signal.Signals = signal.SIGTERM, is_restart: bool = False
     ) -> None:
+=======
+    def _shutdown(self, death_sig: signal.Signals = signal.SIGTERM) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Clean up any resources that were allocated during the agent's work.
 
         Args:
@@ -502,8 +526,13 @@ class SimpleElasticAgent(ElasticAgent):
         group_rank = rdzv_info.rank
         group_world_size = rdzv_info.world_size
 
+<<<<<<< HEAD
         # master_addr/master_port could be explicitly overriden
         # TODO: BC - specific to static rdzv and can be simplifed further
+=======
+        # master_addr/master_port could be explicitly overridden
+        # TODO: BC - specific to static rdzv and can be simplified further
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         master_addr = spec.master_addr or rdzv_info.bootstrap_store_info.master_addr
         master_port = spec.master_port or rdzv_info.bootstrap_store_info.master_port
 
@@ -533,7 +562,12 @@ class SimpleElasticAgent(ElasticAgent):
             "  role_ranks=%(role_ranks)s\n"
             "  global_ranks=%(global_ranks)s\n"
             "  role_world_sizes=%(role_world_sizes)s\n"
+<<<<<<< HEAD
             "  global_world_sizes=%(global_world_sizes)s\n",
+=======
+            "  global_world_sizes=%(global_world_sizes)s\n"
+            "  event_log_handler=%(event_log_handler)s\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {
                 "role": spec.role,
                 "restart_count": restart_count,
@@ -546,6 +580,10 @@ class SimpleElasticAgent(ElasticAgent):
                 "global_ranks": [worker.global_rank for worker in workers],
                 "role_world_sizes": [worker.role_world_size for worker in workers],
                 "global_world_sizes": [worker.world_size for worker in workers],
+<<<<<<< HEAD
+=======
+                "event_log_handler": spec.event_log_handler,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
         )
 
@@ -687,6 +725,13 @@ class SimpleElasticAgent(ElasticAgent):
         for local_rank, w_id in worker_ids.items():
             worker = worker_group.workers[local_rank]
             worker.id = w_id
+<<<<<<< HEAD
+=======
+            record(
+                self._construct_event("START", EventSource.WORKER, worker),
+                worker_group.spec.event_log_handler,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         worker_group.state = WorkerState.HEALTHY
 
@@ -697,7 +742,11 @@ class SimpleElasticAgent(ElasticAgent):
         """Restart (stops, rendezvous, starts) all local workers in the group."""
         role = worker_group.spec.role
         logger.info("[%s] Stopping worker group", role)
+<<<<<<< HEAD
         self._stop_workers(worker_group, is_restart=True)
+=======
+        self._stop_workers(worker_group)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         worker_group.state = WorkerState.STOPPED
         self._initialize_workers(worker_group)
 
@@ -744,7 +793,14 @@ class SimpleElasticAgent(ElasticAgent):
             failure = result.failures.get(worker.global_rank)
             state: str = self._get_worker_state(worker, result)
             raw_error = json.dumps(failure.error_file_data) if failure else None
+<<<<<<< HEAD
             record(self._construct_event(state, EventSource.WORKER, worker, raw_error))
+=======
+            record(
+                self._construct_event(state, EventSource.WORKER, worker, raw_error),
+                self._worker_group.spec.event_log_handler,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _get_worker_state(self, worker: Worker, result: RunResult) -> str:
         failure = result.failures.get(worker.global_rank)
@@ -767,7 +823,12 @@ class SimpleElasticAgent(ElasticAgent):
             record(
                 self._construct_event(
                     state=state, source=EventSource.AGENT, duration_ms=duration_ms
+<<<<<<< HEAD
                 )
+=======
+                ),
+                self._worker_group.spec.event_log_handler,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def _construct_event(
@@ -809,6 +870,10 @@ class SimpleElasticAgent(ElasticAgent):
             "agent_restarts": spec.max_restarts - self._remaining_restarts,
             "duration_ms": duration_ms,
         }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return Event(
             f"torchelastic.worker.status.{state}", source=source, metadata=metadata
         )

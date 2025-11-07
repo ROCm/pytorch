@@ -38,6 +38,10 @@ from torch.testing._internal.common_quantization import (
     TestHelperModules,
 )
 from torch.testing._internal.common_quantized import override_quantized_engine
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @skipIfNoQNNPACK
@@ -361,7 +365,11 @@ class TestXNNPACKQuantizer(PT2EQuantizationTestCase):
         )
         example_inputs = (torch.randn(2, 2),)
         m = M().eval()
+<<<<<<< HEAD
         m = export_for_training(m, example_inputs).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, quantizer)
         # Use a linear count instead of names because the names might change, but
         # the order should be the same.
@@ -497,10 +505,14 @@ class TestXNNPACKQuantizer(PT2EQuantizationTestCase):
         example_inputs = (torch.randn(1, 3, 5, 5),)
 
         # program capture
+<<<<<<< HEAD
         m = export_for_training(
             m,
             example_inputs,
         ).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         m = prepare_pt2e(m, quantizer)
         m(*example_inputs)
@@ -766,8 +778,12 @@ class TestXNNPACKQuantizer(PT2EQuantizationTestCase):
 
             with torchdynamo.config.patch(allow_rnn=True):
                 model_graph = export_for_training(
+<<<<<<< HEAD
                     model_graph,
                     example_inputs,
+=======
+                    model_graph, example_inputs, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ).module()
             quantizer = XNNPACKQuantizer()
             quantization_config = get_symmetric_quantization_config(
@@ -829,8 +845,12 @@ class TestXNNPACKQuantizer(PT2EQuantizationTestCase):
 
             with torchdynamo.config.patch(allow_rnn=True):
                 model_graph = export_for_training(
+<<<<<<< HEAD
                     model_graph,
                     example_inputs,
+=======
+                    model_graph, example_inputs, strict=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ).module()
             quantizer = XNNPACKQuantizer()
             quantization_config = get_symmetric_quantization_config(
@@ -1039,10 +1059,14 @@ class TestXNNPACKQuantizerModels(PT2EQuantizationTestCase):
             m = torchvision.models.resnet18().eval()
             m_copy = copy.deepcopy(m)
             # program capture
+<<<<<<< HEAD
             m = export_for_training(
                 m,
                 example_inputs,
             ).module()
+=======
+            m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             quantizer = XNNPACKQuantizer()
             quantization_config = get_symmetric_quantization_config(is_per_channel=True)
@@ -1088,3 +1112,10 @@ class TestXNNPACKQuantizerModels(PT2EQuantizationTestCase):
             self.assertTrue(
                 compute_sqnr(after_quant_result, after_quant_result_fx) > 35
             )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

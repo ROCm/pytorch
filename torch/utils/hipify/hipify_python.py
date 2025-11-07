@@ -139,7 +139,10 @@ class GeneratedFileCleaner:
             for d in self.dirs_to_clean[::-1]:
                 os.rmdir(d)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Follow UNIX convention for paths to use '/' instead of '\\' on Windows
 def _to_unix_path(path: str) -> str:
     return path.replace(os.sep, '/')
@@ -531,7 +534,11 @@ RE_EXTERN_SHARED = re.compile(r"extern\s+([\w\(\)]+)?\s*__shared__\s+([\w:<>\s]+
 
 def replace_extern_shared(input_string):
     """Match extern __shared__ type foo[]; syntax and use HIP_DYNAMIC_SHARED() MACRO instead.
+<<<<<<< HEAD
        https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_kernel_language.md#__shared__
+=======
+       https://github.com/ROCm/hip/blob/master/docs/markdown/hip_kernel_language.md#__shared__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Example:
         "extern __shared__ char smemChar[];" => "HIP_DYNAMIC_SHARED( char, smemChar)"
         "extern __shared__ unsigned char smem[];" => "HIP_DYNAMIC_SHARED( unsigned char, my_smem)"
@@ -830,6 +837,10 @@ def preprocessor(
         show_progress: bool) -> HipifyResult:
     """ Executes the CUDA -> HIP conversion on the specified file. """
     fin_path = os.path.abspath(os.path.join(output_directory, filepath))
+<<<<<<< HEAD
+=======
+    filepath = _to_unix_path(filepath)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     hipify_result = HIPIFY_FINAL_RESULT[fin_path]
     if filepath not in all_files:
         hipify_result.hipified_path = None
@@ -932,8 +943,13 @@ def preprocessor(
                         return templ.format(os.path.relpath(header_fout_path if header_fout_path is not None
                                                             else header_filepath, header_dir))
                 hipified_header_filepath = HIPIFY_FINAL_RESULT[header_filepath].hipified_path
+<<<<<<< HEAD
                 return templ.format(os.path.relpath(hipified_header_filepath if hipified_header_filepath is not None
                                                     else header_filepath, header_dir))
+=======
+                return templ.format(_to_unix_path(os.path.relpath(hipified_header_filepath if hipified_header_filepath is not None
+                                                                  else header_filepath, header_dir)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return m.group(0)
         return repl
@@ -989,7 +1005,11 @@ def preprocessor(
             hipify_result.status = "[ok]"
             hipify_result.current_state = CurrentState.DONE
             return hipify_result
+<<<<<<< HEAD
         except PermissionError as e:
+=======
+        except OSError as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             print(f'{bcolors.WARNING}Failed to save {fout_path} with "{e.strerror}", leaving {fin_path} unchanged.{bcolors.ENDC}',
                   file=sys.stderr)
             hipify_result.hipified_path = fin_path

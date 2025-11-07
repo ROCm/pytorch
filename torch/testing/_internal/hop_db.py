@@ -100,6 +100,10 @@ FIXME_hop_that_doesnt_have_opinfo_test_allowlist = [
     "triton_kernel_wrapper_mutation",
     "triton_kernel_wrapper_functional",
     "hints_wrapper",
+<<<<<<< HEAD
+=======
+    "dynamo_bypassing_wrapper",  # TODO(soulitzer)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "foreach_map",
     "aoti_call_delegate",
 ]

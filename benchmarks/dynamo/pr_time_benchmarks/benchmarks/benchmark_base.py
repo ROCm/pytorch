@@ -3,6 +3,11 @@ import gc
 import json
 import os
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
+=======
+from typing import Optional
+from typing_extensions import Self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._C._instruction_counter as i_counter
 import torch._dynamo.config as config
@@ -76,7 +81,11 @@ class BenchmarkBase(ABC):
         backend: str = "",
         mode: str = "",
         dynamic=None,
+<<<<<<< HEAD
     ):
+=======
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # These individual attributes are used to support different filters on the
         # dashboard later
         self._category = category
@@ -85,6 +94,7 @@ class BenchmarkBase(ABC):
         self._mode = mode  # Training or inference
         self._dynamic = dynamic
 
+<<<<<<< HEAD
     def with_iterations(self, value):
         self._num_iterations = value
         return self
@@ -130,6 +140,53 @@ class BenchmarkBase(ABC):
         pass
 
     def _count_instructions(self):
+=======
+    def with_iterations(self, value: int) -> Self:
+        self._num_iterations = value
+        return self
+
+    def enable_instruction_count(self) -> Self:
+        self._enable_instruction_count = True
+        return self
+
+    def enable_compile_time_instruction_count(self) -> Self:
+        self._enable_compile_time_instruction_count = True
+        return self
+
+    def name(self) -> str:
+        return ""
+
+    def backend(self) -> str:
+        return self._backend
+
+    def mode(self) -> str:
+        return self._mode
+
+    def category(self) -> str:
+        return self._category
+
+    def device(self) -> str:
+        return self._device
+
+    def is_dynamic(self) -> Optional[bool]:
+        return self._dynamic
+
+    def description(self) -> str:
+        return ""
+
+    @abstractmethod
+    def _prepare(self) -> None:
+        pass
+
+    @abstractmethod
+    def _work(self) -> None:
+        pass
+
+    def _prepare_once(self) -> None:  # noqa: B027
+        pass
+
+    def _count_instructions(self) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         print(f"collecting instruction count for {self.name()}")
         results = []
         for i in range(self._num_iterations):
@@ -141,7 +198,11 @@ class BenchmarkBase(ABC):
             results.append(count)
         return min(results)
 
+<<<<<<< HEAD
     def _count_compile_time_instructions(self):
+=======
+    def _count_compile_time_instructions(self) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gc.disable()
 
         try:
@@ -169,7 +230,11 @@ class BenchmarkBase(ABC):
         finally:
             gc.enable()
 
+<<<<<<< HEAD
     def _write_to_json(self, output_dir: str):
+=======
+    def _write_to_json(self, output_dir: str) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Write the result into JSON format, so that it can be uploaded to the benchmark database
         to be displayed on OSS dashboard. The JSON format is defined at
@@ -209,7 +274,11 @@ class BenchmarkBase(ABC):
         with open(os.path.join(output_dir, f"{self.name()}.json"), "w") as f:
             json.dump(records, f)
 
+<<<<<<< HEAD
     def append_results(self, path):
+=======
+    def append_results(self, path: str) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with open(path, "a", newline="") as csvfile:
             # Create a writer object
             writer = csv.writer(csvfile)
@@ -221,11 +290,19 @@ class BenchmarkBase(ABC):
         # as the CSV writer for now
         self._write_to_json(os.path.dirname(os.path.abspath(path)))
 
+<<<<<<< HEAD
     def print(self):
         for entry in self.results:
             print(f"{entry[0]},{entry[1]},{entry[2]}")
 
     def collect_all(self):
+=======
+    def print(self) -> None:
+        for entry in self.results:
+            print(f"{entry[0]},{entry[1]},{entry[2]}")
+
+    def collect_all(self) -> Self:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._prepare_once()
         self.results = []
         if (
@@ -245,7 +322,14 @@ class BenchmarkBase(ABC):
                     instruction_count=r,
                 )
         if self._enable_compile_time_instruction_count:
+<<<<<<< HEAD
             r = self._count_compile_time_instructions()
+=======
+            # enable_cpp_symbolic_shape_guards has impact on these benchmarks
+            # Keep using False value for consistency.
+            with config.patch("enable_cpp_symbolic_shape_guards", False):
+                r = self._count_compile_time_instructions()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.results.append(
                 (

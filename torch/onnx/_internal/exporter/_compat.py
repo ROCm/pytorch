@@ -50,7 +50,11 @@ def export_compat(
     verbose: bool | None = None,
     input_names: Sequence[str] | None = None,
     output_names: Sequence[str] | None = None,
+<<<<<<< HEAD
     opset_version: int | None = None,
+=======
+    opset_version: int | None = _constants.TORCHLIB_OPSET,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     custom_translation_table: dict[Callable, Callable | Sequence[Callable]]
     | None = None,
     dynamic_axes: Mapping[str, Mapping[int, str]]
@@ -66,6 +70,11 @@ def export_compat(
     dump_exported_program: bool = False,
     artifacts_dir: str | os.PathLike = ".",
     fallback: bool = False,
+<<<<<<< HEAD
+=======
+    # Legacy export parameters for fallback
+    legacy_export_kwargs: dict[str, Any] | None = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> _onnx_program.ONNXProgram:
     if opset_version is None:
         opset_version = _constants.TORCHLIB_OPSET
@@ -105,8 +114,12 @@ def export_compat(
     dynamic_shapes_with_export_dim, need_axis_mapping = (
         _dynamic_shapes.convert_str_to_export_dim(dynamic_shapes)
     )
+<<<<<<< HEAD
 
     registry = _registration.ONNXRegistry.from_torchlib()
+=======
+    registry = _registration.ONNXRegistry().from_torchlib(opset_version=opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if custom_translation_table is not None:
         for torch_op, onnx_ops in custom_translation_table.items():
             # TODO(justinchuby): Support complex inputs with annotations
@@ -152,6 +165,13 @@ def export_compat(
                 dynamic_axes = _dynamic_shapes.from_dynamic_shapes_to_dynamic_axes(
                     dynamic_shapes=dynamic_shapes, input_names=input_names, exception=e
                 )
+<<<<<<< HEAD
+=======
+            # Use the legacy export kwargs prepared in __init__.py
+            if legacy_export_kwargs is None:
+                legacy_export_kwargs = {}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.onnx.utils.export(
                 model,  # type: ignore[arg-type]
                 args,
@@ -160,9 +180,16 @@ def export_compat(
                 export_params=export_params,
                 input_names=input_names,
                 output_names=output_names,
+<<<<<<< HEAD
                 opset_version=17,  # TODO(justinchuby): Hard coded to 17 for now
                 dynamic_axes=dynamic_axes,
                 keep_initializers_as_inputs=keep_initializers_as_inputs,
+=======
+                opset_version=opset_version,
+                dynamic_axes=dynamic_axes,
+                keep_initializers_as_inputs=keep_initializers_as_inputs,
+                **legacy_export_kwargs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             onnx_program = _onnx_program.ONNXProgram(ir.load(f), None)
 

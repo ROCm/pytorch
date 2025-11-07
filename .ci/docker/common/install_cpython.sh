@@ -3,11 +3,19 @@
 set -uex -o pipefail
 
 PYTHON_DOWNLOAD_URL=https://www.python.org/ftp/python
+<<<<<<< HEAD
 PYTHON_DOWNLOAD_GITHUB_BRANCH=https://github.com/python/cpython/archive/refs/heads
 GET_PIP_URL=https://bootstrap.pypa.io/get-pip.py
 
 # Python versions to be installed in /opt/$VERSION_NO
 CPYTHON_VERSIONS=${CPYTHON_VERSIONS:-"3.8.1 3.9.0 3.10.1 3.11.0 3.12.0 3.13.0 3.13.0t"}
+=======
+PYTHON_DOWNLOAD_GITHUB_BRANCH=https://github.com/python/cpython/archive/refs/heads  # @lint-ignore
+GET_PIP_URL=https://bootstrap.pypa.io/get-pip.py
+
+# Python versions to be installed in /opt/$VERSION_NO
+CPYTHON_VERSIONS=${CPYTHON_VERSIONS:-"3.9.0 3.10.1 3.11.0 3.12.0 3.13.0 3.13.0t"}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 function check_var {
     if [ -z "$1" ]; then

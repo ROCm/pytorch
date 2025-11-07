@@ -12,6 +12,14 @@
 #  MKL_SOLVER_LIBRARIES - list of libraries to add for the solvers
 #  MKL_CDFT_LIBRARIES - list of libraries to add for the solvers
 
+<<<<<<< HEAD
+=======
+# Do nothing if on ARM
+IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+RETURN()
+ENDIF()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Do nothing if MKL_FOUND was set before!
 IF (NOT MKL_FOUND)
 

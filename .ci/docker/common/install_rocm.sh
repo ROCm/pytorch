@@ -21,6 +21,21 @@ install_ubuntu() {
     apt-get install -y libc++1
     apt-get install -y libc++abi1
 
+<<<<<<< HEAD
+=======
+    # Make sure rocm packages from repo.radeon.com have highest priority
+    cat << EOF > /etc/apt/preferences.d/rocm-pin-600
+Package: *
+Pin: release o=repo.radeon.com
+Pin-Priority: 600
+EOF
+
+    # we want the patch version of 6.4 instead
+    if [[ $(ver $ROCM_VERSION) -eq $(ver 6.4) ]]; then
+        ROCM_VERSION="${ROCM_VERSION}.1"
+    fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Add amdgpu repository
     UBUNTU_VERSION_NAME=`cat /etc/os-release | grep UBUNTU_CODENAME | awk -F= '{print $2}'`
     echo "deb [arch=amd64] https://repo.radeon.com/amdgpu/${ROCM_VERSION}/ubuntu ${UBUNTU_VERSION_NAME} main" > /etc/apt/sources.list.d/amdgpu.list
@@ -61,17 +76,42 @@ install_ubuntu() {
     done
 
     # ROCm 6.3 had a regression where initializing static code objects had significant overhead
+<<<<<<< HEAD
     if [[ $(ver $ROCM_VERSION) -eq $(ver 6.3) ]]; then
         # clr build needs CppHeaderParser but can only find it using conda's python
         /opt/conda/bin/python -m pip install CppHeaderParser
         git clone https://github.com/ROCm/HIP -b rocm-6.3.x
         HIP_COMMON_DIR=$(readlink -f HIP)
         git clone https://github.com/jeffdaily/clr -b release/rocm-rel-6.3-statco-hotfix
+=======
+    # ROCm 6.4 did not yet fix the regression, also HIP branch names are different
+    if [[ $(ver $ROCM_VERSION) -ge $(ver 6.3) ]] && [[ $(ver $ROCM_VERSION) -lt $(ver 7.0) ]]; then
+        if [[ $(ver $ROCM_VERSION) -eq $(ver 6.4.1) ]]; then
+            HIP_BRANCH=release/rocm-rel-6.4
+            VER_STR=6.4
+            VER_PATCH=.1
+        elif [[ $(ver $ROCM_VERSION) -eq $(ver 6.4) ]]; then
+            HIP_BRANCH=release/rocm-rel-6.4
+            VER_STR=6.4
+        elif [[ $(ver $ROCM_VERSION) -eq $(ver 6.3) ]]; then
+            HIP_BRANCH=rocm-6.3.x
+            VER_STR=6.3
+        fi
+        # clr build needs CppHeaderParser but can only find it using conda's python
+        /opt/conda/bin/python -m pip install CppHeaderParser
+        git clone https://github.com/ROCm/HIP -b $HIP_BRANCH
+        HIP_COMMON_DIR=$(readlink -f HIP)
+        git clone https://github.com/jeffdaily/clr -b release/rocm-rel-${VER_STR}${VER_PATCH}-statco-hotfix
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mkdir -p clr/build
         pushd clr/build
         cmake .. -DCLR_BUILD_HIP=ON -DHIP_COMMON_DIR=$HIP_COMMON_DIR
         make -j
+<<<<<<< HEAD
         cp hipamd/lib/libamdhip64.so.6.3.* /opt/rocm/lib/libamdhip64.so.6.3.*
+=======
+        cp hipamd/lib/libamdhip64.so.${VER_STR}.* /opt/rocm/lib/libamdhip64.so.${VER_STR}.*
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         popd
         rm -rf HIP clr
     fi
@@ -86,6 +126,7 @@ install_centos() {
   yum update -y
   yum install -y kmod
   yum install -y wget
+<<<<<<< HEAD
   
   if [[ $OS_VERSION == 9 ]]; then 
       dnf install -y openblas-serial
@@ -122,6 +163,28 @@ install_centos() {
   else
       local rocm_baseurl="http://repo.radeon.com/rocm/yum/${ROCM_VERSION}/main"
   fi
+=======
+  yum install -y openblas-devel
+
+  yum install -y epel-release
+  yum install -y dkms kernel-headers-`uname -r` kernel-devel-`uname -r`
+
+  # Add amdgpu repository
+  local amdgpu_baseurl
+  if [[ $OS_VERSION == 9 ]]; then
+      amdgpu_baseurl="https://repo.radeon.com/amdgpu/${ROCM_VERSION}/rhel/9.0/main/x86_64"
+  else
+      amdgpu_baseurl="https://repo.radeon.com/amdgpu/${ROCM_VERSION}/rhel/7.9/main/x86_64"
+  fi
+  echo "[AMDGPU]" > /etc/yum.repos.d/amdgpu.repo
+  echo "name=AMDGPU" >> /etc/yum.repos.d/amdgpu.repo
+  echo "baseurl=${amdgpu_baseurl}" >> /etc/yum.repos.d/amdgpu.repo
+  echo "enabled=1" >> /etc/yum.repos.d/amdgpu.repo
+  echo "gpgcheck=1" >> /etc/yum.repos.d/amdgpu.repo
+  echo "gpgkey=http://repo.radeon.com/rocm/rocm.gpg.key" >> /etc/yum.repos.d/amdgpu.repo
+
+  local rocm_baseurl="http://repo.radeon.com/rocm/yum/${ROCM_VERSION}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   echo "[ROCm]" > /etc/yum.repos.d/rocm.repo
   echo "name=ROCm" >> /etc/yum.repos.d/rocm.repo
   echo "baseurl=${rocm_baseurl}" >> /etc/yum.repos.d/rocm.repo
@@ -129,6 +192,7 @@ install_centos() {
   echo "gpgcheck=1" >> /etc/yum.repos.d/rocm.repo
   echo "gpgkey=http://repo.radeon.com/rocm/rocm.gpg.key" >> /etc/yum.repos.d/rocm.repo
 
+<<<<<<< HEAD
   if [[ $OS_VERSION == 9 ]]; then
       yum update -y --nogpgcheck
       dnf --enablerepo=crb install -y perl-File-BaseDir python3-wheel
@@ -136,6 +200,11 @@ install_centos() {
   else
       yum update -y
       yum install -y \
+=======
+  yum update -y
+
+  yum install -y \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                    rocm-dev \
                    rocm-utils \
                    rocm-libs \
@@ -143,7 +212,10 @@ install_centos() {
                    rocprofiler-dev \
                    roctracer-dev \
                    amd-smi-lib
+<<<<<<< HEAD
   fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   # precompiled miopen kernels; search for all unversioned packages
   # if search fails it will abort this script; use true to avoid case where search fails
@@ -167,8 +239,11 @@ install_centos() {
   rm -rf /var/lib/yum/history
 }
 
+<<<<<<< HEAD
 OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Install Python packages depending on the base OS
 ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
 case "$ID" in

@@ -693,7 +693,11 @@ def _tmp_donotuse_dont_inline_everything(fn):
             fn(*args, **kwargs)
     return wrapper
 
+<<<<<<< HEAD
 # make it easy to quicky define/trace a function for these tests
+=======
+# make it easy to quickly define/trace a function for these tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _trace(*args, **kwargs):
     def wrapper(func):
         return torch.jit.trace(func, args, **kwargs)

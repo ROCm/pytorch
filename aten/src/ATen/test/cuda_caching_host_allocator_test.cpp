@@ -18,7 +18,11 @@ TEST(CachingHostAllocatorTest, check_stats) {
 
   // Clear the stats and ensure they are zero.
   size_t round_size = c10::llvm::PowerOf2Ceil(N);
+<<<<<<< HEAD
   auto stats = at::cuda::CachingHostAllocator_getStats();
+=======
+  auto stats = at::getHostAllocator(at::kCUDA)->get_stats();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ASSERT_EQ(stats.allocation.current, 0);
   ASSERT_EQ(stats.allocation.peak, 0);
   ASSERT_EQ(stats.allocation.allocated, 0);
@@ -31,7 +35,11 @@ TEST(CachingHostAllocatorTest, check_stats) {
         {N}, at::TensorOptions().dtype(at::kByte).pinned_memory(true));
     ptr = pinned_tensor.data_ptr();
     ctx = pinned_tensor.storage().data_ptr().get_context();
+<<<<<<< HEAD
     auto stats = at::cuda::CachingHostAllocator_getStats();
+=======
+    auto stats = at::getHostAllocator(at::kCUDA)->get_stats();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ASSERT_EQ(stats.allocation.current, 1);
     ASSERT_EQ(stats.allocation.peak, 1);
     ASSERT_EQ(stats.allocation.allocated, 1);
@@ -47,7 +55,11 @@ TEST(CachingHostAllocatorTest, check_stats) {
   {
     auto pinned_tensor = at::empty(
         {N}, at::TensorOptions().dtype(at::kByte).pinned_memory(true));
+<<<<<<< HEAD
     auto stats = at::cuda::CachingHostAllocator_getStats();
+=======
+    auto stats = at::getHostAllocator(at::kCUDA)->get_stats();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ASSERT_EQ(ptr, pinned_tensor.data_ptr());
     ASSERT_EQ(ctx, pinned_tensor.storage().data_ptr().get_context());
     ASSERT_EQ(stats.allocation.current, 1);
@@ -65,7 +77,11 @@ TEST(CachingHostAllocatorTest, check_stats) {
     size_t new_round_size = c10::llvm::PowerOf2Ceil(new_size);
     auto pinned_tensor = at::empty(
         {new_size}, at::TensorOptions().dtype(at::kByte).pinned_memory(true));
+<<<<<<< HEAD
     auto stats = at::cuda::CachingHostAllocator_getStats();
+=======
+    auto stats = at::getHostAllocator(at::kCUDA)->get_stats();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ASSERT_NE(ptr, pinned_tensor.data_ptr());
     ASSERT_NE(ctx, pinned_tensor.storage().data_ptr().get_context());
     ASSERT_EQ(stats.allocation.current, 1);
@@ -81,8 +97,13 @@ TEST(CachingHostAllocatorTest, check_stats) {
 
   // Test the empty cache.
   {
+<<<<<<< HEAD
     at::cuda::CachingHostAllocator_emptyCache();
     auto stats = at::cuda::CachingHostAllocator_getStats();
+=======
+    at::getHostAllocator(at::kCUDA)->empty_cache();
+    auto stats = at::getHostAllocator(at::kCUDA)->get_stats();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ASSERT_EQ(stats.allocation.current, 0);
     ASSERT_EQ(stats.allocated_bytes.current, 0);
     ASSERT_EQ(stats.allocation.peak, 2);
@@ -97,9 +118,15 @@ TEST(CachingHostAllocatorTest, check_stats) {
 
   // Test the reset stats.
   {
+<<<<<<< HEAD
     at::cuda::CachingHostAllocator_resetAccumulatedStats();
     at::cuda::CachingHostAllocator_resetPeakStats();
     auto stats = at::cuda::CachingHostAllocator_getStats();
+=======
+    at::getHostAllocator(at::kCUDA)->reset_accumulated_stats();
+    at::getHostAllocator(at::kCUDA)->reset_peak_stats();
+    auto stats = at::getHostAllocator(at::kCUDA)->get_stats();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ASSERT_EQ(stats.allocation.peak, 0);
     ASSERT_EQ(stats.allocation.allocated, 0);
     ASSERT_EQ(stats.allocation.freed, 0);
@@ -121,10 +148,17 @@ TEST(CachingHostAllocatorTest, pinned_alias_slice) {
   auto pinned_tensor =
       at::empty({N}, at::TensorOptions().dtype(at::kByte).pinned_memory(true));
   ASSERT_TRUE(pinned_tensor.is_pinned());
+<<<<<<< HEAD
   ASSERT_TRUE(at::cuda::CachingHostAllocator_recordEvent(
       pinned_tensor.data_ptr(),
       pinned_tensor.storage().data_ptr().get_context(),
       at::cuda::getCurrentCUDAStream()));
+=======
+  ASSERT_TRUE(at::getHostAllocator(at::kCUDA)->record_event(
+      pinned_tensor.data_ptr(),
+      pinned_tensor.storage().data_ptr().get_context(),
+      at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Check an tensor constructed with from_blob can be correctly recorded (via
   // the shared data_ptr)
@@ -136,10 +170,17 @@ TEST(CachingHostAllocatorTest, pinned_alias_slice) {
       alias_tensor.storage().data_ptr().get_context() ==
       pinned_tensor.storage().data_ptr().get_context());
   ASSERT_EQ(alias_tensor.data_ptr(), pinned_tensor.data_ptr());
+<<<<<<< HEAD
   ASSERT_TRUE(at::cuda::CachingHostAllocator_recordEvent(
       alias_tensor.data_ptr(),
       alias_tensor.storage().data_ptr().get_context(),
       at::cuda::getCurrentCUDAStream()));
+=======
+  ASSERT_TRUE(at::getHostAllocator(at::kCUDA)->record_event(
+      alias_tensor.data_ptr(),
+      alias_tensor.storage().data_ptr().get_context(),
+      at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Check an tensor constructed with slicing can be correctly recorded (via
   // the shared context)
@@ -149,20 +190,34 @@ TEST(CachingHostAllocatorTest, pinned_alias_slice) {
       slice_tensor.storage().data_ptr().get_context(),
       pinned_tensor.storage().data_ptr().get_context());
   ASSERT_NE(slice_tensor.data_ptr(), pinned_tensor.data_ptr());
+<<<<<<< HEAD
   ASSERT_TRUE(at::cuda::CachingHostAllocator_recordEvent(
       slice_tensor.data_ptr(),
       slice_tensor.storage().data_ptr().get_context(),
       at::cuda::getCurrentCUDAStream()));
+=======
+  ASSERT_TRUE(at::getHostAllocator(at::kCUDA)->record_event(
+      slice_tensor.data_ptr(),
+      slice_tensor.storage().data_ptr().get_context(),
+      at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Check a tensor that has neither a matching context nor data_ptr cannot be
   // recorded.
   auto alias_slice_tensor = at::from_blob(
       slice_tensor.data_ptr(), slice_tensor.sizes(), slice_tensor.options());
   ASSERT_TRUE(alias_slice_tensor.is_pinned());
+<<<<<<< HEAD
   ASSERT_FALSE(at::cuda::CachingHostAllocator_recordEvent(
       alias_slice_tensor.data_ptr(),
       alias_slice_tensor.storage().data_ptr().get_context(),
       at::cuda::getCurrentCUDAStream()));
+=======
+  ASSERT_FALSE(at::getHostAllocator(at::kCUDA)->record_event(
+      alias_slice_tensor.data_ptr(),
+      alias_slice_tensor.storage().data_ptr().get_context(),
+      at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ASSERT_NE(
       alias_slice_tensor.storage().data_ptr().get(),
       slice_tensor.storage().data_ptr().get());
@@ -173,7 +228,11 @@ TEST(CachingHostAllocatorTest, check_raw_allocation) {
     return;
   }
 
+<<<<<<< HEAD
   auto data_ptr = at::cuda::getCachingHostAllocator()->allocate(N);
+=======
+  auto data_ptr = at::getHostAllocator(at::kCUDA)->allocate(N);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   class UserDataDeleter {
    public:
     explicit UserDataDeleter(std::unique_ptr<void, c10::DeleterFnPtr> ptr)
@@ -206,10 +265,17 @@ TEST(CachingHostAllocatorTest, check_raw_allocation) {
           .make_tensor();
 
   ASSERT_TRUE(pinned_tensor.is_pinned());
+<<<<<<< HEAD
   ASSERT_TRUE(at::cuda::CachingHostAllocator_recordEvent(
       pinned_tensor.data_ptr(),
       pinned_tensor.storage().data_ptr().get_context(),
       at::cuda::getCurrentCUDAStream()));
+=======
+  ASSERT_TRUE(at::getHostAllocator(at::kCUDA)->record_event(
+      pinned_tensor.data_ptr(),
+      pinned_tensor.storage().data_ptr().get_context(),
+      at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(CachingHostAllocatorTest, check_unknown_tensor) {
@@ -220,10 +286,17 @@ TEST(CachingHostAllocatorTest, check_unknown_tensor) {
   auto unpinned_tensor =
       at::empty({N}, at::TensorOptions().dtype(at::kByte).pinned_memory(false));
 
+<<<<<<< HEAD
   ASSERT_FALSE(at::cuda::CachingHostAllocator_recordEvent(
       unpinned_tensor.data_ptr(),
       unpinned_tensor.storage().data_ptr().get_context(),
       at::cuda::getCurrentCUDAStream()));
+=======
+  ASSERT_FALSE(at::getHostAllocator(at::kCUDA)->record_event(
+      unpinned_tensor.data_ptr(),
+      unpinned_tensor.storage().data_ptr().get_context(),
+      at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(CachingHostAllocatorTest, check_empty_cache) {
@@ -238,6 +311,7 @@ TEST(CachingHostAllocatorTest, check_empty_cache) {
         {N}, at::TensorOptions().dtype(at::kByte).pinned_memory(true));
     ptr = pinned_tensor.data_ptr();
     ctx = pinned_tensor.storage().data_ptr().get_context();
+<<<<<<< HEAD
     ASSERT_TRUE(at::cuda::CachingHostAllocator_recordEvent(
         ptr, ctx, at::cuda::getCurrentCUDAStream()));
   }
@@ -245,6 +319,15 @@ TEST(CachingHostAllocatorTest, check_empty_cache) {
   at::cuda::CachingHostAllocator_emptyCache();
   ASSERT_FALSE(at::cuda::CachingHostAllocator_recordEvent(
       ptr, ctx, at::cuda::getCurrentCUDAStream()));
+=======
+    ASSERT_TRUE(at::getHostAllocator(at::kCUDA)->record_event(
+        ptr, ctx, at::cuda::getCurrentCUDAStream().unwrap()));
+  }
+
+  at::getHostAllocator(at::kCUDA)->empty_cache();
+  ASSERT_FALSE(at::getHostAllocator(at::kCUDA)->record_event(
+      ptr, ctx, at::cuda::getCurrentCUDAStream().unwrap()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TEST(CachingHostAllocatorTest, check_reuse) {

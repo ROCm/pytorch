@@ -60,9 +60,31 @@ static void _fused_sgd_with_momentum_kernel_mps_(TensorList params,
                                                  const bool is_first_step,
                                                  const std::optional<Tensor>& grad_scale,
                                                  const std::optional<Tensor>& found_inf) {
+<<<<<<< HEAD
   TORCH_CHECK_GT(momentum, 0);
   TORCH_CHECK(native::check_fast_path_restrictions({params, grads, momentum_buffer_list}));
 
+=======
+  if (lr_tensor.is_cpu()) {
+    return _fused_sgd_with_momentum_kernel_mps_(params,
+                                                grads,
+                                                momentum_buffer_list,
+                                                weight_decay,
+                                                momentum,
+                                                lr_tensor.item<double>(),
+                                                dampening,
+                                                nesterov,
+                                                maximize,
+                                                is_first_step,
+                                                grad_scale,
+                                                found_inf);
+  }
+  TORCH_CHECK_GT(momentum, 0);
+  TORCH_CHECK(native::check_fast_path_restrictions({params, grads, momentum_buffer_list}));
+
+  TORCH_CHECK(lr_tensor.device() == params[0].device(), "lr must be on the same GPU device as the params");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<std::vector<Tensor>> tensor_lists{params.vec(), grads.vec(), momentum_buffer_list.vec()};
 
   const auto kernel_name = "fused_sgd_momentum_" + scalarToMetalTypeString(params[0].scalar_type());
@@ -98,8 +120,11 @@ void _fused_sgd_kernel_mps_(TensorList params,
                             const bool is_first_step,
                             const std::optional<Tensor>& grad_scale,
                             const std::optional<Tensor>& found_inf) {
+<<<<<<< HEAD
   TORCH_CHECK(!grad_scale.has_value() && !found_inf.has_value(), "grad_scale and found_inf are not supported on MPS");
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!momentum_buffer_list.empty()) {
     return _fused_sgd_with_momentum_kernel_mps_(params,
                                                 grads,
@@ -147,8 +172,11 @@ void _fused_sgd_kernel_mps_(TensorList params,
                             const bool is_first_step,
                             const std::optional<Tensor>& grad_scale,
                             const std::optional<Tensor>& found_inf) {
+<<<<<<< HEAD
   TORCH_CHECK(!grad_scale.has_value() && !found_inf.has_value(), "grad_scale and found_inf are not supported on MPS");
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!momentum_buffer_list.empty()) {
     return _fused_sgd_with_momentum_kernel_mps_(params,
                                                 grads,

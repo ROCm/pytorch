@@ -33,6 +33,7 @@ install_ubuntu() {
     maybe_libomp_dev=""
   fi
 
+<<<<<<< HEAD
   # HACK: UCC testing relies on libnccl library from NVIDIA repo, and version 2.16 crashes
   # See https://github.com/pytorch/pytorch/pull/105260#issuecomment-1673399729
   # TODO: Eliminate this hack, we should not relay on apt-get installation
@@ -45,6 +46,8 @@ install_ubuntu() {
     maybe_libnccl_dev=""
   fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Install common dependencies
   apt-get update
   # TODO: Some of these may not be necessary
@@ -73,7 +76,10 @@ install_ubuntu() {
     libasound2-dev \
     libsndfile-dev \
     ${maybe_libomp_dev} \
+<<<<<<< HEAD
     ${maybe_libnccl_dev} \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     software-properties-common \
     wget \
     sudo \
@@ -90,12 +96,15 @@ install_ubuntu() {
   # see: https://github.com/pytorch/pytorch/issues/65931
   apt-get install -y libgnutls30
 
+<<<<<<< HEAD
   # Required to install the fortran after gcc update
   if [[ "$UBUNTU_VERSION" == "22.04"* ]]; then
     apt autoremove -y gfortran
     apt-get update -y
     apt-get install -y gfortran
   fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Cleanup package manager
   apt-get autoclean && apt-get clean
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -104,6 +113,7 @@ install_ubuntu() {
 install_centos() {
   # Need EPEL for many packages we depend on.
   # See http://fedoraproject.org/wiki/EPEL
+<<<<<<< HEAD
   # extras repo is not there for CentOS 9 and epel-release is already part of repo list
   if [[ $OS_VERSION == 9 ]]; then
       yum install -y epel-release
@@ -119,6 +129,13 @@ install_centos() {
   # for Caffe2. That said, we still install them to make sure the build
   # system opts to build/use protoc and libprotobuf from third-party.
   yum install -y $ALLOW_ERASE \
+=======
+  yum --enablerepo=extras install -y epel-release
+
+  ccache_deps="asciidoc docbook-dtds docbook-style-xsl libxslt"
+  numpy_deps="gcc-gfortran"
+  yum install -y \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     $ccache_deps \
     $numpy_deps \
     autoconf \
@@ -135,13 +152,20 @@ install_centos() {
     glibc-headers \
     glog-devel \
     libstdc++-devel \
+<<<<<<< HEAD
     make \
+=======
+    libsndfile-devel \
+    make \
+    opencv-devel \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sudo \
     wget \
     vim \
     unzip \
     gdb
 
+<<<<<<< HEAD
   if [[ $OS_VERSION == 9 ]]
   then
 	  dnf --enablerepo=crb -y install libsndfile-devel
@@ -152,6 +176,8 @@ install_centos() {
 	    libsndfile-devel
   fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # Cleanup
   yum clean all
   rm -rf /var/cache/yum
@@ -159,10 +185,15 @@ install_centos() {
   rm -rf /var/lib/yum/history
 }
 
+<<<<<<< HEAD
 ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
 OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 
 # Install base packages depending on the base OS
+=======
+# Install base packages depending on the base OS
+ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 case "$ID" in
   ubuntu)
     install_ubuntu

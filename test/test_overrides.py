@@ -9,10 +9,16 @@ import pprint
 import pickle
 import collections
 import unittest
+<<<<<<< HEAD
 import contextlib
 import os
 
 from torch.testing._internal.common_utils import TestCase, run_tests, TEST_WITH_CROSSREF, TEST_WITH_TORCHDYNAMO
+=======
+import os
+
+from torch.testing._internal.common_utils import TestCase, run_tests, TEST_WITH_CROSSREF
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.overrides import (
     handle_torch_function,
     has_torch_function,
@@ -369,7 +375,11 @@ class TensorLike:
     """A class that overrides the full torch API
 
     This class is used to explicitly test that the full torch.tensor API
+<<<<<<< HEAD
     can be overriden with a class that defines __torch_function__.
+=======
+    can be overridden with a class that defines __torch_function__.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     @classmethod
     def __torch_function__(cls, func, types, args=(), kwargs=None):
@@ -382,6 +392,7 @@ class TensorLike:
         return HANDLED_FUNCTIONS_TENSOR_LIKE[func](*args, **kwargs)
 
 class TestTorchFunctionOverride(TestCase):
+<<<<<<< HEAD
     @classmethod
     def setUpClass(cls):
         cls._stack = contextlib.ExitStack()
@@ -403,6 +414,8 @@ class TestTorchFunctionOverride(TestCase):
     def tearDownClass(cls):
         cls._stack.close()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dtype_override(self):
         class MyDtype:
             def __torch_function__(self, *args, **kwargs):

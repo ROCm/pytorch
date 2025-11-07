@@ -19,7 +19,10 @@
 #include <c10/util/TypeIndex.h>
 #include <c10/util/TypeTraits.h>
 #include <c10/util/irange.h>
+<<<<<<< HEAD
 #include <c10/util/string_view.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <c10/core/ScalarType.h>
 
@@ -394,7 +397,11 @@ class C10_API TypeMeta final {
     return data().placementNew_;
   }
   /**
+<<<<<<< HEAD
    * Returns the typed copy function pointer for individual iterms.
+=======
+   * Returns the typed copy function pointer for individual items.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    */
   Copy* copy() const noexcept {
     return data().copy_;
@@ -477,7 +484,11 @@ class C10_API TypeMeta final {
   /**
    * convert TypeMeta handles to ScalarType enum values
    */
+<<<<<<< HEAD
   inline ScalarType toScalarType() {
+=======
+  inline ScalarType toScalarType() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (C10_LIKELY(isScalarType())) {
       return static_cast<ScalarType>(index_);
     }

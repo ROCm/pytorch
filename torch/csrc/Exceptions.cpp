@@ -14,7 +14,12 @@
 PyObject *THPException_FatalError, *THPException_LinAlgError,
     *THPException_OutOfMemoryError, *THPException_DistError,
     *THPException_DistBackendError, *THPException_DistNetworkError,
+<<<<<<< HEAD
     *THPException_DistStoreError;
+=======
+    *THPException_DistStoreError, *THPException_DistQueueEmptyError,
+    *THPException_AcceleratorError;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define ASSERT_TRUE(cond) \
   if (!(cond))            \
@@ -113,6 +118,33 @@ could not be completed because the input matrix is singular.",
       PyModule_AddObject(
           module, "_DistStoreError", THPException_DistStoreError) == 0);
 
+<<<<<<< HEAD
+=======
+  // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
+  ASSERT_TRUE(
+      THPException_DistQueueEmptyError = PyErr_NewExceptionWithDoc(
+          "torch.distributed.QueueEmptyError",
+          "Exception raised when an error occurs in the distributed store",
+          THPException_DistStoreError,
+          nullptr));
+  ASSERT_TRUE(
+      PyModule_AddObject(
+          module, "_DistQueueEmptyError", THPException_DistQueueEmptyError) ==
+      0);
+
+  // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
+  ASSERT_TRUE(
+      THPException_AcceleratorError = PyErr_NewExceptionWithDoc(
+          "torch.AcceleratorError",
+          "Exception raised while executing on device",
+          PyExc_RuntimeError,
+          nullptr));
+  type = (PyTypeObject*)THPException_AcceleratorError;
+  ASSERT_TRUE(
+      PyModule_AddObject(
+          module, "AcceleratorError", THPException_AcceleratorError) == 0);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return true;
 }
 
@@ -232,6 +264,7 @@ TypeError::TypeError(const char* format, ...) {
   va_end(fmt_args);
 }
 
+<<<<<<< HEAD
 AttributeError::AttributeError(const char* format, ...) {
   va_list fmt_args{};
   va_start(fmt_args, format);
@@ -239,6 +272,8 @@ AttributeError::AttributeError(const char* format, ...) {
   va_end(fmt_args);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void PyWarningHandler::InternalHandler::process(const c10::Warning& warning) {
   warning_buffer_.push_back(warning);
 }
@@ -329,4 +364,21 @@ PyWarningHandler::~PyWarningHandler() noexcept(false) {
   }
 }
 
+<<<<<<< HEAD
+=======
+namespace detail {
+PyObject* _new_accelerator_error_object(const c10::AcceleratorError& e) {
+  auto msg = torch::get_cpp_stacktraces_enabled() ? e.what()
+                                                  : e.what_without_backtrace();
+
+  auto py_msg = PyUnicode_FromString(msg);
+  auto rc = PyObject_CallOneArg(THPException_AcceleratorError, py_msg);
+  auto error_code = PyInt_FromLong(e.get_error_code());
+  PyObject_SetAttrString(rc, "error_code", error_code);
+  Py_XDECREF(py_msg);
+  Py_XDECREF(error_code);
+  return rc;
+}
+} // namespace detail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch

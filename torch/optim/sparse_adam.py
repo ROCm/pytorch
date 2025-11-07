@@ -5,7 +5,11 @@ import torch
 from torch import Tensor
 
 from . import _functional as F
+<<<<<<< HEAD
 from .optimizer import _maximize_doc, _params_doc, Optimizer, ParamsT
+=======
+from .optimizer import _maximize_doc, _params_doc, _to_scalar, Optimizer, ParamsT
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["SparseAdam"]
@@ -37,9 +41,15 @@ class SparseAdam(Optimizer):
         sparse_params = []
         complex_params = []
         for index, param_group in enumerate(self.param_groups):
+<<<<<<< HEAD
             assert isinstance(
                 param_group, dict
             ), f"param_groups must be a list of dicts, but got {type(param_group)}"
+=======
+            assert isinstance(param_group, dict), (
+                f"param_groups must be a list of dicts, but got {type(param_group)}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # given param group, convert given params to a list first before iterating
             for d_index, d_param in enumerate(param_group["params"]):
                 if d_param.is_sparse:
@@ -117,7 +127,11 @@ class SparseAdam(Optimizer):
                 eps=group["eps"],
                 beta1=beta1,
                 beta2=beta2,
+<<<<<<< HEAD
                 lr=group["lr"],
+=======
+                lr=_to_scalar(group["lr"]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 maximize=maximize,
             )
 

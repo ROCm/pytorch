@@ -9,6 +9,10 @@
 #include <c10/util/Exception.h>
 #include <c10/util/Half.h>
 #include <c10/util/Unroll.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/irange.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if defined(__aarch64__) && !defined(C10_MOBILE)
 #include <arm_neon.h>
@@ -68,11 +72,16 @@ float reduce(vec::VectorizedN<Half, kF16RegistersPerIteration>& x) {
   int offset = kF16RegistersPerIteration;
   c10::ForcedUnroll<IntegerLog2(kF16RegistersPerIteration)>{}([&offset, &x](auto idx) {
     offset /= 2;
+<<<<<<< HEAD
     for (int i = 0; i < offset; ++i) {
+=======
+    for (const auto i : c10::irange(offset)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       x[i] = x[i] + x[offset + i];
     }
   });
   const auto [t0, t1] = vec::convert_half_float(x[0]);
+<<<<<<< HEAD
 #if defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE)
   return vaddvq_f32(t0 + t1);
 #else
@@ -80,6 +89,11 @@ float reduce(vec::VectorizedN<Half, kF16RegistersPerIteration>& x) {
       std::plus<vec::Vectorized<float>>(),
       t0 + t1);
 #endif
+=======
+  return vec::vec_reduce_all<float>(
+      std::plus<vec::Vectorized<float>>(),
+      t0 + t1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 float fp16_dot_with_fp16_arith(const Half* x, const Half* a, int len) {
@@ -87,7 +101,11 @@ float fp16_dot_with_fp16_arith(const Half* x, const Half* a, int len) {
 
   const auto len_aligned = len & ~(kF16ElementsPerIteration - 1);
   for (int j = 0; j < len_aligned ; j += kF16ElementsPerIteration) {
+<<<<<<< HEAD
     for (int k = 0; k < kF16RegistersPerIteration; ++k) {
+=======
+    for (const auto k : c10::irange(kF16RegistersPerIteration)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const auto temp_x = vec::Vectorized<Half>::loadu(x + j + k * vec::Vectorized<Half>::size());
       const auto temp_a = vec::Vectorized<Half>::loadu(a + j + k * vec::Vectorized<Half>::size());
       sum[k] = vec::fmadd(temp_x, temp_a, sum[k]);
@@ -95,7 +113,11 @@ float fp16_dot_with_fp16_arith(const Half* x, const Half* a, int len) {
   }
   auto reduced_sum = reduce(sum);
 
+<<<<<<< HEAD
   for (int j = len_aligned; j < len; ++j) {
+=======
+  for (const auto j : c10::irange(len_aligned, len)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reduced_sum += x[j] * a[j];
   }
   return reduced_sum;
@@ -104,22 +126,39 @@ float fp16_dot_with_fp16_arith(const Half* x, const Half* a, int len) {
 // Rather than unrolling to process multiple rows (transposed columns)
 // of matrix A at once as done in fp16_gemv_trans_fp16_arith, unroll
 // along an individual dot product.
+<<<<<<< HEAD
 static void fp16_gemv_trans_fp16_arith_by_dot_products(const int m, const int n, const Half* a, const int lda, const Half *x, const float beta, Half* y, int incy) {
   if (beta == 0.0f) {
     parallel_for(0, n, 1, [&](int begin, int end) {
       for (int i = begin; i < end; ++i) {
+=======
+static void fp16_gemv_trans_fp16_arith_by_dot_products(const int m, const int n, const Half* a, const int64_t lda, const Half *x, const float beta, Half* y, int incy) {
+  if (beta == 0.0f) {
+    parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+      for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y[i * incy] = fp16_dot_with_fp16_arith(x, a + lda * i, m);
       }
     });
   } else if (beta == 1.0f) {
+<<<<<<< HEAD
     parallel_for(0, n, 1, [&](int begin, int end) {
       for (int i = begin; i < end; ++i) {
+=======
+    parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+      for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y[i * incy] += fp16_dot_with_fp16_arith(x, a + lda * i, m);
       }
     });
   } else {
+<<<<<<< HEAD
     parallel_for(0, n, 1, [&](int begin, int end) {
       for (int i = begin; i < end; ++i) {
+=======
+    parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+      for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y[i * incy] = beta * y[i * incy] + fp16_dot_with_fp16_arith(x, a + lda * i, m);
       }
     });
@@ -129,6 +168,7 @@ static void fp16_gemv_trans_fp16_arith_by_dot_products(const int m, const int n,
 #endif // !defined(__aarch64__) || defined( __ARM_FEATURE_FP16_SCALAR_ARITHMETIC)
 
 float reduce(vec::Vectorized<float> x) {
+<<<<<<< HEAD
 #if defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE)
   return vaddvq_f32(x);
 #else
@@ -136,6 +176,11 @@ float reduce(vec::Vectorized<float> x) {
       std::plus<vec::Vectorized<float>>(),
       x);
 #endif
+=======
+  return vec::vec_reduce_all<float>(
+      std::plus<vec::Vectorized<float>>(),
+      x);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // The below reduce overload and fp16_dot_with_fp32_arith are adapted
@@ -146,7 +191,11 @@ float reduce(vec::VectorizedN<float, kF32RegistersPerIteration>& x) {
   int offset = kF32RegistersPerIteration;
   c10::ForcedUnroll<IntegerLog2(kF32RegistersPerIteration)>{}([&offset, &x](auto idx) {
     offset /= 2;
+<<<<<<< HEAD
     for (int i = 0; i < offset; ++i) {
+=======
+    for (const auto i : c10::irange(offset)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       x[i] = x[i] + x[offset + i];
     }
   });
@@ -156,6 +205,10 @@ float reduce(vec::VectorizedN<float, kF32RegistersPerIteration>& x) {
 // We would have to write a separate SVE-specific path to use SVE
 // BFDOT. Deferring that for now to get the NEON/ASIMD BFDOT path
 // working.
+<<<<<<< HEAD
+=======
+#if __ARM_FEATURE_BF16_VECTOR_ARITHMETIC
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE) && defined(__clang__) && __clang_major__ > 15
 // https://godbolt.org/z/z8P4Yncra
 #define COMPILER_SUPPORTS_BF16_TARGET 1
@@ -166,6 +219,12 @@ float reduce(vec::VectorizedN<float, kF32RegistersPerIteration>& x) {
 #else // defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE) && defined(__clang__) && __clang_major__ > 15
 #define COMPILER_SUPPORTS_BF16_TARGET 0
 #endif // defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE) && defined(__clang__) && __clang_major__ > 15
+<<<<<<< HEAD
+=======
+#else // __ARM_FEATURE_BF16_VECTOR_ARITHMETIC
+#define COMPILER_SUPPORTS_BF16_TARGET 0
+#endif // __ARM_FEATURE_BF16_VECTOR_ARITHMETIC
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if COMPILER_SUPPORTS_BF16_TARGET
 #define TARGET_ARM_BF16_ATTRIBUTE __attribute__((target("arch=armv8.2-a+bf16")))
@@ -236,7 +295,11 @@ std::pair<vec::Vectorized<float>, vec::Vectorized<float>> fmadd(
 
 // Return a + b_low * c_low + b_high * c_high
 vec::Vectorized<float> fmadd(vec::Vectorized<float> a, vec::Vectorized<Half> b, vec::Vectorized<Half> c) {
+<<<<<<< HEAD
 #if defined(__aarch64__) && defined(__ARM_FEATURE_FP16_FML)
+=======
+#if defined(__aarch64__) && defined(__ARM_FEATURE_FP16_FML) && !defined(__ARM_FEATURE_SVE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOTE: this instruction is an optional instruction in ARM v8.2 and
   // v8.3, but mandatory in v8.4 per
   // https://developer.arm.com/documentation/ddi0596/2021-03/SIMD-FP-Instructions/FMLAL--FMLAL2--vector---Floating-point-fused-Multiply-Add-Long-to-accumulator--vector--?lang=en
@@ -365,7 +428,11 @@ static_assert(
   reduced_sum += reduce(tail_sum);                                      \
                                                                         \
   /* Second-tier tail fixup: handle all workloads. */                   \
+<<<<<<< HEAD
   for (int j = len_aligned_vec; j < len; ++j) {                         \
+=======
+  for (const auto j : c10::irange(len_aligned_vec, len)) {                         \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     /* Attempting to use Half here caused multiple test failures; */    \
     /* using float to unbreak. (Suspect we need a scalar FMA.) */       \
     float x1 = vec1[j];                                                 \
@@ -394,23 +461,40 @@ float fp16_dot_with_fp32_arith(const Half* vec1, const Half* vec2, int64_t len) 
   return dot_with_fp32_arith_no_bfdot(vec1, vec2, len);
 }
 
+<<<<<<< HEAD
 void fp16_gemv_trans_fp32_arith_by_dot_products(const int m, const int n, const Half* a, const int lda, const Half *x, const float beta, Half* y, int incy) {
   if (beta == 0.0f) {
     parallel_for(0, n, 1, [&](int begin, int end) {
       for (int i = begin; i < end; ++i) {
+=======
+void fp16_gemv_trans_fp32_arith_by_dot_products(const int m, const int n, const Half* a, const int64_t lda, const Half *x, const float beta, Half* y, int incy) {
+  if (beta == 0.0f) {
+    parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+      for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y[i * incy] = fp16_dot_with_fp32_arith(x, a + lda * i, m);
       }
     });
   } else if (beta == 1.0f) {
+<<<<<<< HEAD
     parallel_for(0, n, 1, [&](int begin, int end) {
       for (int i = begin; i < end; ++i) {
+=======
+    parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+      for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // We need to accumulate in fp32; y[i * incy] += ... gets wrong results.
         y[i * incy] = static_cast<float>(y[i * incy]) + fp16_dot_with_fp32_arith(x, a + lda * i, m);
       }
     });
   } else {
+<<<<<<< HEAD
     parallel_for(0, n, 1, [&](int begin, int end) {
       for (int i = begin; i < end; ++i) {
+=======
+    parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+      for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y[i * incy] = beta * y[i * incy] + fp16_dot_with_fp32_arith(x, a + lda * i, m);
       }
     });
@@ -448,9 +532,15 @@ float bf16_dot_with_fp32_arith(const at::BFloat16* vec1, const at::BFloat16* vec
   }
 }
 
+<<<<<<< HEAD
 void bf16_gemv_trans_fp32_arith_by_dot_products(const int m, const int n, const at::BFloat16* a, const int lda, const at::BFloat16 *x, at::BFloat16* y, int incy) {
   parallel_for(0, n, 1, [&](int begin, int end) {
     for (int i = begin; i < end; ++i) {
+=======
+void bf16_gemv_trans_fp32_arith_by_dot_products(const int m, const int n, const at::BFloat16* a, const int64_t lda, const at::BFloat16 *x, at::BFloat16* y, int incy) {
+  parallel_for(0, n, 1, [&](int64_t begin, int64_t end) {
+    for (const auto i : c10::irange(begin, end)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       y[i * incy] = bf16_dot_with_fp32_arith(x, a + lda * i, m);
     }
   });
@@ -470,12 +560,41 @@ void bf16_gemv_trans(
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(incx == 1 && alpha == 1.0 && beta == 0.0);
   return bf16_gemv_trans_fp32_arith_by_dot_products(m, n, a, lda, x, y, incy);
 }
+<<<<<<< HEAD
+=======
+
+float fp16_dot(
+  const int64_t n,
+  const at::Half* x,
+  const int64_t incx,
+  const at::Half* y,
+  const int64_t incy) {
+  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(incx == 1 && incy == 1);
+  return fp16_dot_with_fp32_arith(x, y, n);
+}
+
+float bf16_dot(
+  const int64_t n,
+  const at::BFloat16* x,
+  const int64_t incx,
+  const at::BFloat16* y,
+  const int64_t incy) {
+  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(incx == 1 && incy == 1);
+  return bf16_dot_with_fp32_arith(x, y, n);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // !defined(C10_MOBILE)
 } // namespace CPU_CAPABILITY
 
 #if !defined(C10_MOBILE)
 REGISTER_DISPATCH(fp16_gemv_trans_stub, &fp16_gemv_trans)
 REGISTER_DISPATCH(bf16_gemv_trans_stub, &bf16_gemv_trans)
+<<<<<<< HEAD
+=======
+REGISTER_DISPATCH(fp16_dot_stub, &fp16_dot)
+REGISTER_DISPATCH(bf16_dot_stub, &bf16_dot)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif //!defined(C10_MOBILE)
 
 } // namespace at::native

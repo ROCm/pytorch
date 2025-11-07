@@ -17,6 +17,7 @@
 #include <ATen/ops/gelu_native.h>
 #include <ATen/ops/glu_backward_native.h>
 #include <ATen/ops/glu_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/hardsigmoid_backward_native.h>
 #include <ATen/ops/hardsigmoid_native.h>
 #include <ATen/ops/hardswish_backward_native.h>
@@ -24,6 +25,9 @@
 #include <ATen/ops/hardtanh_backward_native.h>
 #include <ATen/ops/leaky_relu_backward_native.h>
 #include <ATen/ops/leaky_relu_native.h>
+=======
+#include <ATen/ops/hardtanh_backward_native.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/log_sigmoid_backward_native.h>
 #include <ATen/ops/log_sigmoid_forward_native.h>
 #include <ATen/ops/mish_backward_native.h>
@@ -34,8 +38,11 @@
 #include <ATen/ops/silu_native.h>
 #include <ATen/ops/softplus_backward_native.h>
 #include <ATen/ops/softplus_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/softshrink_backward_native.h>
 #include <ATen/ops/softshrink_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/tanh_backward_native.h>
 #include <ATen/ops/threshold_backward_native.h>
 #include <ATen/ops/threshold_native.h>
@@ -60,7 +67,11 @@ Tensor relu_mps(const Tensor& self) {
 
   MPSStream* stream = getCurrentMPSStream();
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "relu" + getTensorsStringKey({self});
+=======
+    std::string key = "relu" + getTensorsStringKey({self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       // passing selector of reLUWithTensor on the mpsGraph object
@@ -101,7 +112,11 @@ Tensor& relu_mps_(Tensor& self) {
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "relu_" + getTensorsStringKey({self});
+=======
+    std::string key = "relu_" + getTensorsStringKey({self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       // passing selector of reLUWithTensor on the mpsGraph object
@@ -125,6 +140,7 @@ Tensor& relu_mps_(Tensor& self) {
   return output;
 }
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(leaky_relu_out_mps)(const Tensor& self, const Scalar& negative_slope, const Tensor& output) {
   using namespace mps;
   using CachedGraph = MPSUnaryCachedGraph;
@@ -229,6 +245,8 @@ TORCH_IMPL_FUNC(leaky_relu_backward_out_mps)
   output.copy_(output_);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_IMPL_FUNC(log_softmax_mps_out)
 (const Tensor& self, const int64_t dim, const bool half_to_float, const Tensor& out) {
   using namespace mps;
@@ -241,7 +259,11 @@ TORCH_IMPL_FUNC(log_softmax_mps_out)
   MPSStream* stream = at::mps::getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "log_softmax_mps_out" + getTensorsStringKey({self}) + ":" + std::to_string(dim);
+=======
+    std::string key = "log_softmax_mps_out" + getTensorsStringKey({self}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
 
@@ -284,7 +306,11 @@ TORCH_IMPL_FUNC(log_softmax_backward_mps_out)
   MPSStream* stream = at::mps::getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "log_softmax_backward_mps_out:" + getMPSTypeString(grad_output) + ":" + std::to_string(dim);
+=======
+    std::string key = "log_softmax_backward_mps_out:" + getMPSTypeString(grad_output) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* gradOutputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(grad_output));
       MPSGraphTensor* outputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(output));
@@ -332,7 +358,11 @@ std::tuple<Tensor&, Tensor&> log_sigmoid_forward_out_mps(const Tensor& self, Ten
   Tensor output_ = at::empty_like(self, executeGatherOp ? MemoryFormat::Contiguous : MemoryFormat::Preserve);
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "log_sigmoid_forward_out:" + getTensorsStringKey({self});
+=======
+    std::string key = "log_sigmoid_forward_out:" + getTensorsStringKey({self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       MPSGraphTensor* zeroTensor = [mpsGraph constantWithScalar:0.0 shape:@[ @1 ] dataType:inputTensor.dataType];
@@ -391,7 +421,11 @@ Tensor& log_sigmoid_backward_mps_out(const Tensor& grad_output,
   Tensor grad_input_ = at::empty_like(self, executeGatherOp ? MemoryFormat::Contiguous : MemoryFormat::Preserve);
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "log_sigmoid_backward_out:" + getTensorsStringKey({self, grad_output});
+=======
+    std::string key = "log_sigmoid_backward_out:" + getTensorsStringKey({self, grad_output});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       MPSGraphTensor* gradOutputTensor = mpsGraphRankedPlaceHolder(mpsGraph, grad_output);
@@ -459,7 +493,11 @@ TORCH_IMPL_FUNC(sigmoid_backward_out_mps)(const Tensor& grad_output, const Tenso
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "sigmoid_backward_out_mps:" + getMPSTypeString(grad_output);
+=======
+    std::string key = "sigmoid_backward_out_mps:" + getMPSTypeString(grad_output);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* gradOutputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(grad_output));
       MPSGraphTensor* outputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(output));
@@ -501,7 +539,11 @@ TORCH_IMPL_FUNC(tanh_backward_out_mps)(const Tensor& grad_output, const Tensor& 
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "tanh_backward_out_mps:" + getMPSTypeString(grad_output);
+=======
+    std::string key = "tanh_backward_out_mps:" + getMPSTypeString(grad_output);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* gradOutputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(grad_output));
       MPSGraphTensor* outputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(output));
@@ -538,7 +580,11 @@ TORCH_IMPL_FUNC(threshold_out_mps)
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "threshold_out_mps" + getTensorsStringKey({self}) + ":" + std::to_string(threshold.to<double>()) +
+=======
+    std::string key = "threshold_out_mps" + getTensorsStringKey({self}) + ":" + std::to_string(threshold.to<double>()) +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ":" + std::to_string(value.to<double>());
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
@@ -585,7 +631,11 @@ TORCH_IMPL_FUNC(threshold_backward_out_mps)
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key =
+=======
+    std::string key =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "threshold_backward_out_mps" + getTensorsStringKey({self, grad}) + ":" + std::to_string(threshold.to<double>());
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
@@ -815,7 +865,11 @@ static void elu_variants_out_mps(const Tensor& self,
                                  const Scalar& scale,
                                  const Scalar& input_scale,
                                  const Tensor& result,
+<<<<<<< HEAD
                                  string func_name) {
+=======
+                                 std::string func_name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using namespace mps;
   using CachedGraph = MPSUnaryCachedGraph;
 
@@ -834,7 +888,11 @@ static void elu_variants_out_mps(const Tensor& self,
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = func_name + ":" + getTensorsStringKey({self}) + ":" + std::to_string(alpha.to<double>()) + ":" +
+=======
+    std::string key = func_name + ":" + getTensorsStringKey({self}) + ":" + std::to_string(alpha.to<double>()) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(scale.to<double>()) + ":" + std::to_string(input_scale.to<double>());
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
@@ -923,7 +981,11 @@ TORCH_IMPL_FUNC(elu_backward_out_mps)
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "elu_backward_out_mps:" + getTensorsStringKey({grad_output, self_or_result}) + ":" +
+=======
+    std::string key = "elu_backward_out_mps:" + getTensorsStringKey({grad_output, self_or_result}) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(alpha.to<double>()) + ":" + std::to_string(scale.to<double>()) + ":" +
         std::to_string(input_scale.to<double>()) + ":" + std::to_string(is_result);
 
@@ -1018,7 +1080,11 @@ TORCH_IMPL_FUNC(glu_out_mps)(const Tensor& self, const int64_t dim, const Tensor
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "glu_out_mps" + getTensorsStringKey({self}) + ":" + std::to_string(dim);
+=======
+    std::string key = "glu_out_mps" + getTensorsStringKey({self}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, getMPSDataType(self), getMPSShape(self));
       NSArray<MPSGraphTensor*>* outputTensorsArray = [mpsGraph splitTensor:inputTensor
@@ -1060,7 +1126,11 @@ Tensor& glu_backward_mps_out(const Tensor& grad_output, const Tensor& self, cons
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "glu_backward_mps_out" + getTensorsStringKey({grad_output, self}) + ":" + std::to_string(dim);
+=======
+    std::string key = "glu_backward_mps_out" + getTensorsStringKey({grad_output, self}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, getMPSDataType(self), getMPSShape(self));
       MPSGraphTensor* gradOutputTensor =
@@ -1143,8 +1213,13 @@ TORCH_IMPL_FUNC(softplus_out_mps)
   MPSScalar threshold_scalar = getMPSScalar(threshold, self.scalar_type());
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "softplus_out_mps:" + getTensorsStringKey({self}) + ":" + std::to_string(beta.to<double>()) + ":" +
         std::to_string(threshold.to<double>());
+=======
+    std::string key = "softplus_out_mps:" + getTensorsStringKey({self}) + ":" + std::to_string(beta.to<double>()) +
+        ":" + std::to_string(threshold.to<double>());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
@@ -1214,7 +1289,11 @@ TORCH_IMPL_FUNC(softplus_backward_out_mps)
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "softplus_backward_out_mps:" + getTensorsStringKey({grad_output, self}) + ":" +
+=======
+    std::string key = "softplus_backward_out_mps:" + getTensorsStringKey({grad_output, self}) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(beta.to<double>()) + ":" + std::to_string(threshold.to<double>());
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
@@ -1289,7 +1368,11 @@ TORCH_IMPL_FUNC(mish_out_mps)
   Tensor result_ = at::empty_like(self, executeGatherOp ? MemoryFormat::Contiguous : MemoryFormat::Preserve);
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "mish_out_mps:" + getTensorsStringKey({self});
+=======
+    std::string key = "mish_out_mps:" + getTensorsStringKey({self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
@@ -1334,7 +1417,11 @@ Tensor mish_backward_mps(const Tensor& grad_output, const Tensor& self) {
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "mish_backward_out_mps:" + getTensorsStringKey({grad_output, self});
+=======
+    std::string key = "mish_backward_out_mps:" + getTensorsStringKey({grad_output, self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* gradOutputTensor = mpsGraphRankedPlaceHolder(mpsGraph, grad_output);
@@ -1381,6 +1468,7 @@ Tensor mish_backward_mps(const Tensor& grad_output, const Tensor& self) {
   }
 }
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(softshrink_out_mps)
 (const Tensor& self, const Scalar& lambd, const Tensor& result) {
   using namespace mps;
@@ -1525,6 +1613,8 @@ TORCH_IMPL_FUNC(softshrink_backward_out_mps)
   return shrink_backward_out_mps(grad_output, self, lambd, grad_input, "softshrink_backward_out_mps");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor prelu_mps(const Tensor& self, const Tensor& weight_) {
   using namespace mps;
 
@@ -1545,7 +1635,11 @@ Tensor prelu_mps(const Tensor& self, const Tensor& weight_) {
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "prelu_mps:" + getTensorsStringKey({self, weight_});
+=======
+    std::string key = "prelu_mps:" + getTensorsStringKey({self, weight_});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
@@ -1601,7 +1695,11 @@ std::tuple<Tensor, Tensor> prelu_backward_mps(const Tensor& grad_output, const T
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "prelu_backward_mps:" + getTensorsStringKey({grad_output, self, weight_});
+=======
+    std::string key = "prelu_backward_mps:" + getTensorsStringKey({grad_output, self, weight_});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* gradOutputTensor = mpsGraphRankedPlaceHolder(mpsGraph, grad_output);
@@ -1665,7 +1763,11 @@ TORCH_IMPL_FUNC(silu_out_mps)(const Tensor& self, const Tensor& result) {
   Tensor result_ = at::empty_like(self, executeGatherOp ? MemoryFormat::Contiguous : MemoryFormat::Preserve);
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "silu_out_mps:" + getTensorsStringKey({self});
+=======
+    std::string key = "silu_out_mps:" + getTensorsStringKey({self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
@@ -1709,7 +1811,11 @@ TORCH_IMPL_FUNC(silu_backward_out_mps)
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "silu_out_backward_mps:" + getTensorsStringKey({grad_output});
+=======
+    std::string key = "silu_out_backward_mps:" + getTensorsStringKey({grad_output});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
@@ -1752,6 +1858,7 @@ TORCH_IMPL_FUNC(silu_backward_out_mps)
   }
 }
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(hardsigmoid_out_mps)(const Tensor& self, const Tensor& result) {
   using namespace mps;
   using CachedGraph = MPSUnaryCachedGraph;
@@ -1851,6 +1958,8 @@ TORCH_IMPL_FUNC(hardsigmoid_backward_out_mps)
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // -------------------------------------------------
 // Hardtanh backward
 
@@ -1878,7 +1987,11 @@ Tensor& hardtanh_backward_out_mps(const Tensor& grad_output,
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "hardtanh_backward_out_mps:" + getTensorsStringKey({grad_output}) + ":" +
+=======
+    std::string key = "hardtanh_backward_out_mps:" + getTensorsStringKey({grad_output}) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(min.to<double>()) + ":" + std::to_string(max.to<double>());
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
@@ -1937,6 +2050,7 @@ Tensor& hardtanh_backward_out_mps(const Tensor& grad_output,
   return grad_input;
 }
 
+<<<<<<< HEAD
 Tensor& hardswish_out_mps(const Tensor& self, Tensor& output) {
   using namespace mps;
   using CachedGraph = MPSUnaryCachedGraph;
@@ -2109,4 +2223,6 @@ Tensor hardswish_backward_mps(const Tensor& grad_output, const Tensor& self) {
   }
   return grad_input;
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

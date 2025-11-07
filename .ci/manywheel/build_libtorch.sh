@@ -22,9 +22,13 @@ retry () {
 
 # TODO move this into the Docker images
 OS_NAME=`awk -F= '/^NAME/{print $2}' /etc/os-release`
+<<<<<<< HEAD
 if [[ "$OS_NAME" == *"CentOS Linux"* ]]; then
     retry yum install -q -y zip openssl
 elif [[ "$OS_NAME" == *"AlmaLinux"* ]]; then
+=======
+if [[ "$OS_NAME" == *"AlmaLinux"* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     retry yum install -q -y zip openssl
 elif [[ "$OS_NAME" == *"Red Hat Enterprise Linux"* ]]; then
     retry dnf install -q -y zip openssl
@@ -35,6 +39,12 @@ elif [[ "$OS_NAME" == *"Ubuntu"* ]]; then
     sed -i 's/.*nvidia.*/# &/' $(find /etc/apt/ -type f -name "*.list")
     retry apt-get update
     retry apt-get -y install zip openssl
+<<<<<<< HEAD
+=======
+else
+    echo "Unknown OS: '$OS_NAME'"
+    exit 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 # Version: setup.py uses $PYTORCH_BUILD_VERSION.post$PYTORCH_BUILD_NUMBER if
@@ -91,16 +101,23 @@ if [[ -z "$PYTORCH_ROOT" ]]; then
     exit 1
 fi
 pushd "$PYTORCH_ROOT"
+<<<<<<< HEAD
+=======
+retry pip install -q cmake
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 python setup.py clean
 retry pip install -qr requirements.txt
 retry pip install -q numpy==2.0.1
 
+<<<<<<< HEAD
 if [[ "$DESIRED_DEVTOOLSET" == *"cxx11-abi"* ]]; then
     export _GLIBCXX_USE_CXX11_ABI=1
 else
     export _GLIBCXX_USE_CXX11_ABI=0
 fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if [[ "$DESIRED_CUDA" == *"rocm"* ]]; then
     echo "Calling build_amd.py at $(date)"
     python tools/amd_build/build_amd.py
@@ -169,12 +186,15 @@ fi
 
 )
 
+<<<<<<< HEAD
 if [[ "$DESIRED_DEVTOOLSET" == *"cxx11-abi"* ]]; then
     LIBTORCH_ABI="cxx11-abi-"
 else
     LIBTORCH_ABI=
 fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 (
     set -x
 

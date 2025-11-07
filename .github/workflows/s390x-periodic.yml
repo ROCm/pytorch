@@ -9,8 +9,11 @@ on:
     tags:
       - ciflow/periodic/*
       - ciflow/s390/*
+<<<<<<< HEAD
     branches:
       - release/*
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   workflow_dispatch:
 
 concurrency:
@@ -42,7 +45,11 @@ jobs:
     uses: ./.github/workflows/_linux-build.yml
     with:
       build-environment: linux-s390x-binary-manywheel
+<<<<<<< HEAD
       docker-image-name: pytorch/manylinuxs390x-builder:cpu-s390x-main
+=======
+      docker-image-name: pytorch/manylinuxs390x-builder:cpu-s390x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       runner: linux.s390x
       test-matrix: |
         { include: [
@@ -70,8 +77,14 @@ jobs:
       - target-determination
     with:
       build-environment: linux-s390x-binary-manywheel
+<<<<<<< HEAD
       docker-image: pytorch/manylinuxs390x-builder:cpu-s390x-main
       test-matrix: ${{ needs.linux-manylinux-2_28-py3-cpu-s390x-build.outputs.test-matrix }}
       timeout-minutes: 480
+=======
+      docker-image: pytorch/manylinuxs390x-builder:cpu-s390x
+      test-matrix: ${{ needs.linux-manylinux-2_28-py3-cpu-s390x-build.outputs.test-matrix }}
+      timeout-minutes: 600
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       use-gha: "yes"
     secrets: inherit

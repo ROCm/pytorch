@@ -71,6 +71,12 @@ DLDataType getDLDataType(const Tensor& t) {
     case ScalarType::Float8_e8m0fnu:
       TORCH_CHECK(false, "float8 types are not supported by dlpack");
       break;
+<<<<<<< HEAD
+=======
+    case ScalarType::Float4_e2m1fn_x2:
+      TORCH_CHECK(false, "float4 types are not supported by dlpack");
+      break;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case ScalarType::QInt8:
     case ScalarType::QUInt8:
     case ScalarType::QInt32:

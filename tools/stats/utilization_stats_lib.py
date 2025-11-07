@@ -53,6 +53,10 @@ class UtilizationRecord(DataClassJsonMixin):
     cmd_names: Optional[list[str]] = None
     error: Optional[str] = None
     log_duration: Optional[str] = None
+<<<<<<< HEAD
+=======
+    logs: Optional[list[str]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # the db schema related to this is:
@@ -87,7 +91,11 @@ class OssCiUtilizationMetadataV1:
 
 
 # this data model is for the time series data:
+<<<<<<< HEAD
 # https://github.com/pytorch/test-infra/blob/main/clickhouse_db_schema/oss_ci_utilization/oss_ci_utilization_time_series_schema.sql
+=======
+# https://github.com/pytorch/test-infra/blob/main/clickhouse_db_schema/oss_ci_utilization/oss_ci_time_series_schema.sql
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass
 class OssCiUtilizationTimeSeriesV1:
     created_at: int

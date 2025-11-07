@@ -83,7 +83,11 @@ class BatchNorm2d(_BatchNorm):
         )
 
     @classmethod
+<<<<<<< HEAD
     def from_float(cls, mod, use_precomputed_fake_quant=False):
+=======
+    def from_float(cls, mod, use_precomputed_fake_quant=False):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return _BatchNorm.from_float(
             cls, mod, use_precomputed_fake_quant=use_precomputed_fake_quant
         )
@@ -122,7 +126,11 @@ class BatchNorm3d(_BatchNorm):
         )
 
     @classmethod
+<<<<<<< HEAD
     def from_float(cls, mod, use_precomputed_fake_quant=False):
+=======
+    def from_float(cls, mod, use_precomputed_fake_quant=False):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return _BatchNorm.from_float(
             cls, mod, use_precomputed_fake_quant=use_precomputed_fake_quant
         )

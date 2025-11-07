@@ -7,13 +7,22 @@ from pprint import pformat
 from typing import NamedTuple
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor.placement_types import Replicate, Shard
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor import (
     DeviceMesh,
     distribute_module,
     distribute_tensor,
     DTensor,
+<<<<<<< HEAD
     init_device_mesh,
+=======
+    Replicate,
+    Shard,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.distributed.tensor._ops.utils import is_tensor_partial, normalize_dim
 from torch.distributed.tensor.debug import CommDebugMode
@@ -23,7 +32,11 @@ from torch.distributed.tensor.parallel import (
     RowwiseParallel,
     SequenceParallel,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests
+=======
+from torch.testing._internal.common_utils import run_tests, skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     skip_unless_torch_gpu,
@@ -310,7 +323,11 @@ class DistMathOpsTest(DTensorTestBase):
                 f"shard_dim={shard_dim}, norm_shape={normalized_shape}, elem_affine={elementwise_affine}",
             )
 
+<<<<<<< HEAD
             from torch.distributed._tensor.placement_types import TensorMeta
+=======
+            from torch.distributed.tensor._dtensor_spec import TensorMeta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             dtensor_meta = y_dist._spec.tensor_meta
             assert isinstance(dtensor_meta, TensorMeta)
@@ -440,9 +457,17 @@ class DistMathOpsTest(DTensorTestBase):
             out_req_grad: bool
 
         subtest_fails = {}
+<<<<<<< HEAD
         valid_filter = lambda cfg: not (  # noqa: E731
             cfg.ln_req_grad and not cfg.elementwise_affine
         ) and any(cfg[2:])
+=======
+        valid_filter = (  # noqa: E731
+            lambda cfg: (
+                not (cfg.ln_req_grad and not cfg.elementwise_affine) and any(cfg[2:])
+            )
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         subtest_cfgs = list(
             filter(
                 valid_filter,
@@ -565,9 +590,15 @@ class DistMathOpsTest(DTensorTestBase):
             except Exception as e:
                 subtest_fails[subtest_cfg] = e
         # if any subtest fails, provide the failed subtests and report the overall failure
+<<<<<<< HEAD
         assert (
             not subtest_fails
         ), f"{len(subtest_fails)}/{len(subtest_cfgs)} subtests failed: {pformat(subtest_fails)}"
+=======
+        assert not subtest_fails, (
+            f"{len(subtest_fails)}/{len(subtest_cfgs)} subtests failed: {pformat(subtest_fails)}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     def test_topk(self):
@@ -658,6 +689,10 @@ class DistMathOpsTest(DTensorTestBase):
         self.assertEqual(grad1_norm.device_mesh, mesh_y)
 
     @with_comms
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_foreach_add_different_mesh(self):
         mesh_shape = (2, self.world_size // 2)
         mesh_2d = init_device_mesh(
@@ -727,6 +762,37 @@ class DistMathOpsTest(DTensorTestBase):
             dtensor_result = m(input_dtensor)
             self.assertEqual(result, dtensor_result.full_tensor())
 
+<<<<<<< HEAD
+=======
+    @with_comms
+    def test_cumsum(self):
+        mesh = self.build_device_mesh()
+        comm_mode = CommDebugMode()
+        inp = torch.rand(3, 5, device=self.device_type)
+
+        shard_dim = 0
+        input_dtensor = distribute_tensor(
+            inp, device_mesh=mesh, placements=[Shard(shard_dim)]
+        )
+
+        cumsum_dims = [0, 1]
+        for dim in cumsum_dims:
+            output = torch.cumsum(inp, dim=dim)
+            with comm_mode:
+                output_dtensor = torch.cumsum(input_dtensor, dim=dim)
+                if dim == shard_dim:
+                    self.assertEqual(comm_mode.get_total_counts(), 1)
+                    self.assertEqual(
+                        comm_mode.get_comm_counts()[funcol.all_gather_into_tensor],
+                        1,
+                    )
+                    self.assertTrue(output_dtensor.placements[0].is_replicate())
+                else:
+                    self.assertEqual(comm_mode.get_total_counts(), 0)
+                    self.assertTrue(output_dtensor.placements[0].is_shard(shard_dim))
+                self.assertEqual(output_dtensor.full_tensor(), output)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

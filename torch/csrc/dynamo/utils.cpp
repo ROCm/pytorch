@@ -9,7 +9,11 @@ static std::array<PyMethodDef, 1> _methods = {{
      nullptr} // Sentinel value indicating the end of the array
 }};
 
+<<<<<<< HEAD
 bool is_instancemethod(py::object obj) {
+=======
+static bool is_instancemethod(py::object obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return PyInstanceMethod_Check(obj.ptr());
 }
 

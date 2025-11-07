@@ -4,8 +4,13 @@
 #include <ATen/cuda/CUDAConfig.h>
 #include <ATen/cuda/PinnedMemoryAllocator.h>
 
+<<<<<<< HEAD
 namespace at {
 namespace native {
+=======
+
+namespace at::native {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static inline int cuda_int_cast(int64_t value, const char* varname) {
   auto result = static_cast<int>(value);
@@ -28,5 +33,9 @@ static inline Storage pin_memory(int64_t size) {
       /*resizable=*/false);
 }
 
+<<<<<<< HEAD
 } // namespace native
 } // namespace at
+=======
+} // namespace at::native
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -14,20 +14,35 @@ import random
 from random import randrange
 from itertools import product
 from functools import reduce, partial
+<<<<<<< HEAD
+=======
+from typing import Union, Optional
+from torch._prims_common import DimsType
+from packaging import version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.testing._internal.common_utils import \
     (TestCase, run_tests, TEST_SCIPY, IS_MACOS, IS_WINDOWS, slowTest,
      TEST_WITH_ROCM, IS_FBCODE, IS_REMOTE_GPU, iter_indices,
      make_fullrank_matrices_with_distinct_singular_values,
      freeze_rng_state, IS_ARM64, IS_SANDCASTLE, TEST_OPT_EINSUM, parametrize, skipIfTorchDynamo,
+<<<<<<< HEAD
      skipIfRocmArch, NAVI4_ARCH,
      setBlasBackendsToDefaultFinally, setLinalgBackendsToDefaultFinally, serialTest,
      runOnRocmArch, MI300_ARCH)
+=======
+     setBlasBackendsToDefaultFinally, setLinalgBackendsToDefaultFinally, serialTest,
+     runOnRocmArch, MI300_ARCH, TEST_CUDA)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_device_type import \
     (instantiate_device_type_tests, dtypes, has_cusolver, has_hipsolver,
      onlyCPU, skipCUDAIf, skipCUDAIfNoMagma, skipCPUIfNoLapack, precisionOverride,
      skipCUDAIfNoMagmaAndNoCusolver, skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
+<<<<<<< HEAD
      onlyCUDA, skipCUDAVersionIn, skipMeta, skipCUDAIfNoCusolver, skipCUDAIfNotRocm, skipCUDAIfRocmVersionLessThan,
+=======
+     onlyCUDA, skipMeta, skipCUDAIfNoCusolver, skipCUDAIfNotRocm, skipCUDAIfRocmVersionLessThan,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
      dtypesIfMPS, largeTensorTest)
 from torch.testing import make_tensor
 from torch.testing._internal.common_dtype import (
@@ -88,9 +103,13 @@ def tunableop_matmul(device, dtype, result_filename=None, offline=False):
 
 def get_tunableop_validators():
     assert len(torch.cuda.tunable.get_validators()) > 0
+<<<<<<< HEAD
     validators = {}
     for key, value in torch.cuda.tunable.get_validators():
         validators[key] = value
+=======
+    validators = dict(torch.cuda.tunable.get_validators())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return validators
 
 def find_tunableop_result(results, OpSig, ParamSig):
@@ -126,12 +145,20 @@ class TestLinalg(TestCase):
                 del os.environ["HIPBLASLT_ALLOW_TF32"]
 
     def setUp(self):
+<<<<<<< HEAD
         super(self.__class__, self).setUp()
+=======
+        super().setUp()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.backends.cuda.matmul.allow_tf32 = False
 
     def tearDown(self):
         torch.backends.cuda.matmul.allow_tf32 = True
+<<<<<<< HEAD
         super(self.__class__, self).tearDown()
+=======
+        super().tearDown()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @contextlib.contextmanager
     def _tunableop_ctx(self):
@@ -1478,6 +1505,64 @@ class TestLinalg(TestCase):
                             keepdim,
                             norm_dtype)
 
+<<<<<<< HEAD
+=======
+
+    def test_vector_norm_decom_unbacked_checks(self):
+        from torch._refs.linalg import _check_vector_norm_args
+
+        class Mod(torch.nn.Module):
+            def __init__(self, ord, dim):
+                super().__init__()
+                self.ord = ord
+                self.dim = dim
+
+            def forward(self, a):
+                x = a.item()
+                tensor_unbacked_size = torch.ones(x, x + 1, x + 2)
+                _check_vector_norm_args(tensor_unbacked_size, self.ord, self.dim)
+                return tensor_unbacked_size
+
+        def test(
+            ord: Union[float, int],
+            dim: Optional[DimsType],
+            expect_numel_runtime_check: bool,
+            expect_index_0_check: bool = False,
+        ) -> None:
+            m = Mod(ord, dim)
+            exported_program: torch.export.ExportedProgram = torch.export.export(
+                m, args=tuple(torch.tensor([1]))
+            )
+            self.assertEqual(
+                "Runtime assertion failed for expression Ne(u0*(u0 + 1)*(u0 + 2), 0)"
+                in exported_program.graph_module.code,
+                expect_numel_runtime_check,
+            )
+            self.assertEqual(
+                "Runtime assertion failed for expression Ne(u0, 0) | Ne(u0*(u0 + 1)*(u0 + 2), 0)"
+                in exported_program.graph_module.code,
+                expect_index_0_check,
+            )
+
+        # dim is int
+        test(-1, 1, True)
+
+        # dim is None
+        test(-1, None, True)
+
+        # len(dim) == 0
+        test(-1, [], True)
+
+        # shape[d] == 0
+        test(-1, [0], False, True)
+
+        # u0 + 1 == 0 is False we do not see a runtime assert in the generated graph.
+        test(-1, [1], False, False)
+
+        test(-1, [0, 1], False, True)
+        test(-1, [0, 0], False, True)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_vector_norm_dim_tuple_arg(self, device):
         test_cases = [
             # input size, dim, error, error message
@@ -2763,6 +2848,12 @@ class TestLinalg(TestCase):
             Q = torch.linalg.eigh(A).eigenvectors
             Q.sum().abs().backward()
 
+<<<<<<< HEAD
+=======
+    # I don't know how much memory this test uses but on complex64 it needs at least 4GB
+    @largeTensorTest("4GB", device="cuda")
+    @serialTest(TEST_CUDA)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIfNoCusolver  # MAGMA backend doesn't work in this case
     @precisionOverride({torch.float: 1e-4, torch.cfloat: 1e-4})
     @skipCPUIfNoLapack
@@ -3658,7 +3749,10 @@ class TestLinalg(TestCase):
 
     @skipCUDAIfNoMagma
     @skipCPUIfNoLapack
+<<<<<<< HEAD
     @skipCUDAVersionIn([(11, 6), (11, 7)])  # https://github.com/pytorch/pytorch/issues/75391
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(*floating_and_complex_types())
     def test_matrix_rank_empty(self, device, dtype):
         matrix_rank = torch.linalg.matrix_rank
@@ -5163,7 +5257,11 @@ class TestLinalg(TestCase):
             # Check for rocBLAS and hipBLASLt
             self.assertTrue("ROCBLAS_VERSION" in validators)
             # format: [major].[minor].[patch].[tweak].[commit id]
+<<<<<<< HEAD
             self.assertTrue(re.match(r'^\d+[a-z0-9.]+$', validators["ROCBLAS_VERSION"]))
+=======
+            self.assertTrue(re.match(r'^\d+.\d+.\d+.\d+.[a-z0-9]+$', validators["ROCBLAS_VERSION"]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertTrue("HIPBLASLT_VERSION" in validators)
             self.assertTrue(re.match(r'^\d+-[a-z0-9]+$', validators["HIPBLASLT_VERSION"]))
 
@@ -5861,6 +5959,59 @@ class TestLinalg(TestCase):
         delta = tuned_default_scaled_mm - ref_scaled_mm
         self.assertTrue(torch.all(delta == 0))
 
+<<<<<<< HEAD
+=======
+    @onlyCUDA
+    @skipCUDAIfNotRocm
+    @dtypes(torch.float)
+    def test_call_count_tunableop(self, device, dtype):
+        # Test that after tuning a GEMM in TunableOp, we only call the GEMM kernel once
+        # per PyTorch API invocation.
+        # We use the torch profiler to get the call counts on the kernels
+
+        # Supported only for: MM, batch MM, and GEMM with bias (linear)
+        from torch.profiler import profile, ProfilerActivity
+
+        with self._tunableop_ctx():
+            # set these to single iterations to keep it short but still exercise the code
+            torch.cuda.tunable.set_max_tuning_iterations(1)
+
+            b = 2
+            M = 10
+
+            # MM
+            A = torch.rand(M, M, device=device)
+            C = torch.mm(A, A)
+
+            # Linear - GEMM BIAS
+            X = torch.rand(M, M, device='cuda')
+            bias = torch.rand(M, device='cuda')
+            Y = torch.nn.functional.linear(X, A, bias)
+
+            # BMM
+            batch_A = torch.rand((b, M, M), device='cuda')
+            batch_C = torch.bmm(batch_A, batch_A)
+
+            kernel_count = 0
+            with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
+                C = torch.mm(A, A)
+                Y = torch.nn.functional.linear(X, A, bias)
+                batch_C = torch.bmm(batch_A, batch_A)
+
+            # Check that after tuning, there was only one kernel
+            # launched per PyTorch API. The kernels have string
+            # that always starts with `Cijk*`
+            mm_key = 'Cijk'
+            events = prof.key_averages()
+            for evt in events:
+                if mm_key in evt.key:
+                    self.assertEqual(evt.count, 1)
+                    kernel_count = kernel_count + 1
+
+            # There must be exactly three kernels only
+            self.assertEqual(kernel_count, 3)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float, torch.complex64)
     def test_matmul_out_kernel_errors_with_autograd(self, device, dtype):
         a = torch.empty((256, 512), device=device, dtype=dtype, requires_grad=True).unsqueeze(0)
@@ -5875,6 +6026,29 @@ class TestLinalg(TestCase):
         with torch.no_grad():
             torch.matmul(a, b, out=c)
 
+<<<<<<< HEAD
+=======
+    @dtypes(torch.float, torch.complex64)
+    def test_tensordot_out_kernel_errors_with_autograd(self, device, dtype):
+        a = torch.empty((4, 2), device=device, dtype=dtype, requires_grad=True)
+        b = torch.empty((2, 4), device=device, dtype=dtype, requires_grad=True)
+        c = torch.empty((2, 2), device=device, dtype=dtype, requires_grad=True)
+        d = torch.empty((4, 4), device=device, dtype=dtype, requires_grad=False)
+        err_msg = "the 'out' tensor was specified and requires gradients"
+
+        with torch.set_grad_enabled(True), self.assertRaisesRegex(RuntimeError, err_msg):
+            torch.tensordot(a, b, dims=([1], [0]), out=c)
+
+        with torch.set_grad_enabled(True):
+            torch.tensordot(a, b, dims=([1], [0]), out=d)
+
+        with torch.set_grad_enabled(False), warnings.catch_warnings(record=True) as w:
+            # Hack to avoid resize error for CUDA tensors as resize_cuda_ is different to resize_.
+            c.requires_grad = False
+            torch.tensordot(a, b, dims=([1], [0]), out=c)
+            self.assertEqual(len(w), 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # 4GB should do, but we run tests in parallel in CI, so let's be generous
     @largeTensorTest('16GB', device='cuda')
     def test_large_bmm_mm_backward(self, device):
@@ -5948,6 +6122,21 @@ class TestLinalg(TestCase):
         self.assertEqual(res1, res2)
         self.assertEqual(res1, res3)
 
+<<<<<<< HEAD
+=======
+    def test_cross_error(self, device):
+        x = torch.randn(4, 3, device=device)
+        y = torch.randn(4, 3, device=device)
+        with self.assertRaisesRegex(RuntimeError, "input tensor and the written-to tensor refer to a single memory location"):
+            torch.cross(x, y, out=x)
+        with self.assertRaisesRegex(RuntimeError, "input tensor and the written-to tensor refer to a single memory location"):
+            torch.cross(y, x, out=x)
+        with self.assertRaisesRegex(RuntimeError, "input tensor and the written-to tensor refer to a single memory location"):
+            torch.linalg.cross(x, y, out=x)
+        with self.assertRaisesRegex(RuntimeError, "input tensor and the written-to tensor refer to a single memory location"):
+            torch.linalg.cross(y, x, out=x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_renorm(self, device):
         m1 = torch.randn(20, 20, device=device)  # big enough to exercise vectorized path
         res1 = torch.tensor((), device=device)
@@ -6030,6 +6219,7 @@ class TestLinalg(TestCase):
     @dtypes(*floating_and_complex_types())
     def test_ormqr_errors_and_warnings(self, device, dtype):
         test_cases = [
+<<<<<<< HEAD
             # input1 size, input2 size, input3 size, error regex
             ((10,), (2,), (2,), r"input must have at least 2 dimensions"),
             ((2, 2), (2,), (2,), r"other must have at least 2 dimensions"),
@@ -6039,11 +6229,27 @@ class TestLinalg(TestCase):
             ((1, 2, 2), (1, 2), (2, 2, 2), r"batch dimensions of other to be equal to input.shape\[:-2\]"),
         ]
         for a_size, tau_size, c_size, error_regex in test_cases:
+=======
+            # input1 size, input2 size, input3 size, left, error regex
+            ((10,), (2,), (2,), True, r"input must have at least 2 dimensions"),
+            ((2, 2), (2,), (2,), True, r"other must have at least 2 dimensions"),
+            ((6, 6), (5,), (5, 5), True, r"other.shape\[-2\] must be equal to input.shape\[-2\]"),
+            ((1, 2, 2), (2, 2), (1, 2, 2), True, r"batch dimensions of tau to be equal to input.shape\[:-2\]"),
+            ((1, 2, 2), (1, 2), (2, 2, 2), True, r"batch dimensions of other to be equal to input.shape\[:-2\]"),
+            ((2, 4, 3), (2, 2), (2, 3, 10), True, r"torch.ormqr: other.shape\[-2\] must be equal to input.shape\[-2\]"),
+            ((2, 4, 3), (2, 2), (2, 3, 10), False, r"torch.ormqr: other.shape\[-1\] must be equal to input.shape\[-2\]")
+        ]
+        for a_size, tau_size, c_size, left, error_regex in test_cases:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a = make_tensor(a_size, dtype=dtype, device=device)
             tau = make_tensor(tau_size, dtype=dtype, device=device)
             c = make_tensor(c_size, dtype=dtype, device=device)
             with self.assertRaisesRegex(RuntimeError, error_regex):
+<<<<<<< HEAD
                 torch.ormqr(a, tau, c)
+=======
+                torch.ormqr(a, tau, c, left)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_blas_empty(self, device):
         def fn(torchfn, *args, test_out=False, **kwargs):
@@ -6593,6 +6799,15 @@ class TestLinalg(TestCase):
         def test_tracker(worker):
             k = worker.iparams['k']
             nc = worker.ivars['converged_count']
+<<<<<<< HEAD
+=======
+
+            # Regression test for PR #152789 (fixes issue #101075)
+            # Ensure rerr is non-negative at each iteration
+            rerr = worker.tvars['rerr']
+            self.assertGreaterEqual(rerr.min(), 0.)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if k <= nc:
                 tol = worker.fparams['tol']
                 rerr = worker.tvars['rerr']
@@ -6622,9 +6837,32 @@ class TestLinalg(TestCase):
             kwargs['tol'] = 1e-8
             return orig_lobpcg(*args, **kwargs)
         prec = 5e-4
+<<<<<<< HEAD
 
         # check dense input
         mm = torch.matmul
+=======
+        mm = torch.matmul
+
+        # Regression test for PR #152789 (fixes issue #101075)
+        # https://github.com/pytorch/pytorch/issues/101075#issuecomment-1548483685
+        # Demonstrates the original bug: negative residuals in the 2nd iteration
+        A = torch.Tensor([
+            [-0.56142016, 0.29639858, -0.16059532],
+            [0.29639858, -0.69093563, 0.26248195],
+            [-0.16059532, 0.26248195, -0.40236716]
+        ])
+        B = torch.Tensor([
+            [1.89193057, -0.08174309, -0.3557846],
+            [-0.08174309, 1.64589643, -0.46436347],
+            [-0.3557846, -0.46436347, 1.67404367]
+        ])
+        X = torch.Tensor([[0.61591334, 0.63823109, 0.46185694]]).T
+        E, V = lobpcg(A=A, B=B, X=X, k=1)
+        self.assertEqual(matmul(A, V), mm(matmul(B, V), E.diag_embed()), atol=prec, rtol=0)
+
+        # check dense input
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for batches in [(), (2,), (2, 3)]:
             for m, n, k in [
                     (9, 3, 1),
@@ -6717,7 +6955,12 @@ class TestLinalg(TestCase):
         eq_err = torch.norm((mm(A1, V1) - V1 * E1), 2) / E1.max()
         self.assertLess(eq_err, 1e-6)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_SCIPY or (TEST_SCIPY and scipy.__version__ < '1.4.1'), "Scipy not found or older than 1.4.1")
+=======
+    @unittest.skipIf(not TEST_SCIPY or (TEST_SCIPY and version.parse(scipy.__version__) < version.parse('1.4.1')),
+                     "Scipy not found or older than 1.4.1")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCPUIfNoLapack
     @skipIfTorchDynamo("fails in tracing scipy.sparse.lobpcg")
     @onlyCPU
@@ -6929,8 +7172,11 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
                   torch.half))
     @dtypes(torch.bfloat16, torch.half, torch.float, torch.double, torch.cfloat, torch.cdouble)
     def test_addmv(self, device, dtype):
+<<<<<<< HEAD
         if IS_ARM64 and device == 'cpu' and dtype == torch.float16:
             raise unittest.SkipTest("Fails on ARM, see https://github.com/pytorch/pytorch/issues/125438")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # have to use torch.randn(...).to(bfloat16) instead of
         # torch.randn(..., dtype=bfloat16). randn does not support
         # bfloat16 yet.
@@ -7150,7 +7396,10 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
 
     @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU, "cublas runtime error")
     @onlyCUDA
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI4_ARCH)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_matmul_45724(self, device):
         # https://github.com/pytorch/pytorch/issues/45724
         a = torch.rand(65537, 22, 64, device=device, dtype=torch.half)
@@ -9375,6 +9624,27 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
         an = torch.from_numpy(np.tensordot(np.zeros((), dtype=np.float32), np.zeros((), dtype=np.float32), 0))
         self.assertEqual(a, an)
 
+<<<<<<< HEAD
+=======
+        # Testing the fast path introduced in #145936,
+        # i.e. reduction to a scalar has to be of right dim.
+        a = torch.rand(2, 2, device=device)
+        a_dims = [-1, -2]
+        b = torch.rand(2, 2, device=device)
+        b_dims = [-2, -1]
+        for res_ndim in range(5):
+            res_torch = torch.tensordot(a, b, [a_dims, b_dims])
+            self.assertEqual(res_torch.ndim, res_ndim)
+
+            res_numpy = torch.from_numpy(np.tensordot(a.cpu().numpy(), b.cpu().numpy(), [a_dims, b_dims]))
+            self.assertEqual(res_torch, res_numpy)
+
+            if res_ndim % 2:
+                b.unsqueeze_(0)
+            else:
+                a.unsqueeze_(0)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIfNoCusolver
     @skipCUDAIfNoMagma
     @skipCPUIfNoLapack
@@ -9516,6 +9786,10 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
         self.assertEqual(out1, out2)
         self.assertEqual(out_ref, out2.cpu())
 
+<<<<<<< HEAD
+=======
+    @onlyCUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIfNotRocm
     @unittest.skipIf(not blaslt_supported_device(), "blasLt not supported on current device")
     @setBlasBackendsToDefaultFinally
@@ -9609,6 +9883,20 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
         ref = alpha * A @ B + beta * C
         self.assertEqual(rc, ref)
 
+<<<<<<< HEAD
+=======
+    @dtypes(torch.float, torch.half, torch.bfloat16)
+    @largeTensorTest('16GB')
+    def test_matmul_mv(self, device, dtype):
+        # Regression test for https://github.com/pytorch/pytorch/issues/150637
+        # Such matrix will take more than 4Gb in memory
+        n = 50_000
+        A = torch.ones(n, n, dtype=dtype, device=device)
+        B = torch.rand(n, dtype=dtype, device=device)
+        C = torch.matmul(A, B)
+        self.assertEqual(C, B.sum().expand(B.shape))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float, torch.double)
     @precisionOverride({torch.float32: 1e-4})
     def test_1_sized_with_0_strided(self, device, dtype):

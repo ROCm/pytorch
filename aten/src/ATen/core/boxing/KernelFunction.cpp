@@ -28,7 +28,11 @@ void ambiguous_autogradother_kernel(OperatorKernel*, const OperatorHandle& op, D
     "Autograd dispatch key for the backend.\n",
     "If you only want to run inference instead of training, in C++, add `c10::InferenceMode mode;` "
     "before model.forward(); in Python, use `torch.inference_mode()` as a context manager (see "
+<<<<<<< HEAD
     "https://pytorch.org/docs/stable/generated/torch.inference_mode.html).",
+=======
+    "https://pytorch.org/docs/stable/generated/torch.autograd.grad_mode.inference_mode.html).",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "\nCanonical state\n~~~~~~~~~~~\n", op.dumpState(), "\n\n");
 }
 

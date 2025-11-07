@@ -1,6 +1,10 @@
 //  Copyright © 2022 Apple Inc.
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/Dispatch.h>
+<<<<<<< HEAD
+=======
+#include <ATen/ScalarOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/Resize.h>
 #include <ATen/native/TensorCompare.h>
 #include <ATen/native/mps/OperationUtils.h>
@@ -16,6 +20,10 @@
 #include <ATen/ops/isin_native.h>
 #include <ATen/ops/nan_to_num_native.h>
 #include <ATen/ops/ones_like_native.h>
+<<<<<<< HEAD
+=======
+#include <ATen/ops/result_type.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/where_native.h>
 #endif
 
@@ -79,7 +87,11 @@ static void clamp_mps_graph(CachedGraph* cachedGraph,
   cachedGraph->outputTensor = outputTensor;
 }
 
+<<<<<<< HEAD
 static void check_min_max_dims(const OptionalTensorRef clamp_opt, const Tensor& input_t, string op_name) {
+=======
+static void check_min_max_dims(const OptionalTensorRef clamp_opt, const Tensor& input_t, std::string op_name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!clamp_opt->is_same_size(input_t)) {
     auto num_clamp_dims = clamp_opt->dim();
     auto num_input_dims = input_t.dim();
@@ -118,7 +130,11 @@ static void clamp_tensor_out_mps(const Tensor& input_t,
                                  const OptionalTensorRef min_opt,
                                  const OptionalTensorRef max_opt,
                                  const Tensor& output_t,
+<<<<<<< HEAD
                                  string op_name) {
+=======
+                                 std::string op_name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const bool has_min = (min_opt.has_value() && min_opt->defined());
   const bool has_max = (max_opt.has_value() && max_opt->defined());
 
@@ -172,7 +188,11 @@ static void clamp_tensor_out_mps(const Tensor& input_t,
                    : getTensorsStringKey({input_t, min_opt_tensor}))
         : (has_max ? getTensorsStringKey({input_t, max_opt_tensor}) : getTensorsStringKey({input_t}));
 
+<<<<<<< HEAD
     string key = op_name + (has_min ? "_min" : "") + (has_max ? "_max" : "") + "_tensor" + tensor_key;
+=======
+    std::string key = op_name + (has_min ? "_min" : "") + (has_max ? "_max" : "") + "_tensor" + tensor_key;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       if (has_min) {
         newCachedGraph->minTensor = mpsGraphRankedPlaceHolder(mpsGraph, min_opt_tensor);
@@ -220,7 +240,11 @@ static void clamp_scalar_out_mps(const Tensor& input_t,
                                  const OptionalScalarRef min_opt,
                                  const OptionalScalarRef max_opt,
                                  const Tensor& output_t,
+<<<<<<< HEAD
                                  string op_name) {
+=======
+                                 std::string op_name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using scalar_t = double;
 
   const bool has_min = (min_opt.has_value());
@@ -242,7 +266,11 @@ static void clamp_scalar_out_mps(const Tensor& input_t,
 
   @autoreleasepool {
     // the optional min/max refs could affect how we build the cached graph
+<<<<<<< HEAD
     string key = op_name + (has_min ? ("_min:" + std::to_string(min_scalar)) : "") +
+=======
+    std::string key = op_name + (has_min ? ("_min:" + std::to_string(min_scalar)) : "") +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (has_max ? ("_max:" + std::to_string(max_scalar)) : "") + "_scalar:" + getTensorsStringKey({input_t});
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       if (has_min)
@@ -277,7 +305,11 @@ static void isin_Tensor_Tensor_out_mps(const Tensor& elements,
                                        bool assume_unique,
                                        bool invert,
                                        const Tensor& out,
+<<<<<<< HEAD
                                        string op_name) {
+=======
+                                       std::string op_name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (elements.numel() == 0) {
     return;
   }
@@ -293,6 +325,7 @@ static void isin_Tensor_Tensor_out_mps(const Tensor& elements,
     return;
   }
 
+<<<<<<< HEAD
   TORCH_CHECK(elements.is_mps() && test_elements.is_mps());
   TORCH_CHECK(elements.dtype() == test_elements.dtype());
   TORCH_CHECK(
@@ -310,6 +343,24 @@ static void isin_Tensor_Tensor_out_mps(const Tensor& elements,
 
       newCachedGraph->inputTensor_ = inputTensor;
       newCachedGraph->otherTensor_ = otherTensor;
+=======
+  const auto common_type = at::result_type(elements, test_elements);
+  TORCH_CHECK(elements.is_mps() && test_elements.is_mps());
+  TORCH_CHECK(is_macos_13_or_newer(MacOSVersion::MACOS_VER_14_0_PLUS) || supportedFloatingType(common_type),
+              "isin_Tensor_Tensor_out only works on floating types on MPS for pre MacOS_14_0. Received dtype: ",
+              common_type);
+
+  @autoreleasepool {
+    std::string key = op_name + getTensorsStringKey({elements, test_elements}) + std::to_string(invert);
+
+    auto cachedGraph = LookUpOrCreateCachedGraph<MPSBinaryCachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
+      newCachedGraph->inputTensor_ = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(elements.scalar_type()));
+      newCachedGraph->otherTensor_ = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(test_elements.scalar_type()));
+
+      // Cast to common type
+      auto inputTensor = castMPSTensor(mpsGraph, newCachedGraph->inputTensor_, common_type);
+      auto otherTensor = castMPSTensor(mpsGraph, newCachedGraph->otherTensor_, common_type);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       MPSShape* outputShape = getMPSShape(out);
 
@@ -393,6 +444,15 @@ TORCH_IMPL_FUNC(isin_Tensor_Tensor_out_mps)
 (const Tensor& elements, const Tensor& test_elements, bool assume_unique, bool invert, const Tensor& out) {
   mps::isin_Tensor_Tensor_out_mps(elements, test_elements, assume_unique, invert, out, __func__);
 }
+<<<<<<< HEAD
+=======
+TORCH_IMPL_FUNC(isin_Scalar_Tensor_out_mps)
+(const Scalar& elements, const Tensor& test_elements, bool assume_unique, bool invert, const Tensor& out) {
+  at::native::resize_output(out, {});
+  mps::isin_Tensor_Tensor_out_mps(
+      mps::wrapped_scalar_tensor_mps(elements, kMPS), test_elements, assume_unique, invert, out, __func__);
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static void where_kernel_mps(TensorIterator& iter) {
   const auto& condition = iter.input(0);
@@ -421,6 +481,14 @@ static void where_kernel_mps(TensorIterator& iter) {
     return;
   }
 
+<<<<<<< HEAD
+=======
+  Tensor out_;
+  if (needsGather(out)) {
+    out_ = out.contiguous();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Derive from MPSCachedGraph
   struct CachedGraph : public MPSCachedGraph {
     CachedGraph(MPSGraph* graph) : MPSCachedGraph(graph) {}
@@ -435,7 +503,11 @@ static void where_kernel_mps(TensorIterator& iter) {
   MPSDataType otherDataType = getMPSScalarType(other.scalar_type());
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "where_self_out_mps:" + getTensorsStringKey({cond_bool, self, other});
+=======
+    std::string key = "where_self_out_mps:" + getTensorsStringKey({cond_bool, self, other});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* conditionTensor = mpsGraphRankedPlaceHolder(mpsGraph, conditionDataType, getMPSShape(cond_bool));
@@ -459,11 +531,26 @@ static void where_kernel_mps(TensorIterator& iter) {
         Placeholder(cachedGraph->selfTensor_, self, /*mpsShape=*/nullptr, /*gatherTensorData=*/true, selfDataType);
     Placeholder otherPlaceholder =
         Placeholder(cachedGraph->otherTensor_, other, /*mpsShape=*/nullptr, /*gatherTensorData=*/true, otherDataType);
+<<<<<<< HEAD
     Placeholder outputPlaceholder = Placeholder(cachedGraph->outputTensor_, out);
+=======
+    Placeholder outputPlaceholder = Placeholder(cachedGraph->outputTensor_,
+                                                needsGather(out) ? out_ : out,
+                                                /*mpsShape=*/nullptr,
+                                                /*gatherTensorData=*/needsGather(out),
+                                                getMPSScalarType(out.scalar_type()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto feeds = dictionaryFromPlaceholders(conditionPlaceholder, selfPlaceholder, otherPlaceholder);
     runMPSGraph(stream, cachedGraph->graph(), feeds, outputPlaceholder);
   }
+<<<<<<< HEAD
+=======
+
+  if (needsGather(out)) {
+    out.copy_(out_);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor& nan_to_num_out_mps(const Tensor& self,
@@ -495,7 +582,11 @@ Tensor& nan_to_num_out_mps(const Tensor& self,
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "nan_to_num" + getTensorsStringKey({self});
+=======
+    std::string key = "nan_to_num" + getTensorsStringKey({self});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPSDataType self_dtype = getMPSScalarType(self.scalar_type());
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {

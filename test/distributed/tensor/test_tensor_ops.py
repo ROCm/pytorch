@@ -2,8 +2,19 @@
 # Owner(s): ["oncall: distributed"]
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor import DeviceMesh, distribute_tensor, DTensor
 from torch.distributed._tensor.placement_types import Partial, Replicate, Shard
+=======
+from torch.distributed.tensor import (
+    DeviceMesh,
+    distribute_tensor,
+    DTensor,
+    Partial,
+    Replicate,
+    Shard,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.debug import CommDebugMode
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_utils import run_tests, skipIfRocm
@@ -649,8 +660,13 @@ class DistTensorOpsTest(DTensorTestBase):
 
         global_out.backward(gradient=torch.ones_like(global_out))
         with comm_mode:
+<<<<<<< HEAD
             sharded_out_grad = torch.distributed._tensor.ones(
                 sharded_out.shape, device_mesh=mesh, placements=[Shard(1)]
+=======
+            sharded_out_grad = torch.distributed.tensor.ones(
+                sharded_out.shape, device_mesh=mesh, placements=shard_spec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             sharded_out.backward(gradient=sharded_out_grad)
 

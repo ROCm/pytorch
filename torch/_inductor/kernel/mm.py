@@ -1,9 +1,16 @@
 # mypy: allow-untyped-defs
 import functools
 import logging
+<<<<<<< HEAD
 import re
 from typing import Any, Optional
 
+=======
+from typing import Any, Optional
+
+import sympy
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch._dynamo.utils import counters
 from torch._inductor.autoheuristic.autoheuristic import AutoHeuristicSelectAlgorithm
@@ -15,11 +22,22 @@ from torch._inductor.autoheuristic.autoheuristic_utils import (
 )
 from torch._inductor.codegen.cpp_gemm_template import CppGemmTemplate
 from torch._inductor.virtualized import V
+<<<<<<< HEAD
 
 from .. import config as inductor_config, ir
 from ..codegen.cuda.gemm_template import CUTLASS2xGemmTemplate, CUTLASS3xGemmTemplate
 from ..codegen.rocm.ck_universal_gemm_template import CKGemmTemplate
 from ..codegen.wrapper import PythonWrapperCodegen
+=======
+from torch.fx.experimental.proxy_tensor import make_fx
+from torch.torch_version import TorchVersion
+
+from .. import config as inductor_config, ir
+from ..codegen.cuda.gemm_template import CUTLASS2xGemmTemplate, CUTLASS3xGemmTemplate
+from ..codegen.rocm.ck_tile_universal_gemm_template import CKTileGemmTemplate
+from ..codegen.rocm.ck_universal_gemm_template import CKGemmTemplate
+from ..codegen.subgraph import SubgraphTemplate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..ir import FlexibleLayout, is_triton
 from ..lowering import (
     add_layout_constraint,
@@ -34,12 +52,24 @@ from ..select_algorithm import (
     TritonTemplate,
 )
 from ..utils import (
+<<<<<<< HEAD
     get_tma_workspace_arg,
     use_aten_gemm_kernels,
     use_ck_gemm_template,
     use_cpp_gemm_template,
     use_cutlass_template,
     use_max_autotune,
+=======
+    _use_cutlass_for_op,
+    get_k_splits,
+    get_tma_workspace_arg,
+    use_aten_gemm_kernels,
+    use_ck_gemm_template,
+    use_ck_tile_gemm_template,
+    use_cpp_gemm_template,
+    use_cutlass_template,
+    use_decompose_k_choice,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     use_triton_template,
     use_triton_tma_template,
 )
@@ -54,6 +84,7 @@ from .mm_common import (
     persistent_mm_options,
     scale_mm_epilogue,
     scaled_mm_options,
+<<<<<<< HEAD
     should_fallback_to_aten,
 )
 
@@ -86,6 +117,23 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 aten = torch.ops.aten
+=======
+)
+
+
+try:
+    import triton
+
+    triton_version = TorchVersion(triton.__version__)
+    has_triton = True
+except ImportError:
+    triton_version = TorchVersion("0.0.0")
+    has_triton = False
+
+log = logging.getLogger(__name__)
+aten = torch.ops.aten
+prims = torch.ops.prims
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 mm_template = TritonTemplate(
     name="mm",
@@ -115,6 +163,11 @@ mm_template = TritonTemplate(
     group_size = min(grid_m - group_id * GROUP_M, GROUP_M)
     pid_m = group_id * GROUP_M + (pid % group_size)
     pid_n = (pid % width) // (group_size)
+<<<<<<< HEAD
+=======
+    tl.assume(pid_m >= 0)
+    tl.assume(pid_n >= 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
     rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
@@ -161,8 +214,12 @@ mm_template = TritonTemplate(
     # inductor generates a suffix
     {{store_output(("idx_m", "idx_n"), "acc", "mask")}}
 """
+<<<<<<< HEAD
         if (torch.version.hip is None)
         or (has_triton and triton_major >= 3 and triton_minor >= 3)
+=======
+        if (torch.version.hip is None) or triton_version >= "3.3.0"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # FIXME: To get around rocm failures like https://github.com/pytorch/pytorch/actions/runs/13123783322/job/36617154943
         # The only difference between the two templates is M >= BLOCK_M and N >= BLOCK_N checking.
         # See more details in https://github.com/pytorch/pytorch/pull/146293
@@ -190,6 +247,11 @@ mm_template = TritonTemplate(
     group_size = min(grid_m - group_id * GROUP_M, GROUP_M)
     pid_m = group_id * GROUP_M + (pid % group_size)
     pid_n = (pid % width) // (group_size)
+<<<<<<< HEAD
+=======
+    tl.assume(pid_m >= 0)
+    tl.assume(pid_n >= 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
     rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
@@ -236,6 +298,11 @@ mm_template = TritonTemplate(
     {{store_output(("idx_m", "idx_n"), "acc", "mask")}}
 """
     ),
+<<<<<<< HEAD
+=======
+    cache_codegen_enabled_for_template=True,
+    prologue_loads_all_inputs=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 persistent_tma_mm_template = TritonTemplate(
@@ -270,6 +337,10 @@ persistent_tma_mm_template = TritonTemplate(
     a_desc_ptr = workspace_base
     b_desc_ptr = workspace_base + TMA_SIZE
 
+<<<<<<< HEAD
+=======
+    {%- if TMA_EXPERIMENTAL_API %}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     triton.language.extra.cuda.experimental_device_tensormap_create2d(
         desc_ptr=a_desc_ptr,
         global_address=A,
@@ -288,6 +359,26 @@ persistent_tma_mm_template = TritonTemplate(
     tl.extra.cuda.experimental_tensormap_fenceproxy_acquire(a_desc_ptr)
     tl.extra.cuda.experimental_tensormap_fenceproxy_acquire(b_desc_ptr)
 
+<<<<<<< HEAD
+=======
+    a_desc = a_desc_ptr
+    b_desc = b_desc_ptr
+    {%- else %}
+    a_desc = triton.language.make_tensor_descriptor(
+        base=A,
+        shape=[M, K] if A_ROW_MAJOR else [K, M],
+        strides=[K, 1] if A_ROW_MAJOR else [M, 1],
+        block_shape=[BLOCK_M, BLOCK_K] if A_ROW_MAJOR else [BLOCK_K, BLOCK_M],
+    )
+    b_desc = triton.language.make_tensor_descriptor(
+        base=B,
+        shape=[K, N] if B_ROW_MAJOR else [N, K],
+        strides=[N, 1] if B_ROW_MAJOR else [K, 1],
+        block_shape=[BLOCK_K, BLOCK_N] if B_ROW_MAJOR else [BLOCK_N, BLOCK_K],
+    )
+    {%- endif %}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pid_m = 0
     pid_n = 0
     rm = 0
@@ -308,24 +399,48 @@ persistent_tma_mm_template = TritonTemplate(
 
         rk = ki * BLOCK_K
 
+<<<<<<< HEAD
         a = tl._experimental_descriptor_load(
             a_desc_ptr,
+=======
+        {%- if TMA_EXPERIMENTAL_API %}
+        a = tl._experimental_descriptor_load(
+            a_desc,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [rm, rk] if A_ROW_MAJOR else [rk, rm],
             [BLOCK_M, BLOCK_K] if A_ROW_MAJOR else [BLOCK_K, BLOCK_M],
             A.dtype.element_ty,
         )
         b = tl._experimental_descriptor_load(
+<<<<<<< HEAD
             b_desc_ptr,
+=======
+            b_desc,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [rk, rn] if B_ROW_MAJOR else [rn, rk],
             [BLOCK_K, BLOCK_N] if B_ROW_MAJOR else [BLOCK_N, BLOCK_K],
             B.dtype.element_ty,
         )
+<<<<<<< HEAD
+=======
+        {%- else %}
+        a = tl.load_tensor_descriptor(
+            a_desc,
+            [rm, rk] if A_ROW_MAJOR else [rk, rm],
+        )
+        b = tl.load_tensor_descriptor(
+            b_desc,
+            [rk, rn] if B_ROW_MAJOR else [rn, rk],
+        )
+        {%- endif %}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         acc += tl.dot(
             a if A_ROW_MAJOR else a.T,
             b if B_ROW_MAJOR else b.T,
             allow_tf32=ALLOW_TF32,
         )
 
+<<<<<<< HEAD
         {% if ki == k_tiles - 1 %}
         # rematerialize rm and rn to save registers
         rcm = rm + tl.arange(0, BLOCK_M)
@@ -338,6 +453,20 @@ persistent_tma_mm_template = TritonTemplate(
         {{store_output(("idx_m", "idx_n"), "acc", "mask", indent_width=12)}}
         acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=ACC_TYPE)
         {% endif %}
+=======
+        if ki == k_tiles - 1:
+            # rematerialize rm and rn to save registers
+            rcm = rm + tl.arange(0, BLOCK_M)
+            rcn = rn + tl.arange(0, BLOCK_N)
+            idx_m = rcm[:, None]
+            idx_n = rcn[None, :]
+            mask = (idx_m < M) & (idx_n < N)
+
+            # inductor generates a suffix
+            {{store_output(("idx_m", "idx_n"), "acc", "mask", indent_width=12)}}
+            acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=ACC_TYPE)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -421,6 +550,10 @@ device_tma = r"""
     a_desc_ptr = workspace_base
     b_desc_ptr = workspace_base + TMA_SIZE
 
+<<<<<<< HEAD
+=======
+    {%- if TMA_EXPERIMENTAL_API %}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     triton.language.extra.cuda.experimental_device_tensormap_create2d(
         desc_ptr=a_desc_ptr,
         global_address=A,
@@ -439,6 +572,26 @@ device_tma = r"""
     tl.extra.cuda.experimental_tensormap_fenceproxy_acquire(a_desc_ptr)
     tl.extra.cuda.experimental_tensormap_fenceproxy_acquire(b_desc_ptr)
 
+<<<<<<< HEAD
+=======
+    a_desc = a_desc_ptr
+    b_desc = a_desc_ptr
+    {%- else %}
+    a_desc = triton.language.make_tensor_descriptor(
+        base=A,
+        shape=[M, K],
+        strides=[K, 1],
+        block_shape=[BLOCK_M, BLOCK_K],
+    )
+    b_desc = triton.language.make_tensor_descriptor(
+        base=B,
+        shape=[N, K],
+        strides=[K, 1],
+        block_shape=[BLOCK_N, BLOCK_K],
+    )
+    {%- endif %}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tiles_per_SM = num_tiles // NUM_SMS
     if start_pid < num_tiles % NUM_SMS:
         tiles_per_SM += 1
@@ -470,17 +623,29 @@ device_tma = r"""
 
         offs_k = ki * BLOCK_K
 
+<<<<<<< HEAD
+=======
+        {%- if TMA_EXPERIMENTAL_API %}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         a = tl._experimental_descriptor_load(
             a_desc_ptr, [offs_am, offs_k], [BLOCK_M, BLOCK_K],  A.dtype.element_ty
         )
         b = tl._experimental_descriptor_load(
             b_desc_ptr, [offs_bn, offs_k], [BLOCK_N, BLOCK_K],  B.dtype.element_ty
         )
+<<<<<<< HEAD
+=======
+        {%- else %}
+        a = tl.load_tensor_descriptor(a_desc, [offs_am, offs_k])
+        b = tl.load_tensor_descriptor(b_desc, [offs_bn, offs_k])
+        {%- endif %}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if USE_FAST_ACCUM:
             accumulator = tl.dot(a, b.T, accumulator)
         else:
             accumulator += tl.dot(a, b.T)
 
+<<<<<<< HEAD
         {% if ki == k_tiles - 1 %}
         # Apply inverse scaling
         offs_cm = offs_am + tl.arange(0, BLOCK_M)
@@ -506,6 +671,32 @@ device_tma = r"""
         {{store_output(("idx_m", "idx_n"), "accumulator", "mask", indent_width=12)}}
         accumulator = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float32)
         {% endif %}
+=======
+        if ki == k_tiles - 1:
+            # Apply inverse scaling
+            offs_cm = offs_am + tl.arange(0, BLOCK_M)
+            offs_cn = offs_bn + tl.arange(0, BLOCK_N)
+            # Apply scaling
+            accumulator = apply_scaling(
+                accumulator,
+                a_scale,
+                b_scale,
+                SCALING_ROWWISE,
+                offs_cm,
+                offs_cn,
+                M,
+                N,
+                stride_a_scale_m,
+                stride_b_scale_n,
+            )
+
+            idx_m = offs_cm[:, None]
+            idx_n = offs_cn[None, :]
+            mask = (idx_m < M) & (idx_n < N)
+            # inductor generates a suffix
+            {{store_output(("idx_m", "idx_n"), "accumulator", "mask", indent_width=12)}}
+            accumulator = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 
 
@@ -517,7 +708,11 @@ scaled_mm_device_tma_template = TritonTemplate(
 
 
 # prevent duplication registration of extern functions
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def lazy_register_extern_choice(fn):
     return ExternKernelChoice(fn)
 
@@ -600,8 +795,30 @@ def check_supported_striding(mat_a, mat_b) -> None:
 aten_bias_addmm = ExternKernelChoice(bias_addmm, None)
 
 
+<<<<<<< HEAD
 @register_lowering(aten.mm, type_promotion_kind=None)
 def tuned_mm(mat1, mat2, *, layout=None):
+=======
+def decomposeK(a, b, k_splits):
+    m = a.shape[0]
+    n = b.shape[1]
+    k = a.shape[1]
+
+    k_parts = k // k_splits
+    B = k_splits
+    a_reshaped = torch.permute(a.reshape(m, B, k_parts), (1, 0, 2))
+    b_reshaped = b.reshape(B, k_parts, n)
+    result = torch.bmm(a_reshaped, b_reshaped, out_dtype=torch.float32)
+    reduced_buf = torch.sum(result, 0)
+    return reduced_buf.to(a.dtype)
+
+
+@register_lowering(aten.mm, type_promotion_kind=None)
+def tuned_mm(mat1, mat2, *, layout=None):
+    """
+    Lowering for autotuning aten.mm with different backends (Aten, Triton, CUTLASS, etc.)
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     m, n, k, layout, mat1, mat2 = mm_args(mat1, mat2, layout=layout)
     device_type = ir.get_device_type(mat1)
     name = "mm"
@@ -619,7 +836,11 @@ def tuned_mm(mat1, mat2, *, layout=None):
     )
 
     aten_layout = layout
+<<<<<<< HEAD
     if not use_max_autotune():
+=======
+    if not (inductor_config.max_autotune or inductor_config.max_autotune_gemm):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aten_layout = FlexibleLayout(
             device=layout.device, dtype=layout.dtype, size=layout.size
         )
@@ -634,9 +855,19 @@ def tuned_mm(mat1, mat2, *, layout=None):
     persistent_mm_configs = V.choices.get_persistent_mm_configs(device_type)
     extra_mm_configs = V.choices.get_extra_mm_configs(device_type)
 
+<<<<<<< HEAD
     if is_nonzero and use_triton_template(layout):
         for config in mm_configs(
             m, n, k, *mm_config_kwargs(device_type, _is_large_block_for_cpu)
+=======
+    dtype = mat1.get_dtype()
+    if is_nonzero and use_triton_template(layout):
+        for config in mm_configs(
+            m,
+            n,
+            k,
+            **mm_config_kwargs(device_type, _is_large_block_for_cpu, dtype.itemsize),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             mm_template.maybe_append_choice(
                 choices,
@@ -644,9 +875,21 @@ def tuned_mm(mat1, mat2, *, layout=None):
                 layout=layout,
                 **mm_options(config, m, n, k, layout),
             )
+<<<<<<< HEAD
         if use_triton_tma_template(mat1, mat2):
             for config in persistent_mm_configs(
                 m, n, k, **mm_config_kwargs(device_type, _is_large_block_for_cpu)
+=======
+
+        if use_triton_tma_template(mat1, mat2):
+            for config in persistent_mm_configs(
+                m,
+                n,
+                k,
+                **mm_config_kwargs(
+                    device_type, _is_large_block_for_cpu, dtype.itemsize
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 persistent_tma_mm_template.maybe_append_choice(
                     choices,
@@ -660,11 +903,66 @@ def tuned_mm(mat1, mat2, *, layout=None):
                     **persistent_mm_options(mat1, mat2),
                 )
 
+<<<<<<< HEAD
     if is_nonzero and use_cutlass_template(layout, m, n, k):
+=======
+        from torch._inductor.ir import get_free_symbols
+
+        # Only do split-k optimization if K is much larger than m, n and m, n are small
+        # and if there aren't any unbacked symbols
+        unbacked_symbols = any(
+            len(get_free_symbols(itr, unbacked_only=True)) > 0
+            for itr in (
+                mat1.get_size(),
+                mat1.get_stride(),
+                mat2.get_size(),
+                mat2.get_stride(),
+            )
+        )
+        if use_decompose_k_choice(m, n, k) and not unbacked_symbols:
+            from torch._dispatch.python import enable_python_dispatcher
+
+            from ..decomposition import select_decomp_table
+
+            k_splits = get_k_splits(m, n, k)
+            for k_split in k_splits:
+                if not V.graph.sizevars.statically_known_true(
+                    sympy.Eq(sympy.Mod(k, k_split), 0)
+                ):
+                    continue
+
+                with enable_python_dispatcher():
+                    decompositions = select_decomp_table()
+
+                    decompose_k_subgraph_template = SubgraphTemplate(
+                        name=f"decompose_k_mm_{k_split}_split",
+                        make_fx_graph=make_fx(
+                            functools.partial(decomposeK, k_splits=k_split),
+                            decompositions,
+                        ),
+                    )
+
+                decompose_k_subgraph_template.maybe_append_choice(
+                    choices,
+                    input_nodes=(mat1, mat2),
+                    layout=layout,
+                )
+
+    if (
+        is_nonzero
+        and use_cutlass_template(layout, m, n, k)
+        and _use_cutlass_for_op("mm")
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         CUTLASS3xGemmTemplate.add_cutlass_gemm_choices(choices, layout, [mat1, mat2])
 
     if is_nonzero and use_ck_gemm_template(layout, m, n, k):
         CKGemmTemplate.add_ck_gemm_choices(choices, layout, [mat1, mat2])
+<<<<<<< HEAD
+=======
+    if is_nonzero and use_ck_tile_gemm_template(layout, m, n, k):
+        CKTileGemmTemplate.add_choices(choices, layout, [mat1, mat2])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if use_cpp_gemm_template(layout, mat1, mat2):
         CppGemmTemplate.add_choices(
@@ -723,9 +1021,12 @@ def tuned_mm(mat1, mat2, *, layout=None):
     for k in inductor_config.external_matmul:
         choices.append(lazy_register_extern_choice(k).bind((mat1, mat2), layout))
 
+<<<<<<< HEAD
     if should_fallback_to_aten(choices):
         return aten_mm.bind((mat1, mat2), aten_layout).output_node()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return autotune_select_algorithm(name, choices, [mat1, mat2], layout)
 
 
@@ -756,7 +1057,11 @@ def tuned_int_mm(mat1, mat2, *, layout=None):
         [aten__int_mm.bind((mat1, mat2), layout)] if use_aten_gemm_kernels() else []
     )
 
+<<<<<<< HEAD
     if use_cutlass:
+=======
+    if use_cutlass and _use_cutlass_for_op("int_mm"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         CUTLASS3xGemmTemplate.add_cutlass_gemm_choices(
             choices, layout, [mat1, mat2], fuseable=True, non_fuseable=True
         )
@@ -774,15 +1079,21 @@ def tuned_int_mm(mat1, mat2, *, layout=None):
                 **mm_options(config, m, n, k, layout),
             )
 
+<<<<<<< HEAD
     if should_fallback_to_aten(choices):
         return aten__int_mm.bind((mat1, mat2), layout).output_node()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return autotune_select_algorithm("int_mm", choices, [mat1, mat2], layout)
 
 
 @register_lowering(aten.addmm, type_promotion_kind=None)
 def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
+<<<<<<< HEAD
     ordered_kwargs_for_cpp_kernel = ("beta", "alpha")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     device_type = ir.get_device_type(mat1)
     m, n, k, layout, mat1, mat2, inp_expanded = mm_args(mat1, mat2, inp, layout=layout)
     static_shape, is_nonzero = _is_static_problem(layout)
@@ -799,7 +1110,13 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
         layout,
     )
 
+<<<<<<< HEAD
     if (not is_nonzero) or (not use_max_autotune()):
+=======
+    if (not is_nonzero) or (
+        not (inductor_config.max_autotune or inductor_config.max_autotune_gemm)
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Use a FlexibleLayout if we are not autotuning.
         # This allows padding strides for the output.
         from torch._inductor.ir import FixedLayout, FlexibleLayout
@@ -852,9 +1169,19 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
     mm_configs = V.choices.get_base_mm_configs(device_type)
     persistent_mm_configs = V.choices.get_persistent_mm_configs(device_type)
 
+<<<<<<< HEAD
     if is_nonzero and use_triton_template(layout):
         for config in mm_configs(
             m, n, k, **mm_config_kwargs(device_type, _is_large_block_for_cpu)
+=======
+    dtype = mat1.get_dtype()
+    if is_nonzero and use_triton_template(layout):
+        for config in mm_configs(
+            m,
+            n,
+            k,
+            **mm_config_kwargs(device_type, _is_large_block_for_cpu, dtype.itemsize),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             mm_template.maybe_append_choice(
                 choices,
@@ -863,11 +1190,24 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
                 **mm_options(config, m, n, k, layout),
                 prefix_args=1,
                 epilogue_fn=addmm_epilogue(layout.dtype, alpha, beta),
+<<<<<<< HEAD
+=======
+                epilogue_fn_hash=str(["addmm_epilogue", layout.dtype, alpha, beta]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         if use_triton_tma_template(mat1, mat2):
             for config in persistent_mm_configs(
+<<<<<<< HEAD
                 m, n, k, **mm_config_kwargs(device_type, _is_large_block_for_cpu)
+=======
+                m,
+                n,
+                k,
+                **mm_config_kwargs(
+                    device_type, _is_large_block_for_cpu, dtype.itemsize
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 persistent_tma_mm_template.maybe_append_choice(
                     choices,
@@ -883,6 +1223,7 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
                     epilogue_fn=addmm_epilogue(layout.dtype, alpha, beta),
                 )
 
+<<<<<<< HEAD
     if static_shape and is_nonzero and use_cutlass_template(layout, m, n, k):
         # Filter out a known cause of CUDA illegal memory access errors
         # broadcasting on the last dim of the bias term seems not to be working
@@ -901,6 +1242,21 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
                 beta=beta,
                 input_reorder=[2, 0, 1],
             )
+=======
+    if (
+        is_nonzero
+        and use_cutlass_template(layout, m, n, k)
+        and _use_cutlass_for_op("addmm")
+    ):
+        CUTLASS3xGemmTemplate.add_cutlass_gemm_choices(
+            choices,
+            layout,
+            [mat1, mat2, inp_expanded],
+            alpha=alpha,
+            beta=beta,
+            input_reorder=[2, 0, 1],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if is_nonzero and use_ck_gemm_template(layout, m, n, k):
         CKGemmTemplate.add_ck_gemm_choices(
@@ -922,6 +1278,7 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
             has_bias=True,
         )
 
+<<<<<<< HEAD
     if should_fallback_to_aten(choices):
         choices.append(
             aten_addmm.bind(
@@ -946,6 +1303,8 @@ def tuned_addmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
                 ),
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return autotune_select_algorithm(
         "addmm", choices, [inp_expanded, mat1, mat2], layout
     )
@@ -986,7 +1345,15 @@ def tuned_sparse_semi_structured_mm(
         else []
     )
 
+<<<<<<< HEAD
     if m * n != 0 and use_cutlass_template(layout, m, n, k):
+=======
+    if (
+        m * n != 0
+        and use_cutlass_template(layout, m, n, k)
+        and _use_cutlass_for_op("sparse_semi_structured_mm")
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         CUTLASS2xGemmTemplate.add_cutlass_gemm_choices(
             choices, layout, [mat1, mat2, mat1_meta], fuseable=True, non_fuseable=True
         )
@@ -1011,6 +1378,24 @@ def tuned_scaled_mm(
     use_fast_accum=False,
     layout=None,
 ):
+<<<<<<< HEAD
+=======
+    """
+    Performs an optimized matrix multiplication where scaling factors are applied
+    to the inputs and/or output.
+
+    Args:
+        mat1 (Tensor): First input matrix
+        mat2 (Tensor): Second input matrix
+        scale1 (Tensor): Scale factor applied to mat1 (supports broadcasting)
+        scale2 (Tensor): Scale factor applied to mat2 (supports broadcasting)
+        bias (Tensor, optional): Optional bias tensor to add to the result
+        layout: Layout hint for optimization
+
+    Returns:
+        Tensor: The result of the scaled matrix multiplication
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     m, n, k, layout, mat_a, mat_b = mm_args(
         mat_a, mat_b, layout=layout, out_dtype=out_dtype
     )
@@ -1047,6 +1432,13 @@ def tuned_scaled_mm(
     if use_aten_gemm_kernels():
         choices.append(aten_choice)
 
+<<<<<<< HEAD
+=======
+    # We dont have triton lowerings for the MX variants yet
+    if scale_a.dtype != torch.float32:
+        return autotune_select_algorithm("scaled_mm", choices, input_nodes, layout)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _, is_nonzero = _is_static_problem(layout)
 
     scaled_mm_configs = V.choices.get_scaled_mm_configs(device_type)
@@ -1111,12 +1503,22 @@ def tuned_scaled_mm(
                 )
 
         for config in scaled_mm_configs(m, n, k):
+<<<<<<< HEAD
             if k == 16 and config.kwargs["BLOCK_M"] >= 64:
                 continue  # Triton crashes in this case
 
             # On NVIDIA B200 GPUs, K dim must be >= 32 for tcgen05.mma.kind::f8f6f4.* PTX instruction to be valid
             # source: https://docs.nvidia.com/cuda/parallel-thread-execution/#tcgen05-matrix-shape
             if using_b200() and k < 32:
+=======
+            if V.graph.sizevars.guard_or_false(sympy.Le(k, 16)):
+                # Triton crashes however uncommon for real workloads
+                continue
+
+            # On NVIDIA B200 GPUs, K dim must be >= 32 for tcgen05.mma.kind::f8f6f4.* PTX instruction to be valid
+            # source: https://docs.nvidia.com/cuda/parallel-thread-execution/#tcgen05-matrix-shape
+            if using_b200() and V.graph.sizevars.guard_or_false(sympy.Lt(k, 32)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
 
             kwargs = scaled_mm_options(
@@ -1130,6 +1532,7 @@ def tuned_scaled_mm(
                 **kwargs,
                 suffix_args=suffix_args,
                 epilogue_fn=scale_mm_epilogue(),
+<<<<<<< HEAD
             )
 
     if is_nonzero and use_ck_gemm_template(layout, m, n, k):
@@ -1142,6 +1545,30 @@ def tuned_scaled_mm(
 
 
 @functools.lru_cache(None)
+=======
+                epilogue_fn_hash="scale_mm_epilogue",
+            )
+
+    if (
+        is_nonzero
+        and use_cutlass_template(layout, m, n, k)
+        and _use_cutlass_for_op("scaled_mm")
+    ):
+        CUTLASS3xGemmTemplate.add_cutlass_gemm_choices(
+            choices,
+            layout,
+            input_nodes,  # type: ignore[arg-type]
+            use_fast_accum=use_fast_accum,  # type: ignore[arg-type]
+        )
+
+    if is_nonzero and use_ck_gemm_template(layout, m, n, k):
+        CKGemmTemplate.add_ck_gemm_choices(choices, layout, input_nodes)
+
+    return autotune_select_algorithm("scaled_mm", choices, input_nodes, layout)
+
+
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _is_sm7x_or_older_gpu(index: Optional[int]) -> bool:
     props = torch.cuda.get_device_properties(index or 0)
     return props.major <= 7
@@ -1186,7 +1613,10 @@ def mm_autoheuristic(
             "mat2_iscontig", mat2.layout.is_contiguous(), is_categorical=True
         )
         if name == "mm":
+<<<<<<< HEAD
             # for mixed_mm, we only consider fp16
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             context_add_using_tf32(context, mat1.layout.dtype)
         return context
 

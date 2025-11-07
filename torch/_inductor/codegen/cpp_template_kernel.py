@@ -7,6 +7,10 @@ import sympy
 from sympy.parsing.sympy_parser import parse_expr
 
 import torch
+<<<<<<< HEAD
+=======
+from torch._inductor.utils import do_bench_using_profiling
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.symbol import SymT
 
@@ -208,6 +212,22 @@ class CppTemplateKernel(CppKernel):
         numel = f"{cexpr_index(buf.get_numel())}"
         return f"auto _{name} = std::make_unique<{ctype}[]>({numel}); auto {name} = _{name}.get();"
 
+<<<<<<< HEAD
+=======
+    def define_stack_allocated_buffer(
+        self, name, sizes: list[Any], dtype=torch.float
+    ) -> str:
+        """Define stack-allocated buffer"""
+        sizes = parse_expr_with_index_symbols(sizes)
+        buf = ir.Buffer(
+            name=name, layout=ir.FixedLayout(torch.device("cpu"), dtype, sizes)
+        )
+        self.local_buffers[name] = buf
+        ctype = f"{DTYPE_TO_CPP[dtype]}"
+        numel = f"{cexpr_index(buf.get_numel())}"
+        return f"alignas(64) {ctype} _{name}[{numel}]; {ctype}* {name} = _{name};"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reinit_buffer_if_null(self, name):
         """Reinit the previously defined local buffer if it is null"""
         assert name in self.local_buffers
@@ -553,7 +573,14 @@ class CppTemplateCaller(ir.ChoiceCaller):
 
     def benchmark(self, *args, out) -> float:
         assert self.bmreq is not None
+<<<<<<< HEAD
         return self.bmreq.benchmark(*args, output_tensor=out)
+=======
+        if config.profile_bandwidth_with_do_bench_using_profiling:
+            algo = self.bmreq.make_run_fn(*args, out=out)
+            return do_bench_using_profiling(algo)
+        return self.bmreq.benchmark(*args, out=out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def hash_key(self) -> str:
         return "-".join(

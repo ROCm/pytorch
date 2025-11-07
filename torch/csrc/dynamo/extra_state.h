@@ -47,10 +47,25 @@ typedef struct CacheEntry CacheEntry;
 
 #ifdef __cplusplus
 
+<<<<<<< HEAD
+=======
+typedef struct VISIBILITY_HIDDEN PrecompileEntry {
+  py::object guard_manager;
+  py::object code;
+  void* root_mgr;
+
+  PrecompileEntry(py::object gm, py::object c);
+} PrecompileEntry;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 typedef struct VISIBILITY_HIDDEN ExtraState {
   // A pointer to the orig_code object to prevent race conditions in invalidate
   // function.
   PyCodeObject* orig_code;
+<<<<<<< HEAD
+=======
+  std::list<PrecompileEntry> precompile_entries;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // List of cache entries for compiled code objects
   std::list<CacheEntry> cache_entry_list;
   // Frame state to detect dynamic shape dims
@@ -68,6 +83,10 @@ typedef struct VISIBILITY_HIDDEN ExtraState {
 #else
 
 typedef struct ExtraState ExtraState;
+<<<<<<< HEAD
+=======
+typedef struct PrecompileEntry PrecompileEntry;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #endif
 
@@ -122,7 +141,11 @@ void destroy_extra_state(void* obj);
 // Clears the existing object sitting on the extra scratch spance and sets it
 // up with the new state. Note that _PyCode_SetExtra calls the
 // destroy_extra_state deleter internally, and therefore we don't call it
+<<<<<<< HEAD
 // explicity here.
+=======
+// explicitly here.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Ownership contract
 // args
@@ -138,7 +161,11 @@ void destroy_extra_state(void* obj);
 // scratch space.
 void set_extra_state(PyCodeObject* code, ExtraState* extra_state);
 
+<<<<<<< HEAD
 // Creates a new extra state and put it on the extra scrach space of the code
+=======
+// Creates a new extra state and put it on the extra scratch space of the code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // object.
 
 // Ownership contract
@@ -187,5 +214,13 @@ PyObject* get_backend(PyObject* callback);
 // Returns the list of CacheEntry corresponding to code_obj.
 // Warning: returns references whose lifetimes are controlled by C++
 py::list _debug_get_cache_entry_list(const py::handle& code_obj);
+<<<<<<< HEAD
+=======
+void _reset_precompile_entries(const py::handle& code_obj);
+void _load_precompile_entry(
+    const py::handle& code_obj,
+    py::object guard_manager,
+    py::object dynamo_code);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #endif

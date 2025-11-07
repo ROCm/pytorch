@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import os
+<<<<<<< HEAD
 from collections import namedtuple
 from typing import Any
+=======
+from typing import Any, NamedTuple, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -129,6 +133,7 @@ def make_dual(tensor, tangent, *, level=None):
     return torch._VF._make_dual(tensor, tangent, level=level)
 
 
+<<<<<<< HEAD
 _UnpackedDualTensor = namedtuple("_UnpackedDualTensor", ["primal", "tangent"])
 
 
@@ -139,6 +144,17 @@ class UnpackedDualTensor(_UnpackedDualTensor):
 
     """
 
+=======
+class UnpackedDualTensor(NamedTuple):
+    r"""Namedtuple returned by :func:`unpack_dual` containing the primal and tangent components of the dual tensor.
+
+    See :func:`unpack_dual` for more details.
+    """
+
+    primal: torch.Tensor
+    tangent: Optional[torch.Tensor]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def unpack_dual(tensor, *, level=None):
     r"""Unpack a "dual tensor" to get both its Tensor value and its forward AD gradient.

@@ -115,14 +115,27 @@ struct TraceEntry {
       size_t addr,
       size_t size,
       cudaStream_t stream,
+<<<<<<< HEAD
       approx_time_t time,
       std::shared_ptr<GatheredContext> context = nullptr)
+=======
+      MempoolId_t mempool,
+      approx_time_t time,
+      std::shared_ptr<GatheredContext> context = nullptr,
+      std::string compile_context = "")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : action_(action),
         device_(device),
         addr_(addr),
         context_(std::move(context)),
         stream_(stream),
+<<<<<<< HEAD
         size_(size) {
+=======
+        size_(size),
+        mempool_(std::move(mempool)),
+        compile_context_(std::move(compile_context)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     time_.approx_t_ = time;
   }
   Action action_;
@@ -131,7 +144,13 @@ struct TraceEntry {
   std::shared_ptr<GatheredContext> context_;
   cudaStream_t stream_{};
   size_t size_;
+<<<<<<< HEAD
   trace_time_ time_{};
+=======
+  MempoolId_t mempool_;
+  trace_time_ time_{};
+  std::string compile_context_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // Calls made by record_function will save annotations
@@ -205,7 +224,11 @@ class CUDAAllocator : public Allocator {
   virtual bool initialized() = 0;
   virtual double getMemoryFraction(c10::DeviceIndex device) = 0;
   virtual void setMemoryFraction(double fraction, c10::DeviceIndex device) = 0;
+<<<<<<< HEAD
   virtual void emptyCache() = 0;
+=======
+  virtual void emptyCache(MempoolId_t mempool_id = {0, 0}) = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void enable(bool value) = 0;
   virtual bool isEnabled() const = 0;
   virtual void cacheInfo(c10::DeviceIndex device, size_t* largestBlock) = 0;
@@ -215,7 +238,11 @@ class CUDAAllocator : public Allocator {
       c10::DeviceIndex device) = 0;
   virtual void resetAccumulatedStats(c10::DeviceIndex device) = 0;
   virtual void resetPeakStats(c10::DeviceIndex device) = 0;
+<<<<<<< HEAD
   virtual SnapshotInfo snapshot() = 0;
+=======
+  virtual SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void beginAllocateToPool(
       c10::DeviceIndex device,
       MempoolId_t mempool_id,
@@ -224,13 +251,20 @@ class CUDAAllocator : public Allocator {
       c10::DeviceIndex device,
       MempoolId_t mempool_id) = 0;
   virtual void releasePool(c10::DeviceIndex device, MempoolId_t mempool_id) = 0;
+<<<<<<< HEAD
   virtual int getPoolUseCount(c10::DeviceIndex device, MempoolId_t mempool_id) {
+=======
+  virtual int getPoolUseCount(
+      c10::DeviceIndex /*device*/,
+      MempoolId_t /*mempool_id*/) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         false,
         name(),
         " does not yet support getPoolUseCount. "
         "If you need it, please file an issue describing your use case.");
   }
+<<<<<<< HEAD
   virtual void ensureExistsAndIncrefPool(
       c10::DeviceIndex device,
       MempoolId_t mempool_id) {
@@ -245,6 +279,31 @@ class CUDAAllocator : public Allocator {
       c10::DeviceIndex device,
       MempoolId_t mempool_id,
       const std::unordered_set<void*>& expected_live_allocations) {
+=======
+  virtual void createOrIncrefPool(
+      c10::DeviceIndex /*device*/,
+      MempoolId_t /*mempool_id*/,
+      CUDAAllocator* allocator = nullptr) {
+    TORCH_CHECK(
+        false,
+        name(),
+        " does not yet support createOrIncrefPool. "
+        "If you need it, please file an issue describing your use case.");
+  }
+  virtual void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) {
+    TORCH_CHECK(
+        false,
+        name(),
+        " does not yet support setUseOnOOM. "
+        "If you need it, please file an issue describing your use case.");
+  }
+
+  // returns true if the allocated blocks are equal to expected live allocations
+  virtual bool checkPoolLiveAllocations(
+      c10::DeviceIndex /*device*/,
+      MempoolId_t /*mempool_id*/,
+      const std::unordered_set<void*>& /*expected_live_allocations*/) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         false,
         name(),
@@ -264,9 +323,18 @@ class CUDAAllocator : public Allocator {
       bool enabled,
       CreateContextFn context_recorder,
       size_t alloc_trace_max_entries,
+<<<<<<< HEAD
       RecordContext when) = 0;
   virtual void recordAnnotation(
       const std::vector<std::pair<std::string, std::string>>& md) {}
+=======
+      RecordContext when,
+      bool clearHistory) = 0;
+  virtual void recordAnnotation(
+      const std::vector<std::pair<std::string, std::string>>& /*md*/) {}
+  virtual void pushCompileContext(std::string& md) {}
+  virtual void popCompileContext() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void attachOutOfMemoryObserver(OutOfMemoryObserver observer) = 0;
 
   // Attached AllocatorTraceTracker callbacks will be called while the
@@ -345,8 +413,13 @@ inline void setMemoryFraction(double fraction, c10::DeviceIndex device) {
   return get()->setMemoryFraction(fraction, device);
 }
 
+<<<<<<< HEAD
 inline void emptyCache() {
   return get()->emptyCache();
+=======
+inline void emptyCache(MempoolId_t mempool_id = {0, 0}) {
+  return get()->emptyCache(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline void enable(bool value) {
@@ -382,8 +455,13 @@ inline void resetPeakStats(c10::DeviceIndex device) {
   return get()->resetPeakStats(device);
 }
 
+<<<<<<< HEAD
 inline SnapshotInfo snapshot() {
   return get()->snapshot();
+=======
+inline SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) {
+  return get()->snapshot(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::shared_ptr<AllocatorState> getCheckpointState(
@@ -414,9 +492,16 @@ inline void recordHistory(
     bool enabled,
     CreateContextFn context_recorder,
     size_t alloc_trace_max_entries,
+<<<<<<< HEAD
     RecordContext when) {
   return get()->recordHistory(
       enabled, context_recorder, alloc_trace_max_entries, when);
+=======
+    RecordContext when,
+    bool clearHistory) {
+  return get()->recordHistory(
+      enabled, context_recorder, alloc_trace_max_entries, when, clearHistory);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline void recordAnnotation(
@@ -424,6 +509,17 @@ inline void recordAnnotation(
   return get()->recordAnnotation(md);
 }
 
+<<<<<<< HEAD
+=======
+inline void pushCompileContext(std::string& md) {
+  return get()->pushCompileContext(md);
+}
+
+inline void popCompileContext() {
+  return get()->popCompileContext();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline bool isHistoryEnabled() {
   return get()->isHistoryEnabled();
 }
@@ -447,10 +543,21 @@ inline void attachAllocatorTraceTracker(AllocatorTraceTracker tracker) {
 inline void releasePool(c10::DeviceIndex device, MempoolId_t mempool_id) {
   return get()->releasePool(device, mempool_id);
 }
+<<<<<<< HEAD
 inline void ensureExistsAndIncrefPool(
     c10::DeviceIndex device,
     MempoolId_t mempool_id) {
   get()->ensureExistsAndIncrefPool(device, mempool_id);
+=======
+inline void createOrIncrefPool(
+    c10::DeviceIndex device,
+    MempoolId_t mempool_id,
+    CUDAAllocator* allocator_ptr = nullptr) {
+  get()->createOrIncrefPool(device, mempool_id, allocator_ptr);
+}
+inline void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) {
+  get()->setUseOnOOM(device, mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline int getPoolUseCount(c10::DeviceIndex device, MempoolId_t mempool_id) {
@@ -501,7 +608,13 @@ namespace c10::cuda {
 struct C10_CUDA_API MemPool {
   MemPool(
       CUDACachingAllocator::CUDAAllocator* allocator = nullptr,
+<<<<<<< HEAD
       bool is_user_created = true);
+=======
+      bool is_user_created = true,
+      bool use_on_oom = false,
+      bool symmetric = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   MemPool(const MemPool&) = delete;
   MemPool(MemPool&&) = default;
   MemPool& operator=(const MemPool&) = delete;
@@ -509,6 +622,10 @@ struct C10_CUDA_API MemPool {
   ~MemPool();
 
   MempoolId_t id();
+<<<<<<< HEAD
+=======
+  bool is_symmetric();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CUDACachingAllocator::CUDAAllocator* allocator();
   int use_count();
   c10::DeviceIndex device();
@@ -520,6 +637,7 @@ struct C10_CUDA_API MemPool {
   CUDACachingAllocator::CUDAAllocator* allocator_;
   bool is_user_created_;
   MempoolId_t id_;
+<<<<<<< HEAD
   c10::DeviceIndex device_;
 };
 
@@ -545,4 +663,10 @@ struct C10_CUDA_API MemPoolContext {
   MemPool* prev_mempool_;
 };
 
+=======
+  bool symmetric_;
+  c10::DeviceIndex device_;
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10::cuda

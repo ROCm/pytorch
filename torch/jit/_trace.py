@@ -1205,7 +1205,14 @@ def trace_module(
 
         # Trace specific methods on a module (specified in `inputs`), constructs
         # a `ScriptModule` with `forward` and `weighted_kernel_sum` methods
+<<<<<<< HEAD
         inputs = {"forward": example_forward_input, "weighted_kernel_sum": example_weight}
+=======
+        inputs = {
+            "forward": example_forward_input,
+            "weighted_kernel_sum": example_weight,
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module = torch.jit.trace_module(n, inputs)
 
     """

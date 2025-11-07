@@ -89,6 +89,18 @@ TORCH_API sycl::event deconvolution_backward_weights(
     int64_t groups,
     const std::vector<sycl::event>& deps = {});
 
+<<<<<<< HEAD
+=======
+TORCH_API void woq_matmul_int4(
+    at::Tensor& result, // dst, [M, N]
+    const at::Tensor& mat1_, // src, [M, K]
+    const at::Tensor& mat2_, // quantized weight, [K/8, N]
+    const at::Tensor& scale, // [K/group_size, N]
+    const at::Tensor& zp, // [k/group_size, N]
+    int64_t group_size,
+    bool pri_cache = true);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 dnnl::memory::dims conv_dst_size(
     int64_t ndim,
     IntArrayRef src_tz,
@@ -148,20 +160,35 @@ void quantized_matmul(
     std::optional<at::Tensor> other, // extra input for binary-post-op
     double other_scale,
     int64_t other_zero_point,
+<<<<<<< HEAD
     const c10::string_view& binary_post_op,
     double binary_alpha,
     const c10::string_view& unary_post_op,
     torch::List<std::optional<at::Scalar>>& unary_post_op_args,
     c10::string_view unary_post_op_algorithm,
+=======
+    const std::string_view& binary_post_op,
+    double binary_alpha,
+    const std::string_view& unary_post_op,
+    torch::List<std::optional<at::Scalar>>& unary_post_op_args,
+    std::string_view unary_post_op_algorithm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool m2_trnas);
 
 void gpu_float_sdpa(
     int batch_size,
     int seq_len_q,
+<<<<<<< HEAD
     int seq_len_k,
     int num_head,
     int num_head_kv,
     int head_dim,
+=======
+    int seq_len_kv,
+    int num_head_q,
+    int num_head_kv,
+    int head_dim_qk,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int head_dim_v,
     const Tensor& query,
     const Tensor& key,

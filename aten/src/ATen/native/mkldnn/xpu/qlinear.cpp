@@ -19,7 +19,11 @@ static inline c10::ScalarType qlinear_decide_out_dtype(
   return dst_dtype;
 }
 
+<<<<<<< HEAD
 Tensor q_linear_pointwise(
+=======
+static Tensor q_linear_pointwise(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor act,
     double act_scale,
     int64_t act_zero_point,
@@ -78,7 +82,11 @@ Tensor q_linear_pointwise(
   return qout;
 }
 
+<<<<<<< HEAD
 Tensor q_linear_pointwise_tensor(
+=======
+static Tensor q_linear_pointwise_tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor act,
     Tensor act_scale,
     Tensor act_zero_point,
@@ -137,7 +145,11 @@ Tensor q_linear_pointwise_tensor(
   return qout;
 }
 
+<<<<<<< HEAD
 Tensor q_linear_pointwise_binary(
+=======
+static Tensor q_linear_pointwise_binary(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor act,
     double act_scale,
     int64_t act_zero_point,
@@ -151,11 +163,19 @@ Tensor q_linear_pointwise_binary(
     std::optional<c10::ScalarType> output_dtype,
     double other_scale,
     int64_t other_zero_point,
+<<<<<<< HEAD
     c10::string_view binary_post_op,
     double binary_alpha,
     c10::string_view unary_post_op,
     torch::List<std::optional<at::Scalar>> unary_post_op_args,
     c10::string_view unary_post_op_algorithm) {
+=======
+    std::string_view binary_post_op,
+    double binary_alpha,
+    std::string_view unary_post_op,
+    torch::List<std::optional<at::Scalar>> unary_post_op_args,
+    std::string_view unary_post_op_algorithm) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       act.device() == weight.device() &&
           act.device() == weight_scales.device() &&
@@ -208,7 +228,11 @@ Tensor q_linear_pointwise_binary(
   return dim == 3 ? qout.reshape({act.size(0), -1, N}) : qout;
 }
 
+<<<<<<< HEAD
 Tensor q_linear_pointwise_binary_tensor(
+=======
+static Tensor q_linear_pointwise_binary_tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor act,
     Tensor act_scale,
     Tensor act_zero_point,
@@ -222,11 +246,19 @@ Tensor q_linear_pointwise_binary_tensor(
     std::optional<c10::ScalarType> output_dtype,
     double other_scale,
     int64_t other_zero_point,
+<<<<<<< HEAD
     c10::string_view binary_post_op,
     double binary_alpha,
     c10::string_view unary_post_op,
     torch::List<std::optional<at::Scalar>> unary_post_op_args,
     c10::string_view unary_post_op_algorithm) {
+=======
+    std::string_view binary_post_op,
+    double binary_alpha,
+    std::string_view unary_post_op,
+    torch::List<std::optional<at::Scalar>> unary_post_op_args,
+    std::string_view unary_post_op_algorithm) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return q_linear_pointwise_binary(
       act,
       act_scale.item().toDouble(),
@@ -248,7 +280,11 @@ Tensor q_linear_pointwise_binary_tensor(
       unary_post_op_algorithm);
 }
 
+<<<<<<< HEAD
 at::Tensor q_linear_prepack_onednn(
+=======
+static at::Tensor q_linear_prepack_onednn(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     at::Tensor weight,
     std::optional<torch::List<int64_t>> input_shape) {
   at::Tensor weight_transposed = weight.transpose(0, 1);

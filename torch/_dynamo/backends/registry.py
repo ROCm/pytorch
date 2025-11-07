@@ -154,7 +154,11 @@ def list_backends(exclude_tags=("debug", "experimental")) -> list[str]:
     return sorted(backends)
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _lazy_import():
     from .. import backends
     from ..utils import import_submodule
@@ -168,7 +172,11 @@ def _lazy_import():
     _discover_entrypoint_backends()
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _discover_entrypoint_backends():
     # importing here so it will pick up the mocked version in test_backends.py
     from importlib.metadata import entry_points

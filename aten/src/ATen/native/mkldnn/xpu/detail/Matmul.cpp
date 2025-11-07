@@ -20,6 +20,13 @@ sycl::event matmul(
     bool m2_trans,
     Attr attr,
     const std::vector<sycl::event>& deps) {
+<<<<<<< HEAD
+=======
+  // m2_trans means mat2 is transposed from the nn.Linear perspective.
+  // m2_trans==true means mat2 is [k, n] layout.
+  // m2_trans==false means mat2 is [n, k] layout, aka, the default layout in
+  // nn.Linear.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t dims = result.dim();
   TORCH_CHECK(
       dims == 2 || dims == 3,
@@ -30,9 +37,14 @@ sycl::event matmul(
       "oneDNN input matrixes must have the same ranks");
   TORCH_CHECK(result.defined(), "oneDNN matmul result should be defined");
 
+<<<<<<< HEAD
   at::Device cur_device = at::Device(at::kXPU, c10::xpu::current_device());
   auto engine = GpuEngineManager::Instance().get_engine(cur_device);
   auto stream = GpuStreamManager::Instance().get_stream();
+=======
+  auto& engine = GpuEngineManager::Instance().get_engine();
+  auto& stream = GpuStreamManager::Instance().get_stream();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   at::Tensor m1 = mat1;
   at::Tensor m2 = mat2;
@@ -195,7 +207,16 @@ sycl::event matmul(
   pattr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
 
   if (m1_dt == dnnl::memory::data_type::f32) {
+<<<<<<< HEAD
     pattr.set_fpmath_mode(dnnl::fpmath_mode::strict);
+=======
+    bool allow_tf32 = at::globalContext().allowTF32OneDNN();
+    if (allow_tf32) {
+      pattr.set_fpmath_mode(dnnl::fpmath_mode::tf32);
+    } else {
+      pattr.set_fpmath_mode(dnnl::fpmath_mode::strict);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // STEP3: create primitive

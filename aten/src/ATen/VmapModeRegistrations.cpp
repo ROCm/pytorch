@@ -20,12 +20,20 @@ namespace at {
 // We haven't made a decision on that yet so we are temporarily banning random
 // operations inside of vmap while we gather user feedback.
 
+<<<<<<< HEAD
 template <typename... Args> Tensor unsupportedRandomOp(Args... args) {
+=======
+template <typename... Args> static Tensor unsupportedRandomOp(Args... args) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "vmap: We do not yet support calling random operations inside of vmap. ",
               "Please perform random operations outside of vmap as a workaround");
 }
 
+<<<<<<< HEAD
 template <typename... Args> Tensor& unsupportedRandomOp_(Args... args) {
+=======
+template <typename... Args> static Tensor& unsupportedRandomOp_(Args... args) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "vmap: We do not yet support calling random operations inside of vmap. ",
               "Please perform random operations outside of vmap as a workaround");
 }

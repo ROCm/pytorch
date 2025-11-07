@@ -474,9 +474,15 @@ class CKGroupedConvFwdTemplate(CKTemplate):
         chosen_instances = (
             random.sample(
                 filtered_instances,
+<<<<<<< HEAD
                 min(len(filtered_instances), config.rocm.n_max_profiling_configs),
             )
             if config.rocm.n_max_profiling_configs
+=======
+                min(len(filtered_instances), config.rocm.ck_max_profiling_configs),
+            )
+            if config.rocm.ck_max_profiling_configs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else filtered_instances
         )
         log.debug(

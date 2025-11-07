@@ -89,7 +89,11 @@ context = AHContext()
 context.add_feature("m", mat1.shape[0])
 context.add_feature("k", mat1.shape[1])
 
+<<<<<<< HEAD
 # adding a categorical feture
+=======
+# adding a categorical feature
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 context.add_feature("mat1_dtype", mat1.dtype, is_categorical=True)
 ```
 

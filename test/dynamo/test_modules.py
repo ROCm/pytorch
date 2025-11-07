@@ -2,7 +2,10 @@
 # ruff: noqa: F841
 
 import collections
+<<<<<<< HEAD
 import contextlib
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copy
 import itertools
 import os
@@ -1173,7 +1176,10 @@ def make_test(fn, expected_ops=None):
     return test_fn
 
 
+<<<<<<< HEAD
 @contextlib.contextmanager
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def temporary_tensor_subclass(torch_function=None):
     class TensorProxy(torch.Tensor):
         @classmethod
@@ -1182,11 +1188,15 @@ def temporary_tensor_subclass(torch_function=None):
                 torch_function()
             return super().__torch_function__(func, types, args, kwargs)
 
+<<<<<<< HEAD
     torch._dynamo.config.traceable_tensor_subclasses.add(TensorProxy)
     try:
         yield TensorProxy
     finally:
         torch._dynamo.config.traceable_tensor_subclasses.remove(TensorProxy)
+=======
+    return TensorProxy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class NNModuleTests(torch._dynamo.test_case.TestCase):
@@ -1305,6 +1315,10 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
         self.assertTrue(torch._dynamo.testing.same(r, m(i)))
         self.assertEqual(cnt.op_count, 6)
 
+<<<<<<< HEAD
+=======
+    @patch.object(torch._dynamo.config, "allow_unspec_int_on_nn_module", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_self_mutating1(self):
         m1 = torch.nn.Linear(10, 10)
         m2 = SelfMutatingModule(m1)
@@ -1377,6 +1391,7 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
             x = x.sigmoid()
             return x
 
+<<<<<<< HEAD
         with temporary_tensor_subclass() as TensorProxy:
             x = torch.randn(1).as_subclass(TensorProxy)
             cnt = torch._dynamo.testing.CompileCounter()
@@ -1386,6 +1401,17 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
 
             self.assertEqual(cnt.op_count, 4)
             self.assertTrue(torch._dynamo.testing.same(out1, out2))
+=======
+        TensorProxy = temporary_tensor_subclass()
+        x = torch.randn(1).as_subclass(TensorProxy)
+        cnt = torch._dynamo.testing.CompileCounter()
+        out1 = foo(x)
+        opt_foo = torch.compile(foo, backend=cnt, fullgraph=True)
+        out2 = opt_foo(x)
+
+        self.assertEqual(cnt.op_count, 4)
+        self.assertTrue(torch._dynamo.testing.same(out1, out2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_torch_function_with_closure(self):
         def run():
@@ -1406,6 +1432,7 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
                 # TODO(future PR): support writes as well
                 counter + 1
 
+<<<<<<< HEAD
             with temporary_tensor_subclass(function) as TensorProxy:
                 x = torch.randn(1).as_subclass(TensorProxy)
                 x = torch.randn(1)
@@ -1416,6 +1443,18 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
 
                 self.assertEqual(cnt.op_count, 4)
                 self.assertTrue(torch._dynamo.testing.same(out1, out2))
+=======
+            TensorProxy = temporary_tensor_subclass(function)
+            x = torch.randn(1).as_subclass(TensorProxy)
+            x = torch.randn(1)
+            cnt = torch._dynamo.testing.CompileCounter()
+            out1 = foo(x)
+            opt_foo = torch.compile(foo, backend=cnt, fullgraph=True)
+            out2 = opt_foo(x)
+
+            self.assertEqual(cnt.op_count, 4)
+            self.assertTrue(torch._dynamo.testing.same(out1, out2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         run()
 
@@ -1437,6 +1476,7 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
             return x
 
         try:
+<<<<<<< HEAD
             with temporary_tensor_subclass() as TensorProxy:
                 x = torch.randn(1).as_subclass(TensorProxy)
                 x1 = one_break(x)
@@ -1467,6 +1507,38 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
                     compile_ids.add(cid)
 
                 self.assertEqual(len(compile_ids), 3)
+=======
+            TensorProxy = temporary_tensor_subclass()
+            x = torch.randn(1).as_subclass(TensorProxy)
+            x1 = one_break(x)
+
+            cnt = torch._dynamo.testing.CompileCounter()
+            opt_one_break = torch.compile(one_break, backend=cnt)
+            x2 = opt_one_break(x)
+
+            self.assertTrue(torch._dynamo.testing.same(x1, x2))
+            self.assertEqual(cnt.frame_count, 2)
+            self.assertEqual(cnt.op_count, 2)
+
+            compile_ids = set()
+            for r in results:
+                # A mangled classname looks like __subclass_TensorProxy_94524181138240_c0
+                # where the last segment contains the compile_id.
+                prefix = "__subclass_TensorProxy_"
+                before, sep, after = r.partition(prefix)
+                self.assertEqual(before, "")
+                self.assertEqual(sep, prefix)
+
+                class_type_id, compile_id = after.split("_")
+                self.assertTrue(class_type_id.isnumeric())
+                self.assertTrue(compile_id.startswith("c"))
+
+                cid = compile_id[1:]
+                self.assertTrue(cid.isnumeric())
+                compile_ids.add(cid)
+
+            self.assertEqual(len(compile_ids), 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         finally:
             TensorWithTFOverrideVariable.global_mangled_class_name = original
@@ -2099,11 +2171,20 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         mod = MockModule()
         # Each submod is compiled separately and has a different nn module
         # guard. Ensure that recompilation logic is handle correctly.
+<<<<<<< HEAD
         with unittest.mock.patch(
             "torch._dynamo.config.error_on_recompile", True
         ), unittest.mock.patch(
             "torch._dynamo.config.recompile_limit",
             recompile_limit,
+=======
+        with (
+            unittest.mock.patch("torch._dynamo.config.error_on_recompile", True),
+            unittest.mock.patch(
+                "torch._dynamo.config.recompile_limit",
+                recompile_limit,
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             x = torch.randn(*size, requires_grad=True)
             mod(x)
@@ -2165,11 +2246,20 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         mod = MockModule()
         # Each submod is compiled separately and has a different nn module
         # guard. Ensure that recompilation logic is handle correctly.
+<<<<<<< HEAD
         with unittest.mock.patch(
             "torch._dynamo.config.error_on_recompile", True
         ), unittest.mock.patch(
             "torch._dynamo.config.recompile_limit",
             recompile_limit,
+=======
+        with (
+            unittest.mock.patch("torch._dynamo.config.error_on_recompile", True),
+            unittest.mock.patch(
+                "torch._dynamo.config.recompile_limit",
+                recompile_limit,
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             x = torch.randn(*size, requires_grad=True)
             mod(x)
@@ -3053,6 +3143,22 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
 
         self.assertEqual(model.x, compiled_model.x)
 
+<<<<<<< HEAD
+=======
+    def test_delattr_on_compiled_module(self):
+        class Mod(torch.nn.Module):
+            def forward(self, x):
+                return x + 1
+
+        model = Mod()
+        compiled_model = torch.compile(model)
+        compiled_model.foo = 42
+        del compiled_model.foo
+
+        self.assertFalse(hasattr(model, "foo"))
+        self.assertFalse(hasattr(compiled_model, "foo"))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_globals_change_in_other_file(self):
         @torch.compile(backend="eager", fullgraph=True)
         def fn(x):
@@ -3076,6 +3182,10 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         "inductor backend is not available",
     )
     def test_save_and_load_inductor(self):
+<<<<<<< HEAD
+=======
+        torch._logging.set_logs(inductor_metrics=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mod = MockModule()
         opt_mod = torch.compile(mod, backend="inductor")
         inp = torch.randn(10, 10)
@@ -3095,8 +3205,15 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         torch._inductor.metrics.generated_kernel_count = 0
         loaded_model(inp)
         self.assertGreater(torch._inductor.metrics.generated_kernel_count, 0)
+<<<<<<< HEAD
 
     def test_save_and_load_all_backends(self):
+=======
+        torch._logging.set_logs()
+
+    def test_save_and_load_all_backends(self):
+        torch._logging.set_logs(inductor_metrics=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mod = MockModule()
         inp = torch.randn(10, 10)
         for backend in torch._dynamo.list_backends():
@@ -3120,6 +3237,11 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
             except torch._dynamo.exc.BackendCompilerFailed:
                 pass
 
+<<<<<<< HEAD
+=======
+    torch._logging.set_logs()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_monkeypatching_forward(self):
         class FakeModule(torch.nn.Module):
             def forward(self, x):
@@ -3312,6 +3434,67 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         # Make sure Dynamo actually traced the method.
         self.assertEqual(cache.bool_invoked, 1)
 
+<<<<<<< HEAD
+=======
+    def test_patch_module(self):
+        def set_attrs_from_orig_model(cls_instance, mod, *func_names):
+            cls_instance.__dict__.update(mod.__dict__)
+            if func_names is not None:
+                for func in func_names:
+                    setattr(cls_instance, func, getattr(mod, func))
+
+        class PatchedMyModule(torch.nn.Module):
+            def __init__(self, mod):
+                super().__init__()
+                set_attrs_from_orig_model(self, mod, "resolve_input")
+
+            def forward(self, x):
+                x = self.resolve_input(x)
+                return x
+
+        class MyModule(torch.nn.Module):
+            def __init__(self, input_dim, output_dim):
+                super().__init__()
+                self.linear = torch.nn.Linear(
+                    in_features=input_dim, out_features=output_dim
+                )
+
+            def resolve_input(self, x):
+                x = self.linear(x)
+                return x
+
+            def forward(self, x):
+                x = self.linear(x)
+                return x
+
+        module = MyModule(input_dim=1, output_dim=1)
+        patched_module = PatchedMyModule(module)
+        compiled_module = torch.compile(patched_module, backend="eager", fullgraph=True)
+
+        input_tensor = torch.tensor([1.0], dtype=torch.float)
+        ref = module(input_tensor)
+        res = compiled_module(input_tensor)
+        self.assertEqual(ref, res)
+
+    def test_unhashable_nn_submodule(self):
+        class UnhashableModule(torch.nn.Module):
+            def __hash__(self):
+                raise TypeError("Unhashable module")
+
+        class MyModule(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.unhashable_attr = UnhashableModule()
+
+            def forward(self, x):
+                return x
+
+        mod = MyModule()
+        x = torch.randn(1)
+        compiled_mod = torch.compile(mod, backend="eager")
+        compiled_mod(x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 devices = ["cuda", "hpu"]
 instantiate_device_type_tests(NNModuleTestsDevice, globals(), only_for=devices)

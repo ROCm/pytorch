@@ -1,6 +1,9 @@
 # Owner(s): ["module: unknown"]
 import copy
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import random
 
 import torch
@@ -29,6 +32,7 @@ from torch.testing._internal.common_pruning import (
     SimpleConv2d,
     SimpleLinear,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchDynamo, TestCase
 
 
@@ -36,6 +40,15 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+    TestCase,
+)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DEVICES = {
     torch.device("cpu"),
     torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
@@ -1056,9 +1069,15 @@ class TestFPGMPruner(TestCase):
         mask1 = pruner.groups[0]["module"].parametrizations.weight[0].mask[-1]
         mask2 = pruner.groups[0]["module"].parametrizations.weight[0].mask[-2]
         # Check if either of the least-norm filters is not pruned
+<<<<<<< HEAD
         assert (
             mask1.item() is not False or mask2.item() is not False
         ), "Do not prune all least-norm filters"
+=======
+        assert mask1.item() is not False or mask2.item() is not False, (
+            "Do not prune all least-norm filters"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # fusion step
         pruned_model = pruner.prune()
@@ -1089,3 +1108,10 @@ class TestFPGMPruner(TestCase):
             self._test_update_mask_on_multiple_layer(
                 expected_conv1, expected_conv2, device
             )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

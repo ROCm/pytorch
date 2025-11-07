@@ -97,6 +97,37 @@ def diagonal(
     return torch.diagonal(input, offset=offset, dim1=dim1, dim2=dim2)
 
 
+<<<<<<< HEAD
+=======
+def _check_vector_norm_args(
+    x: TensorLikeType, ord: Union[float, int] = 2, dim: Optional[DimsType] = None
+):
+    from torch.fx.experimental.symbolic_shapes import sym_or
+
+    if not (ord < 0.0 or ord == float("inf")):
+        return
+
+    torch._check(
+        sym_or(
+            x.numel() != 0,
+            not isinstance(dim, IntLike) and dim is not None and len(dim) != 0,
+        ),
+        "linalg.vector_norm cannot compute the {ord} norm on an empty tensor "
+        "because the operation does not have an identity",
+    )
+
+    shape = x.shape
+    if dim is not None and not isinstance(dim, IntLike):
+        for d in dim:
+            torch._check(
+                sym_or(x.numel() != 0, d < len(shape) and d >= 0 and shape[d] != 0),
+                "linalg.vector_norm cannot compute the {ord} norm on the "
+                f"dimension {d} because this dimension is empty and the "
+                "operation does not have an identity",
+            )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_decomposition(torch._ops.ops.aten.linalg_vector_norm)
 @out_wrapper(exact_dtype=True)
 def vector_norm(
@@ -107,14 +138,20 @@ def vector_norm(
     *,
     dtype: Optional[torch.dtype] = None,
 ) -> Tensor:
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
 
     # Checks
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_or_false
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     check_fp_or_complex(x.dtype, "linalg.vector_norm")
 
     if isinstance(dim, Dim):
         dim = [dim]  # type: ignore[assignment]
 
+<<<<<<< HEAD
     if guard_size_oblivious(x.numel() == 0) and (ord < 0.0 or ord == float("inf")):
         torch._check(
             dim is not None and len(dim) != 0,
@@ -130,6 +167,10 @@ def vector_norm(
                 f"dimension {d} because this dimension is empty and the "
                 "operation does not have an identity",
             )
+=======
+    _check_vector_norm_args(x, ord, dim)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _check_norm_dtype(dtype, x.dtype, "linalg.vector_norm")
 
     computation_dtype, result_dtype = utils.reduction_dtypes(
@@ -151,6 +192,29 @@ def vector_norm(
         reduce_sum = partial(torch.sum, dim=dim, keepdim=keepdim)
 
         is_ord_even = ord % 2 == 0 if isinstance(ord, IntLike) else ord % 2.0 == 0.0
+<<<<<<< HEAD
+=======
+        if dim == []:
+            dim = None
+
+        if (dim is None and x.numel() == 1) or (
+            dim is not None
+            and (x.ndim > 0 and all(guard_or_false(x.shape[d] == 1) for d in dim))
+        ):
+            if x.ndim > 64:
+                raise RuntimeError(
+                    f"Received a tensor with {x.ndim} dimensions, but only tensors with up to 64 dims are supported!"
+                )
+            x = torch.abs(x)
+            if keepdim or x.ndim == 0:
+                return to_result_dtype(x).contiguous()
+            elif dim is None:
+                return x.flatten()[0]
+            else:
+                new_shape = [s for d, s in enumerate(x.shape) if d not in dim]
+                return to_result_dtype(x.view(new_shape)).contiguous()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not (is_ord_even and utils.is_float_dtype(x.dtype)):
             x = torch.abs(x)
         return to_result_dtype(torch.pow(reduce_sum(torch.pow(x, ord)), 1.0 / ord))  # type: ignore[return-value]

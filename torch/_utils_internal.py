@@ -159,6 +159,13 @@ def export_training_ir_rollout_check() -> bool:
     return True
 
 
+<<<<<<< HEAD
+=======
+def full_aoti_runtime_assert() -> bool:
+    return True
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def log_torch_jit_trace_exportability(
     api: str,
     type_of_export: str,
@@ -206,7 +213,11 @@ def is_fb_unit_test() -> bool:
     return False
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def max_clock_rate():
     if not torch.version.hip:
         from triton.testing import nvsmi
@@ -217,8 +228,11 @@ def max_clock_rate():
         # functionality in triton.testing or via pyamdsmi enablement. Required
         # for test_snode_runtime unit tests.
         gcn_arch = str(torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0])
+<<<<<<< HEAD
         if "gfx950" in gcn_arch:
             return 1700
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if "gfx94" in gcn_arch:
             return 1700
         elif "gfx90a" in gcn_arch:
@@ -276,3 +290,10 @@ def record_chromium_event_internal(
     event: dict[str, Any],
 ):
     return None
+<<<<<<< HEAD
+=======
+
+
+def profiler_allow_cudagraph_cupti_lazy_reinit_cuda12():
+    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

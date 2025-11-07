@@ -1,7 +1,12 @@
 # ${generated_comment}
 # mypy: disable-error-code="type-arg"
 
+<<<<<<< HEAD
 from typing import Literal, Optional, overload, Sequence, Union
+=======
+from collections.abc import Sequence
+from typing import Literal, overload
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch import memory_format, Tensor
 from torch.types import _bool, _device, _dtype, _int, _size
@@ -11,7 +16,11 @@ from torch.types import _bool, _device, _dtype, _int, _size
 ${c_nn_function_hints}
 
 # Defined in aten/src/ATen/native/mkldnn/Linear.cpp
+<<<<<<< HEAD
 def mkldnn_linear(input: Tensor, weight: Tensor, bias: Optional[Tensor]) -> Tensor: ...
+=======
+def mkldnn_linear(input: Tensor, weight: Tensor, bias: Tensor | None) -> Tensor: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Defined at aten/src/ATen/native/mkldnn/MKLDNNConversions.cpp
 def mkldnn_reorder_conv2d_weight(
@@ -61,10 +70,17 @@ def _parse_to(
 
 # Defined in aten/src/ATen/native/PackedSequence.cpp
 def pad_sequence(
+<<<<<<< HEAD
     sequences: Union[list[Tensor], tuple[Tensor, ...]],
     batch_first: bool = False,
     padding_value: float = 0.0,
     padding_side: Union[Literal["left", "right"], str] = "right",
+=======
+    sequences: list[Tensor] | tuple[Tensor, ...],
+    batch_first: bool = False,
+    padding_value: float = 0.0,
+    padding_side: Literal["left", "right"] = "right",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor: ...
 def flatten_dense_tensors(tensors: list[Tensor]) -> Tensor: ...
 def unflatten_dense_tensors(flat: Tensor, tensors: list[Tensor]) -> list[Tensor]: ...

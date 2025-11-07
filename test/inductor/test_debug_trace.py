@@ -10,7 +10,11 @@ from pathlib import Path
 
 import torch
 from torch._inductor import config, test_operators
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import skipIfWindows
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 from torch.testing._internal.logging_utils import multiple_logs_to_string
@@ -44,7 +48,11 @@ class TestDebugTrace(test_torchinductor.TestCase):
             "torch._inductor.debug", "ir_pre_fusion", "ir_post_fusion"
         )
 
+<<<<<<< HEAD
         # TODO(aakhundov): make this work with fresh_inductor_cache
+=======
+        # TODO(aakhundov): make this work with fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # instead of force_disable_caches. currently, with the latter
         # enabled, we get `inductor [('fxgraph_cache_hit', 1)]` in
         # the counters: so the cache is actually hit and the test fails.
@@ -54,9 +62,18 @@ class TestDebugTrace(test_torchinductor.TestCase):
                 "force_disable_caches": True,
             }
         ):
+<<<<<<< HEAD
             with self.assertLogs(
                 logging.getLogger("torch._inductor.debug"), level=logging.WARNING
             ) as cm, ctx():
+=======
+            with (
+                self.assertLogs(
+                    logging.getLogger("torch._inductor.debug"), level=logging.WARNING
+                ) as cm,
+                ctx(),
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fn(torch.randn(16, 16), torch.randn(16, 16))
 
         m = None
@@ -261,9 +278,19 @@ op2.node.kernel = extern_kernels.mm""",
                 return self.relu(self.l(x))
 
         # no failure
+<<<<<<< HEAD
         with self.assertLogs(
             logging.getLogger("torch._inductor.debug"), level=logging.WARNING
         ), fresh_inductor_cache():
+=======
+        with (
+            self.assertLogs(
+                logging.getLogger("torch._inductor.debug"),
+                level=logging.WARNING,
+            ),
+            fresh_cache(),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             m = ToyModel().to(device=GPU_TYPE)
             m = torch.compile(m, mode="max-autotune")
             input_tensor = torch.randn(100).to(device=GPU_TYPE)

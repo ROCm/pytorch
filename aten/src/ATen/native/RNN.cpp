@@ -880,7 +880,11 @@ struct FullBidirectionalLayer
       step_inputs = input_w.unbind(0);
       auto fw_result = layer_(
           step_inputs, input_hidden.first, params.first, true);
+<<<<<<< HEAD
       TORCH_CHECK(fw_result.outputs.size() > 0, "Expected sequence length to be larger than 0 in RNN");
+=======
+      TORCH_CHECK(!fw_result.outputs.empty(), "Expected sequence length to be larger than 0 in RNN");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto fw_output = at::stack(fw_result.outputs, 0);
       input_w = params.second.linear_ih(input);
       step_inputs = input_w.unbind(0);
@@ -895,7 +899,11 @@ struct FullBidirectionalLayer
 
     step_inputs = input.unbind(0);
     auto fw_result = layer_(step_inputs, input_hidden.first, params.first);
+<<<<<<< HEAD
     TORCH_CHECK(fw_result.outputs.size() > 0, "Expected sequence length to be larger than 0 in RNN");
+=======
+    TORCH_CHECK(!fw_result.outputs.empty(), "Expected sequence length to be larger than 0 in RNN");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto fw_output = at::stack(fw_result.outputs, 0);
     auto rev_step_inputs = reverse(std::move(step_inputs));
     auto rev_result =

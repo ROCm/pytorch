@@ -9,6 +9,7 @@ import torch
 from torch import nn, Tensor
 from torch.testing import FileCheck
 from torch.testing._internal.common_methods_invocations import sample_inputs_cat_concat
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import make_tensor
 from torch.testing._internal.jit_utils import execWrapper, JitTestCase
 
@@ -21,6 +22,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import make_tensor, raise_on_run_directly
+from torch.testing._internal.jit_utils import execWrapper, JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # XXX: still in prototype
 class TestSymbolicShapeAnalysis(JitTestCase):
     def setUp(self):
@@ -819,3 +826,10 @@ class TestSymbolicShapeAnalysis(JitTestCase):
         input.setType(input.type().with_sizes([1, 5, 8]))
         torch._C._jit_pass_propagate_shapes_on_graph(foo.graph)
         self.assertEqual(next(foo.graph.outputs()).type().symbolic_sizes(), [5, 8])
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

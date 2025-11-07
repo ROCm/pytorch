@@ -112,8 +112,13 @@ def check_file(filename):
         return 0
     if should_exclude_file(filename):
         return 0
+<<<<<<< HEAD
     with open(filename) as fo:
         contents = fo.read()
+=======
+    with open(filename) as f:
+        contents = f.read()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unsafeCount = check_code_for_cuda_kernel_launches(contents, filename)
     return unsafeCount
 

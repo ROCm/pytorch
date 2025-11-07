@@ -1,5 +1,10 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Callable, Optional
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -87,7 +92,26 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
             numel = buf.get_numel()
             self.prefix.writeline(f"assert_numel({name}, {numel});")
 
+<<<<<<< HEAD
     def generate_kernel_call(
+=======
+    def generate_extern_kernel_alloc(self, *args, **kwargs):
+        # Disable stack allocation for extern kernels.
+        self.allow_stack_allocation = False
+        super().generate_extern_kernel_alloc(*args, **kwargs)
+
+    def generate_extern_kernel_out(self, *args, **kwargs):
+        # Disable stack allocation for extern kernels.
+        self.allow_stack_allocation = False
+        super().generate_extern_kernel_out(*args, **kwargs)
+
+    def generate_fallback_kernel(self, node: ir.FallbackKernel) -> None:
+        # Disable stack allocation for extern kernels.
+        self.allow_stack_allocation = False
+        super().generate_fallback_kernel(node)
+
+    def _generate_kernel_call_helper(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         kernel_name: str,
         call_args,
@@ -95,8 +119,16 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
         device=None,
         triton=True,
         arg_types=None,
+<<<<<<< HEAD
         raw_args=None,
         triton_meta=None,
+=======
+        raw_keys=None,
+        raw_args=None,
+        triton_meta=None,
+        graph_name="",
+        original_fxnode_name=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Generates kernel call code.
@@ -189,6 +221,7 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
                         """
                     )
 
+<<<<<<< HEAD
                 run_impl_proto = ""
                 if config.aot_inductor.compile_wrapper_with_O0:
                     run_impl_proto += """
@@ -200,6 +233,9 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
                     """
 
                 run_impl_proto += """
+=======
+                run_impl_proto = """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     void AOTInductorModel::run_impl(
                         AtenTensorHandle*
                             input_handles, // array of input AtenTensorHandle; handles
@@ -348,7 +384,11 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
                     else:
                         self.prefix.writeline("inputs.clear();")
                 self.prefix.writeline(
+<<<<<<< HEAD
                     "auto& kernels = static_cast<AOTInductorModelKernels&>(*this->kernels_.get());"
+=======
+                    "[[maybe_unused]] auto& kernels = static_cast<AOTInductorModelKernels&>(*this->kernels_.get());"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
     def generate_return(self, output_refs: list[str]):
@@ -719,7 +759,11 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
         self._assert_safe_to_use_borrow_arrayref_tensor_as_tensor()
         # TODO: update aoti_torch_index_put_out in ir.py to use autogen out version
         # See the comment in codegen_reinterpret_view about why having something like
+<<<<<<< HEAD
         # RAIIAtenTensorHandle(tmp_tensor_handle_2) in a tmp array can cause the correponding
+=======
+        # RAIIAtenTensorHandle(tmp_tensor_handle_2) in a tmp array can cause the corresponding
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # tensor prematurely deallocated, thus the temporary array trick here.
         indices_str = self._generate_temporary_array_pointer(
             "AtenTensorHandle",
@@ -741,6 +785,7 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
         self,
         buf_name: str,
         python_kernel_name: str,
+<<<<<<< HEAD
         cpp_kernel_name: str,
         codegen_args: list[str],
         op_overload: Optional[torch._ops.OpOverload] = None,
@@ -792,6 +837,18 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
                 output_args,
                 outputs,
             )
+=======
+        get_args: Callable[[], Sequence[str]],
+        op_overload: Union[torch._ops.OpOverload, torch._ops.HigherOrderOperator],
+        raw_args: Sequence[Any],
+        outputs: Sequence[ir.Buffer],
+    ) -> None:
+        # No stack allocation when there is a fallback op
+        self.allow_stack_allocation = False
+        super().generate_fallback_kernel_with_runtime_lookup(
+            buf_name, python_kernel_name, get_args, op_overload, raw_args, outputs
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_device_copy(self, src, dst, non_blocking: bool):
         # aoti_torch_tensor_copy_ takes AtenTensorHandle as input,
@@ -843,6 +900,7 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
             if (name := data.get_name()) in self.stack_allocated_buffers:
                 return name, []
 
+<<<<<<< HEAD
             # TODO (benjaminglass1): uncomment this and remove  create_reinterpret_view
             # after the AOTI forwards compatibility window has passed.
             #
@@ -853,6 +911,14 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
             # ]
             # return f"RAIIAtenTensorHandle({tmp_AtenTensorHandle})", tmp_call_strs
             return create_reinterpret_call(), []
+=======
+            tmp_AtenTensorHandle = f"tmp_{name}_{next(self.tmp_tensor_id)}"
+            tmp_call_strs = [
+                f"AtenTensorHandle {tmp_AtenTensorHandle};",
+                f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_new_tensor_handle({data.get_name()}, &{tmp_AtenTensorHandle}));",
+            ]
+            return f"RAIIAtenTensorHandle({tmp_AtenTensorHandle})", tmp_call_strs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if (
             size == data.layout.size

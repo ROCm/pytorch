@@ -45,7 +45,13 @@ def _disable_dynamo(
             if disable_fn is None:
                 import torch._dynamo
 
+<<<<<<< HEAD
                 disable_fn = torch._dynamo.disable(fn, recursive)
+=======
+                # We can safely turn off functools.wraps here because the inner
+                # already wraps fn in the outer scope.
+                disable_fn = torch._dynamo.disable(fn, recursive, wrapping=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fn.__dynamo_disable = disable_fn  # type: ignore[attr-defined]
 
             return disable_fn(*args, **kwargs)

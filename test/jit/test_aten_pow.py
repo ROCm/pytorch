@@ -1,7 +1,11 @@
 # Owner(s): ["oncall: jit"]
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestAtenPow(TestCase):
@@ -99,3 +103,10 @@ class TestAtenPow(TestCase):
         self.assertEqual(fn_float_float(0.0, -0.0), 0.0 ** (-0.0))
         # zero base and negative exponent case that should trigger RunTimeError
         self.assertRaises(RuntimeError, fn_float_float, 0.0, -2.0)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

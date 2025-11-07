@@ -60,6 +60,13 @@ class CUDACombinedScheduling(BaseScheduling):
     ) -> bool:
         if self._cuda_cpp_scheduling.can_fuse_vertical(node1, node2):
             return True
+<<<<<<< HEAD
+=======
+        elif self._cuda_cpp_scheduling.is_cuda_cpp_template(
+            node1
+        ) or self._cuda_cpp_scheduling.is_cuda_cpp_template(node2):
+            return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._triton_scheduling.can_fuse_vertical(node1, node2)
 
     def can_fuse_horizontal(
@@ -84,7 +91,10 @@ class CUDACombinedScheduling(BaseScheduling):
         prologue_nodes: Sequence[BaseSchedulerNode],
     ) -> Optional[str]:
         if self._cuda_cpp_scheduling.is_cuda_cpp_template(template_node):
+<<<<<<< HEAD
             assert not epilogue_nodes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert not prologue_nodes
             return self._cuda_cpp_scheduling.codegen_template(
                 template_node, epilogue_nodes, prologue_nodes

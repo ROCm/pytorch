@@ -19,7 +19,11 @@ static Tensor& bincount_mps_impl(const Tensor& self, const Tensor& weights, Tens
   bool has_weights = weights.defined();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "bincount_mps_impl" + getTensorsStringKey({self, weights});
+=======
+    std::string key = "bincount_mps_impl" + getTensorsStringKey({self, weights});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);
       MPSGraphTensor* scatterDataTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSScalarType(output.scalar_type()));

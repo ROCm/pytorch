@@ -17,7 +17,11 @@ struct TORCH_API MAIAHooksInterface : AcceleratorHooksInterface {
     TORCH_CHECK(false, "Cannot initialize MAIA without ATen_maia library.");
   }
 
+<<<<<<< HEAD
   bool hasPrimaryContext(DeviceIndex device_index) const override {
+=======
+  bool hasPrimaryContext(DeviceIndex /*device_index*/) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "Cannot initialize MAIA without ATen_maia library.");
     return false;
   }

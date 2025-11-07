@@ -69,7 +69,11 @@ class LocalShardsWrapper(torch.Tensor):
             ChunkStorageMetadata(o, s.shape) for s, o in zip(local_shards, offsets)
         ]
 
+<<<<<<< HEAD
         r = torch.Tensor._make_wrapper_subclass(  # type: ignore[attr-defined]
+=======
+        r = torch.Tensor._make_wrapper_subclass(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cls,
             wrapper_shape,
         )
@@ -84,7 +88,11 @@ class LocalShardsWrapper(torch.Tensor):
 
     # necessary for ops dispatching from this subclass to its local shards
     @classmethod
+<<<<<<< HEAD
     def __torch_dispatch__(cls, func, types, args=(), kwargs=None):
+=======
+    def __torch_dispatch__(cls, func, types, args=(), kwargs=None):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs = kwargs or {}
 
         # TODO: we shall continually extend this function to support more ops if needed

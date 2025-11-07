@@ -4,15 +4,26 @@
 
 import functools
 import inspect
+<<<<<<< HEAD
 import warnings
 import sys
 from typing import Any, Callable, TypeVar, cast
+=======
+import sys
+import warnings
+from typing import Any, Callable, cast, TypeVar
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Used for annotating the decorator usage of _DecoratorContextManager (e.g.,
 # 'no_grad' and 'enable_grad').
 # See https://mypy.readthedocs.io/en/latest/generics.html#declaring-decorators
 FuncType = Callable[..., Any]
+<<<<<<< HEAD
 F = TypeVar('F', bound=FuncType)
+=======
+F = TypeVar("F", bound=FuncType)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _wrap_generator(ctx_factory, func):
@@ -22,6 +33,10 @@ def _wrap_generator(ctx_factory, func):
     The input should be a function that returns a context manager,
     not a context manager itself, to handle one-shot context managers.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @functools.wraps(func)
     def generator_context(*args, **kwargs):
         gen = func(*args, **kwargs)
@@ -83,7 +98,11 @@ def context_decorator(ctx, func):
     be a multi-shot context manager that can be directly invoked multiple times)
     or a callable that produces a context manager.
     """
+<<<<<<< HEAD
     assert not (callable(ctx) and hasattr(ctx, '__enter__')), (
+=======
+    assert not (callable(ctx) and hasattr(ctx, "__enter__")), (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f"Passed in {ctx} is both callable and also a valid context manager "
         "(has __enter__), making it ambiguous which interface to use.  If you "
         "intended to pass a context manager factory, rewrite your call as "
@@ -92,8 +111,15 @@ def context_decorator(ctx, func):
     )
 
     if not callable(ctx):
+<<<<<<< HEAD
         def ctx_factory():
             return ctx
+=======
+
+        def ctx_factory():
+            return ctx
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         ctx_factory = ctx
 

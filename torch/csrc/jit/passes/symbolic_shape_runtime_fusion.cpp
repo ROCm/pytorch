@@ -69,7 +69,11 @@ static std::map<int64_t, Value*> InsertSymbolicShapesCompute(
   return sym_shape_to_enclosing_graph_value;
 }
 
+<<<<<<< HEAD
 void insertDynamicShapesGuard(
+=======
+static void insertDynamicShapesGuard(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const ShapeComputeGraphMapping& shape_mapping,
     Node* guarded_node,
     bool add_composed_op,
@@ -115,7 +119,11 @@ StrideInput strideInputFromString(const std::string& si) {
 // in the runtime guard, strides are serialized as one flat
 // vector. stride_inputs_offset indexes into that vector
 // where the strides of this tensor begin
+<<<<<<< HEAD
 inline StrideInput summarizeStrideDim(
+=======
+static inline StrideInput summarizeStrideDim(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const c10::IntArrayRef sizes,
     const c10::IntArrayRef strides,
     size_t dim,
@@ -517,7 +525,11 @@ static Operation StaticRuntimeCopyOuts(const Node* node) {
   };
 }
 
+<<<<<<< HEAD
 RegisterOperators SRCopyOuts({
+=======
+static RegisterOperators SRCopyOuts({
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::jit::Operator(
         prim::StaticRuntimeCopyOuts,
         StaticRuntimeCopyOuts,
@@ -529,7 +541,11 @@ RegisterOperators SRCopyOuts({
 // and also the that the symbolic shape dimensions are observed.
 // For any symbolic dimension we need to set its value on its first
 // use and for all subsequent uses check that the values are equal
+<<<<<<< HEAD
 RegisterOperators reg_guard({
+=======
+static RegisterOperators reg_guard({
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Operator(
         "prim::TensorExprDynamicGuard(...) -> bool",
         [](const Node* node) -> Operation {
@@ -736,7 +752,11 @@ static Operation createTensorExprDynamicGroup(const Node* node) {
   };
 }
 
+<<<<<<< HEAD
 RegisterOperators TensorExprDynamicOp({
+=======
+static RegisterOperators TensorExprDynamicOp({
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::jit::Operator(
         prim::TensorExprDynamicGroup,
         createTensorExprDynamicGroup,

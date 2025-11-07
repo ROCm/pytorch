@@ -30,6 +30,7 @@ on:
       python-version:
         required: false
         type: string
+<<<<<<< HEAD
         default: "3.9"
         description: |
           The python version to be used. Will be 3.9 by default
@@ -37,6 +38,11 @@ on:
         required: false
         type: string
         description: Set the conda environment file used to setup macOS build.
+=======
+        default: "3.12"
+        description: |
+          The python version to be used. Will be 3.9 by default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix:
         required: false
         type: string
@@ -71,11 +77,19 @@ jobs:
       test-matrix: ${{ steps.filter.outputs.test-matrix }}
     steps:
       - name: Clean up disk space before running MacOS workflow
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.7
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.8
+
+      # [see note: pytorch repo ref]
+      - name: Checkout PyTorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Set xcode version
         env:
@@ -85,6 +99,7 @@ jobs:
             echo "DEVELOPER_DIR=/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer" >> "${GITHUB_ENV}"
           fi
 
+<<<<<<< HEAD
       - name: Setup miniconda
         if: inputs.environment-file == ''
         uses: pytorch/test-infra/.github/actions/setup-miniconda@release/2.7
@@ -105,6 +120,16 @@ jobs:
 
       - name: Install sccache (only for non-forked PRs, and pushes to trunk)
         uses: nick-fields/retry@v3.0.0
+=======
+      - name: Setup Python
+        uses: pytorch/test-infra/.github/actions/setup-python@release/2.8
+        with:
+          python-version: ${{ inputs.python-version }}
+          pip-requirements-file: .github/requirements/pip-requirements-macOS.txt
+
+      - name: Install sccache (only for non-forked PRs, and pushes to trunk)
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
         with:
           timeout_minutes: 5
@@ -186,7 +211,11 @@ jobs:
           zip -1 -r artifacts.zip dist/ build/.ninja_log build/compile_commands.json .additional_ci_files
 
       - name: Store PyTorch Build Artifacts on GHA
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
+=======
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: inputs.build-generates-artifacts && steps.build.outcome != 'skipped'
         with:
           name: ${{ env.BUILD_ENVIRONMENT }}
@@ -195,7 +224,11 @@ jobs:
           path: artifacts.zip
 
       - name: Upload sccache stats to GHA
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
+=======
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Only if sccache is installed, see above
         if: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && steps.build.outcome != 'skipped' }}
         with:
@@ -207,4 +240,8 @@ jobs:
       - name: Clean up disk space
         if: always()
         continue-on-error: true
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -128,7 +128,11 @@ def gh_fetch_json_dict(
 
 def gh_graphql(query: str, **kwargs: Any) -> dict[str, Any]:
     rc = gh_fetch_url(
+<<<<<<< HEAD
         "https://api.github.com/graphql",
+=======
+        "https://api.github.com/graphql",  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         data={"query": query, "variables": kwargs},
         reader=json.load,
     )

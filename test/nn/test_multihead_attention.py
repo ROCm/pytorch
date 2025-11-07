@@ -17,7 +17,10 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize as parametrize_test,
     run_tests,
+<<<<<<< HEAD
     skipIfRocm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_NUMPY,
     TEST_WITH_CROSSREF,
 )
@@ -746,7 +749,10 @@ class TestMultiheadAttentionNN(NNTestCase):
 
 
 class TestMultiheadAttentionNNDeviceType(NNTestCase):
+<<<<<<< HEAD
     @skipIfRocm(msg="To investigate: yields NaN")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multihead_self_attn_two_masks_fast_path(self, device):
         """
         Multihead self-attention should give the same result on the fast path (BetterTransformer) as on the slow path

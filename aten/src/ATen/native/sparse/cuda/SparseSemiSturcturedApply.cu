@@ -5,14 +5,22 @@
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/util/accumulate.h>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 #include <ATen/native/sparse/cuda/SparseSemiStructuredPack.h>
 #endif
 
 namespace at::native {
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 template <typename KT>
 __global__ void __launch_bounds__(32 /* num_threads */)
@@ -89,7 +97,11 @@ std::tuple<Tensor, Tensor> _sparse_semi_structured_apply_typed(Tensor input, Ten
 
 std::tuple<Tensor, Tensor> _sparse_semi_structured_apply(const Tensor& input, const Tensor& threads_masks) // Returned by `_sparse_semi_structured_tile`
 {
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(_MSC_VER) || (defined(CUDA_VERSION) && CUDA_VERSION < 11080)
+=======
+#if defined(USE_ROCM) || defined(_MSC_VER)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "_sparse_semi_structured_apply: not supported");
   return std::make_tuple(Tensor{}, Tensor{});
 #else

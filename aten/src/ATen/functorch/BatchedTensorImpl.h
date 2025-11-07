@@ -159,6 +159,10 @@ constexpr DispatchKeySet kKeysToPropagateToWrapper({
   DispatchKey::XLA,
   DispatchKey::CUDA,
   DispatchKey::CPU,
+<<<<<<< HEAD
+=======
+  DispatchKey::PrivateUse1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 });
 
 inline DispatchKeySet getKeysToPropagateToWrapper(const Tensor& tensor, DispatchKeySet to_propagate=kKeysToPropagateToWrapper) {

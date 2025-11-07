@@ -199,8 +199,13 @@ def get_cudnn_version(run_lambda):
         cudnn_cmd = '{} /R "{}\\bin" cudnn*.dll'.format(where_cmd, cuda_path)
     elif get_platform() == 'darwin':
         # CUDA libraries and drivers can be found in /usr/local/cuda/. See
+<<<<<<< HEAD
         # https://docs.nvidia.com/cuda/cuda-installation-guide-mac-os-x/index.html#install
         # https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#installmac
+=======
+        # https://docs.nvidia.com/cuda/archive/9.0/cuda-installation-guide-mac-os-x/index.html#installation
+        # https://docs.nvidia.com/deeplearning/cudnn/installation/latest/
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Use CUDNN_LIBRARY when cudnn library is installed elsewhere.
         cudnn_cmd = 'ls /usr/local/cuda/lib/libcudnn*'
     else:
@@ -439,12 +444,22 @@ def get_pip_packages(run_lambda, patterns=None):
     if patterns is None:
         patterns = PIP_PATTERNS + COMMON_PATTERNS + NVIDIA_PATTERNS
 
+<<<<<<< HEAD
     pip_version = 'pip3' if sys.version[0] == '3' else 'pip'
+=======
+    pip_version = 'pip3' if sys.version_info.major == 3 else 'pip'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     os.environ['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
     # People generally have pip as `pip` or `pip3`
     # But here it is invoked as `python -mpip`
     out = run_and_read_all(run_lambda, [sys.executable, '-mpip', 'list', '--format=freeze'])
+<<<<<<< HEAD
+=======
+    if out is None:
+        return pip_version, out
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     filtered_out = '\n'.join(
         line
         for line in out.splitlines()
@@ -456,6 +471,11 @@ def get_pip_packages(run_lambda, patterns=None):
 
 def get_cachingallocator_config():
     ca_config = os.environ.get('PYTORCH_CUDA_ALLOC_CONF', '')
+<<<<<<< HEAD
+=======
+    if not ca_config:
+        ca_config = os.environ.get('PYTORCH_HIP_ALLOC_CONF', '')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ca_config
 
 

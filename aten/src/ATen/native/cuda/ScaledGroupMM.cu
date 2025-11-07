@@ -22,16 +22,25 @@ C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wunused-but-set-parameter")
 
 #if defined(BUILD_ROWWISE_FP8_KERNEL)
 
+<<<<<<< HEAD
 #include <ATen/native/cuda/cutlass_utils.cuh>
+=======
+#include <ATen/native/cuda/GroupMMCommon.cuh>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <cute/tensor.hpp>
 #include <cutlass/core_io.h>
 #include <cutlass/cutlass.h>
 #include <cutlass/gemm/device/gemm.h>
+<<<<<<< HEAD
 #include <cutlass/half.h>
 #include <cutlass/numeric_types.h>
 #include <cutlass/trace.h>
 #include <cutlass/util/host_tensor.h>
+=======
+#include <cutlass/numeric_types.h>
+#include <cutlass/trace.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cutlass/version.h>
 
 #include <cutlass/epilogue/collective/collective_builder.hpp>
@@ -51,6 +60,7 @@ C10_DIAGNOSTIC_POP()
 
 namespace {
 
+<<<<<<< HEAD
 using Strides = std::array<int64_t, 3>;
 
 template <
@@ -146,6 +156,9 @@ __global__ void prepare_gemm_data(
   stride_output[tid] =
       cutlass::make_cute_packed_stride(StrideOutput{}, {M, ldoutput, 1});
 }
+=======
+using Strides = at::cuda::detail::Strides;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 using DtypeScale = float;
 using DtypeAccum = float;
@@ -205,7 +218,10 @@ struct Schedule {
   using ClusterShape = cute::Shape<cute::_2, cute::_2, cute::_1>;
 };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 int ceildiv(int a, int b) {
   return (a + b - 1) / b;
 }
@@ -256,6 +272,7 @@ void f8f8bf16_grouped_gemm_impl_sm90(
   using EpilogueSchedule =
       typename Schedule<FastAccum::value, Pong::value, TB_M, TB_N, TB_K>::
           EpilogueSchedule;
+<<<<<<< HEAD
   // TODO remove *BroadcastPtrArrays and replace with just Broadcast
   // when  https://github.com/NVIDIA/cutlass/pull/2120/ is in the tagged cutlass version
   // Implement rowwise scaling epilogue.
@@ -270,6 +287,19 @@ void f8f8bf16_grouped_gemm_impl_sm90(
       0,
       TileShape,
       DtypeScale,
+=======
+  using ScaleA = cutlass::epilogue::fusion::Sm90ColBroadcast<
+      0,
+      TileShape,
+      DtypeScale*,
+      DtypeScale,
+      cute::Stride<cute::Int<1>, cute::Int<0>, cute::Int<0>>>;
+
+  using ScaleB = cutlass::epilogue::fusion::Sm90RowBroadcast<
+      0,
+      TileShape,
+      DtypeScale*,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DtypeScale,
       cute::Stride<cute::Int<0>, cute::Int<1>, cute::Int<0>>>;
 
@@ -345,6 +375,11 @@ void f8f8bf16_grouped_gemm_impl_sm90(
     group_count = mat_a.size(0);
   }
 
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(group_count < 1024, "Can't process more than 1024 groups");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int64_t problem_shape_size =
       group_count * ((int64_t)sizeof(ProblemShape::UnderlyingProblemShape));
 
@@ -383,7 +418,10 @@ void f8f8bf16_grouped_gemm_impl_sm90(
       reinterpret_cast<ProblemShape::UnderlyingProblemShape*>(
           stride_output + group_count);
 
+<<<<<<< HEAD
   TORCH_CHECK(group_count < 1024, "Can't process more than 1024 groups");
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto stream = at::cuda::getCurrentCUDAStream().stream();
 
   auto make_strides = [](at::IntArrayRef strides) -> Strides {
@@ -400,7 +438,11 @@ void f8f8bf16_grouped_gemm_impl_sm90(
   int64_t a_scale_stride = scale_a.stride(0);
   int64_t b_scale_stride = scale_b.stride(0);
 
+<<<<<<< HEAD
   prepare_gemm_data<<<1, group_count, 0, stream>>>(
+=======
+  at::cuda::detail::prepare_grouped_gemm_data<<<1, group_count, 0, stream>>>(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       reinterpret_cast<DtypeA*>(mat_a.data_ptr()),
       reinterpret_cast<DtypeB*>(mat_b.data_ptr()),
       reinterpret_cast<DtypeOutput*>(out.data_ptr()),
@@ -427,6 +469,7 @@ void f8f8bf16_grouped_gemm_impl_sm90(
 
   C10_CUDA_KERNEL_LAUNCH_CHECK();
 
+<<<<<<< HEAD
 //   auto buf_cpu = mat_a.new_empty(
 //       input_args_size, at::TensorOptions().dtype(at::kByte).device(at::kCPU));
 //   AT_CUDA_CHECK(cudaMemcpy(
@@ -467,6 +510,52 @@ void f8f8bf16_grouped_gemm_impl_sm90(
 //     std::cout << "strideB" << stride_B_h[i] << "\n";
 //     std::cout << "stride_output" << stride_output_h[i] << "\n";
 //   }
+=======
+  //   auto buf_cpu = mat_a.new_empty(
+  //       input_args_size,
+  //       at::TensorOptions().dtype(at::kByte).device(at::kCPU));
+  //   AT_CUDA_CHECK(cudaMemcpy(
+  //       (char*)buf_cpu.data_ptr(),
+  //       buf_ptr,
+  //       input_args_size,
+  //       cudaMemcpyDeviceToHost));
+  //   char* buf_ptr_cpu = (char*)buf_cpu.data_ptr();
+  //   DtypeA** inputA_ptrs_h = reinterpret_cast<DtypeA**>(buf_ptr_cpu);
+  //   DtypeB** inputB_ptrs_h =
+  //       reinterpret_cast<DtypeB**>(inputA_ptrs_h + aligned_group_count);
+  //   DtypeOutput** output_ptrs_h =
+  //       reinterpret_cast<DtypeOutput**>(inputB_ptrs_h + aligned_group_count);
+  //   DtypeScale** inputA_scale_ptrs_h =
+  //       reinterpret_cast<DtypeScale**>(output_ptrs_h + aligned_group_count);
+  //   DtypeScale** inputB_scale_ptrs_h =
+  //       reinterpret_cast<DtypeScale**>(inputA_scale_ptrs_h +
+  //       aligned_group_count);
+  //   StrideA* stride_A_h =
+  //       reinterpret_cast<StrideA*>(inputB_scale_ptrs_h +
+  //       aligned_group_count);
+  //   StrideB* stride_B_h = reinterpret_cast<StrideB*>(stride_A_h +
+  //   group_count); StrideOutput* stride_output_h =
+  //       reinterpret_cast<StrideOutput*>(stride_B_h + group_count);
+  //   ProblemShape::UnderlyingProblemShape* problem_sizes_h =
+  //       reinterpret_cast<ProblemShape::UnderlyingProblemShape*>(
+  //           stride_output_h + group_count);
+
+  //   std::cout << "PTRS " << mat_a.data_ptr() << " " << mat_b.data_ptr() << "
+  //   "
+  //             << out.data_ptr() << " " << scale_a.data_ptr() << " "
+  //             << scale_b.data_ptr() << "\n";
+  //   for (int i = 0; i < group_count; i++) {
+  //     std::cout << "A " << (void*)inputA_ptrs_h[i] << "\n";
+  //     std::cout << "B " << (void*)inputB_ptrs_h[i] << "\n";
+  //     std::cout << "O " << (void*)output_ptrs_h[i] << "\n";
+  //     std::cout << "A_scale " << (void*)inputA_scale_ptrs_h[i] << "\n";
+  //     std::cout << "B_scale " << (void*)inputB_scale_ptrs_h[i] << "\n";
+  //     std::cout << "sizes " << problem_sizes_h[i] << "\n";
+  //     std::cout << "strideA" << stride_A_h[i] << "\n";
+  //     std::cout << "strideB" << stride_B_h[i] << "\n";
+  //     std::cout << "stride_output" << stride_output_h[i] << "\n";
+  //   }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //   int device_id = 0;
   //   cutlass::KernelHardwareInfo kernel_hw_info =
   //   cutlass::KernelHardwareInfo::make_kernel_hardware_info<Gemm::GemmKernel>(device_id);
@@ -478,13 +567,22 @@ void f8f8bf16_grouped_gemm_impl_sm90(
        stride_A,
        (const DtypeB**)inputB_ptrs,
        stride_B},
+<<<<<<< HEAD
       {{{{inputB_scale_ptrs}, {inputA_scale_ptrs}}},
+=======
+      {{{{inputB_scale_ptrs}, {{inputA_scale_ptrs}, {}, {}}, {}}, {}},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        (const DtypeOutput**)output_ptrs,
        stride_output,
        output_ptrs,
        stride_output}};
 
+<<<<<<< HEAD
   int sm_count = at::cuda::getDeviceProperties(out.device().index())->multiProcessorCount;
+=======
+  int sm_count =
+      at::cuda::getDeviceProperties(out.device().index())->multiProcessorCount;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (at::globalContext()._SMCarveout_EXPERIMENTAL().has_value()) {
     sm_count -= at::globalContext()._SMCarveout_EXPERIMENTAL().value();
   }

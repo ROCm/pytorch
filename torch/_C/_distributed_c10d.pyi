@@ -2,7 +2,11 @@
 # mypy: disable-error-code="type-arg"
 from datetime import timedelta
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, overload
+=======
+from typing import Any, Optional, overload, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -50,6 +54,11 @@ class Reducer:
         gradient_as_bucket_view: bool = ...,
         param_to_name_mapping: dict[int, str] = ...,
         first_bucket_types_cap: int = ...,  # kDefaultFirstBucketBytes in reducer.hpp
+<<<<<<< HEAD
+=======
+        skip_all_reduce_unused_params: bool = ...,
+        use_python_reducer: bool = ...,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None: ...
     def prepare_for_forward(self) -> None: ...
     def prepare_for_backward(self, output: list[Tensor]) -> None: ...
@@ -139,6 +148,11 @@ class BroadcastOptions:
 class AllreduceOptions:
     reduceOp: ReduceOp
     timeout: timedelta
+<<<<<<< HEAD
+=======
+    asyncOp: bool
+    sparseIndices: Optional[Tensor]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class AllreduceCoalescedOptions(AllreduceOptions): ...
 
@@ -147,6 +161,10 @@ class ReduceOptions:
     rootRank: int
     rootTensor: int
     timeout: timedelta
+<<<<<<< HEAD
+=======
+    asyncOp: bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class AllgatherOptions:
     timeout: timedelta
@@ -155,6 +173,10 @@ class AllgatherOptions:
 class GatherOptions:
     rootRank: int
     timeout: timedelta
+<<<<<<< HEAD
+=======
+    asyncOp: bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ScatterOptions:
     rootRank: int
@@ -170,14 +192,26 @@ class BarrierOptions:
     device_ids: list[int]
     device: torch.device
     timeout: timedelta
+<<<<<<< HEAD
 
 class AllToAllOptions:
     timeout: timedelta
+=======
+    asyncOp: bool
+
+class AllToAllOptions:
+    timeout: timedelta
+    asyncOp: bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class Store:
     def set(self, key: str, value: str): ...
     def get(self, key: str) -> bytes: ...
     def add(self, key: str, value: int) -> int: ...
+<<<<<<< HEAD
+=======
+    def check(self, keys: list[str]) -> bool: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def compare_set(
         self,
         key: str,
@@ -191,6 +225,12 @@ class Store:
     def wait(self, keys: list[str]): ...
     @overload
     def wait(self, keys: list[str], timeout: timedelta): ...
+<<<<<<< HEAD
+=======
+    def queue_pop(self, key: str, block: bool = True) -> bytes: ...
+    def queue_push(self, key: str, value: Union[bytes, str]) -> None: ...
+    def queue_len(self, key: str) -> int: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class FileStore(Store):
     def __init__(self, path: str, numWorkers: int = ...) -> None: ...
@@ -296,6 +336,11 @@ class Backend:
     @property
     def supports_coalescing(self) -> bool: ...
     @property
+<<<<<<< HEAD
+=======
+    def supports_time_estimate(self) -> bool: ...
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def options(self) -> Options: ...
     def rank(self) -> int: ...
     def size(self) -> int: ...
@@ -305,6 +350,17 @@ class Backend:
     def _set_sequence_number_for_group(self) -> None: ...
     def _set_default_timeout(self, timeout: timedelta) -> None: ...
     def get_error(self) -> ErrorType: ...
+<<<<<<< HEAD
+=======
+    def supports_tensor_alloc(self, device: torch.device) -> bool: ...
+    def allocate_tensor(
+        self,
+        size: int,
+        *,
+        dtype: torch.dtype,
+        device: torch.device,
+    ) -> Tensor: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def mem_allocator(self) -> Any: ...
 
@@ -551,6 +607,11 @@ class ProcessGroupGloo(Backend):
     class Options(Backend.Options):
         devices: list[ProcessGroupGloo.Device]
         threads: int
+<<<<<<< HEAD
+=======
+        global_ranks_in_group: list[int]
+        group_name: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def __init__(self): ...
 
@@ -562,10 +623,19 @@ class ProcessGroupGloo(Backend):
         timeout: timedelta,
     ) -> None: ...
     @staticmethod
+<<<<<<< HEAD
     def create_device(hostname="", interface="") -> Device: ...
     @staticmethod
     def create_default_device() -> Device: ...
     def _set_default_timeout(self, timeout) -> None: ...
+=======
+    def create_device(hostname="", interface="", lazy_init=None) -> Device: ...
+    @staticmethod
+    def create_default_device(lazy_init=None) -> Device: ...
+    def _set_default_timeout(self, timeout) -> None: ...
+    @property
+    def options(self) -> Options: ...  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _ProcessGroupWrapper(Backend):
     def __init__(self, pg: Backend, gloo_pg: ProcessGroupGloo) -> None: ...
@@ -603,6 +673,11 @@ class ProcessGroupNCCL(Backend):
     ) -> None: ...
     def _group_start(self) -> None: ...
     def _group_end(self) -> None: ...
+<<<<<<< HEAD
+=======
+    def _start_time_estimate(self) -> None: ...
+    def _end_time_estimate(self) -> float: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _set_default_timeout(self, timeout) -> None: ...
     def perform_nocolor_split(self, device: torch.device) -> None: ...
     def register_mem_pool(self, pool: torch.cuda.MemPool) -> None: ...
@@ -615,6 +690,13 @@ class ProcessGroupNCCL(Backend):
     def uid(self) -> int: ...
     @property
     def options(self) -> Options: ...  # type: ignore[override]
+<<<<<<< HEAD
+=======
+    @staticmethod
+    def get_build_nccl_version(self) -> tuple[int, int, int]: ...
+    @staticmethod
+    def get_runtime_nccl_version(self) -> tuple[int, int, int]: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ProcessGroupUCC(Backend):
     def __init__(
@@ -668,6 +750,17 @@ def _allow_inflight_collective_as_graph_input() -> bool: ...
 def _unregister_all_process_groups() -> None: ...
 def _unregister_process_group(group_name: str) -> None: ...
 
+<<<<<<< HEAD
+=======
+# Intializes the device state in CUmodule so that it’s able to perform NVSHMEM
+# operations.  CUmodule is a pointer to a CUDA module, carried by a int64 in
+# Python. At C++ interface, it is converted to a uintptr_t.
+def _nvshmemx_cumodule_init(module: int) -> None: ...
+
+# Check if NVSHMEM is available on current system.
+def _is_nvshmem_available() -> bool: ...
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _SymmetricMemory:
     @staticmethod
     def set_group_info(

@@ -1,6 +1,7 @@
 # Owner(s): ["oncall: quantization"]
 # ruff: noqa: F841
 
+<<<<<<< HEAD
 import torch
 import torch.nn as nn
 import torch.ao.nn.quantized as nnq
@@ -44,10 +45,52 @@ from torch.testing._internal.common_quantization import (
     prepare_dynamic,
     convert_dynamic,
     skipIfNoFBGEMM,
+=======
+from hypothesis import given, strategies as st
+
+import torch
+import torch.ao.nn.quantized as nnq
+import torch.nn as nn
+import torch.testing._internal.hypothesis_utils as hu
+from torch.ao.quantization import (
+    convert,
+    default_dynamic_qconfig,
+    default_dynamic_quant_observer,
+    default_qconfig,
+    default_weight_observer,
+    DeQuantStub,
+    FixedQParamsObserver,
+    float16_dynamic_qconfig,
+    float_qparams_weight_only_qconfig,
+    float_qparams_weight_only_qconfig_4bit,
+    per_channel_dynamic_qconfig,
+    PerChannelMinMaxObserver,
+    prepare,
+    prepare_qat,
+    QConfig,
+    quantize,
+    quantize_dynamic,
+    QuantStub,
+    QuantWrapper,
+)
+from torch.nn.utils.rnn import PackedSequence
+
+# annotated models
+from torch.testing._internal.common_quantization import (
+    ActivationsTestModel,
+    AnnotatedCustomConfigNestedModel,
+    AnnotatedNestedModel,
+    AnnotatedSingleLayerLinearModel,
+    AnnotatedSkipQuantModel,
+    AnnotatedSubNestedModel,
+    AnnotatedTwoLayerLinearModel,
+    convert_dynamic,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     EmbeddingBagModule,
     EmbeddingModule,
     EmbeddingWithStaticLinear,
     LinearReluLinearModel,
+<<<<<<< HEAD
 )
 
 # annotated models
@@ -68,11 +111,35 @@ from torch.testing._internal.common_quantized import (
 from hypothesis import given
 from hypothesis import strategies as st
 import torch.testing._internal.hypothesis_utils as hu
+=======
+    ModelWithFunctionals,
+    NestedModel,
+    NormalizationTestModel,
+    prepare_dynamic,
+    QuantizationTestCase,
+    QuantStubModel,
+    ResNetBase,
+    RNNCellDynamicModel,
+    RNNDynamicModel,
+    SingleLayerLinearDynamicModel,
+    skipIfNoFBGEMM,
+    test_only_eval_fn,
+    TwoLayerLinearModel,
+)
+from torch.testing._internal.common_quantized import (
+    override_qengines,
+    override_quantized_engine,
+    supported_qengines,
+)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 hu.assert_deadline_disabled()
 
 # Standard library
 import numpy as np
 
+<<<<<<< HEAD
 class TestQuantizeEagerOps(QuantizationTestCase):
     @override_qengines
     def _test_reference_module_impl(self,
@@ -80,6 +147,18 @@ class TestQuantizeEagerOps(QuantizationTestCase):
                                     quantized_module_class,
                                     extra_module_kwargs,
                                     input_size):
+=======
+
+class TestQuantizeEagerOps(QuantizationTestCase):
+    @override_qengines
+    def _test_reference_module_impl(
+        self,
+        float_module_class,
+        quantized_module_class,
+        extra_module_kwargs,
+        input_size,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class M(torch.nn.Module):
             def __init__(self) -> None:
                 super().__init__()
@@ -111,8 +190,13 @@ class TestQuantizeEagerOps(QuantizationTestCase):
                 return x
 
         qengine = torch.backends.quantized.engine
+<<<<<<< HEAD
         if qengine not in supported_qengines or qengine == 'qnnpack':
             return   # qnnpack does not support nnq.ConvTranspose3d
+=======
+        if qengine not in supported_qengines or qengine == "qnnpack":
+            return  # qnnpack does not support nnq.ConvTranspose3d
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         data = torch.randn(*input_size, dtype=torch.float)
         original_m = M()
@@ -147,61 +231,98 @@ class TestQuantizeEagerOps(QuantizationTestCase):
         self._test_reference_module_impl(
             nn.Conv1d,
             nnq.Conv1d,
+<<<<<<< HEAD
             {'in_channels': 1, 'out_channels': 1, 'kernel_size': 1},
             (16, 1, 1)
+=======
+            {"in_channels": 1, "out_channels": 1, "kernel_size": 1},
+            (16, 1, 1),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_conv_2d(self):
         self._test_reference_module_impl(
             nn.Conv2d,
             nnq.Conv2d,
+<<<<<<< HEAD
             {'in_channels': 1, 'out_channels': 1, 'kernel_size': 1},
             (16, 1, 10, 10)
+=======
+            {"in_channels": 1, "out_channels": 1, "kernel_size": 1},
+            (16, 1, 10, 10),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_conv_3d(self):
         self._test_reference_module_impl(
             nn.Conv3d,
             nnq.Conv3d,
+<<<<<<< HEAD
             {'in_channels': 1, 'out_channels': 1, 'kernel_size': 1},
             (16, 1, 10, 10, 10)
+=======
+            {"in_channels": 1, "out_channels": 1, "kernel_size": 1},
+            (16, 1, 10, 10, 10),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_conv_transpose_1d(self):
         self._test_reference_module_impl(
             nn.ConvTranspose1d,
             nnq.ConvTranspose1d,
+<<<<<<< HEAD
             {'in_channels': 1, 'out_channels': 1, 'kernel_size': 1},
             (16, 1, 1)
+=======
+            {"in_channels": 1, "out_channels": 1, "kernel_size": 1},
+            (16, 1, 1),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_conv_transpose_2d(self):
         self._test_reference_module_impl(
             nn.ConvTranspose2d,
             nnq.ConvTranspose2d,
+<<<<<<< HEAD
             {'in_channels': 1, 'out_channels': 1, 'kernel_size': 1},
             (16, 1, 10, 10)
+=======
+            {"in_channels": 1, "out_channels": 1, "kernel_size": 1},
+            (16, 1, 10, 10),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_conv_transpose_3d(self):
         self._test_reference_module_impl(
             nn.ConvTranspose3d,
             nnq.ConvTranspose3d,
+<<<<<<< HEAD
             {'in_channels': 1, 'out_channels': 1, 'kernel_size': 1},
             (16, 1, 10, 10, 10)
+=======
+            {"in_channels": 1, "out_channels": 1, "kernel_size": 1},
+            (16, 1, 10, 10, 10),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_linear(self):
         self._test_reference_module_impl(
+<<<<<<< HEAD
             nn.Linear,
             nnq.Linear,
             {'in_features': 5, 'out_features': 10},
             (16, 5)
+=======
+            nn.Linear, nnq.Linear, {"in_features": 5, "out_features": 10}, (16, 5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @override_qengines
     def test_int16_reference_module(self):
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class RefM(torch.nn.Module):
             def __init__(self) -> None:
                 super().__init__()
@@ -219,7 +340,10 @@ class TestQuantizeEagerOps(QuantizationTestCase):
                 x = self.dequant2(x)
                 return x
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_size = (16, 1, 10, 10)
         data = torch.randn(*input_size, dtype=torch.float)
 
@@ -237,14 +361,24 @@ class TestQuantizeEagerOps(QuantizationTestCase):
         weight_obs = MovingAverageMinMaxObserver.with_args(
             dtype=torch.qint32,
             # set qmin and qmax to represent qint16
+<<<<<<< HEAD
             quant_min=-1 * (2 ** 15),
             quant_max=(2 ** 15) - 1,
+=======
+            quant_min=-1 * (2**15),
+            quant_max=(2**15) - 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             qscheme=torch.per_tensor_symmetric,
         )
         act_obs = MovingAverageMinMaxObserver.with_args(
             dtype=torch.qint32,
+<<<<<<< HEAD
             quant_min=-1 * (2 ** 15),
             quant_max=(2 ** 15) - 1,
+=======
+            quant_min=-1 * (2**15),
+            quant_max=(2**15) - 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         custom_qconfig = QConfig(activation=act_obs, weight=weight_obs)
 
@@ -258,6 +392,7 @@ class TestQuantizeEagerOps(QuantizationTestCase):
 
         ref_m = convert(ref_m, is_reference=True)
 
+<<<<<<< HEAD
         myobs = MovingAverageMinMaxObserver(averaging_constant=0.5,
                                             dtype=torch.qint32,
                                             # set qmin and qmax to represent qint16
@@ -265,10 +400,21 @@ class TestQuantizeEagerOps(QuantizationTestCase):
                                             quant_max=(2 ** 15) - 1,
                                             qscheme=torch.per_tensor_symmetric,
                                             )
+=======
+        myobs = MovingAverageMinMaxObserver(
+            averaging_constant=0.5,
+            dtype=torch.qint32,
+            # set qmin and qmax to represent qint16
+            quant_min=-1 * (2**15),
+            quant_max=(2**15) - 1,
+            qscheme=torch.per_tensor_symmetric,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = myobs(rand_w)
         qparams = myobs.calculate_qparams()
         self.assertEqual(ref_m.conv.weight_scale, qparams[0])
 
+<<<<<<< HEAD
 
     def _test_activation_op_impl(
             self, float_module_class, quantized_module_class, extra_module_kwargs):
@@ -276,6 +422,16 @@ class TestQuantizeEagerOps(QuantizationTestCase):
         Args:
             extra_module_kwargs: keyword args to instantiate the float module
         """
+=======
+    def _test_activation_op_impl(
+        self, float_module_class, quantized_module_class, extra_module_kwargs
+    ):
+        """Implementation for testing common activation ops like leaky relu
+        Args:
+            extra_module_kwargs: keyword args to instantiate the float module
+        """
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class M(torch.nn.Module):
             def __init__(self) -> None:
                 super().__init__()
@@ -297,10 +453,19 @@ class TestQuantizeEagerOps(QuantizationTestCase):
         self.assertEqual(type(m.activation_op), quantized_module_class)
 
     def test_leaky_relu(self):
+<<<<<<< HEAD
         self._test_activation_op_impl(nn.LeakyReLU, nnq.LeakyReLU, {'negative_slope': 0.1, 'inplace': False})
 
     def test_relu(self):
         self._test_activation_op_impl(nn.ReLU, nn.ReLU, {'inplace': False})
+=======
+        self._test_activation_op_impl(
+            nn.LeakyReLU, nnq.LeakyReLU, {"negative_slope": 0.1, "inplace": False}
+        )
+
+    def test_relu(self):
+        self._test_activation_op_impl(nn.ReLU, nn.ReLU, {"inplace": False})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Histogram Observers are slow, so have no-deadline to ensure test doesn't time out
     @given(train_mode=st.booleans())
@@ -310,10 +475,17 @@ class TestQuantizeEagerOps(QuantizationTestCase):
         xq = torch.quantize_per_tensor(x, 0.01, 30, torch.quint8)
         self.checkScriptable(model, [[x]], check_save_load=True)
         if train_mode:
+<<<<<<< HEAD
             model.qconfig = torch.ao.quantization.get_default_qat_qconfig('fbgemm')
             model = prepare_qat(model)
         else:
             model.qconfig = torch.ao.quantization.get_default_qconfig('qnnpack')
+=======
+            model.qconfig = torch.ao.quantization.get_default_qat_qconfig("fbgemm")
+            model = prepare_qat(model)
+        else:
+            model.qconfig = torch.ao.quantization.get_default_qconfig("qnnpack")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model = prepare(model)
         # Check if observers and quant/dequant nodes are inserted
         self.checkNoPrepModules(model)
@@ -333,8 +505,13 @@ class TestQuantizeEagerOps(QuantizationTestCase):
         checkQuantized(model)
         self.checkScriptable(model, [[xq]], check_save_load=True)
 
+<<<<<<< HEAD
 class TestQuantizeEagerPTQStatic(QuantizationTestCase):
 
+=======
+
+class TestQuantizeEagerPTQStatic(QuantizationTestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_single_layer(self):
         r"""Quantize SingleLayerLinearModel which has one Linear module, make sure it is swapped
         to nnq.Linear which is the quantized version of the module
@@ -370,7 +547,13 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 model = quantize(base, test_only_eval_fn, [self.calib_data])
                 checkQuantized(model)
                 keys_after = set(base.state_dict().keys())
+<<<<<<< HEAD
                 self.assertEqual(keys_before, keys_after)  # simple check that nothing changed
+=======
+                self.assertEqual(
+                    keys_before, keys_after
+                )  # simple check that nothing changed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # in-place version
                 model = AnnotatedSingleLayerLinearModel(qengine)
@@ -383,7 +566,11 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         r"""TwoLayerLinearModel has two Linear modules but we only quantize the second one
         `fc2`, and `fc1`is not quantized
         """
+<<<<<<< HEAD
         with override_quantized_engine('fbgemm'):
+=======
+        with override_quantized_engine("fbgemm"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model = AnnotatedTwoLayerLinearModel()
             model = prepare(model)
 
@@ -408,8 +595,14 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
             checkQuantized(model)
 
             # test one line API
+<<<<<<< HEAD
             model = quantize(AnnotatedTwoLayerLinearModel(), test_only_eval_fn,
                              [self.calib_data])
+=======
+            model = quantize(
+                AnnotatedTwoLayerLinearModel(), test_only_eval_fn, [self.calib_data]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             checkQuantized(model)
 
     def test_nested1(self):
@@ -450,11 +643,19 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 checkQuantized(model)
 
                 # test one line API
+<<<<<<< HEAD
                 model = quantize(AnnotatedNestedModel(qengine), test_only_eval_fn,
                                  [self.calib_data])
                 checkQuantized(model)
 
 
+=======
+                model = quantize(
+                    AnnotatedNestedModel(qengine), test_only_eval_fn, [self.calib_data]
+                )
+                checkQuantized(model)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfNoFBGEMM
     def test_nested2(self):
         model = AnnotatedSubNestedModel()
@@ -491,8 +692,14 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         checkQuantized(model)
 
         # test one line API
+<<<<<<< HEAD
         model = quantize(AnnotatedSubNestedModel(), test_only_eval_fn,
                          [self.calib_data])
+=======
+        model = quantize(
+            AnnotatedSubNestedModel(), test_only_eval_fn, [self.calib_data]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         checkQuantized(model)
 
     def test_nested3(self):
@@ -533,6 +740,7 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 checkQuantized(model)
 
                 # test one line API
+<<<<<<< HEAD
                 model = quantize(AnnotatedCustomConfigNestedModel(), test_only_eval_fn,
                                  [self.calib_data])
                 checkQuantized(model)
@@ -540,6 +748,17 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
     def test_skip_quant(self):
         r"""The case when we want to skip quantizing some layers
         """
+=======
+                model = quantize(
+                    AnnotatedCustomConfigNestedModel(),
+                    test_only_eval_fn,
+                    [self.calib_data],
+                )
+                checkQuantized(model)
+
+    def test_skip_quant(self):
+        r"""The case when we want to skip quantizing some layers"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for qengine in supported_qengines:
             with override_quantized_engine(qengine):
                 model = AnnotatedSkipQuantModel(qengine)
@@ -562,7 +781,15 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 checkQuantized(model)
 
                 # test one line API
+<<<<<<< HEAD
                 model = quantize(AnnotatedSkipQuantModel(qengine), test_only_eval_fn, [self.calib_data])
+=======
+                model = quantize(
+                    AnnotatedSkipQuantModel(qengine),
+                    test_only_eval_fn,
+                    [self.calib_data],
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 checkQuantized(model)
 
     @skipIfNoFBGEMM
@@ -608,7 +835,13 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 model = convert(model)
 
                 def checkQuantized(model):
+<<<<<<< HEAD
                     self.assertEqual(type(model.module.conv1), nn.intrinsic.quantized.ConvReLU2d)
+=======
+                    self.assertEqual(
+                        type(model.module.conv1), nn.intrinsic.quantized.ConvReLU2d
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(type(model.module.myop), nn.quantized.QFunctional)
                     self.assertEqual(type(model.module.avgpool), nn.AdaptiveAvgPool2d)
                     self.assertEqual(type(model.module.fc), nnq.Linear)
@@ -624,7 +857,11 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         Test quantization of normalization layers
         """
         model = NormalizationTestModel()
+<<<<<<< HEAD
         model.qconfig = torch.ao.quantization.get_default_qconfig('fbgemm')
+=======
+        model.qconfig = torch.ao.quantization.get_default_qconfig("fbgemm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prepare(model, inplace=True)
         self.checkObservers(model)
         test_only_eval_fn(model, self.calib_data)
@@ -648,7 +885,12 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         checkQuantized(model)
 
         model_oneline = quantize(
+<<<<<<< HEAD
             NormalizationTestModel(), test_only_eval_fn, [self.calib_data])
+=======
+            NormalizationTestModel(), test_only_eval_fn, [self.calib_data]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         checkQuantized(model)
 
     def test_save_load_state_dict(self):
@@ -680,7 +922,13 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 new_state_dict = model.state_dict()
 
                 # Check to make sure the state dict keys match original model after convert.
+<<<<<<< HEAD
                 self.assertEqual(set(new_state_dict.keys()), set(quant_state_dict.keys()))
+=======
+                self.assertEqual(
+                    set(new_state_dict.keys()), set(quant_state_dict.keys())
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 model.load_state_dict(quant_state_dict)
 
@@ -693,7 +941,11 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         Test quantization of activations
         """
         model = ActivationsTestModel()
+<<<<<<< HEAD
         model.qconfig = torch.ao.quantization.get_default_qconfig('fbgemm')
+=======
+        model.qconfig = torch.ao.quantization.get_default_qconfig("fbgemm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prepare(model, inplace=True)
         self.checkObservers(model)
         test_only_eval_fn(model, self.calib_data)
@@ -710,8 +962,14 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         checkQuantized(model)
 
         # test one line API
+<<<<<<< HEAD
         model_oneline = quantize(ActivationsTestModel(), test_only_eval_fn,
                                  [self.calib_data])
+=======
+        model_oneline = quantize(
+            ActivationsTestModel(), test_only_eval_fn, [self.calib_data]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         checkQuantized(model_oneline)
 
     @override_qengines
@@ -722,6 +980,7 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         qengine = torch.backends.quantized.engine
         model = QuantStubModel()
         counter = {
+<<<<<<< HEAD
             'pre_forwards': 0,
             'forwards': 0,
         }
@@ -731,6 +990,17 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
 
         def fw_hook(h_module, input, output):
             counter['forwards'] += 1
+=======
+            "pre_forwards": 0,
+            "forwards": 0,
+        }
+
+        def fw_pre_hook(h_module, input):
+            counter["pre_forwards"] += 1
+
+        def fw_hook(h_module, input, output):
+            counter["forwards"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         model.fc.register_forward_pre_hook(fw_pre_hook)
         model.fc.register_forward_hook(fw_hook)
@@ -741,12 +1011,21 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         def checkHooksIsPresent(model, before_convert=True):
             num_fwd_hooks = 1
             if before_convert:
+<<<<<<< HEAD
                 self.assertEqual(len(model.quant._forward_hooks.values()), 1,
                                  "Quantization observer hook has disappeared")
+=======
+                self.assertEqual(
+                    len(model.quant._forward_hooks.values()),
+                    1,
+                    "Quantization observer hook has disappeared",
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 num_fwd_hooks = 2
 
             self.assertObjectIn(fw_pre_hook, model.fc._forward_pre_hooks.values())
             self.assertObjectIn(fw_hook, model.fc._forward_hooks.values())
+<<<<<<< HEAD
             self.assertEqual(len(model.fc._forward_pre_hooks.values()), 1,
                              "Extra pre forward hooks have appeared on a layer")
             # During static quantization non stub layers are provided with quantization observer hook too
@@ -755,6 +1034,25 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
             # Implicitly check that fw_hook goes after _observer_forward_hook
             self.assertEqual(list(model.fc._forward_hooks.values())[-1], fw_hook,
                              "_observer_forward_hook is not a first entry of the hooks list")
+=======
+            self.assertEqual(
+                len(model.fc._forward_pre_hooks.values()),
+                1,
+                "Extra pre forward hooks have appeared on a layer",
+            )
+            # During static quantization non stub layers are provided with quantization observer hook too
+            self.assertEqual(
+                len(model.fc._forward_hooks.values()),
+                num_fwd_hooks,
+                "Extra post forward hooks have appeared on a layer",
+            )
+            # Implicitly check that fw_hook goes after _observer_forward_hook
+            self.assertEqual(
+                list(model.fc._forward_hooks.values())[-1],
+                fw_hook,
+                "_observer_forward_hook is not a first entry of the hooks list",
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         checkHooksIsPresent(model, True)
         test_only_eval_fn(model, self.calib_data)
@@ -763,6 +1061,7 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
 
     @skipIfNoFBGEMM
     def test_quantized_embedding(self):
+<<<<<<< HEAD
         r""" Test the post-training quantization flow, serialization and scripting
         of embedding modules
         """
@@ -770,11 +1069,62 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         for qconfig in [float_qparams_weight_only_qconfig, float_qparams_weight_only_qconfig_4bit]:
             model = EmbeddingModule().eval()
             indices = torch.tensor([9, 6, 5, 7, 8, 8, 9, 2, 8, 6, 6, 9, 1, 6, 8, 8, 3, 2, 3, 6, 3, 6, 5, 7, 0, 8, 4, 6, 5, 8, 2, 3])
+=======
+        r"""Test the post-training quantization flow, serialization and scripting
+        of embedding modules
+        """
+
+        for qconfig in [
+            float_qparams_weight_only_qconfig,
+            float_qparams_weight_only_qconfig_4bit,
+        ]:
+            model = EmbeddingModule().eval()
+            indices = torch.tensor(
+                [
+                    9,
+                    6,
+                    5,
+                    7,
+                    8,
+                    8,
+                    9,
+                    2,
+                    8,
+                    6,
+                    6,
+                    9,
+                    1,
+                    6,
+                    8,
+                    8,
+                    3,
+                    2,
+                    3,
+                    6,
+                    3,
+                    6,
+                    5,
+                    7,
+                    0,
+                    8,
+                    4,
+                    6,
+                    5,
+                    8,
+                    2,
+                    3,
+                ]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             weights = torch.randn(10, 12, dtype=torch.float32)
             model.qconfig = qconfig
             prepare(model, inplace=True)
             convert(model, inplace=True)
+<<<<<<< HEAD
             self.assertTrue('QuantizedEmbedding' in str(model))
+=======
+            self.assertTrue("QuantizedEmbedding" in str(model))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(type(model.emb), torch.ao.nn.quantized.Embedding)
             self.checkScriptable(model, [[indices]], check_save_load=True)
 
@@ -784,8 +1134,13 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
             model = EmbeddingWithStaticLinear().eval()
             prepare(model, inplace=True)
             convert(model, inplace=True)
+<<<<<<< HEAD
             self.assertTrue('QuantizedEmbedding' in str(model))
             self.assertTrue('QuantizedLinear' in str(model))
+=======
+            self.assertTrue("QuantizedEmbedding" in str(model))
+            self.assertTrue("QuantizedLinear" in str(model))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.checkQuantizedLinear(model.fc)
             model(idx, offsets, x)
 
@@ -809,27 +1164,80 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         self.assertEqual(type(m2.fc), nnq.Linear)
         self.assertEqual(type(m2.dequant), DeQuantStub)
 
+<<<<<<< HEAD
 
     def test_quantized_embedding_bag(self):
         r""" Test the post-training quantization flow, serialization and scripting
         of embedding_bag modules
         """
         indices = torch.tensor([9, 6, 5, 7, 8, 8, 9, 2, 8, 6, 6, 9, 1, 6, 8, 8, 3, 2, 3, 6, 3, 6, 5, 7, 0, 8, 4, 6, 5, 8, 2, 3])
+=======
+    def test_quantized_embedding_bag(self):
+        r"""Test the post-training quantization flow, serialization and scripting
+        of embedding_bag modules
+        """
+        indices = torch.tensor(
+            [
+                9,
+                6,
+                5,
+                7,
+                8,
+                8,
+                9,
+                2,
+                8,
+                6,
+                6,
+                9,
+                1,
+                6,
+                8,
+                8,
+                3,
+                2,
+                3,
+                6,
+                3,
+                6,
+                5,
+                7,
+                0,
+                8,
+                4,
+                6,
+                5,
+                8,
+                2,
+                3,
+            ]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offsets = torch.tensor([0, 19, 20, 28, 28, 32])
         weights = torch.randn(10, 12, dtype=torch.float32)
 
         for dtype in [torch.quint8, torch.quint4x2]:
             model = EmbeddingBagModule().eval()
+<<<<<<< HEAD
             float_qparams_observer = PerChannelMinMaxObserver.with_args(dtype=dtype,
                                                                         qscheme=torch.per_channel_affine_float_qparams,
                                                                         ch_axis=0)
             float_qparams_qconfig = QConfig(activation=default_dynamic_quant_observer,
                                             weight=float_qparams_observer)
+=======
+            float_qparams_observer = PerChannelMinMaxObserver.with_args(
+                dtype=dtype, qscheme=torch.per_channel_affine_float_qparams, ch_axis=0
+            )
+            float_qparams_qconfig = QConfig(
+                activation=default_dynamic_quant_observer, weight=float_qparams_observer
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model.qconfig = float_qparams_qconfig
 
             prepare(model, inplace=True)
             quantized_model = convert(model)
 
+<<<<<<< HEAD
             per_sample_weights = torch.from_numpy(np.random.uniform(
                 low=0.01, high=0.5, size=[len(indices)]).astype(np.float32))
 
@@ -837,16 +1245,50 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
             self.assertTrue('QuantizedEmbeddingBag' in str(quantized_model))
             self.checkDynamicQuantizedModule(quantized_model.emb, torch.ao.nn.quantized.EmbeddingBag, torch.quint8)
             self.checkScriptable(quantized_model, [[indices, offsets, per_sample_weights]], check_save_load=True)
+=======
+            per_sample_weights = torch.from_numpy(
+                np.random.uniform(low=0.01, high=0.5, size=[len(indices)]).astype(
+                    np.float32
+                )
+            )
+
+            # Test to make sure module is quantized correctly.
+            self.assertTrue("QuantizedEmbeddingBag" in str(quantized_model))
+            self.checkDynamicQuantizedModule(
+                quantized_model.emb, torch.ao.nn.quantized.EmbeddingBag, torch.quint8
+            )
+            self.checkScriptable(
+                quantized_model,
+                [[indices, offsets, per_sample_weights]],
+                check_save_load=True,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             class EmbeddingBagWithLinear(torch.nn.Module):
                 def __init__(self) -> None:
                     super().__init__()
+<<<<<<< HEAD
                     self.emb = torch.nn.EmbeddingBag(num_embeddings=10, embedding_dim=12,
                                                      include_last_offset=True, scale_grad_by_freq=False, mode='sum')
                     self.fc = torch.nn.Linear(5, 5)
 
                 def forward(self, indices, offsets, per_sample_weights, linear_in):
                     return self.emb(indices, offsets, per_sample_weights), self.fc(linear_in)
+=======
+                    self.emb = torch.nn.EmbeddingBag(
+                        num_embeddings=10,
+                        embedding_dim=12,
+                        include_last_offset=True,
+                        scale_grad_by_freq=False,
+                        mode="sum",
+                    )
+                    self.fc = torch.nn.Linear(5, 5)
+
+                def forward(self, indices, offsets, per_sample_weights, linear_in):
+                    return self.emb(indices, offsets, per_sample_weights), self.fc(
+                        linear_in
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Test quantization of embedding_bag layer only
             model2 = EmbeddingBagWithLinear().eval()
@@ -854,9 +1296,17 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
             prepare(model2, inplace=True)
             quantized_model = convert(model2)
 
+<<<<<<< HEAD
             self.assertTrue('QuantizedEmbeddingBag' in str(quantized_model))
             self.checkLinear(model2.fc)
             self.checkDynamicQuantizedModule(quantized_model.emb, torch.ao.nn.quantized.EmbeddingBag, torch.quint8)
+=======
+            self.assertTrue("QuantizedEmbeddingBag" in str(quantized_model))
+            self.checkLinear(model2.fc)
+            self.checkDynamicQuantizedModule(
+                quantized_model.emb, torch.ao.nn.quantized.EmbeddingBag, torch.quint8
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNoFBGEMM
     def test_custom_module_class(self):
@@ -878,7 +1328,11 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
 
             @classmethod
             def from_float(cls, float_module):
+<<<<<<< HEAD
                 assert hasattr(float_module, 'qconfig')
+=======
+                assert hasattr(float_module, "qconfig")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 observed = cls(float_module.conv)
                 observed.qconfig = float_module.qconfig
                 return observed
@@ -893,10 +1347,18 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
 
             @classmethod
             def from_observed(cls, observed_module):
+<<<<<<< HEAD
                 assert hasattr(observed_module, 'qconfig')
                 assert hasattr(observed_module, 'activation_post_process')
                 observed_module.conv.activation_post_process = \
                     observed_module.activation_post_process
+=======
+                assert hasattr(observed_module, "qconfig")
+                assert hasattr(observed_module, "activation_post_process")
+                observed_module.conv.activation_post_process = (
+                    observed_module.activation_post_process
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 quantized = cls(nnq.Conv2d.from_float(observed_module.conv))
                 return quantized
 
@@ -942,10 +1404,23 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         # instantiate M and RefM and align the parameters
         original_m = M()
         original_ref_m = RefM()
+<<<<<<< HEAD
         original_ref_m.conv1.weight = torch.nn.Parameter(original_m.conv.weight.detach())
         original_ref_m.conv1.bias = torch.nn.Parameter(original_m.conv.bias.detach())
         original_ref_m.conv2.weight = torch.nn.Parameter(original_m.sub.custom.conv.weight.detach())
         original_ref_m.conv2.bias = torch.nn.Parameter(original_m.sub.custom.conv.bias.detach())
+=======
+        original_ref_m.conv1.weight = torch.nn.Parameter(
+            original_m.conv.weight.detach()
+        )
+        original_ref_m.conv1.bias = torch.nn.Parameter(original_m.conv.bias.detach())
+        original_ref_m.conv2.weight = torch.nn.Parameter(
+            original_m.sub.custom.conv.weight.detach()
+        )
+        original_ref_m.conv2.bias = torch.nn.Parameter(
+            original_m.sub.custom.conv.bias.detach()
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         original_m.qconfig = default_qconfig
         prepare_custom_config_dict = {
@@ -958,18 +1433,26 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
                 ObservedCustomModule: QuantizedCustomModule
             }
         }
+<<<<<<< HEAD
         m = prepare(
             original_m,
             prepare_custom_config_dict=prepare_custom_config_dict)
+=======
+        m = prepare(original_m, prepare_custom_config_dict=prepare_custom_config_dict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.checkObservers(m, None, prepare_custom_config_dict)
         # calibration
         m(data)
         # all activation observers are inserted in the top level module
 
         # check converted/quantized model
+<<<<<<< HEAD
         m = convert(
             m,
             convert_custom_config_dict=convert_custom_config_dict)
+=======
+        m = convert(m, convert_custom_config_dict=convert_custom_config_dict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # check if the module is properly quantized
         self.assertEqual(type(m.quant), nnq.Quantize)
         self.assertEqual(type(m.conv), nnq.Conv2d)
@@ -995,12 +1478,22 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         weight observers fails in the prepare step, as opposed to the convert step.
         """
         m = torch.nn.Sequential(torch.nn.ConvTranspose2d(1, 1, 1))
+<<<<<<< HEAD
         m.qconfig = torch.ao.quantization.get_default_qconfig('fbgemm')
         with self.assertRaises(AssertionError) as context:
             mp = torch.ao.quantization.prepare(m)
         self.assertTrue(
             str(context.exception) ==
             'Per channel weight observer is not supported yet for ConvTranspose{n}d.')
+=======
+        m.qconfig = torch.ao.quantization.get_default_qconfig("fbgemm")
+        with self.assertRaises(AssertionError) as context:
+            mp = torch.ao.quantization.prepare(m)
+        self.assertTrue(
+            str(context.exception)
+            == "Per channel weight observer is not supported yet for ConvTranspose{n}d."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNoFBGEMM
     def test_convtranspose_per_channel_qconfig_none(self):
@@ -1008,7 +1501,11 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         Verifies that having qconfig==None for conv transpose does not crash
         """
         m = torch.nn.Sequential(torch.nn.ConvTranspose2d(1, 1, 1))
+<<<<<<< HEAD
         m.qconfig = torch.ao.quantization.get_default_qconfig('fbgemm')
+=======
+        m.qconfig = torch.ao.quantization.get_default_qconfig("fbgemm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m[0].qconfig = None
         mp = torch.ao.quantization.prepare(m)
 
@@ -1030,6 +1527,10 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         Ensure activations like `nn.Sigmoid` and `nn.Tanh` are properly handled in
         `non_leaf_module_list`.
         """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class MyModel(torch.nn.Module):
             def __init__(self) -> None:
                 super().__init__()
@@ -1051,6 +1552,7 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
 
         qconfig = QConfig(
             activation=FixedQParamsObserver.with_args(scale=123.0, zero_point=0),
+<<<<<<< HEAD
             weight=default_weight_observer
         )
         m = MyModel()
@@ -1067,13 +1569,48 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
         self.assertTrue(isinstance(m.hardsigmoid.activation_post_process, FixedQParamsObserver))
         self.assertTrue(isinstance(m.softmax.activation_post_process, FixedQParamsObserver))
         self.assertTrue(isinstance(m.tanh.activation_post_process, FixedQParamsObserver))
+=======
+            weight=default_weight_observer,
+        )
+        m = MyModel()
+        m.qconfig = qconfig
+        m = prepare(
+            m,
+            observer_non_leaf_module_list=[
+                torch.nn.Sigmoid,
+                torch.nn.Hardsigmoid,
+                torch.nn.Softmax,
+                torch.nn.Tanh,
+            ],
+        )
+
+        # Should use the observer specified in the QConfig instead of the default (FixedQParamsFakeQuantize)
+        self.assertTrue(
+            isinstance(m.sigmoid.activation_post_process, FixedQParamsObserver)
+        )
+        self.assertTrue(
+            isinstance(m.hardsigmoid.activation_post_process, FixedQParamsObserver)
+        )
+        self.assertTrue(
+            isinstance(m.softmax.activation_post_process, FixedQParamsObserver)
+        )
+        self.assertTrue(
+            isinstance(m.tanh.activation_post_process, FixedQParamsObserver)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNoFBGEMM
     def test_mha_batch_first_attr_is_copied_in_prepare(self):
         class TransformerDecoderLayer(nn.Module):
             def __init__(self, d_model, nhead, batch_first):
                 super().__init__()
+<<<<<<< HEAD
                 self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=0.1, batch_first=batch_first)
+=======
+                self.self_attn = nn.MultiheadAttention(
+                    d_model, nhead, dropout=0.1, batch_first=batch_first
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         qengine = torch.backends.quantized.engine
         for batch_first in [True, False]:
@@ -1081,7 +1618,14 @@ class TestQuantizeEagerPTQStatic(QuantizationTestCase):
             quantization_config = torch.ao.quantization.get_default_qconfig(qengine)
             model.qconfig = quantization_config
             prepared_model = torch.ao.quantization.prepare(model, inplace=False)
+<<<<<<< HEAD
             self.assertTrue(prepared_model.self_attn.batch_first == model.self_attn.batch_first)
+=======
+            self.assertTrue(
+                prepared_model.self_attn.batch_first == model.self_attn.batch_first
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @skipIfNoFBGEMM
 class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
@@ -1092,10 +1636,19 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         """
         for dtype in [torch.qint8, torch.float16]:
             model = SingleLayerLinearDynamicModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dict = {
                 'fc1': qconfig
             }
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dict = {"fc1": qconfig}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepare_dynamic(model, qconfig_dict)
             convert_dynamic(model)
 
@@ -1112,7 +1665,13 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             model = quantize_dynamic(base, qconfig_dict)
             checkQuantized(model)
             keys_after = set(base.state_dict().keys())
+<<<<<<< HEAD
             self.assertEqual(keys_before, keys_after)  # simple check that nothing changed
+=======
+            self.assertEqual(
+                keys_before, keys_after
+            )  # simple check that nothing changed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # in-place version
             model = SingleLayerLinearDynamicModel()
@@ -1130,10 +1689,19 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         """
         for dtype in [torch.qint8, torch.float16]:
             model = TwoLayerLinearModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dict = {
                 'fc2': qconfig
             }
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dict = {"fc2": qconfig}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepare_dynamic(model, qconfig_dict)
 
             convert_dynamic(model)
@@ -1151,7 +1719,11 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             checkQuantized(model)
 
             # Test set API
+<<<<<<< HEAD
             model = quantize_dynamic(TwoLayerLinearModel().eval(), {'fc2'}, dtype=dtype)
+=======
+            model = quantize_dynamic(TwoLayerLinearModel().eval(), {"fc2"}, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             checkQuantized(model)
 
     def test_nested1(self):
@@ -1160,11 +1732,20 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         """
         for dtype in [torch.qint8, torch.float16]:
             model = NestedModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dict = {
                 'fc3': qconfig,
                 'sub2.fc1': qconfig
             }
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dict = {"fc3": qconfig, "sub2.fc1": qconfig}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             prepare_dynamic(model, qconfig_dict)
             convert_dynamic(model)
@@ -1183,7 +1764,13 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             model = quantize_dynamic(NestedModel().eval(), qconfig_dict)
             checkQuantized(model)
 
+<<<<<<< HEAD
             model = quantize_dynamic(NestedModel().eval(), {'fc3', 'sub2.fc1'}, dtype=dtype)
+=======
+            model = quantize_dynamic(
+                NestedModel().eval(), {"fc3", "sub2.fc1"}, dtype=dtype
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             checkQuantized(model)
 
     def test_nested2(self):
@@ -1192,11 +1779,20 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         """
         for dtype in [torch.qint8, torch.float16]:
             model = NestedModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dict = {
                 'fc3': qconfig,
                 'sub2': qconfig
             }
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dict = {"fc3": qconfig, "sub2": qconfig}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prepare_dynamic(model, qconfig_dict)
 
             convert_dynamic(model)
@@ -1217,7 +1813,11 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             checkQuantized(model)
 
             # Test set API
+<<<<<<< HEAD
             model = quantize_dynamic(NestedModel().eval(), {'fc3', 'sub2'}, dtype=dtype)
+=======
+            model = quantize_dynamic(NestedModel().eval(), {"fc3", "sub2"}, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             checkQuantized(model)
 
     def test_nested3(self):
@@ -1226,11 +1826,23 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         """
         for dtype in [torch.qint8, torch.float16]:
             model = NestedModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dynamic_dict = {
                 'fc3': qconfig,
                 'sub2': qconfig,
                 'sub2.fc1': qconfig
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dynamic_dict = {
+                "fc3": qconfig,
+                "sub2": qconfig,
+                "sub2.fc1": qconfig,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
             prepare_dynamic(model, qconfig_dynamic_dict)
 
@@ -1250,7 +1862,13 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             checkQuantized(model)
 
             # Test set API
+<<<<<<< HEAD
             model = quantize_dynamic(NestedModel().eval(), {'fc3', 'sub2', 'sub2.fc1'}, dtype=dtype)
+=======
+            model = quantize_dynamic(
+                NestedModel().eval(), {"fc3", "sub2", "sub2.fc1"}, dtype=dtype
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             checkQuantized(model)
 
     def test_type_match_rule(self):
@@ -1259,12 +1877,21 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         """
         for dtype in [torch.qint8, torch.float16]:
             model = NestedModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dict = {
                 'fc3': None,
                 'sub2.fc1': None,
                 torch.nn.Linear: qconfig
             }
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dict = {"fc3": None, "sub2.fc1": None, torch.nn.Linear: qconfig}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             prepare_dynamic(model, qconfig_dict)
             test_only_eval_fn(model, self.calib_data)
@@ -1286,12 +1913,18 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             checkQuantized(model)
 
     def test_per_channel_linear_quantize(self):
+<<<<<<< HEAD
         r"""Test quantization for per_channel dynamic quantization
         """
         model = NestedModel().eval()
         qconfig_dict = {
             torch.nn.Linear: per_channel_dynamic_qconfig
         }
+=======
+        r"""Test quantization for per_channel dynamic quantization"""
+        model = NestedModel().eval()
+        qconfig_dict = {torch.nn.Linear: per_channel_dynamic_qconfig}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         prepare_dynamic(model, qconfig_dict)
         test_only_eval_fn(model, self.calib_data)
@@ -1315,8 +1948,13 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         dtype = torch.qint8
         model = LinearReluLinearModel().eval()
         qconfig = default_dynamic_qconfig
+<<<<<<< HEAD
         qconfig_dict = {'' : qconfig}
         torch.ao.quantization.fuse_modules(model, [['fc1', 'relu']], inplace=True)
+=======
+        qconfig_dict = {"": qconfig}
+        torch.ao.quantization.fuse_modules(model, [["fc1", "relu"]], inplace=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prepare_dynamic(model, qconfig_dict)
         convert_dynamic(model)
 
@@ -1328,6 +1966,7 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
 
         checkQuantized(model)
 
+<<<<<<< HEAD
     @given(qconfig=st.sampled_from([per_channel_dynamic_qconfig, default_dynamic_qconfig]),
            dtype=st.sampled_from([torch.qint8, torch.float16]))
     def test_quantized_rnn(self, qconfig, dtype):
@@ -1351,12 +1990,49 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             self.checkDynamicQuantizedModule(model_quantized.mod, mod_type_map[module_type], dtype)
 
         for module_type in ['LSTM', 'GRU']:
+=======
+    @given(
+        qconfig=st.sampled_from([per_channel_dynamic_qconfig, default_dynamic_qconfig]),
+        dtype=st.sampled_from([torch.qint8, torch.float16]),
+    )
+    def test_quantized_rnn(self, qconfig, dtype):
+        r"""Test dynamic quantization, scriptability and serialization for dynamic quantized lstm modules on int8 and fp16"""
+        niter = 10
+        x = (
+            torch.tensor([[100, -155], [-155, 100], [100, -155]], dtype=torch.float)
+            .unsqueeze(0)
+            .repeat(niter, 1, 1)
+        )
+        qconfig_dict = {torch.nn.LSTM: qconfig, torch.nn.GRU: qconfig}
+
+        def checkQuantized(model, module_type):
+            mod_type_map = {
+                "LSTM": torch.ao.nn.quantized.dynamic.LSTM,
+                "GRU": torch.ao.nn.quantized.dynamic.GRU,
+            }
+            mod_repr_map = {
+                "LSTM": "DynamicQuantizedLSTM",
+                "GRU": "DynamicQuantizedGRU",
+            }
+            self.assertTrue(mod_repr_map[module_type] in str(model_quantized))
+            self.checkDynamicQuantizedModule(
+                model_quantized.mod, mod_type_map[module_type], dtype
+            )
+
+        for module_type in ["LSTM", "GRU"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model = RNNDynamicModel(module_type).eval()
 
             if dtype == torch.float16:
                 model_quantized = quantize_dynamic(model=model, dtype=dtype)
             else:
+<<<<<<< HEAD
                 model_quantized = quantize_dynamic(model=model, qconfig_spec=qconfig_dict, dtype=dtype)
+=======
+                model_quantized = quantize_dynamic(
+                    model=model, qconfig_spec=qconfig_dict, dtype=dtype
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             checkQuantized(model_quantized, module_type)
             self.checkScriptable(model_quantized, [[x]], check_save_load=True)
@@ -1366,7 +2042,13 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
                     super().__init__()
                     self.cell = cell
 
+<<<<<<< HEAD
                 def forward(self, x: PackedSequence) -> tuple[PackedSequence, tuple[torch.Tensor, torch.Tensor]]:
+=======
+                def forward(
+                    self, x: PackedSequence
+                ) -> tuple[PackedSequence, tuple[torch.Tensor, torch.Tensor]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return self.cell(x)
 
             class ScriptWrapperPackedGRU(torch.nn.Module):
@@ -1374,6 +2056,7 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
                     super().__init__()
                     self.cell = cell
 
+<<<<<<< HEAD
                 def forward(self, x: PackedSequence) -> tuple[PackedSequence, torch.Tensor]:
                     return self.cell(x)
 
@@ -1381,10 +2064,28 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
                                   'GRU': ScriptWrapperPackedGRU}
             packed_input = torch.nn.utils.rnn.pack_padded_sequence(x, torch.tensor([10, 5, 2]))
             model_with_packed_input = script_wrapper_map[module_type](model_quantized.mod)
+=======
+                def forward(
+                    self, x: PackedSequence
+                ) -> tuple[PackedSequence, torch.Tensor]:
+                    return self.cell(x)
+
+            script_wrapper_map = {
+                "LSTM": ScriptWrapperPackedLSTM,
+                "GRU": ScriptWrapperPackedGRU,
+            }
+            packed_input = torch.nn.utils.rnn.pack_padded_sequence(
+                x, torch.tensor([10, 5, 2])
+            )
+            model_with_packed_input = script_wrapper_map[module_type](
+                model_quantized.mod
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model_with_packed_input(packed_input)
             scripted = torch.jit.script(model_with_packed_input)
             scripted(packed_input)
             # We cannot trace with input dtype being a packed sequence
+<<<<<<< HEAD
             self._checkScriptable(model_with_packed_input, scripted, [[packed_input]], True)
 
 
@@ -1406,12 +2107,36 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
                              [100, -155]], dtype=torch.float)
 
             if torch.backends.quantized.engine == 'qnnpack' and dtype == torch.float16:
+=======
+            self._checkScriptable(
+                model_with_packed_input, scripted, [[packed_input]], True
+            )
+
+    @given(
+        qconfig=st.sampled_from([per_channel_dynamic_qconfig, default_dynamic_qconfig]),
+        dtype=st.sampled_from([torch.qint8, torch.float16]),
+    )
+    def test_quantized_rnn_cell(self, qconfig, dtype):
+        r"""Test dynamic quantization, scriptability and serialization for dynamic quantized rnn cell modules on int8 and fp16"""
+        qconfig_dict = {
+            torch.nn.LSTMCell: qconfig,
+            torch.nn.GRUCell: qconfig,
+            torch.nn.RNNCell: qconfig,
+        }
+
+        for module_type in ["LSTMCell", "GRUCell", "RNNTanh", "RNNReLU"]:
+            model = RNNCellDynamicModel(module_type).eval()
+            x = torch.tensor([[100, -155], [-155, 100], [100, -155]], dtype=torch.float)
+
+            if torch.backends.quantized.engine == "qnnpack" and dtype == torch.float16:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
                 # fp16 dynamic quant is not supported for qnnpack
 
             if dtype == torch.float16:
                 model_quantized = quantize_dynamic(model=model, dtype=dtype)
             else:
+<<<<<<< HEAD
                 model_quantized = quantize_dynamic(model=model, qconfig_spec=qconfig_dict, dtype=dtype)
 
             def checkQuantized(model, module_type):
@@ -1427,19 +2152,48 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
 
                 self.assertTrue(mod_repr_map[module_type] in str(model_quantized))
                 self.checkDynamicQuantizedModule(model_quantized.mod, mod_type_map[module_type], dtype)
+=======
+                model_quantized = quantize_dynamic(
+                    model=model, qconfig_spec=qconfig_dict, dtype=dtype
+                )
+
+            def checkQuantized(model, module_type):
+                mod_type_map = {
+                    "LSTMCell": torch.ao.nn.quantized.dynamic.LSTMCell,
+                    "GRUCell": torch.ao.nn.quantized.dynamic.GRUCell,
+                    "RNNTanh": torch.ao.nn.quantized.dynamic.RNNCell,
+                    "RNNReLU": torch.ao.nn.quantized.dynamic.RNNCell,
+                }
+
+                mod_repr_map = {
+                    "LSTMCell": "DynamicQuantizedLSTMCell",
+                    "GRUCell": "DynamicQuantizedGRUCell",
+                    "RNNTanh": "DynamicQuantizedRNNCell",
+                    "RNNReLU": "DynamicQuantizedRNNCell",
+                }
+
+                self.assertTrue(mod_repr_map[module_type] in str(model_quantized))
+                self.checkDynamicQuantizedModule(
+                    model_quantized.mod, mod_type_map[module_type], dtype
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.checkNoQconfig(model)
 
             # Smoke test extra reprs
             checkQuantized(model_quantized, module_type)
             self.checkScriptable(model_quantized, [[x]], check_save_load=True)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_forward_hooks_preserved(self):
         r"""Test post-training dynamic quantization on preserving
         pre forward and post forward hooks of original model
         """
         for dtype in [torch.qint8, torch.float16]:
             model = SingleLayerLinearDynamicModel().eval()
+<<<<<<< HEAD
             qconfig = float16_dynamic_qconfig if dtype == torch.float16 else default_dynamic_qconfig
             qconfig_dict = {
                 'fc1': qconfig
@@ -1456,6 +2210,26 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
 
             def fw_hook(h_module, input, output):
                 counter['forwards'] += 1
+=======
+            qconfig = (
+                float16_dynamic_qconfig
+                if dtype == torch.float16
+                else default_dynamic_qconfig
+            )
+            qconfig_dict = {"fc1": qconfig}
+            convert_dynamic(model)
+
+            counter = {
+                "pre_forwards": 0,
+                "forwards": 0,
+            }
+
+            def fw_pre_hook(h_module, input):
+                counter["pre_forwards"] += 1
+
+            def fw_hook(h_module, input, output):
+                counter["forwards"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             model.fc1.register_forward_pre_hook(fw_pre_hook)
             model.fc1.register_forward_hook(fw_hook)
@@ -1464,10 +2238,23 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             def checkHooksIsPresent(model):
                 self.assertObjectIn(fw_pre_hook, model.fc1._forward_pre_hooks.values())
                 self.assertObjectIn(fw_hook, model.fc1._forward_hooks.values())
+<<<<<<< HEAD
                 self.assertEqual(len(model.fc1._forward_pre_hooks.values()), 1,
                                  "Extra pre forward hooks have appeared on a layer")
                 self.assertEqual(len(model.fc1._forward_hooks.values()), 1,
                                  "Extra post forward hooks have appeared on a layer")
+=======
+                self.assertEqual(
+                    len(model.fc1._forward_pre_hooks.values()),
+                    1,
+                    "Extra pre forward hooks have appeared on a layer",
+                )
+                self.assertEqual(
+                    len(model.fc1._forward_hooks.values()),
+                    1,
+                    "Extra post forward hooks have appeared on a layer",
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             checkHooksIsPresent(model)
             test_only_eval_fn(model, self.calib_data)
@@ -1479,12 +2266,23 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
         class EmbeddingBagWithLinear(torch.nn.Module):
             def __init__(self) -> None:
                 super().__init__()
+<<<<<<< HEAD
                 self.emb = torch.nn.EmbeddingBag(num_embeddings=10, embedding_dim=12,
                                                  include_last_offset=True, scale_grad_by_freq=False, mode='sum')
+=======
+                self.emb = torch.nn.EmbeddingBag(
+                    num_embeddings=10,
+                    embedding_dim=12,
+                    include_last_offset=True,
+                    scale_grad_by_freq=False,
+                    mode="sum",
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.fc = torch.nn.Linear(5, 5)
 
             def forward(self, indices, offsets, linear_in):
                 return self.emb(indices, offsets), self.fc(linear_in)
+<<<<<<< HEAD
         model = EmbeddingBagWithLinear().eval()
 
         qconfig_dict = {
@@ -1492,12 +2290,62 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             torch.nn.Linear: default_dynamic_qconfig
         }
         indices = torch.tensor([9, 6, 5, 7, 8, 8, 9, 2, 8, 6, 6, 9, 1, 6, 8, 8, 3, 2, 3, 6, 3, 6, 5, 7, 0, 8, 4, 6, 5, 8, 2, 3])
+=======
+
+        model = EmbeddingBagWithLinear().eval()
+
+        qconfig_dict = {
+            torch.nn.EmbeddingBag: float_qparams_weight_only_qconfig,
+            torch.nn.Linear: default_dynamic_qconfig,
+        }
+        indices = torch.tensor(
+            [
+                9,
+                6,
+                5,
+                7,
+                8,
+                8,
+                9,
+                2,
+                8,
+                6,
+                6,
+                9,
+                1,
+                6,
+                8,
+                8,
+                3,
+                2,
+                3,
+                6,
+                3,
+                6,
+                5,
+                7,
+                0,
+                8,
+                4,
+                6,
+                5,
+                8,
+                2,
+                3,
+            ]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offsets = torch.tensor([0, 19, 20, 28, 28, 32])
         q_model = quantize_dynamic(model, qconfig_dict)
 
         q_model(indices, offsets, torch.randn(5, 5))
+<<<<<<< HEAD
         self.assertTrue('QuantizedEmbeddingBag' in str(q_model.emb))
         self.assertTrue('DynamicQuantizedLinear' in str(q_model.fc))
+=======
+        self.assertTrue("QuantizedEmbeddingBag" in str(q_model.emb))
+        self.assertTrue("DynamicQuantizedLinear" in str(q_model.fc))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNoFBGEMM
     def test_embedding_ops_dynamic(self):
@@ -1505,11 +2353,17 @@ class TestQuantizeEagerPTQDynamic(QuantizationTestCase):
             def __init__(self) -> None:
                 super().__init__()
                 self.emb = torch.nn.Embedding(
+<<<<<<< HEAD
                     num_embeddings=10, embedding_dim=12, scale_grad_by_freq=False)
+=======
+                    num_embeddings=10, embedding_dim=12, scale_grad_by_freq=False
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.fc = torch.nn.Linear(5, 5)
 
             def forward(self, indices, linear_in):
                 return self.emb(indices), self.fc(linear_in)
+<<<<<<< HEAD
         model = EmbeddingWithLinear().eval()
         qconfig_dict = {
             torch.nn.Embedding : float_qparams_weight_only_qconfig,
@@ -1525,3 +2379,59 @@ if __name__ == '__main__':
     raise RuntimeError("This test file is not meant to be run directly, use:\n\n"
                        "\tpython test/test_quantization.py TESTNAME\n\n"
                        "instead.")
+=======
+
+        model = EmbeddingWithLinear().eval()
+        qconfig_dict = {
+            torch.nn.Embedding: float_qparams_weight_only_qconfig,
+            torch.nn.Linear: default_dynamic_qconfig,
+        }
+        indices = torch.tensor(
+            [
+                9,
+                6,
+                5,
+                7,
+                8,
+                8,
+                9,
+                2,
+                8,
+                6,
+                6,
+                9,
+                1,
+                6,
+                8,
+                8,
+                3,
+                2,
+                3,
+                6,
+                3,
+                6,
+                5,
+                7,
+                0,
+                8,
+                4,
+                6,
+                5,
+                8,
+                2,
+                3,
+            ]
+        )
+        q_model = quantize_dynamic(model, qconfig_dict)
+        self.assertTrue("QuantizedEmbedding" in str(q_model.emb))
+        self.assertTrue("DynamicQuantizedLinear" in str(q_model.fc))
+        q_model(indices, torch.randn(5, 5))
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test file is not meant to be run directly, use:\n\n"
+        "\tpython test/test_quantization.py TESTNAME\n\n"
+        "instead."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

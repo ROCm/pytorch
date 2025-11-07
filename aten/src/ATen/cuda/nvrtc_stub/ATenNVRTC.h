@@ -43,6 +43,10 @@ namespace at::cuda {
   _(nvrtcGetProgramLogSize)                      \
   _(nvrtcGetProgramLog)                          \
   _(nvrtcGetLoweredName)                         \
+<<<<<<< HEAD
+=======
+  _(cuModuleLoad)                                \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _(cuModuleLoadData)                            \
   _(cuModuleLoadDataEx)                          \
   _(cuModuleGetFunction)                         \
@@ -60,6 +64,14 @@ namespace at::cuda {
   _(cuLinkComplete)                              \
   _(cuFuncSetAttribute)                          \
   _(cuFuncGetAttribute)                          \
+<<<<<<< HEAD
+=======
+  _(cuPointerGetAttribute)                       \
+  _(cuFuncSetCacheConfig)                        \
+  _(cuDeviceGetAttribute)                        \
+  _(cuDeviceGet)                        \
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 12000
 #define AT_FORALL_NVRTC_EXTENDED(_)              \
@@ -70,7 +82,11 @@ namespace at::cuda {
   AT_FORALL_NVRTC_BASE(_)
 #endif
 
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 11010
+=======
+#if defined(CUDA_VERSION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define AT_FORALL_NVRTC(_) \
   AT_FORALL_NVRTC_EXTENDED(_)  \
   _(nvrtcGetCUBINSize)     \

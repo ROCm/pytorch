@@ -82,7 +82,11 @@ detectron2_fasterrcnn_r_50_fpn,eager_fail_to_run,0
 
 
 
+<<<<<<< HEAD
 detectron2_fcos_r_50_fpn,pass,20
+=======
+detectron2_fcos_r_50_fpn,pass,22
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -366,7 +370,11 @@ vgg16,pass,0
 
 
 
+<<<<<<< HEAD
 vision_maskrcnn,pass,18
+=======
+vision_maskrcnn,pass,20
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

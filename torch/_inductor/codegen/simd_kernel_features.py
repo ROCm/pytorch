@@ -24,6 +24,11 @@ from ..virtualized import V
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
+<<<<<<< HEAD
+=======
+    from torch._inductor.tiling_utils import CoalesceVarAnalysis
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class NodeScheduleMarker:
     @staticmethod
@@ -80,12 +85,20 @@ class SIMDKernelFeatures:
         node_schedule: list[NodeScheduleEntry],
         numel: sympy.Expr,
         reduction_numel: sympy.Expr = sympy.S.One,
+<<<<<<< HEAD
+=======
+        coalesce_analysis: Optional[CoalesceVarAnalysis] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         self.node_schedule = node_schedule
         # numel excludes reduction_numel
         self.numel: sympy.Expr = V.graph.sizevars.simplify(numel)
         self.reduction_numel: sympy.Expr = V.graph.sizevars.simplify(reduction_numel)
         self._stats_cache: dict[tuple[sympy.Expr, ...], MemoryStats] = {}
+<<<<<<< HEAD
+=======
+        self.coalesce_analysis = coalesce_analysis
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @cache_on_self
     def is_reduction(self) -> bool:
@@ -119,7 +132,11 @@ class SIMDKernelFeatures:
         return bool(self.op_counts().get(op_name))
 
     def get_mutations(self) -> OrderedSet[str]:
+<<<<<<< HEAD
         mutations = OrderedSet[str]()
+=======
+        mutations: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in self.scheduler_nodes():
             for buf in node.get_outputs():
                 mutations.update(buf.get_mutations())
@@ -128,7 +145,11 @@ class SIMDKernelFeatures:
     @cache_on_self
     def select_index_dtype(self) -> torch.dtype:
         # Gather all used buffer names
+<<<<<<< HEAD
         buffer_names = OrderedSet[str]()
+=======
+        buffer_names: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in self.scheduler_nodes():
             buffer_names.update(node.get_buffer_names())
             buffer_names.update(node.used_buffer_names())

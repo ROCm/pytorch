@@ -53,7 +53,11 @@ using at::Tensor;
 //
 // This layout constraint is ensured in the `set_fw_grad` function below
 
+<<<<<<< HEAD
 // More complex cases arrise when non-dual Tensor interact with dual Tensors.
+=======
+// More complex cases arise when non-dual Tensor interact with dual Tensors.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // The two most important cases are:
 //
 //     # Have:
@@ -222,7 +226,11 @@ void AutogradMeta::set_fw_grad(
           if (utils::has_same_meta(new_grad, base) &&
               utils::has_same_meta(new_grad, self)) {
             // TODO extend this special case to when the underlying storage of
+<<<<<<< HEAD
             // new_grad can be re-used.
+=======
+            // new_grad can be reused.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_base_fw_grad = new_grad;
           } else {
             new_base_fw_grad =

@@ -32,9 +32,14 @@
 // specified by float_vec_return_type.
 //
 // When writing kernels with these vectors, it is expected that floating-
+<<<<<<< HEAD
 // point operations will be carried out in a loop over Vectorized<T>::float_num_vecs
 // iterations.
 
+=======
+// point operations will be carried out in a loop over
+// Vectorized<T>::float_num_vecs iterations.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::vec {
 // Note [CPU_CAPABILITY namespace]
@@ -108,8 +113,15 @@ struct VectorizedQuantizedConverter {
     for (int i = 0; i < float_num_vecs(); ++i) {
       float tmp_vals[Vectorized<float>::size()];
       for (int j = 0; j < Vectorized<float>::size(); ++j) {
+<<<<<<< HEAD
         tmp_vals[j] =
           at::native::dequantize_val<T>(tmp_scale[j], tmp_zero_point[j], T(vals[Vectorized<float>::size() * i + j]));
+=======
+        tmp_vals[j] = at::native::dequantize_val<T>(
+            tmp_scale[j],
+            tmp_zero_point[j],
+            T(vals[Vectorized<float>::size() * i + j]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       rv[i] = Vectorized<float>::loadu(tmp_vals);
     }
@@ -127,8 +139,15 @@ struct VectorizedQuantizedConverter {
     for (int i = 0; i < float_num_vecs(); ++i) {
       float tmp_vals[Vectorized<float>::size()];
       for (int j = 0; j < Vectorized<float>::size(); ++j) {
+<<<<<<< HEAD
         tmp_vals[j] =
           at::native::dequantize_val<T>(tmp_scale[j], tmp_zero_point[j], T(vals[Vectorized<float>::size() * i + j]));
+=======
+        tmp_vals[j] = at::native::dequantize_val<T>(
+            tmp_scale[j],
+            tmp_zero_point[j],
+            T(vals[Vectorized<float>::size() * i + j]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       rv[i] = Vectorized<float>::loadu(tmp_vals);
     }
@@ -140,11 +159,22 @@ struct VectorizedQuantizedConverter {
 };
 
 template <>
+<<<<<<< HEAD
 struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
                                  c10::qint32,
                                  std::array<Vectorized<float>, 1>,
                                  std::array<Vectorized<c10::qint32>, 1>,
                                  VECTOR_WIDTH / 4> {
+=======
+struct is_vec_specialized_for<c10::qint32> : std::bool_constant<true> {};
+
+template <>
+struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
+                                     c10::qint32,
+                                     std::array<Vectorized<float>, 1>,
+                                     std::array<Vectorized<c10::qint32>, 1>,
+                                     VECTOR_WIDTH / 4> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized()
       : VectorizedQuantizedConverter<
             c10::qint32,
@@ -169,6 +199,7 @@ struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
   }
 
   static Vectorized<c10::qint32> loadu(const void* ptr, int64_t count) {
+<<<<<<< HEAD
       __at_align__ value_type tmp_values[size()];
       // Ensure uninitialized memory does not change the output value See https://github.com/pytorch/pytorch/issues/32502
       // for more details. We do not initialize arrays to zero using "={0}" because gcc would compile it to two
@@ -181,6 +212,26 @@ struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
   }
 #else
   static Vectorized<c10::qint32> loadu(const void* ptr, int64_t count = size()) {
+=======
+    __at_align__ value_type tmp_values[size()];
+    // Ensure uninitialized memory does not change the output value See
+    // https://github.com/pytorch/pytorch/issues/32502 for more details. We do
+    // not initialize arrays to zero using "={0}" because gcc would compile it
+    // to two instructions while a loop would be compiled to one instruction.
+    for (const auto i : c10::irange(size())) {
+      tmp_values[i] = 0;
+    }
+    std::memcpy(
+        tmp_values,
+        reinterpret_cast<const value_type*>(ptr),
+        count * sizeof(value_type));
+    return loadu(tmp_values);
+  }
+#else
+  static Vectorized<c10::qint32> loadu(
+      const void* ptr,
+      int64_t count = size()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (count == size())
       return svld1_s32(ptrue, reinterpret_cast<const int32_t*>(ptr));
     svbool_t pg = svwhilelt_b32(0ull, count);
@@ -196,7 +247,13 @@ struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
     std::array<float, float_num_vecs() * Vectorized<float>::size()> float_vals;
 
     for (int i = 0; i < float_num_vecs(); ++i) {
+<<<<<<< HEAD
       rhs[i].store(&float_vals[i * Vectorized<float>::size()], Vectorized<float>::size());
+=======
+      rhs[i].store(
+          &float_vals[i * Vectorized<float>::size()],
+          Vectorized<float>::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     at::native::quantize_vec<c10::qint32, /*precision=*/32>(
@@ -225,11 +282,18 @@ struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
     return retval;
   }
 
+<<<<<<< HEAD
   Vectorized<c10::qint32> relu(Vectorized<c10::qint32> zero_point) const  {
     return maximum(zero_point);
   }
 
 
+=======
+  Vectorized<c10::qint32> relu(Vectorized<c10::qint32> zero_point) const {
+    return maximum(zero_point);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<c10::qint32> relu6(
       Vectorized<c10::qint32> zero_point,
       Vectorized<c10::qint32> q_six) {
@@ -264,7 +328,13 @@ struct Vectorized<c10::qint32> : public VectorizedQuantizedConverter<
 };
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::qint32> inline maximum(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+=======
+Vectorized<c10::qint32> inline maximum(
+    const Vectorized<c10::qint32>& a,
+    const Vectorized<c10::qint32>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return a.maximum(b);
 }
 
@@ -291,11 +361,22 @@ Vectorized<c10::qint32> inline operator+(
 }
 
 template <>
+<<<<<<< HEAD
 struct Vectorized<c10::qint8> : public VectorizedQuantizedConverter<
                                 c10::qint8,
                                 std::array<Vectorized<float>, 4>,
                                 std::array<Vectorized<c10::qint32>, 4>,
                                 VECTOR_WIDTH> {
+=======
+struct is_vec_specialized_for<c10::qint8> : std::bool_constant<true> {};
+
+template <>
+struct Vectorized<c10::qint8> : public VectorizedQuantizedConverter<
+                                    c10::qint8,
+                                    std::array<Vectorized<float>, 4>,
+                                    std::array<Vectorized<c10::qint32>, 4>,
+                                    VECTOR_WIDTH> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized()
       : VectorizedQuantizedConverter<
             c10::qint8,
@@ -320,6 +401,7 @@ struct Vectorized<c10::qint8> : public VectorizedQuantizedConverter<
   }
 
   static Vectorized<c10::qint8> loadu(const void* ptr, int64_t count) {
+<<<<<<< HEAD
       __at_align__ value_type tmp_values[size()];
       // Ensure uninitialized memory does not change the output value See https://github.com/pytorch/pytorch/issues/32502
       // for more details. We do not initialize arrays to zero using "={0}" because gcc would compile it to two
@@ -329,6 +411,21 @@ struct Vectorized<c10::qint8> : public VectorizedQuantizedConverter<
       }
       std::memcpy(tmp_values, reinterpret_cast<const value_type*>(ptr), count * sizeof(value_type));
       return loadu(tmp_values);
+=======
+    __at_align__ value_type tmp_values[size()];
+    // Ensure uninitialized memory does not change the output value See
+    // https://github.com/pytorch/pytorch/issues/32502 for more details. We do
+    // not initialize arrays to zero using "={0}" because gcc would compile it
+    // to two instructions while a loop would be compiled to one instruction.
+    for (const auto i : c10::irange(size())) {
+      tmp_values[i] = 0;
+    }
+    std::memcpy(
+        tmp_values,
+        reinterpret_cast<const value_type*>(ptr),
+        count * sizeof(value_type));
+    return loadu(tmp_values);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   static Vectorized<c10::qint8> quantize(
@@ -340,7 +437,13 @@ struct Vectorized<c10::qint8> : public VectorizedQuantizedConverter<
     std::array<float, float_num_vecs() * Vectorized<float>::size()> float_vals;
 
     for (int i = 0; i < float_num_vecs(); ++i) {
+<<<<<<< HEAD
       rhs[i].store(&float_vals[i * Vectorized<float>::size()], Vectorized<float>::size());
+=======
+      rhs[i].store(
+          &float_vals[i * Vectorized<float>::size()],
+          Vectorized<float>::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     at::native::quantize_vec<c10::qint8>(
@@ -418,16 +521,33 @@ struct Vectorized<c10::qint8> : public VectorizedQuantizedConverter<
 };
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::qint8> inline maximum(const Vectorized<c10::qint8>& a, const Vectorized<c10::qint8>& b) {
+=======
+Vectorized<c10::qint8> inline maximum(
+    const Vectorized<c10::qint8>& a,
+    const Vectorized<c10::qint8>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return a.maximum(b);
 }
 
 template <>
+<<<<<<< HEAD
 struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
                                  c10::quint8,
                                  std::array<Vectorized<float>, 4>,
                                  std::array<Vectorized<c10::qint32>, 4>,
                                  VECTOR_WIDTH> {
+=======
+struct is_vec_specialized_for<c10::quint8> : std::bool_constant<true> {};
+
+template <>
+struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
+                                     c10::quint8,
+                                     std::array<Vectorized<float>, 4>,
+                                     std::array<Vectorized<c10::qint32>, 4>,
+                                     VECTOR_WIDTH> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized()
       : VectorizedQuantizedConverter<
             c10::quint8,
@@ -452,6 +572,7 @@ struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
   }
 
   static Vectorized<c10::quint8> loadu(const void* ptr, int64_t count) {
+<<<<<<< HEAD
       __at_align__ value_type tmp_values[size()];
       // Ensure uninitialized memory does not change the output value See https://github.com/pytorch/pytorch/issues/32502
       // for more details. We do not initialize arrays to zero using "={0}" because gcc would compile it to two
@@ -464,6 +585,26 @@ struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
   }
 #else
   static Vectorized<c10::quint8> loadu(const void* ptr, int64_t count = size()) {
+=======
+    __at_align__ value_type tmp_values[size()];
+    // Ensure uninitialized memory does not change the output value See
+    // https://github.com/pytorch/pytorch/issues/32502 for more details. We do
+    // not initialize arrays to zero using "={0}" because gcc would compile it
+    // to two instructions while a loop would be compiled to one instruction.
+    for (const auto i : c10::irange(size())) {
+      tmp_values[i] = 0;
+    }
+    std::memcpy(
+        tmp_values,
+        reinterpret_cast<const value_type*>(ptr),
+        count * sizeof(value_type));
+    return loadu(tmp_values);
+  }
+#else
+  static Vectorized<c10::quint8> loadu(
+      const void* ptr,
+      int64_t count = size()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (count == size())
       return svld1_u8(ptrue, reinterpret_cast<const uint8_t*>(ptr));
     svbool_t pg = svwhilelt_b8(0ull, count);
@@ -479,7 +620,13 @@ struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
     std::array<float, float_num_vecs() * Vectorized<float>::size()> float_vals;
 
     for (int i = 0; i < float_num_vecs(); ++i) {
+<<<<<<< HEAD
       rhs[i].store(&float_vals[i * Vectorized<float>::size()], Vectorized<float>::size());
+=======
+      rhs[i].store(
+          &float_vals[i * Vectorized<float>::size()],
+          Vectorized<float>::size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     at::native::quantize_vec<c10::quint8>(
@@ -512,7 +659,10 @@ struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
     return maximum(zero_point);
   }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<c10::quint8> relu6(
       Vectorized<c10::quint8> zero_point,
       Vectorized<c10::quint8> q_six) {
@@ -558,10 +708,21 @@ struct Vectorized<c10::quint8> : public VectorizedQuantizedConverter<
 };
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::quint8> inline maximum(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+=======
+Vectorized<c10::quint8> inline maximum(
+    const Vectorized<c10::quint8>& a,
+    const Vectorized<c10::quint8>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return a.maximum(b);
 }
 
 #endif // defined(CPU_CAPABILITY_SVE)
 
+<<<<<<< HEAD
 }}
+=======
+} // namespace CPU_CAPABILITY
+} // namespace at::vec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

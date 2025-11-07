@@ -28,6 +28,10 @@ class Linear(nn.Linear):
     Attributes:
         weight: fake quant module for weight
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _FLOAT_MODULE = nn.Linear
 
     def __init__(

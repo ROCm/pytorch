@@ -44,7 +44,11 @@ static_assert(
     "Instructions should be 8 bytes");
 std::ostream& operator<<(std::ostream& out, Instruction inst) {
   // TODO: use op info to print out the op in a more user-friendly way
+<<<<<<< HEAD
   int nargs = std::strlen(OpInfo(inst.op));
+=======
+  auto nargs = std::strlen(OpInfo(inst.op));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   out << inst.op;
   if (nargs > 0) {
     out << " " << inst.X;

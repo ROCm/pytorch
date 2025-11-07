@@ -8,6 +8,10 @@
 #include <ATen/MemoryOverlap.h>
 #include <torch/library.h>
 
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Operators.h>
 #include <ATen/NativeFunctions.h>
@@ -95,8 +99,13 @@ inline c10::List<::std::optional<Tensor>> to_meta(const c10::List<::std::optiona
 }
 
 static bool disable_meta_reference() {
+<<<<<<< HEAD
   static auto env = std::getenv("TORCH_DISABLE_FUNCTIONALIZATION_META_REFERENCE");
   return env != nullptr && std::strcmp(env, "1") == 0;
+=======
+  static auto env = c10::utils::get_env("TORCH_DISABLE_FUNCTIONALIZATION_META_REFERENCE");
+  return env == "1";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 

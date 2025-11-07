@@ -74,7 +74,11 @@ Tensor repeat_interleave_symint(
   }
 
   Tensor repeats_ = repeats;
+<<<<<<< HEAD
   if (repeats.dim() == 0 || (repeats.dim() == 1 && repeats.sym_size(0) == 1)) {
+=======
+  if (repeats.dim() == 0 || (repeats.dim() == 1 && TORCH_GUARD_OR_FALSE(repeats.sym_size(0).sym_eq(1)))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     repeats_ = repeats.reshape({1}).expand_symint({input.sym_size(dim.value())});
   } else if (repeats.dim() == 1) {
     TORCH_CHECK(

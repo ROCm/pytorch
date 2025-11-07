@@ -9,8 +9,11 @@
 
 #include <c10/util/generic_math.h>
 #include <torch/csrc/inductor/aoti_runtime/scalar_to_tensor.h>
+<<<<<<< HEAD
 using half = at::Half;
 using bfloat16 = at::BFloat16;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Round up to the nearest multiple of 64
 [[maybe_unused]] inline int64_t align(int64_t nbytes) {

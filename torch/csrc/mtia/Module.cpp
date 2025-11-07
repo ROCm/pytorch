@@ -3,6 +3,7 @@
 #include <c10/core/Stream.h>
 #include <torch/csrc/Generator.h>
 #include <torch/csrc/Stream.h>
+<<<<<<< HEAD
 #include <torch/csrc/python_headers.h>
 #include <torch/csrc/utils/device_lazy_init.h>
 #include <torch/csrc/utils/pybind.h>
@@ -32,12 +33,26 @@ static void poison_fork() {
 #endif
 }
 
+=======
+#include <torch/csrc/mtia/Module.h>
+#include <torch/csrc/python_headers.h>
+#include <torch/csrc/utils/device_lazy_init.h>
+#include <torch/csrc/utils/pybind.h>
+
+namespace torch::mtia {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void initModule(PyObject* module) {
   auto m = py::handle(module).cast<py::module>();
 
   m.def("_mtia_init", []() {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(!in_bad_fork); // Handled at python level
     poison_fork();
+=======
+    TORCH_INTERNAL_ASSERT(!torch::utils::is_device_in_bad_fork(at::kMTIA));
+    torch::utils::register_fork_handler_for_device_init(at::kMTIA);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     at::globalContext().lazyInitDevice(c10::DeviceType::MTIA);
   });
 
@@ -46,19 +61,50 @@ void initModule(PyObject* module) {
     return at::detail::isMTIAHooksBuilt();
   });
 
+<<<<<<< HEAD
   m.def("_mtia_isInBadFork", []() { return in_bad_fork; });
+=======
+  m.def("_mtia_isInBadFork", []() {
+    return torch::utils::is_device_in_bad_fork(at::kMTIA);
+  });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def("_mtia_getCurrentStream", [](c10::DeviceIndex device_index) {
     torch::utils::device_lazy_init(at::kMTIA);
     return at::detail::getMTIAHooks().getCurrentStream(device_index);
   });
 
+<<<<<<< HEAD
+=======
+  m.def("_mtia_getCurrentRawStream", [](c10::DeviceIndex device_index) {
+    torch::utils::device_lazy_init(at::kMTIA);
+    return at::detail::getMTIAHooks().getCurrentRawStream(device_index);
+  });
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_mtia_deviceSynchronize", []() {
     torch::utils::device_lazy_init(at::kMTIA);
     at::detail::getMTIAHooks().deviceSynchronize(
         at::detail::getMTIAHooks().getCurrentDevice());
   });
 
+<<<<<<< HEAD
+=======
+  m.def("_mtia_exchangeDevice", [](c10::DeviceIndex device_index) {
+    if (device_index < 0) {
+      return static_cast<c10::DeviceIndex>(-1);
+    }
+    return at::detail::getMTIAHooks().exchangeDevice(device_index);
+  });
+
+  m.def("_mtia_maybeExchangeDevice", [](c10::DeviceIndex device_index) {
+    if (device_index < 0) {
+      return static_cast<c10::DeviceIndex>(-1);
+    }
+    return at::detail::getMTIAHooks().maybeExchangeDevice(device_index);
+  });
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_mtia_getDefaultStream", [](c10::DeviceIndex device_index) {
     torch::utils::device_lazy_init(at::kMTIA);
     return at::detail::getMTIAHooks().getDefaultStream(device_index);
@@ -85,6 +131,15 @@ void initModule(PyObject* module) {
     return py::reinterpret_steal<py::object>(raw_pyobject);
   });
 
+<<<<<<< HEAD
+=======
+  m.def("_mtia_getDeviceProperties", [](c10::DeviceIndex device_index) {
+    PyObject* raw_pyobject =
+        at::detail::getMTIAHooks().getDeviceProperties(device_index);
+    return py::reinterpret_steal<py::object>(raw_pyobject);
+  });
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_mtia_emptyCache", []() { at::detail::getMTIAHooks().emptyCache(); });
 
   m.def(
@@ -97,10 +152,23 @@ void initModule(PyObject* module) {
       });
 
   m.def("_mtia_memorySnapshot", []() {
+<<<<<<< HEAD
     PyObject* raw_pyobject = at::detail::getMTIAHooks().memorySnapshot();
     return py::reinterpret_steal<py::object>(raw_pyobject);
   });
 
+=======
+    PyObject* raw_pyobject =
+        at::detail::getMTIAHooks().memorySnapshot(std::nullopt);
+    return py::reinterpret_steal<py::object>(raw_pyobject);
+  });
+
+  m.def("_mtia_attachOutOfMemoryObserver", [](const py::function& observer) {
+    at::detail::getMTIAHooks().attachOutOfMemoryObserver(observer.ptr());
+    return;
+  });
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_mtia_getDeviceCount", []() {
     return at::detail::getMTIAHooks().deviceCount();
   });

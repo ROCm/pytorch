@@ -113,8 +113,11 @@ def unroll(uf, IndexType, InType, OutType, use_weights, isa, fused, use_offsets)
 
     if InType == "uint8_t":
         code.append("        " + OutType + " wgt = 1.f;")
+<<<<<<< HEAD
         code.append("        // NOLINTNEXTLINE(cppcoreguidelines-init-variables)")
         code.append("        " + OutType + " bio;")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code.append("        if (weights) {")
         code.append(
             "          wgt = weights[IS_WEIGHT_POSITIONAL ? (dataInd - start) : dataInd];"
@@ -125,7 +128,11 @@ def unroll(uf, IndexType, InType, OutType, use_weights, isa, fused, use_offsets)
                 "        const float* scale_bias = reinterpret_cast<const float*>(\n"
                 "            &input[idx * fused_block_size + block_size]);"
             )
+<<<<<<< HEAD
             code.append("        bio = wgt * scale_bias[1];")
+=======
+            code.append("        " + OutType + " bio = wgt * scale_bias[1];")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             code.append("        wgt = wgt * scale_bias[0];")
         else:
             code.append("        bio = wgt * scale_bias[2 * idx + 1];")
@@ -316,8 +323,11 @@ def generic(IndexType, InType, OutType, use_weights, isa, fused, use_offsets):
 
     if InType == "uint8_t":
         code.append("        " + OutType + " wgt = 1.f;")
+<<<<<<< HEAD
         code.append("        // NOLINTNEXTLINE(cppcoreguidelines-init-variables)")
         code.append("        " + OutType + " bio;")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code.append("        if (weights) {")
         code.append(
             "          wgt = weights[IS_WEIGHT_POSITIONAL ? (dataInd - start) : dataInd];"
@@ -328,10 +338,17 @@ def generic(IndexType, InType, OutType, use_weights, isa, fused, use_offsets):
                 "        const float* scale_bias = reinterpret_cast<const float*>(\n"
                 "            &input[idx * fused_block_size + block_size]);"
             )
+<<<<<<< HEAD
             code.append("        bio = wgt * scale_bias[1];")
             code.append("        wgt = wgt * scale_bias[0];")
         else:
             code.append("        bio = wgt * scale_bias[2 * idx + 1];")
+=======
+            code.append("        " + OutType + " bio = wgt * scale_bias[1];")
+            code.append("        wgt = wgt * scale_bias[0];")
+        else:
+            code.append("        " + OutType + " bio = wgt * scale_bias[2 * idx + 1];")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             code.append("        wgt = wgt * scale_bias[2 * idx];")
         code.append("        __m256 vbio = _mm256_set1_ps(bio);")
     else:

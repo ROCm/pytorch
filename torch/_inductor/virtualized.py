@@ -168,6 +168,19 @@ class NullKernelHandler(NullHandler):
         self.inplaced_to_remove = OrderedSet[Any]()
         self.index_dtype = "tl.int64"
 
+<<<<<<< HEAD
+=======
+    def get_index_dtype_as_torch_dtype(self):
+        import torch
+
+        if self.index_dtype == "tl.int64":
+            return torch.int64
+        elif self.index_dtype == "tl.int32":
+            return torch.int32
+        else:
+            raise ValueError(f"Unknown dtype: {self.index_dtype}")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _ops: Virtualized[OpsHandler[Any]] = Virtualized(
     "ops", cast(type[OpsHandler[Any]], MockHandler)

@@ -435,7 +435,11 @@ class ndarray:
     def item(self, *args):
         # Mimic NumPy's implementation with three special cases (no arguments,
         # a flat index and a multi-index):
+<<<<<<< HEAD
         # https://github.com/numpy/numpy/blob/main/numpy/core/src/multiarray/methods.c#L702
+=======
+        # https://github.com/numpy/numpy/blob/main/numpy/_core/src/multiarray/methods.c#L702
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if args == ():
             return self.tensor.item()
         elif len(args) == 1:

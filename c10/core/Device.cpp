@@ -83,10 +83,18 @@ Device::Device(const std::string& device_string) : Device(Type::CPU) {
        pstate != DeviceStringParsingState::ERROR && i < device_string.size();
        ++i) {
     const char ch = device_string.at(i);
+<<<<<<< HEAD
     switch (pstate) {
       case DeviceStringParsingState::START:
         if (ch != ':') {
           if (isalpha(ch) || ch == '_') {
+=======
+    const unsigned char uch = static_cast<unsigned char>(ch);
+    switch (pstate) {
+      case DeviceStringParsingState::START:
+        if (ch != ':') {
+          if (std::isalpha(uch) || ch == '_') {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device_name.push_back(ch);
           } else {
             pstate = DeviceStringParsingState::ERROR;
@@ -97,7 +105,11 @@ Device::Device(const std::string& device_string) : Device(Type::CPU) {
         break;
 
       case DeviceStringParsingState::INDEX_START:
+<<<<<<< HEAD
         if (isdigit(ch)) {
+=======
+        if (std::isdigit(uch)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           device_index_str.push_back(ch);
           pstate = DeviceStringParsingState::INDEX_REST;
         } else {
@@ -110,7 +122,11 @@ Device::Device(const std::string& device_string) : Device(Type::CPU) {
           pstate = DeviceStringParsingState::ERROR;
           break;
         }
+<<<<<<< HEAD
         if (isdigit(ch)) {
+=======
+        if (std::isdigit(uch)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           device_index_str.push_back(ch);
         } else {
           pstate = DeviceStringParsingState::ERROR;

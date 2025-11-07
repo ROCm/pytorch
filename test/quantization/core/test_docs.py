@@ -11,7 +11,11 @@ from torch.testing._internal.common_quantization import (
     SingleLayerLinearModel,
 )
 from torch.testing._internal.common_quantized import override_quantized_engine
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_ARM64, IS_FBCODE
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, IS_ARM64, IS_FBCODE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 
 
@@ -141,3 +145,9 @@ class TestQuantizationDocs(QuantizationTestCase):
 
         code = self._get_code(path_from_pytorch, unique_identifier)
         self._test_code(code, global_inputs)
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

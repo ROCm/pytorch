@@ -48,7 +48,11 @@ class ScribeUploader:
         access_token = os.environ.get("SCRIBE_GRAPHQL_ACCESS_TOKEN")
         if not access_token:
             raise ValueError("Can't find access token from environment variable")
+<<<<<<< HEAD
         url = "https://graph.facebook.com/scribe_logs"
+=======
+        url = "https://graph.facebook.com/scribe_logs"  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r = requests.post(
             url,
             data={

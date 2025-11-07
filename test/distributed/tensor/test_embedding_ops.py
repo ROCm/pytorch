@@ -3,7 +3,11 @@
 import sys
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor import (
+=======
+from torch.distributed.tensor import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     distribute_module,
     distribute_tensor,
     DTensor,

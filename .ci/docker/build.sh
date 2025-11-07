@@ -50,32 +50,46 @@ if [[ "$image" == *xla* ]]; then
   exit 0
 fi
 
+<<<<<<< HEAD
 if [[ "$image" == *-focal* ]]; then
   UBUNTU_VERSION=20.04
 elif [[ "$image" == *-jammy* ]]; then
+=======
+if [[ "$image" == *-jammy* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   UBUNTU_VERSION=22.04
 elif [[ "$image" == *-noble* ]]; then
   UBUNTU_VERSION=24.04
 elif [[ "$image" == *ubuntu* ]]; then
   extract_version_from_image_name ubuntu UBUNTU_VERSION
+<<<<<<< HEAD
 elif [[ "$image" == *centos* ]]; then
   extract_version_from_image_name centos CENTOS_VERSION
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 if [ -n "${UBUNTU_VERSION}" ]; then
   OS="ubuntu"
+<<<<<<< HEAD
 elif [ -n "${CENTOS_VERSION}" ]; then
   OS="centos"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else
   echo "Unable to derive operating system base..."
   exit 1
 fi
 
 DOCKERFILE="${OS}/Dockerfile"
+<<<<<<< HEAD
 # When using ubuntu - 22.04, start from Ubuntu docker image, instead of nvidia/cuda docker image.
 if [[ "$image" == *cuda* && "$UBUNTU_VERSION" != "22.04" ]]; then
   DOCKERFILE="${OS}-cuda/Dockerfile"
 elif [[ "$image" == *rocm* ]]; then
+=======
+if [[ "$image" == *rocm* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DOCKERFILE="${OS}-rocm/Dockerfile"
 elif [[ "$image" == *xpu* ]]; then
   DOCKERFILE="${OS}-xpu/Dockerfile"
@@ -87,9 +101,12 @@ elif [[ "$image" == *linter* ]]; then
   DOCKERFILE="linter/Dockerfile"
 fi
 
+<<<<<<< HEAD
 # CMake 3.18 is needed to support CUDA17 language variant
 CMAKE_VERSION=3.18.5
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _UCX_COMMIT=7bb2722ff2187a0cad557ae4a6afa090569f83fb
 _UCC_COMMIT=20eae37090a4ce1b32bcce6144ccad0b49943e0b
 if [[ "$image" == *rocm* ]]; then
@@ -97,6 +114,7 @@ if [[ "$image" == *rocm* ]]; then
   _UCC_COMMIT=0c0fc21559835044ab107199e334f7157d6a0d3d
 fi
 
+<<<<<<< HEAD
 # It's annoying to rename jobs every time you want to rewrite a
 # configuration, so we hardcode everything here rather than do it
 # from scratch
@@ -108,10 +126,24 @@ case "$image" in
     GCC_VERSION=11
     PROTOBUF=yes
     DB=yes
+=======
+tag=$(echo $image | awk -F':' '{print $2}')
+
+# It's annoying to rename jobs every time you want to rewrite a
+# configuration, so we hardcode everything here rather than do it
+# from scratch
+case "$tag" in
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc11)
+    CUDA_VERSION=12.8.1
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.10
+    GCC_VERSION=11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     ;;
@@ -122,10 +154,20 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc9-inductor-benchmarks)
+    CUDA_VERSION=12.8.1
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.10
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     INDUCTOR_BENCHMARKS=yes
@@ -137,10 +179,21 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    INDUCTOR_BENCHMARKS=yes
+    ;;
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3.12-gcc9-inductor-benchmarks)
+    CUDA_VERSION=12.8.1
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.12
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     INDUCTOR_BENCHMARKS=yes
@@ -152,25 +205,46 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    INDUCTOR_BENCHMARKS=yes
+    ;;
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3.13-gcc9-inductor-benchmarks)
+    CUDA_VERSION=12.8.1
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.13
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     INDUCTOR_BENCHMARKS=yes
     ;;
   pytorch-linux-focal-cuda12.6-cudnn9-py3-gcc9)
+=======
+    TRITON=yes
+    INDUCTOR_BENCHMARKS=yes
+    ;;
+  pytorch-linux-jammy-cuda12.6-cudnn9-py3-gcc9)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CUDA_VERSION=12.6.3
     CUDNN_VERSION=9
     ANACONDA_PYTHON_VERSION=3.10
     GCC_VERSION=9
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     ;;
@@ -181,10 +255,20 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-cuda12.6-cudnn9-py3-gcc9-inductor-benchmarks)
+    CUDA_VERSION=12.6
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.10
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     INDUCTOR_BENCHMARKS=yes
@@ -196,10 +280,21 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    INDUCTOR_BENCHMARKS=yes
+    ;;
+  pytorch-linux-jammy-cuda12.6-cudnn9-py3.12-gcc9-inductor-benchmarks)
+    CUDA_VERSION=12.6
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.12
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     INDUCTOR_BENCHMARKS=yes
@@ -211,10 +306,21 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    INDUCTOR_BENCHMARKS=yes
+    ;;
+  pytorch-linux-jammy-cuda12.6-cudnn9-py3.13-gcc9-inductor-benchmarks)
+    CUDA_VERSION=12.6
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.13
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     INDUCTOR_BENCHMARKS=yes
@@ -226,10 +332,21 @@ case "$image" in
     GCC_VERSION=9
     PROTOBUF=yes
     DB=yes
+=======
+    TRITON=yes
+    INDUCTOR_BENCHMARKS=yes
+    ;;
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc9)
+    CUDA_VERSION=12.8.1
+    CUDNN_VERSION=9
+    ANACONDA_PYTHON_VERSION=3.10
+    GCC_VERSION=9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON=yes
     ;;
@@ -297,12 +414,47 @@ case "$image" in
     ROCM_VERSION=6.3
     NINJA_VERSION=1.9.0
     CONDA_CMAKE=yes
+=======
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-py3-clang12-onnx)
+    ANACONDA_PYTHON_VERSION=3.9
+    CLANG_VERSION=12
+    VISION=yes
+    ONNX=yes
+    ;;
+  pytorch-linux-jammy-py3.9-clang12)
+    ANACONDA_PYTHON_VERSION=3.9
+    CLANG_VERSION=12
+    VISION=yes
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-py3.11-clang12)
+    ANACONDA_PYTHON_VERSION=3.11
+    CLANG_VERSION=12
+    VISION=yes
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-py3.9-gcc9)
+    ANACONDA_PYTHON_VERSION=3.9
+    GCC_VERSION=9
+    VISION=yes
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-rocm-n-1-py3)
+    ANACONDA_PYTHON_VERSION=3.10
+    GCC_VERSION=11
+    VISION=yes
+    ROCM_VERSION=6.3
+    NINJA_VERSION=1.9.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TRITON=yes
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
     INDUCTOR_BENCHMARKS=yes
     ;;
+<<<<<<< HEAD
   pytorch-linux-jammy-xpu-2024.0-py3)
     ANACONDA_PYTHON_VERSION=3.9
     GCC_VERSION=11
@@ -313,30 +465,63 @@ case "$image" in
     NINJA_VERSION=1.9.0
     CONDA_CMAKE=yes
     TRITON=yes
+=======
+  pytorch-linux-jammy-rocm-n-py3)
+    ANACONDA_PYTHON_VERSION=3.10
+    GCC_VERSION=11
+    VISION=yes
+    ROCM_VERSION=6.4
+    NINJA_VERSION=1.9.0
+    TRITON=yes
+    KATEX=yes
+    UCX_COMMIT=${_UCX_COMMIT}
+    UCC_COMMIT=${_UCC_COMMIT}
+    INDUCTOR_BENCHMARKS=yes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ;;
   pytorch-linux-jammy-xpu-2025.0-py3)
     ANACONDA_PYTHON_VERSION=3.9
     GCC_VERSION=11
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
     VISION=yes
     XPU_VERSION=2025.0
     NINJA_VERSION=1.9.0
     CONDA_CMAKE=yes
+=======
+    VISION=yes
+    XPU_VERSION=2025.0
+    NINJA_VERSION=1.9.0
+    TRITON=yes
+    ;;
+  pytorch-linux-jammy-xpu-2025.1-py3)
+    ANACONDA_PYTHON_VERSION=3.9
+    GCC_VERSION=11
+    VISION=yes
+    XPU_VERSION=2025.1
+    NINJA_VERSION=1.9.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TRITON=yes
     ;;
     pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks)
     ANACONDA_PYTHON_VERSION=3.9
     GCC_VERSION=11
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
     VISION=yes
     KATEX=yes
     CONDA_CMAKE=yes
+=======
+    VISION=yes
+    KATEX=yes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TRITON=yes
     DOCS=yes
     INDUCTOR_BENCHMARKS=yes
     ;;
+<<<<<<< HEAD
   pytorch-linux-jammy-cuda11.8-cudnn9-py3.9-clang12)
     ANACONDA_PYTHON_VERSION=3.9
     CUDA_VERSION=11.8
@@ -344,38 +529,60 @@ case "$image" in
     CLANG_VERSION=12
     PROTOBUF=yes
     DB=yes
+=======
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3.9-clang12)
+    ANACONDA_PYTHON_VERSION=3.9
+    CUDA_VERSION=12.8.1
+    CUDNN_VERSION=9
+    CLANG_VERSION=12
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     TRITON=yes
     ;;
   pytorch-linux-jammy-py3-clang12-asan)
     ANACONDA_PYTHON_VERSION=3.9
     CLANG_VERSION=12
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
     VISION=yes
     CONDA_CMAKE=yes
+=======
+    VISION=yes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TRITON=yes
     ;;
   pytorch-linux-jammy-py3-clang15-asan)
     ANACONDA_PYTHON_VERSION=3.10
     CLANG_VERSION=15
+<<<<<<< HEAD
     CONDA_CMAKE=yes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     ;;
   pytorch-linux-jammy-py3-clang18-asan)
     ANACONDA_PYTHON_VERSION=3.10
     CLANG_VERSION=18
+<<<<<<< HEAD
     CONDA_CMAKE=yes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     ;;
   pytorch-linux-jammy-py3.9-gcc11)
     ANACONDA_PYTHON_VERSION=3.9
     GCC_VERSION=11
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
     VISION=yes
     KATEX=yes
     CONDA_CMAKE=yes
+=======
+    VISION=yes
+    KATEX=yes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TRITON=yes
     DOCS=yes
     UNINSTALL_DILL=yes
@@ -383,14 +590,20 @@ case "$image" in
   pytorch-linux-jammy-py3-clang12-executorch)
     ANACONDA_PYTHON_VERSION=3.10
     CLANG_VERSION=12
+<<<<<<< HEAD
     CONDA_CMAKE=yes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     EXECUTORCH=yes
     ;;
   pytorch-linux-jammy-py3.12-halide)
     CUDA_VERSION=12.6
     ANACONDA_PYTHON_VERSION=3.12
     GCC_VERSION=11
+<<<<<<< HEAD
     CONDA_CMAKE=yes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     HALIDE=yes
     TRITON=yes
     ;;
@@ -398,6 +611,7 @@ case "$image" in
     CUDA_VERSION=12.6
     ANACONDA_PYTHON_VERSION=3.12
     GCC_VERSION=11
+<<<<<<< HEAD
     CONDA_CMAKE=yes
     TRITON_CPU=yes
     ;;
@@ -412,15 +626,34 @@ case "$image" in
     ANACONDA_PYTHON_VERSION=3.9
     CUDA_VERSION=11.8
     CONDA_CMAKE=yes
+=======
+    TRITON_CPU=yes
+    ;;
+  pytorch-linux-jammy-linter)
+    # TODO: Use 3.9 here because of this issue https://github.com/python/mypy/issues/13627.
+    # We will need to update mypy version eventually, but that's for another day. The task
+    # would be to upgrade mypy to 1.0.0 with Python 3.11
+    PYTHON_VERSION=3.9
+    ;;
+  pytorch-linux-jammy-cuda12.8-cudnn9-py3.9-linter)
+    PYTHON_VERSION=3.9
+    CUDA_VERSION=12.8.1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ;;
   pytorch-linux-jammy-aarch64-py3.10-gcc11)
     ANACONDA_PYTHON_VERSION=3.10
     GCC_VERSION=11
     ACL=yes
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
     VISION=yes
     CONDA_CMAKE=yes
+=======
+    VISION=yes
+    CONDA_CMAKE=yes
+    OPENBLAS=yes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # snadampal: skipping llvm src build install because the current version
     # from pytorch/llvm:9.0.1 is x86 specific
     SKIP_LLVM_SRC_BUILD_INSTALL=yes
@@ -429,10 +662,16 @@ case "$image" in
     ANACONDA_PYTHON_VERSION=3.10
     GCC_VERSION=11
     ACL=yes
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
     VISION=yes
     CONDA_CMAKE=yes
+=======
+    VISION=yes
+    CONDA_CMAKE=yes
+    OPENBLAS=yes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # snadampal: skipping llvm src build install because the current version
     # from pytorch/llvm:9.0.1 is x86 specific
     SKIP_LLVM_SRC_BUILD_INSTALL=yes
@@ -440,8 +679,11 @@ case "$image" in
     ;;
   *)
     # Catch-all for builds that are not hardcoded.
+<<<<<<< HEAD
     PROTOBUF=yes
     DB=yes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VISION=yes
     echo "image '$image' did not match an existing build configuration"
     if [[ "$image" == *py* ]]; then
@@ -457,8 +699,12 @@ case "$image" in
       TRITON=yes
       # To ensure that any ROCm config will build using conda cmake
       # and thus have LAPACK/MKL enabled
+<<<<<<< HEAD
       CONDA_CMAKE=yes
     fi
+=======
+      fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if [[ "$image" == *centos7* ]]; then
       NINJA_VERSION=1.10.2
     fi
@@ -474,14 +720,18 @@ case "$image" in
     if [[ "$image" == *glibc* ]]; then
       extract_version_from_image_name glibc GLIBC_VERSION
     fi
+<<<<<<< HEAD
     if [[ "$image" == *cmake* ]]; then
       extract_version_from_image_name cmake CMAKE_VERSION
     fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ;;
 esac
 
 tmp_tag=$(basename "$(mktemp -u)" | tr '[:upper:]' '[:lower:]')
 
+<<<<<<< HEAD
 #when using cudnn version 8 install it separately from cuda
 if [[ "$image" == *cuda*  && ${OS} == "ubuntu" ]]; then
   IMAGE_NAME="nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-devel-ubuntu${UBUNTU_VERSION}"
@@ -493,10 +743,19 @@ fi
 DOCKER_PROGRESS="--progress=plain"
 if [[ "${DOCKER_BUILDKIT}" == 0 ]]; then
   DOCKER_PROGRESS=""
+=======
+no_cache_flag=""
+progress_flag=""
+# Do not use cache and progress=plain when in CI
+if [[ -n "${CI:-}" ]]; then
+  no_cache_flag="--no-cache"
+  progress_flag="--progress=plain"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 # Build image
 docker build \
+<<<<<<< HEAD
        --no-cache \
        ${DOCKER_PROGRESS} \
        --build-arg "BUILD_ENVIRONMENT=${image}" \
@@ -506,18 +765,33 @@ docker build \
        --build-arg "VISION=${VISION:-}" \
        --build-arg "UBUNTU_VERSION=${UBUNTU_VERSION}" \
        --build-arg "CENTOS_VERSION=${CENTOS_VERSION}" \
+=======
+       ${no_cache_flag} \
+       ${progress_flag} \
+       --build-arg "BUILD_ENVIRONMENT=${image}" \
+       --build-arg "LLVMDEV=${LLVMDEV:-}" \
+       --build-arg "VISION=${VISION:-}" \
+       --build-arg "UBUNTU_VERSION=${UBUNTU_VERSION}" \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        --build-arg "DEVTOOLSET_VERSION=${DEVTOOLSET_VERSION}" \
        --build-arg "GLIBC_VERSION=${GLIBC_VERSION}" \
        --build-arg "CLANG_VERSION=${CLANG_VERSION}" \
        --build-arg "ANACONDA_PYTHON_VERSION=${ANACONDA_PYTHON_VERSION}" \
+<<<<<<< HEAD
+=======
+       --build-arg "PYTHON_VERSION=${PYTHON_VERSION}" \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        --build-arg "GCC_VERSION=${GCC_VERSION}" \
        --build-arg "CUDA_VERSION=${CUDA_VERSION}" \
        --build-arg "CUDNN_VERSION=${CUDNN_VERSION}" \
        --build-arg "TENSORRT_VERSION=${TENSORRT_VERSION}" \
        --build-arg "GRADLE_VERSION=${GRADLE_VERSION}" \
+<<<<<<< HEAD
        --build-arg "VULKAN_SDK_VERSION=${VULKAN_SDK_VERSION}" \
        --build-arg "SWIFTSHADER=${SWIFTSHADER}" \
        --build-arg "CMAKE_VERSION=${CMAKE_VERSION:-}" \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        --build-arg "NINJA_VERSION=${NINJA_VERSION:-}" \
        --build-arg "KATEX=${KATEX:-}" \
        --build-arg "ROCM_VERSION=${ROCM_VERSION:-}" \
@@ -525,7 +799,10 @@ docker build \
        --build-arg "IMAGE_NAME=${IMAGE_NAME}" \
        --build-arg "UCX_COMMIT=${UCX_COMMIT}" \
        --build-arg "UCC_COMMIT=${UCC_COMMIT}" \
+<<<<<<< HEAD
        --build-arg "CONDA_CMAKE=${CONDA_CMAKE}" \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        --build-arg "TRITON=${TRITON}" \
        --build-arg "TRITON_CPU=${TRITON_CPU}" \
        --build-arg "ONNX=${ONNX}" \
@@ -534,7 +811,13 @@ docker build \
        --build-arg "EXECUTORCH=${EXECUTORCH}" \
        --build-arg "HALIDE=${HALIDE}" \
        --build-arg "XPU_VERSION=${XPU_VERSION}" \
+<<<<<<< HEAD
        --build-arg "ACL=${ACL:-}" \
+=======
+       --build-arg "UNINSTALL_DILL=${UNINSTALL_DILL}" \
+       --build-arg "ACL=${ACL:-}" \
+       --build-arg "OPENBLAS=${OPENBLAS:-}" \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        --build-arg "SKIP_SCCACHE_INSTALL=${SKIP_SCCACHE_INSTALL:-}" \
        --build-arg "SKIP_LLVM_SRC_BUILD_INSTALL=${SKIP_LLVM_SRC_BUILD_INSTALL:-}" \
        -f $(dirname ${DOCKERFILE})/Dockerfile \
@@ -551,7 +834,11 @@ docker build \
 UBUNTU_VERSION=$(echo ${UBUNTU_VERSION} | sed 's/-rc$//')
 
 function drun() {
+<<<<<<< HEAD
   docker run --rm "$tmp_tag" $*
+=======
+  docker run --rm "$tmp_tag" "$@"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 if [[ "$OS" == "ubuntu" ]]; then
@@ -599,3 +886,26 @@ if [ -n "$KATEX" ]; then
     exit 1
   fi
 fi
+<<<<<<< HEAD
+=======
+
+HAS_TRITON=$(drun python -c "import triton" > /dev/null 2>&1 && echo "yes" || echo "no")
+if [[ -n "$TRITON" || -n "$TRITON_CPU" ]]; then
+  if [ "$HAS_TRITON" = "no" ]; then
+    echo "expecting triton to be installed, but it is not"
+    exit 1
+  fi
+elif [ "$HAS_TRITON" = "yes" ]; then
+  echo "expecting triton to not be installed, but it is"
+  exit 1
+fi
+
+# Sanity check cmake version.  Executorch reinstalls cmake and I'm not sure if
+# they support 4.0.0 yet, so exclude them from this check.
+CMAKE_VERSION=$(drun cmake --version)
+if [[ "$EXECUTORCH" != *yes* && "$CMAKE_VERSION" != *4.* ]]; then
+  echo "CMake version is not 4.0.0:"
+  drun cmake --version
+  exit 1
+fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

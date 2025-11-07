@@ -1015,7 +1015,11 @@ static at::Tensor linear_int8_with_onednn_weight(
       other.value() :
       at::empty(
         dst_dims,
+<<<<<<< HEAD
         device(c10::kCPU)
+=======
+        at::device(c10::kCPU)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .dtype(fp32_output ? c10::kFloat : (bf16_output ? c10::kBFloat16 : c10::kByte))
       );
   if (output.numel() == 0) {

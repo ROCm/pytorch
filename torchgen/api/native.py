@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+<<<<<<< HEAD
+=======
+from typing_extensions import assert_never
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torchgen import local
 from torchgen.api import cpp
@@ -29,7 +33,10 @@ from torchgen.model import (
     TensorOptionsArguments,
     Type,
 )
+<<<<<<< HEAD
 from torchgen.utils import assert_never
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:

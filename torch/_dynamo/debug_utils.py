@@ -247,7 +247,11 @@ class NNModuleToString:
         return model_str
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)  # subprocess is expensive
+=======
+@functools.cache  # subprocess is expensive
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _cuda_system_info_comment():
     if not torch.cuda.is_available():
         return "# torch.cuda.is_available()==False, no GPU info collected\n"
@@ -370,7 +374,11 @@ def run_fwd_maybe_bwd(gm, args, only_fwd=False, disable_clone=False):
         gm.zero_grad(True)
 
     # TorchInductor returned callable expects lists. So, may need a boxed calling convention.
+<<<<<<< HEAD
     out = gm(args) if hasattr(gm, "_boxed_call") else gm(*args)
+=======
+    out = gm(args) if getattr(gm, "_boxed_call", False) else gm(*args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if only_fwd:
         return out
@@ -780,7 +788,11 @@ def aot_graph_input_parser(
     forward(**kwargs)
     """
 
+<<<<<<< HEAD
     from torch.fx.graph import dtype_abbrs
+=======
+    from torch.utils._dtype_abbrs import dtype_abbrs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     dtype_map = {value: key for key, value in dtype_abbrs.items()}
     dtype_pattern = "|".join(dtype_abbrs.values())

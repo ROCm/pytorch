@@ -18,6 +18,7 @@ def define_targets(rules):
             rules.requirement("typing-extensions"),
         ],
     )
+<<<<<<< HEAD
 
     rules.py_binary(
         name = "gen_executorch",
@@ -28,3 +29,5 @@ def define_targets(rules):
             rules.requirement("typing-extensions"),
         ],
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -35,3 +35,18 @@ C10_API Tensor mkl_linear(
 } // namespace at
 
 #endif // AT_MKLDNN_ENABLED()
+<<<<<<< HEAD
+=======
+
+namespace at::native {
+Tensor&
+mkldnn_scaled_mm(const Tensor& mat1, const Tensor& mat2,
+          const Tensor& scale_a,
+          const Tensor& scale_b,
+          const std::optional<at::Tensor>& bias,
+          const std::optional<at::Tensor>& scale_result,
+          std::optional<c10::ScalarType> out_dtype,
+          bool use_fast_accum,
+          Tensor& out);
+} // namespace at::native
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

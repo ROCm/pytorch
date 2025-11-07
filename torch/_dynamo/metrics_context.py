@@ -14,12 +14,22 @@ execution performance.
 """
 
 import heapq
+<<<<<<< HEAD
+=======
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import time
 from collections.abc import Iterator
 from typing import Any, Callable, Optional
 from typing_extensions import TypeAlias
 
 
+<<<<<<< HEAD
+=======
+log = logging.getLogger(__name__)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TopN:
     """
     Helper to record a list of metrics, keeping only the top N "most expensive" elements.
@@ -84,10 +94,20 @@ class MetricsContext:
         self._level -= 1
         assert self._level >= 0
         if self._level == 0:
+<<<<<<< HEAD
             end_time_ns = time.time_ns()
             self._on_exit(
                 self._start_time_ns, end_time_ns, self._metrics, exc_type, exc_value
             )
+=======
+            try:
+                end_time_ns = time.time_ns()
+                self._on_exit(
+                    self._start_time_ns, end_time_ns, self._metrics, exc_type, exc_value
+                )
+            except Exception:
+                log.exception("Unexpected exception logging compilation metrics")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def in_progress(self) -> bool:
         """
@@ -189,7 +209,11 @@ class RuntimeMetricsContext:
         self._start_time_ns: int = 0
 
     def increment(
+<<<<<<< HEAD
         self, metric: str, value: int, extra: Optional[dict[str, Any]]
+=======
+        self, metric: str, value: int, extra: Optional[dict[str, Any]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         """
         Increment a metric by a given amount.
@@ -211,6 +235,18 @@ class RuntimeMetricsContext:
         Call the on_exit function with the metrics gathered so far and reset.
         """
         if self._metrics:
+<<<<<<< HEAD
             end_time_ns = time.time_ns()
             self._on_exit(self._start_time_ns, end_time_ns, self._metrics, None, None)
             self._metrics = {}
+=======
+            try:
+                end_time_ns = time.time_ns()
+                self._on_exit(
+                    self._start_time_ns, end_time_ns, self._metrics, None, None
+                )
+            except Exception:
+                log.exception("Unexpected exception logging runtime metrics")
+            finally:
+                self._metrics = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

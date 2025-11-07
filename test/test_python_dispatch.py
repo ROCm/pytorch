@@ -2,6 +2,10 @@
 # ruff: noqa: F841
 
 import logging
+<<<<<<< HEAD
+=======
+import pickle
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import tempfile
 import unittest
@@ -226,6 +230,23 @@ class TestPythonRegistration(TestCase):
                 torch.ops.custom.sum.default(a)
                 self.assertTrue(meta_is_called)
 
+<<<<<<< HEAD
+=======
+    def test_dispatchkeyset_pickle(self) -> None:
+        keyset = torch._C.DispatchKeySet(torch._C.DispatchKey.AutogradCPU)
+        serialized = pickle.dumps(keyset)
+        new_keyset = pickle.loads(serialized)
+        self.assertEqual(new_keyset, keyset)
+
+    def test_dispatchkeyset_eq(self) -> None:
+        a = torch._C.DispatchKeySet(torch._C.DispatchKey.AutogradCPU)
+        b = torch._C.DispatchKeySet(torch._C.DispatchKey.AutogradCPU)
+        c = torch._C.DispatchKeySet(torch._C.DispatchKey.CPU)
+        self.assertTrue(a == b)
+        self.assertFalse(a != b)
+        self.assertTrue(a != c)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_override_aten_ops_with_multiple_libraries(self) -> None:
         x = torch.tensor([1, 2])
         with _scoped_library("aten", "IMPL") as my_lib2:

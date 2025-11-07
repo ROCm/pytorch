@@ -35,7 +35,11 @@ using AllocationID = strong::type<
     strong::regular,
     strong::hashable>;
 
+<<<<<<< HEAD
 // We use a Tensor's TensorImpl adress and StorageImpl data start to build the
+=======
+// We use a Tensor's TensorImpl address and StorageImpl data start to build the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // data flow graph. We do not hold an owning reference so we wrap them in strong
 // types to prevent direct access.
 using TensorImplAddress = strong::type<

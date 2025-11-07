@@ -18,7 +18,11 @@ jobs:
     environment: ${{ (github.event_name == 'schedule') && 'mergebot' || '' }}
     steps:
       - name: Update viable/strict
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/update-viablestrict@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/update-viablestrict@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         id: update_viablestrict
         with:
           repository: pytorch/pytorch
@@ -30,7 +34,11 @@ jobs:
           clickhouse-password: ${{ secrets.CLICKHOUSE_VIABLESTRICT_PASSWORD }}
 
       - name: Authenticate to AWS with OIDC
+<<<<<<< HEAD
         uses: aws-actions/configure-aws-credentials@v4
+=======
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           role-to-assume: arn:aws:iam::308535385114:role/upload_to_ossci_raw_job_status
           aws-region: us-east-1

@@ -31,6 +31,10 @@ from torch.testing._internal.common_quantized import (
     qengine_is_qnnpack,
     qengine_is_onednn,
 )
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.fx
 from hypothesis import assume, given
 from hypothesis import strategies as st
@@ -320,7 +324,11 @@ class TestStaticQuantizedModule(QuantizationTestCase):
         # Make sure the results match
         # assert_array_almost_equal compares using the following formula:
         #     abs(desired-actual) < 1.5 * 10**(-decimal)
+<<<<<<< HEAD
         # (https://docs.scipy.org/doc/numpy/reference/generated/numpy.testing.assert_almost_equal.html)
+=======
+        # (https://numpy.org/doc/stable/reference/generated/numpy.testing.assert_almost_equal.html)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We use decimal = 0 to ignore off-by-1 differences between reference
         # and test. Off-by-1 differences arise due to the order of round and
         # zero_point addition operation, i.e., if addition followed by round is
@@ -2095,3 +2103,9 @@ class TestReferenceQuantizedModule(QuantizationTestCase):
                 self.assertTrue(qmax == 127)
                 found += 1
         self.assertTrue(found == 2)
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

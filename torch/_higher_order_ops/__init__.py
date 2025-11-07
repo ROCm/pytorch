@@ -21,6 +21,10 @@ from torch._higher_order_ops.flex_attention import (
 from torch._higher_order_ops.foreach_map import _foreach_map, foreach_map
 from torch._higher_order_ops.hints_wrap import hints_wrapper
 from torch._higher_order_ops.invoke_subgraph import invoke_subgraph
+<<<<<<< HEAD
+=======
+from torch._higher_order_ops.map import map
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.out_dtype import out_dtype
 from torch._higher_order_ops.run_const_graph import run_const_graph
 from torch._higher_order_ops.scan import scan
@@ -28,6 +32,10 @@ from torch._higher_order_ops.strict_mode import strict_mode
 from torch._higher_order_ops.torchbind import call_torchbind
 from torch._higher_order_ops.while_loop import while_loop
 from torch._higher_order_ops.wrap import (
+<<<<<<< HEAD
+=======
+    dynamo_bypassing_wrapper,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tag_activation_checkpoint,
     wrap_activation_checkpoint,
     wrap_with_autocast,
@@ -40,6 +48,10 @@ __all__ = [
     "while_loop",
     "invoke_subgraph",
     "scan",
+<<<<<<< HEAD
+=======
+    "map",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "flex_attention",
     "flex_attention_backward",
     "hints_wrapper",
@@ -62,6 +74,13 @@ __all__ = [
     "wrap_with_set_grad_enabled",
     "wrap_with_autocast",
     "wrap_activation_checkpoint",
+<<<<<<< HEAD
     "strict_mode",
     "aoti_call_delegate",
+=======
+    "dynamo_bypassing_wrapper",
+    "strict_mode",
+    "aoti_call_delegate",
+    "map",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]

@@ -8,9 +8,15 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
+<<<<<<< HEAD
 static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
               FLATBUFFERS_VERSION_MINOR == 3 &&
               FLATBUFFERS_VERSION_REVISION == 3,
+=======
+static_assert(FLATBUFFERS_VERSION_MAJOR == 24 &&
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
              "Non-compatible flatbuffers version included");
 
 namespace torch {
@@ -2597,3 +2603,7 @@ inline void FinishSizePrefixedModuleBuffer(
 }  // namespace torch
 
 #endif  // FLATBUFFERS_GENERATED_MOBILEBYTECODE_TORCH_JIT_MOBILE_SERIALIZATION_H_
+<<<<<<< HEAD
+=======
+// @generated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -547,7 +547,11 @@ void ScriptModuleSerializer::writeArchive(
   TORCH_INTERNAL_ASSERT(tensor_names.size() == data_pickle.tensorData().size());
 
   for (const auto& td : data_pickle.tensorData()) {
+<<<<<<< HEAD
     std::string tensor_name = tensor_names[i++];
+=======
+    const std::string& tensor_name = tensor_names[i++];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (td.is_meta() || skip_tensor_data) {
       writer_.writeRecord(tensor_dir + tensor_name, nullptr, 0);
       continue;
@@ -956,7 +960,11 @@ std::vector<std::string> export_opnames(const script::Module& m) {
 // Thread local flag (only happens in export, i.e. on server side)
 // to control if instructions for bytecode default inputs are emitted
 // or not. It's the major difference between bytecode v5 and v6.
+<<<<<<< HEAD
 thread_local bool emitBytecodeDefaultInputs =
+=======
+static thread_local bool emitBytecodeDefaultInputs =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     caffe2::serialize::kProducedBytecodeVersion <= 5 ? true : false;
 bool BytecodeEmitMode::is_default_value_for_unspecified_arg_enabled() {
   return emitBytecodeDefaultInputs;
@@ -966,7 +974,11 @@ void BytecodeEmitMode::set_default_value_for_unspecified_arg_enabled(
   emitBytecodeDefaultInputs = enabled;
 }
 
+<<<<<<< HEAD
 thread_local bool emitDefautlArgsWithOutArgs =
+=======
+static thread_local bool emitDefautlArgsWithOutArgs =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     caffe2::serialize::kProducedBytecodeVersion <= 6 ? false : true;
 bool BytecodeEmitMode::is_default_args_before_out_args_enabled() {
   return emitDefautlArgsWithOutArgs;
@@ -975,7 +987,11 @@ void BytecodeEmitMode::set_default_args_before_out_args_enabled(bool enabled) {
   emitDefautlArgsWithOutArgs = enabled;
 }
 
+<<<<<<< HEAD
 thread_local bool emitDefaultEmitPromotedOps =
+=======
+static thread_local bool emitDefaultEmitPromotedOps =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     caffe2::serialize::kProducedBytecodeVersion <= 7 ? false : true;
 bool BytecodeEmitMode::is_emit_promoted_ops_enabled() {
   return emitDefaultEmitPromotedOps;

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import base64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import itertools
 import logging
@@ -21,7 +25,16 @@ from typing_extensions import Never, ParamSpec
 # functionality to destroy singletons before forking and re-enable them after.
 import torch._thread_safe_fork  # noqa: F401
 from torch._inductor import config
+<<<<<<< HEAD
 from torch._inductor.compile_worker.watchdog import _async_compile_initializer
+=======
+from torch._inductor.codecache import torch_key
+from torch._inductor.compile_worker.tracked_process_pool import (
+    TrackedProcessPoolExecutor,
+)
+from torch._inductor.compile_worker.utils import _async_compile_initializer
+from torch._inductor.utils import get_ld_library_path
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
@@ -57,6 +70,7 @@ def _recv_msg(read_pipe: IO[bytes]) -> tuple[int, bytes]:
     return job_id, data
 
 
+<<<<<<< HEAD
 def _get_ld_library_path() -> str:
     path = os.environ.get("LD_LIBRARY_PATH", "")
     if config.is_fbcode():
@@ -70,6 +84,8 @@ def _get_ld_library_path() -> str:
     return path
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _SubprocExceptionInfo:
     """
     Carries exception info from subprocesses across the wire. traceback
@@ -128,6 +144,10 @@ class SubprocPool:
         read_fd, subproc_write_fd = os.pipe()
         self.write_pipe = os.fdopen(write_fd, "wb")
         self.read_pipe = os.fdopen(read_fd, "rb")
+<<<<<<< HEAD
+=======
+        torch_key_str = base64.b64encode(torch_key()).decode("utf-8")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cmd = [
             sys.executable,
@@ -138,21 +158,45 @@ class SubprocPool:
             f"--parent={os.getpid()}",
             f"--read-fd={str(subproc_read_fd)}",
             f"--write-fd={str(subproc_write_fd)}",
+<<<<<<< HEAD
         ]
+=======
+            f"--torch-key={torch_key_str}",
+        ]
+        local = False
+        if config.worker_suppress_logging:
+            log.info("Suppressing compile worker output due to config")
+            local = True
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.process = subprocess.Popen(
             cmd,
             env={
                 **os.environ,
                 # We need to set the PYTHONPATH so the subprocess can find torch.
+<<<<<<< HEAD
                 "PYTHONPATH": os.pathsep.join(sys.path),
+=======
+                "PYTHONPATH": os.environ.get(
+                    "TORCH_CUSTOM_PYTHONPATH", os.pathsep.join(sys.path)
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # We don't want to re-warm the pool when the subprocess imports
                 # torch._inductor.codecache since the warming process is what
                 # creates the SubprocPool in the first place.
                 "TORCH_WARM_POOL": "0",
                 # Some internal usages need a modified LD_LIBRARY_PATH.
+<<<<<<< HEAD
                 "LD_LIBRARY_PATH": _get_ld_library_path(),
             },
             pass_fds=(subproc_read_fd, subproc_write_fd),
+=======
+                "LD_LIBRARY_PATH": get_ld_library_path(),
+            },
+            pass_fds=(subproc_read_fd, subproc_write_fd),
+            stdout=subprocess.DEVNULL if local else None,
+            stderr=subprocess.DEVNULL if local else None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.write_lock = threading.Lock()
         self.read_thread = threading.Thread(target=self._read_thread, daemon=True)
@@ -268,7 +312,11 @@ class SubprocMain:
         self.running = True
 
     def _new_pool(self, nprocs: int, warm: bool) -> ProcessPoolExecutor:
+<<<<<<< HEAD
         pool = ProcessPoolExecutor(
+=======
+        pool = TrackedProcessPoolExecutor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             nprocs,
             mp_context=multiprocessing.get_context(self.kind.value),
             initializer=functools.partial(_async_compile_initializer, os.getpid()),
@@ -308,6 +356,7 @@ class SubprocMain:
                 self.pool = self._new_pool(self.nprocs, False)
 
     def _submit_inner(self, job_id: int, data: bytes) -> None:
+<<<<<<< HEAD
         future = self.pool.submit(
             functools.partial(SubprocMain.do_job, self.pickler, data)
         )
@@ -317,6 +366,13 @@ class SubprocMain:
                 return
             try:
                 result = future.result()
+=======
+        def callback(fut: Future[Any]) -> None:
+            if not self.running:
+                return
+            try:
+                result = fut.result()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             except Exception as e:
                 log.exception("Error in subprocess")
                 result = self.pickler.dumps(e)
@@ -326,6 +382,12 @@ class SubprocMain:
                     _send_msg(self.write_pipe, job_id, result)
             return
 
+<<<<<<< HEAD
+=======
+        future = self.pool.submit(
+            functools.partial(SubprocMain.do_job, self.pickler, data)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         future.add_done_callback(callback)
 
     @staticmethod

@@ -44,13 +44,21 @@ import traceback
 import types
 import typing
 import weakref
+<<<<<<< HEAD
 from typing import Any, Callable, cast, NoReturn, Optional, Union
+=======
+from typing import Any, Callable, cast, NoReturn, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import torch
 import torch._logging
 from torch._dynamo.exc import TensorifyScalarRestartAnalysis
 from torch._guards import tracing, TracingContext
+<<<<<<< HEAD
+=======
+from torch._logging.structured import dump_file
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import guard_bool
 from torch.utils._functools import cache_method
 
@@ -116,7 +124,11 @@ from .utils import (
     proxy_args_kwargs,
 )
 from .variables.base import typestr, ValueMutationNew, VariableTracker
+<<<<<<< HEAD
 from .variables.builder import FrameStateSizeEntry, wrap_fx_proxy
+=======
+from .variables.builder import FrameStateSizeEntry, VariableBuilder, wrap_fx_proxy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .variables.builtin import BuiltinVariable
 from .variables.constant import ConstantVariable
 from .variables.ctx_manager import (
@@ -166,6 +178,12 @@ from .variables.user_defined import (
 )
 
 
+<<<<<<< HEAD
+=======
+if TYPE_CHECKING:
+    from .package import CompilePackage
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 graph_break_log = torch._logging.getArtifactLogger(__name__, "graph_breaks")
 trace_call_log = torch._logging.getArtifactLogger(__name__, "trace_call")
@@ -269,7 +287,11 @@ SpeculationLog diverged at index {self.index} (log had {len(self.entries)} entri
 - Expected: {entry.filename}:{entry.lineno} ({entry.inst.opname} at ip={entry.instruction_pointer})
 - Actual: {filename}:{lineno} ({inst.opname} at ip={instruction_pointer})
 {prev_entry_msg}
+<<<<<<< HEAD
 There are two usual reasons why this may have occured:
+=======
+There are two usual reasons why this may have occurred:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - When Dynamo analysis restarted, the second run took a different path than
   the first.  If this occurred, the previous instruction is the critical instruction that
   behaved differently.
@@ -330,7 +352,11 @@ class TensorifyState:
         return len(cls.force_specializations) == 0
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _step_logger():
     return torchdynamo_logging.get_step_logger(log)
 
@@ -590,6 +616,7 @@ def generic_jump(truth_fn: typing.Callable[[object], bool], push: bool):
                 hints=_hints,
             ),
         )
+<<<<<<< HEAD
         if not self.should_compile_partial_graph():
             unimplemented_v2(
                 gb_type="Should not compile partial graph (data-dependent branching)",
@@ -599,6 +626,9 @@ def generic_jump(truth_fn: typing.Callable[[object], bool], push: bool):
                 "compile the partial graph.",
                 hints=[],
             )
+=======
+        assert self.should_compile_partial_graph()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # compile a partial subgraph prefix then jump into user code
         if self.maybe_has_backedge():
             msg = (
@@ -610,11 +640,16 @@ def generic_jump(truth_fn: typing.Callable[[object], bool], push: bool):
 
         self.push(value)
         log.debug("generic_jump triggered compile")
+<<<<<<< HEAD
         self.output.compile_subgraph(
+=======
+        all_stack_locals_metadata = self.output.compile_subgraph(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self,
             reason=GraphCompileReason(
                 f"generic_jump {typestr(value)}{extra_msg}", [self.frame_summary()]
             ),
+<<<<<<< HEAD
         )
         self.pop()
 
@@ -622,6 +657,18 @@ def generic_jump(truth_fn: typing.Callable[[object], bool], push: bool):
         if push:
             self.push(value)
         if_jump = self.create_call_resume_at(inst.target)
+=======
+            stack_pops=1,
+        )
+        self.pop()
+
+        if_next = self.create_call_resume_at(
+            self.next_instruction, all_stack_locals_metadata
+        )
+        if push:
+            self.push(value)
+        if_jump = self.create_call_resume_at(inst.target, all_stack_locals_metadata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if sys.version_info >= (3, 13):
             # 3.13 requires stack[-1] to be bool type
@@ -642,8 +689,29 @@ def generic_jump(truth_fn: typing.Callable[[object], bool], push: bool):
             if value.is_python_constant():
                 if bool(value.as_python_constant()):
                     return self.jump(inst)
+<<<<<<< HEAD
                 else:
                     jump_graph_break(self, inst, value)
+=======
+                elif self.should_compile_partial_graph():
+                    jump_graph_break(self, inst, value)
+                else:
+                    unimplemented_v2(
+                        gb_type="Data-dependent assertion failed (cannot compile partial graph)",
+                        context=f"value: {value}",
+                        explanation="Dynamo has determined when encountering a data-dependent assert failure "
+                        "that it should not compile the partial graph.",
+                        hints=[
+                            *graph_break_hints.FUNDAMENTAL,
+                            "Use `torch._assert()` to raise a hard AssertionError when the check fails. "
+                            "This error will propagate back the user code "
+                            "that called the compiled function (i.e. Dynamo will not trace any exception handling).",
+                            "Remove the assert statement.",
+                            "Move the assert statement outside of any context managers in order to graph break with "
+                            "partial graph compilation (if fullgraph=False).",
+                        ],
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # TODO maybe should respect DtoH sync intention of users later??
             # Manually insert torch._assert_async instead of python assert and jump over
@@ -864,7 +932,25 @@ def break_graph_if_unsupported(*, push):
             inst: Instruction,
             reason: GraphCompileReason,
         ):
+<<<<<<< HEAD
             self.output.compile_subgraph(self, reason=reason)
+=======
+            if (
+                sys.version_info >= (3, 11)
+                and sys.version_info < (3, 12)
+                and inst.opname == "CALL"
+            ):
+                # stack effect for PRECALL + CALL is split between the two instructions
+                stack_effect = dis.stack_effect(
+                    dis.opmap["PRECALL"], inst.arg
+                ) + dis.stack_effect(dis.opmap["CALL"], inst.arg)
+            else:
+                stack_effect = dis.stack_effect(inst.opcode, inst.arg)
+
+            all_stack_locals_metadata = self.output.compile_subgraph(
+                self, reason=reason, stack_pops=push - stack_effect
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cg = PyCodegen(self)
             cleanup: list[Instruction] = []
             # Reconstruct the context variable CLASS in the block stack
@@ -909,6 +995,7 @@ def break_graph_if_unsupported(*, push):
 
             self.output.add_output_instructions(cleanup)
 
+<<<<<<< HEAD
             if (
                 sys.version_info >= (3, 11)
                 and sys.version_info < (3, 12)
@@ -926,6 +1013,15 @@ def break_graph_if_unsupported(*, push):
                 self.push(UnknownVariable())
             self.output.add_output_instructions(
                 self.create_call_resume_at(self.next_instruction)
+=======
+            self.popn(push - stack_effect)
+            for _ in range(push):
+                self.push(UnknownVariable())
+            self.output.add_output_instructions(
+                self.create_call_resume_at(
+                    self.next_instruction, all_stack_locals_metadata
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         return wrapper
@@ -1075,6 +1171,13 @@ class InstructionTranslatorBase(
     exec_recorder: Optional[ExecutionRecorder]
     strict_checks_fn: Optional[Callable[[VariableTracker], bool]]
     start_point: Optional[int]
+<<<<<<< HEAD
+=======
+    is_leaf_tracer: bool
+    parent: Optional["InstructionTranslatorBase"]
+    debug_locals: list[tuple[VariableTracker, list[VariableTracker]]]
+    package: Optional["CompilePackage"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def mark_inconsistent_side_effects(self):
         """
@@ -1209,10 +1312,15 @@ class InstructionTranslatorBase(
         TracingContext.set_current_loc(
             self.f_code.co_filename, lineno, self.f_code.co_name
         )
+<<<<<<< HEAD
         from torch._logging.structured import dump_file
 
         dump_file(self.f_code.co_filename)
         if trace_source_log.isEnabledFor(logging.DEBUG):
+=======
+
+        if self.is_trace_source_log_enabled:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             trace_source_log.debug("%s", LazyString(self.get_log_starts_line_log_str))
 
     def step(self):
@@ -1235,7 +1343,11 @@ class InstructionTranslatorBase(
             if self.current_speculation.failed:
                 return self.step_graph_break(inst)
 
+<<<<<<< HEAD
         if trace_bytecode_log.isEnabledFor(logging.DEBUG):
+=======
+        if self.is_trace_bytecode_log_enabled:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             trace_bytecode_log.debug(
                 "TRACE %s %s %s", inst.opname, inst.argval, self.stack
             )
@@ -1314,6 +1426,13 @@ class InstructionTranslatorBase(
         # generate code from checkpoint
         assert not self.output.output_instructions
         assert self.current_speculation is not None
+<<<<<<< HEAD
+=======
+        # NOTE: adding an assert here since it seems like the only place
+        # where we call step_graph_break right now is when the stack is empty,
+        # so let's enforce that for now.
+        assert not self.stack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.output.compile_subgraph(
             self,
             partial_convert=True,
@@ -1331,6 +1450,10 @@ class InstructionTranslatorBase(
 
     def run(self):
         with self.run_ctx_mgr():
+<<<<<<< HEAD
+=======
+            dump_file(self.f_code.co_filename)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 self.output.push_tx(self)
                 self.start_point = self.instruction_pointer
@@ -1366,6 +1489,14 @@ class InstructionTranslatorBase(
                 if isinstance(self, InstructionTranslator):
                     self.output.cleanup()
 
+<<<<<<< HEAD
+=======
+                    # Note that this call maybe redundant if compile_subgraph is
+                    # called. This is ok, because calling exit stack close()
+                    # twice is not an issue (second stop is a no op).
+                    self.output.mark_bytecode_tracing_stop()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def push(self, val: Optional[VariableTracker]):
         assert val is None or isinstance(val, VariableTracker), (
             f"push expects VariableTracker, got {typestr(val)}"
@@ -1414,7 +1545,11 @@ class InstructionTranslatorBase(
                 )
 
         # for continuation functions
+<<<<<<< HEAD
         if name.startswith("___stack"):
+=======
+        if name.startswith("__stack"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.symbolic_locals.pop(name)
 
     def LOAD_DEREF(self, inst):
@@ -1469,16 +1604,26 @@ class InstructionTranslatorBase(
                 assert name in self.f_builtins
                 self.exec_recorder.builtins[name] = self.f_builtins[name]
 
+<<<<<<< HEAD
+=======
+        if name not in self.f_globals:
+            return self.load_builtin(inst)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in self.symbolic_globals:
             variable = self.output.side_effects[self.symbolic_globals[name]]
             self.push(self.output.side_effects.load_global(variable, name))
             return
 
+<<<<<<< HEAD
         try:
             value = self.f_globals[name]
         except KeyError:
             return self.load_builtin(inst)
 
+=======
+        value = self.f_globals[name]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.push(VariableTracker.build(self, value, GlobalSource(name)))
 
     @functools.cached_property
@@ -1528,6 +1673,12 @@ class InstructionTranslatorBase(
         else:
             value = _import_module(module_name)
             alias = f"__import_{module_name.replace('.', '_dot_')}"
+<<<<<<< HEAD
+=======
+
+        if self.package is not None:
+            self.package.add_import_source(alias, module_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f_globals = self.output.global_scope
         assert alias not in f_globals or f_globals[alias] is value
         f_globals[alias] = value
@@ -1632,10 +1783,22 @@ class InstructionTranslatorBase(
                 hints=[],
             )
 
+<<<<<<< HEAD
+=======
+    # fb internal 3.12 opcode
+    EAGER_IMPORT_NAME = IMPORT_NAME
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def IMPORT_FROM(self, inst):
         self.DUP_TOP(inst)
         self._load_attr(inst)
 
+<<<<<<< HEAD
+=======
+    # Cache note: This cache only exists for the duration of this
+    # InstructionTranslator - so it should be safe to do.
+    @cache_method
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def load_builtin_from_argval(self, argval):
         if argval not in self.f_builtins:
             raise Unsupported(f"name '{argval}' is not defined")
@@ -1646,6 +1809,7 @@ class InstructionTranslatorBase(
                 self.output.name_of_builtins_dict_key_in_fglobals
             )
             var_source = DictGetItemSource(builtins_source, argval)
+<<<<<<< HEAD
             self.push(VariableTracker.build(self, val, var_source))
         else:
             assert is_builtin_constant(val)
@@ -1653,6 +1817,15 @@ class InstructionTranslatorBase(
 
     def load_builtin(self, inst):
         self.load_builtin_from_argval(inst.argval)
+=======
+            return VariableTracker.build(self, val, var_source)
+        else:
+            assert is_builtin_constant(val)
+            return ConstantVariable.create(value=val)
+
+    def load_builtin(self, inst):
+        self.push(self.load_builtin_from_argval(inst.argval))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def jump(self, inst):
         assert self.instruction_pointer is not None
@@ -1701,6 +1874,7 @@ class InstructionTranslatorBase(
         self.popn(2)
         self.push(None)
 
+<<<<<<< HEAD
     def CALL_FINALLY(self, inst):
         """
         pushes the address of the next instruction onto the stack and increments
@@ -1729,6 +1903,8 @@ class InstructionTranslatorBase(
         if preserve_tos:
             self.push(tos)  # type: ignore[possibly-undefined]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def FOR_ITER(self, inst):
         it = self.pop().realize()
         try:
@@ -1749,18 +1925,34 @@ class InstructionTranslatorBase(
                 self.push(ConstantVariable.create(None))
             self.jump(inst)
 
+<<<<<<< HEAD
     def _raise_exception_variable(self, val) -> NoReturn:
         # User can raise exception in 2 ways
         #   1) raise exception type - raise NotImplementedError
         #   2) raise execption instance - raise NotImplemetedError("foo")
 
         # 1) when user raises exception type
+=======
+    def _create_exception_type(self, val):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(
             val, (variables.BuiltinVariable, UserDefinedExceptionClassVariable)
         ):
             # Create the instance of the exception type
             # https://github.com/python/cpython/blob/3.11/Python/ceval.c#L6547-L6549
             val = val.call_function(self, [], {})  # type: ignore[arg-type]
+<<<<<<< HEAD
+=======
+        return val
+
+    def _raise_exception_variable(self, val) -> NoReturn:
+        # User can raise exception in 2 ways
+        #   1) raise exception type - raise NotImplementedError
+        #   2) raise exception instance - raise NotImplemetedError("foo")
+
+        # 1) when user raises exception type
+        val = self._create_exception_type(val)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Handle https://peps.python.org/pep-0479/
         # CPython 3.12+ has a specific bytecode instruction (CALL_INTRINSIC_1 3) for this
@@ -1787,6 +1979,13 @@ class InstructionTranslatorBase(
 
     def RAISE_VARARGS(self, inst):
         if inst.arg == 0:
+<<<<<<< HEAD
+=======
+            if not len(self.exn_vt_stack):
+                msg = ConstantVariable("No active exception to reraise")
+                exc.raise_observed_exception(RuntimeError, self, args=[msg])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # re-raise the previous exception. Here CPython refers to the exception
             # on top of the exception stack
             assert len(self.exn_vt_stack)
@@ -1798,6 +1997,7 @@ class InstructionTranslatorBase(
             val = self.stack[-1]
             self._raise_exception_variable(val)
         else:
+<<<<<<< HEAD
             # raise .. from None
             from_vt = self.pop()
             if isinstance(from_vt, ConstantVariable) and from_vt.value is None:
@@ -1816,6 +2016,18 @@ class InstructionTranslatorBase(
                 explanation="Dynamo does not support `raise ... from [not-None]`",
                 hints=[],
             )
+=======
+            # raise .. from ...
+            from_vt = self.pop()
+            val = self.pop()
+            try:
+                self._raise_exception_variable(val)
+            finally:
+                # Update __cause__/__supppress_context__ in the raised exception
+                curr_exc = self.exn_vt_stack.get_current_exception()
+                cause = self._create_exception_type(from_vt)
+                curr_exc.call_setattr(self, ConstantVariable("__cause__"), cause)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def CLEANUP_THROW(self, inst):
         # https://github.com/python/cpython/pull/96010
@@ -1918,7 +2130,11 @@ class InstructionTranslatorBase(
                 self.jump(exn_tab_entry)
             else:
                 # No handler found. Bubble the exception to the parent
+<<<<<<< HEAD
                 # instruction translater. We use special exception for this.
+=======
+                # instruction translator. We use special exception for this.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.stack.clear()
                 if type(self) is InstructionTranslator:
                     unimplemented_v2(
@@ -1944,7 +2160,11 @@ class InstructionTranslatorBase(
                     self.exn_vt_stack.pop()
                     if len(self.block_stack) == 0:
                         # No handler found in this frame. Bubble the exception to the parent
+<<<<<<< HEAD
                         # instruction translater.
+=======
+                        # instruction translator.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.stack.clear()
                         if type(self) is InstructionTranslator:
                             unimplemented_v2(
@@ -1998,7 +2218,11 @@ class InstructionTranslatorBase(
                 self.jump(block_stack_entry)
             else:
                 # No handler found. Bubble the exception to the parent
+<<<<<<< HEAD
                 # instruction translater. We use special exception for this.
+=======
+                # instruction translator. We use special exception for this.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.stack.clear()
                 if type(self) is InstructionTranslator:
                     unimplemented_v2(
@@ -2105,7 +2329,11 @@ class InstructionTranslatorBase(
                 unimplemented_v2(
                     gb_type="Caught non-Exception value",
                     context=str(exc_instance),
+<<<<<<< HEAD
                     explanation=f"Except expects to recieve an object of Exception type but received {exc_instance}.",
+=======
+                    explanation=f"Except expects to receive an object of Exception type but received {exc_instance}.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     hints=[*graph_break_hints.USER_ERROR],
                 )
 
@@ -2193,6 +2421,7 @@ class InstructionTranslatorBase(
             null = self.pop()
             assert isinstance(null, NullVariable)
 
+<<<<<<< HEAD
         if isinstance(fn, GetAttrVariable) and isinstance(fn.obj, TensorVariable):
             # realize is requires for Python 3.8
             kwargsvars = kwargsvars.realize()
@@ -2240,6 +2469,8 @@ class InstructionTranslatorBase(
                     hints=[],
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(
             argsvars, BaseListVariable
         ) and argsvars.has_force_unpack_var_sequence(self):
@@ -2367,13 +2598,24 @@ class InstructionTranslatorBase(
                 "STORE_ATTR instruction (i.e. `obj.attr = val`) that it should not compile the partial graph.",
                 hints=[],
             )
+<<<<<<< HEAD
         self.output.compile_subgraph(
             self, reason=GraphCompileReason("store_attr", [self.frame_summary()])
+=======
+        all_stack_locals_metadata = self.output.compile_subgraph(
+            self,
+            reason=GraphCompileReason("store_attr", [self.frame_summary()]),
+            stack_pops=2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.output.add_output_instructions([copy.copy(inst)])
         self.popn(2)
         self.output.add_output_instructions(
+<<<<<<< HEAD
             self.create_call_resume_at(self.next_instruction)
+=======
+            self.create_call_resume_at(self.next_instruction, all_stack_locals_metadata)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def DELETE_ATTR(self, inst):
@@ -2384,7 +2626,11 @@ class InstructionTranslatorBase(
             {},
         )
 
+<<<<<<< HEAD
     def create_call_resume_at(self, offset):
+=======
+    def create_call_resume_at(self, offset, all_stack_locals_metadata):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise AssertionError(
             f"create_call_resume_at not overridden by subclass {type(self)}"
         )
@@ -2761,9 +3007,17 @@ class InstructionTranslatorBase(
         if val.exc_type is StopIteration:  # type: ignore[attr-defined]
             new_val = variables.BuiltinVariable(RuntimeError).call_function(
                 self,  # type: ignore[arg-type]
+<<<<<<< HEAD
                 [],
                 {},
             )
+=======
+                [ConstantVariable("generator raised StopIteration")],
+                {},
+            )
+            new_val.call_setattr(self, ConstantVariable("__context__"), val)  # type: ignore[attr-defined]
+            new_val.call_setattr(self, ConstantVariable("__cause__"), val)  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.stack[-1] = new_val
 
     def DICT_MERGE(self, inst):
@@ -2820,7 +3074,22 @@ class InstructionTranslatorBase(
                 self.push(ConstantVariable.create(False))
 
     def LOAD_ASSERTION_ERROR(self, inst):
+<<<<<<< HEAD
         self.load_builtin_from_argval("AssertionError")
+=======
+        self.push(self.load_builtin_from_argval("AssertionError"))
+
+    def LOAD_BUILD_CLASS(self, inst):
+        unimplemented_v2(
+            gb_type="LOAD_BUILD_CLASS bytecode not supported",
+            context="",
+            explanation="Dynamo does not support tracing classes that are defined in the compiled region.",
+            hints=[
+                "Move the class definition out of the compiled region.",
+                *graph_break_hints.SUPPORTABLE,
+            ],
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     UNARY_POSITIVE = stack_op(operator.pos)
     UNARY_NEGATIVE = stack_op(operator.neg)
@@ -2961,6 +3230,13 @@ class InstructionTranslatorBase(
                 explanation=f"Dynamo does not know how to enter a `{ctx.python_type_name()}` context manager.",
                 hints=[
                     "Avoid using the unsupported context manager.",
+<<<<<<< HEAD
+=======
+                    "If the context manager seems like it should be supported (e.g. torch.set_grad_enabled), then "
+                    "it may be the case that it was created outside the compiled region, which Dynamo does not support. "
+                    "Supported context managers can cross graph break boundaries only if they are local non-closure "
+                    "variables, or are intermediate values.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "File an issue to PyTorch. Simple context managers can potentially be supported, "
                     "but note that context managers can't be supported in general",
                 ],
@@ -3041,7 +3317,11 @@ class InstructionTranslatorBase(
             self.popn(2)
 
     def LOAD_FAST_CHECK(self, inst):
+<<<<<<< HEAD
         if isinstance(self.symbolic_locals[inst.argval], NullVariable):
+=======
+        if isinstance(self.symbolic_locals.get(inst.argval, None), NullVariable):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unimplemented_v2(
                 gb_type="LOAD_FAST_CHECK on uninitialized variable",
                 context=inst.argval,
@@ -3211,6 +3491,10 @@ class InstructionTranslatorBase(
         distributed_state: Optional[DistributedState],
         # This determines whether to use the execution recorder.
         closure: Optional[tuple[types.CellType]] = None,
+<<<<<<< HEAD
+=======
+        package: Optional["CompilePackage"] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         super().__init__()
         self.speculation_log = speculation_log
@@ -3265,6 +3549,15 @@ class InstructionTranslatorBase(
 
         self.strict_checks_fn = None
 
+<<<<<<< HEAD
+=======
+        self.is_leaf_tracer = True
+        self.parent = None
+        self.debug_locals = []
+
+        self.package = package
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if sys.version_info >= (3, 10):
             from .resume_execution import (
                 CO_ASYNC_GENERATOR,
@@ -3283,6 +3576,16 @@ class InstructionTranslatorBase(
         self._constants_cache: list[Optional[VariableTracker]] = [None] * len(
             f_code.co_consts
         )
+<<<<<<< HEAD
+=======
+
+        self.is_trace_bytecode_log_enabled: Optional[bool] = (
+            trace_bytecode_log.isEnabledFor(logging.DEBUG)
+        )
+        self.is_trace_source_log_enabled: Optional[bool] = (
+            trace_source_log.isEnabledFor(logging.DEBUG)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         linecache.lazycache(f_code.co_filename, f_globals)
 
 
@@ -3318,6 +3621,10 @@ class InstructionTranslator(InstructionTranslatorBase):
         speculation_log: SpeculationLog,
         exn_vt_stack: ExceptionStack,
         distributed_state: Optional[DistributedState],
+<<<<<<< HEAD
+=======
+        package: Optional["CompilePackage"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         _step_logger()(
             logging.INFO,
@@ -3335,6 +3642,10 @@ class InstructionTranslator(InstructionTranslatorBase):
                 global_scope=f_globals,
                 f_code=f_code,
                 torch_function_mode_stack=torch_function_mode_stack,
+<<<<<<< HEAD
+=======
+                package=package,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             instructions=instructions,
             f_locals=f_locals,
@@ -3352,6 +3663,10 @@ class InstructionTranslator(InstructionTranslatorBase):
             speculation_log=speculation_log,
             exn_vt_stack=exn_vt_stack,
             distributed_state=distributed_state,
+<<<<<<< HEAD
+=======
+            package=package,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self._throw_if_in_functorch()
@@ -3448,7 +3763,10 @@ class InstructionTranslator(InstructionTranslatorBase):
                 torch_function_mode_stack
             )
 
+<<<<<<< HEAD
             self.debug_locals: list[tuple[VariableTracker, list[VariableTracker]]] = []
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if export:
                 # export gets confused if we never realize unused inputs
                 # in export mode just eagerly realize everything
@@ -3511,7 +3829,11 @@ class InstructionTranslator(InstructionTranslatorBase):
             and not self.active_generic_context_managers
         )
 
+<<<<<<< HEAD
     def create_call_resume_at(self, inst):
+=======
+    def create_call_resume_at(self, inst, all_stack_locals_metadata):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.instruction_pointer = None
 
         if inst.opname == "RETURN_VALUE":
@@ -3526,6 +3848,7 @@ class InstructionTranslator(InstructionTranslatorBase):
             if k in reads and k not in self.cell_and_freevars()
         )
         # NOTE: do not use isinstance, since it realizes lazy VT's
+<<<<<<< HEAD
         argnames = tuple(
             k
             for k in all_argnames
@@ -3538,12 +3861,24 @@ class InstructionTranslator(InstructionTranslatorBase):
         )
         if sys.version_info < (3, 12):
             assert len(argnames_null) == 0, "variables should not be NULL in < 3.12"
+=======
+        argnames_null_set = set(all_stack_locals_metadata[0].locals_null_keys)
+        argnames = tuple(k for k in all_argnames if k not in argnames_null_set)
+        argnames_null = tuple(k for k in all_argnames if k in argnames_null_set)
+        if sys.version_info < (3, 12):
+            assert len(argnames_null) == 0, "variables should not be NULL in < 3.12"
+        # compile_subgraph did not codegen any NULLs,
+        # so we should not count NullVariables
+        stack_len = len(self.stack) - len(all_stack_locals_metadata[0].stack_null_idxes)
+        nargs = stack_len + len(argnames)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cg = PyCodegen(self)
 
         # Handle inactive context variables.
         # The resume function assumes that context variables are the class, NOT the object.
         # e.g. torch.set_grad_enabled(True) will be reconstructed as torch.set_grad_enabled
+<<<<<<< HEAD
         stack_ctx_vars = []
         for i, var in enumerate(self.stack):
             if type.__instancecheck__(ContextWrappingVariable, var):
@@ -3597,6 +3932,27 @@ class InstructionTranslator(InstructionTranslatorBase):
         nargs = stack_len + len(argnames)
 
         name = unique_id(f"__resume_at_{inst.offset}")
+=======
+        # NOTE: if the unsupported instruction modifies the inactive context variable, it may
+        # result in silent incorrectness!
+        for (i, _), i_orig in zip(
+            all_stack_locals_metadata[0].stack_ctx_args,
+            all_stack_locals_metadata[0].stack_ctx_idxes_orig,
+        ):
+            # Replace the current stack var with the context class
+            ctx = cast(ContextWrappingVariable, self.stack[i_orig])
+            ctx.reconstruct_type(cg)
+            cg.extend_output(create_swap(stack_len - i + 1))
+            cg.append_output(create_instruction("POP_TOP"))
+
+        for name, _ in all_stack_locals_metadata[0].locals_ctx_args:
+            # Replace the local with the context class
+            ctx = cast(ContextWrappingVariable, self.symbolic_locals[name])
+            ctx.reconstruct_type(cg)
+            cg.append_output(create_instruction("STORE_FAST", argval=name))
+
+        name = unique_id(f"__resume_at_{inst.offset}", with_uuid=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         new_code: types.CodeType = ContinueExecutionCache.lookup(
             self.f_code,
@@ -3607,9 +3963,15 @@ class InstructionTranslator(InstructionTranslatorBase):
             argnames,
             argnames_null,
             tuple(b.resume_fn() for b in self.block_stack),
+<<<<<<< HEAD
             tuple(stack_ctx_vars),
             tuple(argnames_ctx_vars),
             tuple(null_idxes),
+=======
+            tuple(all_stack_locals_metadata[0].stack_ctx_args),
+            tuple(all_stack_locals_metadata[0].locals_ctx_args),
+            tuple(all_stack_locals_metadata[0].stack_null_idxes),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Add original GraphModule context to the resume function to handle
@@ -3626,12 +3988,25 @@ class InstructionTranslator(InstructionTranslatorBase):
             # expose code object for debugging purposes
             self.output.install_global_unsafe(name, new_code)
             cg.make_function_with_closure(name, new_code, True, stack_len)
+<<<<<<< HEAD
+=======
+            package_name = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             # This is safe: we pre-generate a unique name
             self.output.install_global_unsafe(
                 name, types.FunctionType(new_code, self.f_globals, name)
             )
             cg.extend_output(cg.load_function_name(name, True, stack_len))
+<<<<<<< HEAD
+=======
+            package_name = name
+
+        if self.package is not None:
+            self.package.add_resume_function(
+                new_code, self.f_globals["__name__"], package_name
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cg.extend_output([cg.create_load(k) for k in argnames])
         cg.extend_output(create_call_function(nargs, False))
@@ -3681,12 +4056,23 @@ class InstructionTranslator(InstructionTranslatorBase):
             f"torchdynamo done tracing {self.f_code.co_name} ({inst.opname})",
         )
         log.debug("%s triggered compile", inst.opname)
+<<<<<<< HEAD
         self.output.compile_subgraph(
+=======
+        all_stack_locals_metadata = self.output.compile_subgraph(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self,
             reason=GraphCompileReason(
                 "return_value", [self.frame_summary()], graph_break=False
             ),
         )
+<<<<<<< HEAD
+=======
+        # check that our stack/locals meta are correct:
+        # we should only be tracing 1 frame, and there should not be any NULLs on the stack
+        assert len(all_stack_locals_metadata) == 1
+        assert not all_stack_locals_metadata[0].stack_null_idxes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return_inst = (
             create_instruction("RETURN_VALUE")
             if inst.opname == "RETURN_VALUE"
@@ -3716,6 +4102,10 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
     """Trace and inline a called method"""
 
     symbolic_result: Optional[VariableTracker]
+<<<<<<< HEAD
+=======
+    parent: InstructionTranslatorBase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @classmethod
     def inline_call(cls, parent, func, args, kwargs):
@@ -3734,6 +4124,25 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
                 hints=[],
             )
 
+<<<<<<< HEAD
+=======
+        if isinstance(func, UserFunctionVariable) and inspect.getattr_static(
+            func.get_function(), "_torchdynamo_disable", False
+        ):
+            msg = inspect.getattr_static(
+                func.get_function(), "_torchdynamo_disable_msg", None
+            )
+            unimplemented_v2(
+                gb_type="Skip inlining `torch.compiler.disable()`d function",
+                context=str(func.get_function()),
+                explanation=f"Skip inlining function {func.get_function()} since it was wrapped "
+                f"with `torch.compiler.disable` (reason: {msg})",
+                hints=[
+                    "Remove the `torch.compiler.disable` call",
+                ],
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = trace_rules.check_verbose(func, is_inlined_call=True)
         if result.skipped:
             from torch._dynamo.variables.misc import produce_trampoline_autograd_apply
@@ -3753,11 +4162,18 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
             ]
             if "_dynamo" not in func.get_filename():
                 hints += [
+<<<<<<< HEAD
                     f"Remove the function `{fn_qualname}` or the file `{func.get_filename()}` "
                     "from torch/_dynamo/trace_rules.py. More graph breaks may occur as a result of "
                     "attempting to trace into the function.",
                     "Please file an issue to PyTorch.",
                     # TODO suggest mark_force_inline when implemented
+=======
+                    f"Apply `@torch._dynamo.dont_skip_tracing` to the function `{fn_qualname}` "
+                    "to force tracing into the function. "
+                    "More graph breaks may occur as a result of attempting to trace into the function.",
+                    "Please file an issue to PyTorch.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             unimplemented_v2(
                 gb_type="Attempted to inline function marked as skipped",
@@ -3768,6 +4184,7 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
                 hints=hints,
             )
 
+<<<<<<< HEAD
         if isinstance(func, UserFunctionVariable) and inspect.getattr_static(
             func.get_function(), "_torchdynamo_disable", False
         ):
@@ -3781,6 +4198,9 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
             )
         else:
             return result
+=======
+        return result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def build_inline_tracer(
@@ -3789,6 +4209,7 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
         args: list[VariableTracker],
         kwargs,
     ):
+<<<<<<< HEAD
         if isinstance(func, SkipFunctionVariable):
             unimplemented_v2(
                 gb_type="Attempted to inline function marked as skipped (SkipFunctionVariable)",
@@ -3796,6 +4217,8 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
                 explanation="Attempted to inline a function that was previously determined to be marked as intentionally skipped.",
                 hints=[],
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(
             func,
             (
@@ -3805,8 +4228,40 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
                 LocalGeneratorObjectVariable,
             ),
         )
+<<<<<<< HEAD
         result = InliningInstructionTranslator.check_inlineable(func)
         assert result.skipped is False
+=======
+        code: types.CodeType = func.get_code()
+        result = None
+        tracing_ctx = parent.output.tracing_context
+
+        # Check if we have already identified this function to be inline-able.
+        # The exception is dont_skip_tracing flag which affects the inline
+        # behavior. If the flag is True, don't rely on previous results.
+        if not config.dont_skip_tracing and tracing_ctx:
+            if previous_result := tracing_ctx.previously_inlined_functions.get(
+                code, None
+            ):
+                result = previous_result
+
+        if result is None:
+            if isinstance(func, SkipFunctionVariable):
+                unimplemented_v2(
+                    gb_type="Attempted to inline function marked as skipped (SkipFunctionVariable)",
+                    context=f"Attempted to inline a SkipFunctionVariable {func}",
+                    explanation=(
+                        "Attempted to inline a function that was previously determined to be marked as intentionally skipped."
+                    ),
+                    hints=[],
+                )
+            result = InliningInstructionTranslator.check_inlineable(func)
+            assert result.skipped is False
+
+            if not config.dont_skip_tracing and tracing_ctx:
+                tracing_ctx.previously_inlined_functions[code] = result
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             sub_locals = func.bind_args(parent, args, kwargs)
         except TypeError as e:
@@ -3829,7 +4284,10 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
                     hints=[*graph_break_hints.DYNAMO_BUG],
                 )
 
+<<<<<<< HEAD
         code: types.CodeType = func.get_code()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if code.co_name in ("__setitem__", "__setattr__") and not (
             args and isinstance(args[0], variables.UserDefinedObjectVariable)
         ):
@@ -3848,9 +4306,17 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
         if sys.version_info >= (3, 11):
             cur_inst = parent.current_instruction
             parent_code = parent.f_code
+<<<<<<< HEAD
             header = parent.get_line_of_code_header(lineno=cur_inst.positions.lineno)
 
             def get_trace_call_log_str():
+=======
+
+            def get_trace_call_log_str():
+                header = parent.get_line_of_code_header(
+                    lineno=cur_inst.positions.lineno
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 line = get_instruction_source_311(parent_code, cur_inst).rstrip()
                 return f"TRACE inlined call {code.co_name} from {header}\n{line}"
 
@@ -3922,6 +4388,10 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
         parent.inconsistent_side_effects |= self.inconsistent_side_effects
 
         log.debug("DONE INLINING %s", code)
+<<<<<<< HEAD
+=======
+        self.output.tracing_context.traced_code.append(code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if config.enable_faithful_generator_behavior or (
             isinstance(self, InliningGeneratorInstructionTranslator)
@@ -3961,8 +4431,30 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
         f_builtins = f_globals["__builtins__"]
         if not isinstance(f_builtins, dict):
             f_builtins = f_builtins.__dict__
+<<<<<<< HEAD
         instructions = cleaned_instructions(code)
         propagate_line_nums(instructions)
+=======
+
+        # Get the cached instructions. These instructions are safe to cache
+        # because we dont mutate them in transform_code_object (those
+        # instructions are for the top most Instruction translator).  Also, we
+        # have to be careful about not using _cached_cleaned_instructions here
+        # because that function is global, while we want the the cache to be
+        # alive only during a compmilation.
+        tracing_ctx = parent.output.tracing_context
+        instructions = None
+        if tracing_ctx:
+            if tracing_ctx.previously_cleaned_instructions.get(code):
+                instructions = tracing_ctx.previously_cleaned_instructions[code]
+
+        if instructions is None:
+            instructions = cleaned_instructions(code)
+            propagate_line_nums(instructions)
+            if tracing_ctx:
+                tracing_ctx.previously_cleaned_instructions[code] = instructions
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             output=parent.output,
             f_locals={},
@@ -3979,6 +4471,10 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
             speculation_log=parent.speculation_log,
             exn_vt_stack=parent.exn_vt_stack,
             distributed_state=parent.distributed_state,
+<<<<<<< HEAD
+=======
+            package=parent.package,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.funcvar = funcvar
         self.parent = parent
@@ -3997,7 +4493,11 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
     def should_compile_partial_graph(self):
         return False  # inlining functions is all-or-nothing
 
+<<<<<<< HEAD
     def create_call_resume_at(self, offset):
+=======
+    def create_call_resume_at(self, inst, all_stack_locals_metadata):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unimplemented_v2(
             gb_type="Graph break in inlined function",
             context="",
@@ -4016,7 +4516,16 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
         raise ReturnValueOp
 
     def get_globals_source_and_value(self, name):
+<<<<<<< HEAD
         if "__name__" in self.f_globals:
+=======
+        # NamedTuple's `__new__` has a fake global scope that's not an actual
+        # module. TODO generalize the check for other non-importable cases.
+        # https://github.com/python/cpython/blob/8421b03b16a4852a527256cb7cdce2ab2d318548/Lib/collections/__init__.py#L441-L447
+        if "__name__" in self.f_globals and not self.f_globals["__name__"].startswith(
+            "namedtuple_"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             module_name = self.f_globals["__name__"]
             module_source = self.import_source(module_name)
             if "torch_package" in module_name:
@@ -4027,7 +4536,12 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
                 )  # type: ignore[assignment]
             else:
                 fglobals_value = _import_module(module_name)
+<<<<<<< HEAD
             fglobals_vt = VariableTracker.build(self, fglobals_value, module_source)
+=======
+            # Dont use lazy vt because we will do a setattr afterwards
+            fglobals_vt = VariableBuilder(self, module_source)(fglobals_value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             global_source = AttrSource(module_source, name)
         else:
             globals_name = self.output.install_global_by_id(
@@ -4035,27 +4549,46 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
             )
             globals_source = GlobalSource(globals_name)
             fglobals_value = self.f_globals  # type: ignore[assignment]
+<<<<<<< HEAD
             fglobals_vt = VariableTracker.build(self, fglobals_value, globals_source)
+=======
+            # Dont use lazy vt because we will do a setattr afterwards
+            fglobals_vt = VariableBuilder(self, globals_source)(fglobals_value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             global_source = DictGetItemSource(globals_source, name)  # type: ignore[assignment]
         return fglobals_value, fglobals_vt, global_source
 
     def _load_global(self, inst):
+<<<<<<< HEAD
+=======
+        name = inst.argval
+        if name not in self.f_globals:
+            return self.load_builtin(inst)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.output.global_scope is self.f_globals:
             # If the global scope matches that of the root frame, use handler in
             # root frame instruction translator, to enforce consistency.
             super()._load_global(inst)
         else:
+<<<<<<< HEAD
             name = inst.argval
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _, fglobals_vt, global_source = self.get_globals_source_and_value(name)
             if self.output.side_effects.has_pending_mutation_of_attr(fglobals_vt, name):
                 self.push(self.output.side_effects.load_attr(fglobals_vt, name))
             else:
+<<<<<<< HEAD
                 try:
                     value = self.f_globals[name]
                 except KeyError:
                     return self.load_builtin(inst)
 
+=======
+                value = self.f_globals[name]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.push(VariableTracker.build(self, value, global_source))
 
     def STORE_GLOBAL(self, inst):
@@ -4079,7 +4612,11 @@ class InliningInstructionTranslator(InstructionTranslatorBase):
 
 class InliningGeneratorInstructionTranslator(InliningInstructionTranslator):
     generated_items: list[VariableTracker]
+<<<<<<< HEAD
     # Flag wether or not the InlineGenerator should consume the entire iterator
+=======
+    # Flag whether or not the InlineGenerator should consume the entire iterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

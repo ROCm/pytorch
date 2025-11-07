@@ -66,7 +66,11 @@ void initPythonCustomClassBindings(PyObject* module) {
               return ScriptClassFunctionPtr(fn);
             }
 
+<<<<<<< HEAD
             throw AttributeError("%s does not exist", name.c_str());
+=======
+            throw AttributeError(fmt::format("{} does not exist", name));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def_property_readonly("__doc__", [](const ScriptClass& self) {
         return self.class_type_.type_->expectRef<ClassType>().doc_string();

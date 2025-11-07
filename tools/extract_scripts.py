@@ -42,7 +42,11 @@ def extract(step: Step) -> Script | None:
             "bash": f"#!/usr/bin/env bash\nset -eo pipefail\n{run}",
             "sh": f"#!/usr/bin/env sh\nset -e\n{run}",
         }.get(shell, run)
+<<<<<<< HEAD
         return {"extension": extension, "script": script}
+=======
+        return {"extension": extension, "script": script}  # type: ignore[typeddict-item]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif is_gh_script and gh_script is not None:
         return {"extension": ".js", "script": gh_script}
     else:

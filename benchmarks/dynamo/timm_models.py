@@ -71,6 +71,10 @@ BATCH_SIZE_DIVISORS = {
 }
 
 REQUIRE_HIGHER_TOLERANCE = {
+<<<<<<< HEAD
+=======
+    "crossvit_9_240",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "fbnetv3_b",
     "gmixer_24_224",
     "hrnet_w18",
@@ -80,6 +84,10 @@ REQUIRE_HIGHER_TOLERANCE = {
     "sebotnet33ts_256",
     "selecsls42b",
     "convnext_base",
+<<<<<<< HEAD
+=======
+    "cait_m36_384",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 REQUIRE_HIGHER_TOLERANCE_AMP = {
@@ -127,6 +135,11 @@ REQUIRE_LARGER_MULTIPLIER_FOR_SMALLER_TENSOR = {
     "inception_v3",
     "mobilenetv3_large_100",
     "cspdarknet53",
+<<<<<<< HEAD
+=======
+    "gluon_inception_v3",
+    "cait_m36_384",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -427,7 +440,11 @@ class TimmRunner(BenchmarkRunner):
         self.grad_scaler.scale(loss).backward()
         self.optimizer_step()
         if collect_outputs:
+<<<<<<< HEAD
             return collect_results(mod, pred, loss, cloned_inputs)
+=======
+            return collect_results(mod, None, loss, cloned_inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
 

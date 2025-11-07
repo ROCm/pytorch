@@ -13,6 +13,10 @@ from ..select_algorithm import (
     TritonTemplate,
 )
 from ..utils import (
+<<<<<<< HEAD
+=======
+    _use_cutlass_for_op,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     use_aten_gemm_kernels,
     use_ck_gemm_template,
     use_cpp_bmm_template,
@@ -23,10 +27,17 @@ from ..virtualized import V
 from .mm_common import (
     _is_static_problem,
     addmm_epilogue,
+<<<<<<< HEAD
     mm_args,
     mm_config_kwargs,
     mm_options,
     should_fallback_to_aten,
+=======
+    is_batch_stride_largest,
+    mm_args,
+    mm_config_kwargs,
+    mm_options,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -74,6 +85,11 @@ bmm_template = TritonTemplate(
     group_size = min(grid_m - group_id * GROUP_M, GROUP_M)
     pid_m = group_id * GROUP_M + (pid % group_size)
     pid_n = (pid % width) // (group_size)
+<<<<<<< HEAD
+=======
+    tl.assume(pid_m >= 0)
+    tl.assume(pid_n >= 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
     rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
@@ -115,16 +131,36 @@ bmm_template = TritonTemplate(
     # inductor generates a suffix
     {{store_output(("idx_q", "idx_m", "idx_n"), "acc", "mask")}}
 """,
+<<<<<<< HEAD
 )
 
 aten_bmm = ExternKernelChoice(torch.bmm, "at::bmm_out")
+=======
+    cache_codegen_enabled_for_template=True,
+)
+
+aten_bmm = ExternKernelChoice(torch.bmm, "at::bmm_out")
+aten_bmm_dtype = ExternKernelChoice(
+    torch.bmm,
+    "at::_bmm_out_dtype_cuda",
+    name="bmm_dtype",
+    op_overload=aten.bmm.dtype_out,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 aten_baddbmm = ExternKernelChoice(
     torch.baddbmm, "at::baddbmm_out", op_overload=aten.baddbmm.out
 )
 
 
 @L.register_lowering(aten.bmm)
+<<<<<<< HEAD
 def tuned_bmm(mat1, mat2, *, layout=None):
+=======
+def tuned_bmm(mat1, mat2, out_dtype=None, *, layout=None):
+    """
+    Lowering for autotuning aten.bmm with different backends (Aten, Triton, CUTLASS, etc.)
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if all(x.get_device().type == "cpu" for x in [mat1, mat2]):
         # decompose to small ops when memory bound
         if mat1.get_size()[1] == 1 or mat2.get_size()[2] == 1:
@@ -162,12 +198,25 @@ def tuned_bmm(mat1, mat2, *, layout=None):
             meta_mat2 = V.graph.current_node.args[1]
             mat2 = may_require_contiguous(mat2, meta_mat2)
 
+<<<<<<< HEAD
     m, n, k, layout, mat1, mat2 = mm_args(mat1, mat2, layout=layout)
 
     # below is for getting an overview logging info of inductor mms
     counters["aten_mm_info"][f"aten.bmm_{m}_{n}_{k}"] += 1
     log.info(
         "Tuned aten.bmm: m=%s, n=%s, k=%s, mat1_dtype=%s, mat2_dtype=%s, output_layout=%s",
+=======
+    m, n, k, layout, mat1, mat2 = mm_args(
+        mat1, mat2, layout=layout, out_dtype=out_dtype
+    )
+
+    # below is for getting an overview logging info of inductor mms
+    batch_size = mat1.get_size()[0]  # Extract batch dimension
+    counters["aten_mm_info"][f"aten.bmm_{batch_size}_{m}_{n}_{k}"] += 1
+    log.info(
+        "Tuned aten.bmm: batch=%s, m=%s, n=%s, k=%s, mat1_dtype=%s, mat2_dtype=%s, output_layout=%s",
+        batch_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m,
         n,
         k,
@@ -176,15 +225,38 @@ def tuned_bmm(mat1, mat2, *, layout=None):
         layout,
     )
 
+<<<<<<< HEAD
     # options to tune from
     choices = [aten_bmm.bind((mat1, mat2), layout)] if use_aten_gemm_kernels() else []
+=======
+    if out_dtype:
+        assert mat1.get_device().type == "cuda", "out_dtype is only supported for CUDA"
+        aten_func = aten_bmm_dtype.bind((mat1, mat2), layout, out_dtype=out_dtype)
+    else:
+        aten_func = aten_bmm.bind((mat1, mat2), layout)
+
+    # options to tune from
+    choices = [aten_func] if use_aten_gemm_kernels() else []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     device_type = ir.get_device_type(mat1)
     bmm_configs = V.choices.get_base_mm_configs(device_type)
 
+<<<<<<< HEAD
     if use_triton_template(layout):
         for config in bmm_configs(
             m, n, k, **mm_config_kwargs(device_type, _is_large_block_for_cpu)
+=======
+    dtype = mat1.get_dtype()
+    if use_triton_template(layout):
+        # TODO: add out_dtype support for Triton Template
+        assert out_dtype is None, "out_dtype is not supported for Triton"
+        for config in bmm_configs(
+            m,
+            n,
+            k,
+            **mm_config_kwargs(device_type, _is_large_block_for_cpu, dtype.itemsize),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             bmm_template.maybe_append_choice(
                 choices,
@@ -192,11 +264,25 @@ def tuned_bmm(mat1, mat2, *, layout=None):
                 layout=layout,
                 **mm_options(config, m, n, k, layout),
             )
+<<<<<<< HEAD
     static_shape, is_nonzero = _is_static_problem(layout)
     if static_shape and is_nonzero and use_cutlass_template(layout, m, n, k):
         from ..codegen.cuda.gemm_template import CUTLASS3xGemmTemplate
 
         CUTLASS3xGemmTemplate.add_cutlass_gemm_choices(choices, layout, [mat1, mat2])
+=======
+    _, is_nonzero = _is_static_problem(layout)
+    batch_stride_largest = is_batch_stride_largest(mat1, mat2, layout)
+    if (
+        batch_stride_largest
+        and is_nonzero
+        and use_cutlass_template(layout, m, n, k)
+        and _use_cutlass_for_op("bmm")
+    ):
+        from ..codegen.cuda.gemm_template import CUTLASS3xGemmTemplate
+
+        CUTLASS3xGemmTemplate.add_cutlass_gemm_choices(choices, layout, [mat1, mat2])  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if use_cpp_bmm_template(layout, mat1, mat2):
         from ..codegen.cpp_bmm_template import CppBmmTemplate
@@ -210,9 +296,12 @@ def tuned_bmm(mat1, mat2, *, layout=None):
     if use_ck_gemm_template(layout, m, n, k):
         CKGemmTemplate.add_ck_gemm_choices(choices, layout, [mat1, mat2])
 
+<<<<<<< HEAD
     if should_fallback_to_aten(choices):
         choices.append(aten_bmm.bind((mat1, mat2), layout))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return autotune_select_algorithm("bmm", choices, [mat1, mat2], layout)
 
 
@@ -221,9 +310,17 @@ def tuned_baddbmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
     m, n, k, layout, mat1, mat2, inp = mm_args(mat1, mat2, inp, layout=layout)
 
     # below is for getting an overview logging info of inductor mms
+<<<<<<< HEAD
     counters["aten_mm_info"][f"aten.baddbmm_{m}_{n}_{k}"] += 1
     log.info(
         "Tuned aten.baddbmm: m=%s, n=%s, k=%s, mat1_dtype=%s, mat2_dtype=%s, inp=%s, output_layout=%s",
+=======
+    batch_size = mat1.get_size()[0]
+    counters["aten_mm_info"][f"aten.baddbmm_{batch_size}_{m}_{n}_{k}"] += 1
+    log.info(
+        "Tuned aten.baddbmm: batch_size=%s, m=%s, n=%s, k=%s, mat1_dtype=%s, mat2_dtype=%s, inp=%s, output_layout=%s",
+        batch_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m,
         n,
         k,
@@ -254,6 +351,10 @@ def tuned_baddbmm(inp, mat1, mat2, *, alpha=1, beta=1, layout=None):
                 **mm_options(config, m, n, k, layout),
                 prefix_args=1,
                 epilogue_fn=addmm_epilogue(layout.dtype, alpha, beta),
+<<<<<<< HEAD
+=======
+                epilogue_fn_hash=str(["addmm_epilogue", layout.dtype, alpha, beta]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     return autotune_select_algorithm("baddbmm", choices, [inp, mat1, mat2], layout)

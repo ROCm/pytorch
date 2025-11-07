@@ -7,7 +7,11 @@ import sys
 import unittest
 
 import torch
+<<<<<<< HEAD
 from torch._dynamo.config import is_fbcode
+=======
+from torch._environment import is_fbcode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._subclasses.fake_tensor import FakeTensor
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,

@@ -56,32 +56,58 @@ class TestDistributedCheckpoint(FSDPTest):
             torch.manual_seed(200)
             new_model = wrap(SkipModel(double_nest=True))
 
+<<<<<<< HEAD
         with FullyShardedDataParallel.summon_full_params(
             model
         ), FullyShardedDataParallel.summon_full_params(new_model):
+=======
+        with (
+            FullyShardedDataParallel.summon_full_params(model),
+            FullyShardedDataParallel.summon_full_params(new_model),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             params = list(model.parameters())
             new_params = list(new_model.parameters())
             self.assertNotEqual(params, new_params)
 
         writer = FileSystemWriter(self.temp_dir)
         reader = FileSystemReader(self.temp_dir)
+<<<<<<< HEAD
         with FSDP.state_dict_type(model, state_dict_type), FSDP.state_dict_type(
             new_model, state_dict_type
+=======
+        with (
+            FSDP.state_dict_type(model, state_dict_type),
+            FSDP.state_dict_type(new_model, state_dict_type),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             state_dict = model.state_dict()
 
         save(state_dict, writer)
 
+<<<<<<< HEAD
         with FSDP.state_dict_type(model, state_dict_type), FSDP.state_dict_type(
             new_model, state_dict_type
+=======
+        with (
+            FSDP.state_dict_type(model, state_dict_type),
+            FSDP.state_dict_type(new_model, state_dict_type),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             state_dict = new_model.state_dict()
             load(state_dict, reader)
             new_model.load_state_dict(state_dict)
 
+<<<<<<< HEAD
         with FullyShardedDataParallel.summon_full_params(
             model
         ), FullyShardedDataParallel.summon_full_params(new_model):
+=======
+        with (
+            FullyShardedDataParallel.summon_full_params(model),
+            FullyShardedDataParallel.summon_full_params(new_model),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             params = list(model.parameters())
             new_params = list(new_model.parameters())
             self.assertEqual(params, new_params)

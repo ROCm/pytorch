@@ -116,10 +116,14 @@ public:
 
   DictIterator(const DictIterator& rhs): entryRef_(rhs.entryRef_) {}
   DictIterator(DictIterator&& rhs) noexcept: entryRef_(std::move(rhs.entryRef_)) {}
+<<<<<<< HEAD
   DictIterator& operator=(const DictIterator& rhs) {
     entryRef_ = rhs.entryRef_;
     return *this;
   }
+=======
+  DictIterator& operator=(const DictIterator& rhs) = default;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DictIterator& operator=(DictIterator&& rhs) noexcept {
     entryRef_ = std::move(rhs.entryRef_);
     return *this;

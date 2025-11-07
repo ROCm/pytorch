@@ -138,7 +138,11 @@ def _make_grads(
                 shape_matches = expect_true(sym_eq(out_size, first_grad.size()))
 
             if not shape_matches:
+<<<<<<< HEAD
                 out = cast(Union[torch.Tensor, graph.GradientEdge], out)
+=======
+                out = cast(Union[torch.Tensor, graph.GradientEdge], out)  # type: ignore[redundant-cast]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out_shape, grad_shape = _calculate_shape(
                     out, first_grad, is_grads_batched
                 )
@@ -325,8 +329,21 @@ def backward(
                 "arguments both passed to `backward()`. Please only "
                 "use `grad_tensors`."
             )
+<<<<<<< HEAD
     if inputs is not None and len(inputs) == 0:
         raise RuntimeError("`inputs` argument to `backward()` cannot be empty.")
+=======
+
+    inputs_tuple: tuple[Union[torch.Tensor, graph.GradientEdge], ...]
+    if inputs is None:
+        inputs_tuple = ()
+    elif isinstance(inputs, (torch.Tensor, graph.GradientEdge)):
+        inputs_tuple = (inputs,)
+    else:
+        inputs_tuple = tuple(inputs)
+        if len(inputs_tuple) == 0:
+            raise RuntimeError("`inputs` argument to `backward()` cannot be empty.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if is_tensor_like(tensors) or isinstance(tensors, graph.GradientEdge):
         tensors = cast(
@@ -334,6 +351,7 @@ def backward(
         )
     else:
         tensors = tuple(tensors)
+<<<<<<< HEAD
     inputs = (
         (inputs,)
         if isinstance(inputs, (torch.Tensor, graph.GradientEdge))
@@ -341,6 +359,8 @@ def backward(
         if inputs is not None
         else ()
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     grad_tensors_ = _tensor_or_tensors_to_tuple(grad_tensors, len(tensors))
     grad_tensors_ = _make_grads(tensors, grad_tensors_, is_grads_batched=False)
@@ -355,7 +375,11 @@ def backward(
         grad_tensors_,
         retain_graph,
         create_graph,
+<<<<<<< HEAD
         inputs,
+=======
+        inputs_tuple,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         allow_unreachable=True,
         accumulate_grad=True,
     )

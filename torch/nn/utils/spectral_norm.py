@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 """Spectral Normalization from https://arxiv.org/abs/1802.05957."""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Optional, TypeVar
 
 import torch

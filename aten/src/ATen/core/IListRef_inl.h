@@ -168,7 +168,13 @@ class IListRefTagImpl<IListRefTag::Boxed, at::OptionalTensorRef>
    */
   static IListRefConstRef<at::OptionalTensorRef> iterator_get(
       const typename list_type::const_iterator& it) {
+<<<<<<< HEAD
     const auto& ivalue = (*it).get();
+=======
+    C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wdangling-reference")
+    const auto& ivalue = (*it).get();
+    C10_DIAGNOSTIC_POP()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!ivalue.isNone()) {
         const auto& tensor = ivalue.toTensor();
         return (tensor.defined()) ? tensor : at::OptionalTensorRef{};

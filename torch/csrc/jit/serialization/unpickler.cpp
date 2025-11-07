@@ -270,6 +270,7 @@ void Unpickler::setInput(size_t memo_id) {
   }
 }
 
+<<<<<<< HEAD
 // emplace_back on bool vectors does not exist on some systems
 // avoid it by calling push_back for bool
 template <typename T>
@@ -282,6 +283,8 @@ inline void append<bool>(std::vector<bool>& a, bool&& e) {
   a.push_back(e);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::vector<int64_t> tupleToIntList(const IValue& v) {
   return fmap(v.toTupleRef().elements(), [](const IValue& v) -> int64_t {
     return v.toInt();
@@ -623,7 +626,12 @@ PickleOpCode Unpickler::readInstruction() {
       }
 
       if (device.is_cuda() || device.is_xpu() || device.is_meta() ||
+<<<<<<< HEAD
           device.is_hpu() || device.is_mps() || device.is_privateuseone()) {
+=======
+          device.is_mtia() || device.is_hpu() || device.is_mps() ||
+          device.is_privateuseone()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor = tensor.to(device, tensor.scalar_type());
       } else if (device.type() != DeviceType::CPU) {
         TORCH_CHECK(
@@ -1188,7 +1196,11 @@ void Unpickler::readList(IValue list_ivalue) {
   readListElements(std::move(list_ivalue), start);
 }
 
+<<<<<<< HEAD
 inline bool is_valid_python_id_char(char c) {
+=======
+static inline bool is_valid_python_id_char(char c) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return c == '_' || c == '.' || (c >= '0' && c <= '9') ||
       (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }

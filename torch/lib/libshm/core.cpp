@@ -8,10 +8,17 @@
 #include <libshm/libshm.h>
 #include <libshm/socket.h>
 
+<<<<<<< HEAD
 std::unordered_map<std::string, ClientSocket> managers;
 std::string manager_executable_path;
 
 AllocInfo get_alloc_info(const char* filename) {
+=======
+static std::unordered_map<std::string, ClientSocket> managers;
+static std::string manager_executable_path;
+
+static AllocInfo get_alloc_info(const char* filename) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AllocInfo info = {};
   info.pid = getpid();
   info.free = false;
@@ -23,12 +30,20 @@ AllocInfo get_alloc_info(const char* filename) {
   return info;
 }
 
+<<<<<<< HEAD
 void start_manager() {
   std::array<int, 2> pipe_ends;
   SYSCHECK_ERR_RETURN_NEG1(pipe(pipe_ends.data()));
 
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   pid_t pid;
+=======
+static void start_manager() {
+  std::array<int, 2> pipe_ends;
+  SYSCHECK_ERR_RETURN_NEG1(pipe(pipe_ends.data()));
+
+  pid_t pid = -1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SYSCHECK_ERR_RETURN_NEG1(pid = fork());
   if (!pid) {
     SYSCHECK_ERR_RETURN_NEG1(close(pipe_ends[0]));
@@ -78,7 +93,11 @@ void start_manager() {
   managers.emplace(std::move(handle), std::move(manager));
 }
 
+<<<<<<< HEAD
 ClientSocket& get_manager_socket(const std::string& manager_handle) {
+=======
+static ClientSocket& get_manager_socket(const std::string& manager_handle) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto it = managers.find(manager_handle);
   if (it == managers.end()) {
     auto socket = ClientSocket(manager_handle);
@@ -99,8 +118,12 @@ THManagedMapAllocatorInit::THManagedMapAllocatorInit(
     : manager_handle_(manager_handle ? manager_handle : "") {
   // TODO: unlock GIL when contacting the manager
   try {
+<<<<<<< HEAD
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     ClientSocket* socket;
+=======
+    ClientSocket* socket = nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!manager_handle_.empty()) {
       socket = &get_manager_socket(manager_handle_);
     } else {

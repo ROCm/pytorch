@@ -297,13 +297,25 @@ FileStore::FileStore(std::string path, int numWorkers)
   addHelper(refCountKey_, 1);
 }
 
+<<<<<<< HEAD
+=======
+c10::intrusive_ptr<Store> FileStore::clone() {
+  return c10::make_intrusive<FileStore>(path_, numWorkers_);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NOLINTNEXTLINE(bugprone-exception-escape)
 FileStore::~FileStore() {
   // If the file does not exist - exit.
   // This can happen when FileStore is invoked from python language which has
   // GC. If python code has directory cleanup procedure, the race condition may
+<<<<<<< HEAD
   // occur between that code and this deconstructor. As a result, we check for
   // file existense before cleanup
+=======
+  // occur between that code and this destructor. As a result, we check for
+  // file existence before cleanup
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef _WIN32
   int res = syscall(std::bind(::_access, path_.c_str(), 0));
 #else
@@ -319,7 +331,11 @@ FileStore::~FileStore() {
   auto numFinishedWorker = addHelper(cleanupKey_, 1);
   auto refCount = addHelper(refCountKey_, -1);
   // The last worker cleans up the file. If numWorkers was not initialized to
+<<<<<<< HEAD
   // a specific postive value (i.e. meaning that there was not a fixed number
+=======
+  // a specific positive value (i.e. meaning that there was not a fixed number
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // of workers), we don't attempt to clean.
   // Clean up the file if number of references is 0.
   if (refCount == 0 && numWorkers_ >= 0 && numFinishedWorker >= numWorkers_) {

@@ -2,9 +2,14 @@
 from typing import Optional, Union
 
 import torch
+<<<<<<< HEAD
 from torch._C._distributed_rpc import _TensorPipeRpcBackendOptionsBase
 
 from . import constants as rpc_contants
+=======
+
+from . import _is_tensorpipe_available, constants as rpc_contants
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 DeviceType = Union[int, str, torch.device]
@@ -43,6 +48,15 @@ def _to_device_list(devices: list[DeviceType]) -> list[torch.device]:
     return list(map(_to_device, devices))
 
 
+<<<<<<< HEAD
+=======
+if _is_tensorpipe_available:  # type: ignore[has-type]
+    from torch._C._distributed_rpc import _TensorPipeRpcBackendOptionsBase
+else:
+    _TensorPipeRpcBackendOptionsBase = object  # type: ignore[assignment, misc]
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TensorPipeRpcBackendOptions(_TensorPipeRpcBackendOptionsBase):
     r"""
     The backend options for

@@ -68,23 +68,40 @@ permissions: read-all
 jobs:
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
+<<<<<<< HEAD
 
   # NB: Keep this in sync with trunk.yml
   linux-focal-cuda12_6-py3_10-gcc9-inductor-build:
     name: cuda12.6-py3.10-gcc9-sm80
+=======
+      opt_out_experiments: lf
+
+  # NB: Keep this in sync with trunk.yml
+  build:
+    name: cuda12.8-py3.10-gcc9-sm80
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-focal-cuda12.6-py3.10-gcc9-sm80
       docker-image-name: pytorch-linux-focal-cuda12.6-cudnn9-py3-gcc9-inductor-benchmarks
+=======
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm80
+      docker-image-name: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc9-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       cuda-arch-list: '8.0'
       test-matrix: |
         { include: [
@@ -111,6 +128,7 @@ jobs:
       selected-test-configs: ${{ inputs.benchmark_configs }}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-focal-cuda12_6-py3_10-gcc9-inductor-test-nightly:
     name: cuda12.6-py3.10-gcc9-sm80
     uses: ./.github/workflows/_linux-test.yml
@@ -154,4 +172,53 @@ jobs:
       timeout-minutes: 720
       # disable monitor in perf tests for more investigation
       disable-monitor: true
+=======
+  test-nightly:
+    name: cuda12.8-py3.10-gcc9-sm80
+    uses: ./.github/workflows/_linux-test.yml
+    needs: build
+    if: github.event.schedule == '0 7 * * 1-6'
+    with:
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm80
+      dashboard-tag: training-true-inference-true-default-true-dynamic-true-cudagraphs-true-cppwrapper-true-aotinductor-true-freezing_cudagraphs-true-cudagraphs_low_precision-true
+      docker-image: ${{ needs.build.outputs.docker-image }}
+      test-matrix: ${{ needs.build.outputs.test-matrix }}
+      timeout-minutes: 720
+      disable-monitor: false
+      monitor-log-interval: 15
+      monitor-data-collect-interval: 4
+    secrets: inherit
+
+  test-weekly:
+    name: cuda12.8-py3.10-gcc9-sm80
+    uses: ./.github/workflows/_linux-test.yml
+    needs: build
+    if: github.event.schedule == '0 7 * * 0'
+    with:
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm80
+      dashboard-tag: training-true-inference-true-default-true-dynamic-true-cudagraphs-true-cppwrapper-true-aotinductor-true-freezing_cudagraphs-true-maxautotune-true-freeze_autotune_cudagraphs-true-cudagraphs_low_precision-true
+      docker-image: ${{ needs.build.outputs.docker-image }}
+      test-matrix: ${{ needs.build.outputs.test-matrix }}
+      timeout-minutes: 1440
+      # disable monitor in perf tests, next step is to enable it
+      disable-monitor: false
+      monitor-log-interval: 15
+      monitor-data-collect-interval: 4
+    secrets: inherit
+
+  test:
+    name: cuda12.8-py3.10-gcc9-sm80
+    uses: ./.github/workflows/_linux-test.yml
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    with:
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm80
+      dashboard-tag: training-${{ inputs.training }}-inference-${{ inputs.inference }}-default-${{ inputs.default }}-dynamic-${{ inputs.dynamic }}-cudagraphs-${{ inputs.cudagraphs }}-cppwrapper-${{ inputs.cppwrapper }}-aotinductor-${{ inputs.aotinductor }}-maxautotune-${{ inputs.maxautotune }}-freezing_cudagraphs-${{ inputs.freezing_cudagraphs }}-cudagraphs_low_precision-${{ inputs.cudagraphs }}
+      docker-image: ${{ needs.build.outputs.docker-image }}
+      test-matrix: ${{ needs.build.outputs.test-matrix }}
+      timeout-minutes: 720
+      disable-monitor: false
+      monitor-log-interval: 15
+      monitor-data-collect-interval: 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit

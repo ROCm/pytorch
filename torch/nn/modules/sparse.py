@@ -59,9 +59,17 @@ class Embedding(Module):
             embedding = nn.Embedding(n, d, max_norm=1.0)
             W = torch.randn((m, d), requires_grad=True)
             idx = torch.tensor([1, 2])
+<<<<<<< HEAD
             a = embedding.weight.clone() @ W.t()  # weight must be cloned for this to be differentiable
             b = embedding(idx) @ W.t()  # modifies weight in-place
             out = (a.unsqueeze(0) + b.unsqueeze(1))
+=======
+            a = (
+                embedding.weight.clone() @ W.t()
+            )  # weight must be cloned for this to be differentiable
+            b = embedding(idx) @ W.t()  # modifies weight in-place
+            out = a.unsqueeze(0) + b.unsqueeze(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             loss = out.sigmoid().prod()
             loss.backward()
 
@@ -150,6 +158,7 @@ class Embedding(Module):
         self.embedding_dim = embedding_dim
         if padding_idx is not None:
             if padding_idx > 0:
+<<<<<<< HEAD
                 assert (
                     padding_idx < self.num_embeddings
                 ), "Padding_idx must be within num_embeddings"
@@ -157,6 +166,15 @@ class Embedding(Module):
                 assert (
                     padding_idx >= -self.num_embeddings
                 ), "Padding_idx must be within num_embeddings"
+=======
+                assert padding_idx < self.num_embeddings, (
+                    "Padding_idx must be within num_embeddings"
+                )
+            elif padding_idx < 0:
+                assert padding_idx >= -self.num_embeddings, (
+                    "Padding_idx must be within num_embeddings"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 padding_idx = self.num_embeddings + padding_idx
         self.padding_idx = padding_idx
         self.max_norm = max_norm
@@ -248,9 +266,15 @@ class Embedding(Module):
             >>> embedding(input)
             tensor([[ 4.0000,  5.1000,  6.3000]])
         """
+<<<<<<< HEAD
         assert (
             embeddings.dim() == 2
         ), "Embeddings parameter is expected to be 2-dimensional"
+=======
+        assert embeddings.dim() == 2, (
+            "Embeddings parameter is expected to be 2-dimensional"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         rows, cols = embeddings.shape
         embedding = cls(
             num_embeddings=rows,
@@ -391,6 +415,7 @@ class EmbeddingBag(Module):
         self.scale_grad_by_freq = scale_grad_by_freq
         if padding_idx is not None:
             if padding_idx > 0:
+<<<<<<< HEAD
                 assert (
                     padding_idx < self.num_embeddings
                 ), "padding_idx must be within num_embeddings"
@@ -398,6 +423,15 @@ class EmbeddingBag(Module):
                 assert (
                     padding_idx >= -self.num_embeddings
                 ), "padding_idx must be within num_embeddings"
+=======
+                assert padding_idx < self.num_embeddings, (
+                    "padding_idx must be within num_embeddings"
+                )
+            elif padding_idx < 0:
+                assert padding_idx >= -self.num_embeddings, (
+                    "padding_idx must be within num_embeddings"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 padding_idx = self.num_embeddings + padding_idx
         self.padding_idx = padding_idx
         if _weight is None:
@@ -526,9 +560,15 @@ class EmbeddingBag(Module):
             >>> embeddingbag(input)
             tensor([[ 2.5000,  3.7000,  4.6500]])
         """
+<<<<<<< HEAD
         assert (
             embeddings.dim() == 2
         ), "Embeddings parameter is expected to be 2-dimensional"
+=======
+        assert embeddings.dim() == 2, (
+            "Embeddings parameter is expected to be 2-dimensional"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         rows, cols = embeddings.shape
         embeddingbag = cls(
             num_embeddings=rows,

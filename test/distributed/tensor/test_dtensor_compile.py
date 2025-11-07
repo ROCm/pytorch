@@ -1,6 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 # Owner(s): ["oncall: distributed"]
 
+<<<<<<< HEAD
+=======
+import contextlib
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copy
 import functools
 import unittest
@@ -13,6 +17,7 @@ import torch.distributed as dist
 import torch.nn as nn
 from torch._C import FileCheck
 from torch._inductor.utils import run_and_get_triton_code
+<<<<<<< HEAD
 from torch.distributed._tensor import (
     DeviceMesh,
     DTensor,
@@ -22,11 +27,20 @@ from torch.distributed._tensor import (
     Shard,
 )
 from torch.distributed._tensor.placement_types import DTensorSpec, TensorMeta
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     checkpoint_wrapper,
     CheckpointImpl,
 )
+<<<<<<< HEAD
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+=======
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.tensor import DeviceMesh, DTensor, Partial, Replicate, Shard
+from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     parallelize_module,
@@ -34,12 +48,20 @@ from torch.distributed.tensor.parallel import (
     PrepareModuleOutput,
     RowwiseParallel,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.tensor.placement_types import _StridedShard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_fsdp import get_devtype
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
     run_tests,
+<<<<<<< HEAD
+=======
+    skipIfHpu,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
     TEST_CUDA,
     TEST_HPU,
@@ -127,6 +149,63 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         res = fn(x)
         res.to_local().sum().backward()
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+    def test_dtensor_basic_export(self):
+        mesh = DeviceMesh("cuda", torch.arange(self.world_size))
+
+        param = torch.randn(4, 4)
+        param_x = DTensor.from_local(param, mesh, [Shard(0)], run_check=False)
+
+        class Foo(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.buffer = torch.nn.Buffer(param_x)
+
+            def forward(self, x):
+                inter = self.buffer + DTensor.from_local(
+                    x, mesh, [Shard(0)], run_check=False
+                )
+                return inter.to_local()
+
+        torch.utils._pytree.register_constant(
+            torch.distributed.tensor._dtensor_spec.DTensorSpec
+        )
+        torch.utils._pytree.register_constant(DeviceMesh)
+
+        ep = torch.export.export_for_training(
+            Foo(), (torch.randn(4, 4, dtype=torch.float64),), strict=False
+        )
+        self.assertExpectedInline(
+            str(ep.graph_module.code).strip(),
+            """\
+def forward(self, b_buffer, x):
+    _assert_tensor_metadata_default = torch.ops.aten._assert_tensor_metadata.default(x, dtype = torch.float64, device = device(type='cpu'), layout = torch.strided);  _assert_tensor_metadata_default = None
+    to = torch.ops.aten.to.dtype_layout(x, dtype = torch.float64, layout = torch.strided, device = device(type='cuda'));  x = None
+    view_as = torch.ops.aten.view_as.default(to, to);  to = None
+    dtensor___init__0 = self.dtensor___init__0
+    dtensor_const_func_spec0 = self.dtensor_const_func_spec0
+    flat_apply = torch.ops.higher_order.flat_apply(dtensor_const_func_spec0, dtensor___init__0, view_as, False);  dtensor_const_func_spec0 = dtensor___init__0 = view_as = None
+    add = torch.ops.aten.add.Tensor(b_buffer, flat_apply);  b_buffer = flat_apply = None
+    access_subclass_inner_tensor_default_4 = torch.ops.export.access_subclass_inner_tensor.default(add, '_local_tensor');  add = None
+    view_as_1 = torch.ops.aten.view_as.default(access_subclass_inner_tensor_default_4, access_subclass_inner_tensor_default_4);  access_subclass_inner_tensor_default_4 = None
+    return (view_as_1,)""",  # noqa: B950
+        )
+
+        self.assertExpectedInline(
+            str(ep.run_decompositions({}).graph_module.code).strip(),
+            """\
+def forward(self, b_parametrizations_buffer_original0, x):
+    _assert_tensor_metadata = torch.ops.aten._assert_tensor_metadata.default(x, None, None, torch.float64, device = device(type='cpu'), layout = torch.strided);  _assert_tensor_metadata = None
+    _to_copy = torch.ops.aten._to_copy.default(x, dtype = torch.float64, layout = torch.strided, device = device(type='cuda', index=0));  x = None
+    view = torch.ops.aten.view.default(_to_copy, [4, 4]);  _to_copy = None
+    add = torch.ops.aten.add.Tensor(b_parametrizations_buffer_original0, view);  b_parametrizations_buffer_original0 = view = None
+    view_1 = torch.ops.aten.view.default(add, [4, 4]);  add = None
+    return (view_1,)""",  # noqa: B950
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_placement_compile(self):
         def fn(x):
             a = 0
@@ -147,8 +226,15 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
             return a
 
         compiled_fn = torch.compile(backend="aot_eager", fullgraph=True)(fn)
+<<<<<<< HEAD
 
         for x in [Shard(0), Replicate(), Partial()]:
+=======
+        split_factors = [2, 3, 4]
+        for x in [Shard(0), Replicate(), Partial()] + [
+            _StridedShard(0, split_factor=s) for s in split_factors
+        ]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             opt_fn = fn(x)
             compiled_out = compiled_fn(x)
             self.assertEqual(opt_fn, compiled_out)
@@ -203,6 +289,10 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         res = opt_fn(x)
         self.assertEqual(res, ref)
 
+<<<<<<< HEAD
+=======
+    @skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dtensor_dynamic(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
 
@@ -429,6 +519,10 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         self.assertEqual(fn(x3), opt_fn(x3))
         self.assertEqual(cnt.frame_count, 2)
 
+<<<<<<< HEAD
+=======
+    @skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dtensor_partial_placement_redistribute_unbalanced_correct_strides(self):
         # Partial -> Shard on an unbalanced tensor results in:
         # - A contiguous DTensor
@@ -598,6 +692,10 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         res = opt_kwargs_fn(x)
         self.assertEqual(res, ref)
 
+<<<<<<< HEAD
+=======
+    @skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_dtensor_from_local_redistribute_async(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
         from torch.distributed._functional_collectives import AsyncCollectiveTensor
@@ -669,6 +767,10 @@ class TestDTensorCompile(torch._dynamo.test_case.TestCase):
         res = opt_fn(x_dt)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
+=======
+    @skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_graph_input_is_async(self):
         from torch.distributed._functional_collectives import AsyncCollectiveTensor
 
@@ -749,12 +851,16 @@ def forward(self, primals_1):
         out_dt = torch.matmul(tmp_dt, y_dt)
         out_dt.sum().backward()
 
+<<<<<<< HEAD
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @skip_if_lt_x_gpu(1)
     # TODO: somehow inductor bg compile threads are causing hangs at exit with distributed work dtor
     @patch.object(torch._inductor.config, "compile_threads", 1)
     @patch.object(torch._inductor.config, "reorder_for_compute_comm_overlap", True)
     def test_tp_compile_comm_reordering(self):
+=======
+    def _test_tp_compile_comm_reordering(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class FakeAttention(nn.Module):
             def __init__(self) -> None:
                 super().__init__()
@@ -820,9 +926,30 @@ def forward(self, primals_1):
             "buf0 = torch.ops._c10d_functional.all_gather_into_tensor.default(primal"
         ).check("torch.ops._c10d_functional.wait_tensor.default(buf0").check(
             "extern_kernels.mm(buf0,"
+<<<<<<< HEAD
         ).run(
             code
         )
+=======
+        ).run(code)
+
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    @skip_if_lt_x_gpu(1)
+    # TODO: somehow inductor bg compile threads are causing hangs at exit with distributed work dtor
+    @patch.object(torch._inductor.config, "compile_threads", 1)
+    @patch.object(torch._inductor.config, "reorder_for_compute_comm_overlap", True)
+    def test_tp_compile_comm_reordering(self):
+        self._test_tp_compile_comm_reordering()
+
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    @skip_if_lt_x_gpu(1)
+    # TODO: somehow inductor bg compile threads are causing hangs at exit with distributed work dtor
+    @patch.object(torch._inductor.config, "compile_threads", 1)
+    @patch.object(torch._inductor.config, "reorder_for_compute_comm_overlap", True)
+    @torch._inductor.config.patch("graph_partition", True)
+    def test_tp_compile_comm_reordering_graph_partition(self):
+        self._test_tp_compile_comm_reordering()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @instantiate_parametrized_tests
@@ -831,9 +958,23 @@ class TestDTensorCompileE2E(DTensorTestBase):
     def world_size(self):
         return 4
 
+<<<<<<< HEAD
     @with_comms
     @parametrize("is_seq_parallel", [True, False])
     def test_tp_compile_fullgraph(self, is_seq_parallel):
+=======
+    # multiprocess relies on pickling the source code
+    # so compiled autograd tests can't dynamically wrap this class
+    def _bwd_ctx(self, use_ca):
+        if not use_ca:
+            return contextlib.nullcontext()
+        return torch._dynamo.compiled_autograd._enable(torch.compile)
+
+    @with_comms
+    @parametrize("is_seq_parallel", [True, False])
+    @parametrize("use_ca", [True, False])
+    def test_tp_compile_fullgraph(self, is_seq_parallel, use_ca):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
 
         model = SimpleModel(self.device_type)
@@ -887,20 +1028,34 @@ class TestDTensorCompileE2E(DTensorTestBase):
         cnt = torch._dynamo.testing.CompileCounterWithBackend("aot_eager")
         compiled_mod = torch.compile(model, backend=cnt, fullgraph=True)
         compiled_out = compiled_mod(inp)
+<<<<<<< HEAD
         compiled_out.sum().backward()
+=======
+        with self._bwd_ctx(use_ca):
+            compiled_out.sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(compiled_out, out)
         self.assertEqual(cnt.frame_count, 1)
 
     @with_comms
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     def test_2d_fsdp_tp_compile(self):
+=======
+    @parametrize("use_ca", [True, False])
+    def test_2d_fsdp_tp_compile(self, use_ca):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         data_parallel_size = 2
         model = SimpleModel(self.device_type)
         model_copy = copy.deepcopy(model)
 
         # 2-D mesh is [dp, tp]
         twod_mesh = init_device_mesh(
+<<<<<<< HEAD
             "cuda",
+=======
+            self.device_type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (data_parallel_size, self.world_size // data_parallel_size),
             mesh_dim_names=["dp", "tp"],
         )
@@ -936,13 +1091,23 @@ class TestDTensorCompileE2E(DTensorTestBase):
         cnt = torch._dynamo.testing.CompileCounterWithBackend("aot_eager")
         compiled_2d = torch.compile(fsdp_2d, backend=cnt)
         compiled_output = compiled_2d(inp)
+<<<<<<< HEAD
+=======
+        with self._bwd_ctx(use_ca):
+            compiled_output.sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(out, compiled_output)
         self.assertEqual(cnt.frame_count, 1)
 
     @with_comms
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     def test_2d_fsdp_tp_ac_compile(self):
+=======
+    @parametrize("use_ca", [True, False])
+    def test_2d_fsdp_tp_ac_compile(self, use_ca):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dp_degree = 2
         tp_degree = self.world_size // dp_degree
         model = SimpleModel(self.device_type)
@@ -950,7 +1115,13 @@ class TestDTensorCompileE2E(DTensorTestBase):
 
         # 2-D mesh is [dp, tp]
         mesh_2d = init_device_mesh(
+<<<<<<< HEAD
             "cuda", mesh_shape=(dp_degree, tp_degree), mesh_dim_names=("dp", "tp")
+=======
+            self.device_type,
+            mesh_shape=(dp_degree, tp_degree),
+            mesh_dim_names=("dp", "tp"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         inp = torch.rand(20, 10, device=self.device_type)
@@ -985,7 +1156,12 @@ class TestDTensorCompileE2E(DTensorTestBase):
 
         # backward pass
         out.sum().backward()
+<<<<<<< HEAD
         compiled_output.sum().backward()
+=======
+        with self._bwd_ctx(use_ca):
+            compiled_output.sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # compare the gradients:
         for n, p in zip(fsdp_2d.parameters(), compiled_2d.parameters()):
@@ -993,8 +1169,16 @@ class TestDTensorCompileE2E(DTensorTestBase):
 
     @with_comms
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     def test_compile_dtensor_redistribute_backward(self):
         mesh = DeviceMesh(device_type="cuda", mesh=torch.arange(self.world_size))
+=======
+    @parametrize("use_ca", [True, False])
+    def test_compile_dtensor_redistribute_backward(self, use_ca):
+        mesh = DeviceMesh(
+            device_type=self.device_type, mesh=torch.arange(self.world_size)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(x, y):
             dt = DTensor.from_local(x.reshape(2, 4), mesh, [Shard(0)], run_check=False)
@@ -1017,7 +1201,12 @@ class TestDTensorCompileE2E(DTensorTestBase):
 
         # Now run and assert the backward + gradients
         ref.sum().backward()
+<<<<<<< HEAD
         res.sum().backward()
+=======
+        with self._bwd_ctx(use_ca):
+            res.sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(x_ref.grad, x.grad)
         self.assertEqual(y_ref.grad, y.grad)

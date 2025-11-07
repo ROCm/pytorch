@@ -23,6 +23,7 @@ def check_decomposition_has_type_annotations(f):
     inspect_empty = inspect._empty  # type: ignore[attr-defined]
     sig = inspect.signature(f)
     for param in sig.parameters.values():
+<<<<<<< HEAD
         assert (
             param.annotation != inspect_empty
         ), f"No signature on param {param.name} for function {f.name}"
@@ -30,6 +31,15 @@ def check_decomposition_has_type_annotations(f):
     assert (
         sig.return_annotation != inspect_empty
     ), f"No return annotation for function {f.name}"
+=======
+        assert param.annotation != inspect_empty, (
+            f"No signature on param {param.name} for function {f.name}"
+        )
+
+    assert sig.return_annotation != inspect_empty, (
+        f"No return annotation for function {f.name}"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def signatures_match(decomposition_sig, torch_op_sig):
@@ -75,9 +85,15 @@ def register_decomposition(
         assert isinstance(aten_op, torch._ops.OpOverload)
 
         # Need unique name for jit function serialization
+<<<<<<< HEAD
         assert (
             f.__name__ not in function_name_set
         ), f"Duplicated function name {f.__name__}"
+=======
+        assert f.__name__ not in function_name_set, (
+            f"Duplicated function name {f.__name__}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         function_name_set.add(f.__name__)
 
         scripted_func = torch.jit.script(f)

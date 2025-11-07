@@ -2,6 +2,10 @@
 #include <ATen/Context.h>
 #include <libkineto.h>
 #include <torch/csrc/autograd/profiler_kineto.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/mtia/profiler/MTIAMemoryProfiler.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/profiler/kineto_client_interface.h>
 #include <chrono>
 #include <thread>
@@ -23,7 +27,13 @@ using namespace torch::autograd::profiler;
 
 class LibKinetoClient : public libkineto::ClientInterface {
  public:
+<<<<<<< HEAD
   void init() override {}
+=======
+  void init() override {
+    ::torch::mtia::initMemoryProfiler();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void prepare(
       bool report_input_shapes = false,
@@ -58,6 +68,23 @@ class LibKinetoClient : public libkineto::ClientInterface {
     (void)disableProfiler();
   }
 
+<<<<<<< HEAD
+=======
+  void start_memory_profile() override {
+    LOG(INFO) << "Starting on-demand memory profile";
+    startMemoryProfile();
+  }
+
+  void stop_memory_profile() override {
+    LOG(INFO) << "Stopping on-demand memory profile";
+    stopMemoryProfile();
+  }
+
+  void export_memory_profile(const std::string& path) override {
+    exportMemoryProfile(path);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   // Temporarily disable shape collection until
   // we re-roll out the feature for on-demand cases

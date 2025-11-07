@@ -18,6 +18,10 @@ from torch.fx.passes.utils.source_matcher_utils import (
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
+=======
+    raise_on_run_directly,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
 )
 from torch.testing._internal.jit_utils import JitTestCase
@@ -481,3 +485,9 @@ class TestSourceMatcher(JitTestCase):
 
 
 instantiate_parametrized_tests(TestSourceMatcher)
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_fx.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

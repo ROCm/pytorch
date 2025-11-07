@@ -146,17 +146,30 @@ nvrtcResult nvrtcCreateProgram(nvrtcProgram *prog,
 NVRTC_STUB1(nvrtcDestroyProgram, nvrtcProgram *)
 NVRTC_STUB2(nvrtcGetPTXSize, nvrtcProgram, size_t *)
 NVRTC_STUB2(nvrtcGetPTX, nvrtcProgram, char *)
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 11010
 NVRTC_STUB2(nvrtcGetCUBINSize, nvrtcProgram, size_t *)
 NVRTC_STUB2(nvrtcGetCUBIN, nvrtcProgram, char *)
 #endif
+=======
+NVRTC_STUB2(nvrtcGetCUBINSize, nvrtcProgram, size_t *)
+NVRTC_STUB2(nvrtcGetCUBIN, nvrtcProgram, char *)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 NVRTC_STUB3(nvrtcCompileProgram, nvrtcProgram, int, const char * const *)
 _STUB_1(NVRTC, nvrtcGetErrorString, const char *, nvrtcResult)
 NVRTC_STUB2(nvrtcGetProgramLogSize,nvrtcProgram, size_t*)
 NVRTC_STUB2(nvrtcGetProgramLog, nvrtcProgram, char *)
 NVRTC_STUB3(nvrtcGetLoweredName, nvrtcProgram, const char *, const char **)
 
+<<<<<<< HEAD
 CUDA_STUB2(cuModuleLoadData, CUmodule *, const void *)
+=======
+CUDA_STUB2(cuModuleLoad, CUmodule*, const char*)
+CUDA_STUB2(cuModuleLoadData, CUmodule *, const void *)
+CUDA_STUB2(cuFuncSetCacheConfig, CUfunction, CUfunc_cache_enum)
+CUDA_STUB3(cuDeviceGetAttribute, int*, CUdevice_attribute_enum, CUdevice)
+CUDA_STUB2(cuDeviceGet, CUdevice*, int)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDA_STUB3(cuModuleGetFunction, CUfunction *, CUmodule, const char *)
 CUDA_STUB4(cuOccupancyMaxActiveBlocksPerMultiprocessor, int *, CUfunction, int, size_t)
 CUDA_STUB2(cuGetErrorString, CUresult, const char **)
@@ -169,6 +182,11 @@ CUDA_STUB4(cuLinkCreate, unsigned int, CUjit_option *, void **, CUlinkState *)
 CUDA_STUB3(cuLinkComplete, CUlinkState, void **, size_t *)
 CUDA_STUB3(cuFuncSetAttribute, CUfunction, CUfunction_attribute, int)
 CUDA_STUB3(cuFuncGetAttribute, int*, CUfunction_attribute, CUfunction)
+<<<<<<< HEAD
+=======
+CUDA_STUB3(cuPointerGetAttribute, void*, CUpointer_attribute, CUdeviceptr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if defined(CUDA_VERSION) && CUDA_VERSION >= 12000
 CUresult CUDAAPI

@@ -145,6 +145,10 @@ class Linear(WeightedQuantizedModule):
         >>> print(output.size())
         torch.Size([128, 30])
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _version = 3
     _FLOAT_MODULE = (nn.Linear, nn.modules.linear.NonDynamicallyQuantizableLinear)
 
@@ -314,12 +318,21 @@ class Linear(WeightedQuantizedModule):
                 [float_mod.__name__ for float_mod in cls._FLOAT_MODULE]
             )
             error_msg = f"nnq.{cls.__name__}.from_float only works for {supported_modules}, but got: {type(mod)}"
+<<<<<<< HEAD
             assert (
                 type_before_parametrizations(mod) in cls._FLOAT_MODULE
             ), error_msg.format()
             assert hasattr(
                 mod, "qconfig"
             ), "Input float module must have qconfig defined"
+=======
+            assert type_before_parametrizations(mod) in cls._FLOAT_MODULE, (
+                error_msg.format()
+            )
+            assert hasattr(mod, "qconfig"), (
+                "Input float module must have qconfig defined"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             activation_post_process = mod.activation_post_process
             if type_before_parametrizations(mod) == nni.LinearReLU:
                 mod = mod[0]

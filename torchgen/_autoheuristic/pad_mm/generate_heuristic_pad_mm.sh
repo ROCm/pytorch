@@ -12,7 +12,11 @@ MODE=$1
 # !!! SPECIFY THE GPUs THAT YOU WANT TO USE HERE !!!
 GPU_DEVICE_IDS="4,5"
 
+<<<<<<< HEAD
 # !!! SPECIFY THE CONDA ENVIRONEMNT THAT YOU WANT TO BE ACTIVATED HERE !!!
+=======
+# !!! SPECIFY THE CONDA ENVIRONMENT THAT YOU WANT TO BE ACTIVATED HERE !!!
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CONDA_ENV=heuristic-pr
 
 NUM_SAMPLES=2000

@@ -37,7 +37,11 @@ from torch.testing._internal.common_quantization import (
     skip_if_no_torchvision,
     TwoLayerLinearModel
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchDynamo
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, skipIfTorchDynamo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization.quantization_mappings import (
     get_default_static_quant_module_mappings,
     get_default_dynamic_quant_module_mappings,
@@ -2915,3 +2919,9 @@ class TestFXNumericSuiteCoreAPIsModels(FXNumericSuiteQuantizationTestCase):
             m, (torch.randn(1, 3, 224, 224),),
             qconfig_dict=qconfig_dict,
             should_log_inputs=False)
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

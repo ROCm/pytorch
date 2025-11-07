@@ -8,18 +8,31 @@ import torch.nn.functional as F
 import torch.utils.flop_counter
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.testing._internal.common_cuda import (
+<<<<<<< HEAD
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
     PLATFORM_SUPPORTS_FP8,
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
     PLATFORM_SUPPORTS_CUDNN_ATTENTION
+=======
+    PLATFORM_SUPPORTS_CUDNN_ATTENTION,
+    PLATFORM_SUPPORTS_FLASH_ATTENTION,
+    PLATFORM_SUPPORTS_FP8,
+    PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.common_utils import (
     run_tests,
     TEST_WITH_TORCHDYNAMO,
     TestCase,
+<<<<<<< HEAD
     skipIfRocm,
 )
 
+=======
+)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 try:
     from torchvision import models as torchvision_models
 
@@ -422,7 +435,16 @@ class TestFlopCounter(TestCase):
             run_uniform_flops(backend, with_backward=True)
             for backend in ["math", "flash", "mem_efficient", "cudnn"]
         ]
+<<<<<<< HEAD
         flops_fw_bw_math, flops_fw_bw_flash, flops_fw_bw_efficient, flops_fw_bw_cudnn = flops
+=======
+        (
+            flops_fw_bw_math,
+            flops_fw_bw_flash,
+            flops_fw_bw_efficient,
+            flops_fw_bw_cudnn,
+        ) = flops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(flops_fw_math * 3, flops_fw_bw_math)
         self.assertEqual(flops_fw_math * 7 // 2, flops_fw_bw_flash)
         self.assertEqual(flops_fw_bw_flash, flops_fw_bw_efficient)
@@ -457,7 +479,10 @@ class TestFlopCounter(TestCase):
         self.assertExpectedInline(str(flops_fw_bw_math), """805306368""")
         self.assertExpectedInline(str(flops_fw_bw_efficient), """939524096""")
 
+<<<<<<< HEAD
     @skipIfRocm  # Nested tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not HAS_CUDA, "CUDA not available")
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION
@@ -677,7 +702,10 @@ class TestFlopCounter(TestCase):
             ),
         )
 
+<<<<<<< HEAD
     @skipIfRocm  # Nested tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not HAS_CUDA, "CUDA not available")
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION,
@@ -705,7 +733,13 @@ class TestFlopCounter(TestCase):
                     False,
                 )
 
+<<<<<<< HEAD
         dense_x = torch.randn(4, 40, 4, 16, dtype=torch.bfloat16, device="cuda").transpose(1, 2)
+=======
+        dense_x = torch.randn(
+            4, 40, 4, 16, dtype=torch.bfloat16, device="cuda"
+        ).transpose(1, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with FlopCounterMode() as real_flop_counter_mode:
             torch.ops.aten._flash_attention_forward(
@@ -721,8 +755,15 @@ class TestFlopCounter(TestCase):
                 False,
             )
 
+<<<<<<< HEAD
         self.assertEqual(int(get_total_flops(fake_flop_counter_mode)), int(get_total_flops(real_flop_counter_mode)))
 
+=======
+        self.assertEqual(
+            int(get_total_flops(fake_flop_counter_mode)),
+            int(get_total_flops(real_flop_counter_mode)),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_addmm_out(self):
         def f(x):
@@ -795,7 +836,13 @@ class TestFlopCounter(TestCase):
 
         called = 0
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(ValueError, "expected each target to be OpOverloadPacket"):
+=======
+        with self.assertRaisesRegex(
+            ValueError, "expected each target to be OpOverloadPacket"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             register_flop_formula(torch.ops.mylib.foo.default)(lambda x: x)
 
         @register_flop_formula(torch.ops.mylib.foo)
@@ -826,7 +873,13 @@ class TestFlopCounter(TestCase):
         with torch.inference_mode():
             mode_inference = get_flops(resnet18)
 
+<<<<<<< HEAD
         self.assertEqual(get_total_flops(mode_standard), get_total_flops(mode_inference))
+=======
+        self.assertEqual(
+            get_total_flops(mode_standard), get_total_flops(mode_inference)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         layer1_conv_flops_standard = mode_standard.flop_counts["ResNet.layer1"][
             torch.ops.aten.convolution
@@ -854,5 +907,9 @@ class TestFlopCounter(TestCase):
 
         self.assertExpectedInline(get_total_flops(mode), """860160""")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

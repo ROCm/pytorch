@@ -1,23 +1,42 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
+<<<<<<< HEAD
 import contextlib
+=======
+import atexit
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import ctypes
 import dataclasses
 import functools
 import logging
 import os
+<<<<<<< HEAD
 import queue
+=======
+import pickle
+import queue
+import selectors
+import subprocess
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import time
 import warnings
 from collections.abc import Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from ctypes import byref, c_size_t, c_void_p, CDLL
+<<<<<<< HEAD
 from typing import Any, Callable, Optional, TYPE_CHECKING, Union
 
 import torch
 import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncCompile pools
 from torch import multiprocessing
+=======
+from typing import Any, Callable, IO, Optional, TYPE_CHECKING, Union
+
+import torch
+import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncCompile pools
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.device_interface import get_interface_for_device
 from torch._dynamo.testing import rand_strided
 from torch._inductor import ir
@@ -28,27 +47,39 @@ from torch._inductor.codecache import (
     get_hash,
     PyCodeCache,
 )
+<<<<<<< HEAD
 from torch._inductor.utils import get_gpu_type, is_gpu
+=======
+from torch._inductor.utils import get_gpu_type, get_ld_library_path, is_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import getArtifactLogger
 from torch.utils._ordered_set import OrderedSet
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from multiprocessing.process import BaseProcess
     from multiprocessing.queues import Queue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from types import ModuleType
 
     from torch._inductor.select_algorithm import TritonTemplateCaller
 
+<<<<<<< HEAD
     from .codegen.common import WorkspaceArg
 
 from . import config
 from .codegen.common import WorkspaceZeroMode
+=======
+from . import config
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .runtime.benchmarking import benchmarker
 from .virtualized import V
 
 
 CUDA_VISIBLE_DEVICES = "CUDA_VISIBLE_DEVICES"
+<<<<<<< HEAD
 EXIT_HANDLER_REGISTERED = False
 
 autotuning_log = getArtifactLogger(__name__, "autotuning")
@@ -62,12 +93,17 @@ class Ping:
 
 class Pong:
     pass
+=======
+
+autotuning_log = getArtifactLogger(__name__, "autotuning")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class NonzeroWorkspaceNotSupportedError(Exception):
     pass
 
 
+<<<<<<< HEAD
 @contextlib.contextmanager
 def set_cuda_visible_device(device: Optional[int]):
     """
@@ -107,10 +143,20 @@ class TuningProcess:
         request_queue: Queue[Any],
         response_queue: Queue[Any],
     ) -> None:
+=======
+class TuningProcess:
+    """
+    Class to launch and interact with a benchmarking subprocess.
+    """
+
+    @staticmethod
+    def process_main(read_pipe: IO[bytes], write_pipe: IO[bytes]) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Entry point for the child process.
         """
         autotuning_log.debug(
+<<<<<<< HEAD
             "Entering TuningProcess child. Visible devices = %s",
             os.environ.get(CUDA_VISIBLE_DEVICES),
         )
@@ -245,11 +291,147 @@ class TuningProcess:
             assert self.process is not None
             assert self.request_queue is not None
             self.request_queue.put(None)
+=======
+            "Started autotune subprocess %s. Visible devices: %s",
+            os.getpid(),
+            os.environ.get(CUDA_VISIBLE_DEVICES),
+        )
+
+        def workloop():
+            while True:
+                job = TuningProcess.recv(read_pipe)
+                if job is None:
+                    # None is a sentinel for the child to shut down
+                    break
+                try:
+                    result = job()
+                except Exception as e:
+                    result = e
+                TuningProcess.send(result, write_pipe)
+
+        try:
+            workloop()
+        except EOFError:
+            # The parent closed the pipe
+            pass
+
+    @staticmethod
+    def send(obj: Any, write_pipe: IO[bytes]) -> None:
+        pickle.dump(obj, write_pipe)
+        write_pipe.flush()
+
+    @staticmethod
+    def recv(read_pipe: IO[bytes]) -> Any:
+        return pickle.load(read_pipe)
+
+    def __init__(self, device: Optional[int]):
+        self.device = device
+        self.start()
+
+    def start(self):
+        """
+        Start the benchmarking subprocess.
+        """
+        entry = os.path.join(os.path.dirname(__file__), "__autotune_main__.py")
+
+        subproc_read_fd, write_fd = os.pipe()
+        read_fd, subproc_write_fd = os.pipe()
+        self.write_pipe = os.fdopen(write_fd, "wb")
+        self.read_pipe = os.fdopen(read_fd, "rb")
+
+        self.selector = selectors.DefaultSelector()
+        self.selector.register(self.read_pipe, selectors.EVENT_READ)
+
+        cmd = [
+            sys.executable,
+            entry,
+            f"--parent={os.getpid()}",
+            f"--read-fd={str(subproc_read_fd)}",
+            f"--write-fd={str(subproc_write_fd)}",
+        ]
+        extra_env = {
+            # We need to set the PYTHONPATH so the subprocess can find torch.
+            "PYTHONPATH": os.environ.get(
+                "TORCH_CUSTOM_PYTHONPATH", os.pathsep.join(sys.path)
+            ),
+            # We shouldn't be using the Triton async compile subprocess pool,
+            # but as a precaution set the env var that disables its creation.
+            "TORCH_WARM_POOL": "0",
+            # Some internal usages need a modified LD_LIBRARY_PATH.
+            "LD_LIBRARY_PATH": get_ld_library_path(),
+            # This will cause the subprocs to profile using the profiler.
+            "TORCHINDUCTOR_PROFILE_WITH_DO_BENCH_USING_PROFILING": "1"
+            if config.profile_bandwidth_with_do_bench_using_profiling
+            else "0",
+        }
+        if self.device is not None:
+            extra_env[CUDA_VISIBLE_DEVICES] = str(self.device)
+        self.process = subprocess.Popen(
+            cmd,
+            env={**os.environ, **extra_env},
+            pass_fds=(subproc_read_fd, subproc_write_fd),
+        )
+        os.close(subproc_read_fd)
+        os.close(subproc_write_fd)
+
+        self.running = True
+
+    def alive(self) -> bool:
+        """
+        True if the subprocess is still running.
+        """
+        return self.running and self.process.poll() is None
+
+    def put(self, req: Any) -> None:
+        """
+        Push a work item to the child process.
+        """
+        if not self.alive():
+            self.start()
+        TuningProcess.send(req, self.write_pipe)
+
+    def get(self, timeout: float = 120.0) -> Any:
+        """
+        Get a response from the child process. Raises TimeoutError on timeout;
+        raises EOFError if the subprocess crashes.
+        """
+        try:
+            if not self.selector.select(timeout):
+                raise TimeoutError(f"Timeout in autotune subprocess {self.process.pid}")
+            result = TuningProcess.recv(self.read_pipe)
+        except TimeoutError:
+            self.kill()
+            raise
+        except EOFError:
+            # The subprocess crashed
+            self.close()
+            raise
+        except Exception:
+            autotuning_log.exception(
+                "Unexpected exception in autotune subprocess %s", self.process.pid
+            )
+            self.kill()
+            raise
+
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    def shutdown(self, wait: bool = True) -> None:
+        """
+        Signal the child process to shut down gracefully.
+        """
+        if self.alive():
+            TuningProcess.send(None, self.write_pipe)
+        if wait:
+            self.wait()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def wait(self) -> None:
         """
         Wait for the child process to exit.
         """
+<<<<<<< HEAD
         if self.process is not None:
             self.process.join()
             self.clear()
@@ -279,6 +461,34 @@ class TuningProcess:
 
 
 @dataclasses.dataclass
+=======
+        if self.alive():
+            self.process.wait()
+        self.close()
+
+    def close(self) -> None:
+        """
+        Close resources.
+        """
+        self.selector.close()
+        self.read_pipe.close()
+        self.write_pipe.close()
+        self.running = False
+
+    def kill(self) -> None:
+        """
+        Send a SIGKILL to the child process.
+        """
+        if self.alive():
+            autotuning_log.error(
+                "Sending SIGKILL to autotune subprocess %d",
+                self.process.pid,
+            )
+            self.process.kill()
+        self.close()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TuningProcessPool:
     """
     Maintains a pool of TuningProcesses to benchmark kernels in parallel
@@ -286,6 +496,7 @@ class TuningProcessPool:
     set the sub-process environment to make only that device visible.
     """
 
+<<<<<<< HEAD
     processes: Optional[queue.Queue[TuningProcess]] = None
     executor: Optional[ThreadPoolExecutor] = None
 
@@ -311,12 +522,28 @@ class TuningProcessPool:
         # Wait for the initialization to finish
         for p in self.processes.queue:
             assert isinstance(p.get(result_timeout=None), Pong)
+=======
+    def __init__(self) -> None:
+        """
+        Start the child processes.
+        """
+        devices = self.get_device_list()
+        autotuning_log.debug("Sub-process autotune device list: %s", devices)
+
+        # Launch the child processes.
+        self.processes = [TuningProcess(device=device) for device in devices]
+
+        self.process_queue: queue.Queue[TuningProcess] = queue.Queue()
+        for p in self.processes:
+            self.process_queue.put(p)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Use a thread pool to manage distributing work to the subprocesses.
         # Threads block on an available process, so it makes sense to match
         # the number of threads with the number of devices.
         self.executor = ThreadPoolExecutor(max_workers=len(devices))
 
+<<<<<<< HEAD
         # Register the exit handler for the parent process so it will terminate
         # the child processes.
         global EXIT_HANDLER_REGISTERED
@@ -327,6 +554,10 @@ class TuningProcessPool:
             atexit.register(self.terminate)
 
     def get_device_list(self) -> Sequence[Optional[int]]:
+=======
+    @staticmethod
+    def get_device_list() -> Sequence[Optional[int]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Gather the list of devices to be used in the pool.
         """
@@ -346,6 +577,7 @@ class TuningProcessPool:
 
         return list(range(count))
 
+<<<<<<< HEAD
     def terminate(self) -> None:
         """
         Signal all child processes to terminate.
@@ -360,6 +592,18 @@ class TuningProcessPool:
             for p in self.processes.queue:
                 p.wait()
             self.processes = None
+=======
+    def shutdown(self) -> None:
+        """
+        Signal all child processes to exit.
+        """
+        self.executor.shutdown()
+
+        for p in self.processes:
+            p.shutdown(wait=False)
+        for p in self.processes:
+            p.wait()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def target(self, choice: TritonTemplateCaller) -> float:
         """
@@ -368,6 +612,7 @@ class TuningProcessPool:
         the TuningProcess to the queue.
         """
         assert choice.bmreq is not None
+<<<<<<< HEAD
         assert self.processes is not None
 
         process = self.processes.get()
@@ -379,14 +624,38 @@ class TuningProcessPool:
                 config.max_autotune_subproc_terminate_timeout_seconds,
             )
         except queue.Empty:
+=======
+
+        process = self.process_queue.get()
+        process.put(choice.bmreq.benchmark)
+        try:
+            return process.get(
+                config.max_autotune_subproc_result_timeout_seconds,
+            )
+        except TimeoutError:
+            warnings.warn(
+                f"Timed out benchmarking choice '{choice}'. It will be ignored. "
+                "Please debug the root cause in case the choice can bring perf gains."
+            )
+            # Set to INF so this choice will be ignored
+            return float("inf")
+        except Exception:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             warnings.warn(
                 f"Failed to benchmark choice '{choice}'. It will be ignored. "
                 "Please debug the root cause in case the choice can bring perf gains."
             )
+<<<<<<< HEAD
             # set to INF so this choice will be ignored
             return float("inf")
         finally:
             self.processes.put(process)
+=======
+            # Set to INF so this choice will be ignored
+            return float("inf")
+        finally:
+            self.process_queue.put(process)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def benchmark(
         self,
@@ -395,6 +664,7 @@ class TuningProcessPool:
         """
         Benchmark each choice in a separate process.
         """
+<<<<<<< HEAD
         assert self.processes is not None, "Tuning process pool is not initialized"
         assert self.executor is not None
 
@@ -404,13 +674,22 @@ class TuningProcessPool:
         # to grab subprocesses as soon as they're free.
         for choice, result in zip(choices, self.executor.map(self.target, choices)):
             results[choice] = result
+=======
+
+        # Use a ThreadExecutorPool to spread the work across the subprocesses and
+        # to grab subprocesses as soon as they're free.
+        results = dict(zip(choices, self.executor.map(self.target, choices)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return results
 
 
+<<<<<<< HEAD
 tuning_pool = TuningProcessPool()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 LayoutOrBuffer = Union[ir.Layout, ir.Buffer]
 
 
@@ -507,7 +786,11 @@ class BenchmarkRequest:
         self.extra_args = extra_args
 
     def make_run_fn(
+<<<<<<< HEAD
         self, *input_tensors: torch.Tensor, output_tensor: torch.Tensor
+=======
+        self, *input_tensors: torch.Tensor, out: torch.Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Callable[[], None]:
         raise NotImplementedError
 
@@ -518,30 +801,49 @@ class BenchmarkRequest:
         self,
         fn,
         *input_tensors: torch.Tensor,
+<<<<<<< HEAD
         output_tensor: Optional[torch.Tensor] = None,
+=======
+        out: Optional[torch.Tensor] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> float:
         raise NotImplementedError
 
     def benchmark(
         self,
         *input_tensors: torch.Tensor,
+<<<<<<< HEAD
         output_tensor: Optional[torch.Tensor] = None,
+=======
+        out: Optional[torch.Tensor] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> float:
         debug = autotuning_log.isEnabledFor(logging.DEBUG)
         if debug:
             start_ts = time.time()
 
         # create args and out tensor
+<<<<<<< HEAD
         if output_tensor is None:
             assert len(input_tensors) == 0
             input_tensors = tuple(x.to_tensor() for x in self.input_tensor_meta)
             output_tensor = self.output_tensor_meta.to_tensor()
+=======
+        if out is None:
+            assert len(input_tensors) == 0
+            input_tensors = tuple(x.to_tensor() for x in self.input_tensor_meta)
+            out = self.output_tensor_meta.to_tensor()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if debug:
             create_tensor_elapse = time.time() - start_ts  # type: ignore[possibly-undefined]
             start_ts = time.time()
         try:
+<<<<<<< HEAD
             fn = self.make_run_fn(*input_tensors, output_tensor=output_tensor)
+=======
+            fn = self.make_run_fn(*input_tensors, out=out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except NonzeroWorkspaceNotSupportedError:
             # Skipping all ops with nonzero workspace requirements
             autotuning_log.info("Skipping op due to nonzero workspace requirement")
@@ -551,7 +853,11 @@ class BenchmarkRequest:
             load_elapse = time.time() - start_ts  # type: ignore[possibly-undefined]
             start_ts = time.time()
 
+<<<<<<< HEAD
         out = self.do_bench(fn, *input_tensors, output_tensor)
+=======
+        res = self.do_bench(fn, *input_tensors, out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if debug:
             bench_elapse = time.time() - start_ts  # type: ignore[possibly-undefined]
@@ -563,6 +869,7 @@ class BenchmarkRequest:
                 bench_elapse,
             )
         self.cleanup_run_fn()
+<<<<<<< HEAD
         return out
 
 
@@ -581,6 +888,43 @@ class TestBenchmarkRequest(BenchmarkRequest):
         if self.value is None:
             raise Exception("Failed to run")  # noqa: TRY002
         return self.value
+=======
+        return res
+
+
+class _TestBenchmarkRequest(BenchmarkRequest):
+    """
+    Supports unit testing. Defined in this file instead of the test file so the
+    TuningProcess sub-process can unpickle these objects.
+    """
+
+    def __init__(
+        self,
+        result: float = 0.0,
+        device: Optional[int] = None,
+        sleep: Optional[float] = None,
+        exc: Optional[Exception] = None,
+        crash: bool = False,
+    ):
+        self.result = result
+        self.device = device
+        self.sleep = sleep
+        self.exc = exc
+        self.crash = crash
+
+    def benchmark(
+        self, *input_tensors: torch.Tensor, out: Optional[torch.Tensor] = None
+    ) -> float:
+        if self.device is not None:
+            assert os.environ.get(CUDA_VISIBLE_DEVICES, None) == str(self.device)
+        if self.sleep:
+            time.sleep(self.sleep)
+        if self.exc:
+            raise self.exc
+        if self.crash:
+            sys.exit(1)
+        return self.result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class GPUDeviceBenchmarkMixin:
@@ -588,11 +932,19 @@ class GPUDeviceBenchmarkMixin:
         self,
         fn,
         *input_tensors: torch.Tensor,
+<<<<<<< HEAD
         output_tensor: Optional[torch.Tensor] = None,
     ) -> float:
         device_idx_set = OrderedSet(
             tensor.device.index
             for tensor in [*input_tensors, output_tensor]
+=======
+        out: Optional[torch.Tensor] = None,
+    ) -> float:
+        device_idx_set = OrderedSet(
+            tensor.device.index
+            for tensor in [*input_tensors, out]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(tensor, torch.Tensor)
             and is_gpu(tensor.device.type)
             and tensor.device.index is not None
@@ -612,10 +964,17 @@ class GPUDeviceBenchmarkMixin:
         else:
             device_idx = device_interface.current_device()
         with device_interface.device(device_idx):  # type: ignore[attr-defined]
+<<<<<<< HEAD
             out = benchmarker.benchmark_gpu(fn)
             device_interface.synchronize()  # shake out any CUDA errors
 
         return out
+=======
+            res = benchmarker.benchmark_gpu(fn)
+            device_interface.synchronize()  # shake out any CUDA errors
+
+        return res
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CPUDeviceBenchmarkMixin:
@@ -623,7 +982,11 @@ class CPUDeviceBenchmarkMixin:
         self,
         fn,
         *input_tensors: torch.Tensor,
+<<<<<<< HEAD
         output_tensor: Optional[torch.Tensor] = None,
+=======
+        out: Optional[torch.Tensor] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> float:
         return benchmarker.benchmark_cpu(fn)
 
@@ -641,16 +1004,25 @@ class TritonBenchmarkRequest(BenchmarkRequest):
         module_cache_key: str,
         num_stages: int,
         num_warps: int,
+<<<<<<< HEAD
         matrix_instr_nonkdim: int = 0,  # only used for hip to choose the shape of mfma instruction.
         waves_per_eu: int = 0,  # only used for hip to schedule waves per execution unit
         kpack: int = 0,  # ROCm specific gemm paramete
         workspace_arg: Optional[WorkspaceArg] = None,
+=======
+        num_consumer_groups: int = 0,
+        num_buffers_warp_spec: int = 0,
+        matrix_instr_nonkdim: int = 0,  # only used for hip to choose the shape of mfma instruction.
+        waves_per_eu: int = 0,  # only used for hip to schedule waves per execution unit
+        kpack: int = 0,  # ROCm specific gemm parameter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         super().__init__(kernel_name, input_tensor_meta, output_tensor_meta, extra_args)
         self.module_path = module_path
         self.module_cache_key = module_cache_key
         self.num_stages = num_stages
         self.num_warps = num_warps
+<<<<<<< HEAD
         self.matrix_instr_nonkdim = matrix_instr_nonkdim
         self.waves_per_eu = waves_per_eu
         self.kpack = kpack
@@ -658,6 +1030,16 @@ class TritonBenchmarkRequest(BenchmarkRequest):
 
     def make_run_fn(
         self, *input_tensors: torch.Tensor, output_tensor: torch.Tensor
+=======
+        self.num_consumer_groups = num_consumer_groups
+        self.num_buffers_warp_spec = num_buffers_warp_spec
+        self.matrix_instr_nonkdim = matrix_instr_nonkdim
+        self.waves_per_eu = waves_per_eu
+        self.kpack = kpack
+
+    def make_run_fn(
+        self, *input_tensors: torch.Tensor, out: torch.Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Callable[[], None]:
         mod = PyCodeCache.load_by_key_path(self.module_cache_key, self.module_path)
         autotuning_log.debug(
@@ -678,15 +1060,23 @@ class TritonBenchmarkRequest(BenchmarkRequest):
         if "warmup" in inspect.signature(run_method).parameters:
             warmup_arg["warmup"] = False
 
+<<<<<<< HEAD
         if output_tensor.device.type == "cpu":
             stream = 0
         else:
             device_type = output_tensor.device.type
+=======
+        if out.device.type == "cpu":
+            stream = 0
+        else:
+            device_type = out.device.type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device_interface = get_interface_for_device(device_type)
             stream = device_interface.get_raw_stream(
                 self.output_tensor_meta.device.index
             )
 
+<<<<<<< HEAD
         if self.workspace_arg is not None:
             # Create a function that handles both workspace creation and kernel execution
             workspace_arg = self.workspace_arg
@@ -717,6 +1107,8 @@ class TritonBenchmarkRequest(BenchmarkRequest):
                 )
 
             return run_with_workspace
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(
             getattr(mod, self.kernel_name),
             torch._inductor.runtime.triton_heuristics.DebugAutotuner,
@@ -724,7 +1116,11 @@ class TritonBenchmarkRequest(BenchmarkRequest):
             return functools.partial(
                 run_method,
                 *input_tensors,
+<<<<<<< HEAD
                 output_tensor,
+=======
+                out,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *extra_args,
                 **warmup_arg,
                 stream=stream,
@@ -733,7 +1129,11 @@ class TritonBenchmarkRequest(BenchmarkRequest):
             return functools.partial(
                 run_method,
                 *input_tensors,
+<<<<<<< HEAD
                 output_tensor,
+=======
+                out,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *extra_args,
                 **warmup_arg,
                 stream=stream,
@@ -757,8 +1157,19 @@ class TritonCPUBenchmarkRequest(CPUDeviceBenchmarkMixin, TritonBenchmarkRequest)
 
 
 class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
+<<<<<<< HEAD
     # Important: Instances of this class have to be serializable
     # across process boundaries. Do not put CUDA Tensors in here!
+=======
+    """
+    A class to handle CUDA (CUTLASS) benchmark requests. This class is for
+    managing the lifecycle of a CUDA kernel benchmark, including compiling
+    the source code, managing workspace memory, and executing the kernel.
+
+    Important: Instances of this class have to be serializable across
+    process boundaries. Do not put CUDA Tensors in here!
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -779,13 +1190,21 @@ class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
         self.hash_key, self.source_file = CUDACodeCache.write(self.source_code, "so")
 
     def precompile(self):
+<<<<<<< HEAD
         # Prepopulate CUDACodeCache
         # may happen in separate Threadpool
+=======
+        """
+        Precompile the CUDA source code to populate the CUDACodeCache.
+        This may happen in a separate thread pool.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         autotuning_log.debug("Precompiling %s", self)
         CUDACodeCache.compile(self.source_code, "so")
         autotuning_log.debug("Done precompiling %s", self)
 
     def make_run_fn(
+<<<<<<< HEAD
         self, *input_tensors: torch.Tensor, output_tensor: torch.Tensor
     ) -> Callable[[], None]:
         self.ensure_dll_loaded()
@@ -794,6 +1213,17 @@ class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
             c_void_p(tensor.data_ptr())
             for tensor in list(input_tensors) + [output_tensor]
         ]
+=======
+        self, *input_tensors: torch.Tensor, out: torch.Tensor
+    ) -> Callable[[], None]:
+        """
+        Create a function to run the CUDA kernel with the given input and output tensors.
+        """
+
+        self.ensure_dll_loaded()
+        self.update_workspace_size()
+        args = [c_void_p(tensor.data_ptr()) for tensor in list(input_tensors) + [out]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         autotuning_log.debug(
             "make_run_fn: self.kernel_name=%s, self.source_file=%s, self.hash_key=%s, self.DLL=%s, args=%s, self.extra_args=%s",
             self.kernel_name,
@@ -810,12 +1240,20 @@ class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
             self.workspace = torch.zeros(
                 (self.workspace_size + 7) // 8,
                 dtype=torch.float64,
+<<<<<<< HEAD
                 device=output_tensor.device,
+=======
+                device=out.device,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             workspace_ptr = c_void_p(self.workspace.data_ptr())
 
         # Generate partial function.
+<<<<<<< HEAD
         return functools.partial(
+=======
+        ret = functools.partial(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             run_method,
             *args,
             *self.extra_args,
@@ -824,6 +1262,23 @@ class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
             stream_ptr,
         )
 
+<<<<<<< HEAD
+=======
+        # sanity check to make sure we cleanup run fn properly
+        try:
+            ret()
+        except RuntimeError as e:
+            err_msg = str(e)
+
+            def raise_runtime_error():
+                raise RuntimeError(err_msg)
+
+            self.cleanup_run_fn()
+            return raise_runtime_error
+
+        return ret
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def update_workspace_size(self) -> None:
         if self._workspace_size_updated:
             return
@@ -869,6 +1324,10 @@ class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
     def cleanup_run_fn(self) -> None:
         if self.DLL is not None:
             self.DLL.close()
+<<<<<<< HEAD
+=======
+            self.DLL = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.workspace = None
 
     def __str__(self) -> str:
@@ -900,11 +1359,19 @@ class CppBenchmarkRequest(CPUDeviceBenchmarkMixin, BenchmarkRequest):
         autotuning_log.debug("Done precompiling %s", self)
 
     def make_run_fn(
+<<<<<<< HEAD
         self, *input_tensors: torch.Tensor, output_tensor: torch.Tensor
     ) -> Callable[[], None]:
         # TODO(jgong5): use CppPythonBindingsCodeCache for better binding perf
         self.DLL = CppCodeCache.load(self.source_code, device_type="cpu")
         args = [tensor.data_ptr() for tensor in list(input_tensors) + [output_tensor]]
+=======
+        self, *input_tensors: torch.Tensor, out: torch.Tensor
+    ) -> Callable[[], None]:
+        # TODO(jgong5): use CppPythonBindingsCodeCache for better binding perf
+        self.DLL = CppCodeCache.load(self.source_code, device_type="cpu")
+        args = [tensor.data_ptr() for tensor in list(input_tensors) + [out]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         autotuning_log.debug(
             "make_run_fn: self.kernel_name=%s, self.DLL=%s, args=%s, self.extra_args=%s",
             self.kernel_name,
@@ -938,10 +1405,24 @@ class CppBenchmarkRequest(CPUDeviceBenchmarkMixin, BenchmarkRequest):
         return f"{self.kernel_name=}"
 
 
+<<<<<<< HEAD
+=======
+@functools.cache
+def get_tuning_process_pool() -> TuningProcessPool:
+    pool = TuningProcessPool()
+    atexit.register(pool.shutdown)
+    return pool
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def benchmark_in_sub_process(
     choices: list[TritonTemplateCaller],
 ) -> dict[TritonTemplateCaller, float]:
     """
     Do benchmarking in a subprocess and return the perf number (latency).
     """
+<<<<<<< HEAD
     return tuning_pool.benchmark(choices)
+=======
+    return get_tuning_process_pool().benchmark(choices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

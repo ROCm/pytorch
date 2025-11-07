@@ -11,11 +11,19 @@ ciflow_push_tags:
 - ciflow/inductor-perf-compare
 - ciflow/inductor-micro-benchmark
 - ciflow/inductor-micro-benchmark-cpu-x86
+<<<<<<< HEAD
+=======
+- ciflow/inductor-perf-test-nightly-x86-zen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - ciflow/inductor-cu126
 - ciflow/linux-aarch64
 - ciflow/mps
 - ciflow/nightly
 - ciflow/periodic
+<<<<<<< HEAD
+=======
+- ciflow/periodic-rocm-mi300
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - ciflow/rocm
 - ciflow/rocm-mi300
 - ciflow/s390
@@ -24,7 +32,14 @@ ciflow_push_tags:
 - ciflow/unstable
 - ciflow/xpu
 - ciflow/torchbench
+<<<<<<< HEAD
 - ciflow/autoformat
+=======
+- ciflow/op-benchmark
+- ciflow/pull
+- ciflow/h100
+- ciflow/h100-distributed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 retryable_workflows:
 - pull
 - trunk

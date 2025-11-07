@@ -13,11 +13,21 @@ The inductor backend can be used with torch.compile():
 """
 
 from torch._dynamo import register_backend
+<<<<<<< HEAD
+=======
+from torch._dynamo.utils import dynamo_timed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_backend
 def inductor(*args, **kwargs):
+<<<<<<< HEAD
     # do import here to avoid loading inductor into memory when it is not used
     from torch._inductor.compile_fx import compile_fx
+=======
+    with dynamo_timed("inductor_import", log_pt2_compile_event=True):
+        # do import here to avoid loading inductor into memory when it is not used
+        from torch._inductor.compile_fx import compile_fx
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return compile_fx(*args, **kwargs)

@@ -55,7 +55,11 @@ add_custom_command(
 
 target_link_libraries(test_aoti_inference PRIVATE
   torch
+<<<<<<< HEAD
   gtest
+=======
+  gtest_main
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   -Wl,--no-as-needed aoti_custom_class
 )
 

@@ -10,6 +10,7 @@ import torch
 # Make the helper files in test/ importable
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -21,6 +22,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestLogging(JitTestCase):
     def test_bump_numeric_counter(self):
         class ModuleThatLogs(torch.jit.ScriptModule):
@@ -122,3 +129,10 @@ class TestLogging(JitTestCase):
     def test_logging_levels_set(self):
         torch._C._jit_set_logging_option("foo")
         self.assertEqual("foo", torch._C._jit_get_logging_option())
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

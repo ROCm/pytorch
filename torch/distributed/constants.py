@@ -11,7 +11,11 @@ __all__ = ["default_pg_timeout", "default_pg_nccl_timeout"]
 # To make an attempt at backwards compatibility with THD, we use an
 # extraordinarily high default timeout, given that THD did not have timeouts.
 default_pg_timeout: timedelta = _DEFAULT_PG_TIMEOUT
+<<<<<<< HEAD
 # Separate timeout for PGNCCL mainly becuase it's always been that way in the C++ layer, but until recently
+=======
+# Separate timeout for PGNCCL mainly because it's always been that way in the C++ layer, but until recently
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # there was one default that applied across all backends in the python layer.
 # Later, we could consider merging them back together at the c++ layer if we can align on a same value.
 # (only if TORCH_NCCL_BLOCKING_WAIT or TORCH_NCCL_ASYNC_ERROR_HANDLING is set to 1).

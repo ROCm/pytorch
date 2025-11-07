@@ -66,6 +66,7 @@ class TestCKBackend(TestCase):
             os.environ["INDUCTOR_TEST_DISABLE_FRESH_CACHE"] = "1"
             super().setUp()
         finally:
+<<<<<<< HEAD
             os.environ[
                 "INDUCTOR_TEST_DISABLE_FRESH_CACHE"
             ] = old_disable_fresh_cache_envvar
@@ -73,6 +74,15 @@ class TestCKBackend(TestCase):
     @unittest.skipIf(not torch.version.hip, "ROCM only")
     @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     @parametrize("max_autotune_gemm_backends", ("CK", "ATen,Triton,CK"))
+=======
+            os.environ["INDUCTOR_TEST_DISABLE_FRESH_CACHE"] = (
+                old_disable_fresh_cache_envvar
+            )
+
+    @unittest.skipIf(not torch.version.hip, "ROCM only")
+    @unittest.mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+    @parametrize("max_autotune_gemm_backends", ("CK", "CKTILE", "ATen,Triton,CK"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("autotune_in_subproc", (True, False))
     @parametrize("use_aoti", (True, False))
     def test_max_autotune_precompile_matmul(
@@ -99,14 +109,23 @@ class TestCKBackend(TestCase):
                 "max_autotune": True,
                 "autotune_in_subproc": autotune_in_subproc,
                 "max_autotune_gemm_backends": max_autotune_gemm_backends,
+<<<<<<< HEAD
                 "compile_threads": 2,
                 "rocm.n_max_profiling_configs": 2,
+=======
+                "compile_threads": 16,
+                "rocm.ck_max_profiling_configs": 8,
+                "rocm.ck_tile_max_profiling_configs": 8,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "rocm.ck_dir": self.ck_dir,
             }
         ):
             if use_aoti:
                 Y_compiled = AOTIRunnerUtil.run(
+<<<<<<< HEAD
                     device="cuda",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     model=mm,
                     example_inputs=(a, b),
                 )
@@ -148,8 +167,14 @@ class TestCKBackend(TestCase):
                 "max_autotune": True,
                 "autotune_in_subproc": autotune_in_subproc,
                 "max_autotune_gemm_backends": max_autotune_gemm_backends,
+<<<<<<< HEAD
                 "compile_threads": 2,
                 "rocm.n_max_profiling_configs": 2,
+=======
+                "compile_threads": 16,
+                "rocm.ck_max_profiling_configs": 8,
+                "rocm.ck_tile_max_profiling_configs": 8,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "rocm.ck_dir": self.ck_dir,
             }
         ):
@@ -223,9 +248,16 @@ class TestCKBackend(TestCase):
                 "max_autotune": True,
                 "autotune_in_subproc": True,
                 "max_autotune_gemm_backends": max_autotune_gemm_backends,
+<<<<<<< HEAD
                 "compile_threads": 2,
                 "rocm.ck_dir": self.ck_dir,
                 "rocm.n_max_profiling_configs": 2,
+=======
+                "compile_threads": 16,
+                "rocm.ck_dir": self.ck_dir,
+                "rocm.ck_max_profiling_configs": 8,
+                "rocm.ck_tile_max_profiling_configs": 8,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         ):
 
@@ -261,7 +293,11 @@ class TestCKBackend(TestCase):
                 "max_autotune_gemm_backends": max_autotune_gemm_backends,
                 "compile_threads": 2,
                 "rocm.ck_dir": self.ck_dir,
+<<<<<<< HEAD
                 "rocm.n_max_profiling_configs": 2,
+=======
+                "rocm.ck_max_profiling_configs": 2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         ):
 
@@ -352,7 +388,11 @@ class TestCKBackend(TestCase):
                 "max_autotune": True,
                 "max_autotune_gemm_backends": max_autotune_gemm_backends,
                 "compile_threads": 24,
+<<<<<<< HEAD
                 "rocm.n_max_profiling_configs": 24,
+=======
+                "rocm.ck_max_profiling_configs": 24,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "rocm.ck_dir": self.ck_dir,
             }
         ):
@@ -396,7 +436,11 @@ class TestCKBackend(TestCase):
                 "max_autotune_conv_backends": max_autotune_conv_backends,
                 "compile_threads": 4,
                 "rocm.ck_dir": self.ck_dir,
+<<<<<<< HEAD
                 "rocm.n_max_profiling_configs": 4,
+=======
+                "rocm.ck_max_profiling_configs": 4,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         ):
 
@@ -437,7 +481,11 @@ class TestCKBackend(TestCase):
                 "max_autotune": True,
                 "max_autotune_gemm_backends": max_autotune_gemm_backends,
                 "compile_threads": 2,
+<<<<<<< HEAD
                 "rocm.n_max_profiling_configs": 2,
+=======
+                "rocm.ck_max_profiling_configs": 2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "rocm.ck_dir": self.ck_dir,
             }
         ):

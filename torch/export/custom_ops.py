@@ -9,6 +9,12 @@ lib.define(
 
 
 @torch.library.impl(lib, "access_subclass_inner_tensor", "Autograd")
+<<<<<<< HEAD
+=======
+# When running under torch.inference_mode(), we seem to skip AUtograd key
+# so we should desugar this op as soon as we start tracing to post-dispatch.
+@torch.library.impl(lib, "access_subclass_inner_tensor", "Python")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _access_subclass_inner_tensor(
     src_subclass_tensor: torch.Tensor, attr: str
 ) -> torch.Tensor:

@@ -201,7 +201,11 @@ def has_tvm():
         return False
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def llvm_target():
     if sys.platform == "linux":
         cpuinfo = open("/proc/cpuinfo").read()

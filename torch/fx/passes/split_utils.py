@@ -199,9 +199,15 @@ def split_by_tags(
         mx = max((c.order for c in upstream_components), default=0)
 
         # Expect the component for `node` has higher order then its upstream components.
+<<<<<<< HEAD
         assert (
             comp.order >= mx
         ), f"Component {comp.name} order must be >= max of its upstream components, order={comp.order} and max={mx}"
+=======
+        assert comp.order >= mx, (
+            f"Component {comp.name} order must be >= max of its upstream components, order={comp.order} and max={mx}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Map a input of `node` to nodes in the component's graph.
         def remap_func(x):

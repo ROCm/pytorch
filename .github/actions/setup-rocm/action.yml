@@ -5,6 +5,15 @@ description: Set up ROCm host for CI
 runs:
   using: composite
   steps:
+<<<<<<< HEAD
+=======
+    - name: Runner ROCm version
+      if: always()
+      shell: bash
+      run: |
+        dpkg -l | grep -E "  rocm"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - name: Stop all running docker containers
       if: always()
       shell: bash

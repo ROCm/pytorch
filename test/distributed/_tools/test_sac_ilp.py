@@ -17,6 +17,7 @@ from torch.distributed._tools.sac_ilp import (
     get_optimal_checkpointing_policy_per_module,
     sac_milp,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA, PLATFORM_SUPPORTS_FLASH_ATTENTION
 from torch.testing._internal.common_utils import (
     run_tests,
@@ -25,6 +26,15 @@ from torch.testing._internal.common_utils import (
     skipIfRocm,
     skipIfRocmArch,
     NAVI_ARCH,
+=======
+from torch.testing._internal.common_cuda import TEST_CUDA
+from torch.testing._internal.common_utils import (
+    MI300_ARCH,
+    run_tests,
+    skipIfRocmArch,
+    skipIfTorchDynamo,
+    TestCase,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     ModelArgs,
@@ -137,7 +147,11 @@ class TestSACILP(TestCase):
 
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/115653")
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+<<<<<<< HEAD
     @skipIfRocm
+=======
+    @skipIfRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sac_ilp_case1(self):
         """
         This is a case where the memory budget is either binding or too tight,
@@ -158,7 +172,11 @@ class TestSACILP(TestCase):
         # Due to symmetry, the layer that has 0.7964 can be any of the first three layers. On CI,
         # due to machine variance and difference in flops, the results can be different -- e.g.,
         # the ratios are  0.672, 0.5646, 0.5646, 0.5646 for the four transformer layers for test
+<<<<<<< HEAD
         # linux-focal-cuda11.8-py3.10-gcc9 / test (distributed, 1, 3, lf.linux.8xlarge.nvidia.gpu).
+=======
+        # linux-jammy-cuda11.8-py3.10-gcc9 / test (distributed, 1, 3, lf.linux.8xlarge.nvidia.gpu).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # and recomputation_time = 58.14; compute_time = 902.26
         modules_to_ac = set(ac_decisions.keys())
         sorted_discard_ratio = sorted(ac_decisions.values())
@@ -180,7 +198,10 @@ class TestSACILP(TestCase):
 
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/115653")
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+<<<<<<< HEAD
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sac_ilp_case2(self):
         """
         This is a case where the memory budget is not binding, meaning that no

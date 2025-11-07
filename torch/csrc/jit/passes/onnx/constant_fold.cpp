@@ -30,7 +30,11 @@ enum OnnxType : int {
   ONNX_UINT32,
 };
 
+<<<<<<< HEAD
 std::unordered_map<int, at::ScalarType> onnxTypeToScalarTypeMap = {
+=======
+static std::unordered_map<int, at::ScalarType> onnxTypeToScalarTypeMap = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Only conversion of ONNX numeric types is included here.
     // Unsigned ONNX types are mapped to the next higher signed
     // ScalarType type.
@@ -46,7 +50,11 @@ std::unordered_map<int, at::ScalarType> onnxTypeToScalarTypeMap = {
     {ONNX_UINT32, at::kLong},
 };
 
+<<<<<<< HEAD
 void handleNegativeStartEndIndex(
+=======
+static void handleNegativeStartEndIndex(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t& start,
     int64_t& end,
     int64_t& axis,
@@ -63,7 +71,11 @@ void handleNegativeStartEndIndex(
   }
 }
 
+<<<<<<< HEAD
 std::optional<at::Tensor> runTorchSlice_opset9(
+=======
+static std::optional<at::Tensor> runTorchSlice_opset9(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Node* node,
     std::vector<at::Tensor>& inputTensorValues) {
   assert(inputTensorValues.size() == 1);
@@ -103,7 +115,11 @@ std::optional<at::Tensor> runTorchSlice_opset9(
   return std::optional<at::Tensor>(updated_val);
 }
 
+<<<<<<< HEAD
 std::optional<at::Tensor> runTorchSlice_opset10(
+=======
+static std::optional<at::Tensor> runTorchSlice_opset10(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Node* node,
     std::vector<at::Tensor>& inputTensorValues) {
   const int maxSliceInputCount = 5;
@@ -198,7 +214,11 @@ std::optional<at::Tensor> runTorchSlice_opset10(
 }
 
 // Refer to AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_EXCEPT_COMPLEX_HALF
+<<<<<<< HEAD
 at::Tensor runTorchArange_opset11(
+=======
+static at::Tensor runTorchArange_opset11(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Node* node,
     const std::vector<at::Tensor>& inputTensorValues) {
   TORCH_INTERNAL_ASSERT(inputTensorValues.size() == 3);
@@ -542,7 +562,11 @@ std::optional<at::Tensor> runTorchBackendForOnnx(
   }
 }
 
+<<<<<<< HEAD
 bool isConstant(Value* val, const ValueToParamPairMap& valsToParamsMap) {
+=======
+static bool isConstant(Value* val, const ValueToParamPairMap& valsToParamsMap) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto parentNode = val->node();
   return (parentNode->kind() == prim::Param &&
           valsToParamsMap.find(val) !=
@@ -553,7 +577,11 @@ bool isConstant(Value* val, const ValueToParamPairMap& valsToParamsMap) {
            AttributeKind::t); // Check other types?
 }
 
+<<<<<<< HEAD
 bool hasParamInput(Node* n, const ValueToParamPairMap& valsToParamsMap) {
+=======
+static bool hasParamInput(Node* n, const ValueToParamPairMap& valsToParamsMap) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto input : n->inputs()) {
     if (valsToParamsMap.find(input) != valsToParamsMap.end()) {
       return true;
@@ -562,7 +590,11 @@ bool hasParamInput(Node* n, const ValueToParamPairMap& valsToParamsMap) {
   return false;
 }
 
+<<<<<<< HEAD
 std::vector<at::Tensor> getValues(
+=======
+static std::vector<at::Tensor> getValues(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Node* node,
     const ValueToParamPairMap& valsToParamsMap) {
   size_t numInputs = node->inputs().size();
@@ -587,7 +619,11 @@ std::vector<at::Tensor> getValues(
   return inputTensorValues;
 }
 
+<<<<<<< HEAD
 bool areNodeInputsConstant(
+=======
+static bool areNodeInputsConstant(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Node* node,
     const ValueToParamPairMap& valsToParamsMap) {
   return std::all_of(
@@ -596,7 +632,11 @@ bool areNodeInputsConstant(
       [&valsToParamsMap](Value* v) { return isConstant(v, valsToParamsMap); });
 }
 
+<<<<<<< HEAD
 std::vector<Node*> getOnnxConstParentsToRemove(Node* node) {
+=======
+static std::vector<Node*> getOnnxConstParentsToRemove(Node* node) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<Node*> parentNodes;
   for (auto val : node->inputs()) {
     // If the parent of 'node' is an onnx::Constant node,
@@ -619,7 +659,14 @@ std::vector<Node*> getOnnxConstParentsToRemove(Node* node) {
 // This is more of a partial evaluation analysis, where operations on constant
 // nodes can be lifted so we run them earlier, before the usual parameters are
 // known.
+<<<<<<< HEAD
 void ConstantFoldONNX(Block* b, ParamMap& paramsDict, int opset_version) {
+=======
+static void ConstantFoldONNX(
+    Block* b,
+    ParamMap& paramsDict,
+    int opset_version) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (opset_version < ONNX_OPSET_9) {
     TORCH_WARN(
         "Constant folding supported for only opsets >= 9. "

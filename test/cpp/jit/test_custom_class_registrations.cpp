@@ -518,6 +518,11 @@ TORCH_LIBRARY(_TorchScriptTesting, m) {
       "takes_foo_list_return(__torch__.torch.classes._TorchScriptTesting._Foo foo, Tensor x) -> Tensor[]");
   m.def(
       "takes_foo_tuple_return(__torch__.torch.classes._TorchScriptTesting._Foo foo, Tensor x) -> (Tensor, Tensor)");
+<<<<<<< HEAD
+=======
+  m.def(
+      "takes_foo_tensor_return(__torch__.torch.classes._TorchScriptTesting._Foo foo, Tensor x) -> Tensor");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.class_<FooGetterSetter>("_FooGetterSetter")
       .def(torch::init<int64_t, int64_t>())
@@ -701,6 +706,13 @@ std::tuple<at::Tensor, at::Tensor> takes_foo_tuple_return(
   return std::make_tuple(a, b);
 }
 
+<<<<<<< HEAD
+=======
+at::Tensor takes_foo_tensor_return(c10::intrusive_ptr<Foo> foo, at::Tensor x) {
+  return at::ones({foo->x, foo->y}, at::device(at::kCPU).dtype(at::kInt));
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void queue_push(c10::intrusive_ptr<TensorQueue> tq, at::Tensor x) {
   tq->push(x);
 }
@@ -732,6 +744,10 @@ TORCH_LIBRARY_IMPL(_TorchScriptTesting, CPU, m) {
   m.impl("queue_push", queue_push);
   m.impl("queue_pop", queue_pop);
   m.impl("queue_size", queue_size);
+<<<<<<< HEAD
+=======
+  m.impl("takes_foo_tensor_return", takes_foo_tensor_return);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_LIBRARY_IMPL(_TorchScriptTesting, Meta, m) {

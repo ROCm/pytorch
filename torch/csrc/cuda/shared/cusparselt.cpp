@@ -9,7 +9,11 @@ size_t getVersionInt() {
   return CUSPARSELT_VERSION;
 }
 
+<<<<<<< HEAD
 std::tuple<int64_t, int64_t, bool, int64_t> mmSearch(
+=======
+std::tuple<int64_t, int64_t, int64_t, int64_t> mmSearch(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const at::Tensor& compressed_A,
     const at::Tensor& dense_B,
     const std::optional<at::Tensor>& bias_opt,
@@ -18,7 +22,11 @@ std::tuple<int64_t, int64_t, bool, int64_t> mmSearch(
     bool transpose_result) {
   int alg_id_int = 0;
   int split_k = 1;
+<<<<<<< HEAD
   bool split_k_one_kernel = true;
+=======
+  int split_k_mode = -1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto result = at::native::_cslt_sparse_mm_impl(
       compressed_A,
       dense_B,
@@ -28,12 +36,20 @@ std::tuple<int64_t, int64_t, bool, int64_t> mmSearch(
       transpose_result,
       alg_id_int,
       split_k,
+<<<<<<< HEAD
       split_k_one_kernel,
+=======
+      split_k_mode,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       true);
   return {
       (int64_t)std::get<1>(result),
       (int64_t)std::get<2>(result),
+<<<<<<< HEAD
       (bool)std::get<3>(result),
+=======
+      (int64_t)std::get<3>(result),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       (int64_t)std::get<4>(result)};
 }
 

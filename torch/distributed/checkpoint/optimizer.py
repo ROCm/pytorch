@@ -89,7 +89,11 @@ def _is_nested_tensor(val: torch.Tensor) -> bool:
         if type(val.local_shards()[0].tensor) is ShardedTensor:
             return True
         if type(val.local_shards()[0].tensor) is DTensor:
+<<<<<<< HEAD
             raise ValueError("Cannot handle DTensor nested insided ShardedTensor")
+=======
+            raise ValueError("Cannot handle DTensor nested inside ShardedTensor")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif type(val) is DTensor and (
         type(val._local_tensor) is DTensor or type(val._local_tensor) is ShardedTensor
     ):

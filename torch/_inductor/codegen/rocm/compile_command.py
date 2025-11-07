@@ -80,6 +80,10 @@ def _rocm_compiler_options() -> list[str]:
         *gpu_arch_flags,
         "-fno-gpu-rdc",
         "-fPIC",
+<<<<<<< HEAD
+=======
+        "-fvisibility=hidden",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "-mllvm",
         "-amdgpu-early-inline-all=true",
         "-mllvm",

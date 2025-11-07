@@ -1,8 +1,11 @@
 #pragma once
+<<<<<<< HEAD
 
 // TODO: Make Fligth Recorder device agnostic
 #ifdef USE_C10D_NCCL
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cstdio>
 #include <cstdlib>
 
@@ -10,9 +13,15 @@
 #include <mutex>
 
 #include <ATen/ATen.h>
+<<<<<<< HEAD
 #include <ATen/cuda/CUDAEvent.h>
 #include <c10/util/Exception.h>
 #include <torch/csrc/distributed/c10d/TraceUtils.h>
+=======
+#include <c10/util/Exception.h>
+#include <torch/csrc/distributed/c10d/TraceUtils.h>
+#include <torch/csrc/distributed/c10d/logger.hpp>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 
 namespace c10d {
@@ -24,9 +33,16 @@ namespace c10d {
 // (minor when adding fields, major when changing existing fields)
 // Also update both JSON and Pickle dumps to make use of the newly defined
 // field(s).
+<<<<<<< HEAD
 DEFINE_CONSTANT(version_val, "2.4")
 DEFINE_CONSTANT(entries_key, "entries")
 DEFINE_CONSTANT(nccl_comm_key, "nccl_comm_state")
+=======
+DEFINE_CONSTANT(version_val, "2.9")
+DEFINE_CONSTANT(entries_key, "entries")
+DEFINE_CONSTANT(nccl_comm_key, "nccl_comm_state")
+DEFINE_CONSTANT(nccl_version_key, "nccl_version")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DEFINE_CONSTANT(version_key, "version")
 DEFINE_CONSTANT(pg_config_key, "pg_config")
 DEFINE_CONSTANT(pg_status_key, "pg_status")
@@ -56,6 +72,11 @@ DEFINE_CONSTANT(time_discovered_completed_key, "time_discovered_completed_ns")
 DEFINE_CONSTANT(completed_state, "completed")
 DEFINE_CONSTANT(scheduled_state, "scheduled")
 DEFINE_CONSTANT(started_state, "started")
+<<<<<<< HEAD
+=======
+DEFINE_CONSTANT(thread_id_key, "thread_id")
+DEFINE_CONSTANT(thread_name_key, "thread_name")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #undef DEFINE_CONSTANT
 
 // Write NCCL debug info to local disk or any storage users define.
@@ -87,6 +108,7 @@ class TORCH_API DebugInfoWriter {
   static std::atomic<bool> hasWriterRegistered_;
 };
 
+<<<<<<< HEAD
 /* Helper used by work::getDuration() and nccl flight recorder */
 float getDurationFromEvent(
     at::cuda::CUDAEvent& ncclStartEvent,
@@ -105,6 +127,24 @@ struct FlightRecorder {
     enabled_ = max_entries_ > 0;
   }
   using Event = at::cuda::CUDAEvent;
+=======
+template <typename EventType>
+struct FlightRecorder {
+  static FlightRecorder<EventType>* get() {
+    // intentionally leak on exit
+    // because this will hold python state that may get destructed
+    static FlightRecorder<EventType>* instance =
+        new FlightRecorder<EventType>();
+    return instance;
+  }
+  FlightRecorder() {
+    max_entries_ =
+        getCvarInt({"TORCH_FR_BUFFER_SIZE", "TORCH_NCCL_TRACE_BUFFER_SIZE"}, 0);
+    capture_cpp_stack_ = getCvarBool(
+        {"TORCH_FR_CPP_STACK", "TORCH_NCCL_TRACE_CPP_STACK"}, false);
+    enabled_ = max_entries_ > 0;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct Entry {
     size_t id_; // incremented id in the trace buffer
                 // used to figure out where in the circular entries
@@ -128,7 +168,11 @@ struct FlightRecorder {
     // we borrow pointers to start_ and end_ so we can query the state
     // on reporting. However, once the event is completed, the call
     // to `complete` will clear these.
+<<<<<<< HEAD
     Event *start_, *end_;
+=======
+    EventType *start_, *end_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // timestamp when the entry was created, likely close to the time the work
     // was 'enqueued'- not necessarily started
@@ -148,7 +192,11 @@ struct FlightRecorder {
     std::optional<c10::time_t> time_discovered_started_;
 
     // timestamp when our CPU threads discovered that the kernel completed.
+<<<<<<< HEAD
     // will always be _after_ it actually complated, and can be the same time
+=======
+    // will always be _after_ it actually completed, and can be the same time
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // as the discovery of the start if the watchdog thread is stuck on CUDA
     // APIs
     std::optional<c10::time_t> time_discovered_completed_;
@@ -159,11 +207,24 @@ struct FlightRecorder {
     c10::SmallVector<int64_t, 4> output_dims_;
     std::vector<c10::ScalarType> output_dtypes_;
     c10::SmallVector<int64_t, 8> sizes_; // flattened from inputs, outputs
+<<<<<<< HEAD
+=======
+    std::thread::id thread_id_;
+    std::string thread_name_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool retired_ = false; // is this work entry no longer in the workMetaList_?
                            // a retired but not completed event has timed out
 
     // Returns the traceback of current entry, in string form.
+<<<<<<< HEAD
     std::string getTraceback();
+=======
+    // Note: `getTraceback` invokes `torch::symbolize`, which may need to
+    // acquire the GIL. If you don't want to block the current thread or take
+    // the risk of a GIL deadlock, you can use an asynchronous calling mechanism
+    // like std::async.
+    TORCH_API std::string getTraceback();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   bool enabled_ = false;
@@ -176,6 +237,10 @@ struct FlightRecorder {
   std::map<size_t, std::shared_ptr<ProcessGroupStatus>> all_pg_status_ = {};
   std::map<std::tuple<std::string, std::string>, std::vector<uint64_t>>
       pg_name_to_ranks_ = {};
+<<<<<<< HEAD
+=======
+  std::string nccl_version_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::optional<size_t> record(
       size_t pg_id,
@@ -186,23 +251,41 @@ struct FlightRecorder {
       std::string profiling_name,
       const std::vector<at::Tensor>& inputs,
       const std::vector<at::Tensor>& outputs,
+<<<<<<< HEAD
       Event* start,
       Event* end,
+=======
+      EventType* start,
+      EventType* end,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::chrono::milliseconds timeout_ms,
       std::shared_ptr<ProcessGroupStatus> pg_status,
       bool isP2P);
 
+<<<<<<< HEAD
   void record_pg_ranks(
       const std::tuple<std::string, std::string>& pg_name,
       std::vector<uint64_t> ranks);
 
+=======
+  TORCH_API void record_pg_ranks(
+      const std::tuple<std::string, std::string>& pg_name,
+      std::vector<uint64_t> ranks);
+
+  void record_accelerator_version(const std::string nccl_version);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void update_state(Entry& r);
 
   std::vector<Entry> dump_entries();
 
   // Returns the entry with the given id, if it exists. Otherwise, returns
   // std::nullopt.
+<<<<<<< HEAD
   std::optional<Entry> getEntry(std::optional<size_t> id);
+=======
+  TORCH_API std::optional<Entry> getEntry(std::optional<size_t> id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /*
   Mark an Event as completed and free its events.
@@ -214,7 +297,13 @@ struct FlightRecorder {
   never hang. (timing must also be enabled for compute_duration - see
   TORCH_NCCL_ENABLE_TIMING).
   */
+<<<<<<< HEAD
   void retire_id(std::optional<size_t> id, bool compute_duration = true);
+=======
+  TORCH_API void retire_id(
+      std::optional<size_t> id,
+      bool compute_duration = true);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const c10::List<c10::IValue> getCollectiveTrace(
       bool includeStacktraces,
@@ -235,6 +324,7 @@ struct FlightRecorder {
   std::string dump_json(
       const std::optional<std::unordered_map<
           std::string,
+<<<<<<< HEAD
           std::unordered_map<std::string, std::string>>>& ncclDumpMap,
       bool includeCollectives,
       bool onlyActive);
@@ -244,11 +334,38 @@ struct FlightRecorder {
       const std::optional<std::unordered_map<
           std::string,
           std::unordered_map<std::string, std::string>>>& ncclDumpMap,
+=======
+          std::unordered_map<std::string, std::string>>>& extraDumpMap,
+      bool includeCollectives,
+      bool onlyActive);
+
+  std::string dump(
+      const std::optional<std::unordered_map<
+          std::string,
+          std::unordered_map<std::string, std::string>>>& extraDumpMap,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       bool includeCollectives,
       bool includeStackTraces,
       bool onlyActive);
 };
 
+<<<<<<< HEAD
 } // namespace c10d
 
 #endif // USE_C10D_NCCL
+=======
+// Dumps the fr traces and additional information about the Process
+// Group.
+TORCH_API std::string dump_fr_trace(
+    bool includeCollectives,
+    bool includeStackTraces,
+    bool onlyActive);
+
+// Dumps the fr traces and additional information about the Process
+// Group in JSON formatted string.
+// We don't include stack traces in JSON format as it is far too much data.
+TORCH_API std::string dump_fr_trace_json(
+    bool includeCollectives,
+    bool onlyActive);
+} // namespace c10d
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

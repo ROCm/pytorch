@@ -2,6 +2,7 @@
 
 set -ex
 
+<<<<<<< HEAD
 NCCL_VERSION=v2.26.2-1
 CUDNN_VERSION=9.5.1.17
 
@@ -136,10 +137,61 @@ function install_126 {
   rm -rf nccl
 
   install_cusparselt_063
+=======
+arch_path=''
+targetarch=${TARGETARCH:-$(uname -m)}
+if [ ${targetarch} = 'amd64' ] || [ "${targetarch}" = 'x86_64' ]; then
+  arch_path='x86_64'
+else
+  arch_path='sbsa'
+fi
+
+function install_cuda {
+  version=$1
+  runfile=$2
+  major_minor=${version%.*}
+  rm -rf /usr/local/cuda-${major_minor} /usr/local/cuda
+  if [[ ${arch_path} == 'sbsa' ]]; then
+      runfile="${runfile}_sbsa"
+  fi
+  runfile="${runfile}.run"
+  wget -q https://developer.download.nvidia.com/compute/cuda/${version}/local_installers/${runfile} -O ${runfile}
+  chmod +x ${runfile}
+  ./${runfile} --toolkit --silent
+  rm -f ${runfile}
+  rm -f /usr/local/cuda && ln -s /usr/local/cuda-${major_minor} /usr/local/cuda
+}
+
+function install_cudnn {
+  cuda_major_version=$1
+  cudnn_version=$2
+  mkdir tmp_cudnn && cd tmp_cudnn
+  # cuDNN license: https://developer.nvidia.com/cudnn/license_agreement
+  filepath="cudnn-linux-${arch_path}-${cudnn_version}_cuda${cuda_major_version}-archive"
+  wget -q https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-${arch_path}/${filepath}.tar.xz
+  tar xf ${filepath}.tar.xz
+  cp -a ${filepath}/include/* /usr/local/cuda/include/
+  cp -a ${filepath}/lib/* /usr/local/cuda/lib64/
+  cd ..
+  rm -rf tmp_cudnn
+}
+
+function install_126 {
+  CUDNN_VERSION=9.10.2.21
+  echo "Installing CUDA 12.6.3 and cuDNN ${CUDNN_VERSION} and NCCL and cuSparseLt-0.7.1"
+  install_cuda 12.6.3 cuda_12.6.3_560.35.05_linux
+
+  install_cudnn 12 $CUDNN_VERSION
+
+  CUDA_VERSION=12.6 bash install_nccl.sh
+
+  CUDA_VERSION=12.6 bash install_cusparselt.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ldconfig
 }
 
+<<<<<<< HEAD
 function prune_118 {
     echo "Pruning CUDA 11.8 and cuDNN"
     #####################################################################################
@@ -203,6 +255,22 @@ function prune_124 {
   #####################################################################################
   export CUDA_BASE="/usr/local/cuda-12.4/"
   rm -rf $CUDA_BASE/libnvvp $CUDA_BASE/nsightee_plugins $CUDA_BASE/nsight-compute-2024.1.0 $CUDA_BASE/nsight-systems-2023.4.4/
+=======
+function install_129 {
+  CUDNN_VERSION=9.10.2.21
+  echo "Installing CUDA 12.9.1 and cuDNN ${CUDNN_VERSION} and NCCL and cuSparseLt-0.7.1"
+  # install CUDA 12.9.1 in the same container
+  install_cuda 12.9.1 cuda_12.9.1_575.57.08_linux
+
+  # cuDNN license: https://developer.nvidia.com/cudnn/license_agreement
+  install_cudnn 12 $CUDNN_VERSION
+
+  CUDA_VERSION=12.9 bash install_nccl.sh
+
+  CUDA_VERSION=12.9 bash install_cusparselt.sh
+
+  ldconfig
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function prune_126 {
@@ -240,6 +308,7 @@ function prune_126 {
 }
 
 function install_128 {
+<<<<<<< HEAD
   CUDNN_VERSION=9.7.1.26
   echo "Installing CUDA 12.8.0 and cuDNN ${CUDNN_VERSION} and NCCL ${NCCL_VERSION} and cuSparseLt-0.6.3"
   rm -rf /usr/local/cuda-12.8 /usr/local/cuda
@@ -269,6 +338,19 @@ function install_128 {
   rm -rf nccl
 
   install_cusparselt_063
+=======
+  CUDNN_VERSION=9.8.0.87
+  echo "Installing CUDA 12.8.1 and cuDNN ${CUDNN_VERSION} and NCCL and cuSparseLt-0.7.1"
+  # install CUDA 12.8.1 in the same container
+  install_cuda 12.8.1 cuda_12.8.1_570.124.06_linux
+
+  # cuDNN license: https://developer.nvidia.com/cudnn/license_agreement
+  install_cudnn 12 $CUDNN_VERSION
+
+  CUDA_VERSION=12.8 bash install_nccl.sh
+
+  CUDA_VERSION=12.8 bash install_cusparselt.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ldconfig
 }
@@ -277,6 +359,7 @@ function install_128 {
 while test $# -gt 0
 do
     case "$1" in
+<<<<<<< HEAD
     11.8) install_118; prune_118
         ;;
     12.4) install_124; prune_124
@@ -284,6 +367,13 @@ do
     12.6) install_126; prune_126
         ;;
     12.8) install_128;
+=======
+    12.6|12.6.*) install_126; prune_126
+        ;;
+    12.8|12.8.*) install_128;
+        ;;
+    12.9|12.9.*) install_129;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ;;
     *) echo "bad argument $1"; exit 1
         ;;

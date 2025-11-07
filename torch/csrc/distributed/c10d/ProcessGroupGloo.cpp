@@ -4,9 +4,18 @@
 
 #ifdef USE_C10D_GLOO
 
+<<<<<<< HEAD
 #include <torch/csrc/distributed/c10d/GlooDeviceFactory.hpp>
 #include <torch/csrc/distributed/c10d/PrefixStore.hpp>
 #include <torch/csrc/distributed/c10d/ProcessGroup.hpp>
+=======
+#include <torch/csrc/distributed/c10d/FlightRecorder.hpp>
+#include <torch/csrc/distributed/c10d/GlooDeviceFactory.hpp>
+#include <torch/csrc/distributed/c10d/PrefixStore.hpp>
+#include <torch/csrc/distributed/c10d/ProcessGroup.hpp>
+#include <torch/csrc/distributed/c10d/ProcessGroupGlooDetail.hpp>
+#include <torch/csrc/distributed/c10d/Utils.hpp>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <chrono>
 #include <exception>
 
@@ -24,6 +33,7 @@
 #include <type_traits>
 #include <utility>
 
+<<<<<<< HEAD
 #include <gloo/allgather.h>
 #include <gloo/allgatherv.h>
 #include <gloo/allreduce.h>
@@ -35,6 +45,8 @@
 #include <gloo/reduce.h>
 #include <gloo/scatter.h>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ThreadLocalState.h>
 #include <ATen/native/SparseTensorUtils.h>
 
@@ -45,6 +57,7 @@
 #include <gloo/rendezvous/context.h>
 #include <gloo/rendezvous/prefix_store.h>
 
+<<<<<<< HEAD
 #ifdef _WIN32
 #define GENERATE_ALL_TYPES(type, func, ...)      \
   switch (type) {                                \
@@ -111,6 +124,8 @@
   }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace c10d {
 
 namespace {
@@ -172,6 +187,7 @@ void checkRemainingTime(
   }
 }
 
+<<<<<<< HEAD
 typedef void (*ReduceFunc)(void*, const void*, const void*, size_t);
 
 template <typename T, std::enable_if_t<!std::is_integral_v<T>, int> = 0>
@@ -323,6 +339,11 @@ at::Tensor pinnedLike(at::Tensor& tensor) {
   return at::empty({0}, tensor.options().device(at::kCPU))
       .set_(storage, 0, tensor.sizes(), tensor.strides());
 }
+=======
+const auto kLoopbackAddress = "127.0.0.1";
+
+} // namespace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // This function initializes a vector of CUDA streams, one for every
 // tensor in the input tensor vector, and ensures that these streams are
@@ -342,7 +363,11 @@ void initializeStreamsEvents(
     events.emplace_back(device.type());
     events[i].record(impl.getStream(device));
     // Get a non-default stream to execute asynchronous CUDA operations
+<<<<<<< HEAD
     // on for this device. This ensures that the default stream used
+=======
+    // on this device. This ensures that the default stream used
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // by the caller is not occupied by c10d related operations.
     streams.push_back(
         impl.getStreamFromGlobalPool(device, /*isHighPriority=*/true));
@@ -415,9 +440,15 @@ void initializeStreamsEvents(
   }
 }
 
+<<<<<<< HEAD
 const auto kLoopbackAddress = "127.0.0.1";
 
 } // namespace
+=======
+bool getDefaultGlooLazyInit() {
+  return ::c10d::getCvarBool(TORCH_GLOO_LAZY_INIT, false);
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // static
 void ProcessGroupGloo::AsyncWork::execute(
@@ -456,6 +487,13 @@ c10::intrusive_ptr<c10::ivalue::Future> ProcessGroupGloo::AsyncWork::
   return future_;
 }
 
+<<<<<<< HEAD
+=======
+std::chrono::milliseconds ProcessGroupGloo::AsyncWork::getTimeout() const {
+  return context_->getTimeout();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 c10::intrusive_ptr<c10::ivalue::Future> createFutureAsOutput(
     const std::vector<std::vector<at::Tensor>>& outputTensors) {
@@ -513,6 +551,10 @@ inline void ProcessGroupGloo::AsyncWork::recordAsyncWorkProfilingInfo(
 }
 
 ProcessGroupGloo::AsyncWork::AsyncWork(
+<<<<<<< HEAD
+=======
+    std::shared_ptr<gloo::Context> context,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<std::vector<at::Tensor>> outputTensors,
     OpType opType,
     uint64_t seq,
@@ -522,11 +564,19 @@ ProcessGroupGloo::AsyncWork::AsyncWork(
     // replace default profiler implementation with async version that reports
     // correct timestamps for work that is asynchronously executed.
     : Work(-1, opType, nullptr, inputTensors),
+<<<<<<< HEAD
+=======
+      context_(std::move(context)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       outputTensors_(std::move(outputTensors)),
       future_(createFutureAsOutput(outputTensors_)),
       seq_(seq) {
   if (profilingTitle != nullptr) {
     recordAsyncWorkProfilingInfo(profilingTitle, inputTensors);
+<<<<<<< HEAD
+=======
+    profilingTitle_ = profilingTitle;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -659,7 +709,11 @@ void socketInitialize() {
 // gracefully fall back to an alternative if it doesn't.
 bool doesHostnameResolveToUsableAddress(const std::string& hostname) {
   socketInitialize();
+<<<<<<< HEAD
   struct addrinfo hints {};
+=======
+  struct addrinfo hints{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   struct addrinfo* result = nullptr;
@@ -691,23 +745,41 @@ bool doesHostnameResolveToUsableAddress(const std::string& hostname) {
 } // namespace
 
 std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
+<<<<<<< HEAD
     createDeviceForInterface(const std::string& interface_name) {
   return ::c10d::GlooDeviceFactory::makeDeviceForInterface(interface_name);
 }
 
 std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
     createDeviceForHostname(const std::string& hostname) {
+=======
+    createDeviceForInterface(const std::string& interface_name, bool lazyInit) {
+  return ::c10d::GlooDeviceFactory::makeDeviceForInterface(
+      interface_name, lazyInit);
+}
+
+std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
+    createDeviceForHostname(const std::string& hostname, bool lazyInit) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       doesHostnameResolveToUsableAddress(hostname),
       "Cannot resolve ",
       hostname,
       " to a (local) address");
+<<<<<<< HEAD
   return ::c10d::GlooDeviceFactory::makeDeviceForHostname(hostname);
+=======
+  return ::c10d::GlooDeviceFactory::makeDeviceForHostname(hostname, lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #if defined(__linux__) || defined(_WIN32)
 std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
+<<<<<<< HEAD
     createDefaultDevice() {
+=======
+    createDefaultDevice(bool lazyInit) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Use the hostname to resolve the network address to
   // use. Note: if the hostname does not resolve to an address (e.g.
   // because of misconfigured /etc/hosts file), this will not work.
@@ -720,7 +792,12 @@ std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
 
   // Use this machine's hostname if it resolves to an address.
   if (doesHostnameResolveToUsableAddress(hostname.data())) {
+<<<<<<< HEAD
     return ::c10d::GlooDeviceFactory::makeDeviceForHostname(hostname.data());
+=======
+    return ::c10d::GlooDeviceFactory::makeDeviceForHostname(
+        hostname.data(), lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Otherwise, use the loopback address.
@@ -728,13 +805,21 @@ std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
       "Unable to resolve hostname to a (local) address. ",
       "Using the loopback address as fallback. ",
       "Manually set the network interface to bind to with GLOO_SOCKET_IFNAME.");
+<<<<<<< HEAD
   return createDeviceForHostname(kLoopbackAddress);
+=======
+  return createDeviceForHostname(kLoopbackAddress, lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 #endif
 
 #ifdef __APPLE__
 std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
+<<<<<<< HEAD
     createDefaultDevice() {
+=======
+    createDefaultDevice(bool lazyInit) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Use the hostname to resolve the network address to
   // use. Note: if the hostname does not resolve to an address (e.g.
   // because of misconfigured /etc/hosts file), this will not work.
@@ -747,7 +832,12 @@ std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
 
   // Use this machine's hostname if it resolves to an address.
   if (doesHostnameResolveToUsableAddress(hostname.get())) {
+<<<<<<< HEAD
     return ::c10d::GlooDeviceFactory::makeDeviceForHostname(hostname.get());
+=======
+    return ::c10d::GlooDeviceFactory::makeDeviceForHostname(
+        hostname.get(), lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Otherwise, use the loopback address.
@@ -755,10 +845,19 @@ std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
       "Unable to resolve hostname to a (local) address. ",
       "Using the loopback address as fallback. ",
       "Manually set the network interface to bind to with GLOO_SOCKET_IFNAME.");
+<<<<<<< HEAD
   return createDeviceForHostname(kLoopbackAddress);
 }
 #endif
 
+=======
+  return createDeviceForHostname(kLoopbackAddress, lazyInit);
+}
+#endif
+
+static std::atomic<size_t> process_group_id = 0;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ProcessGroupGloo::ProcessGroupGloo(
     const c10::intrusive_ptr<Store>& store,
     int rank,
@@ -768,7 +867,12 @@ ProcessGroupGloo::ProcessGroupGloo(
       store_(new GlooStore(store)),
       options_(std::move(options)),
       stop_(false),
+<<<<<<< HEAD
       collectiveCounter_(0) {
+=======
+      collectiveCounter_(0),
+      local_id_(process_group_id++) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& devices = options_->devices;
   if (devices.empty()) {
     TORCH_CHECK(false, "No device(s) specified");
@@ -789,10 +893,32 @@ ProcessGroupGloo::ProcessGroupGloo(
   contexts_.reserve(options_->devices.size());
   for (const auto i : c10::irange(options_->devices.size())) {
     auto context = std::make_shared<::gloo::rendezvous::Context>(rank_, size_);
+<<<<<<< HEAD
     auto store = ::gloo::rendezvous::PrefixStore(std::to_string(i), *store_);
     context->setTimeout(options_->timeout);
     try {
       context->connectFullMesh(store, options_->devices[i]);
+=======
+
+#ifdef GLOO_SHARED_STORE
+    auto underlyingStore = store_;
+#else
+    auto& underlyingStore = *store_;
+#endif
+
+    auto store = std::make_shared<::gloo::rendezvous::PrefixStore>(
+        std::to_string(i), underlyingStore);
+
+#ifdef GLOO_SHARED_STORE
+    auto connectStore = store;
+#else
+    auto& connectStore = *store;
+#endif
+
+    context->setTimeout(options_->timeout);
+    try {
+      context->connectFullMesh(connectStore, options_->devices[i]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } catch (const std::runtime_error& e) {
       auto err = e.what();
       // TORCH_CHECK to print the cpp stacktrace.
@@ -812,8 +938,19 @@ ProcessGroupGloo::ProcessGroupGloo(
   for (const auto i : c10::irange(threads_.size())) {
     threads_[i] = std::thread(&ProcessGroupGloo::runLoop, this, i);
   }
+<<<<<<< HEAD
 
   init();
+=======
+  this->setGroupUid(options_->group_name);
+
+  // TODO: If gloo has version, we also need to log gloo version into FR.
+  FlightRecorder<c10::Event>::get()->record_pg_ranks(
+      std::make_tuple(pg_uid_, pg_desc_), groupRanks());
+  init();
+
+  // TODO: Add configs print like ProcessGroupNCCL.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 ProcessGroupGloo::~ProcessGroupGloo() {
@@ -861,13 +998,60 @@ void ProcessGroupGloo::runLoop(int workerIndex) {
     workConsumeCV_.notify_one();
 
     AsyncWork::execute(work);
+<<<<<<< HEAD
+=======
+    // TODO: Need to find a way to calculate the difference of duration of two
+    // c10d::Event
+    pgStatus_->lastCompletedSeq = static_cast<int64_t>(work->seq_);
+    pgStatus_->lastCompletedWorkName = opTypeToString(work->opType_);
+    // TODO: We need to have numel of tensors for gloo as well.
+    pgStatus_->lastCompletedNumelIn = 0;
+    pgStatus_->lastCompletedNumelOut = 0;
+    FlightRecorder<c10::Event>::get()->retire_id(work->trace_id_, false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     lock.lock();
     workInProgress_[workerIndex].reset();
   }
 }
 
+<<<<<<< HEAD
 void ProcessGroupGloo::enqueue(c10::intrusive_ptr<AsyncWork> work) {
   std::unique_lock<std::mutex> lock(workMutex_);
+=======
+const std::vector<uint64_t>& ProcessGroupGloo::groupRanks() const {
+  if (options_->global_ranks_in_group.empty() && local_id_ == 0) {
+    static std::vector<uint64_t> globalRanks(size_);
+    std::iota(globalRanks.begin(), globalRanks.end(), 0);
+    return globalRanks;
+  }
+  return options_->global_ranks_in_group;
+}
+
+void ProcessGroupGloo::enqueue(c10::intrusive_ptr<AsyncWork> work) {
+  std::unique_lock<std::mutex> lock(workMutex_);
+  pgStatus_->lastEnqueuedSeq = static_cast<int64_t>(work->seq_);
+  pgStatus_->lastEnqueuedWorkName = opTypeToString(work->opType_);
+  // TODO: We need to have numel of tensors for gloo as well.
+  pgStatus_->lastEnqueuedNumelIn = 0;
+  pgStatus_->lastEnqueuedNumelOut = 0;
+  // using c10d::FlightRecorder;
+  // TODO: We need to have a way to use c10::Event inside gloo as well.
+  work->trace_id_ = FlightRecorder<c10::Event>::get()->record(
+      local_id_,
+      std::make_tuple(pg_uid_, pg_desc_),
+      collectiveCounter_,
+      0, // p2p_seq_id, set 0 for now since p2p does not call enqueue
+      work->getSequencenumber(), // We need to differentiate between p2p and
+                                 // non-p2p op.
+      work->getProfilerTitle(),
+      work->getInputTensors(),
+      work->getOutputTensors(),
+      nullptr,
+      nullptr,
+      work->getTimeout(),
+      pgStatus_,
+      false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   workQueue_.push_back(std::move(work));
   lock.unlock();
 
@@ -888,18 +1072,28 @@ class AsyncBroadcastWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {inputs},
             OpType::BROADCAST,
             seq,
             "gloo:broadcast",
             inputs),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inputs(inputs),
         rootRank(rootRank),
         rootTensor(rootTensor),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<at::Tensor> inputs{};
   const int rootRank;
   const int rootTensor;
@@ -907,13 +1101,28 @@ class AsyncBroadcastWork : public ProcessGroupGloo::AsyncWork {
 
   void broadcast(at::Tensor& tensor) {
     const auto& scalarType = tensor.scalar_type();
+<<<<<<< HEAD
     gloo::BroadcastOptions opts(context);
+=======
+    gloo::BroadcastOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setRoot(rootRank);
     opts.setTag(tag);
     GENERATE_ALL_TYPES(scalarType, setOutput, opts, tensor);
     gloo::broadcast(opts);
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return inputs;
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return inputs;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run() override {
     broadcast(inputs[rootTensor]);
 
@@ -942,7 +1151,11 @@ class AsyncBroadcastCUDAWork : public AsyncBroadcastWork {
     // Create pinned host side tensors.
     tmp = pinnedLike(inputs[rootTensor]);
     c10::OptionalStreamGuard guard;
+<<<<<<< HEAD
     if (context->rank == rootRank) {
+=======
+    if (context_->rank == rootRank) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       guard.reset_stream(streams[rootTensor]);
       tmp.copy_(inputs[rootTensor], /* non_blocking */ true);
     }
@@ -950,7 +1163,11 @@ class AsyncBroadcastCUDAWork : public AsyncBroadcastWork {
 
   void run() override {
     // Synchronize with copy operation if applicable.
+<<<<<<< HEAD
     if (context->rank == rootRank) {
+=======
+    if (context_->rank == rootRank) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       streams[rootTensor].synchronize();
     }
 
@@ -1025,6 +1242,7 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::broadcast(
   return work;
 }
 
+<<<<<<< HEAD
 namespace {
 
 class AsyncAllreduceWork : public ProcessGroupGloo::AsyncWork {
@@ -1495,6 +1713,8 @@ class AsyncSparseAllreduceCUDAWork : public AsyncSparseAllreduceWork {
 
 } // namespace
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 c10::intrusive_ptr<Work> ProcessGroupGloo::allreduce(
     std::vector<at::Tensor>& inputs,
     const AllreduceOptions& opts) {
@@ -1529,6 +1749,7 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::allreduce(
   auto tag = nextTag();
   auto context = getContext(tag);
   ++seq_;
+<<<<<<< HEAD
   if (device.type() == at::kCPU) {
     if (layout == c10::kStrided) {
       work = c10::make_intrusive<AsyncAllreduceWork>(
@@ -1552,17 +1773,64 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::allreduce(
   } else {
     TORCH_CHECK(false, "Invalid backend");
   }
+=======
+
+  work = GlooAllreduceRegistry()->Create(
+      device.type(), context, inputs, opts.reduceOp, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   enqueue(work);
   return work;
 }
 
+<<<<<<< HEAD
+=======
+static c10::intrusive_ptr<ProcessGroupGloo::AsyncWork> makeAllreduceCPUWork(
+    std::shared_ptr<gloo::Context> context,
+    std::vector<at::Tensor>& inputs,
+    ReduceOp reduceOp,
+    uint32_t tag,
+    uint64_t seq) {
+  auto layout = inputs[0].layout();
+
+  if (layout == c10::kStrided) {
+    return c10::make_intrusive<AsyncAllreduceWork>(
+        std::move(context), inputs, reduceOp, tag, seq);
+  } else if (layout == c10::kSparse) {
+    return c10::make_intrusive<AsyncSparseAllreduceWork>(
+        std::move(context), inputs, tag, seq);
+  } else {
+    TORCH_CHECK(false, "ProcessGroupGloo::allreduce: unsupported layout");
+  }
+}
+
+C10_DEFINE_TYPED_REGISTRY(
+    GlooAllreduceRegistry,
+    c10::DeviceType,
+    ProcessGroupGloo::AsyncWork,
+    c10::intrusive_ptr,
+    std::shared_ptr<gloo::Context>,
+    std::vector<at::Tensor>&,
+    ReduceOp,
+    uint32_t,
+    uint64_t)
+
+C10_REGISTER_TYPED_CREATOR(
+    GlooAllreduceRegistry,
+    at::kCPU,
+    makeAllreduceCPUWork)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 c10::intrusive_ptr<Work> ProcessGroupGloo::allreduce_sparse(
     std::vector<at::Tensor>& inputs,
     const AllreduceOptions& opts) {
   // all reduce sparse calls into default allreduce which
   // implemented with all_gathering indices and values
+<<<<<<< HEAD
   // we do ths we do not have a native cuda implementation
+=======
+  // we do this we do not have a native cuda implementation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return allreduce(inputs, opts);
 }
 
@@ -1639,19 +1907,29 @@ class AsyncReduceWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {inputs},
             OpType::REDUCE,
             seq,
             "gloo:reduce",
             inputs),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inputs(inputs),
         rootRank(rootRank),
         rootTensor(rootTensor),
         reduceOp(std::move(reduceOp)),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<at::Tensor> inputs{};
   const int rootRank;
   const int rootTensor;
@@ -1660,18 +1938,41 @@ class AsyncReduceWork : public ProcessGroupGloo::AsyncWork {
 
   void reduce(std::vector<at::Tensor>& tensors) {
     const auto& scalarType = tensors[0].scalar_type();
+<<<<<<< HEAD
     gloo::ReduceOptions opts(context);
+=======
+    gloo::ReduceOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setRoot(rootRank);
     opts.setTag(tag);
     opts.setReduceFunction(getFunction(scalarType, reduceOp));
     GENERATE_ALL_TYPES(scalarType, setOutput, opts, tensors[0]);
     gloo::reduce(opts);
+<<<<<<< HEAD
+=======
+
+    // Gloo doesn't support AVG so we use SUM + division.
+    if (reduceOp == ReduceOp::AVG) {
+      tensors[0] /= context_->size;
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void run() override {
     reduce(inputs);
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return inputs;
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return inputs;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  protected:
   template <typename T>
   void getFunction(gloo::ReduceOptions::Func& fn, const ReduceOp op) {
@@ -1815,17 +2116,27 @@ class AsyncAllgatherWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputs,
             OpType::ALLGATHER,
             seq,
             "gloo:all_gather",
             inputs),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputs(outputs),
         inputs(inputs),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<std::vector<at::Tensor>> outputs{};
   std::vector<at::Tensor> inputs{};
   const uint32_t tag;
@@ -1834,7 +2145,11 @@ class AsyncAllgatherWork : public ProcessGroupGloo::AsyncWork {
       std::vector<std::vector<at::Tensor>>& outputs,
       std::vector<at::Tensor>& inputs) {
     const auto& scalarType = inputs[0].scalar_type();
+<<<<<<< HEAD
     gloo::AllgatherOptions opts(context);
+=======
+    gloo::AllgatherOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setTag(tag);
 
     // Use single flattened input tensor.
@@ -1856,6 +2171,17 @@ class AsyncAllgatherWork : public ProcessGroupGloo::AsyncWork {
     }
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return inputs;
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return {newLikeFlat(outputs[0])};
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run() override {
     allgather(outputs, inputs);
   }
@@ -2087,17 +2413,27 @@ class AsyncAllgatherCoalescedWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_lists,
             OpType::ALLGATHER_COALESCED,
             seq,
             "gloo:all_gather",
             input_list),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output_lists(output_lists),
         input_list(input_list),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<std::vector<at::Tensor>> output_lists{};
   std::vector<at::Tensor> input_list{};
   const uint32_t tag;
@@ -2108,7 +2444,11 @@ class AsyncAllgatherCoalescedWork : public ProcessGroupGloo::AsyncWork {
     assert(!input_list.empty());
 
     const auto& scalarType = input_list[0].scalar_type();
+<<<<<<< HEAD
     gloo::AllgatherOptions opts(context);
+=======
+    gloo::AllgatherOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setTag(tag);
 
     // Use single flattened input tensor.
@@ -2140,6 +2480,17 @@ class AsyncAllgatherCoalescedWork : public ProcessGroupGloo::AsyncWork {
     }
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return input_list;
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return {newLikeFlat(output_lists[0])};
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run() override {
     allgather_coalesced();
   }
@@ -2230,18 +2581,28 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             outputs,
             OpType::GATHER,
             seq,
             "gloo:gather",
             inputs),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputs(outputs),
         inputs(inputs),
         root(root),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<std::vector<at::Tensor>> outputs{};
   std::vector<at::Tensor> inputs{};
   const int root;
@@ -2251,14 +2612,22 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
       std::vector<std::vector<at::Tensor>>& outputs,
       std::vector<at::Tensor>& inputs) {
     const auto scalarType = inputs[0].scalar_type();
+<<<<<<< HEAD
     gloo::GatherOptions opts(context);
+=======
+    gloo::GatherOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setRoot(root);
     opts.setTag(tag);
 
     // Set single temporary tensor on root process.
     // This is later scattered to the separate output tensors.
     at::Tensor flatOutputTensor;
+<<<<<<< HEAD
     if (context->rank == root) {
+=======
+    if (context_->rank == root) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       flatOutputTensor = newLikeFlat(outputs[0]);
       GENERATE_ALL_TYPES(scalarType, setOutput, opts, flatOutputTensor);
     }
@@ -2268,13 +2637,29 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
     gloo::gather(opts);
 
     // Unflatten into output tensors on root process.
+<<<<<<< HEAD
     if (context->rank == root) {
+=======
+    if (context_->rank == root) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       for (const auto i : c10::irange(outputs[0].size())) {
         outputs[0][i].copy_(flatOutputTensor[static_cast<int64_t>(i)]);
       }
     }
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return inputs;
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return outputs.empty() ? std::vector<at::Tensor>{}
+                           : std::vector<at::Tensor>{newLikeFlat(outputs[0])};
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run() override {
     gather(outputs, inputs);
   }
@@ -2435,19 +2820,29 @@ class AsyncScatterWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {outputs},
             OpType::SCATTER,
             seq,
             "gloo:scatter",
             !inputs.empty() ? std::optional<std::vector<at::Tensor>>(inputs[0])
                             : std::nullopt),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputs(outputs),
         inputs(inputs),
         root(root),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<at::Tensor> outputs{};
   std::vector<std::vector<at::Tensor>> inputs{};
   const int root;
@@ -2457,12 +2852,20 @@ class AsyncScatterWork : public ProcessGroupGloo::AsyncWork {
       std::vector<at::Tensor>& outputs,
       std::vector<std::vector<at::Tensor>>& inputs) {
     const auto scalarType = outputs[0].scalar_type();
+<<<<<<< HEAD
     gloo::ScatterOptions opts(context);
+=======
+    gloo::ScatterOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setRoot(root);
     opts.setTag(tag);
 
     // Set list of input tensors on root process
+<<<<<<< HEAD
     if (context->rank == root) {
+=======
+    if (context_->rank == root) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GENERATE_ALL_TYPES(scalarType, setInputs, opts, inputs[0]);
     }
 
@@ -2471,6 +2874,18 @@ class AsyncScatterWork : public ProcessGroupGloo::AsyncWork {
     gloo::scatter(opts);
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return inputs.empty() ? std::vector<at::Tensor>{}
+                          : std::vector<at::Tensor>{newLikeFlat(inputs[0])};
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return outputs;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run() override {
     scatter(outputs, inputs);
   }
@@ -2615,7 +3030,48 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::reduce_scatter(
     std::vector<at::Tensor>& outputs,
     std::vector<std::vector<at::Tensor>>& inputs,
     const ReduceScatterOptions& opts) {
+<<<<<<< HEAD
   TORCH_CHECK(false, "ProcessGroupGloo does not support reduce_scatter");
+=======
+  const auto rank = getRank();
+  const auto worldSize = getSize();
+
+  TORCH_CHECK(outputs.size() == 1, "reduce_scatter only supports 1 output");
+  TORCH_CHECK(
+      outputs.size() == inputs.size(),
+      "requires input/output tensor lists to have the same length");
+  TORCH_CHECK(
+      static_cast<int>(inputs[0].size()) == worldSize,
+      "invalid input tensor list size, must be world size");
+
+  std::vector<at::Tensor> buffers;
+  for (const auto i : c10::irange(worldSize)) {
+    if (i == rank) {
+      TORCH_CHECK_EQ(outputs[0].dtype(), inputs[0][i].dtype());
+      TORCH_CHECK_EQ(outputs[0].sizes().vec(), inputs[0][i].sizes().vec());
+
+      // for our own input, we can just use the output tensor instead of
+      // allocating a new tensor
+      outputs[0].copy_(inputs[0][i]);
+      buffers.push_back(outputs[0]);
+    } else {
+      buffers.push_back(inputs[0][i].clone());
+    }
+  }
+  std::vector<c10::intrusive_ptr<Work>> works;
+  for (const auto i : c10::irange(buffers.size())) {
+    std::vector<at::Tensor> inp = {buffers[i]};
+    AllreduceOptions arOpts;
+    arOpts.reduceOp = opts.reduceOp;
+    works.push_back(allreduce(inp));
+  }
+  return c10::make_intrusive<LambdaWork>(
+      [worldSize, works = std::move(works)]() {
+        for (const auto i : c10::irange(worldSize)) {
+          works[i]->wait();
+        }
+      });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 namespace {
@@ -2631,19 +3087,29 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {{outputTensor}},
             OpType::ALLTOALL,
             seq,
             "gloo:all_to_all",
             std::optional<std::vector<at::Tensor>>({inputTensor})),
+<<<<<<< HEAD
         context(std::move(context)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputTensor(outputTensor),
         inputTensor(inputTensor),
         outputCounts(std::move(outputCounts)),
         inputCounts(std::move(inputCounts)),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::shared_ptr<gloo::Context> context;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor outputTensor;
   at::Tensor inputTensor;
   std::vector<int64_t> outputCounts{};
@@ -2654,24 +3120,41 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
     const auto scalarType = outputTensor.scalar_type();
     if (outputCounts.empty() && inputCounts.empty()) {
       // Gloo alltoall
+<<<<<<< HEAD
       gloo::AlltoallOptions opts(context);
+=======
+      gloo::AlltoallOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       opts.setTag(tag);
       GENERATE_ALL_TYPES(scalarType, setInput, opts, inputTensor);
       GENERATE_ALL_TYPES(scalarType, setOutput, opts, outputTensor);
       gloo::alltoall(opts);
     } else {
       // Gloo alltoallv
+<<<<<<< HEAD
       c10d::checkSplitSizes(inputCounts, inputTensor, context->size);
       c10d::checkSplitSizes(outputCounts, outputTensor, context->size);
       std::vector<int64_t> sendCounts(context->size);
       std::vector<int64_t> recvCounts(context->size);
       std::vector<int64_t> sendOffsets(context->size);
       std::vector<int64_t> recvOffsets(context->size);
+=======
+      c10d::checkSplitSizes(inputCounts, inputTensor, context_->size);
+      c10d::checkSplitSizes(outputCounts, outputTensor, context_->size);
+      std::vector<int64_t> sendCounts(context_->size);
+      std::vector<int64_t> recvCounts(context_->size);
+      std::vector<int64_t> sendOffsets(context_->size);
+      std::vector<int64_t> recvOffsets(context_->size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       c10d::computeLengthsAndOffsets(
           inputCounts, inputTensor, &sendCounts, &sendOffsets);
       c10d::computeLengthsAndOffsets(
           outputCounts, outputTensor, &recvCounts, &recvOffsets);
+<<<<<<< HEAD
       gloo::AlltoallvOptions opts(context);
+=======
+      gloo::AlltoallvOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       opts.setTag(tag);
       GENERATE_ALL_TYPES(scalarType, setInput, opts, inputTensor, sendCounts);
       GENERATE_ALL_TYPES(scalarType, setOutput, opts, outputTensor, recvCounts);
@@ -2679,6 +3162,17 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
     }
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<at::Tensor> getInputTensors() override {
+    return {inputTensor};
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return {outputTensor};
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void run() override {
     alltoall(outputTensor, inputTensor);
   }
@@ -2903,11 +3397,16 @@ class AsyncBarrierWork : public ProcessGroupGloo::AsyncWork {
       uint32_t tag,
       uint64_t seq)
       : ProcessGroupGloo::AsyncWork(
+<<<<<<< HEAD
+=======
+            std::move(context),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {},
             OpType::BARRIER,
             seq,
             "gloo:barrier",
             std::nullopt),
+<<<<<<< HEAD
         context(std::move(context)),
         priorWork(std::move(priorWork)),
         tag(tag) {}
@@ -2915,6 +3414,22 @@ class AsyncBarrierWork : public ProcessGroupGloo::AsyncWork {
   std::shared_ptr<gloo::Context> context;
   std::vector<c10::weak_intrusive_ptr<AsyncWork>> priorWork{};
   const uint32_t tag;
+=======
+        priorWork(std::move(priorWork)),
+        tag(tag) {}
+
+  std::vector<c10::weak_intrusive_ptr<AsyncWork>> priorWork{};
+  const uint32_t tag;
+  std::vector<at::Tensor> inputs{};
+
+  const std::vector<at::Tensor> getInputTensors() override {
+    return inputs;
+  }
+
+  const std::vector<at::Tensor> getOutputTensors() override {
+    return inputs;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void run() override {
     // Wait on prior work to complete
@@ -2925,7 +3440,11 @@ class AsyncBarrierWork : public ProcessGroupGloo::AsyncWork {
       }
     }
 
+<<<<<<< HEAD
     gloo::BarrierOptions opts(context);
+=======
+    gloo::BarrierOptions opts(context_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opts.setTag(tag);
     gloo::barrier(opts);
   }

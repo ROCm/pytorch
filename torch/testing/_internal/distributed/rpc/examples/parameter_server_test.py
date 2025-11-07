@@ -12,12 +12,20 @@ import torch
 import torch.distributed.rpc as rpc
 import torch.nn as nn
 from torch import optim
+<<<<<<< HEAD
 
 from torch.testing._internal.dist_utils import (
     dist_init,
     worker_name,
 )
 from torch.testing._internal.distributed.rpc.rpc_agent_test_fixture import RpcAgentTestFixture
+=======
+from torch.testing._internal.dist_utils import dist_init, worker_name
+from torch.testing._internal.distributed.rpc.rpc_agent_test_fixture import (
+    RpcAgentTestFixture,
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 batch_size = 20
 in_features = 100
@@ -30,7 +38,10 @@ def timed_log(text):
 
 
 class BatchUpdateParameterServer:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, batch_update_size):
         self.model = nn.Linear(in_features, out_features)
         self.lock = threading.Lock()
@@ -54,7 +65,13 @@ class BatchUpdateParameterServer:
             else:
                 p.grad += g
         with self.lock:
+<<<<<<< HEAD
             timed_log(f"PS got {self.curr_update_size}/{self.batch_update_size} updates")
+=======
+            timed_log(
+                f"PS got {self.curr_update_size}/{self.batch_update_size} updates"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.curr_update_size += 1
             fut = self.future_model
 
@@ -72,7 +89,10 @@ class BatchUpdateParameterServer:
 
 
 class Trainer:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, ps_rref):
         self.ps_rref = ps_rref
         self.loss_fn = nn.L1Loss()
@@ -107,18 +127,31 @@ def run_ps(trainers):
     timed_log("Start training")
     start = perf_counter()
     ps_rref = rpc.RRef(BatchUpdateParameterServer(len(trainers)))
+<<<<<<< HEAD
     futs = [rpc.rpc_async(trainer, run_trainer, args=(ps_rref,)) for trainer in trainers]
+=======
+    futs = [
+        rpc.rpc_async(trainer, run_trainer, args=(ps_rref,)) for trainer in trainers
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     torch.futures.wait_all(futs)
     stop = perf_counter()
     timed_log("Finish training")
     timed_log(f"Time spent training: {stop - start}s")
 
+<<<<<<< HEAD
 class ParameterServerTest(RpcAgentTestFixture):
 
     @dist_init(setup_rpc=False)
     def test_batch_updating_parameter_server(self):
 
+=======
+
+class ParameterServerTest(RpcAgentTestFixture):
+    @dist_init(setup_rpc=False)
+    def test_batch_updating_parameter_server(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.rank != 0:
             rpc.init_rpc(
                 name=worker_name(self.rank),

@@ -70,13 +70,18 @@ permissions: read-all
 jobs:
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
+<<<<<<< HEAD
 
   linux-focal-rocm6_3-py3_10-inductor-benchmark-build:
     if: github.repository_owner == 'pytorch'
@@ -85,6 +90,17 @@ jobs:
     with:
       build-environment: linux-focal-rocm6_3-py3_10
       docker-image-name: pytorch-linux-focal-rocm-n-py3
+=======
+      opt_out_experiments: lf
+
+  linux-jammy-rocm-py3_10-inductor-benchmark-build:
+    if: github.repository_owner == 'pytorch'
+    name: rocm-py3_10-inductor-benchmark-build
+    uses: ./.github/workflows/_linux-build.yml
+    with:
+      build-environment: linux-jammy-rocm-py3_10
+      docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "inductor_huggingface_perf_rocm", shard: 1, num_shards: 3, runner: "linux.rocm.gpu.mi300.2" },
@@ -102,6 +118,7 @@ jobs:
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-focal-rocm6_3-py3_10-inductor-benchmark-test:
     permissions:
       id-token: write
@@ -117,4 +134,23 @@ jobs:
       timeout-minutes: 720
       # Disable monitor in perf tests for more investigation
       disable-monitor: true
+=======
+  linux-jammy-rocm-py3_10-inductor-benchmark-test:
+    permissions:
+      id-token: write
+      contents: read
+    name: rocm-py3_10-inductor-benchmark-test
+    uses: ./.github/workflows/_rocm-test.yml
+    needs: linux-jammy-rocm-py3_10-inductor-benchmark-build
+    with:
+      build-environment: linux-jammy-rocm-py3_10
+      dashboard-tag: training-true-inference-true-default-true-dynamic-true-cudagraphs-true-cppwrapper-true-aotinductor-true-freezing_cudagraphs-true-cudagraphs_low_precision-true
+      docker-image: ${{ needs.linux-jammy-rocm-py3_10-inductor-benchmark-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-rocm-py3_10-inductor-benchmark-build.outputs.test-matrix }}
+      timeout-minutes: 720
+      # Disable monitor in perf tests for more investigation
+      disable-monitor: true
+      monitor-log-interval: 10
+      monitor-data-collect-interval: 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit

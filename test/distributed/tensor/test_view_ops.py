@@ -190,6 +190,34 @@ class TestViewOps(DTensorTestBase):
         self.call_dt_test(op, args, {}, self.device_mesh)
 
     @with_comms
+<<<<<<< HEAD
+=======
+    def test_illegal_views(self):
+        device_mesh = self.build_device_mesh()
+        # 1D mesh [6] (see above)
+        tensor = torch.randn((6, 256))
+        dtensor = distribute_tensor(tensor, device_mesh, [Replicate()])
+        shard = dtensor.redistribute(device_mesh=device_mesh, placements=[Shard(dim=0)])
+        # view should be legal, since sharding is even and flatten includes only one sharded dim
+        shard.view(-1)
+
+        shard = dtensor.redistribute(device_mesh=device_mesh, placements=[Shard(dim=1)])
+        with self.assertRaisesRegex(
+            RuntimeError, "Attempted to flatten sharded dimension"
+        ):
+            shard.view(-1)
+
+        # 8 is the uneven case since mesh dim is 6
+        tensor = torch.randn((8, 256))
+        dtensor = distribute_tensor(tensor, device_mesh, [Replicate()])
+        shard = dtensor.redistribute(device_mesh=device_mesh, placements=[Shard(dim=0)])
+        with self.assertRaisesRegex(
+            RuntimeError, "Attempted to flatten unevenly sharded dimension"
+        ):
+            shard.view(-1)
+
+    @with_comms
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_ops(self):
         self.device_mesh = DeviceMesh(
             self.device_type, torch.arange(dist.get_world_size()).view(-1, 2)
@@ -578,6 +606,7 @@ class TestViewOps(DTensorTestBase):
     def test_view_redistribution(self):
         """
         This test is added to demonstrate "incorrect" view ops behavior if redistribution happens.
+<<<<<<< HEAD
         #TODO: we need to define the view ops behavior when view on the sharded dimension.
         """
 
@@ -594,6 +623,18 @@ class TestViewOps(DTensorTestBase):
         self.assertNotEqual(
             dtensor_x.to_local().data_ptr(), dtensor_y.to_local().data_ptr()
         )
+=======
+        """
+
+        x = torch.randn(4, 4)
+        mesh = init_device_mesh(self.device_type, (self.world_size,))
+        dtensor_x = distribute_tensor(x, mesh, (Shard(0),))
+
+        with self.assertRaisesRegex(
+            RuntimeError, "Attempted to flatten unevenly sharded dimension"
+        ):
+            dtensor_x.view(-1, 8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

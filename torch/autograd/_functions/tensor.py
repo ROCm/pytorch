@@ -25,7 +25,11 @@ class Type(Function):
         if ctx.input_device == -1:
             return grad_output.type(ctx.input_type), None
         else:
+<<<<<<< HEAD
             with torch.cuda.device(ctx.input_device):
+=======
+            with torch.accelerator.device_index(ctx.input_device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return grad_output.type(ctx.input_type), None
 
 

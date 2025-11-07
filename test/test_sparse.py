@@ -8,7 +8,11 @@ import operator
 import random
 import unittest
 from torch.testing import make_tensor
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase, run_tests, skipIfRocm, do_test_dtypes, \
+=======
+from torch.testing._internal.common_utils import TestCase, run_tests, do_test_dtypes, \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     load_tests, TEST_NUMPY, TEST_SCIPY, IS_WINDOWS, gradcheck, coalescedonoff, \
     DeterministicGuard, first_sample, TEST_WITH_CROSSREF, TEST_WITH_ROCM, skipIfTorchDynamo, \
     parametrize, subtest, is_coalesced_indices, suppress_warnings, instantiate_parametrized_tests, \
@@ -440,6 +444,7 @@ class TestSparse(TestSparseBase):
             self.assertEqual(t.is_coalesced(), coalesced)
 
             def func(indices, values, shape, is_coalesced):
+<<<<<<< HEAD
                 s = torch.sparse_coo_tensor(indices, values, shape, check_invariants=True, is_coalesced=is_coalesced)
                 self.assertEqual(s.is_coalesced(), is_coalesced)
                 return s.to_dense(masked_grad=False)
@@ -452,6 +457,24 @@ class TestSparse(TestSparseBase):
                 with self.assertRaisesRegex(RuntimeError,
                                             "cannot set is_coalesced to true if indices correspond to uncoalesced COO tensor"):
                     torch.autograd.gradcheck(func, (t._indices(), t._values().requires_grad_(True), t.shape, True))
+=======
+                if shape is None:
+                    s = torch.sparse_coo_tensor(indices, values, check_invariants=True, is_coalesced=is_coalesced)
+                else:
+                    s = torch.sparse_coo_tensor(indices, values, shape, check_invariants=True, is_coalesced=is_coalesced)
+                self.assertEqual(s.is_coalesced(), is_coalesced)
+                return s.to_dense(masked_grad=False)
+
+            for shape in {t.shape, None}:
+                if coalesced:
+                    torch.autograd.gradcheck(func, (t._indices(), t._values().requires_grad_(True), shape, False))
+                    torch.autograd.gradcheck(func, (t._indices(), t._values().requires_grad_(True), shape, True))
+                else:
+                    torch.autograd.gradcheck(func, (t._indices(), t._values().requires_grad_(True), shape, False))
+                    with self.assertRaisesRegex(RuntimeError,
+                                                "cannot set is_coalesced to true if indices correspond to uncoalesced COO tensor"):
+                        torch.autograd.gradcheck(func, (t._indices(), t._values().requires_grad_(True), shape, True))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @dtypes(*floating_and_complex_types_and(torch.float16, torch.bfloat16))
     @unittest.skipIf(TEST_WITH_CROSSREF, "generator unsupport triggers assertion error")
@@ -3608,6 +3631,7 @@ class TestSparse(TestSparseBase):
         self._check_zero_nnz_softmax_op(torch.sparse.log_softmax, 10, device, dtype)
 
     # TODO: Check after why ROCm's cusparseXcsrgemm2Nnz function doesn't return the same nnz value as CUDA
+<<<<<<< HEAD
     @skipIfRocm
     @coalescedonoff
     @dtypes(*floating_and_complex_types())
@@ -3615,6 +3639,16 @@ class TestSparse(TestSparseBase):
                                       *[torch.bfloat16] if SM80OrLater else [],
                                       torch.complex64,
                                       *[torch.complex128] if CUSPARSE_SPMM_COMPLEX128_SUPPORTED else []))
+=======
+    @coalescedonoff
+    @dtypes(*floating_and_complex_types())
+    @dtypesIfCUDA(*floating_types_and(*[torch.half] if SM53OrLater and not TEST_WITH_ROCM else [],
+                                      *[torch.bfloat16] if SM80OrLater and not TEST_WITH_ROCM else [],
+                                      torch.complex64,
+                                      *[torch.complex128]
+                                      if CUSPARSE_SPMM_COMPLEX128_SUPPORTED or HIPSPARSE_SPMM_COMPLEX128_SUPPORTED
+                                      else []))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(TEST_WITH_CROSSREF, "not working with fake tensor")
     @precisionOverride({torch.bfloat16: 1e-2, torch.float16: 1e-2, torch.complex64: 1e-2, torch.float32: 1e-2})
     def test_sparse_matmul(self, device, dtype, coalesced):
@@ -4056,21 +4090,33 @@ class TestSparseOneOff(TestCase):
     def test_cuda_from_cpu(self):
         with self.assertRaisesRegex(
                 RuntimeError,
+<<<<<<< HEAD
                 "Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!"):
+=======
+                "Expected all tensors to be on the same device"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.sparse_coo_tensor(torch.zeros(1, 4).long().cuda(),
                                     torch.randn(4, 4, 4),
                                     [3, 4, 4])
 
         with self.assertRaisesRegex(
                 RuntimeError,
+<<<<<<< HEAD
                 "Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!"):
+=======
+                "Expected all tensors to be on the same device"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.sparse_coo_tensor(torch.zeros(1, 4).long().cuda(),
                                     torch.randn(4, 4, 4, 0),
                                     [3, 4, 4, 0])
 
         with self.assertRaisesRegex(
                 RuntimeError,
+<<<<<<< HEAD
                 "Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!"):
+=======
+                "Expected all tensors to be on the same device"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.sparse_coo_tensor(torch.empty(1, 0).long().cuda(),
                                     torch.randn(0, 4, 4, 0),
                                     [0, 4, 4, 0])

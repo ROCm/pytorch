@@ -19,6 +19,10 @@ More formally, for a tensor ``x = tensor.ones(10, 10)`` with size ``s = torch.Si
 ``x.numel() == x.size().numel() == s.numel() == 100`` holds true.
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> x=torch.ones(10, 10)
     >>> s=x.size()
     >>> s

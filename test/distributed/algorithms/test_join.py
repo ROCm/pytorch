@@ -250,9 +250,17 @@ class TestJoin(MultiProcessTestCase):
             else "Detected at least one rank that exhausted inputs. "
             "Throwing across all ranks."
         )
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             RuntimeError, expected_msg
         ) if throw_on_early_termination else contextlib.nullcontext():
+=======
+        with (
+            self.assertRaisesRegex(RuntimeError, expected_msg)
+            if throw_on_early_termination
+            else contextlib.nullcontext()
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with Join(
                 allreducers,
                 enable=enable,

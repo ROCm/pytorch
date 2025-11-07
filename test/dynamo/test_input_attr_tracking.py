@@ -1,5 +1,9 @@
 # Owner(s): ["module: dynamo"]
+<<<<<<< HEAD
 # flake8: noqa
+=======
+# flake8: noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch._dynamo
 import torch._dynamo.test_case

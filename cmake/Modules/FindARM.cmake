@@ -89,7 +89,11 @@ if(NOT CORTEXA9_FOUND)
 endif(NOT CORTEXA9_FOUND)
 mark_as_advanced(NEON_FOUND)
 
+<<<<<<< HEAD
 #SVE support is availale is only for Linux OS.
+=======
+#SVE support is available is only for Linux OS.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
     # Include necessary modules for checking C and C++ source compilations
     INCLUDE(CheckCSourceCompiles)
@@ -106,8 +110,23 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
       }
     ")
 
+<<<<<<< HEAD
     # Macro to check for SVE instruction support
     MACRO(CHECK_SVE lang type flags)
+=======
+    SET(ARM_BF16_CODE "
+      #include <arm_neon.h>
+      int main()
+      {
+        float32x4_t a = vdupq_n_f32(0);
+        bfloat16x8_t b = vreinterpretq_bf16_f32(a);
+        return 0;
+      }
+    ")
+
+    # Macro to check for SVE instruction support
+    MACRO(CHECK_COMPILES lang type flags code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # Save the current state of required flags
       SET(CMAKE_REQUIRED_FLAGS_SAVE ${CMAKE_REQUIRED_FLAGS})
 
@@ -116,9 +135,15 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
       # Check if the source code compiles with the given flags for the specified language (C or C++)
       IF(lang STREQUAL "CXX")
+<<<<<<< HEAD
         CHECK_CXX_SOURCE_COMPILES("${SVE_CODE}" ${lang}_HAS_${type})
       ELSE()
         CHECK_C_SOURCE_COMPILES("${SVE_CODE}" ${lang}_HAS_${type})
+=======
+        CHECK_CXX_SOURCE_COMPILES("${code}" ${lang}_HAS_${type})
+      ELSE()
+        CHECK_C_SOURCE_COMPILES("${code}" ${lang}_HAS_${type})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ENDIF()
 
       # If the compilation test is successful, set appropriate variables indicating support
@@ -142,7 +167,12 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
     ENDMACRO()
 
     # Check for SVE256 vector length
+<<<<<<< HEAD
     CHECK_SVE(CXX "SVE256" "-march=armv8-a+sve -msve-vector-bits=256")
+=======
+    CHECK_COMPILES(CXX "SVE256" "-march=armv8.2-a+sve -msve-vector-bits=256" "${SVE_CODE}")
+    CHECK_COMPILES(CXX "ARM_BF16" "-march=armv8.2-a+sve+bf16 -msve-vector-bits=256" "${ARM_BF16_CODE}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # If SVE256 support is not found, set CXX_SVE_FOUND to FALSE and notify the user
     if(NOT CXX_SVE256_FOUND)

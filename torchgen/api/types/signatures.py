@@ -49,7 +49,11 @@ class CppSignature:
 
     # Is this a fallback C++ binding?  Fallback bindings are enabled by
     # manual_cpp_binding: True and are alternate, non-public API that
+<<<<<<< HEAD
     # lets manual C++ binding implementors access the binding that would
+=======
+    # lets manual C++ binding implementers access the binding that would
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # have been automatically generated
     fallback_binding: bool = False
 

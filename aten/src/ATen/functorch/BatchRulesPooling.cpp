@@ -12,7 +12,11 @@
 namespace at::functorch {
 
 template <typename Func>
+<<<<<<< HEAD
 std::tuple<Tensor, std::optional<int64_t>,Tensor, std::optional<int64_t>>
+=======
+static std::tuple<Tensor, std::optional<int64_t>,Tensor, std::optional<int64_t>>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 max_pool_with_indices_batch_rule_helper(
   const Tensor& self, std::optional<int64_t> self_bdim,
   IntArrayRef kernel_size, IntArrayRef stride,

@@ -14,6 +14,7 @@
 #include <cuda_bf16.h>
 #endif
 
+<<<<<<< HEAD
 #if defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
 #if defined(CL_SYCL_LANGUAGE_VERSION)
 #include <CL/sycl.hpp> // for SYCL 1.2.1
@@ -22,6 +23,13 @@
 #endif
 #include <ext/oneapi/bfloat16.hpp>
 #endif
+=======
+#if defined(CL_SYCL_LANGUAGE_VERSION)
+#include <CL/sycl.hpp> // for SYCL 1.2.1
+#elif defined(SYCL_LANGUAGE_VERSION)
+#include <sycl/sycl.hpp> // for SYCL 2020
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10 {
 
@@ -31,7 +39,11 @@ inline C10_HOST_DEVICE float f32_from_bits(uint16_t src) {
   uint32_t tmp = src;
   tmp <<= 16;
 
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && defined(__HIPCC__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   float* tempRes;
 
   // We should be using memcpy in order to respect the strict aliasing rule
@@ -48,7 +60,11 @@ inline C10_HOST_DEVICE float f32_from_bits(uint16_t src) {
 inline C10_HOST_DEVICE uint16_t bits_from_f32(float src) {
   uint32_t res = 0;
 
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && defined(__HIPCC__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We should be using memcpy in order to respect the strict aliasing rule
   // but it fails in the HIP environment.
   uint32_t* tempRes = reinterpret_cast<uint32_t*>(&src);
@@ -61,7 +77,11 @@ inline C10_HOST_DEVICE uint16_t bits_from_f32(float src) {
 }
 
 inline C10_HOST_DEVICE uint16_t round_to_nearest_even(float src) {
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && defined(__HIPCC__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (src != src) {
 #elif defined(_MSC_VER)
   if (isnan(src)) {
@@ -87,7 +107,11 @@ struct alignas(2) BFloat16 {
   uint16_t x;
 
   // HIP wants __host__ __device__ tag, CUDA does not
+<<<<<<< HEAD
 #if defined(USE_ROCM)
+=======
+#if defined(USE_ROCM) && defined(__HIPCC__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_HOST_DEVICE BFloat16() = default;
 #else
   BFloat16() = default;

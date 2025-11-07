@@ -104,11 +104,14 @@ class Driver:
         super().__init__()
         self.num_devices = num_devices
         self.is_initialized = False
+<<<<<<< HEAD
         self.rlock = threading.RLock()
 
     def _lazy_init(self):
         if self.is_initialized:
             return
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # State of our driver
         self.curr_device_idx = 0
@@ -119,6 +122,14 @@ class Driver:
         self.host_allocator = HostAllocator()
         self.event_belong = {}
 
+<<<<<<< HEAD
+=======
+        self.rlock = threading.RLock()
+
+    def _lazy_init(self):
+        if self.is_initialized:
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.devices = []
 
         for i in range(self.num_devices):
@@ -136,7 +147,10 @@ class Driver:
 
     def exec(self, cmd, *args):
         with self.rlock:
+<<<<<<< HEAD
             self._lazy_init()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             log.info("Main process launched: %s(*%s)", cmd, safe_str(args))
 
             if cmd in Driver.registry:
@@ -151,6 +165,10 @@ class Driver:
                 return res
 
     def run_on_executor(self, device_idx, cmd, *args):
+<<<<<<< HEAD
+=======
+        self._lazy_init()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         req_queue, ans_queue, _ = self.devices[device_idx]
         stream = self.getStream(device_idx)
         validate_send_queue_args(cmd, args)
@@ -161,7 +179,11 @@ class Driver:
 
     @register(registry)
     def hasPrimaryContext(self, device_idx):
+<<<<<<< HEAD
         return device_idx >= 0 and device_idx < len(self.devices)
+=======
+        return device_idx >= 0 and device_idx < self.num_devices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @register(registry)
     def deviceCount(self, *args):

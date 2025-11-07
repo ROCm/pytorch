@@ -87,3 +87,8 @@ TORCH_API void UseInPlaceGetRealInputsFromOptionalInputsV2(
 TORCH_API void PrepackWeights(std::shared_ptr<Graph>& graph);
 
 } // namespace torch::jit
+<<<<<<< HEAD
+=======
+
+C10_DECLARE_bool(enable_clip_ranges_gather_fusions);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

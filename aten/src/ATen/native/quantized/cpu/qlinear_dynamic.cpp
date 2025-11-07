@@ -652,7 +652,11 @@ static at::Tensor linear_dynamic_fp16_with_onednn_weight(
   std::vector<int64_t> dst_dims = {M, N};
   at::Tensor output = at::empty(
         dst_dims,
+<<<<<<< HEAD
         device(c10::kCPU)
+=======
+        at::device(c10::kCPU)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .dtype(c10::kFloat)
       );
   if (output.numel() == 0) {

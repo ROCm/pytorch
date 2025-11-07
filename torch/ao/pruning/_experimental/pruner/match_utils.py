@@ -1,6 +1,10 @@
 """
 Contains utility functions to check if a pattern is in the graph and return the matching nodes
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Optional, Union
 
 import torch

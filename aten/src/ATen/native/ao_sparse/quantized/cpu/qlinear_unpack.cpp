@@ -46,7 +46,11 @@ LinearPackedSerializationType PackedLinearWeight::unpack() {
         scales,
         zero_points,
         0, // The output channel axis is 0
+<<<<<<< HEAD
         device(c10::kCPU).dtype(c10::kQInt8));
+=======
+        at::device(c10::kCPU).dtype(c10::kQInt8));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   int8_t* weight_ptr_int8 =
@@ -100,7 +104,11 @@ LinearPackedSerializationType PackedLinearWeightQnnp::unpack() {
         scales,
         zero_points,
         0, // The output channel axis is 0
+<<<<<<< HEAD
         device(c10::kCPU).dtype(c10::kQInt8));
+=======
+        at::device(c10::kCPU).dtype(c10::kQInt8));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   int8_t* weight_ptr_int8 =

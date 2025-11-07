@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
 # Copyright (c) Meta Platforms, Inc. and affiliates
 import logging
+<<<<<<< HEAD
+=======
+import operator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Optional
 
 import torch
@@ -46,7 +50,11 @@ class _LossReducer(_CustomReducer):
     pass
 
 
+<<<<<<< HEAD
 sum_reducer = _LossReducer(torch.tensor(0.0), lambda a, b: a + b)
+=======
+sum_reducer = _LossReducer(torch.tensor(0.0), operator.add)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Default chunking dimension is 0. This is used for the case where the user did
 # not specify a chunking dimension.

@@ -146,11 +146,15 @@ Tensor& binary_cross_entropy_backward_out_cuda(const Tensor& grad, const Tensor&
 namespace {
 
 int nll_loss_threads(int64_t nframe){
+<<<<<<< HEAD
 #if defined(USE_ROCM)
   return std::clamp(1 << static_cast<int64_t>(std::round(std::log2(nframe/16))), 32, 1024);
 #else
   return 32;
 #endif
+=======
+  return std::clamp(1 << static_cast<int64_t>(std::round(std::log2(nframe/16))), 32, 1024);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // NOTE(crcrpar): `Byte` support was added for https://github.com/pytorch/pytorch/issues/59765.
@@ -256,6 +260,7 @@ __global__ void nll_loss_forward_reduce_cuda_kernel_2d(
 
   __syncthreads();
 
+<<<<<<< HEAD
   if (threadIdx.x == 0) {
     accscalar_t output_acc = 0;
     accscalar_t total_weight_acc = 0;
@@ -268,6 +273,22 @@ __global__ void nll_loss_forward_reduce_cuda_kernel_2d(
       *output = static_cast<scalar_t>(output_acc / total_weight_acc);
     } else {
       *output = static_cast<scalar_t>(output_acc);
+=======
+  for (int stride = blockDim.x/2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride) {
+      sh_inputs[threadIdx.x] += sh_inputs[threadIdx.x + stride];
+      acc_weight[threadIdx.x] += acc_weight[threadIdx.x + stride];
+    }
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0) {
+    *total_weight = static_cast<scalar_t>(acc_weight[0]);
+    if (size_average) {
+      *output = static_cast<scalar_t>(sh_inputs[0] / acc_weight[0]);
+    } else {
+      *output = static_cast<scalar_t>(sh_inputs[0]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 }

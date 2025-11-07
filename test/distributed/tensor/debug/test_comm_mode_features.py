@@ -4,15 +4,23 @@
 from typing import Any
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor import DeviceMesh
 from torch.distributed._tensor.api import distribute_tensor, DTensor
+=======
+from torch.distributed.tensor import DeviceMesh, distribute_tensor, DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.debug import CommDebugMode
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     parallelize_module,
     RowwiseParallel,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests
+=======
+from torch.testing._internal.common_utils import run_tests, skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     MLPModule,
@@ -24,8 +32,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
     with_comms,
 )
 
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FUSED_ATTENTION
 import unittest
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 c10d_functional = torch.ops.c10d_functional
 
 
@@ -113,6 +125,10 @@ class TestCommModeFeatures(DTensorTestBase):
         )
         self.check_same_set_of_keys(module_sharding_dict, comm_mode.get_sharding_info())
 
+<<<<<<< HEAD
+=======
+    @skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_comms
     def test_MLPStacked_distributed_sharding_display(self):
         """
@@ -220,9 +236,15 @@ class TestCommModeFeatures(DTensorTestBase):
             1,
         )
 
+<<<<<<< HEAD
     @skip_unless_torch_gpu
     @with_comms
     @unittest.skipIf(not PLATFORM_SUPPORTS_FUSED_ATTENTION, "Does not support fused scaled dot product attention")
+=======
+    @skipIfHpu
+    @skip_unless_torch_gpu
+    @with_comms
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_transformer_module_tracing(self, is_seq_parallel=False):
         """
         tests module-level tracing for more complicated transformer module and

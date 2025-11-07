@@ -24,9 +24,16 @@ MKL and MAGMA. Here are the steps to build with them.
     REM 2.5.3 (CUDA 10.1 10.2 11.0) x (Debug Release)
     REM 2.5.2 (CUDA 9.2 10.0 10.1 10.2) x (Debug Release)
     REM 2.5.1 (CUDA 9.2 10.0 10.1 10.2) x (Debug Release)
+<<<<<<< HEAD
     set CUDA_PREFIX=cuda102
     set CONFIG=release
     curl -k https://s3.amazonaws.com/ossci-windows/magma_2.5.4_%CUDA_PREFIX%_%CONFIG%.7z -o magma.7z
+=======
+    set "CUDA_PREFIX=cuda102"
+    set "CONFIG=release"
+    set "HOST=https://s3.amazonaws.com/ossci-windows"
+    curl -k "%HOST%/magma_2.5.4_%CUDA_PREFIX%_%CONFIG%.7z" -o magma.7z
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     7z x -aoa magma.7z -omagma
 
     REM Setting essential environment variables
@@ -104,8 +111,11 @@ Package not found in win-32 channel.
     - pytorch
 
     Current channels:
+<<<<<<< HEAD
     - https://conda.anaconda.org/pytorch/win-32
     - https://conda.anaconda.org/pytorch/noarch
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - https://repo.continuum.io/pkgs/main/win-32
     - https://repo.continuum.io/pkgs/main/noarch
     - https://repo.continuum.io/pkgs/free/win-32
@@ -131,6 +141,7 @@ Import error
     ImportError: DLL load failed: The specified module could not be found.
 
 
+<<<<<<< HEAD
 The problem is caused by the missing of the essential files. Actually,
 we include almost all the essential files that PyTorch need for the conda
 package except VC2017 redistributable and some mkl libraries.
@@ -142,6 +153,10 @@ You can resolve this by typing the following command.
     conda install mkl_fft intel_openmp numpy mkl
 
 As for the wheels package, since we didn't pack some libraries and VS2017
+=======
+The problem is caused by the missing of the essential files.
+For the wheels package, since we didn't pack some libraries and VS2017
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 redistributable files in, please make sure you install them manually.
 The `VS 2017 redistributable installer
 <https://aka.ms/vs/15/release/VC_redist.x64.exe>`_ can be downloaded.
@@ -152,6 +167,7 @@ uses MKL instead of OpenBLAS. You may type in the following command.
 
     pip install numpy mkl intel-openmp mkl_fft
 
+<<<<<<< HEAD
 Another possible cause may be you are using GPU version without NVIDIA
 graphics cards. Please replace your GPU package with the CPU one.
 
@@ -170,6 +186,8 @@ the intel-openmp libraries through this command.
 
     conda install -c defaults intel-openmp -f
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Usage (multiprocessing)
 -------------------------------------------------------

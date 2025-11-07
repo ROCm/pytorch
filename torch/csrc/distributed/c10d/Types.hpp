@@ -122,6 +122,10 @@ struct BroadcastOptions {
 struct AllreduceOptions {
   ReduceOp reduceOp = ReduceOp::SUM;
   std::chrono::milliseconds timeout = kUnsetTimeout;
+<<<<<<< HEAD
+=======
+  bool asyncOp = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<at::Tensor> sparseIndices = std::nullopt;
 };
 
@@ -132,6 +136,10 @@ struct ReduceOptions {
   int64_t rootRank = 0;
   int64_t rootTensor = 0;
   std::chrono::milliseconds timeout = kUnsetTimeout;
+<<<<<<< HEAD
+=======
+  bool asyncOp = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct AllgatherOptions {
@@ -142,6 +150,10 @@ struct AllgatherOptions {
 struct GatherOptions {
   int64_t rootRank = 0;
   std::chrono::milliseconds timeout = kUnsetTimeout;
+<<<<<<< HEAD
+=======
+  bool asyncOp = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct ScatterOptions {
@@ -158,12 +170,20 @@ struct ReduceScatterOptions {
 
 struct AllToAllOptions {
   std::chrono::milliseconds timeout = kUnsetTimeout;
+<<<<<<< HEAD
+=======
+  bool asyncOp = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct BarrierOptions {
   std::vector<int64_t> device_ids;
   std::chrono::milliseconds timeout = kUnsetTimeout;
   std::optional<at::Device> device;
+<<<<<<< HEAD
+=======
+  bool asyncOp = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct DistributedBackendOptions {

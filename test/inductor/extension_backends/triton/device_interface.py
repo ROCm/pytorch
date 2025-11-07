@@ -76,6 +76,7 @@ class DeviceInterface(device_interface.DeviceInterface):
 
     @staticmethod
     def device_count() -> int:
+<<<<<<< HEAD
         raise NotImplementedError
 
     @staticmethod
@@ -83,10 +84,20 @@ class DeviceInterface(device_interface.DeviceInterface):
         assert (
             device == 0
         ), f"Only device index 0 is supported, tried to set index to {device}"
+=======
+        return 1
+
+    @staticmethod
+    def maybe_exchange_device(device: int) -> int:
+        assert device == 0, (
+            f"Only device index 0 is supported, tried to set index to {device}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return 0  # previous device is always 0
 
     @staticmethod
     def exchange_device(device: int) -> int:
+<<<<<<< HEAD
         assert (
             device == 0
         ), f"Only device index 0 is supported, tried to set index to {device}"
@@ -101,6 +112,14 @@ class DeviceInterface(device_interface.DeviceInterface):
         raise NotImplementedError
 
     @staticmethod
+=======
+        assert device == 0, (
+            f"Only device index 0 is supported, tried to set index to {device}"
+        )
+        return 0  # previous device is always 0
+
+    @staticmethod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_raw_stream(device_index: int):
         return None
 
@@ -108,10 +127,13 @@ class DeviceInterface(device_interface.DeviceInterface):
     def synchronize(device) -> None:
         pass
 
+<<<<<<< HEAD
     @classmethod
     def get_device_properties(cls, device=None) -> DeviceProperties:
         return cls.Worker.get_device_properties(device)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Can be mock patched by @patch decorator.
     @staticmethod
     def is_available() -> bool:
@@ -120,7 +142,10 @@ class DeviceInterface(device_interface.DeviceInterface):
     @staticmethod
     def get_compute_capability(device) -> int:
         return 0
+<<<<<<< HEAD
 
     @staticmethod
     def triton_supported() -> bool:
         return True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

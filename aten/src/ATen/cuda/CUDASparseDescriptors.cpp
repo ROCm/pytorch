@@ -75,12 +75,16 @@ cusparseDnMatDescr_t createRawDnMatDescriptor(const Tensor& input, int64_t batch
   auto leading_dimension =
       is_row_major ? input_strides[ndim - 2] : input_strides[ndim - 1];
 
+<<<<<<< HEAD
 #if !defined(USE_ROCM)
   auto order = is_row_major ? CUSPARSE_ORDER_ROW : CUSPARSE_ORDER_COL;
 #else
   TORCH_INTERNAL_ASSERT(is_column_major, "Expected column major input.");
   auto order = CUSPARSE_ORDER_COL;
 #endif
+=======
+  auto order = is_row_major ? CUSPARSE_ORDER_ROW : CUSPARSE_ORDER_COL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto batch_stride = ndim > 2 && batch_offset >= 0 ? input_strides[ndim - 3] : 0;
   // NOLINTNEXTLINE(*const-cast)

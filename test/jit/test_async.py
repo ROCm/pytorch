@@ -16,6 +16,10 @@ from typing import List
 
 from torch import Tensor
 from torch.jit import Future
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import _inline_everything, JitTestCase
 
 
@@ -547,8 +551,12 @@ class TestAsync(JitTestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
         "\tpython test/test_jit.py TESTNAME\n\n"
         "instead."
     )
+=======
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

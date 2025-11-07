@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from typing import Optional
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch import Tensor
 from torch.distributions import constraints
@@ -31,7 +35,14 @@ class Pareto(TransformedDistribution):
     arg_constraints = {"alpha": constraints.positive, "scale": constraints.positive}
 
     def __init__(
+<<<<<<< HEAD
         self, scale: Tensor, alpha: Tensor, validate_args: Optional[bool] = None
+=======
+        self,
+        scale: Union[Tensor, float],
+        alpha: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         self.scale, self.alpha = broadcast_all(scale, alpha)
         base_dist = Exponential(self.alpha, validate_args=validate_args)

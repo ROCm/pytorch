@@ -3,6 +3,12 @@
 """
 Freeze Python packages.
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Freezing makes it possible to ship arbitrary Python modules as part of a C++
 library. The Python source of the module is compiled to bytecode and written
 to `.c` files, to be imported by Python's built-in FrozenImporter.

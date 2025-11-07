@@ -57,6 +57,14 @@ C10_DEFINE_bool(
     false,
     "When true we will attemps to pre-expand node stacks and cache expanded stacks.")
 
+<<<<<<< HEAD
+=======
+C10_DEFINE_bool(
+    torch_jit_expanded_stacks_mangled,
+    false,
+    "When true pre-expanded stacks will use mangled names.")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace torch::jit {
 
 using CodeImpl = interpreter::CodeImpl;
@@ -101,7 +109,11 @@ inline int64_t getDistAutogradContextId() {
 }
 } // namespace
 
+<<<<<<< HEAD
 thread_local InterpreterStateImpl* tls_int_state_ptr_ = nullptr;
+=======
+static thread_local InterpreterStateImpl* tls_int_state_ptr_ = nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct TLSCurrentInterpreterGuard {
   TLSCurrentInterpreterGuard(InterpreterStateImpl* state)
       : prev_state_(tls_int_state_ptr_) {

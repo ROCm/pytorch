@@ -8,15 +8,26 @@ from typing import Callable, cast, Optional, TypeVar, Union
 from typing_extensions import ParamSpec
 
 import torch
+<<<<<<< HEAD
+=======
+from torch._prims_common import DimsSequenceType, DimsType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._api import DTensor
 from torch.distributed.tensor._collective_utils import redistribute_cost
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
 from torch.distributed.tensor._op_schema import (
     OpSchema,
+<<<<<<< HEAD
     OpStrategy,
     OutputSharding,
     PlacementList,
     PlacementStrategy,
+=======
+    OpSpec,
+    OpStrategy,
+    OutputSharding,
+    PlacementList,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RuntimeSchemaInfo,
 )
 from torch.distributed.tensor.device_mesh import DeviceMesh
@@ -118,7 +129,11 @@ def normalize_dim(dim: int, ndim: int) -> int:
     return dim if dim >= 0 else dim + ndim
 
 
+<<<<<<< HEAD
 def normalize_dims(dims: Union[int, Sequence[int]], ndim: int) -> Sequence[int]:
+=======
+def normalize_dims(dims: DimsType, ndim: int) -> DimsSequenceType:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Normalize a dim or a sequence of dims, so that they are all positive."""
     if isinstance(dims, int):
         dims = (normalize_dim(dims, ndim),)
@@ -264,7 +279,11 @@ def expand_to_full_mesh_op_strategy(
         self_spec = input_args_strategy[0].strategies[0].output_spec
 
         if inplace_op and self_spec.placements != input_specs[0].placements:
+<<<<<<< HEAD
             # if it's inplace op, we would only allow the placement strategy to be added when the
+=======
+            # if it's inplace op, we would only allow the OpSpec to be added when the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # input_spec matches the first argument's runtime sharding, otherwise we skip
             continue
 
@@ -287,7 +306,11 @@ def expand_to_full_mesh_op_strategy(
                     output_specs = spec_list[0]  # type: ignore[assignment]
                 else:
                     raise RuntimeError("output spec is None")
+<<<<<<< HEAD
             strategy = PlacementStrategy(
+=======
+            strategy = OpSpec(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 output_specs=output_specs,
                 input_specs=input_specs,
                 redistribute_cost=redistribute_cost,

@@ -3,7 +3,11 @@ from __future__ import annotations
 
 import copy
 import functools
+<<<<<<< HEAD
 import warnings
+=======
+import typing_extensions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
 import torch
@@ -238,6 +242,13 @@ def _get_not_module_type_or_name_filter(
 
 
 @compatibility(is_backward_compatible=False)
+<<<<<<< HEAD
+=======
+@typing_extensions.deprecated(
+    "XNNPACKQuantizer is deprecated! Please use xnnpack quantizer in "
+    "ExecuTorch (https://github.com/pytorch/executorch/tree/main/backends/xnnpack/quantizer) instead."
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class XNNPACKQuantizer(Quantizer):
     """
     !!! DEPRECATED !!!
@@ -278,7 +289,10 @@ class XNNPACKQuantizer(Quantizer):
 
     def __init__(self) -> None:
         super().__init__()
+<<<<<<< HEAD
         warnings.warn(f"{self.__class__.__name__} is deprecated!")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.global_config: Optional[QuantizationConfig] = None
         self.operator_type_config: dict[
             torch._ops.OpOverloadPacket, Optional[QuantizationConfig]
@@ -342,9 +356,15 @@ class XNNPACKQuantizer(Quantizer):
         quantizer.set_module_name("blocks.sub"), it will quantize all supported operator/operator
         patterns in the submodule with this module name with the given `quantization_config`
         """
+<<<<<<< HEAD
         assert (
             quantization_config is not None
         ), " quantization_config == None is not supported yet"
+=======
+        assert quantization_config is not None, (
+            " quantization_config == None is not supported yet"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.module_name_config[module_name] = quantization_config
         return self
 

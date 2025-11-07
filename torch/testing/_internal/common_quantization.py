@@ -1,5 +1,6 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 r"""Importing this file includes common utility methods and base clases for
 checking quantization api and properties of resulting modules.
 """
@@ -22,6 +23,54 @@ from torch.ao.quantization import (
     default_dynamic_qat_qconfig,
     default_embedding_qat_qconfig,
     default_symmetric_qnnpack_qat_qconfig,
+=======
+r"""Importing this file includes common utility methods and base classes for
+checking quantization api and properties of resulting modules.
+"""
+
+import torch
+import torch.ao.nn.intrinsic.quantized.dynamic as nniqd
+import torch.ao.nn.quantized as nnq
+import torch.ao.nn.quantized.dynamic as nnqd
+import torch.distributed as dist
+import torch.nn as nn
+import torch.nn.functional as F
+from functorch.experimental import control_flow
+from torch.ao.nn.intrinsic import _FusedModule
+from torch.ao.quantization import (
+    convert,
+    default_dynamic_qat_qconfig,
+    default_dynamic_qconfig,
+    default_dynamic_quant_observer,
+    default_embedding_qat_qconfig,
+    default_observer,
+    default_per_channel_qconfig,
+    default_qconfig,
+    default_symmetric_qnnpack_qat_qconfig,
+    default_weight_observer,
+    DeQuantStub,
+    float_qparams_weight_only_qconfig,
+    get_default_qat_qconfig,
+    get_default_qat_qconfig_mapping,
+    get_default_qconfig,
+    get_default_qconfig_mapping,
+    PerChannelMinMaxObserver,
+    propagate_qconfig_,
+    QConfig,
+    QConfigMapping,
+    quantize,
+    quantize_dynamic_jit,
+    quantize_jit,
+    QuantStub,
+    QuantType,
+    QuantWrapper,
+)
+from torch.ao.quantization.backend_config import get_executorch_backend_config
+from torch.ao.quantization.quantization_mappings import (
+    get_default_dynamic_quant_module_mappings,
+    get_default_qat_module_mappings,
+    get_default_qconfig_propagation_list,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.ao.quantization.quantize_pt2e import (
     _convert_to_reference_decomposed_fx,
@@ -29,6 +78,7 @@ from torch.ao.quantization.quantize_pt2e import (
     prepare_pt2e,
     prepare_qat_pt2e,
 )
+<<<<<<< HEAD
 from torch.ao.quantization.backend_config import (
     get_executorch_backend_config,
 )
@@ -62,10 +112,36 @@ try:
     from torch.ao.ns.fx.ns_types import NSSingleResultValuesType, NSSubgraph
     from torch.fx.graph import Node
     from torch.fx import GraphModule
+=======
+from torch.ao.quantization.quantizer.xnnpack_quantizer import (
+    get_symmetric_quantization_config,
+    XNNPACKQuantizer,
+)
+
+from torch.export import export_for_training
+from torch.jit.mobile import _load_for_lite_interpreter
+from torch.testing._internal.common_quantized import override_quantized_engine
+from torch.testing._internal.common_utils import TEST_WITH_ROCM, TestCase
+
+try:
+    from torch.ao.ns.fx.ns_types import NSSingleResultValuesType, NSSubgraph
+
+    # graph mode quantization based on fx
+    from torch.ao.quantization.quantize_fx import (
+        convert_fx,
+        convert_to_reference_fx,
+        prepare_fx,
+        prepare_qat_fx,
+    )
+    from torch.fx import GraphModule
+    from torch.fx.graph import Node
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     HAS_FX = True
 except ImportError:
     HAS_FX = False
 
+<<<<<<< HEAD
 import copy
 import io
 import functools
@@ -75,11 +151,24 @@ import unittest
 import numpy as np
 from torch.testing import FileCheck
 from typing import Callable, Any, Union, Optional
+=======
+import contextlib
+import copy
+import functools
+import io
+import os
+
+import unittest
+from typing import Any, Callable, Optional, Union
+
+import numpy as np
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch._dynamo as torchdynamo
 import torch.ao.quantization.quantizer.x86_inductor_quantizer as xiq
 import torch.ao.quantization.quantizer.xpu_inductor_quantizer as xpuiq
 from torch.ao.quantization.quantizer.x86_inductor_quantizer import X86InductorQuantizer
 from torch.ao.quantization.quantizer.xpu_inductor_quantizer import XPUInductorQuantizer
+<<<<<<< HEAD
 import contextlib
 
 class NodeSpec:
@@ -87,16 +176,31 @@ class NodeSpec:
     '''
     def __init__(self, op, target):
         '''
+=======
+from torch.testing import FileCheck
+
+
+class NodeSpec:
+    """Used for checking GraphModule Node"""
+
+    def __init__(self, op, target):
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         op: call_function | call_module
         target:
           for call_function, target would be a function
           for call_module, target would be the type of PyTorch module
+<<<<<<< HEAD
         '''
+=======
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.op = op
         self.target = target
 
     @classmethod
     def call_function(cls, target):
+<<<<<<< HEAD
         return NodeSpec('call_function', target)
 
     @classmethod
@@ -106,6 +210,17 @@ class NodeSpec:
     @classmethod
     def call_module(cls, target):
         return NodeSpec('call_module', target)
+=======
+        return NodeSpec("call_function", target)
+
+    @classmethod
+    def call_method(cls, target):
+        return NodeSpec("call_method", target)
+
+    @classmethod
+    def call_module(cls, target):
+        return NodeSpec("call_module", target)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __hash__(self):
         return hash((self.op, self.target))
@@ -119,8 +234,17 @@ class NodeSpec:
     def __repr__(self):
         return repr(self.op) + " " + repr(self.target)
 
+<<<<<<< HEAD
 def get_supported_device_types():
     return ['cpu', 'cuda'] if torch.cuda.is_available() and not TEST_WITH_ROCM else ['cpu']
+=======
+
+def get_supported_device_types():
+    return (
+        ["cpu", "cuda"] if torch.cuda.is_available() and not TEST_WITH_ROCM else ["cpu"]
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def test_only_eval_fn(model, calib_data):
     r"""
@@ -130,7 +254,14 @@ def test_only_eval_fn(model, calib_data):
     for inp in calib_data:
         model(*inp)
 
+<<<<<<< HEAD
 _default_loss_fn = torch.nn.CrossEntropyLoss()
+=======
+
+_default_loss_fn = torch.nn.CrossEntropyLoss()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def test_only_train_fn(model, train_data, loss_fn=_default_loss_fn):
     r"""
     Default train function takes a torch.utils.data.Dataset and train the model
@@ -153,9 +284,17 @@ def test_only_train_fn(model, train_data, loss_fn=_default_loss_fn):
             correct += (predicted == target).sum().item()
     return train_loss, correct, total
 
+<<<<<<< HEAD
 class AverageMeter:
     """Computes and stores the average and current value"""
     def __init__(self, name, fmt=':f'):
+=======
+
+class AverageMeter:
+    """Computes and stores the average and current value"""
+
+    def __init__(self, name, fmt=":f"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.name = name
         self.fmt = fmt
         self.reset()
@@ -173,7 +312,11 @@ class AverageMeter:
         self.avg = self.sum / self.count
 
     def __str__(self):
+<<<<<<< HEAD
         fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+=======
+        fmtstr = "{name} {val" + self.fmt + "} ({avg" + self.fmt + "})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fmtstr.format(**self.__dict__)
 
 
@@ -193,10 +336,18 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
+<<<<<<< HEAD
 def train_one_epoch(model, criterion, optimizer, data_loader, device, ntrain_batches):
     model.train()
     for cnt, (image, target) in enumerate(data_loader, start=1):
         print('.', end='')
+=======
+
+def train_one_epoch(model, criterion, optimizer, data_loader, device, ntrain_batches):
+    model.train()
+    for cnt, (image, target) in enumerate(data_loader, start=1):
+        print(".", end="")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         image, target = image.to(device), target.to(device)
         output = model(image)
         loss = criterion(output, target)
@@ -208,16 +359,31 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, ntrain_bat
             return
     return
 
+<<<<<<< HEAD
 def ddp_setup(rank, world_size):
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '12355'
+=======
+
+def ddp_setup(rank, world_size):
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "12355"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # initialize the process group
     dist.init_process_group("gloo", rank=rank, world_size=world_size)
 
+<<<<<<< HEAD
 def ddp_cleanup():
     dist.destroy_process_group()
 
+=======
+
+def ddp_cleanup():
+    dist.destroy_process_group()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def run_ddp(rank, world_size, prepared):
     ddp_setup(rank, world_size)
     prepared.cuda()
@@ -232,6 +398,7 @@ def run_ddp(rank, world_size, prepared):
 def convert_dynamic(module):
     convert(module, get_default_dynamic_quant_module_mappings(), inplace=True)
 
+<<<<<<< HEAD
 def prepare_dynamic(model, qconfig_dict=None):
     propagate_qconfig_(model, qconfig_dict)
 
@@ -239,17 +406,52 @@ def _make_conv_test_input(
     batch_size, in_channels_per_group, input_feature_map_size,
     out_channels_per_group, groups, kernel_size, X_scale, X_zero_point, W_scale,
     W_zero_point, use_bias, use_channelwise,
+=======
+
+def prepare_dynamic(model, qconfig_dict=None):
+    propagate_qconfig_(model, qconfig_dict)
+
+
+def _make_conv_test_input(
+    batch_size,
+    in_channels_per_group,
+    input_feature_map_size,
+    out_channels_per_group,
+    groups,
+    kernel_size,
+    X_scale,
+    X_zero_point,
+    W_scale,
+    W_zero_point,
+    use_bias,
+    use_channelwise,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     in_channels = in_channels_per_group * groups
     out_channels = out_channels_per_group * groups
 
     (X_value_min, X_value_max) = (0, 4)
     X_init = torch.randint(
+<<<<<<< HEAD
         X_value_min, X_value_max,
         (batch_size, in_channels,) + input_feature_map_size)
     X = X_scale * (X_init - X_zero_point).float()
     X_q = torch.quantize_per_tensor(
         X, scale=X_scale, zero_point=X_zero_point, dtype=torch.quint8)
+=======
+        X_value_min,
+        X_value_max,
+        (
+            batch_size,
+            in_channels,
+        )
+        + input_feature_map_size,
+    )
+    X = X_scale * (X_init - X_zero_point).float()
+    X_q = torch.quantize_per_tensor(
+        X, scale=X_scale, zero_point=X_zero_point, dtype=torch.quint8
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     W_scale = W_scale * out_channels
     W_zero_point = W_zero_point * out_channels
@@ -266,33 +468,69 @@ def _make_conv_test_input(
     # The operator expects them in the format
     # (out_channels, in_channels/groups,) + kernel_size
     W_init = torch.randint(
+<<<<<<< HEAD
         W_value_min, W_value_max,
         (out_channels, in_channels_per_group,) + kernel_size)
+=======
+        W_value_min,
+        W_value_max,
+        (
+            out_channels,
+            in_channels_per_group,
+        )
+        + kernel_size,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     b_init = torch.randint(0, 10, (out_channels,))
 
     if use_channelwise:
         W_shape = (-1, 1) + (1,) * len(kernel_size)
         W_scales_tensor = torch.tensor(W_scale, dtype=torch.float)
         W_zero_points_tensor = torch.tensor(W_zero_point, dtype=torch.float)
+<<<<<<< HEAD
         W = W_scales_tensor.reshape(*W_shape) * (
             W_init.float() - W_zero_points_tensor.reshape(*W_shape)).float()
         b = X_scale * W_scales_tensor * b_init.float()
         W_q = torch.quantize_per_channel(
             W, W_scales_tensor.double(), W_zero_points_tensor.long(), 0,
             dtype=torch.qint8)
+=======
+        W = (
+            W_scales_tensor.reshape(*W_shape)
+            * (W_init.float() - W_zero_points_tensor.reshape(*W_shape)).float()
+        )
+        b = X_scale * W_scales_tensor * b_init.float()
+        W_q = torch.quantize_per_channel(
+            W,
+            W_scales_tensor.double(),
+            W_zero_points_tensor.long(),
+            0,
+            dtype=torch.qint8,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         W = W_scale[0] * (W_init - W_zero_point[0]).float()
         b = X_scale * W_scale[0] * b_init.float()
         W_q = torch.quantize_per_tensor(
+<<<<<<< HEAD
             W, scale=W_scale[0], zero_point=W_zero_point[0], dtype=torch.qint8)
 
     return (X, X_q, W, W_q, b if use_bias else None)
 
+=======
+            W, scale=W_scale[0], zero_point=W_zero_point[0], dtype=torch.qint8
+        )
+
+    return (X, X_q, W, W_q, b if use_bias else None)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _make_conv_add_extra_input_tensor(scale, zero_point, sizes):
     (X_value_min, X_value_max) = (0, 4)
     X_init = torch.randint(
         X_value_min,
         X_value_max,
+<<<<<<< HEAD
         sizes  # Infer the size of tensor to do the add
     )
     X = scale * (X_init - zero_point).float()
@@ -304,12 +542,28 @@ def skipIfNoFBGEMM(fn):
     reason = 'Quantized operations require FBGEMM. FBGEMM is only optimized for CPUs with instruction set support AVX2 or newer.'
     if isinstance(fn, type):
         if 'fbgemm' not in torch.backends.quantized.supported_engines:
+=======
+        sizes,  # Infer the size of tensor to do the add
+    )
+    X = scale * (X_init - zero_point).float()
+    X_q = torch.quantize_per_tensor(
+        X, scale=scale, zero_point=zero_point, dtype=torch.quint8
+    )
+    return X, X_q
+
+
+def skipIfNoFBGEMM(fn):
+    reason = "Quantized operations require FBGEMM. FBGEMM is only optimized for CPUs with instruction set support AVX2 or newer."
+    if isinstance(fn, type):
+        if "fbgemm" not in torch.backends.quantized.supported_engines:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn.__unittest_skip__ = True
             fn.__unittest_skip_why__ = reason
         return fn
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
+<<<<<<< HEAD
         if 'fbgemm' not in torch.backends.quantized.supported_engines:
             raise unittest.SkipTest(reason)
         else:
@@ -320,12 +574,27 @@ def skipIfNoQNNPACK(fn):
     reason = 'Quantized operations require QNNPACK.'
     if isinstance(fn, type):
         if 'qnnpack' not in torch.backends.quantized.supported_engines:
+=======
+        if "fbgemm" not in torch.backends.quantized.supported_engines:
+            raise unittest.SkipTest(reason)
+        else:
+            fn(*args, **kwargs)
+
+    return wrapper
+
+
+def skipIfNoQNNPACK(fn):
+    reason = "Quantized operations require QNNPACK."
+    if isinstance(fn, type):
+        if "qnnpack" not in torch.backends.quantized.supported_engines:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn.__unittest_skip__ = True
             fn.__unittest_skip_why__ = reason
         return fn
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
+<<<<<<< HEAD
         if 'qnnpack' not in torch.backends.quantized.supported_engines:
             raise unittest.SkipTest(reason)
         else:
@@ -338,29 +607,60 @@ def withQNNPACKBackend(fn):
     reason = 'Quantized operations require QNNPACK.'
     if isinstance(fn, type):
         if 'qnnpack' not in torch.backends.quantized.supported_engines:
-            fn.__unittest_skip__ = True
-            fn.__unittest_skip_why__ = reason
-        return fn
-
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        if 'qnnpack' not in torch.backends.quantized.supported_engines:
+=======
+        if "qnnpack" not in torch.backends.quantized.supported_engines:
             raise unittest.SkipTest(reason)
-        with override_quantized_engine('qnnpack'):
+        else:
             fn(*args, **kwargs)
 
     return wrapper
 
-def skipIfNoONEDNN(fn):
-    reason = 'Quantized operations require ONEDNN.'
+
+def withQNNPACKBackend(fn):
+    # TODO(future PR): consider combining with skipIfNoQNNPACK,
+    # will require testing of existing callsites
+    reason = "Quantized operations require QNNPACK."
     if isinstance(fn, type):
-        if 'onednn' not in torch.backends.quantized.supported_engines:
+        if "qnnpack" not in torch.backends.quantized.supported_engines:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn.__unittest_skip__ = True
             fn.__unittest_skip_why__ = reason
         return fn
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
+<<<<<<< HEAD
+        if 'qnnpack' not in torch.backends.quantized.supported_engines:
+            raise unittest.SkipTest(reason)
+        with override_quantized_engine('qnnpack'):
+=======
+        if "qnnpack" not in torch.backends.quantized.supported_engines:
+            raise unittest.SkipTest(reason)
+        with override_quantized_engine("qnnpack"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
+            fn(*args, **kwargs)
+
+    return wrapper
+
+<<<<<<< HEAD
+def skipIfNoONEDNN(fn):
+    reason = 'Quantized operations require ONEDNN.'
+    if isinstance(fn, type):
+        if 'onednn' not in torch.backends.quantized.supported_engines:
+=======
+
+def skipIfNoONEDNN(fn):
+    reason = "Quantized operations require ONEDNN."
+    if isinstance(fn, type):
+        if "onednn" not in torch.backends.quantized.supported_engines:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
+            fn.__unittest_skip__ = True
+            fn.__unittest_skip_why__ = reason
+        return fn
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+<<<<<<< HEAD
         if 'onednn' not in torch.backends.quantized.supported_engines:
             raise unittest.SkipTest(reason)
         else:
@@ -369,6 +669,18 @@ def skipIfNoONEDNN(fn):
 
 def skipIfNoONEDNNBF16(fn):
     reason = 'Quantized operations require BF16 support.'
+=======
+        if "onednn" not in torch.backends.quantized.supported_engines:
+            raise unittest.SkipTest(reason)
+        else:
+            fn(*args, **kwargs)
+
+    return wrapper
+
+
+def skipIfNoONEDNNBF16(fn):
+    reason = "Quantized operations require BF16 support."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(fn, type):
         if not torch.ops.mkldnn._is_mkldnn_bf16_supported():
             fn.__unittest_skip__ = True
@@ -381,24 +693,46 @@ def skipIfNoONEDNNBF16(fn):
             raise unittest.SkipTest(reason)
         else:
             fn(*args, **kwargs)
+<<<<<<< HEAD
     return wrapper
 
 def skipIfNoX86(fn):
     reason = 'Quantized operations require X86.'
     if isinstance(fn, type):
         if 'x86' not in torch.backends.quantized.supported_engines:
+=======
+
+    return wrapper
+
+
+def skipIfNoX86(fn):
+    reason = "Quantized operations require X86."
+    if isinstance(fn, type):
+        if "x86" not in torch.backends.quantized.supported_engines:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn.__unittest_skip__ = True
             fn.__unittest_skip_why__ = reason
         return fn
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
+<<<<<<< HEAD
         if 'x86' not in torch.backends.quantized.supported_engines:
             raise unittest.SkipTest(reason)
         else:
             fn(*args, **kwargs)
     return wrapper
 
+=======
+        if "x86" not in torch.backends.quantized.supported_engines:
+            raise unittest.SkipTest(reason)
+        else:
+            fn(*args, **kwargs)
+
+    return wrapper
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfNoDynamoSupport(fn):
     reason = "dynamo doesn't support."
     if isinstance(fn, type):
@@ -413,8 +747,15 @@ def skipIfNoDynamoSupport(fn):
             raise unittest.SkipTest(reason)
         else:
             fn(*args, **kwargs)
+<<<<<<< HEAD
     return wrapper
 
+=======
+
+    return wrapper
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfNoInductorSupport(fn):
     reason = "inductor doesn't support."
     if isinstance(fn, type):
@@ -429,18 +770,36 @@ def skipIfNoInductorSupport(fn):
             raise unittest.SkipTest(reason)
         else:
             fn(*args, **kwargs)
+<<<<<<< HEAD
     return wrapper
 
 try:
     import torchvision  # noqa: F401
+=======
+
+    return wrapper
+
+
+try:
+    import torchvision  # noqa: F401
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     HAS_TORCHVISION = True
 except ImportError:
     HAS_TORCHVISION = False
 skip_if_no_torchvision = unittest.skipIf(not HAS_TORCHVISION, "no torchvision")
 
+<<<<<<< HEAD
 def get_script_module(model, tracing, data):
     return torch.jit.trace(model, data) if tracing else torch.jit.script(model)
 
+=======
+
+def get_script_module(model, tracing, data):
+    return torch.jit.trace(model, data) if tracing else torch.jit.script(model)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def lengths_to_offsets(t, offset_type=np.int64, use_begin_offset=True):
     """
     Convert lengths to offsets for embedding_bag
@@ -464,7 +823,11 @@ def _group_quantize_tensor(w, n_bit=4, q_group_size=16):
 
     max_val = to_quant.amax(dim=1, keepdim=True)
     min_val = to_quant.amin(dim=1, keepdim=True)
+<<<<<<< HEAD
     max_int = 2 ** n_bit - 1
+=======
+    max_int = 2**n_bit - 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     min_int = 0
     scales = (max_val - min_val).clamp(min=1e-6) / max_int
     assert torch.isnan(scales).sum() == 0
@@ -476,7 +839,11 @@ def _group_quantize_tensor(w, n_bit=4, q_group_size=16):
     assert torch.isnan(out).sum() == 0
 
     out = out.to(dtype=torch.int32).reshape(w.shape)
+<<<<<<< HEAD
     if out.device != torch.device('cpu'):
+=======
+    if out.device != torch.device("cpu"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out = (out[::, ::2] << 4 | out[::, 1::2]).to(torch.uint8)
 
     # Scales and zeros for the same q-group should be contiguous, so we can
@@ -490,15 +857,25 @@ def _group_quantize_tensor(w, n_bit=4, q_group_size=16):
                 zeros.reshape(zeros.size(0), zeros.size(1), 1),
             ],
             2,
+<<<<<<< HEAD
         ).transpose(0, 1).contiguous()
+=======
+        )
+        .transpose(0, 1)
+        .contiguous()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     return out, scales_and_zeros
 
 
+<<<<<<< HEAD
 def _group_quantize_tensor_symmetric(
     w, n_bit=4, groupsize=32
 ):
+=======
+def _group_quantize_tensor_symmetric(w, n_bit=4, groupsize=32):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # W is of shape [K x N]
     # We transpose W as Quantization is applied on [N x K]
     w = w.transpose(0, 1).contiguous()
@@ -566,6 +943,7 @@ class QuantizationTestCase(TestCase):
     def setUp(self):
         super().setUp()
         self.calib_data = [[torch.rand(2, 5, dtype=torch.float)] for _ in range(2)]
+<<<<<<< HEAD
         self.train_data = [[torch.rand(2, 5, dtype=torch.float), torch.randint(0, 1, (2,), dtype=torch.long)] for _ in range(2)]
         self.img_data_1d = [[torch.rand(2, 3, 10, dtype=torch.float)]
                             for _ in range(2)]
@@ -586,6 +964,49 @@ class QuantizationTestCase(TestCase):
         self.img_data_dict = {1 : self.img_data_1d,
                               2 : self.img_data_2d,
                               3 : self.img_data_3d}
+=======
+        self.train_data = [
+            [
+                torch.rand(2, 5, dtype=torch.float),
+                torch.randint(0, 1, (2,), dtype=torch.long),
+            ]
+            for _ in range(2)
+        ]
+        self.img_data_1d = [[torch.rand(2, 3, 10, dtype=torch.float)] for _ in range(2)]
+        self.img_data_2d = [
+            [torch.rand(1, 3, 10, 10, dtype=torch.float)] for _ in range(2)
+        ]
+        self.img_data_3d = [
+            [torch.rand(1, 3, 5, 5, 5, dtype=torch.float)] for _ in range(2)
+        ]
+        self.img_data_1d_train = [
+            [
+                torch.rand(2, 3, 10, dtype=torch.float),
+                torch.randint(0, 1, (1,), dtype=torch.long),
+            ]
+            for _ in range(2)
+        ]
+        self.img_data_2d_train = [
+            [
+                torch.rand(1, 3, 10, 10, dtype=torch.float),
+                torch.randint(0, 1, (1,), dtype=torch.long),
+            ]
+            for _ in range(2)
+        ]
+        self.img_data_3d_train = [
+            [
+                torch.rand(1, 3, 5, 5, 5, dtype=torch.float),
+                torch.randint(0, 1, (1,), dtype=torch.long),
+            ]
+            for _ in range(2)
+        ]
+
+        self.img_data_dict = {
+            1: self.img_data_1d,
+            2: self.img_data_2d,
+            3: self.img_data_3d,
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Quant types that produce statically quantized ops
         self.static_quant_types = [QuantType.STATIC, QuantType.QAT]
@@ -594,6 +1015,7 @@ class QuantizationTestCase(TestCase):
 
     def checkNoPrepModules(self, module):
         r"""Checks the module does not contain child
+<<<<<<< HEAD
             modules for quantization preparation, e.g.
             quant, dequant and observer
         """
@@ -604,12 +1026,24 @@ class QuantizationTestCase(TestCase):
         r"""Checks the module does not contain qconfig
         """
         self.assertFalse(hasattr(module, 'qconfig'))
+=======
+        modules for quantization preparation, e.g.
+        quant, dequant and observer
+        """
+        self.assertFalse(hasattr(module, "quant"))
+        self.assertFalse(hasattr(module, "dequant"))
+
+    def checkNoQconfig(self, module):
+        r"""Checks the module does not contain qconfig"""
+        self.assertFalse(hasattr(module, "qconfig"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for child in module.children():
             self.checkNoQconfig(child)
 
     def checkHasPrepModules(self, module):
         r"""Checks the module contains child
+<<<<<<< HEAD
             modules for quantization preparation, e.g.
             quant, dequant and observer
         """
@@ -620,17 +1054,38 @@ class QuantizationTestCase(TestCase):
     def checkObservers(self, module, propagate_qconfig_list=None, prepare_custom_config_dict=None):
         r"""Checks the module or module's leaf descendants
             have observers in preparation for quantization
+=======
+        modules for quantization preparation, e.g.
+        quant, dequant and observer
+        """
+        self.assertTrue(hasattr(module, "module"))
+        self.assertTrue(hasattr(module, "quant"))
+        self.assertTrue(hasattr(module, "dequant"))
+
+    def checkObservers(
+        self, module, propagate_qconfig_list=None, prepare_custom_config_dict=None
+    ):
+        r"""Checks the module or module's leaf descendants
+        have observers in preparation for quantization
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         if propagate_qconfig_list is None:
             propagate_qconfig_list = get_default_qconfig_propagation_list()
         if prepare_custom_config_dict is None:
             prepare_custom_config_dict = {}
+<<<<<<< HEAD
         float_to_observed_module_class_mapping = prepare_custom_config_dict.get("float_to_observed_custom_module_class", {})
+=======
+        float_to_observed_module_class_mapping = prepare_custom_config_dict.get(
+            "float_to_observed_custom_module_class", {}
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # check if a module is a leaf module, ignoring activation_post_process attribute
         def is_leaf_module(module):
             submodule_name_count = 0
             for name, _ in module.named_children():
+<<<<<<< HEAD
                 if name != 'activation_post_process':
                     submodule_name_count += 1
             return submodule_name_count == 0
@@ -655,14 +1110,59 @@ class QuantizationTestCase(TestCase):
     def checkQuantDequant(self, mod):
         r"""Checks that mod has nn.Quantize and
             nn.DeQuantize submodules inserted
+=======
+                if name != "activation_post_process":
+                    submodule_name_count += 1
+            return submodule_name_count == 0
+
+        if (
+            hasattr(module, "qconfig")
+            and module.qconfig is not None
+            and (
+                (
+                    is_leaf_module(module)
+                    and not isinstance(module, torch.nn.Sequential)
+                    and type(module) in propagate_qconfig_list
+                )
+                or type(module) in float_to_observed_module_class_mapping.keys()
+            )
+            and not isinstance(module, torch.ao.quantization.DeQuantStub)
+        ):
+            self.assertTrue(
+                hasattr(module, "activation_post_process"),
+                "module: " + str(type(module)) + " do not have observer",
+            )
+        # we don't need to check observers for child modules of the
+        # qat modules
+        if (
+            type(module) not in get_default_qat_module_mappings().values()
+            and type(module) not in float_to_observed_module_class_mapping.values()
+            and not isinstance(module, _FusedModule)
+        ):
+            for child in module.children():
+                if type(child) in [nn.Dropout]:
+                    continue
+                self.checkObservers(
+                    child, propagate_qconfig_list, prepare_custom_config_dict
+                )
+
+    def checkQuantDequant(self, mod):
+        r"""Checks that mod has nn.Quantize and
+        nn.DeQuantize submodules inserted
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         self.assertEqual(type(mod.quant), nnq.Quantize)
         self.assertEqual(type(mod.dequant), nnq.DeQuantize)
 
     def checkWrappedQuantizedLinear(self, mod):
         r"""Checks that mod has been swapped for an nnq.Linear
+<<<<<<< HEAD
             module, the bias is qint32, and that the module
             has Quantize and DeQuantize submodules
+=======
+        module, the bias is qint32, and that the module
+        has Quantize and DeQuantize submodules
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         self.assertEqual(type(mod.module), nnq.Linear)
         self.checkQuantDequant(mod)
@@ -672,14 +1172,22 @@ class QuantizationTestCase(TestCase):
 
     def checkDynamicQuantizedLinear(self, mod, dtype):
         r"""Checks that mod has been swapped for an nnqd.Linear
+<<<<<<< HEAD
             module, the bias is float.
+=======
+        module, the bias is float.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         self.assertEqual(type(mod), nnqd.Linear)
         self.assertEqual(mod._packed_params.dtype, dtype)
 
     def checkDynamicQuantizedLinearRelu(self, mod, dtype):
         r"""Checks that mod has been swapped for an nnqd.Linear
+<<<<<<< HEAD
             module, the bias is float.
+=======
+        module, the bias is float.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         self.assertEqual(type(mod), nniqd.LinearReLU)
         self.assertEqual(mod._packed_params.dtype, dtype)
@@ -721,18 +1229,33 @@ class QuantizationTestCase(TestCase):
 
     def checkDynamicQuantizedLSTM(self, mod, reference_module_type, dtype):
         r"""Checks that mod has been swapped for an nnqd.LSTM type
+<<<<<<< HEAD
             module, the bias is float.
         """
         wt_dtype_map = {torch.qint8: 'quantized_dynamic', torch.float16: 'quantized_fp16'}
         self.assertEqual(type(mod), reference_module_type)
         for packed_params in mod._all_weight_values:
             self.assertEqual(packed_params.param.__getstate__()[0][0], wt_dtype_map[dtype])
+=======
+        module, the bias is float.
+        """
+        wt_dtype_map = {
+            torch.qint8: "quantized_dynamic",
+            torch.float16: "quantized_fp16",
+        }
+        self.assertEqual(type(mod), reference_module_type)
+        for packed_params in mod._all_weight_values:
+            self.assertEqual(
+                packed_params.param.__getstate__()[0][0], wt_dtype_map[dtype]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def checkLinear(self, mod):
         self.assertEqual(type(mod), torch.nn.Linear)
 
     def checkDynamicQuantizedModule(self, mod, reference_module_type, dtype):
         r"""Checks that mod has been swapped for an nnqd.Linear
+<<<<<<< HEAD
             module, the bias is float.
         """
         wt_dtype_map = {torch.qint8: 'quantized_dynamic', torch.float16: 'quantized_fp16'}
@@ -740,6 +1263,20 @@ class QuantizationTestCase(TestCase):
         if hasattr(mod, '_all_weight_values'):
             for packed_params in mod._all_weight_values:
                 self.assertEqual(packed_params.param.__getstate__()[0][0], wt_dtype_map[dtype])
+=======
+        module, the bias is float.
+        """
+        wt_dtype_map = {
+            torch.qint8: "quantized_dynamic",
+            torch.float16: "quantized_fp16",
+        }
+        self.assertEqual(type(mod), reference_module_type)
+        if hasattr(mod, "_all_weight_values"):
+            for packed_params in mod._all_weight_values:
+                self.assertEqual(
+                    packed_params.param.__getstate__()[0][0], wt_dtype_map[dtype]
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def checkScriptable(self, orig_mod, calib_data, check_save_load=False):
         scripted = torch.jit.script(orig_mod)
@@ -770,20 +1307,45 @@ class QuantizationTestCase(TestCase):
             scripted_output = test_mod(*inp)
             self.assertEqual(scripted_output, ref_output)
 
+<<<<<<< HEAD
 
     def checkGraphModeOp(self, module, inputs, quantized_op, tracing=False, debug=False,
                          check=True, eval_mode=True, dynamic=False, qconfig=None):
         if debug:
             print('Testing:', str(module))
         qconfig_dict = {'': get_default_qconfig(torch.backends.quantized.engine)}
+=======
+    def checkGraphModeOp(
+        self,
+        module,
+        inputs,
+        quantized_op,
+        tracing=False,
+        debug=False,
+        check=True,
+        eval_mode=True,
+        dynamic=False,
+        qconfig=None,
+    ):
+        if debug:
+            print("Testing:", str(module))
+        qconfig_dict = {"": get_default_qconfig(torch.backends.quantized.engine)}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if eval_mode:
             module = module.eval()
         if dynamic:
+<<<<<<< HEAD
             qconfig_dict = {'': default_dynamic_qconfig if qconfig is None else qconfig}
         model = get_script_module(module, tracing, inputs[0]).eval()
         if debug:
             print('input graph:', model.graph)
+=======
+            qconfig_dict = {"": default_dynamic_qconfig if qconfig is None else qconfig}
+        model = get_script_module(module, tracing, inputs[0]).eval()
+        if debug:
+            print("input graph:", model.graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         models = {}
         outputs = {}
         for debug in [True, False]:
@@ -796,31 +1358,60 @@ class QuantizationTestCase(TestCase):
                 # input data staying constant for comparisons
                 inputs_copy = copy.deepcopy(inputs)
                 models[debug] = quantize_jit(
+<<<<<<< HEAD
                     model, qconfig_dict, test_only_eval_fn, [inputs_copy], inplace=False,
                     debug=debug)
+=======
+                    model,
+                    qconfig_dict,
+                    test_only_eval_fn,
+                    [inputs_copy],
+                    inplace=False,
+                    debug=debug,
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # make sure it runs
                 outputs[debug] = models[debug](*inputs[0])
 
         if debug:
+<<<<<<< HEAD
             print('debug graph:', models[True].graph)
             print('non debug graph:', models[False].graph)
+=======
+            print("debug graph:", models[True].graph)
+            print("non debug graph:", models[False].graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if check:
             # debug and non-debug option should have the same numerics
             self.assertEqual(outputs[True], outputs[False])
 
             # non debug graph should produce quantized op
+<<<<<<< HEAD
             FileCheck().check(quantized_op) \
                        .run(models[False].graph)
+=======
+            FileCheck().check(quantized_op).run(models[False].graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return models[False]
 
     def checkGraphModuleNodes(
+<<<<<<< HEAD
             self, graph_module,
             expected_node=None,
             expected_node_occurrence=None,
             expected_node_list=None):
         """ Check if GraphModule contains the target node
+=======
+        self,
+        graph_module,
+        expected_node=None,
+        expected_node_occurrence=None,
+        expected_node_list=None,
+    ):
+        """Check if GraphModule contains the target node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Args:
             graph_module: the GraphModule instance we want to check
             expected_node, expected_node_occurrence, expected_node_list:
@@ -831,9 +1422,15 @@ class QuantizationTestCase(TestCase):
         modules = dict(graph_module.named_modules(remove_duplicate=False))
         for node in graph_module.graph.nodes:
             n = None
+<<<<<<< HEAD
             if node.op == 'call_function' or node.op == 'call_method':
                 n = NodeSpec(node.op, node.target)
             elif node.op == 'call_module':
+=======
+            if node.op == "call_function" or node.op == "call_method":
+                n = NodeSpec(node.op, node.target)
+            elif node.op == "call_module":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 n = NodeSpec(node.op, type(modules[node.target]))
 
             if n is not None:
@@ -844,14 +1441,22 @@ class QuantizationTestCase(TestCase):
                     nodes_in_graph[n] = 1
 
         if expected_node is not None:
+<<<<<<< HEAD
             self.assertTrue(expected_node in nodes_in_graph, 'node:' + str(expected_node) +
                             ' not found in the graph module')
+=======
+            self.assertTrue(
+                expected_node in nodes_in_graph,
+                "node:" + str(expected_node) + " not found in the graph module",
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if expected_node_occurrence is not None:
             for expected_node, occurrence in expected_node_occurrence.items():
                 if occurrence != 0:
                     self.assertTrue(
                         expected_node in nodes_in_graph,
+<<<<<<< HEAD
                         'Check failed for node:' + str(expected_node) +
                         ' not found')
                     self.assertTrue(
@@ -864,6 +1469,26 @@ class QuantizationTestCase(TestCase):
                         expected_node not in nodes_in_graph,
                         'Check failed for node:' + str(expected_node) +
                         ' expected no occurrence but found')
+=======
+                        "Check failed for node:" + str(expected_node) + " not found",
+                    )
+                    self.assertTrue(
+                        nodes_in_graph[expected_node] == occurrence,
+                        "Check failed for node:"
+                        + str(expected_node)
+                        + " Expected occurrence:"
+                        + str(occurrence)
+                        + " Found occurrence:"
+                        + str(nodes_in_graph[expected_node]),
+                    )
+                else:
+                    self.assertTrue(
+                        expected_node not in nodes_in_graph,
+                        "Check failed for node:"
+                        + str(expected_node)
+                        + " expected no occurrence but found",
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if expected_node_list is not None:
             cur_index = 0
@@ -874,20 +1499,36 @@ class QuantizationTestCase(TestCase):
                     cur_index += 1
             self.assertTrue(
                 cur_index == len(expected_node_list),
+<<<<<<< HEAD
                 "Check failed for graph:" +
                 self.printGraphModule(graph_module, print_str=False) +
                 "Expected ordered list:" +
                 str(expected_node_list))
+=======
+                "Check failed for graph:"
+                + self.printGraphModule(graph_module, print_str=False)
+                + "Expected ordered list:"
+                + str(expected_node_list),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def printGraphModule(self, graph_module, print_str=True):
         modules = dict(graph_module.named_modules(remove_duplicate=False))
         node_infos = []
         for n in graph_module.graph.nodes:
+<<<<<<< HEAD
             node_info = ' '.join(map(repr, [n.op, n.name, n.target, n.args, n.kwargs]))
             if n.op == 'call_module':
                 node_info += ' module type: ' + repr(type(modules[n.target]))
             node_infos.append(node_info)
         str_to_print = '\n'.join(node_infos)
+=======
+            node_info = " ".join(map(repr, [n.op, n.name, n.target, n.args, n.kwargs]))
+            if n.op == "call_module":
+                node_info += " module type: " + repr(type(modules[n.target]))
+            node_infos.append(node_info)
+        str_to_print = "\n".join(node_infos)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if print_str:
             print(str_to_print)
         return str_to_print
@@ -897,7 +1538,13 @@ class QuantizationTestCase(TestCase):
         def assert_types_for_matched_subgraph_pairs(
             self,
             matched_subgraph_pairs: dict[str, tuple[NSSubgraph, NSSubgraph]],
+<<<<<<< HEAD
             expected_types: dict[str, tuple[tuple[Callable, Callable], tuple[Callable, Callable]]],
+=======
+            expected_types: dict[
+                str, tuple[tuple[Callable, Callable], tuple[Callable, Callable]]
+            ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gm_a: GraphModule,
             gm_b: GraphModule,
         ) -> None:
@@ -917,16 +1564,28 @@ class QuantizationTestCase(TestCase):
             def _get_underlying_op_type(
                 node: Node, gm: GraphModule
             ) -> Union[Callable, str]:
+<<<<<<< HEAD
                 if node.op == 'call_module':
                     mod = getattr(gm, node.target)
                     return type(mod)
                 else:
                     assert node.op in ('call_function', 'call_method')
+=======
+                if node.op == "call_module":
+                    mod = getattr(gm, node.target)
+                    return type(mod)
+                else:
+                    assert node.op in ("call_function", "call_method")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return node.target
 
             self.assertTrue(
                 len(matched_subgraph_pairs) == len(expected_types),
+<<<<<<< HEAD
                 f'Expected length of results to match, but got {len(matched_subgraph_pairs)} and {len(expected_types)}'
+=======
+                f"Expected length of results to match, but got {len(matched_subgraph_pairs)} and {len(expected_types)}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             for k, v in expected_types.items():
                 expected_types_a, expected_types_b = v
@@ -938,6 +1597,7 @@ class QuantizationTestCase(TestCase):
                 act_type_start_b = _get_underlying_op_type(subgraph_b.start_node, gm_b)
                 act_type_end_a = _get_underlying_op_type(subgraph_a.end_node, gm_a)
                 act_type_end_b = _get_underlying_op_type(subgraph_b.end_node, gm_b)
+<<<<<<< HEAD
                 types_match = (exp_type_start_a is act_type_start_a) and \
                     (exp_type_end_a is act_type_end_a) and \
                     (exp_type_start_b is act_type_start_b) and \
@@ -946,6 +1606,18 @@ class QuantizationTestCase(TestCase):
                     types_match,
                     f'Type mismatch at {k}: expected {(exp_type_start_a, exp_type_end_a, exp_type_start_b, exp_type_end_b)}, '
                     f'got {(act_type_start_a, act_type_end_a, act_type_start_b, act_type_end_b)}'
+=======
+                types_match = (
+                    (exp_type_start_a is act_type_start_a)
+                    and (exp_type_end_a is act_type_end_a)
+                    and (exp_type_start_b is act_type_start_b)
+                    and (exp_type_end_b is act_type_end_b)
+                )
+                self.assertTrue(
+                    types_match,
+                    f"Type mismatch at {k}: expected {(exp_type_start_a, exp_type_end_a, exp_type_start_b, exp_type_end_b)}, "
+                    f"got {(act_type_start_a, act_type_end_a, act_type_start_b, act_type_end_b)}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         def assert_ns_compare_dict_valid(
@@ -962,12 +1634,18 @@ class QuantizationTestCase(TestCase):
                 for result_type, layer_data in result_type_to_data.items():
                     self.assertTrue(
                         len(layer_data) == 2,
+<<<<<<< HEAD
                         f"Layer {layer_name} does not have exactly two model results.")
+=======
+                        f"Layer {layer_name} does not have exactly two model results.",
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     model_name_0, model_name_1 = layer_data.keys()
                     for res_idx in range(len(layer_data[model_name_0])):
                         layer_data_0 = layer_data[model_name_0][res_idx]
                         layer_data_1 = layer_data[model_name_1][res_idx]
                         self.assertTrue(
+<<<<<<< HEAD
                             layer_data_0['type'] == layer_data_0['type'],
                             f"Layer {layer_name}, {model_name_0} and {model_name_1} do not have the same type.")
 
@@ -975,10 +1653,21 @@ class QuantizationTestCase(TestCase):
                             len(layer_data_0['values']) ==
                             len(layer_data_1['values']),
                             f"Layer {layer_name}, {model_name_0} and {model_name_1} do not have the same number of seen Tensors.")
+=======
+                            layer_data_0["type"] == layer_data_0["type"],
+                            f"Layer {layer_name}, {model_name_0} and {model_name_1} do not have the same type.",
+                        )
+
+                        self.assertTrue(
+                            len(layer_data_0["values"]) == len(layer_data_1["values"]),
+                            f"Layer {layer_name}, {model_name_0} and {model_name_1} do not have the same number of seen Tensors.",
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                         # F.conv1d weight has rank 3, and toq.conv1d unpacked weight
                         # has rank 4. For now, skip the length check for conv1d only.
                         is_weight_functional_conv1d = (
+<<<<<<< HEAD
                             result_type == NSSingleResultValuesType.WEIGHT.value and
                             (
                                 'conv1d' in layer_data_0['prev_node_target_type'] or
@@ -994,16 +1683,44 @@ class QuantizationTestCase(TestCase):
                                         values_0.shape == values_1.shape,
                                         f"Layer {layer_name}, {model_name_0} and {model_name_1} " +
                                         f"have a shape mismatch at idx {idx}.")
+=======
+                            result_type == NSSingleResultValuesType.WEIGHT.value
+                            and (
+                                "conv1d" in layer_data_0["prev_node_target_type"]
+                                or "conv1d" in layer_data_1["prev_node_target_type"]
+                            )
+                        )
+                        if not is_weight_functional_conv1d:
+                            for idx in range(len(layer_data_0["values"])):
+                                values_0 = layer_data_0["values"][idx]
+                                values_1 = layer_data_1["values"][idx]
+                                if isinstance(values_0, torch.Tensor):
+                                    self.assertTrue(
+                                        values_0.shape == values_1.shape,
+                                        f"Layer {layer_name}, {model_name_0} and {model_name_1} "
+                                        + f"have a shape mismatch at idx {idx}.",
+                                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 elif isinstance(values_0, list):
                                     values_0 = values_0[0]
                                     values_1 = values_1[0]
                                     self.assertTrue(
                                         values_0.shape == values_1.shape,
+<<<<<<< HEAD
                                         f"Layer {layer_name}, {model_name_0} and {model_name_1} " +
                                         f"have a shape mismatch at idx {idx}.")
                                 else:
                                     assert isinstance(values_0, tuple), \
                                         f"unhandled type {type(values_0)}"
+=======
+                                        f"Layer {layer_name}, {model_name_0} and {model_name_1} "
+                                        + f"have a shape mismatch at idx {idx}.",
+                                    )
+                                else:
+                                    assert isinstance(
+                                        values_0, tuple
+                                    ), f"unhandled type {type(values_0)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                     assert len(values_0) == 2
                                     assert len(values_0[1]) == 2
                                     assert values_0[0].shape == values_1[0].shape
@@ -1011,6 +1728,7 @@ class QuantizationTestCase(TestCase):
                                     assert values_0[1][1].shape == values_1[1][1].shape
 
                         # verify that ref_node_name is valid
+<<<<<<< HEAD
                         ref_node_name_0 = layer_data_0['ref_node_name']
                         ref_node_name_1 = layer_data_1['ref_node_name']
                         prev_node_name_0 = layer_data_0['prev_node_name']
@@ -1019,10 +1737,27 @@ class QuantizationTestCase(TestCase):
                             self.assertTrue(ref_node_name_0 == prev_node_name_0)
                             self.assertTrue(ref_node_name_1 == prev_node_name_1)
                         elif layer_data_0['type'] == NSSingleResultValuesType.NODE_INPUT.value:
+=======
+                        ref_node_name_0 = layer_data_0["ref_node_name"]
+                        ref_node_name_1 = layer_data_1["ref_node_name"]
+                        prev_node_name_0 = layer_data_0["prev_node_name"]
+                        prev_node_name_1 = layer_data_1["prev_node_name"]
+                        if (
+                            layer_data_0["type"]
+                            == NSSingleResultValuesType.NODE_OUTPUT.value
+                        ):
+                            self.assertTrue(ref_node_name_0 == prev_node_name_0)
+                            self.assertTrue(ref_node_name_1 == prev_node_name_1)
+                        elif (
+                            layer_data_0["type"]
+                            == NSSingleResultValuesType.NODE_INPUT.value
+                        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.assertTrue(ref_node_name_0 != prev_node_name_0)
                             self.assertTrue(ref_node_name_1 != prev_node_name_1)
 
         def checkGraphModeFxOp(
+<<<<<<< HEAD
                 self,
                 model,
                 inputs,
@@ -1075,16 +1810,82 @@ class QuantizationTestCase(TestCase):
                                        # quantized_reference model depending on the
                                        # is_reference argument
                    }
+=======
+            self,
+            model,
+            inputs,
+            quant_type,
+            expected_node=None,
+            expected_node_occurrence=None,
+            expected_node_list=None,
+            is_reference=False,
+            print_debug_info=False,
+            custom_qconfig_dict=None,
+            prepare_expected_node=None,
+            prepare_expected_node_occurrence=None,
+            prepare_expected_node_list=None,
+            prepare_custom_config=None,
+            backend_config=None,
+        ):
+            """Quantizes model with graph mode quantization on fx and check if the
+            quantized model contains the quantized_node
+
+            Args:
+                model: floating point torch.nn.Module
+                inputs: one positional sample input arguments for model
+                expected_node: NodeSpec
+                    e.g. NodeSpec.call_function(torch.quantize_per_tensor)
+                expected_node_occurrence: a dict from NodeSpec to
+                    expected number of occurrences (int)
+                    e.g. {NodeSpec.call_function(torch.quantize_per_tensor) : 1,
+                            NodeSpec.call_method('dequantize'): 1}
+                expected_node_list: a list of NodeSpec, used to check the order
+                    of the occurrence of Node
+                    e.g. [NodeSpec.call_function(torch.quantize_per_tensor),
+                            NodeSpec.call_module(nnq.Conv2d),
+                            NodeSpec.call_function(F.hardtanh_),
+                            NodeSpec.call_method('dequantize')]
+                is_reference: if True, enables reference mode
+                print_debug_info: if True, prints debug info
+                custom_qconfig_dict: overrides default qconfig_dict
+                prepare_expected_node: same as expected_node, but for prepare
+                prepare_expected_node_occurrence: same as
+                    expected_node_occurrence, but for prepare
+                prepare_expected_node_list: same as expected_node_list, but
+                    for prepare
+
+            Returns:
+                A dictionary with the following structure:
+               {
+                   "prepared": ...,  # the prepared model
+                   "quantized": ...,  # the quantized non-reference model
+                   "quantized_reference": ...,  # the quantized reference model
+                   "result": ...,  # the result for either quantized or
+                                   # quantized_reference model depending on the
+                                   # is_reference argument
+               }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """
             # TODO: make img_data a single example instead of a list
             if type(inputs) == list:
                 inputs = inputs[0]
 
             if quant_type == QuantType.QAT:
+<<<<<<< HEAD
                 qconfig_mapping = get_default_qat_qconfig_mapping(torch.backends.quantized.engine)
                 model.train()
             elif quant_type == QuantType.STATIC:
                 qconfig_mapping = get_default_qconfig_mapping(torch.backends.quantized.engine)
+=======
+                qconfig_mapping = get_default_qat_qconfig_mapping(
+                    torch.backends.quantized.engine
+                )
+                model.train()
+            elif quant_type == QuantType.STATIC:
+                qconfig_mapping = get_default_qconfig_mapping(
+                    torch.backends.quantized.engine
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 model.eval()
             else:
                 qconfig = default_dynamic_qconfig
@@ -1098,22 +1899,39 @@ class QuantizationTestCase(TestCase):
 
             # overwrite qconfig_dict with custom_qconfig_dict
             if custom_qconfig_dict is not None:
+<<<<<<< HEAD
                 assert type(custom_qconfig_dict) in (QConfigMapping, dict), \
                     'custom_qconfig_dict should be a QConfigMapping or a dict'
+=======
+                assert type(custom_qconfig_dict) in (
+                    QConfigMapping,
+                    dict,
+                ), "custom_qconfig_dict should be a QConfigMapping or a dict"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(custom_qconfig_dict, QConfigMapping):
                     qconfig_mapping = custom_qconfig_dict
                 else:
                     qconfig_mapping = QConfigMapping.from_dict(custom_qconfig_dict)
             prepared = prepare(
+<<<<<<< HEAD
                 model, qconfig_mapping,
                 example_inputs=inputs,
                 prepare_custom_config=prepare_custom_config,
                 backend_config=backend_config)
+=======
+                model,
+                qconfig_mapping,
+                example_inputs=inputs,
+                prepare_custom_config=prepare_custom_config,
+                backend_config=backend_config,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not quant_type == QuantType.DYNAMIC:
                 prepared(*inputs)
 
             if print_debug_info:
                 print()
+<<<<<<< HEAD
                 print('quant type:\n', quant_type)
                 print('original model:\n', model)
                 print()
@@ -1122,6 +1940,19 @@ class QuantizationTestCase(TestCase):
             self.checkGraphModuleNodes(
                 prepared, prepare_expected_node,
                 prepare_expected_node_occurrence, prepare_expected_node_list)
+=======
+                print("quant type:\n", quant_type)
+                print("original model:\n", model)
+                print()
+                print("prepared model:\n", prepared)
+
+            self.checkGraphModuleNodes(
+                prepared,
+                prepare_expected_node,
+                prepare_expected_node_occurrence,
+                prepare_expected_node_list,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             prepared_copy = copy.deepcopy(prepared)
             qgraph = convert_fx(copy.deepcopy(prepared))
@@ -1134,6 +1965,7 @@ class QuantizationTestCase(TestCase):
             qgraph_to_check = qgraph_reference if is_reference else qgraph
             if print_debug_info:
                 print()
+<<<<<<< HEAD
                 print('quantized model:\n', qgraph_to_check)
                 self.printGraphModule(qgraph_to_check)
                 print()
@@ -1148,6 +1980,36 @@ class QuantizationTestCase(TestCase):
 
     def checkEmbeddingSerialization(self, qemb, num_embeddings, embedding_dim, indices, offsets,
                                     set_qconfig, is_emb_bag, dtype=torch.quint8):
+=======
+                print("quantized model:\n", qgraph_to_check)
+                self.printGraphModule(qgraph_to_check)
+                print()
+            self.checkGraphModuleNodes(
+                qgraph_to_check,
+                expected_node,
+                expected_node_occurrence,
+                expected_node_list,
+            )
+            return {
+                "prepared": prepared_copy,
+                "quantized": qgraph_copy,
+                "quantized_reference": qgraph_reference_copy,
+                "quantized_output": result,
+                "quantized_reference_output": result_reference,
+            }
+
+    def checkEmbeddingSerialization(
+        self,
+        qemb,
+        num_embeddings,
+        embedding_dim,
+        indices,
+        offsets,
+        set_qconfig,
+        is_emb_bag,
+        dtype=torch.quint8,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test serialization of dynamic EmbeddingBag module using state_dict
         if is_emb_bag:
             inputs = [indices, offsets]
@@ -1169,6 +2031,7 @@ class QuantizationTestCase(TestCase):
 
         # Check state dict serialization and torch.save APIs
         if is_emb_bag:
+<<<<<<< HEAD
             loaded_qemb = nnq.EmbeddingBag(num_embeddings=num_embeddings, embedding_dim=embedding_dim,
                                            include_last_offset=True, mode='sum', dtype=dtype)
         else:
@@ -1179,12 +2042,33 @@ class QuantizationTestCase(TestCase):
         self.assertEqual(embedding_unpack(qemb._packed_params._packed_weight),
                          embedding_unpack(loaded_qemb._packed_params._packed_weight))
 
+=======
+            loaded_qemb = nnq.EmbeddingBag(
+                num_embeddings=num_embeddings,
+                embedding_dim=embedding_dim,
+                include_last_offset=True,
+                mode="sum",
+                dtype=dtype,
+            )
+        else:
+            loaded_qemb = nnq.Embedding(
+                num_embeddings=num_embeddings, embedding_dim=embedding_dim, dtype=dtype
+            )
+        self.check_eager_serialization(qemb, loaded_qemb, inputs)
+
+        loaded_qemb.load_state_dict(loaded_dict)
+        self.assertEqual(
+            embedding_unpack(qemb._packed_params._packed_weight),
+            embedding_unpack(loaded_qemb._packed_params._packed_weight),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Test JIT serialization
         self.checkScriptable(qemb, [inputs], check_save_load=True)
 
         # Test from_float call
         if is_emb_bag:
+<<<<<<< HEAD
             float_embedding = torch.nn.EmbeddingBag(num_embeddings=num_embeddings, embedding_dim=embedding_dim,
                                                     include_last_offset=True, scale_grad_by_freq=False, mode='sum')
         else:
@@ -1196,6 +2080,27 @@ class QuantizationTestCase(TestCase):
                                                                         ch_axis=0)
             float_embedding.qconfig = QConfig(activation=default_dynamic_quant_observer,
                                               weight=float_qparams_observer)
+=======
+            float_embedding = torch.nn.EmbeddingBag(
+                num_embeddings=num_embeddings,
+                embedding_dim=embedding_dim,
+                include_last_offset=True,
+                scale_grad_by_freq=False,
+                mode="sum",
+            )
+        else:
+            float_embedding = torch.nn.Embedding(
+                num_embeddings=num_embeddings, embedding_dim=embedding_dim
+            )
+
+        if set_qconfig:
+            float_qparams_observer = PerChannelMinMaxObserver.with_args(
+                dtype=dtype, qscheme=torch.per_channel_affine_float_qparams, ch_axis=0
+            )
+            float_embedding.qconfig = QConfig(
+                activation=default_dynamic_quant_observer, weight=float_qparams_observer
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         prepare_dynamic(float_embedding)
 
@@ -1211,6 +2116,10 @@ class QuantizationTestCase(TestCase):
 
         self.assertTrue(expected_name in str(q_embeddingbag))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class QuantizationLiteTestCase(QuantizationTestCase):
     def _create_quantized_model(self, model_class: type[torch.nn.Module], **kwargs):
         # Creates quantized model for testing mobile script modules
@@ -1223,9 +2132,13 @@ class QuantizationLiteTestCase(QuantizationTestCase):
 
         return model
 
+<<<<<<< HEAD
     def _compare_script_and_mobile(self,
                                    model: torch.nn.Module,
                                    input: torch.Tensor):
+=======
+    def _compare_script_and_mobile(self, model: torch.nn.Module, input: torch.Tensor):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Compares the numerical outputs for script and lite modules
         qengine = "qnnpack"
         with override_quantized_engine(qengine):
@@ -1236,18 +2149,41 @@ class QuantizationLiteTestCase(QuantizationTestCase):
             for retry in range(1, max_retry + 1):
                 # retries `max_retry` times; breaks iff succeeds else throws exception
                 try:
+<<<<<<< HEAD
                     buffer = io.BytesIO(script_module._save_to_buffer_for_lite_interpreter())
+=======
+                    buffer = io.BytesIO(
+                        script_module._save_to_buffer_for_lite_interpreter()
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     buffer.seek(0)
                     mobile_module = _load_for_lite_interpreter(buffer)
 
                     mobile_module_result = mobile_module(input)
 
+<<<<<<< HEAD
                     torch.testing.assert_close(script_module_result, mobile_module_result)
                     mobile_module_forward_result = mobile_module.forward(input)
                     torch.testing.assert_close(script_module_result, mobile_module_forward_result)
 
                     mobile_module_run_method_result = mobile_module.run_method("forward", input)
                     torch.testing.assert_close(script_module_result, mobile_module_run_method_result)
+=======
+                    torch.testing.assert_close(
+                        script_module_result, mobile_module_result
+                    )
+                    mobile_module_forward_result = mobile_module.forward(input)
+                    torch.testing.assert_close(
+                        script_module_result, mobile_module_forward_result
+                    )
+
+                    mobile_module_run_method_result = mobile_module.run_method(
+                        "forward", input
+                    )
+                    torch.testing.assert_close(
+                        script_module_result, mobile_module_run_method_result
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 except AssertionError as e:
                     if retry == max_retry:
                         raise e
@@ -1260,6 +2196,10 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
     """
     Base QuantizationTestCase for PT2 with some helper methods.
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _MAP_TO_FX_TRACED_OPS = {
         torch.ops.quantized_decomposed.quantize_per_tensor: torch.ops.quantized_decomposed.quantize_per_tensor.default,
         torch.ops.quantized_decomposed.dequantize_per_tensor: torch.ops.quantized_decomposed.dequantize_per_tensor.default,
@@ -1297,6 +2237,10 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
             m,
             example_inputs,
             dynamic_shapes=dynamic_shapes if export_with_dynamic_shape else None,
+<<<<<<< HEAD
+=======
+            strict=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ).module()
 
         if is_qat:
@@ -1337,6 +2281,10 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
                 m_fx,
                 example_inputs,
                 dynamic_shapes=dynamic_shapes if export_with_dynamic_shape else None,
+<<<<<<< HEAD
+=======
+                strict=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).module()
             node_occurrence = {}
             for k, v in PT2EQuantizationTestCase._MAP_TO_FX_TRACED_OPS.items():
@@ -1344,7 +2292,12 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
                     node_occurrence[ns.call_function(v)] = expected_node_occurrence[k]
             if training_ir_node_occurrence is not None:
                 node_occurrence = {
+<<<<<<< HEAD
                     ns.call_function(k): v for k, v in training_ir_node_occurrence.items()
+=======
+                    ns.call_function(k): v
+                    for k, v in training_ir_node_occurrence.items()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 }
             self.checkGraphModuleNodes(m_fx, expected_node_occurrence=node_occurrence)
             fx_quant_output = m_fx(*example_inputs)
@@ -1355,10 +2308,14 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
         # resetting dynamo cache
         torch._dynamo.reset()
 
+<<<<<<< HEAD
         m = export_for_training(
             m,
             example_inputs,
         ).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_qat:
             m = prepare_qat_pt2e(m, quantizer)
         else:
@@ -1377,14 +2334,27 @@ class PT2EQuantizationTestCase(QuantizationTestCase):
                 return self.linear(x)
 
         quantizer = XNNPACKQuantizer()
+<<<<<<< HEAD
         operator_config = get_symmetric_quantization_config(is_per_channel=is_per_channel)
+=======
+        operator_config = get_symmetric_quantization_config(
+            is_per_channel=is_per_channel
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer.set_global(operator_config)
         example_inputs = (torch.randn(2, 2),)
         m = M().eval()
         return self._quantize(m, quantizer, example_inputs)
 
+<<<<<<< HEAD
 # Below are a series of toy models to use in testing quantization
 
+=======
+
+# Below are a series of toy models to use in testing quantization
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SingleLayerLinearModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1397,8 +2367,14 @@ class SingleLayerLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
 class AnnotatedSingleLayerLinearModel(torch.nn.Module):
     def __init__(self, qengine='fbgemm'):
+=======
+
+class AnnotatedSingleLayerLinearModel(torch.nn.Module):
+    def __init__(self, qengine="fbgemm"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qconfig(qengine)
         self.fc1 = QuantWrapper(torch.nn.Linear(5, 5).to(dtype=torch.float))
@@ -1410,8 +2386,14 @@ class AnnotatedSingleLayerLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
 class SingleLayerLinearDynamicModel(torch.nn.Module):
     def __init__(self, qengine='fbgemm'):
+=======
+
+class SingleLayerLinearDynamicModel(torch.nn.Module):
+    def __init__(self, qengine="fbgemm"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qconfig(qengine)
         self.fc1 = torch.nn.Linear(5, 5).to(dtype=torch.float)
@@ -1423,6 +2405,10 @@ class SingleLayerLinearDynamicModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LinearAddModel(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1438,23 +2424,38 @@ class LinearAddModel(nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RNNDynamicModel(torch.nn.Module):
     def __init__(self, mod_type):
         super().__init__()
         self.qconfig = default_dynamic_qconfig
+<<<<<<< HEAD
         if mod_type == 'GRU':
             self.mod = torch.nn.GRU(2, 2).to(dtype=torch.float)
         if mod_type == 'LSTM':
+=======
+        if mod_type == "GRU":
+            self.mod = torch.nn.GRU(2, 2).to(dtype=torch.float)
+        if mod_type == "LSTM":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.mod = torch.nn.LSTM(2, 2).to(dtype=torch.float)
 
     def forward(self, x):
         x = self.mod(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RNNCellDynamicModel(torch.nn.Module):
     def __init__(self, mod_type):
         super().__init__()
         self.qconfig = default_dynamic_qconfig
+<<<<<<< HEAD
         if mod_type == 'GRUCell':
             self.mod = torch.nn.GRUCell(2, 2).to(dtype=torch.float)
         if mod_type == 'LSTMCell':
@@ -1463,13 +2464,29 @@ class RNNCellDynamicModel(torch.nn.Module):
             self.mod = torch.nn.RNNCell(2, 2, nonlinearity='relu').to(dtype=torch.float)
         if mod_type == 'RNNTanh':
             self.mod = torch.nn.RNNCell(2, 2, nonlinearity='tanh').to(dtype=torch.float)
+=======
+        if mod_type == "GRUCell":
+            self.mod = torch.nn.GRUCell(2, 2).to(dtype=torch.float)
+        if mod_type == "LSTMCell":
+            self.mod = torch.nn.LSTMCell(2, 2).to(dtype=torch.float)
+        if mod_type == "RNNReLU":
+            self.mod = torch.nn.RNNCell(2, 2, nonlinearity="relu").to(dtype=torch.float)
+        if mod_type == "RNNTanh":
+            self.mod = torch.nn.RNNCell(2, 2, nonlinearity="tanh").to(dtype=torch.float)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x):
         x = self.mod(x)
         return x
 
+<<<<<<< HEAD
 class LSTMwithHiddenDynamicModel(torch.nn.Module):
     def __init__(self, qengine='fbgemm'):
+=======
+
+class LSTMwithHiddenDynamicModel(torch.nn.Module):
+    def __init__(self, qengine="fbgemm"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qconfig(qengine)
         self.lstm = torch.nn.LSTM(2, 2).to(dtype=torch.float)
@@ -1478,6 +2495,10 @@ class LSTMwithHiddenDynamicModel(torch.nn.Module):
         x, hid = self.lstm(x, hid)
         return x, hid
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ConvModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1490,6 +2511,10 @@ class ConvModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ConvTransposeModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1502,6 +2527,10 @@ class ConvTransposeModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedConvModel(torch.nn.Module):
     def __init__(self, qengine):
         super().__init__()
@@ -1519,6 +2548,10 @@ class AnnotatedConvModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedConvTransposeModel(torch.nn.Module):
     def __init__(self, qengine):
         super().__init__()
@@ -1536,6 +2569,10 @@ class AnnotatedConvTransposeModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ConvBnModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1550,6 +2587,10 @@ class ConvBnModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedConvBnModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1569,6 +2610,10 @@ class AnnotatedConvBnModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ConvBnReLUModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1585,8 +2630,14 @@ class ConvBnReLUModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
 class AnnotatedConvBnReLUModel(torch.nn.Module):
     def __init__(self, qengine='fbgemm'):
+=======
+
+class AnnotatedConvBnReLUModel(torch.nn.Module):
+    def __init__(self, qengine="fbgemm"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qconfig(qengine)
         self.conv = torch.nn.Conv2d(3, 5, 3, bias=False).to(dtype=torch.float)
@@ -1606,13 +2657,27 @@ class AnnotatedConvBnReLUModel(torch.nn.Module):
     def fuse_model(self):
         # TODO: remove this check and define two fuse_modules function on this module
         if self.training:
+<<<<<<< HEAD
             torch.ao.quantization.fuse_modules_qat(self, [['conv', 'bn', 'relu']], inplace=True)
         else:
             torch.ao.quantization.fuse_modules(self, [['conv', 'bn', 'relu']], inplace=True)
+=======
+            torch.ao.quantization.fuse_modules_qat(
+                self, [["conv", "bn", "relu"]], inplace=True
+            )
+        else:
+            torch.ao.quantization.fuse_modules(
+                self, [["conv", "bn", "relu"]], inplace=True
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TwoLayerConvModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1627,6 +2692,10 @@ class TwoLayerConvModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TwoLayerLinearModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1641,6 +2710,10 @@ class TwoLayerLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LinearModelWithSubmodule(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1655,6 +2728,10 @@ class LinearModelWithSubmodule(nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.subm.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedTwoLayerLinearModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1670,6 +2747,10 @@ class AnnotatedTwoLayerLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ActivationsTestModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1686,6 +2767,10 @@ class ActivationsTestModel(torch.nn.Module):
         x = self.dequant(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LinearReluModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1716,6 +2801,10 @@ class LinearReluLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LinearReluAddModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1734,6 +2823,10 @@ class LinearReluAddModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LinearBnLeakyReluModel(torch.nn.Module):
     def __init__(self, with_bn=True):
         super().__init__()
@@ -1752,6 +2845,10 @@ class LinearBnLeakyReluModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LinearTanhModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1766,6 +2863,7 @@ class LinearTanhModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
 class ConvBnAddReluModel(torch.nn.Module):
     def __init__(self,
                  with_bn=True,
@@ -1773,6 +2871,18 @@ class ConvBnAddReluModel(torch.nn.Module):
                  left_conv=True,
                  two_conv=True,
                  use_torch_add=True):
+=======
+
+class ConvBnAddReluModel(torch.nn.Module):
+    def __init__(
+        self,
+        with_bn=True,
+        with_relu=True,
+        left_conv=True,
+        two_conv=True,
+        use_torch_add=True,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.conv = nn.Conv2d(5, 5, (2, 2))
         self.conv2 = nn.Conv2d(5, 5, (2, 2))
@@ -1826,6 +2936,10 @@ class ConvBnAddReluModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5, 3, 3), torch.rand(1, 5, 2, 2))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO: self.fc should be self.conv
 class ConvReluModel(torch.nn.Module):
     def __init__(self) -> None:
@@ -1840,6 +2954,10 @@ class ConvReluModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO: self.fc should be self.conv
 class ConvReluConvModel(torch.nn.Module):
     def __init__(self) -> None:
@@ -1857,6 +2975,10 @@ class ConvReluConvModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO: self.fc should be self.conv
 class ConvReluAddModel(torch.nn.Module):
     def __init__(self) -> None:
@@ -1876,6 +2998,10 @@ class ConvReluAddModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class NormalizationTestModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1897,6 +3023,10 @@ class NormalizationTestModel(torch.nn.Module):
         x = self.instance_norm3d(x.unsqueeze(-1))
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class NestedModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1910,6 +3040,10 @@ class NestedModel(torch.nn.Module):
         x = self.fc3(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedNestedModel(torch.nn.Module):
     def __init__(self, qengine):
         super().__init__()
@@ -1918,7 +3052,11 @@ class AnnotatedNestedModel(torch.nn.Module):
         self.fc3 = QuantWrapper(torch.nn.Linear(5, 5).to(dtype=torch.float))
         self.fc3.qconfig = default_qconfig
         self.sub2.fc1 = QuantWrapper(self.sub2.fc1)
+<<<<<<< HEAD
         if qengine == 'fbgemm':
+=======
+        if qengine == "fbgemm":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.sub2.fc1.qconfig = default_per_channel_qconfig
         else:
             self.sub2.fc1.qconfig = default_qconfig
@@ -1929,6 +3067,10 @@ class AnnotatedNestedModel(torch.nn.Module):
         x = self.fc3(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedSubNestedModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1944,6 +3086,10 @@ class AnnotatedSubNestedModel(torch.nn.Module):
         x = self.fc3(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedCustomConfigNestedModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1953,12 +3099,20 @@ class AnnotatedCustomConfigNestedModel(torch.nn.Module):
         self.fc3.qconfig = default_qconfig
         self.sub2.qconfig = default_qconfig
 
+<<<<<<< HEAD
         custom_options = {
             'dtype': torch.quint8,
             'qscheme': torch.per_tensor_affine
         }
         custom_qconfig = QConfig(activation=default_observer.with_args(**custom_options),
                                  weight=default_weight_observer)
+=======
+        custom_options = {"dtype": torch.quint8, "qscheme": torch.per_tensor_affine}
+        custom_qconfig = QConfig(
+            activation=default_observer.with_args(**custom_options),
+            weight=default_weight_observer,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.sub2.fc1.qconfig = custom_qconfig
 
         self.sub2.fc1 = QuantWrapper(self.sub2.fc1)
@@ -1970,6 +3124,10 @@ class AnnotatedCustomConfigNestedModel(torch.nn.Module):
         x = self.fc3(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class QuantSubModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1985,6 +3143,10 @@ class QuantSubModel(torch.nn.Module):
         x = self.fc3(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class InnerModule(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2004,14 +3166,22 @@ class InnerModule(torch.nn.Module):
                 if idx >= len(named_children) - 1:
                     break
                 if isinstance(named_children[idx + 1][1], torch.nn.ReLU):
+<<<<<<< HEAD
                     fusable_layers.append([current_name,
                                            named_children[idx + 1][0]])
+=======
+                    fusable_layers.append([current_name, named_children[idx + 1][0]])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: remove this check and define two fuse_modules function on this module
         if self.training:
             torch.ao.quantization.fuse_modules_qat(self, fusable_layers, inplace=True)
         else:
             torch.ao.quantization.fuse_modules(self, fusable_layers, inplace=True)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalLinear(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2024,6 +3194,10 @@ class FunctionalLinear(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SingleLayerFunctionalLinearModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2036,6 +3210,10 @@ class SingleLayerFunctionalLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.linear1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TwoLayerFunctionalLinearModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2050,6 +3228,10 @@ class TwoLayerFunctionalLinearModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.linear1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalLinearAddModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2065,6 +3247,10 @@ class FunctionalLinearAddModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.linear1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalLinearReluModel(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2078,6 +3264,10 @@ class FunctionalLinearReluModel(nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.linear.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalLinearReluLinearModel(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2094,6 +3284,10 @@ class FunctionalLinearReluLinearModel(nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.linear1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalConv2d(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2105,11 +3299,27 @@ class FunctionalConv2d(torch.nn.Module):
         self.groups = 1
 
     def forward(self, x):
+<<<<<<< HEAD
         return F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+=======
+        return F.conv2d(
+            x,
+            self.weight,
+            self.bias,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_example_inputs(self) -> tuple[Any, ...]:
         return (torch.rand(1, 3, 5, 5),)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SingleLayerFunctionalConvModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2122,6 +3332,10 @@ class SingleLayerFunctionalConvModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.conv1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TwoLayerFunctionalConvModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2136,6 +3350,10 @@ class TwoLayerFunctionalConvModel(torch.nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.conv1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalConvReluModel(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2149,6 +3367,10 @@ class FunctionalConvReluModel(nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.conv.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FunctionalConvReluConvModel(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2165,10 +3387,18 @@ class FunctionalConvReluConvModel(nn.Module):
     def get_example_inputs(self) -> tuple[Any, ...]:
         return self.conv1.get_example_inputs()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SkipQuantModel(torch.nn.Module):
     r"""We can skip quantization by explicitly
     setting qconfig of a submodule to None
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self) -> None:
         super().__init__()
         self.sub = InnerModule()
@@ -2180,10 +3410,18 @@ class SkipQuantModel(torch.nn.Module):
     def fuse_modules(self):
         self.sub.fuse_modules()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AnnotatedSkipQuantModel(torch.nn.Module):
     r"""We can skip quantization by explicitly
     setting qconfig of a submodule to None
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, qengine):
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qconfig(qengine)
@@ -2198,9 +3436,16 @@ class AnnotatedSkipQuantModel(torch.nn.Module):
     def fuse_modules(self):
         self.sub.module.fuse_modules()
 
+<<<<<<< HEAD
 class QuantStubModel(torch.nn.Module):
     r"""A Module with manually inserted `QuantStub` and `DeQuantStub`
     """
+=======
+
+class QuantStubModel(torch.nn.Module):
+    r"""A Module with manually inserted `QuantStub` and `DeQuantStub`"""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self) -> None:
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qconfig("qnnpack")
@@ -2213,9 +3458,16 @@ class QuantStubModel(torch.nn.Module):
         x = self.fc(x)
         return self.dequant(x)
 
+<<<<<<< HEAD
 class ManualLinearQATModel(torch.nn.Module):
     r"""A Module with manually inserted `QuantStub` and `DeQuantStub`
     """
+=======
+
+class ManualLinearQATModel(torch.nn.Module):
+    r"""A Module with manually inserted `QuantStub` and `DeQuantStub`"""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, qengine):
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qat_qconfig(qengine)
@@ -2230,9 +3482,16 @@ class ManualLinearQATModel(torch.nn.Module):
         x = self.fc2(x)
         return self.dequant(x)
 
+<<<<<<< HEAD
 class ManualDropoutQATModel(torch.nn.Module):
     r"""A Module with manually inserted `QuantStub` and `DeQuantStub`
     """
+=======
+
+class ManualDropoutQATModel(torch.nn.Module):
+    r"""A Module with manually inserted `QuantStub` and `DeQuantStub`"""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, qengine):
         super().__init__()
         self.qconfig = torch.ao.quantization.get_default_qat_qconfig(qengine)
@@ -2247,9 +3506,16 @@ class ManualDropoutQATModel(torch.nn.Module):
         x = self.dropout(x)
         return self.dequant(x)
 
+<<<<<<< HEAD
 class ManualLinearDynamicQATModel(torch.nn.Module):
     r"""A Module that uses a dynamic QAT by default.
     """
+=======
+
+class ManualLinearDynamicQATModel(torch.nn.Module):
+    r"""A Module that uses a dynamic QAT by default."""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, qconfig=None):
         super().__init__()
         self.qconfig = qconfig or default_dynamic_qat_qconfig
@@ -2261,13 +3527,28 @@ class ManualLinearDynamicQATModel(torch.nn.Module):
         x = self.fc2(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ManualConvLinearQATModel(torch.nn.Module):
     r"""A module with manually inserted `QuantStub` and `DeQuantStub`
     and contains both linear and conv modules
     """
+<<<<<<< HEAD
     def __init__(self, qconfig=None):
         super().__init__()
         self.qconfig = qconfig if qconfig else torch.ao.quantization.get_default_qat_qconfig("qnnpack")
+=======
+
+    def __init__(self, qconfig=None):
+        super().__init__()
+        self.qconfig = (
+            qconfig
+            if qconfig
+            else torch.ao.quantization.get_default_qat_qconfig("qnnpack")
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.quant = QuantStub()
         self.dequant = DeQuantStub()
         self.conv = torch.nn.Conv2d(3, 1, kernel_size=3).to(dtype=torch.float)
@@ -2282,10 +3563,15 @@ class ManualConvLinearQATModel(torch.nn.Module):
         x = self.fc2(x)
         return self.dequant(x)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ManualConvLinearSymmQATModel(ManualConvLinearQATModel):
     r"""Same as ManualConvLinearQATModule but with Symmetric Quantization.
     Supported only with qnnpack.
     """
+<<<<<<< HEAD
     def __init__(self) -> None:
         super().__init__(default_symmetric_qnnpack_qat_qconfig)
 
@@ -2293,19 +3579,43 @@ class ManualEmbeddingBagLinear(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.emb = nn.EmbeddingBag(num_embeddings=10, embedding_dim=12, mode='sum')
+=======
+
+    def __init__(self) -> None:
+        super().__init__(default_symmetric_qnnpack_qat_qconfig)
+
+
+class ManualEmbeddingBagLinear(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.emb = nn.EmbeddingBag(num_embeddings=10, embedding_dim=12, mode="sum")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.emb.qconfig = default_embedding_qat_qconfig
         self.quant = QuantStub()
         self.dequant = DeQuantStub()
         self.linear = nn.Linear(12, 1).to(dtype=torch.float)
         self.qconfig = get_default_qat_qconfig("qnnpack")
 
+<<<<<<< HEAD
     def forward(self, input: torch.Tensor, offsets: Optional[torch.Tensor] = None,
                 per_sample_weights: Optional[torch.Tensor] = None):
+=======
+    def forward(
+        self,
+        input: torch.Tensor,
+        offsets: Optional[torch.Tensor] = None,
+        per_sample_weights: Optional[torch.Tensor] = None,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = self.emb(input, offsets, per_sample_weights)
         x = self.quant(x)
         x = self.linear(x)
         return self.dequant(x)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DeFusedEmbeddingBagLinear(nn.Module):
     r"""A module to simulate QAT embedding bag with a linear layer,
     this module uses a separate embedding and bagging op, similar
@@ -2313,6 +3623,10 @@ class DeFusedEmbeddingBagLinear(nn.Module):
 
     https://pytorch.org/docs/stable/generated/torch.nn.EmbeddingBag.html
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self) -> None:
         super().__init__()
         self.emb = nn.Embedding(num_embeddings=10, embedding_dim=12)
@@ -2329,6 +3643,10 @@ class DeFusedEmbeddingBagLinear(nn.Module):
         x = self.linear(x)
         return self.dequant(x)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SubModelForFusion(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2350,6 +3668,10 @@ class SubModelWithoutFusion(nn.Module):
     def forward(self, x):
         return self.relu(self.conv(x))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ModelForFusion(nn.Module):
     def __init__(self, qconfig):
         super().__init__()
@@ -2396,6 +3718,7 @@ class ModelForFusion(nn.Module):
         y = self.dequant(y)
         return x
 
+<<<<<<< HEAD
 class ConvBNReLU(nn.Sequential):
     def __init__(self) -> None:
         super().__init__(
@@ -2404,6 +3727,16 @@ class ConvBNReLU(nn.Sequential):
             nn.ReLU(inplace=False)
         )
 
+=======
+
+class ConvBNReLU(nn.Sequential):
+    def __init__(self) -> None:
+        super().__init__(
+            nn.Conv2d(3, 3, 1, 1, bias=False), nn.BatchNorm2d(3), nn.ReLU(inplace=False)
+        )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ModelWithSequentialFusion(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2428,6 +3761,10 @@ class ModelWithSequentialFusion(nn.Module):
         x = self.dequant(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ModelForFusionWithBias(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2449,6 +3786,10 @@ class ModelForFusionWithBias(nn.Module):
         x = self.dequant(x)
         return x
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ModelForLinearBNFusion(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2460,6 +3801,10 @@ class ModelForLinearBNFusion(nn.Module):
     def forward(self, x):
         return self.bn(self.fc(x))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DummyObserver(torch.nn.Module):
     def calculate_qparams(self):
         return 1.0, 0
@@ -2497,7 +3842,11 @@ class ModelWithFunctionals(torch.nn.Module):
         self.myadd = nnq.FloatFunctional()
         self.myadd_relu = nnq.FloatFunctional()
         self.mymatmul = nnq.FloatFunctional()
+<<<<<<< HEAD
         # Tracing doesnt work yet for c10 ops with scalar inputs
+=======
+        # Tracing doesn't work yet for c10 ops with scalar inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # https://github.com/pytorch/pytorch/issues/27097
         # self.my_scalar_add = nnq.FloatFunctional()
         # self.my_scalar_mul = nnq.FloatFunctional()
@@ -2507,7 +3856,11 @@ class ModelWithFunctionals(torch.nn.Module):
         z = self.myadd.add(y, y)
         w = self.myadd_relu.add_relu(z, z)
         u = self.mymatmul.matmul(w, w.T)
+<<<<<<< HEAD
         # Tracing doesnt work yet for c10 ops with scalar inputs
+=======
+        # Tracing doesn't work yet for c10 ops with scalar inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # https://github.com/pytorch/pytorch/issues/27097
         # w = self.my_scalar_add.add_scalar(w, -0.5)
         # w = self.my_scalar_mul.mul_scalar(w, 0.5)
@@ -2543,9 +3896,20 @@ class ResNetBase(torch.nn.Module):
     def fuse_model(self):
         # TODO: remove this check and define two fuse_model function on this module
         if self.training:
+<<<<<<< HEAD
             torch.ao.quantization.fuse_modules_qat(self, [['conv1', 'bn1', 'relu1']], inplace=True)
         else:
             torch.ao.quantization.fuse_modules(self, [['conv1', 'bn1', 'relu1']], inplace=True)
+=======
+            torch.ao.quantization.fuse_modules_qat(
+                self, [["conv1", "bn1", "relu1"]], inplace=True
+            )
+        else:
+            torch.ao.quantization.fuse_modules(
+                self, [["conv1", "bn1", "relu1"]], inplace=True
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ModelMultipleOps(torch.nn.Module):
     def __init__(self) -> None:
@@ -2578,6 +3942,10 @@ class ModelMultipleOps(torch.nn.Module):
         out = self.fc(out)
         return out
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Model to ensure consistency of fake quant with true quant
 # Average pooling and mean operations are not modelled
 # accurately with fake-quant so this model does not
@@ -2612,15 +3980,33 @@ class ModelMultipleOpsNoAvgPool(torch.nn.Module):
         out = self.fc(out)
         return out
 
+<<<<<<< HEAD
 class EmbeddingBagModule(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.emb = torch.nn.EmbeddingBag(num_embeddings=10, embedding_dim=12,
                                          include_last_offset=True, scale_grad_by_freq=False, mode='sum')
+=======
+
+class EmbeddingBagModule(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.emb = torch.nn.EmbeddingBag(
+            num_embeddings=10,
+            embedding_dim=12,
+            include_last_offset=True,
+            scale_grad_by_freq=False,
+            mode="sum",
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, indices, offsets, per_sample_weights):
         return self.emb(indices, offsets, per_sample_weights)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class EmbeddingModule(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2629,6 +4015,10 @@ class EmbeddingModule(torch.nn.Module):
     def forward(self, indices):
         return self.emb(indices)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class EmbeddingWithStaticLinear(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -2647,9 +4037,17 @@ class EmbeddingWithStaticLinear(torch.nn.Module):
         features = torch.cat([fc] + [emb], dim=1)
         return features
 
+<<<<<<< HEAD
 class DenseTopMLP(nn.Module):
 
     def __init__(self, dense_dim, dense_out, embedding_dim, top_out_in, top_out_out) -> None:
+=======
+
+class DenseTopMLP(nn.Module):
+    def __init__(
+        self, dense_dim, dense_out, embedding_dim, top_out_in, top_out_out
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
 
         self.dense_mlp = nn.Sequential(
@@ -2671,16 +4069,28 @@ class DenseTopMLP(nn.Module):
         out = self.top_mlp(features)
         return out
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # thin wrapper around embedding bag, because tracing inside nn.Embedding
 # bag is not supported at the moment and this is top level
 class EmbBagWrapper(nn.Module):
     def __init__(self, num_embeddings, embedding_dim):
         super().__init__()
+<<<<<<< HEAD
         self.emb_bag = nn.EmbeddingBag(num_embeddings, embedding_dim, mode='sum')
+=======
+        self.emb_bag = nn.EmbeddingBag(num_embeddings, embedding_dim, mode="sum")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, indices, offsets):
         return self.emb_bag(indices, offsets)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SparseNNModel(nn.Module):
     _NUM_EMBEDDINGS = 10
     _EMBEDDING_DIM = 5
@@ -2695,8 +4105,17 @@ class SparseNNModel(nn.Module):
 
         self.model_sparse = EmbBagWrapper(self._NUM_EMBEDDINGS, self._EMBEDDING_DIM)
         self.dense_top = DenseTopMLP(
+<<<<<<< HEAD
             self._DENSE_DIM, self._DENSE_OUTPUT, self._EMBEDDING_DIM, self._TOP_OUT_IN,
             self._TOP_OUT_OUT)
+=======
+            self._DENSE_DIM,
+            self._DENSE_OUTPUT,
+            self._EMBEDDING_DIM,
+            self._TOP_OUT_IN,
+            self._TOP_OUT_OUT,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(
         self,
@@ -2704,12 +4123,19 @@ class SparseNNModel(nn.Module):
         sparse_offsets: torch.Tensor,
         dense: torch.Tensor,
     ) -> torch.Tensor:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sparse_feature = self.model_sparse(sparse_indices, sparse_offsets)
         out = self.dense_top(sparse_feature, dense)
 
         return out
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestHelperModules:
     class ControlFlow(torch.nn.Module):
         def forward(
@@ -2719,7 +4145,10 @@ class TestHelperModules:
             pred2: torch.Tensor,
             y: torch.Tensor,
         ) -> torch.Tensor:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def true_nested(y: torch.Tensor) -> torch.Tensor:
                 y = y + y
                 y = torch.mm(y, y)
@@ -2736,7 +4165,14 @@ class TestHelperModules:
                 return x.cos()
 
             def map_fn(
+<<<<<<< HEAD
                 x: torch.Tensor, pred1: torch.Tensor, pred2: torch.Tensor, y: torch.Tensor
+=======
+                x: torch.Tensor,
+                pred1: torch.Tensor,
+                pred2: torch.Tensor,
+                y: torch.Tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ) -> torch.Tensor:
                 x = x.cos()
                 y = control_flow.cond(pred1, true_fn, false_fn, [y, pred2])
@@ -2747,7 +4183,16 @@ class TestHelperModules:
             return control_flow.map(map_fn, xs, pred1, pred2, y)
 
         def example_inputs(self):
+<<<<<<< HEAD
             return (torch.ones(2, 2), torch.tensor([False]), torch.tensor([False]), torch.ones(2, 2),)
+=======
+            return (
+                torch.ones(2, 2),
+                torch.tensor([False]),
+                torch.tensor([False]),
+                torch.ones(2, 2),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class Conv2dPropAnnotaton(torch.nn.Module):
         def __init__(self) -> None:
@@ -2845,12 +4290,22 @@ class TestHelperModules:
             x = self.adaptive_avg_pool2d(x)
             return x
 
+<<<<<<< HEAD
     class ConvWithBNRelu(torch.nn.Module):
         def __init__(self, relu, dim=2, bn=True, bias=True):
             super().__init__()
             convs = {1: torch.nn.Conv1d, 2: torch.nn.Conv2d}
             bns = {1: torch.nn.BatchNorm1d, 2: torch.nn.BatchNorm2d}
             self.conv = convs[dim](3, 3, 3, bias=bias)
+=======
+
+    class ConvWithBNRelu(torch.nn.Module):
+        def __init__(self, relu, dim=2, bn=True, bias=True, padding=0):
+            super().__init__()
+            convs = {1: torch.nn.Conv1d, 2: torch.nn.Conv2d, 3: torch.nn.Conv3d}
+            bns = {1: torch.nn.BatchNorm1d, 2: torch.nn.BatchNorm2d, 3: torch.nn.BatchNorm3d}
+            self.conv = convs[dim](3, 3, 3, bias=bias, padding=padding)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if bn:
                 self.bn = bns[dim](3)
@@ -3029,6 +4484,7 @@ class TestHelperModules:
             x = self.relu(self.fc(x))
             return x
 
+<<<<<<< HEAD
 def _generate_qdq_quantized_model(
     mod, inputs, is_qat=False, is_dynamic=False, quantizer=None
 ):
@@ -3039,6 +4495,22 @@ def _generate_qdq_quantized_model(
         if has_xpu:
             quantizer = XPUInductorQuantizer()
             assert (not is_qat) and (not is_dynamic), "QAT and dynamic quantization is not supported at XPU backend currently"
+=======
+
+def _generate_qdq_quantized_model(
+    mod, inputs, is_qat=False, is_dynamic=False, quantizer=None
+):
+    def get_default_quantizer(is_qat, is_dynamic, inputs):
+        has_xpu = any(
+            isinstance(input, torch.Tensor) and input.device.type == "xpu"
+            for input in inputs
+        )
+        if has_xpu:
+            quantizer = XPUInductorQuantizer()
+            assert (not is_qat) and (
+                not is_dynamic
+            ), "QAT and dynamic quantization is not supported at XPU backend currently"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             quantizer.set_global(xpuiq.get_default_xpu_inductor_quantization_config())
         else:
             quantizer = X86InductorQuantizer()
@@ -3051,12 +4523,20 @@ def _generate_qdq_quantized_model(
 
     maybe_no_grad = contextlib.nullcontext() if is_qat else torch.no_grad()
     with maybe_no_grad:
+<<<<<<< HEAD
         export_model = export_for_training(
             mod,
             inputs,
         ).module()
         quantizer = (
             quantizer if quantizer else get_default_quantizer(is_qat, is_dynamic, inputs)
+=======
+        export_model = export_for_training(mod, inputs, strict=True).module()
+        quantizer = (
+            quantizer
+            if quantizer
+            else get_default_quantizer(is_qat, is_dynamic, inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         prepare_model = (
             prepare_qat_pt2e(export_model, quantizer)

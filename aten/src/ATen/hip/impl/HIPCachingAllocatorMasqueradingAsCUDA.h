@@ -37,8 +37,13 @@ inline void setMemoryFraction(double fraction, c10::DeviceIndex device) {
   return get()->setMemoryFraction(fraction, device);
 }
 
+<<<<<<< HEAD
 inline void emptyCache() {
   return get()->emptyCache();
+=======
+inline void emptyCache(MempoolId_t mempool_id = {0, 0}) {
+  return get()->emptyCache(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline void enable(bool value) {
@@ -70,8 +75,13 @@ inline void resetPeakStats(c10::DeviceIndex device) {
   return get()->resetPeakStats(device);
 }
 
+<<<<<<< HEAD
 inline HIPCachingAllocator::SnapshotInfo snapshot() {
   return get()->snapshot();
+=======
+inline HIPCachingAllocator::SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) {
+  return get()->snapshot(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::shared_ptr<HIPCachingAllocator::AllocatorState> getCheckpointState(
@@ -101,9 +111,16 @@ inline void recordHistory(
     bool enabled,
     HIPCachingAllocator::CreateContextFn context_recorder,
     size_t alloc_trace_max_entries,
+<<<<<<< HEAD
     HIPCachingAllocator::RecordContext when) {
   return get()->recordHistory(
       enabled, context_recorder, alloc_trace_max_entries, when);
+=======
+    HIPCachingAllocator::RecordContext when,
+    bool clearHistory) {
+  return get()->recordHistory(
+      enabled, context_recorder, alloc_trace_max_entries, when, clearHistory);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline void recordAnnotation(
@@ -111,6 +128,17 @@ inline void recordAnnotation(
   return get()->recordAnnotation(md);
 }
 
+<<<<<<< HEAD
+=======
+inline void pushCompileContext(std::string& md) {
+  return get()->pushCompileContext(md);
+}
+
+inline void popCompileContext() {
+  return get()->popCompileContext();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline bool isHistoryEnabled() {
   return get()->isHistoryEnabled();
 }
@@ -135,10 +163,22 @@ inline void releasePool(c10::DeviceIndex device, MempoolId_t mempool_id) {
   return get()->releasePool(device, mempool_id);
 }
 
+<<<<<<< HEAD
 inline void ensureExistsAndIncrefPool(
     c10::DeviceIndex device,
     MempoolId_t mempool_id) {
   get()->ensureExistsAndIncrefPool(device, mempool_id);
+=======
+inline void createOrIncrefPool(
+    c10::DeviceIndex device,
+    MempoolId_t mempool_id,
+    HIPCachingAllocator::HIPAllocator* allocator_ptr = nullptr) {
+  get()->createOrIncrefPool(device, mempool_id, allocator_ptr);
+}
+
+inline void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) {
+  get()->setUseOnOOM(device, mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline int getPoolUseCount(c10::DeviceIndex device, MempoolId_t mempool_id) {

@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import math
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import inf, Tensor
@@ -33,8 +37,18 @@ class HalfNormal(TransformedDistribution):
     arg_constraints = {"scale": constraints.positive}
     support = constraints.nonnegative
     has_rsample = True
+<<<<<<< HEAD
 
     def __init__(self, scale, validate_args=None):
+=======
+    base_dist: Normal
+
+    def __init__(
+        self,
+        scale: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         base_dist = Normal(0, scale, validate_args=False)
         super().__init__(base_dist, AbsTransform(), validate_args=validate_args)
 

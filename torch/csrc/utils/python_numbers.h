@@ -182,7 +182,11 @@ inline bool THPUtils_unpackNumberAsBool(PyObject* obj) {
   if (value == -1 && PyErr_Occurred()) {
     throw python_error();
   }
+<<<<<<< HEAD
   // No need to check overflow, because when overflow occured, it should
+=======
+  // No need to check overflow, because when overflow occurred, it should
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // return true in order to keep the same behavior of numpy.
   return (bool)value;
 }

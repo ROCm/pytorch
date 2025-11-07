@@ -17,7 +17,15 @@ from torch._subclasses import fake_tensor  # noqa: TCH001
 from torch._subclasses.fake_tensor import FakeTensor
 from torch._utils_internal import justknobs_check
 from torch.fx._utils import lazy_format_graph_code
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import guard_scalar, ShapeEnv  # noqa: TCH001
+=======
+from torch.fx.experimental.symbolic_shapes import (  # noqa: TCH001
+    guard_scalar,
+    has_free_symbols,
+    ShapeEnv,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.graph_module import GraphModule  # noqa: TCH001
 
 # TODO: refactor
@@ -31,7 +39,11 @@ from torch.utils._sympy.symbol import symbol_is_type, SymT
 __all__: list[str] = []
 
 log = logging.getLogger(__name__)
+<<<<<<< HEAD
 graph_code_log = torch._logging.getArtifactLogger(__name__, "graph_code")
+=======
+graph_code_log = torch._logging.getArtifactLogger(__name__, "graph_code_verbose")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # The general shape of this transformation is to look for Tensor operations
 # that take a backed SymFloat as an argument, and then redo them as tensor
@@ -186,6 +198,10 @@ def tensorify_python_scalars(
 
         return expr_to_tensor_proxy[expr]
 
+<<<<<<< HEAD
+=======
+    failed_tensorify_ops: set[str] = set()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nodes = list(graph.nodes)
     for i, node in enumerate(nodes[:-1]):
         with graph.inserting_before(
@@ -298,8 +314,20 @@ def tensorify_python_scalars(
                         metrics_context.set(
                             "tensorify_float_success", True, overwrite=True
                         )
+<<<<<<< HEAD
 
     failed_tensorify_ops: set[str] = set()
+=======
+            else:
+                for a in node.args:
+                    if (
+                        isinstance(a, fx.Node)
+                        and "val" in a.meta
+                        and isinstance(zf := a.meta["val"], torch.SymFloat)
+                    ):
+                        failed_tensorify_ops.update(str(node.target))
+                        log.info("Failed to tensorify %s", str(node.target))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Now do one more pass that specializes all symfloats we didn't manage
     # to tensorify away.
@@ -316,7 +344,11 @@ def tensorify_python_scalars(
                 (val := node.meta.get("val")),
                 (torch.SymFloat, torch.SymInt, torch.SymBool),
             ):
+<<<<<<< HEAD
                 if all(
+=======
+                if has_free_symbols(val.node.expr) and all(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     symbol_is_type(s, SymT.FLOAT) for s in val.node.expr.free_symbols
                 ):
                     # If all symbols are backed symfloats, we can just specialize the whole node
@@ -328,8 +360,11 @@ def tensorify_python_scalars(
                     #
                     # It's better to guard on zf // 2 == 2.0 than zf == 5.0
 
+<<<<<<< HEAD
                     failed_tensorify_ops.update(str(key) for key in node.users.keys())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     node.replace_all_uses_with(guard_scalar(val))
                     graph.erase_node(node)
 

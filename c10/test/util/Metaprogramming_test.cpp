@@ -68,8 +68,12 @@ static_assert(
 } // namespace test_function_traits
 
 struct MovableOnly {
+<<<<<<< HEAD
   constexpr MovableOnly(int val_) : val(val_) { /* no default constructor */
   }
+=======
+  constexpr MovableOnly(int val_) : val(val_) { /* no default constructor */ }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   MovableOnly(const MovableOnly&) = delete;
   MovableOnly(MovableOnly&&) = default;
   MovableOnly& operator=(const MovableOnly&) = delete;

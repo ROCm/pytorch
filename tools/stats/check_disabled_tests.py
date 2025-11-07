@@ -173,7 +173,11 @@ def save_results(
     all_tests: dict[str, dict[str, int]],
 ) -> None:
     """
+<<<<<<< HEAD
     Save the result to S3, which then gets put into the HUD backened database
+=======
+    Save the result to S3, which then gets put into the HUD backend database
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     should_be_enabled_tests = {
         name: stats

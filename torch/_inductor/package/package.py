@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import tempfile
+<<<<<<< HEAD
 import zipfile
 from pathlib import Path
 from typing import Any, IO, Optional, Union
@@ -22,11 +23,26 @@ from .pt2_archive_constants import (
     CONSTANTS_DIR,
     CUSTOM_OBJ_FILENAME_PREFIX,
 )
+=======
+from typing import IO
+
+import torch
+from torch._inductor import config
+from torch._inductor.cpp_builder import BuildOptionsBase, CppBuilder
+from torch.export.pt2_archive._package import (
+    AOTI_FILES,
+    AOTICompiledModel,
+    load_pt2,
+    package_pt2,
+)
+from torch.types import FileLike
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 class PT2ArchiveWriter:
     def __init__(self, archive_path: FileLike) -> None:
         self.archive_path: FileLike = archive_path
@@ -95,6 +111,8 @@ class PT2ArchiveReader:
         return self.archive_file.namelist()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def compile_so(aoti_dir: str, aoti_files: list[str], so_path: str) -> str:
     def get_aoti_file_with_suffix(suffix: str) -> str:
         for file in aoti_files:
@@ -156,7 +174,11 @@ def compile_so(aoti_dir: str, aoti_files: list[str], so_path: str) -> str:
 
 def package_aoti(
     archive_file: FileLike,
+<<<<<<< HEAD
     aoti_files: Union[list[str], dict[str, list[str]]],
+=======
+    aoti_files: AOTI_FILES,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> FileLike:
     """
     Saves the AOTInductor generated files to the PT2Archive format.
@@ -167,6 +189,7 @@ def package_aoti(
         the AOTInductor files, or a dictionary mapping the model name to the
         path to its AOTInductor generated files.
     """
+<<<<<<< HEAD
     if isinstance(aoti_files, list):
         aoti_files = {"model": aoti_files}
 
@@ -290,21 +313,63 @@ def load_package(
     ) or (isinstance(path, (str, os.PathLike)) and os.fspath(path).endswith(".pt2")), (
         f"Unable to load package. Path must be a buffer or a file ending in .pt2. Instead got {path}"
     )
+=======
+
+    return package_pt2(
+        archive_file,
+        aoti_files=aoti_files,
+    )
+
+
+def load_package(
+    path: FileLike,
+    model_name: str = "model",
+    run_single_threaded: bool = False,
+    num_runners: int = 1,
+    device_index: int = -1,
+) -> AOTICompiledModel:  # type: ignore[type-arg]
+    try:
+        pt2_contents = load_pt2(
+            path,
+            run_single_threaded=run_single_threaded,
+            num_runners=num_runners,
+            device_index=device_index,
+        )
+        if model_name not in pt2_contents.aoti_runners:
+            raise RuntimeError(f"Model {model_name} not found in package")
+        return pt2_contents.aoti_runners[model_name]
+    except RuntimeError:
+        log.warning("Loading outdated pt2 file. Please regenerate your package.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if isinstance(path, (io.IOBase, IO)):
         with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
             # TODO(angelayi): We shouldn't need to do this -- miniz should
             # handle reading the buffer. This is just a temporary workaround
+<<<<<<< HEAD
             f.write(path.read())
             path.seek(0)
             log.debug("Writing buffer to tmp file located at %s.", f.name)
             loader = torch._C._aoti.AOTIModelPackageLoader(
                 f.name, model_name, run_single_threaded
             )  # type: ignore[call-arg]
+=======
+            path.seek(0)
+            f.write(path.read())
+            log.debug("Writing buffer to tmp file located at %s.", f.name)
+            loader = torch._C._aoti.AOTIModelPackageLoader(
+                f.name, model_name, run_single_threaded, num_runners, device_index
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return AOTICompiledModel(loader)
 
     path = os.fspath(path)  # AOTIModelPackageLoader expects (str, str)
     loader = torch._C._aoti.AOTIModelPackageLoader(
+<<<<<<< HEAD
         path, model_name, run_single_threaded
     )  # type: ignore[call-arg]
+=======
+        path, model_name, run_single_threaded, num_runners, device_index
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return AOTICompiledModel(loader)

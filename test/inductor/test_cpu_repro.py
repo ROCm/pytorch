@@ -232,9 +232,17 @@ class CPUReproTests(TestCase):
                 metrics.reset()
                 v = torch.randn(*input_size)
                 mod = Model(output_size, kernel_size, stride).eval()
+<<<<<<< HEAD
                 with contextlib.nullcontext() if (
                     num_threads != 1
                 ) else set_num_threads(1):
+=======
+                with (
+                    contextlib.nullcontext()
+                    if (num_threads != 1)
+                    else set_num_threads(1)
+                ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     with torch.no_grad():
                         self.common(
                             mod,
@@ -760,7 +768,23 @@ class CPUReproTests(TestCase):
             else "aten.set_.source_Tensor",
             code,
         )
+<<<<<<< HEAD
         self.assertEqual(model(inp), result)
+=======
+        expected = model(inp)
+        self.assertEqual(expected, result)
+
+        # test cpp_wrapper_build_separate
+        with config.patch(cpp_wrapper=True, cpp_wrapper_build_separate=True):
+            result, code = run_and_get_cpp_code(fn_opt, inp)
+            self.assertIn("kernel_src", code)
+            self.assertEqual(expected, result)
+
+        with config.patch(cpp_wrapper=True, cpp_wrapper_build_separate=False):
+            result, code = run_and_get_cpp_code(fn_opt, inp)
+            self.assertNotIn("kernel_src", code)
+            self.assertEqual(expected, result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @torch._dynamo.config.patch(dynamic_shapes=True)
     @torch._dynamo.config.patch(assume_static_by_default=False)
@@ -987,6 +1011,36 @@ class CPUReproTests(TestCase):
         # aten parallel.
         self.common(fn, (v,), atol=5e-1, rtol=5e-1)
 
+<<<<<<< HEAD
+=======
+    def test_parallel_reduction_vectorization(self):
+        # Fix issue: https://github.com/pytorch/pytorch/issues/151523
+        class Model(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.conv = torch.nn.Conv2d(
+                    in_channels=3,
+                    out_channels=16,
+                    kernel_size=(1, 7),
+                    stride=(2, 1),
+                    padding=0,
+                )
+
+            def forward(self, x, weight):
+                x = self.conv(x)
+                x = F.hardshrink(x, lambd=0)
+                x = x.view(x.size(0), -1)
+                x = torch.mv(weight, x[0])
+                return x
+
+        mod = Model().eval()
+        x = torch.randn(2, 3, 127, 255)
+        weight = torch.randn(10, 254976)
+        # Use same criterion as test_inplace_squeeze_needed
+        # for parallel reduction.
+        self.common(mod, (x, weight), atol=5e-1, rtol=5e-1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cat_mul(self):
         # https://github.com/pytorch/pytorch/issues/93365
         def fn(p0, p1):
@@ -1043,6 +1097,30 @@ class CPUReproTests(TestCase):
         x = torch.randn(1, 3, 64, 64)
         self.common(Model(), (x,))
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        os.getenv("ATEN_CPU_CAPABILITY") == "default",
+        "Failing in periodic nogpu_NO_AVX2 after added in #152542",
+    )
+    @config.patch("cpp.use_decompose_tanh", "1")
+    def test_tanh_atan2_use_decompose_tanh(self):
+        # https://github.com/pytorch/pytorch/issues/148241
+        class Model(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.shrink = nn.Tanhshrink()
+
+            def forward(self, x):
+                x = self.shrink(x)
+                x = torch.atan2(x, x)
+                return x
+
+        x = torch.randn(1, 3, 64, 64)
+        with self.assertRaises(AssertionError):
+            self.common(Model(), (x,))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_propagation_issue_102065(self):
         def fn(x):
             x = torch.arange(x.numel())
@@ -1225,9 +1303,15 @@ class CPUReproTests(TestCase):
         # From HF AllenaiLongformerBase.
         def fn(query, key, window_overlap):
             batch_size, seq_len, num_heads, head_dim = query.size()
+<<<<<<< HEAD
             assert (
                 seq_len % (window_overlap * 2) == 0
             ), f"Sequence length should be multiple of {window_overlap * 2}. Given {seq_len}"
+=======
+            assert seq_len % (window_overlap * 2) == 0, (
+                f"Sequence length should be multiple of {window_overlap * 2}. Given {seq_len}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             chunks_count = torch.div(seq_len, window_overlap, rounding_mode="trunc") - 1
             diagonal_chunked_attention_scores = key
@@ -1239,11 +1323,19 @@ class CPUReproTests(TestCase):
                     window_overlap * 2 + 1,
                 )
             )
+<<<<<<< HEAD
             diagonal_attention_scores[
                 :, :3, :, window_overlap:
             ] = diagonal_chunked_attention_scores[
                 :, :, :window_overlap, : window_overlap + 1
             ]
+=======
+            diagonal_attention_scores[:, :3, :, window_overlap:] = (
+                diagonal_chunked_attention_scores[
+                    :, :, :window_overlap, : window_overlap + 1
+                ]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return diagonal_attention_scores
 
         self.common(
@@ -1370,9 +1462,26 @@ class CPUReproTests(TestCase):
         use_quant_list = [False, True]
         use_tensor_overload_list = [False, True]
 
+<<<<<<< HEAD
         assert dtype in [torch.uint8, torch.int8]
         quant_min = 0 if dtype == torch.uint8 else -128
         quant_max = 255 if dtype == torch.uint8 else 127
+=======
+        assert dtype in [
+            torch.uint8,
+            torch.int8,
+            torch.float8_e4m3fn,
+            torch.float8_e5m2,
+        ]
+        quant_min = 0 if dtype == torch.uint8 else -128
+        quant_max = 255 if dtype == torch.uint8 else 127
+        if dtype in [torch.float8_e4m3fn, torch.float8_e5m2]:
+            quant_min = int(torch.finfo(dtype).min)
+            quant_max = int(torch.finfo(dtype).max)
+            use_tensor_overload_list = [
+                False,
+            ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for (
             use_dequant,
@@ -1428,6 +1537,17 @@ class CPUReproTests(TestCase):
             torch.int8, dequant_out_dtype=torch.bfloat16
         )
 
+<<<<<<< HEAD
+=======
+    @requires_vectorization
+    def test_dequant_quant_lowering_fp8_e4m3(self):
+        self._test_dequant_quant_lowering_helper(torch.float8_e4m3fn)
+
+    @requires_vectorization
+    def test_dequant_quant_lowering_fp8_e5m2(self):
+        self._test_dequant_quant_lowering_helper(torch.float8_e5m2)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_dequant_maxpool2d_lowering_helper(self, dtype):
         def fn(x, scale, zero_point, quant_min, quant_max, dtype):
             x = torch.ops.quantized_decomposed.dequantize_per_tensor(
@@ -2551,8 +2671,14 @@ class CPUReproTests(TestCase):
         self.common(fn, inps)
         assert metrics.generated_cpp_vec_kernel_count == 2
 
+<<<<<<< HEAD
         with set_num_threads(1), config.patch(
             {"fx_graph_cache": False, "fx_graph_remote_cache": False}
+=======
+        with (
+            set_num_threads(1),
+            config.patch({"fx_graph_cache": False, "fx_graph_remote_cache": False}),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             torch._dynamo.reset()
             metrics.reset()
@@ -3445,7 +3571,11 @@ class CPUReproTests(TestCase):
                     metrics.reset()
                     m = Model().eval() if eval_mode else Model()
                     self.common(m, (x,))
+<<<<<<< HEAD
                     check_metrics_vec_kernel_count(8)
+=======
+                    check_metrics_vec_kernel_count(6)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @requires_vectorization
     @config.patch("cpp.enable_tiling_heuristics", False)
@@ -3590,6 +3720,27 @@ class CPUReproTests(TestCase):
         x = torch.randn(1, 384, 20, 20).to(memory_format=torch.channels_last)
         self.common(fn, (x,))
 
+<<<<<<< HEAD
+=======
+    def test_issue_148058(self):
+        # Fix issue https://github.com/pytorch/pytorch/issues/148058
+        def fn(x):
+            x = F.gumbel_softmax(x, tau=1.0, hard=True)
+            x = torch.where(x > 0.5, x, torch.zeros_like(x))
+            x = torch.scatter(
+                x,
+                dim=1,
+                index=torch.ones(1, 2, dtype=torch.long),
+                src=torch.ones_like(x),
+            )
+            return x
+
+        metrics.reset()
+        x = torch.randn(1, 2)
+        # Only test for functionality since the output of gumbel_softmax has randomness
+        torch.compile(fn, backend="inductor")(x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_non_contiguous_index_with_constant_stride(self):
         def fn(x):
             x1 = x[:, :, :, ::2]
@@ -4121,8 +4272,13 @@ class CPUReproTests(TestCase):
                 compiled_m = torch.compile(mod, dynamic=dynamic)
                 actual, code = run_and_get_cpp_code(compiled_m, x)
                 self.assertEqual(expected, actual)
+<<<<<<< HEAD
                 # 2 generated kernels (one for var_mean, the other for result)
                 check_metrics_vec_kernel_count(2)
+=======
+                # 3 generated kernels (first one for var_mean, last two for result)
+                check_metrics_vec_kernel_count(3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # check loop split optimization
                 if fmt == torch.channels_last:
@@ -4154,8 +4310,13 @@ class CPUReproTests(TestCase):
                 compiled_m = torch.compile(mod)
                 actual = compiled_m(x)
                 self.assertEqual(expected, actual)
+<<<<<<< HEAD
                 # 2 generated kernels (one for var_mean, the other for result)
                 check_metrics_vec_kernel_count(2)
+=======
+                # 3 generated kernels (first one for var_mean, last two for result)
+                check_metrics_vec_kernel_count(3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # check that there is no outer loop fusion.
                 self.assertEqual(
                     len(metrics.cpp_outer_loop_fused_inner_counts),
@@ -4164,6 +4325,36 @@ class CPUReproTests(TestCase):
                 # check for parallel reduction.
                 self.assertEqual(metrics.parallel_reduction_count, 1)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        os.getenv("ATEN_CPU_CAPABILITY") == "default",
+        "Failing in periodic nogpu_NO_AVX2, see #150059 for example",
+    )
+    def test_group_norm_large_size(self):
+        # https://github.com/pytorch/pytorch/issues/141541
+        # We are using the chunk size of 4096 for cascade summation,
+        # the reduction size of this test case exceeded it.
+        class M(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.gn = torch.nn.GroupNorm(32, 32)
+
+            def forward(self, x):
+                return self.gn(x)
+
+        for dynamic in [True, False]:
+            torch._dynamo.reset()
+            metrics.reset()
+            mod = M().eval()
+            x = torch.randn(1, 32, 128, 128, 128)
+            with torch.no_grad():
+                expected = mod(x)
+                compiled_m = torch.compile(mod, dynamic=dynamic)
+                actual = compiled_m(x)
+                self.assertEqual(expected, actual)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_int_div_vec(self):
         def fn(x, y, mode):
             return torch.div(x, y, rounding_mode=mode)
@@ -4704,9 +4895,18 @@ class CPUReproTests(TestCase):
         from torch.nn.attention import sdpa_kernel, SDPBackend
 
         context = contextlib.nullcontext if not is_inference else torch.no_grad
+<<<<<<< HEAD
         with config.patch(
             {"fallback_random": True}
         ), torch.cpu.amp.autocast(), context(), sdpa_kernel(SDPBackend.MATH):
+=======
+        with (
+            config.patch({"fallback_random": True}),
+            torch.cpu.amp.autocast(),
+            context(),
+            sdpa_kernel(SDPBackend.MATH),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.manual_seed(0)
             eager = mod(*inputs)
             torch.manual_seed(0)
@@ -5225,6 +5425,18 @@ class CPUReproTests(TestCase):
 
         self.common(fn, (x,))
 
+<<<<<<< HEAD
+=======
+    def test_vector_norm_compile(self):
+        x = torch.randn([16, 32], dtype=torch.float)
+        ref = torch.linalg.vector_norm(x, ord=2, dim=[], keepdim=False, dtype=None)
+        compiled_vector_norm = torch.compile(
+            torch.linalg.vector_norm, backend="inductor"
+        )
+        res = compiled_vector_norm(x, ord=2, dim=[], keepdim=False, dtype=None)
+        self.assertEqual(ref, res)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

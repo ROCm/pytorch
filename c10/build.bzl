@@ -30,7 +30,10 @@ def define_targets(rules):
             "//c10/macros",
             "//c10/util:base_headers",
             "//c10/util:bit_cast",
+<<<<<<< HEAD
             "//c10/util:ssize",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
         visibility = ["//visibility:public"],
     )

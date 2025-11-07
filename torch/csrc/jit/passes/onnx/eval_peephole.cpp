@@ -12,7 +12,11 @@ namespace onnx {
 using namespace ::c10::onnx;
 }
 
+<<<<<<< HEAD
 std::vector<at::Tensor> getValues(
+=======
+static std::vector<at::Tensor> getValues(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Node* node,
     const ValueToParamPairMap& valsToParamsMap) {
   size_t numInputs = node->inputs().size();
@@ -140,7 +144,11 @@ static void fuseConvBatchNorm(Block* b, ValueToParamPairMap& valsToParamsMap) {
   }
 }
 
+<<<<<<< HEAD
 void EvalPeepholeONNX(Block* b, ParamMap& paramsDict) {
+=======
+static void EvalPeepholeONNX(Block* b, ParamMap& paramsDict) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto valsToParamsMap = buildValueToParamsMap(b, paramsDict);
   fuseConvBatchNorm(b, valsToParamsMap);
   buildParamsMapFromValueToParamsMap(valsToParamsMap, paramsDict);

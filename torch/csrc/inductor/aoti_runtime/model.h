@@ -15,11 +15,22 @@
 // C ABI defined in torch/csrc/inductor/aoti_torch/c/shim.h. The same rule
 // applies to other files under torch/csrc/inductor/aoti_runtime/.
 #include <torch/csrc/inductor/aoti_runtime/device_utils.h>
+<<<<<<< HEAD
+=======
+#ifdef USE_MPS
+#include <torch/csrc/inductor/aoti_torch/c/shim_mps.h>
+#endif // USE_MPS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_XPU
 #include <torch/csrc/inductor/aoti_runtime/utils_xpu.h>
 #else
 #include <torch/csrc/inductor/aoti_runtime/utils.h>
+<<<<<<< HEAD
 #endif
+=======
+#endif // USE_XPU
+#include <torch/csrc/inductor/aoti_runtime/constant_type.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define AOTI_RUNTIME_CHECK(EXPR, MSG) \
   do {                                \
@@ -73,6 +84,18 @@ RAIIDataPtr RAII_gpuMalloc(size_t num_bytes) {
   return RAIIDataPtr(data_ptr, deleter);
 }
 
+<<<<<<< HEAD
+=======
+#elif defined(USE_MPS)
+
+RAIIDataPtr RAII_gpuMalloc(size_t num_bytes) {
+  void* data_ptr = nullptr;
+  aoti_torch_mps_malloc(&data_ptr, num_bytes);
+  auto deleter = [](void* ptr) { aoti_torch_mps_free(ptr); };
+  return RAIIDataPtr(data_ptr, deleter);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 
 RAIIDataPtr RAII_cpuMalloc(size_t num_bytes) {
@@ -89,6 +112,7 @@ RAIIDataPtr RAII_cpuMalloc(size_t num_bytes) {
 } // anonymous namespace
 
 namespace torch::aot_inductor {
+<<<<<<< HEAD
 enum ConstantType : uint8_t {
   Unknown = 0,
   Parameter = 1,
@@ -98,6 +122,11 @@ enum ConstantType : uint8_t {
 };
 
 using ConstantMap = std::unordered_map<std::string, RAIIAtenTensorHandle>;
+=======
+
+using ConstantMap =
+    std::unordered_map<std::string, MaybeOwningAtenTensorHandle>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // valid device strs are: cpu, cuda, cuda:0, cuda:1, ...
 // Update the list here if more devices are supported in the future
@@ -105,7 +134,11 @@ inline void parse_device_str(
     const std::string& device_str,
     int32_t& device_type,
     int32_t& device_idx) {
+<<<<<<< HEAD
   std::regex re("(cpu|cuda|xpu)(:([0-9]+))?");
+=======
+  std::regex re("(cpu|cuda|xpu|mps)(:([0-9]+))?");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::smatch sm;
   bool matched = std::regex_match(device_str, sm, re);
   AOTI_RUNTIME_CHECK(matched, "Invalid device: " + device_str);
@@ -118,6 +151,13 @@ inline void parse_device_str(
   } else if (sm[1].str() == "xpu") {
     device_type = aoti_torch_device_type_xpu();
 #endif
+<<<<<<< HEAD
+=======
+#ifdef USE_MPS
+  } else if (sm[1].str() == "mps") {
+    device_type = aoti_torch_device_type_mps();
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     AOTI_RUNTIME_CHECK(false, "Invalid device: " + device_str);
   }
@@ -166,6 +206,14 @@ class AOTInductorModelBase {
       aoti_torch_set_current_xpu_device(device_idx_);
     }
 #endif // USE_XPU
+<<<<<<< HEAD
+=======
+#ifdef USE_MPS
+    if (device_idx_ == -1) {
+      device_idx_ = 0;
+    }
+#endif // USE_MPS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // NOLINTNEXTLINE(modernize-use-equals-default)
@@ -290,19 +338,36 @@ class AOTInductorModelBase {
 
   void load_constants() {
     size_t num_constants = this->num_constants();
+<<<<<<< HEAD
     constants_map_->reserve(num_constants);
 
     std::vector<size_t> constants_internal_offset(num_constants);
     size_t blob_size = 0;
     compute_constant_blob(blob_size, constants_internal_offset);
 #if defined(USE_CUDA) || defined(USE_XPU)
+=======
+    size_t num_folded_constants = this->num_folded_constants();
+    constants_map_->reserve(num_constants);
+
+    std::vector<size_t> constants_internal_offset(
+        num_constants - num_folded_constants);
+    size_t blob_size = 0;
+    compute_constant_blob(blob_size, constants_internal_offset);
+    if (!include_weights) {
+      return;
+    }
+#if defined(USE_CUDA) || defined(USE_XPU) || defined(USE_MPS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     constant_blob_ = RAII_gpuMalloc(blob_size);
 #else
     constant_blob_ = RAII_cpuMalloc(blob_size);
 #endif
+<<<<<<< HEAD
     if (!include_weights) {
       return;
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     size_t bytes_read = 0;
     for (size_t i = 0; i < num_constants; i++) {
@@ -317,7 +382,11 @@ class AOTInductorModelBase {
                 constants_internal_offset[i],
                 bytes_read,
                 data_size,
+<<<<<<< HEAD
                 from_folded)
+=======
+                /* skip_copy = */ false)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           : nullptr;
       bytes_read += data_size;
 
@@ -326,7 +395,16 @@ class AOTInductorModelBase {
       auto ndim = this->constant_ndim(i);
       auto size = this->constant_shape(i);
       auto stride = this->constant_stride(i);
+<<<<<<< HEAD
       auto offset = this->constant_offset(i);
+=======
+#ifdef USE_MPS
+      auto offset = this->constant_offset(i) +
+          (constants_internal_offset[i] / aoti_torch_dtype_element_size(dtype));
+#else
+      auto offset = this->constant_offset(i);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto layout = this->constant_layout(i);
       auto opaque_metadata_ptr = this->opaque_metadata(i);
       auto opaque_metadata_size = this->opaque_metadata_size(i);
@@ -389,6 +467,17 @@ class AOTInductorModelBase {
           _get_constants_start() + bytes_read,
           data_size,
           cudaMemcpyHostToDevice));
+<<<<<<< HEAD
+=======
+#elif USE_MPS
+      aoti_torch_mps_memcpy(
+          constants_ptr,
+          constant_offset,
+          bytes_read,
+          data_size,
+          _get_constants_start());
+      return constants_ptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
       memcpy(internal_ptr, _get_constants_start() + bytes_read, data_size);
 #endif
@@ -401,13 +490,25 @@ class AOTInductorModelBase {
       std::vector<size_t>& constants_internal_offset) {
     size_t num_constants = this->num_constants();
     blob_size = 0;
+<<<<<<< HEAD
     for (size_t i = 0; i < num_constants; i++) {
+=======
+    size_t curr_idx = 0;
+    for (size_t i = 0; i < num_constants; i++) {
+      if (this->constant_from_folded(i)) {
+        continue;
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       size_t data_size = this->constant_data_size(i);
       if (data_size % AOTI_CONST_ALIGNMENT) {
         data_size = AOTI_CONST_ALIGNMENT +
             (data_size / AOTI_CONST_ALIGNMENT) * AOTI_CONST_ALIGNMENT;
       }
+<<<<<<< HEAD
       constants_internal_offset[i] = blob_size;
+=======
+      constants_internal_offset[curr_idx++] = blob_size;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       blob_size += data_size;
     }
   }
@@ -424,6 +525,20 @@ class AOTInductorModelBase {
     return constants_info_.size();
   }
 
+<<<<<<< HEAD
+=======
+  size_t num_folded_constants() const {
+    size_t total_consts = this->num_constants();
+    size_t folded_consts = 0;
+    for (size_t i = 0; i < total_consts; i++) {
+      if (this->constant_from_folded(i)) {
+        folded_consts++;
+      }
+    }
+    return folded_consts;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const char* input_name(int64_t idx) const {
     return inputs_info_.at(idx).name;
   }
@@ -613,7 +728,11 @@ class AOTInductorModelBase {
     AOTI_RUNTIME_CHECK(
         reinterpret_cast<uint64_t*>(
             self_mmap + weights_size - sizeof(uint64_t))[0] == magic_number,
+<<<<<<< HEAD
         "Weigths data seems corrupt");
+=======
+        "Weights data seems corrupt");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return self_mmap;
 #endif
   }
@@ -661,7 +780,11 @@ class AOTInductorModelBase {
   bool include_weights;
 
   // Record if the model finishes an inference run so that its owning
+<<<<<<< HEAD
   // AOTModelContainer can re-use this instance.
+=======
+  // AOTModelContainer can reuse this instance.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_CUDA
   std::optional<cudaEvent_t> run_finished_;
 #elif defined(USE_XPU)
@@ -687,8 +810,12 @@ class AOTInductorModel : public AOTInductorModelBase<AOTInductorModel> {
       std::shared_ptr<ConstantMap> constants_map,
       std::shared_ptr<std::vector<ConstantHandle>> constants_array,
       const std::string& device_str,
+<<<<<<< HEAD
       std::optional<std::string> cubin_dir,
       bool include_weights = true);
+=======
+      std::optional<std::string> cubin_dir);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::unordered_map<std::string, AtenTensorHandle> const_run_impl(
       DeviceStreamType stream,

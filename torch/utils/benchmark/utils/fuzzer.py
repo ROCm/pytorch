@@ -290,7 +290,11 @@ class FuzzedTensor:
             raw_tensor = raw_tensor.permute(tuple(np.argsort(order)))
 
         slices = [slice(0, size * step, step) for size, step in zip(size, steps)]
+<<<<<<< HEAD
         tensor = raw_tensor[slices]
+=======
+        tensor = raw_tensor[tuple(slices)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         properties = {
             "numel": int(tensor.numel()),

@@ -1,6 +1,10 @@
 # This is a copy of rnn_attention from MLPerf, with some common sizes hardcoded
 # for benchmarking and some control flow stripped out.
+<<<<<<< HEAD
 # https://github.com/mlperf/training/blob/master/rnn_translator/pytorch/seq2seq/models/attention.py
+=======
+# https://github.com/mlcommons/training/blob/master/retired_benchmarks/gnmt/pytorch/seq2seq/models/attention.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 

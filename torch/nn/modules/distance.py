@@ -34,7 +34,11 @@ class PairwiseDistance(Module):
         - Output: :math:`(N)` or :math:`()` based on input dimension.
           If :attr:`keepdim` is ``True``, then :math:`(N, 1)` or :math:`(1)` based on input dimension.
 
+<<<<<<< HEAD
     Examples::
+=======
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> pdist = nn.PairwiseDistance(p=2)
         >>> input1 = torch.randn(100, 128)
         >>> input2 = torch.randn(100, 128)
@@ -71,9 +75,16 @@ class CosineSimilarity(Module):
     Shape:
         - Input1: :math:`(\ast_1, D, \ast_2)` where D is at position `dim`
         - Input2: :math:`(\ast_1, D, \ast_2)`, same number of dimensions as x1, matching x1 size at dimension `dim`,
+<<<<<<< HEAD
               and broadcastable with x1 at other dimensions.
         - Output: :math:`(\ast_1, \ast_2)`
     Examples::
+=======
+          and broadcastable with x1 at other dimensions.
+        - Output: :math:`(\ast_1, \ast_2)`
+
+    Examples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> input1 = torch.randn(100, 128)
         >>> input2 = torch.randn(100, 128)
         >>> cos = nn.CosineSimilarity(dim=1, eps=1e-6)

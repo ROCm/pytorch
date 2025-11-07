@@ -69,6 +69,7 @@ __forceinline__ __device__ float tanh_opt(float x)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+<<<<<<< HEAD
 template<>
 struct GELU_taylor<float> {
     static const bool kIsHeavy = true;
@@ -93,6 +94,8 @@ struct GELU_taylor<float> {
     }
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }  // namespace thread
 }  // namespace epilogue
 }  // namespace cutlass

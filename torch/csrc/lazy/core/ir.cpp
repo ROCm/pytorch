@@ -6,7 +6,10 @@
 #include <torch/csrc/lazy/core/ir_metadata.h>
 
 // Enables caching on for dynamic shapes (aka disable hash on shapes)
+<<<<<<< HEAD
 // NOLINTNEXTLINE(misc-use-internal-linkage)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // clang-format off
 C10_DEFINE_bool(
     ltc_enable_dynamic_shapes,

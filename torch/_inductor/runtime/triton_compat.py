@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
+import inspect
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Union
 
 import torch
@@ -44,7 +48,11 @@ if triton is not None:
             return (backend, arch)
 
     # In the latest triton, math functions were shuffled around into different modules:
+<<<<<<< HEAD
     # https://github.com/openai/triton/pull/3172
+=======
+    # https://github.com/triton-lang/triton/pull/3172
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         from triton.language.extra import libdevice
 
@@ -68,6 +76,30 @@ if triton is not None:
         def _log2(x: Any) -> Any:
             raise NotImplementedError
 
+<<<<<<< HEAD
+=======
+    def _triton_config_has(param_name: str) -> bool:
+        if not hasattr(triton, "Config"):
+            return False
+        if not hasattr(triton.Config, "__init__"):
+            return False
+        return param_name in inspect.signature(triton.Config.__init__).parameters
+
+    HAS_WARP_SPEC = (
+        hasattr(tl, "async_task")
+        and _triton_config_has("num_consumer_groups")
+        and _triton_config_has("num_buffers_warp_spec")
+    )
+
+    try:
+        from triton import knobs
+    except ImportError:
+        knobs = None
+
+    builtins_use_semantic_kwarg = (
+        "_semantic" in inspect.signature(triton.language.core.view).parameters
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else:
 
     def _raise_error(*args: Any, **kwargs: Any) -> Any:
@@ -87,6 +119,11 @@ else:
     _log2 = _raise_error
     libdevice = None
     math = None
+<<<<<<< HEAD
+=======
+    knobs = None
+    builtins_use_semantic_kwarg = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class triton:  # type: ignore[no-redef]
         @staticmethod
@@ -101,6 +138,11 @@ else:
         tensor = Any
         dtype = Any
 
+<<<<<<< HEAD
+=======
+    HAS_WARP_SPEC = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def cc_warp_size(cc: Union[str, int]) -> int:
     if torch.version.hip:
@@ -135,4 +177,8 @@ __all__ = [
     "math",
     "triton",
     "cc_warp_size",
+<<<<<<< HEAD
+=======
+    "knobs",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]

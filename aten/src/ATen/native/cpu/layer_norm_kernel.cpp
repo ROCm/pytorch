@@ -23,6 +23,40 @@ namespace at::native {
 
 namespace {
 
+<<<<<<< HEAD
+=======
+template <typename T>
+void LayerNormSecondPass(
+    const T* X_ptr,
+    const T* gamma_data,
+    const T* beta_data,
+    T* Y_ptr,
+    int64_t N,
+    T scale,
+    T bias) {
+  using Vec = vec::Vectorized<T>;
+  const bool gamma_null = gamma_data == nullptr;
+  const bool beta_null = beta_data == nullptr;
+  if (gamma_null || beta_null) {
+    for (const auto j : c10::irange(N)) {
+      const T gamma_v = gamma_null ? T(1) : gamma_data[j];
+      const T beta_v = beta_null ? T(0) : beta_data[j];
+      Y_ptr[j] = (X_ptr[j] + bias) * scale * gamma_v + beta_v;
+    }
+  } else {
+    vec::map3<T>(
+      [scale, bias](Vec x, Vec gamma, Vec beta) {
+        return (x + Vec(bias)) * Vec(scale) * gamma + beta;
+      },
+      Y_ptr,
+      X_ptr,
+      gamma_data,
+      beta_data,
+      N);
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T,
           typename std::enable_if_t<!is_reduced_floating_point_v<T>, int> = 0>
 void LayerNormKernelImplInternal(
@@ -35,7 +69,10 @@ void LayerNormKernelImplInternal(
     Tensor* Y,
     Tensor* mean,
     Tensor* rstd) {
+<<<<<<< HEAD
   using Vec = vec::Vectorized<T>;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const T* X_data = X.const_data_ptr<T>();
   const T* gamma_data = gamma.defined() ? gamma.const_data_ptr<T>() : nullptr;
   const T* beta_data = beta.defined() ? beta.const_data_ptr<T>() : nullptr;
@@ -43,8 +80,11 @@ void LayerNormKernelImplInternal(
   T* mean_data = mean ? mean->data_ptr<T>() : nullptr;
   T* rstd_data = rstd ? rstd->data_ptr<T>() : nullptr;
 
+<<<<<<< HEAD
   const bool gamma_null = gamma_data == nullptr;
   const bool beta_null = beta_data == nullptr;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const bool mean_null = mean_data == nullptr;
   const bool rstd_null = rstd_data == nullptr;
   at::parallel_for(0, M, 1, [&](int64_t start, int64_t end) {
@@ -55,6 +95,7 @@ void LayerNormKernelImplInternal(
       rstd_val = T(1) / std::sqrt(rstd_val + eps);
       const T scale = rstd_val;
       const T bias = - mean_val;
+<<<<<<< HEAD
       if (gamma_null || beta_null) {
         for (const auto j : c10::irange(N)) {
           const T gamma_v = gamma_null ? T(1) : gamma_data[j];
@@ -72,6 +113,9 @@ void LayerNormKernelImplInternal(
             beta_data,
             N);
       }
+=======
+      LayerNormSecondPass<T>(X_ptr, gamma_data, beta_data, Y_ptr, N, scale, bias);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!mean_null) {
         mean_data[i] = mean_val;
       }
@@ -191,6 +235,17 @@ void layer_norm_backward_frame(
     T* dX_data,
     T* dgamma_buffer_ptr,
     T* dbeta_buffer_ptr,
+<<<<<<< HEAD
+=======
+    // NOTE: the below @lint-ignore is only necessary because we compile
+    // specializations of this function for c10::complex.
+    // It's extremely likely that nobody actually takes layer norms of
+    // complex tensors, and even if they are, c10::complex is laid out poorly
+    // and basically should never be used.
+    // So it would be nice in the future to figure out how to stop compiling
+    // specializations of compute kernels for c10::complex.
+    // @lint-ignore CLANGTIDY facebook-hte-ConstantArgumentPassByValue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const opmath_t scale,
     const bool gamma_null,
     const bool dX_null,
@@ -481,7 +536,11 @@ void layer_norm_backward_frame(
         fVec r_fvec0 = fVec(a) * dy_fvec0 * gamma_fvec0 + fVec(b) * x_fvec0 + fVec(c);
         fVec r_fvec1 = fVec(a) * dy_fvec1 * gamma_fvec1 + fVec(b) * x_fvec1 + fVec(c);
         bVec r_bvec = convert_from_float<T>(r_fvec0, r_fvec1);
+<<<<<<< HEAD
         r_bvec.store(dX_ptr + d, N - d);
+=======
+        r_bvec.store(dX_ptr + d, static_cast<int>(N - d));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }

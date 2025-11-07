@@ -2,11 +2,16 @@
 
 import os
 import re
+<<<<<<< HEAD
 import subprocess
 import sys
 import unittest
 from itertools import repeat
 from pathlib import Path
+=======
+import unittest
+from itertools import repeat
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import get_args, get_origin, Union
 
 import torch
@@ -16,7 +21,10 @@ import torch.utils.cpp_extension
 from torch.testing._internal.common_cuda import TEST_CUDA
 from torch.testing._internal.common_utils import (
     IS_WINDOWS,
+<<<<<<< HEAD
     shell,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchDynamo,
     TEST_XPU,
     xfailIfTorchDynamo,
@@ -185,6 +193,7 @@ class TestCppExtensionAOT(common.TestCase):
         test = cuda_dlink.add(a, b)
         self.assertEqual(test, ref)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "python_agnostic is a CUDA extension + needs CUDA")
     @unittest.skipIf(not common.IS_LINUX, "test requires linux tools ldd and nm")
     def test_python_agnostic(self):
@@ -299,6 +308,8 @@ class TestCppExtensionAOT(common.TestCase):
             curr_mem = torch.cuda.memory_allocated(device)
             self.assertEqual(curr_mem, init_mem)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @torch.testing._internal.common_utils.markDynamoStrictTest
 class TestPybindTypeCasters(common.TestCase):
@@ -435,19 +446,62 @@ class TestMAIATensor(common.TestCase):
         weight = torch.empty(6, 4, 2, 2, device="maia", requires_grad=True)
         bias = torch.empty(6, device="maia")
 
+<<<<<<< HEAD
         # Make sure forward is overriden
+=======
+        # Make sure forward is overridden
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out = torch.nn.functional.conv2d(input, weight, bias, 2, 0, 1, 1)
         self.assertEqual(maia_extension.get_test_int(), 2)
         self.assertEqual(out.shape[0], input.shape[0])
         self.assertEqual(out.shape[1], weight.shape[0])
 
+<<<<<<< HEAD
         # Make sure backward is overriden
+=======
+        # Make sure backward is overridden
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Double backward is dispatched to _convolution_double_backward.
         # It is not tested here as it involves more computation/overrides.
         grad = torch.autograd.grad(out, input, out, create_graph=True)
         self.assertEqual(maia_extension.get_test_int(), 3)
         self.assertEqual(grad[0].shape, input.shape)
 
+<<<<<<< HEAD
+=======
+    def test_autocast_apis_for_maia_device(self):
+        # Default low-precision type in MAIA's autocast.
+        fast_dtype = torch.get_autocast_dtype("maia")
+        self.assertEqual(fast_dtype, torch.bfloat16)
+        self.assertTrue(torch._C._is_autocast_available("maia"))
+
+    @skipIfTorchDynamo(
+        "dynamo cannot handle maia device. Output tensor may have wrong dtype."
+    )
+    def test_matmul_autocast_float16_precision(self):
+        # Ensure we can change low precision dtype.
+        x = torch.empty((2, 4), dtype=torch.float, device="maia")
+        w = torch.empty((4, 2), dtype=torch.float, device="maia")
+        with torch.autocast(device_type="maia", dtype=torch.float16):
+            self.assertTrue(torch.is_autocast_enabled("maia"))
+            y = torch.ops.aten.matmul(x, w)
+            self.assertEqual(y.dtype, torch.float16)
+            self.assertEqual(y.shape, (2, 2))
+
+    @skipIfTorchDynamo(
+        "dynamo cannot handle maia device. Output tensor may have wrong dtype."
+    )
+    def test_matmul_autocast_default_precision(self):
+        # Use default lower precision dtype, bfloat16.
+        x = torch.empty((2, 4), dtype=torch.float, device="maia")
+        w = torch.empty((4, 2), dtype=torch.float, device="maia")
+        with torch.autocast(device_type="maia"):
+            self.assertTrue(torch.is_autocast_enabled("maia"))
+            y = torch.ops.aten.matmul(x, w)
+            self.assertEqual(y.dtype, torch.bfloat16)
+            self.assertEqual(y.shape, (2, 2))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @torch.testing._internal.common_utils.markDynamoStrictTest
 class TestRNGExtension(common.TestCase):

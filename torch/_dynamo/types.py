@@ -23,7 +23,11 @@ from torch._C._dynamo.eval_frame import (
     _FrameExecStrategy as FrameExecStrategy,
     _PyInterpreterFrame as DynamoFrameType,
 )
+<<<<<<< HEAD
 from torch._guards import CompileId
+=======
+from torch._guards import CompileId, Guard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # We use a dict to store additional data per frame.
@@ -37,6 +41,20 @@ class GuardFail(NamedTuple):
     orig_code: types.CodeType
 
 
+<<<<<<< HEAD
+=======
+@dataclasses.dataclass(frozen=True)
+class GuardFilterEntry:
+    name: str
+    has_value: bool
+    value: object
+    guard_type: str
+    derived_guard_types: tuple[str, ...]
+    is_global: bool
+    orig_guard: Guard
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GuardFn(Protocol):
     closure_vars: dict[str, object]
     args: list[str]
@@ -64,7 +82,11 @@ class ConvertFrameReturn:
     # default return is no compiled code (i.e. `return None`):
     # strategy is to skip non-recursively, for all future intercepted frames too
 
+<<<<<<< HEAD
     # eval fram execution strategy for this frame
+=======
+    # eval frame execution strategy for this frame
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     frame_exec_strategy: FrameExecStrategy = dataclasses.field(
         default_factory=lambda: FrameExecStrategy(FrameAction.SKIP, FrameAction.DEFAULT)
     )
@@ -103,6 +125,16 @@ class DynamoGuardHook(Protocol):
     ) -> None: ...
 
 
+<<<<<<< HEAD
+=======
+class DynamoGuardCompleteHook(Protocol):
+    def __call__(
+        self,
+        cache_hit: bool,
+    ) -> bool: ...
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ProfilerStartHook(Protocol):
     def __call__(
         self,

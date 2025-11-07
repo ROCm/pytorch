@@ -196,8 +196,12 @@ void PyTorchStreamReader::init() {
 
   // version check
   at::DataPtr version_ptr;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   size_t version_size;
+=======
+  size_t version_size = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (hasRecord(".data/version")) {
     std::tie(version_ptr, version_size) = getRecord(".data/version");
   } else {
@@ -208,7 +212,11 @@ void PyTorchStreamReader::init() {
       static_cast<const char*>(version_ptr.get()), version_size);
   try {
     version_ = std::stoull(version);
+<<<<<<< HEAD
   } catch (const std::invalid_argument& e) {
+=======
+  } catch (const std::invalid_argument&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CAFFE_THROW("Couldn't parse the version ", version, " as Long Long.");
   }
   if (version_ <
@@ -361,7 +369,12 @@ size_t PyTorchStreamReader::getRecordID(const std::string& name) {
 
 // return dataptr, size
 std::tuple<at::DataPtr, size_t> PyTorchStreamReader::getRecord(
+<<<<<<< HEAD
     const std::string& name) {
+=======
+    const std::string& name,
+    std::optional<at::Allocator*> allocator) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::lock_guard<std::mutex> guard(reader_lock_);
   if ((!load_debug_symbol_) && c10::ends_with(name, kDebugPklSuffix)) {
     at::DataPtr retval;
@@ -371,7 +384,13 @@ std::tuple<at::DataPtr, size_t> PyTorchStreamReader::getRecord(
   mz_zip_archive_file_stat stat;
   mz_zip_reader_file_stat(ar_.get(), key, &stat);
   valid("retrieving file meta-data for ", name.c_str());
+<<<<<<< HEAD
   at::DataPtr retval = c10::GetCPUAllocator()->allocate(stat.m_uncomp_size);
+=======
+  at::Allocator* allocatorPtr =
+      allocator.has_value() ? allocator.value() : c10::GetCPUAllocator();
+  at::DataPtr retval = allocatorPtr->allocate(stat.m_uncomp_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mz_zip_reader_extract_to_mem(
       ar_.get(), key, retval.get(), stat.m_uncomp_size, 0);
   valid("reading file ", name.c_str());
@@ -449,10 +468,18 @@ size_t PyTorchStreamReader::getRecordMultiReaders(
 // read record with multi clients
 std::tuple<at::DataPtr, size_t> PyTorchStreamReader::getRecord(
     const std::string& name,
+<<<<<<< HEAD
     std::vector<std::shared_ptr<ReadAdapterInterface>>& additionalReaders) {
   if (additionalReaders.empty()) {
     // No additional readers or record too small, use single threaded version
     return getRecord(name);
+=======
+    std::vector<std::shared_ptr<ReadAdapterInterface>>& additionalReaders,
+    std::optional<at::Allocator*> allocator) {
+  if (additionalReaders.empty()) {
+    // No additional readers or record too small, use single threaded version
+    return getRecord(name, allocator);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if ((!load_debug_symbol_) && c10::ends_with(name, kDebugPklSuffix)) {
@@ -469,7 +496,13 @@ std::tuple<at::DataPtr, size_t> PyTorchStreamReader::getRecord(
     return getRecord(name);
   }
 
+<<<<<<< HEAD
   at::DataPtr retval = c10::GetCPUAllocator()->allocate(stat.m_uncomp_size);
+=======
+  at::Allocator* allocatorPtr =
+      allocator.has_value() ? allocator.value() : c10::GetCPUAllocator();
+  at::DataPtr retval = allocatorPtr->allocate(stat.m_uncomp_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void* dst = retval.get();
   PyTorchStreamReader::getRecordMultiReaders(name, additionalReaders, dst, n);
   return std::make_tuple(std::move(retval), stat.m_uncomp_size);
@@ -760,11 +793,15 @@ void PyTorchStreamWriter::writeRecord(
   }
   std::string full_name = archive_name_plus_slash_ + name;
   size_t padding_size = detail::getPadding(
+<<<<<<< HEAD
       ar_->m_archive_size,
       full_name.size(),
       size,
       padding_,
       alignment_);
+=======
+      ar_->m_archive_size, full_name.size(), size, padding_, alignment_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint32_t flags = compress ? MZ_BEST_COMPRESSION : 0;
   if (!compute_crc32_) {
 #if (!defined(FBCODE_CAFFE2))

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copy
 from queue import SimpleQueue
 from typing import Optional as _Optional
@@ -9,14 +12,22 @@ from torch.fx.graph import Graph
 from torch.fx.graph_module import GraphModule
 from torch.fx.node import Node
 from torch.fx.passes.tools_common import legalize_graph, NodeList, NodeSet
+<<<<<<< HEAD
 from torch.fx.passes.utils import lift_subgraph_as_module
+=======
+from torch.fx.passes.utils import lift_subgraph_as_module  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @compatibility(is_backward_compatible=False)
 def topo_sort(nodes: NodeList) -> NodeList:
     # sort nodes according to the topological order
     indegree_map = dict.fromkeys(nodes, 0)
+<<<<<<< HEAD
     candidates: SimpleQueue = SimpleQueue()
+=======
+    candidates: SimpleQueue[Node] = SimpleQueue()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for node in nodes:
         for n in node.all_input_nodes:
@@ -36,9 +47,15 @@ def topo_sort(nodes: NodeList) -> NodeList:
                 if indegree_map[n] == 0:
                     candidates.put(n)
 
+<<<<<<< HEAD
     assert len(nodes) == len(
         sorted_nodes
     ), "topological sorted nodes doesn't have same length as input nodes"
+=======
+    assert len(nodes) == len(sorted_nodes), (
+        "topological sorted nodes doesn't have same length as input nodes"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return sorted_nodes
 
@@ -127,6 +144,7 @@ def fuse_as_graphmodule(
     # assumption: nodes are already sorted in topo order
 
     for node in nodes:
+<<<<<<< HEAD
         assert (
             node.graph.owning_module is gm
         ), f"{node} doesn't belong to passed in graph module {gm._get_name()}"
@@ -134,6 +152,15 @@ def fuse_as_graphmodule(
         assert (
             node in gm.graph._find_nodes_lookup_table
         ), f"{node} is not found in graph module {gm._get_name()}"
+=======
+        assert node.graph.owning_module is gm, (
+            f"{node} doesn't belong to passed in graph module {gm._get_name()}"
+        )
+        assert not node._erased, f"{node} has been removed from owning graph"
+        assert node in gm.graph._find_nodes_lookup_table, (
+            f"{node} is not found in graph module {gm._get_name()}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # validates partition doesn't introduce dependency circles in the graph
     assert validate_partition(nodes), "Invalid partition, found dependency cycles"
@@ -150,7 +177,11 @@ def fuse_as_graphmodule(
     node_map: dict[Node, Node] = {}  # mapping of nodes from old graph to new graph
 
     # handles inputs through graph.node_copy's arg_transform functions
+<<<<<<< HEAD
     def remap_inputs(x):
+=======
+    def remap_inputs(x: Node) -> Node:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if x.op == "get_attr":
             # TODO: do we really need copy the get_attr node into the graph?
             # do something here
@@ -195,7 +226,11 @@ def fuse_as_graphmodule(
         subgraph.output(outs[0] if len(outs) == 1 else outs)
 
     # lint to ensure correctness
+<<<<<<< HEAD
     subgraph.lint()
+=======
+    subgraph.lint()  # type: ignore[no-untyped-call]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fused_gm: GraphModule
     fused_gm, _ = lift_subgraph_as_module(
         gm, subgraph, comp_name="", class_name=module_name
@@ -216,7 +251,11 @@ def insert_subgm(
     sub_gm: GraphModule,
     orig_inputs: tuple[Node, ...],
     orig_outputs: tuple[Node, ...],
+<<<<<<< HEAD
 ):
+=======
+) -> GraphModule:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # add sub_gm into gm
     submodule_name = sub_gm.__class__.__name__
     gm.add_submodule(submodule_name, sub_gm)
@@ -241,7 +280,11 @@ def insert_subgm(
 
 
 @compatibility(is_backward_compatible=False)
+<<<<<<< HEAD
 def erase_nodes(gm: GraphModule, nodes: NodeList):
+=======
+def erase_nodes(gm: GraphModule, nodes: NodeList) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # erase original nodes in inversed topological order
     for node in reversed(nodes):
         gm.graph.erase_node(node)

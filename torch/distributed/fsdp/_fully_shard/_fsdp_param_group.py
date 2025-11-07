@@ -95,23 +95,39 @@ class FSDPCommContext:
 # See [Note: Overlapping all-gather copy-in and all-gather]
 class AllGatherState(NamedTuple):
     all_gather_result: AllGatherResult
+<<<<<<< HEAD
     event: torch.Event  # all-gather copy-out
+=======
+    event: Optional[torch.Event]  # all-gather copy-out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ReduceScatterState(NamedTuple):
     reduce_scatter_input: torch.Tensor
+<<<<<<< HEAD
     event: torch.Event  # reduce-scatter event
+=======
+    event: Optional[torch.Event]  # reduce-scatter event
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class AllReduceState(NamedTuple):
     all_reduce_input: torch.Tensor
+<<<<<<< HEAD
     event: torch.Event  # all-reduce event
+=======
+    event: Optional[torch.Event]  # all-reduce event
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class FSDPParamGroup:
     """This class represents a parameter group to communicate together."""
 
+<<<<<<< HEAD
     _orig_dtype: torch.dtype
+=======
+    _orig_dtype: Optional[torch.dtype]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _reduce_dtype: Optional[torch.dtype]
 
     def __init__(
@@ -177,9 +193,18 @@ class FSDPParamGroup:
         # Whether to reshard parameters after backward (only useful for
         # gradient accumulation)
         self.reshard_after_backward: bool = True
+<<<<<<< HEAD
         # Optional custom reduce-scatter reduce op (e.g. to divide by a
         # factor other than the shard world size)
         self.reduce_scatter_reduce_op: Optional[dist.ReduceOp] = None
+=======
+        # Optional custom factor for the gradient reduction op (e.g. to divide
+        # by a factor other than the world size)
+        self.gradient_divide_factor: Optional[float] = None
+        # Whether reduce-scatter and all-reduce should be issued using only
+        # summations, potentially with separate pre-/post-scaling.
+        self.force_sum_reduction_for_comms: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # `async_op` arg used for pre-forward/pre-backward unshard; can be
         # overridden to only do explicit prefetching and avoid inter-stream
         # fragmentation from using separate unshard streams
@@ -187,6 +212,12 @@ class FSDPParamGroup:
         # Whether to unshard in backward: can be overridden by the user if the
         # parameters in this group are not needed for backward (e.g. embedding)
         self.unshard_in_backward: bool = True
+<<<<<<< HEAD
+=======
+        # Whether to (try to) use the ProcessGroup's allocate_tensor method for
+        # the staging buffers for collective comms.
+        self.allocate_memory_from_process_group = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # - CUDA events for stream synchronization
         # Holds the all-gather output buffer, sync objects, and metadata
@@ -212,6 +243,7 @@ class FSDPParamGroup:
     def _init_mp_dtypes(self) -> None:
         for fsdp_param in self.fsdp_params:
             fsdp_param.init_dtype_attrs(self.mp_policy)
+<<<<<<< HEAD
         orig_dtypes = {fsdp_param.orig_dtype for fsdp_param in self.fsdp_params}
         if len(orig_dtypes) != 1:
             # This can be relaxed if we copy-out for the reduce-scatter
@@ -221,13 +253,33 @@ class FSDPParamGroup:
         self._orig_dtype = next(iter(orig_dtypes))
         reduce_dtypes = {fsdp_param.reduce_dtype for fsdp_param in self.fsdp_params}
         if len(reduce_dtypes) != 1:
+=======
+        trainable_params: list[FSDPParam] = [
+            p for p in self.fsdp_params if p.sharded_param.requires_grad
+        ]
+        orig_dtypes = {p.orig_dtype for p in trainable_params}
+        reduce_dtypes = {p.reduce_dtype for p in trainable_params}
+        if len(trainable_params) > 0 and len(orig_dtypes) != 1:
+            # Models may have no grad params
+            raise AssertionError(
+                f"FSDP expects uniform original parameter dtype but got {orig_dtypes}"
+            )
+        self._orig_dtype = next(iter(orig_dtypes)) if len(trainable_params) else None
+        if len(trainable_params) > 0 and len(reduce_dtypes) != 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # This can be relaxed if we issue one reduce-scatter per reduce
             # dtype (but we would need a way for users to specify multiple
             # reduce dtypes)
             raise AssertionError(
                 f"FSDP expects uniform reduce dtype but got {reduce_dtypes}"
             )
+<<<<<<< HEAD
         self._reduce_dtype = next(iter(reduce_dtypes))
+=======
+        self._reduce_dtype = (
+            next(iter(reduce_dtypes)) if len(trainable_params) else None
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def lazy_init(self):
         # Lazy init should be idempotent
@@ -271,11 +323,19 @@ class FSDPParamGroup:
                 async_op,
                 *self.comm_ctx.get_all_gather_streams(async_op, self._training_state),
                 self.device,
+<<<<<<< HEAD
+=======
+                self.allocate_memory_from_process_group,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def wait_for_unshard(self):
         """
+<<<<<<< HEAD
         1. In forward with implict prefetching, to overlap the current copy-out
+=======
+        1. In forward with implicit prefetching, to overlap the current copy-out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with the next all-gather, we save a reference to the current all-gather
         result to free after the next copy-out.
         2. Otherwise (explicit prefetching or in backward), we free the
@@ -310,11 +370,19 @@ class FSDPParamGroup:
             self._wait_all_gather_streams_on_event(all_gather_copy_out_event)
         self._all_gather_result = None  # free unless saved in `all_gather_state`
 
+<<<<<<< HEAD
     def _wait_all_gather_streams_on_event(self, event: torch.Event):
         # Calling `unshard` before lazy init means streams are not initialized
         if hasattr(self.comm_ctx, "all_gather_copy_in_stream"):
             self.comm_ctx.all_gather_copy_in_stream.wait_event(event)
         if hasattr(self.comm_ctx, "all_gather_stream"):
+=======
+    def _wait_all_gather_streams_on_event(self, event: Optional[torch.Event]):
+        # Calling `unshard` before lazy init means streams are not initialized
+        if hasattr(self.comm_ctx, "all_gather_copy_in_stream") and event is not None:
+            self.comm_ctx.all_gather_copy_in_stream.wait_event(event)
+        if hasattr(self.comm_ctx, "all_gather_stream") and event is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.comm_ctx.all_gather_stream.wait_event(event)
 
     def reshard(self):
@@ -414,11 +482,22 @@ class FSDPParamGroup:
         if len(fsdp_params_with_grad) == 0:
             return
         with record_function(self._with_fqn("FSDP::post_backward_reduce")):
+<<<<<<< HEAD
             if self.comm_ctx.reduce_scatter_state is not None:
                 self.device_handle.current_stream().wait_event(
                     self.comm_ctx.reduce_scatter_state.event
                 )
                 self.comm_ctx.reduce_scatter_state = None
+=======
+            if (
+                self.comm_ctx.reduce_scatter_state is not None
+                and self.comm_ctx.reduce_scatter_state.event is not None
+            ):
+                self.device_handle.current_stream().wait_event(
+                    self.comm_ctx.reduce_scatter_state.event
+                )
+            self.comm_ctx.reduce_scatter_state = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             all_reduce_pg = self._all_reduce_process_group if self._is_hsdp else None
             all_reduce_stream: torch.cuda.Stream
             if all_reduce_pg is None and self._all_reduce_hook_stream is not None:
@@ -447,18 +526,32 @@ class FSDPParamGroup:
                 self._orig_dtype,
                 self._reduce_dtype,
                 self.device,
+<<<<<<< HEAD
                 self.reduce_scatter_reduce_op,
+=======
+                self.gradient_divide_factor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._all_reduce_process_group if self._is_hsdp else None,
                 all_reduce_stream,
                 self.all_reduce_grads,
                 self._partial_reduce_output,
                 self._all_reduce_hook,
+<<<<<<< HEAD
+=======
+                self.allocate_memory_from_process_group,
+                self.force_sum_reduction_for_comms,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.comm_ctx.reduce_scatter_state = ReduceScatterState(
                 reduce_scatter_input, reduce_scatter_event
             )
             if all_reduce_input is not None:
+<<<<<<< HEAD
                 assert all_reduce_event is not None
+=======
+                if self.device.type != "cpu":
+                    assert all_reduce_event is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._all_reduce_state = AllReduceState(
                     all_reduce_input, all_reduce_event
                 )
@@ -484,9 +577,18 @@ class FSDPParamGroup:
         if self._post_reduce_event is not None:
             self.device_handle.current_stream().wait_event(self._post_reduce_event)
             self._post_reduce_event = None
+<<<<<<< HEAD
         if self._all_reduce_state is not None:
             self.device_handle.current_stream().wait_event(self._all_reduce_state.event)
             self._all_reduce_state = None
+=======
+        if (
+            self._all_reduce_state is not None
+            and self._all_reduce_state.event is not None
+        ):
+            self.device_handle.current_stream().wait_event(self._all_reduce_state.event)
+        self._all_reduce_state = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _backward_prefetch(self) -> None:
         if self._training_state == TrainingState.PRE_BACKWARD:

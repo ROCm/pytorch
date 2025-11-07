@@ -36,7 +36,11 @@ T = TypeVar("T")
 
 class InterpreterShim(torch.fx.Interpreter):
     @staticmethod
+<<<<<<< HEAD
     @functools.lru_cache(None)
+=======
+    @functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _dummy_gm():
         return torch.fx.symbolic_trace(identity)
 
@@ -312,6 +316,17 @@ class LoopBody:
             for entry in self.memory_usage[MemoryUsageType.LOAD]
         ]
 
+<<<<<<< HEAD
+=======
+    def get_all_read_expr(self, buffer_name):
+        # reversed to match old behavior
+        out = []
+        for entry in reversed(self.memory_usage[MemoryUsageType.LOAD]):
+            if entry.buffer_name == buffer_name:
+                out.append(self.indexing_exprs[entry.index_name])
+        return out
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_write_exprs(self):
         return [
             self.indexing_exprs[entry.index_name]
@@ -321,6 +336,19 @@ class LoopBody:
             )
         ]
 
+<<<<<<< HEAD
+=======
+    def get_all_write_expr(self, buffer_name):
+        out = []
+        for entry in itertools.chain(
+            self.memory_usage[MemoryUsageType.STORE],
+            self.memory_usage[MemoryUsageType.STORE_REDUCTION],
+        ):
+            if entry.buffer_name == buffer_name:
+                out.append(self.indexing_exprs[entry.index_name])
+        return out
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def debug_str(self):
         lines = [f"var_ranges = {dict(self.var_ranges)}"]
         lines.extend([f"{name} = {val}" for name, val in self.indexing_exprs.items()])
@@ -442,7 +470,11 @@ class LoopBodyBlock:
     """
     Captures the body of a Loops subclass into an FX graph.
     In normal cases there will be a 1:1 mapping between LoopBody and
+<<<<<<< HEAD
     LoopBodyBlock, hower in the case of ops.masked() the masked out
+=======
+    LoopBodyBlock, however in the case of ops.masked() the masked out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     operations will manifest as an extra LoopBodyBlock.
     """
 

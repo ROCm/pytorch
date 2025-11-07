@@ -2,15 +2,31 @@ import copy
 from typing import Optional
 
 import torch
+<<<<<<< HEAD
 from torch._export.pass_base import _ExportPassBaseDeprecatedDoNotUse, PassResult, Argument
+=======
+from torch._export.pass_base import (
+    _ExportPassBaseDeprecatedDoNotUse,
+    Argument,
+    PassResult,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._export.pass_infra.node_metadata import NodeMetadata
 from torch._export.pass_infra.proxy_value import ProxyValue
 from torch._ops import OpOverload
 
+<<<<<<< HEAD
 aten = torch.ops.aten
 
 _NON_FUNCTIONAL_TO_FUNCTIONAL_SIDE_EFFECTFUL_FUNCS: dict[OpOverload, OpOverload] = {
     aten.sym_constrain_range.default: aten._functional_sym_constrain_range,
+=======
+
+aten = torch.ops.aten
+
+_NON_FUNCTIONAL_TO_FUNCTIONAL_SIDE_EFFECTFUL_FUNCS: dict[OpOverload, OpOverload] = {
+    aten.sym_constrain_range.default: aten._functional_sym_constrain_range.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aten._assert_async.msg: aten._functional_assert_async.msg,
 }
 

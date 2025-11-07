@@ -127,6 +127,17 @@ inline __host__ __device__ uint32_t getAlignmentRoundUp(const void* p) {
   return diff == 0 ? 0 : uint32_t(Align) - diff;
 }
 
+<<<<<<< HEAD
+=======
+#if defined (__gfx90a__) || defined(__gfx942__)
+#define CDNA2_OR_LATER 1
+#else
+#define CDNA2_OR_LATER 0
+#endif
+
+#if (defined(USE_ROCM) && ROCM_VERSION >= 50700) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if defined(USE_ROCM)
 // TODO: Support RDNA
 constexpr int32_t kWarpSize = 64;
@@ -135,6 +146,7 @@ template<typename T, uint32_t Rank>
 using VecT = T __attribute__((ext_vector_type(Rank)));
 
 static bool isCDNA2orLater(int index) {
+<<<<<<< HEAD
     hipDeviceProp_t* prop = at::cuda::getDeviceProperties(index);
     std::string device_arch = prop->gcnArchName;
     static const std::vector<std::string> archs = {"gfx90a", "gfx942"};
@@ -145,12 +157,16 @@ static bool isCDNA2orLater(int index) {
         }
     }
     return false;
+=======
+    return at::detail::getCUDAHooks().isGPUArch({"gfx90a", "gfx942"}, index);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #else
 constexpr int32_t kWarpSize = 32;
 #endif
 
+<<<<<<< HEAD
 #if defined (__gfx90a__) || defined(__gfx942__)
 #define CDNA2_OR_LATER 1
 #else
@@ -159,6 +175,8 @@ constexpr int32_t kWarpSize = 32;
 
 #if (defined(USE_ROCM) && ROCM_VERSION >= 50700) || ((defined(CUDA_VERSION) && CUDA_VERSION >= 12000) && (!defined(__CUDA_ARCH__) || (__CUDA_ARCH__ >= 800)))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // f16 vector types
 struct __align__(2) f16x1 {
   __half vals[1];

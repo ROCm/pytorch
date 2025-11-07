@@ -63,6 +63,7 @@ fi
 # Check GCC ABI
 ###############################################################################
 
+<<<<<<< HEAD
 # NOTE [ Building libtorch with old vs. new gcc ABI ]
 #
 # Packages built with one version of ABI could not be linked against by client
@@ -121,6 +122,14 @@ if [[ "$(uname)" != 'Darwin' ]]; then
   fi
 
   # We also check that there are [not] cxx11 symbols in libtorch
+=======
+# NOTE: As of https://github.com/pytorch/pytorch/issues/126551 we only produce
+#       wheels with cxx11-abi
+
+echo "Checking that the gcc ABI is what we expect"
+if [[ "$(uname)" != 'Darwin' ]]; then
+  # We also check that there are cxx11 symbols in libtorch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   #
   echo "Checking that symbols in libtorch.so have the right gcc abi"
   python3 "$(dirname ${BASH_SOURCE[0]})/smoke_test/check_binary_symbols.py"
@@ -198,6 +207,7 @@ setup_link_flags () {
 
 TEST_CODE_DIR="$(dirname $(realpath ${BASH_SOURCE[0]}))/test_example_code"
 build_and_run_example_cpp () {
+<<<<<<< HEAD
   if [[ "$DESIRED_DEVTOOLSET" == *"cxx11-abi"* ]]; then
     GLIBCXX_USE_CXX11_ABI=1
   else
@@ -227,6 +237,13 @@ build_example_cpp_with_incorrect_abi () {
   fi
 }
 
+=======
+  setup_link_flags
+  g++ ${TEST_CODE_DIR}/$1.cpp -I${install_root}/include -I${install_root}/include/torch/csrc/api/include -std=gnu++17 -L${install_root}/lib ${REF_LIB} ${ADDITIONAL_LINKER_FLAGS} -ltorch $TORCH_CPU_LINK_FLAGS $TORCH_CUDA_LINK_FLAGS $C10_LINK_FLAGS -o $1
+  ./$1
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ###############################################################################
 # Check simple Python/C++ calls
 ###############################################################################
@@ -236,11 +253,14 @@ if [[ "$PACKAGE_TYPE" == 'libtorch' ]]; then
     export LD_LIBRARY_PATH=/usr/local/cuda/lib64
   fi
   build_and_run_example_cpp simple-torch-test
+<<<<<<< HEAD
   # `_GLIBCXX_USE_CXX11_ABI` is always ignored by gcc in devtoolset7, so we test
   # the expected failure case for Ubuntu 16.04 + gcc 5.4 only.
   if [[ "$DESIRED_DEVTOOLSET" == *"cxx11-abi"* ]]; then
     build_example_cpp_with_incorrect_abi simple-torch-test
   fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else
   pushd /tmp
   python -c 'import torch'
@@ -298,6 +318,17 @@ else
 fi
 
 ###############################################################################
+<<<<<<< HEAD
+=======
+# Check XPU configured correctly
+###############################################################################
+if [[ "$DESIRED_CUDA" == 'xpu' && "$PACKAGE_TYPE" != 'libtorch' ]]; then
+  echo "Checking that xpu is compiled"
+  python -c 'import torch; exit(0 if torch.xpu._is_compiled() else 1)'
+fi
+
+###############################################################################
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Check CUDA configured correctly
 ###############################################################################
 # Skip these for Windows machines without GPUs
@@ -375,10 +406,30 @@ except RuntimeError as e:
 fi
 
 ###############################################################################
+<<<<<<< HEAD
 # Check for C++ ABI compatibility between gcc7 and gcc9 compiled binaries
 ###############################################################################
 if [[ "$(uname)" == 'Linux' &&  "$PACKAGE_TYPE" == 'manywheel' ]]; then
   pushd /tmp
   python -c "import torch; exit(0 if torch.compiled_with_cxx11_abi() else (0 if torch._C._PYBIND11_BUILD_ABI == '_cxxabi1011' else 1))"
+=======
+# Check for C++ ABI compatibility to GCC-11 - GCC 13
+###############################################################################
+if [[ "$(uname)" == 'Linux' &&  "$PACKAGE_TYPE" == 'manywheel' ]]; then
+  pushd /tmp
+  # Per https://gcc.gnu.org/onlinedocs/gcc/C_002b_002b-Dialect-Options.html
+  # gcc-11 is ABI16, gcc-13 is ABI18, gcc-14 is ABI19
+  # gcc 11 - CUDA 11.8, xpu, rocm
+  # gcc 13 - CUDA 12.6, 12.8 and cpu
+  # Please see issue for reference: https://github.com/pytorch/pytorch/issues/152426
+  if [[ "$(uname -m)" == "s390x" ]]; then
+    cxx_abi="19"
+  elif [[ "$DESIRED_CUDA" != 'xpu' && "$DESIRED_CUDA" != 'rocm'* ]]; then
+    cxx_abi="18"
+  else
+    cxx_abi="16"
+  fi
+  python -c "import torch; exit(0 if torch._C._PYBIND11_BUILD_ABI == '_cxxabi10${cxx_abi}' else 1)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   popd
 fi

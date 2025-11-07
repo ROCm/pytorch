@@ -12,10 +12,17 @@ size_t ComputeEditDistance(
     const char* word1,
     const char* word2,
     size_t maxEditDistance) {
+<<<<<<< HEAD
   size_t m = strlen(word1);
   size_t n = strlen(word2);
 
   const unsigned small_buffer_size = 64;
+=======
+  size_t m = std::strlen(word1);
+  size_t n = std::strlen(word2);
+
+  constexpr unsigned small_buffer_size = 64;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
   unsigned small_buffer[small_buffer_size];
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)

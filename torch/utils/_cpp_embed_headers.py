@@ -39,7 +39,12 @@ def embed_headers(
     fname: str, include_dirs: Optional[Union[Sequence[str], Sequence[Path], str]] = None
 ) -> str:
     if include_dirs is None:
+<<<<<<< HEAD
         include_dirs = [Path(__file__).parent.parent.parent]
+=======
+        base_dir = Path(__file__).parent.parent.parent
+        include_dirs = [base_dir, base_dir / "aten" / "src"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(include_dirs, str):
         include_dirs = [Path(include_dirs)]
     else:

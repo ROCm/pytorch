@@ -19,8 +19,12 @@ TEST(SubgraphUtilsTest, Basic) {
   for (bool reverse_iterate : {true, false}) {
     // Merge everything into a single subgraph
     bool first = true;
+<<<<<<< HEAD
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     Node* subgraph;
+=======
+    Node* subgraph = nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto it =
         reverse_iterate ? graph->nodes().rbegin() : graph->nodes().begin();
     auto end = reverse_iterate ? graph->nodes().rend() : graph->nodes().end();
@@ -84,8 +88,12 @@ graph(%a : Tensor, %b : Tensor, %c : Tensor):
     while (graph2->next() != *graph->nodes().end()) {
       SubgraphUtils::mergeNodeIntoSubgraph(graph2->next(), graph2);
     }
+<<<<<<< HEAD
     // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
     Node* subgraph;
+=======
+    Node* subgraph = nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (reverse_merge) {
       SubgraphUtils::mergeNodeIntoSubgraph(graph2, graph1);
       subgraph = graph1;

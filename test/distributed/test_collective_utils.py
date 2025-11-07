@@ -5,6 +5,10 @@ from unittest import mock
 import torch.distributed as c10d
 from torch.distributed.collective_utils import all_gather, broadcast
 from torch.testing._internal.common_distributed import MultiProcessTestCase
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import run_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestCollectiveUtils(MultiProcessTestCase):
@@ -89,9 +93,15 @@ class TestCollectiveUtils(MultiProcessTestCase):
 
         res = all_gather(data_or_fn=func, pg=pg)
         func.assert_called_once()
+<<<<<<< HEAD
         assert res == list(
             range(self.world_size)
         ), f"Expect res to be list of 0 through {self.world_size} (got {res})"
+=======
+        assert res == list(range(self.world_size)), (
+            f"Expect res to be list of 0 through {self.world_size} (got {res})"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_all_gather_result_no_pg(self) -> None:
         """
@@ -114,3 +124,10 @@ class TestCollectiveUtils(MultiProcessTestCase):
         expected_exception = "test exception"
         with self.assertRaisesRegex(Exception, expected_exception):
             all_gather(data_or_fn=func)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    run_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

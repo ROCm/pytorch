@@ -187,7 +187,13 @@ class DynamicType : public SharedType {
     return false;
   }
   friend struct Type;
+<<<<<<< HEAD
   static std::shared_ptr<const DynamicType> create(const Type& ty);
+=======
+  // NOTE: Here we are using SingletonOrSharedTypePtr to mean
+  // "original-type-because-it-was-actually-a-DynamicType or shared".
+  static SingletonOrSharedTypePtr<const DynamicType> create(const Type& ty);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DynamicType(const Type& other);
   bool equals(const DynamicType& other) const;
 

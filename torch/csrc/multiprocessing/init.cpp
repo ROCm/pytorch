@@ -1,5 +1,9 @@
 #include <c10/util/thread_name.h>
 #include <torch/csrc/Exceptions.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/multiprocessing/init.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/python_headers.h>
 #include <torch/csrc/utils/object_ptr.h>
 #include <torch/csrc/utils/pybind.h>

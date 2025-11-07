@@ -31,6 +31,10 @@ from torch.testing._internal.common_utils import (
     dtype_name,
     get_tracked_input,
     IS_FBCODE,
+<<<<<<< HEAD
+=======
+    IS_MACOS,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_privateuse1_backend_available,
     IS_REMOTE_GPU,
     IS_SANDCASTLE,
@@ -280,6 +284,7 @@ except ModuleNotFoundError:
 # they are run. This makes it useful for initializing devices and dependencies.
 
 
+<<<<<<< HEAD
 # Note [Overriding methods in generic tests]
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
@@ -309,6 +314,8 @@ except ModuleNotFoundError:
 # then inherit from it for your generic test.
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _dtype_test_suffix(dtypes):
     """Returns the test suffix for a dtype, sequence of dtypes, or None."""
     if isinstance(dtypes, (list, tuple)):
@@ -756,6 +763,7 @@ def filter_desired_device_types(device_type_test_bases, except_for=None, only_fo
     # Replace your privateuse1 backend name with 'privateuse1'
     if is_privateuse1_backend_available():
         privateuse1_backend_name = torch._C._get_privateuse1_backend_name()
+<<<<<<< HEAD
         except_for = (
             ["privateuse1" if x == privateuse1_backend_name else x for x in except_for]
             if except_for is not None
@@ -765,6 +773,21 @@ def filter_desired_device_types(device_type_test_bases, except_for=None, only_fo
             ["privateuse1" if x == privateuse1_backend_name else x for x in only_for]
             if only_for is not None
             else None
+=======
+
+        def func_replace(x: str):
+            return x.replace(privateuse1_backend_name, "privateuse1")
+
+        except_for = (
+            ([func_replace(x) for x in except_for] if except_for is not None else None)
+            if not isinstance(except_for, str)
+            else func_replace(except_for)
+        )
+        only_for = (
+            ([func_replace(x) for x in only_for] if only_for is not None else None)
+            if not isinstance(only_for, str)
+            else func_replace(only_for)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if except_for:
@@ -892,6 +915,7 @@ def instantiate_device_type_tests(
     # are not discoverable.
     del scope[generic_test_class.__name__]
 
+<<<<<<< HEAD
     # Creates an 'empty' version of the generic_test_class
     # Note: we don't inherit from the generic_test_class directly because
     #   that would add its tests to our test classes and they would be
@@ -906,6 +930,9 @@ def instantiate_device_type_tests(
     generic_members = set(generic_test_class.__dict__.keys()) - set(
         empty_class.__dict__.keys()
     )
+=======
+    generic_members = set(generic_test_class.__dict__.keys())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     generic_tests = [x for x in generic_members if x.startswith("test")]
 
     # Creates device-specific test cases
@@ -914,9 +941,38 @@ def instantiate_device_type_tests(
     ):
         class_name = generic_test_class.__name__ + base.device_type.upper()
 
+<<<<<<< HEAD
         # type set to Any and suppressed due to unsupport runtime class:
         # https://github.com/python/mypy/wiki/Unsupported-Python-Features
         device_type_test_class: Any = type(class_name, (base, empty_class), {})
+=======
+        # type set to Any and suppressed due to unsupported runtime class:
+        # https://github.com/python/mypy/wiki/Unsupported-Python-Features
+        device_type_test_class: Any = type(class_name, (base, generic_test_class), {})
+
+        # Arrange for setUpClass and tearDownClass methods defined both in the test template
+        # class and in the generic base to be called. This allows device-parameterized test
+        # classes to support setup and teardown.
+        # NB: This should be done before instantiate_test() is called as that invokes setup.
+        @classmethod
+        def _setUpClass(cls):
+            # This should always be called, whether or not the test class invokes
+            # super().setUpClass(), to set the primary device.
+            base.setUpClass()
+            # We want to call the @classmethod defined in the generic base, but pass
+            # it the device-specific class object (cls), hence the __func__ call.
+            generic_test_class.setUpClass.__func__(cls)
+
+        @classmethod
+        def _tearDownClass(cls):
+            # We want to call the @classmethod defined in the generic base, but pass
+            # it the device-specific class object (cls), hence the __func__ call.
+            generic_test_class.tearDownClass.__func__(cls)
+            base.tearDownClass()
+
+        device_type_test_class.setUpClass = _setUpClass
+        device_type_test_class.tearDownClass = _tearDownClass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for name in generic_members:
             if name in generic_tests:  # Instantiates test member
@@ -930,6 +986,7 @@ def instantiate_device_type_tests(
                     )
                 else:
                     device_type_test_class.instantiate_test(name, copy.deepcopy(test))
+<<<<<<< HEAD
             else:  # Ports non-test member
                 assert (
                     name not in device_type_test_class.__dict__
@@ -954,6 +1011,13 @@ def instantiate_device_type_tests(
         device_type_test_class.setUpClass = _setUpClass
         device_type_test_class.tearDownClass = _tearDownClass
 
+=======
+            # Ports non-test member. Setup / teardown have already been handled above
+            elif name not in device_type_test_class.__dict__:
+                nontest = getattr(generic_test_class, name)
+                setattr(device_type_test_class, name, nontest)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Mimics defining the instantiated class in the caller's file
         # by setting its module to the given class's and adding
         # the module to the given scope.
@@ -961,6 +1025,16 @@ def instantiate_device_type_tests(
         device_type_test_class.__module__ = generic_test_class.__module__
         scope[class_name] = device_type_test_class
 
+<<<<<<< HEAD
+=======
+    # Delete the generic form of the test functions (e.g. TestFoo.test_bar()) so they're
+    # not discoverable. This mutates the original class (TestFoo), which was removed from
+    # scope above. At this point, device-specific tests (e.g. TestFooCUDA.test_bar_cuda)
+    # have already been created and the generic forms are no longer needed.
+    for name in generic_tests:
+        delattr(generic_test_class, name)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Category of dtypes to run an OpInfo-based test for
 # Example use: @ops(dtype=OpDTypes.supported)
@@ -1003,6 +1077,11 @@ ANY_DTYPE_ORDER = (
     torch.int8,
     torch.uint8,
     torch.bool,
+<<<<<<< HEAD
+=======
+    torch.float8_e4m3fn,
+    torch.float8_e5m2,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -1344,7 +1423,11 @@ def largeTensorTest(size, device=None, inductor=TEST_WITH_TORCHINDUCTOR):
     size may be a number of bytes, a string of the form "N GB", or a callable
 
     If the test is a device generic test, available memory on the primary device will be checked.
+<<<<<<< HEAD
     It can also be overriden by the optional `device=` argument.
+=======
+    It can also be overridden by the optional `device=` argument.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     In other tests, the `device=` argument needs to be specified.
     """
     if isinstance(size, str):
@@ -1976,11 +2059,30 @@ def get_all_device_types() -> list[str]:
     return ["cpu"] if not torch.cuda.is_available() else ["cpu", "cuda"]
 
 
+<<<<<<< HEAD
 flex_attention_supported_platform = unittest.skipUnless(
     torch.cuda.is_available()
     and torch.utils._triton.has_triton()
     and torch.cuda.get_device_capability() >= (8, 0),
     "Requires CUDA and Triton",
+=======
+# skip since currently flex attention requires at least `avx2` support on CPU.
+IS_FLEX_ATTENTION_CPU_PLATFORM_SUPPORTED = (
+    not torch.xpu.is_available()
+    and not torch.cuda.is_available()
+    and not IS_MACOS
+    and torch.cpu._is_avx2_supported()
+    and os.getenv("ATEN_CPU_CAPABILITY") != "default"
+)
+flex_attention_supported_platform = unittest.skipUnless(
+    IS_FLEX_ATTENTION_CPU_PLATFORM_SUPPORTED
+    or (
+        torch.cuda.is_available()
+        and torch.utils._triton.has_triton()
+        and torch.cuda.get_device_capability() >= (8, 0)
+    ),
+    "Requires CUDA and Triton, or CPU with avx2 and later",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 if torch.version.hip and "gfx94" in torch.cuda.get_device_properties(0).gcnArchName:
     e4m3_type = torch.float8_e4m3fnuz

@@ -2,6 +2,10 @@
 
 import sys
 import unittest
+<<<<<<< HEAD
+=======
+import unittest.mock as mock
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._inductor
@@ -49,6 +53,14 @@ def add_op(x, y):
     return torch.add(x, y)
 
 
+<<<<<<< HEAD
+=======
+def add_inplace_op(x, y):
+    x.add_(y)
+    return x.sin()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def addrecip_op(x, y):
     return torch.reciprocal(torch.add(x, y))
 
@@ -77,6 +89,10 @@ foreach_map_copy = foreach_map_wrapper(aten.copy)
 
 # More general functions
 foreach_map_add_fn = foreach_map_wrapper(add_op)
+<<<<<<< HEAD
+=======
+foreach_map_add_inplace = foreach_map_wrapper(add_inplace_op)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 foreach_map_recipaddmul = foreach_map_wrapper(addrecip_op)
 foreach_map_addcmul = foreach_map_wrapper(addcmul_op)
 foreach_map_recipaddmul = foreach_map_wrapper(recipaddmul_op)
@@ -431,7 +447,11 @@ class ForeachTests(TestCase):
     @requires_cuda
     @scalar_bin_ops
     @unittest.skip(
+<<<<<<< HEAD
         "Triton recursion depth exceeded: https://github.com/openai/triton/issues/1763"
+=======
+        "Triton recursion depth exceeded: https://github.com/triton-lang/triton/issues/1763"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     def test_kernel_split_arg_limit_scalar(self, op):
         def fn(a):
@@ -1030,6 +1050,45 @@ class ForeachTests(TestCase):
         self.assertEqual(torch._inductor.metrics.generated_kernel_count, 5)
 
     @requires_cuda
+<<<<<<< HEAD
+=======
+    def test_foreach_map_input_mutation(self):
+        def fn(xs, ys):
+            outs = foreach_map_add_inplace(xs, ys)
+            return outs[0].sum() + outs[1].sum() + outs[2].sum()
+
+        ref_inps = (
+            [
+                torch.rand(10, 20, device="cuda:0", requires_grad=True),
+                torch.rand(10, 30, device="cuda:0", requires_grad=True),
+                torch.rand(30, 30, device="cuda:0", requires_grad=True),
+            ],
+            [
+                torch.rand(10, 20, device="cuda:0", requires_grad=True),
+                torch.rand(10, 30, device="cuda:0", requires_grad=True),
+                torch.rand(30, 30, device="cuda:0", requires_grad=True),
+            ],
+        )
+        # Set requires_grad to be False to avoid mutating a leaf variable
+        inps = (
+            [x.clone().detach().requires_grad_(False) for x in ref_inps[0]],
+            [y.clone().detach().requires_grad_(False) for y in ref_inps[1]],
+        )
+
+        # TODO: after decomposing auto_functionalized, we're getting
+        # a functional subgraph with an inlined epilogue.
+        with self.assertRaisesRegex(
+            torch._inductor.exc.InductorError,
+            "Buffer mutation detected during lowering of aten.copy_.default",
+        ):
+            with mock.patch(
+                "torch._dynamo.variables.higher_order_ops.BaseHOPVariable.supports_input_mutation",
+                True,
+            ):
+                _ = run_fw_bw_and_get_code(lambda: torch.compile(fn)(*inps))
+
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @foreach_map_un_ops
     def test_foreach_map_backward_unary(self, op):
         from torch._dynamo.polyfills import foreach_map_fn

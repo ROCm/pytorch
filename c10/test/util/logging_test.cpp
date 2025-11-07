@@ -159,6 +159,7 @@ TEST(LoggingDeathTest, TestEnforceUsingFatal) {
 }
 #endif
 
+<<<<<<< HEAD
 C10_NOINLINE void f1() {
   CAFFE_THROW("message");
 }
@@ -172,6 +173,20 @@ C10_NOINLINE void f3() {
 }
 
 #ifdef FBCODE_CAFFE2
+=======
+#ifdef FBCODE_CAFFE2
+static C10_NOINLINE void f1() {
+  CAFFE_THROW("message");
+}
+
+static C10_NOINLINE void f2() {
+  f1();
+}
+
+static C10_NOINLINE void f3() {
+  f2();
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(LoggingTest, ExceptionWhat) {
   std::optional<::c10::Error> error;
   try {

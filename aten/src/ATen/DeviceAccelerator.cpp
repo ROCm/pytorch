@@ -76,7 +76,11 @@ c10::DeviceIndex deviceCount() {
     return static_cast<c10::DeviceIndex>(0);
   }
   c10::impl::VirtualGuardImpl impl(device_type.value());
+<<<<<<< HEAD
   return static_cast<c10::DeviceIndex>(impl.deviceCount());
+=======
+  return impl.deviceCount();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void setDeviceIndex(c10::DeviceIndex device_index) {
@@ -88,7 +92,11 @@ void setDeviceIndex(c10::DeviceIndex device_index) {
 c10::DeviceIndex getDeviceIndex() {
   const auto device_type = getAccelerator(true).value();
   c10::impl::VirtualGuardImpl impl(device_type);
+<<<<<<< HEAD
   return static_cast<c10::DeviceIndex>(impl.getDevice().index());
+=======
+  return impl.getDevice().index();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void setCurrentStream(c10::Stream stream) {
@@ -115,6 +123,24 @@ void synchronizeDevice(c10::DeviceIndex device_index) {
   // impl.synchronizeDevice should can be safely called from any device
   impl.synchronizeDevice(device_index);
 }
+<<<<<<< HEAD
+=======
+
+c10::DeviceIndex exchangeDevice(c10::DeviceIndex device_index) {
+  const auto device_type = getAccelerator(true).value();
+  c10::impl::VirtualGuardImpl impl(device_type);
+  return impl.exchangeDevice({device_type, device_index}).index();
+}
+
+c10::DeviceIndex maybeExchangeDevice(c10::DeviceIndex device_index) {
+  const auto device_type = getAccelerator(true).value();
+  c10::impl::VirtualGuardImpl impl(device_type);
+  // Avoid creating a new context if the context for the given device_index
+  // is not initialized.
+  impl.uncheckedSetDevice({device_type, device_index});
+  return impl.getDevice().index();
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NOLINTEND(bugprone-unchecked-optional-access)
 
 } // namespace at::accelerator

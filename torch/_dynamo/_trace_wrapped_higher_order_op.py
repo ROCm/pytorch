@@ -50,7 +50,11 @@ __all__ = ["trace_wrapped"]
 
 
 if not torch._running_with_deploy():
+<<<<<<< HEAD
     # torch.library.custom_op does not work with torch.deploy/multipy
+=======
+    # torch.library.custom_op does not work with torch.deploy/multipy  # codespell:ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @torch.library.custom_op("flex_lib::zeros_and_scatter", mutates_args=())  # type: ignore[misc]
     def zeros_and_scatter(

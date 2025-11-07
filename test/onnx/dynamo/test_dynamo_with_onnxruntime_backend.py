@@ -18,7 +18,10 @@ from torch import nn
 from torch.onnx import (
     _OrtBackend as OrtBackend,
     _OrtBackendOptions as OrtBackendOptions,
+<<<<<<< HEAD
     ExportOptions,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal import common_utils
 from torch.testing._internal.common_utils import skipIfNNModuleInlined
@@ -29,6 +32,7 @@ sys.path.append(str(Path(__file__).absolute().parents[1]))
 import onnx_test_common
 
 
+<<<<<<< HEAD
 def make_aot_ort(dynamic: bool = False):
     ort_backend = OrtBackend(
         options=OrtBackendOptions(
@@ -37,6 +41,10 @@ def make_aot_ort(dynamic: bool = False):
             )
         )
     )
+=======
+def make_aot_ort():
+    ort_backend = OrtBackend(options=OrtBackendOptions())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ort_backend, ort_backend
 
 
@@ -107,6 +115,7 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
                 ),
             ),
             (OrtBackendOptions(default_execution_providers=["Something"]),),
+<<<<<<< HEAD
             (
                 OrtBackendOptions(
                     export_options=ExportOptions(
@@ -114,6 +123,9 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
                     )
                 ),
             ),
+=======
+            (OrtBackendOptions(),),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     )
     def test_torch_compile_backend_caching_assert_reused(
@@ -147,7 +159,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
         Args:
             model: The model to test.
             dynamo_backend: The dynamo backend to use. Here we use string `onnxrt` or
+<<<<<<< HEAD
               the first returned value of `make_aot_ort(dynamic=True)`.
+=======
+              the first returned value of `make_aot_ort()`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_args_collection: A tuple of example arguments to test. E.g.,
                 (
                   (torch.randn(2), torch.randn(2)),
@@ -268,7 +284,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
             return z
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, local_ort = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, local_ort = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             # This will use the global ONNXRuntime backend registered
             # in Dynamo to compile the tested model.
@@ -316,7 +336,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
             return x, y, z
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, local_ort = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, local_ort = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             local_aot_ort, local_ort = "onnxrt", None
 
@@ -360,7 +384,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
                 return tensor_x
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, local_ort = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, local_ort = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             local_aot_ort, local_ort = "onnxrt", None
 
@@ -451,7 +479,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
         )
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, local_ort = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, local_ort = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             local_aot_ort, local_ort = "onnxrt", None
 
@@ -546,7 +578,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
         )
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, local_ort = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, local_ort = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             local_aot_ort, local_ort = "onnxrt", None
 
@@ -632,7 +668,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
         )
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, local_ort = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, local_ort = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             local_aot_ort, local_ort = "onnxrt", None
 
@@ -697,7 +737,11 @@ class TestDynamoWithONNXRuntime(onnx_test_common._TestONNXRuntime):
                 return tensor_x
 
         if test_local_backend:
+<<<<<<< HEAD
             local_aot_ort, _ = make_aot_ort(dynamic=True)
+=======
+            local_aot_ort, _ = make_aot_ort()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             local_aot_ort, _ = "onnxrt", None
 

@@ -10,7 +10,11 @@ from unittest.mock import patch
 
 import sympy
 
+<<<<<<< HEAD
 from .. import codecache, config, ir
+=======
+from .. import config, ir
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..autotune_process import CppBenchmarkRequest, TensorMeta
 from ..utils import IndentedBuffer, Placeholder, unique
 from ..virtualized import V
@@ -47,6 +51,10 @@ class CppTemplate(KernelTemplate):
         with (
             patch.object(V.graph, "get_dtype", self._fake_get_dtype(self.output_node)),
             patch.object(ir.FlexibleLayout, "allow_indexing", True),
+<<<<<<< HEAD
+=======
+            V.graph.set_current_device(self.layout.device),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             CppTemplateKernel(
                 kernel_name=kernel_name, num_threads=self.num_threads
             ) as kernel,
@@ -121,7 +129,11 @@ class CppTemplate(KernelTemplate):
 
     def header(self) -> IndentedBuffer:
         res = IndentedBuffer()
+<<<<<<< HEAD
         res.writeline(codecache.cpp_prefix())
+=======
+        res.writeline("#include <torch/csrc/inductor/cpp_prefix.h>")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: add c10::ForcedUnroll test to test_aoti_abi_check
         res.splice("""#include <c10/util/Unroll.h>""")
         res.splice("""#include <torch/csrc/inductor/aoti_torch/c/shim.h>""")

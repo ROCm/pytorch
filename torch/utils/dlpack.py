@@ -6,6 +6,15 @@ import enum
 from torch._C import _from_dlpack
 from torch._C import _to_dlpack as to_dlpack
 
+<<<<<<< HEAD
+=======
+__all__ = [
+    "DLDeviceType",
+    "from_dlpack",
+    "to_dlpack",
+]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DLDeviceType(enum.IntEnum):
     # Enums as in DLPack specification (aten/src/ATen/dlpack.h)

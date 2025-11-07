@@ -53,7 +53,13 @@ Tensor TensorMaker::make_tensor() {
     tensor_impl->set_storage_offset(*storage_offset_);
   }
 
+<<<<<<< HEAD
    return tensor;
+=======
+  tensor_impl->set_requires_grad(opts_.requires_grad());
+
+  return tensor;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  }
 
  std::size_t TensorMaker::computeStorageSize() const noexcept {

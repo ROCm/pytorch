@@ -6,14 +6,20 @@ import contextlib
 import dataclasses
 import difflib
 import io
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 from typing import Any, Callable, TYPE_CHECKING
 
 import torch
 import torch.fx
 from torch._subclasses.fake_tensor import unset_fake_temporarily
+<<<<<<< HEAD
 from torch.onnx._internal.fx import diagnostics, onnxfunction_dispatcher
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -179,6 +185,7 @@ class Transform(abc.ABC):
     are needed to reconcile :attr:`ONNXProgram.model_proto`.
     That is, the model signature and the model representation must match.
 
+<<<<<<< HEAD
     As an additional feature, this class provides builtin support for transformation recording using the diagnostics.
     The granularity of overriding is up to the user. And it affects the granularity of
     the diagnostics information. For example, if `_run()` is overridden, the
@@ -186,13 +193,18 @@ class Transform(abc.ABC):
     if `call_function()` is overridden, the diagnostics information will additionally
     contain the node level information of `call_function()`.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TODO(bowbao): Add more overridable methods in call hierarchy
     TODO(bowbao): Create an example once more overridable methods are added.
     """
 
+<<<<<<< HEAD
     diagnostic_context: diagnostics.DiagnosticContext
     """The diagnostic context for recording diagnostics."""
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     module: torch.fx.GraphModule
     """The module to be transformed."""
 
@@ -201,16 +213,24 @@ class Transform(abc.ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
         diagnostic_context: diagnostics.DiagnosticContext,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module: torch.fx.GraphModule,
     ):
         """Initialize the transform.
 
         Args:
+<<<<<<< HEAD
             diagnostic_context: The diagnostic context for recording diagnostics.
             module: The module to be transformed.
         """
         self.diagnostic_context = diagnostic_context
+=======
+            module: The module to be transformed.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.module = module
         self.fake_mode = self._detect_fake_mode()
 
@@ -237,10 +257,13 @@ class Transform(abc.ABC):
     @abc.abstractmethod
     def _run(self, *args, **kwargs) -> torch.fx.GraphModule: ...
 
+<<<<<<< HEAD
     @diagnostics.diagnose_call(
         diagnostics.rules.fx_pass,
         diagnostic_message_formatter=_transform_diagnose_call_message_formatter,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run(self, *args, **kwargs) -> torch.fx.GraphModule:
         """Run the transform on `self.module`.
 
@@ -251,6 +274,7 @@ class Transform(abc.ABC):
             *args: Positional arguments for `self.module` to run.
             **kwargs: Keyword arguments for `self.module` to run.
         """
+<<<<<<< HEAD
         diagnostic = self.diagnostic_context.inflight_diagnostic(
             rule=diagnostics.rules.fx_pass
         )
@@ -321,3 +345,6 @@ class Analysis(abc.ABC):
 
     @abc.abstractmethod
     def analyze(self, diagnostic_level: diagnostics.infra.Level) -> AnalysisResult: ...
+=======
+        return self._run(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

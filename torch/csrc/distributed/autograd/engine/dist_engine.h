@@ -15,7 +15,11 @@ class BackwardPassCleanupGuard;
 
 // This is a singleton class responsible for running distributed backward
 // passes. This engine relies heavily on the vanilla autograd engine and tries
+<<<<<<< HEAD
 // to re-use it as much as possible. This class is mostly responsible for the
+=======
+// to reuse it as much as possible. This class is mostly responsible for the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // distributed aspects of autograd and tries to hook into the autograd engine
 // where convenient.
 

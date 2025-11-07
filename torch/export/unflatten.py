@@ -104,9 +104,15 @@ def _assign_attr(
             assert isinstance(from_obj, torch.Tensor)
             to_module.register_buffer(field, from_obj, persistent=persistent)
         elif attr_kind == _AttrKind.CONSTANT:
+<<<<<<< HEAD
             assert not isinstance(
                 from_obj, FakeScriptObject
             ), "FakeScriptObject should only exist during tracing."
+=======
+            assert not isinstance(from_obj, FakeScriptObject), (
+                "FakeScriptObject should only exist during tracing."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert isinstance(
                 from_obj,
                 (
@@ -143,7 +149,11 @@ class InterpreterModule(_SubmoduleBase, torch.nn.Module):
         super().__init__()
         self.graph = graph
         self._ty = ty
+<<<<<<< HEAD
         self.graph.owning_module = self
+=======
+        self.graph.owning_module = self  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_with_interpreter = RUN_WITH_INTERPRETER
 
     def forward(self, *args, **kwargs):
@@ -275,6 +285,10 @@ class FlatArgsAdapter(abc.ABC):
         input_spec: pytree.TreeSpec,
         input_args: list[Any],
         metadata: Optional[dict[str, Any]] = None,
+<<<<<<< HEAD
+=======
+        obj: Optional[Any] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> list[Any]:
         """NOTE: This adapter may mutate given ``input_args_with_path``."""
         ...
@@ -295,7 +309,11 @@ class UnflattenedModule(torch.nn.Module):
         export_graph = deepcopy(export_module.graph)
         self.graph_signature = deepcopy(export_module.graph_signature)
         self.graph = torch.fx.Graph()
+<<<<<<< HEAD
         self.graph.owning_module = self
+=======
+        self.graph.owning_module = self  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.module_call_graph = deepcopy(export_module.module_call_graph)
         self.flat_args_adapter = flat_args_adapter
 
@@ -306,6 +324,7 @@ class UnflattenedModule(torch.nn.Module):
         self.adapted = False
         self._run_with_interpreter = RUN_WITH_INTERPRETER
 
+<<<<<<< HEAD
         _inplace_buffer_mutations(export_graph, self.graph_signature)
 
         self.ivals = _IVals()
@@ -316,6 +335,16 @@ class UnflattenedModule(torch.nn.Module):
         # and generate instructions to update the corresponding attribute;
         # finally, initialize all these attributes
         self.ivals.create(seen_modules.values(), self)
+=======
+        _inplace_buffer_and_input_mutations(export_graph, self.graph_signature)
+
+        self.ivals = _IVals()
+        # for any intermediate value of a mutation that is read, track the mutation
+        seen_modules, seen_attrs = _outline_submodules(export_graph, self)
+        # for each read intermediate value of a mutation, find where it was created,
+        # and perform the mutation
+        self.ivals.update(seen_modules.values())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # move attributes that correspond to graph arguments for HOPs
         # from exported program to unflattened submodules
         _copy_graph_attrs(export_module._graph_module, self, seen_attrs)
@@ -462,9 +491,15 @@ class UnflattenedModule(torch.nn.Module):
         # add constants that are aliased and don't appear in graph signature
         for const_name, const in export_module.constants.items():
             if const_name not in consts_targets:
+<<<<<<< HEAD
                 assert (
                     id(const) in consts_map
                 ), "Constants should be either aliased or appear in graph signature"
+=======
+                assert id(const) in consts_map, (
+                    "Constants should be either aliased or appear in graph signature"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ph_name, _ = consts_map[id(const)][0]
                 add_to_consts_map(id(const), ph_name, const_name)
                 added_params_buffers.add(s.target)
@@ -510,6 +545,10 @@ class UnflattenedModule(torch.nn.Module):
                 fqn_order[name] = len(fqn_order)
         _reorder_submodules(self, fqn_order)
         self.graph.lint()
+<<<<<<< HEAD
+=======
+        self.finalize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _print_graph(self):
         for fqn, mod in self.named_modules():
@@ -517,14 +556,22 @@ class UnflattenedModule(torch.nn.Module):
             if hasattr(mod, "graph") and isinstance(mod.graph, torch.fx.Graph):
                 print(mod.graph)
 
+<<<<<<< HEAD
     def _adapt_flat_args(self, flat_args, in_spec):
+=======
+    def _adapt_flat_args(self, flat_args, in_spec, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         signature = self.module_call_graph[0].signature
         if in_spec == signature.in_spec:
             return flat_args
 
         if self.flat_args_adapter is None:
             raise TypeError(
+<<<<<<< HEAD
                 "There is no flat args adapter sepcified. "
+=======
+                "There is no flat args adapter specified. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "Are you sure you are calling this with the right arguments? "
             )
         else:
@@ -533,6 +580,10 @@ class UnflattenedModule(torch.nn.Module):
                 input_spec=in_spec,
                 input_args=flat_args,
                 metadata=self.meta,
+<<<<<<< HEAD
+=======
+                obj=input,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             if len(flat_args) != signature.in_spec.num_leaves:
@@ -546,7 +597,13 @@ class UnflattenedModule(torch.nn.Module):
     def process_forward_inputs(self, *args, **kwargs):
         signature = self.module_call_graph[0].signature
 
+<<<<<<< HEAD
         reordered_kwargs = reorder_kwargs(kwargs, signature.in_spec)
+=======
+        reordered_kwargs = kwargs
+        if kwargs:
+            reordered_kwargs = reorder_kwargs(kwargs, signature.in_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         flat_args_with_path, in_spec = pytree.tree_flatten_with_path(
             (args, reordered_kwargs)
@@ -564,7 +621,11 @@ class UnflattenedModule(torch.nn.Module):
                     f"Exported module treespec: {signature.in_spec}",
                 )
                 print("Adapting flat arg to match exported module's treespec")
+<<<<<<< HEAD
             flat_args = self._adapt_flat_args(flat_args, in_spec)
+=======
+            flat_args = self._adapt_flat_args(flat_args, in_spec, args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.adapted = True
 
         if self.check_input_constraints:
@@ -590,7 +651,14 @@ class UnflattenedModule(torch.nn.Module):
         return flat_args
 
     def forward(self, *args, **kwargs):
+<<<<<<< HEAD
         flat_args = torch._dynamo.disable(self.process_forward_inputs)(*args, **kwargs)
+=======
+        flat_args = torch._dynamo.disable(
+            self.process_forward_inputs,
+            reason="do not trace into preprocessing the inputs",
+        )(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         signature = self.module_call_graph[0].signature
 
         if is_fx_tracing():
@@ -602,14 +670,26 @@ class UnflattenedModule(torch.nn.Module):
                 return return_val[0]
             return return_val
 
+<<<<<<< HEAD
         if torch.compiler.is_dynamo_compiling() and not self._run_with_interpreter:
             tree_out = torch.fx.GraphModule(self, self.graph)(*flat_args)
+=======
+        if torch.compiler.is_dynamo_compiling() or not self._run_with_interpreter:
+            tree_out = type(self.graph_module).forward(self, *flat_args)  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             tree_out = torch.fx.Interpreter(self, graph=self.graph).run(
                 *flat_args, enable_io_processing=False
             )
         return pytree.tree_unflatten(tree_out, signature.out_spec)
 
+<<<<<<< HEAD
+=======
+    def finalize(self):
+        self.__dict__["graph_module"] = torch.fx.GraphModule(self, self.graph)
+        self.graph.lint()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _dispatch_modules(self, redirected_call_indices, consts_targets):
         """For a module whose call signatures are preserved, replace
         multiple modules corresponding to multiple calls to that module
@@ -711,6 +791,7 @@ def unflatten(
     return UnflattenedModule(module, flat_args_adapter)
 
 
+<<<<<<< HEAD
 def _inplace_buffer_mutations(
     graph: torch.fx.Graph,
     graph_signature: ExportGraphSignature,
@@ -719,27 +800,53 @@ def _inplace_buffer_mutations(
     node in the graph.
 
     Functionalization represents buffer mutation by passing the buffer as an input and output. So for example, the eager code:
+=======
+def _inplace_buffer_and_input_mutations(
+    graph: torch.fx.Graph,
+    graph_signature: ExportGraphSignature,
+) -> None:
+    """Transform buffer and input mutations from their functionalized form
+    into copy_ nodes in the graph.
+
+    Functionalization represents a buffer mutation by passing the buffer as
+    an input and output. For example, consider the eager code:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def forward(self, x):
             self.buffer += x
             return x * x
 
+<<<<<<< HEAD
     Will become a graph that looks like:
+=======
+    This corresponds to a graph that looks like:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def forward(self, buffer, x):
             mutated_buffer = aten.add(buffer, x)
             mul = aten.mul(x, x)
             return (mutated_buffer, mul)
 
+<<<<<<< HEAD
     We want to inplace this into something that looks like the original eager code:
+=======
+    We want to inplace this into something that looks like the original
+    eager code:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def forward(self, buffer, x):
             mutated_buffer = aten.add(buffer, x)
             buffer.copy_(mutated_buffer)
             mul = aten.mul(x, x)
             return (mul,)
+<<<<<<< HEAD
+=======
+
+    Input mutations are handled similarly.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     output_node = next(iter(reversed(graph.nodes)))
     assert output_node.op == "output" and len(output_node.args) == 1
     return_args = output_node.args[0]
 
+<<<<<<< HEAD
     mutation_node_to_buffer = graph_signature.buffers_to_mutate
     mutations = return_args[: len(mutation_node_to_buffer)]
     buffers_to_inputs = {v: k for k, v in graph_signature.inputs_to_buffers.items()}
@@ -767,6 +874,44 @@ def _inplace_buffer_mutations(
     user_outputs = tuple(
         return_args[len(mutation_node_to_buffer) :],
     )
+=======
+    input_name_to_node = {
+        node.name: node for node in graph.nodes if node.op == "placeholder"
+    }
+    mutation_name_to_input_name = {}
+
+    # Collect mutated buffers.
+    buffer_fqn_to_input_name = {
+        buffer_fqn: k for k, buffer_fqn in graph_signature.inputs_to_buffers.items()
+    }
+    mutation_name_to_input_name = {
+        k: buffer_fqn_to_input_name[buffer_fqn]
+        for k, buffer_fqn in graph_signature.buffers_to_mutate.items()
+    }
+    # Collect mutated user inputs.
+    mutation_name_to_input_name.update(graph_signature.user_inputs_to_mutate)
+
+    num_mutations = len(mutation_name_to_input_name)
+
+    for mutation in return_args[:num_mutations]:
+        input_name = mutation_name_to_input_name[mutation.name]
+        input_node = input_name_to_node[input_name]
+
+        with graph.inserting_after(mutation):
+            # Create a copy_ node that inplaces the mutation.
+            new_node = graph.create_node(
+                "call_function", torch.ops.aten.copy_.default, (input_node, mutation)
+            )
+            for k, v in mutation.meta.items():
+                new_node.meta[k] = v
+        # Replace all uses of the previously functional mutation with
+        # our copy_ node.
+        mutation.replace_all_uses_with(new_node, lambda x: x is not new_node)
+
+    # Remove the mutated buffer / input from the graph outputs, since we don't
+    # need to thread it through anymore.
+    user_outputs = tuple(return_args[num_mutations:])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     output_node.args = ((user_outputs),)
 
 
@@ -1018,9 +1163,15 @@ class _ModuleFrame:
 
                     if arg.name in self.seen_nodes:
                         flat_arg_node.meta = copy.copy(self.seen_nodes[arg.name].meta)
+<<<<<<< HEAD
                         self.node_to_placeholder[
                             self.seen_nodes[arg.name]
                         ] = flat_arg_node
+=======
+                        self.node_to_placeholder[self.seen_nodes[arg.name]] = (
+                            flat_arg_node
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             with self.parent.graph.inserting_before(self.parent_call_module):
                 input_nodes: list[Optional[torch.fx.Node]] = []
@@ -1102,8 +1253,12 @@ class _ModuleFrame:
         if x in self.node_to_placeholder:
             return self.node_to_placeholder[x]
         elif (
+<<<<<<< HEAD
             x.op == "placeholder"
             or self.module_call_graph.get(self.fqn) is None
+=======
+            x.op == "placeholder" or self.module_call_graph.get(self.fqn) is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # allow placeholder creation if we are not preserving module call signature
         ):
             self.add_placeholder(x)
@@ -1130,9 +1285,15 @@ class _ModuleFrame:
             self.copy_sym_call_function(x)
             return self.node_map[x]
         elif self.module_call_graph.get(self.fqn) is not None:
+<<<<<<< HEAD
             # x is an ival that is not in placeholders, so create a
             # get_attr node corresponding to attribute __ival__x
             return self.ivals.read(self.fqn, self.graph, x)  # type: ignore[operator, union-attr]
+=======
+            # x is reading the intermediate value of a mutation, so record it;
+            # later we will find where it was created and perform the update
+            return self.ivals.read(self, x)  # type: ignore[operator, union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise RuntimeError(
                 f"Could not run remap_input() on op type: {x.op} for node {x}"
@@ -1148,7 +1309,17 @@ class _ModuleFrame:
             for output in signature.outputs:
                 if isinstance(
                     output,
+<<<<<<< HEAD
                     (TensorArgument, SymIntArgument, SymBoolArgument, SymFloatArgument),
+=======
+                    (
+                        TensorArgument,
+                        SymIntArgument,
+                        SymBoolArgument,
+                        SymFloatArgument,
+                        ConstantArgument,
+                    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     if output.name in self.seen_nodes:
                         orig_outputs.append(self.seen_nodes[output.name])
@@ -1403,10 +1574,14 @@ def _reorder_submodules(
 
 class _IVals:
     """
+<<<<<<< HEAD
     Collect the intermediate values of buffer mutations in a graph,
     along with the module call fqns that create and use them. Later,
     in each fqn associated with an intermediate value we will install
     a corresponding attribute, so that it can be updated and read.
+=======
+    Collect the intermediate values of mutations in a graph.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Example: in the following graph, suppose that buf_in and buf_out
     are the input and output values of a buffer.
@@ -1423,6 +1598,7 @@ class _IVals:
     Here ival1 and ival2 are intermediate values created inside
     calls to n0 and n1 respectively, and used inside calls to
     n1 and n2 respectively.
+<<<<<<< HEAD
 
     Thus our analysis will produce {ival1: {n0, n1}, ival2: {n1, n2}}.
     """
@@ -1495,6 +1671,53 @@ class _IVals:
                 # for a ival named x created in module call m,
                 # create attribute m.__ival__x, initially empty
                 setattr(mod, ival_name, self.storage[name])
+=======
+    """
+
+    def __init__(self):
+        # for each fqn, set of node names corresponding to intermediate values
+        self.node_names_by_fqn = defaultdict(set)
+
+    def _is_mutable(self, target):
+        if isinstance(target, torch._ops.OpOverload):
+            return target._schema.is_mutable
+        return False
+
+    def read(self, mf, node):
+        """
+        Read state corresponding to a given intermediate value.
+        """
+        # we can assume that the node must be from a mutation
+        assert node.op == "call_function"
+        b = self._is_mutable(node.target)
+        print("Checking mutability", node.target, b)
+        if not b:
+            # so the mutation was functionalized;
+            # we will apply the original mutation later (see below)
+            fqn, _ = next(reversed(node.meta["nn_module_stack"].values()))
+            self.node_names_by_fqn[fqn].add(node.name)
+        return mf.remap_input(node.args[0])
+
+    def update(self, partitions):
+        """
+        Update states corresponding to intermediate values that were read.
+        """
+        for shared_submodules in partitions:
+            for entry in shared_submodules:
+                graph = entry.module.graph
+                node_names = self.node_names_by_fqn[entry.fqn]
+                nodes = [n for n in graph.nodes if n.name in node_names]
+                for node in nodes:
+                    # so node must be from a functionalized mutation;
+                    # we perform the original mutation now
+                    with graph.inserting_after(node):
+                        new_node = graph.create_node(
+                            "call_function",
+                            torch.ops.aten.copy_.default,
+                            (node.args[0], node),
+                        )
+                        new_node.meta = copy.copy(node.meta)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _copy_graph_attrs(
@@ -1584,7 +1807,11 @@ def _sink_params(
     # explicitly want duplicate modules to show up in the traversal.
     for name, submodule in module._modules.items():
         submod_id_to_inputs_removed = _sink_params(
+<<<<<<< HEAD
             cast(torch.nn.Module, submodule),
+=======
+            cast("torch.nn.Module", submodule),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inputs_to_state,
             scope + [name],
             module_id_to_inputs_removed,
@@ -1600,7 +1827,11 @@ def _sink_params(
     assert isinstance(graph, torch.fx.Graph)
 
     inputs = list(filter(lambda n: n.op == "placeholder", graph.nodes))
+<<<<<<< HEAD
     the_last_input = inputs[-1]
+=======
+    the_last_input = None if len(inputs) == 0 else inputs[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Also remove from call_module nodes
     call_module_nodes = filter(lambda n: n.op == "call_module", graph.nodes)

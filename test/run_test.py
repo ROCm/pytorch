@@ -30,11 +30,18 @@ from torch.testing._internal.common_utils import (
     get_report_path,
     IS_CI,
     IS_MACOS,
+<<<<<<< HEAD
     IS_WINDOWS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     retry_shell,
     set_cwd,
     shell,
     TEST_CUDA,
+<<<<<<< HEAD
+=======
+    TEST_SAVE_XML,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_ASAN,
     TEST_WITH_CROSSREF,
     TEST_WITH_ROCM,
@@ -172,6 +179,7 @@ ROCM_BLOCKLIST = [
     "distributed/rpc/test_tensorpipe_agent",
     "distributed/rpc/test_share_memory",
     "distributed/rpc/cuda/test_tensorpipe_agent",
+<<<<<<< HEAD
     "distributed/_shard/checkpoint/test_checkpoint"
     "distributed/_shard/checkpoint/test_file_system_checkpoint"
     "distributed/_shard/sharding_spec/test_sharding_spec",
@@ -180,10 +188,13 @@ ROCM_BLOCKLIST = [
     "distributed/_shard/sharded_tensor/ops/test_binary_cmp",
     "distributed/_shard/sharded_tensor/ops/test_init",
     "distributed/_shard/sharded_optim/test_sharded_optim",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_determination",
     "test_jit_legacy",
     "test_cuda_nvml_based_avail",
     "test_jit_cuda_fuser",
+<<<<<<< HEAD
     "distributed/tensor/test_attention",
 ]
 
@@ -513,6 +524,83 @@ S390X_TESTLIST = [
     "torch_np/test_unary_ufuncs",
     "xpu/test_conv.py",
     "xpu/test_gemm.py",
+=======
+]
+
+S390X_BLOCKLIST = [
+    # these tests fail due to various reasons
+    "dynamo/test_misc",
+    "inductor/test_cpu_repro",
+    "inductor/test_cpu_select_algorithm",
+    "inductor/test_aot_inductor_arrayref",
+    "inductor/test_torchinductor_codegen_dynamic_shapes",
+    "lazy/test_meta_kernel",
+    "onnx/test_utility_funs",
+    "profiler/test_profiler",
+    "test_ao_sparsity",
+    "test_cpp_extensions_open_device_registration",
+    "test_jit",
+    "test_metal",
+    "test_mps",
+    "dynamo/test_torchrec",
+    "inductor/test_aot_inductor_utils",
+    "inductor/test_coordinate_descent_tuner",
+    "test_jiterator",
+    "inductor/test_cpu_cpp_wrapper",
+    "export/test_converter",
+    "inductor/test_inductor_freezing",
+    "dynamo/test_utils",
+    "test_nn",
+    "functorch/test_ops",
+    # these tests run long and fail in addition to that
+    "dynamo/test_dynamic_shapes",
+    "test_quantization",
+    "inductor/test_torchinductor",
+    "inductor/test_torchinductor_dynamic_shapes",
+    "inductor/test_torchinductor_opinfo",
+    "test_binary_ufuncs",
+    "test_unary_ufuncs",
+    # these tests fail when cuda is not available
+    "inductor/test_aot_inductor",
+    "inductor/test_best_config",
+    "inductor/test_cudacodecache",
+    "inductor/test_inductor_utils",
+    "inductor/test_inplacing_pass",
+    "inductor/test_kernel_benchmark",
+    "inductor/test_max_autotune",
+    "inductor/test_move_constructors_to_cuda",
+    "inductor/test_multi_kernel",
+    "inductor/test_pattern_matcher",
+    "inductor/test_perf",
+    "inductor/test_select_algorithm",
+    "inductor/test_snode_runtime",
+    "inductor/test_triton_wrapper",
+    # these tests fail when mkldnn is not available
+    "inductor/test_custom_post_grad_passes",
+    "inductor/test_mkldnn_pattern_matcher",
+    # lacks quantization support
+    "onnx/test_models_quantized_onnxruntime",
+    "onnx/test_pytorch_onnx_onnxruntime",
+    # https://github.com/pytorch/pytorch/issues/102078
+    "test_decomp",
+    # https://github.com/pytorch/pytorch/issues/146698
+    "test_model_exports_to_core_aten",
+    # runs very long, skip for now
+    "inductor/test_layout_optim",
+    "test_fx",
+    # some false errors
+    "doctests",
+    # new failures to investigate and fix
+    "cpp_extensions/libtorch_agnostic_extension/test/test_libtorch_agnostic",
+    "test_tensorboard",
+    # onnx + protobuf failure, see
+    # https://github.com/protocolbuffers/protobuf/issues/22104
+    "dynamo/test_backends",
+    "dynamo/test_modules",
+    "inductor/test_config",
+    "test_public_bindings",
+    "test_testing",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 XPU_BLOCKLIST = [
@@ -542,6 +630,10 @@ RUN_PARALLEL_BLOCKLIST = [
     "test_multiprocessing",
     "test_multiprocessing_spawn",
     "test_namedtuple_return_api",
+<<<<<<< HEAD
+=======
+    "test_openreg",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_overrides",
     "test_show_pickle",
     "test_tensorexpr",
@@ -613,20 +705,36 @@ DISTRIBUTED_TESTS_CONFIG = {}
 
 
 if dist.is_available():
+<<<<<<< HEAD
+=======
+    num_gpus = torch.cuda.device_count()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DISTRIBUTED_TESTS_CONFIG["test"] = {"WORLD_SIZE": "1"}
     if not TEST_WITH_ROCM and dist.is_mpi_available():
         DISTRIBUTED_TESTS_CONFIG["mpi"] = {
             "WORLD_SIZE": "3",
         }
+<<<<<<< HEAD
     if dist.is_nccl_available():
         DISTRIBUTED_TESTS_CONFIG["nccl"] = {
             "WORLD_SIZE": f"{torch.cuda.device_count()}",
+=======
+    if dist.is_nccl_available() and num_gpus > 0:
+        DISTRIBUTED_TESTS_CONFIG["nccl"] = {
+            "WORLD_SIZE": f"{num_gpus}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
     if dist.is_gloo_available():
         DISTRIBUTED_TESTS_CONFIG["gloo"] = {
             # TODO: retire testing gloo with CUDA
+<<<<<<< HEAD
             "WORLD_SIZE": f"{torch.cuda.device_count()}",
         }
+=======
+            "WORLD_SIZE": f"{num_gpus if num_gpus > 0 else 3}",
+        }
+    del num_gpus
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Test with UCC backend is deprecated.
     # See https://github.com/pytorch/pytorch/pull/137161
     # if dist.is_ucc_available():
@@ -666,7 +774,19 @@ AOT_DISPATCH_TESTS = [
 ]
 FUNCTORCH_TESTS = [test for test in TESTS if test.startswith("functorch")]
 ONNX_TESTS = [test for test in TESTS if test.startswith("onnx")]
+<<<<<<< HEAD
 CPP_TESTS = [test for test in TESTS if test.startswith(CPP_TEST_PREFIX)]
+=======
+
+
+def _is_cpp_test(test):
+    # Note: tests underneath cpp_extensions are different from other cpp tests
+    # in that they utilize the usual python test infrastructure.
+    return test.startswith(CPP_TEST_PREFIX) and not test.startswith("cpp_extensions")
+
+
+CPP_TESTS = [test for test in TESTS if _is_cpp_test(test)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TESTS_REQUIRING_LAPACK = [
     "distributions/test_constraints",
@@ -684,9 +804,20 @@ TESTS_NOT_USING_GRADCHECK = [
     "test_decomp",
     "test_cpp_extensions_jit",
     "test_jit",
+<<<<<<< HEAD
     "test_ops",
     "test_ops_jit",
     "dynamo/test_recompile_ux",
+=======
+    "test_matmul_cuda",
+    "test_ops",
+    "test_ops_jit",
+    "dynamo/test_recompile_ux",
+    "inductor/test_compiled_optimizers",
+    "inductor/test_cutlass_backend",
+    "inductor/test_max_autotune",
+    "inductor/test_select_algorithm",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "inductor/test_smoke",
     "test_quantization",
 ]
@@ -734,7 +865,11 @@ def run_test(
     stepcurrent_key = test_file
 
     is_distributed_test = test_file.startswith(DISTRIBUTED_TEST_PREFIX)
+<<<<<<< HEAD
     is_cpp_test = test_file.startswith(CPP_TEST_PREFIX)
+=======
+    is_cpp_test = _is_cpp_test(test_file)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NB: Rerun disabled tests depends on pytest-flakefinder and it doesn't work with
     # pytest-cpp atm. We also don't have support to disable C++ test yet, so it's ok
     # to just return successfully here
@@ -777,7 +912,11 @@ def run_test(
             )
         )
         unittest_args.extend(test_module.get_pytest_args())
+<<<<<<< HEAD
         replacement = {"-f": "-x"}
+=======
+        replacement = {"-f": "-x", "-dist=loadfile": "--dist=loadfile"}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unittest_args = [replacement.get(arg, arg) for arg in unittest_args]
 
     if options.showlocals:
@@ -810,7 +949,11 @@ def run_test(
         # case such as coverage for C++ test. So just returning ok makes sense
         return 0
 
+<<<<<<< HEAD
     if test_file.startswith(CPP_TEST_PREFIX):
+=======
+    if is_cpp_test:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # C++ tests are not the regular test directory
         if CPP_TESTS_DIR:
             cpp_test = os.path.join(
@@ -877,6 +1020,10 @@ def run_test(
                 stepcurrent_key,
                 output,
                 options.continue_through_error,
+<<<<<<< HEAD
+=======
+                test_file,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             command.extend([f"--sc={stepcurrent_key}", "--print-items"])
@@ -955,6 +1102,10 @@ def run_test_retries(
     stepcurrent_key,
     output,
     continue_through_error,
+<<<<<<< HEAD
+=======
+    test_file,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     # Run the test with -x to stop at first failure.  Rerun the test by itself.
     # If it succeeds, move on to the rest of the tests in a new process.  If it
@@ -1030,6 +1181,11 @@ def run_test_retries(
             print_to_file("Retrying single test...")
         print_items = []  # do not continue printing them, massive waste of space
 
+<<<<<<< HEAD
+=======
+    if "null" in num_failures:
+        num_failures[f"'{test_file}'"] = num_failures.pop("null")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     consistent_failures = [x[1:-1] for x in num_failures.keys() if num_failures[x] >= 3]
     flaky_failures = [x[1:-1] for x in num_failures.keys() if 0 < num_failures[x] < 3]
     if len(flaky_failures) > 0:
@@ -1437,7 +1593,11 @@ def get_pytest_args(options, is_cpp_test=False, is_distributed_test=False):
         # is much slower than running them directly
         pytest_args.extend(["-n", str(NUM_PROCS)])
 
+<<<<<<< HEAD
         if IS_CI:
+=======
+        if TEST_SAVE_XML:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Add the option to generate XML test report here as C++ tests
             # won't go into common_utils
             test_report_path = get_report_path(pytest=True)
@@ -1493,6 +1653,10 @@ CUSTOM_HANDLERS = {
     "test_autoload_enable": test_autoload_enable,
     "test_autoload_disable": test_autoload_disable,
     "test_cpp_extensions_open_device_registration": run_test_with_openreg,
+<<<<<<< HEAD
+=======
+    "test_openreg": run_test_with_openreg,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_transformers_privateuse1": run_test_with_openreg,
 }
 
@@ -1537,6 +1701,19 @@ def parse_args():
         ),
     )
     parser.add_argument(
+<<<<<<< HEAD
+=======
+        "--einops",
+        "--einops",
+        action="store_true",
+        help=(
+            "If this flag is present, we will only run einops tests. "
+            "If this flag is not present, we will run all tests "
+            "(including einops tests)."
+        ),
+    )
+    parser.add_argument(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "--mps",
         "--mps",
         action="store_true",
@@ -1638,11 +1815,15 @@ def parse_args():
         default=IS_CI
         and (
             TEST_WITH_CROSSREF
+<<<<<<< HEAD
             or TEST_WITH_ASAN
             or (TEST_CONFIG == "distributed" and TEST_CUDA)
             or (IS_WINDOWS and not TEST_CUDA)
             or TEST_CONFIG == "nogpu_AVX512"
             or TEST_CONFIG == "nogpu_NO_AVX2"
+=======
+            or TEST_CONFIG == "distributed"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             or TEST_CONFIG == "default"
         )
         and get_pr_number() is not None
@@ -1768,10 +1949,13 @@ def can_run_in_pytest(test):
 def get_selected_tests(options) -> list[str]:
     selected_tests = options.include
 
+<<<<<<< HEAD
     # for s390x, override defaults
     if IS_S390X and selected_tests == TESTS:
         selected_tests = S390X_TESTLIST
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # filter if there's JIT only and distributed only test options
     if options.jit:
         selected_tests = list(
@@ -1791,10 +1975,30 @@ def get_selected_tests(options) -> list[str]:
 
     # Filter to only run functorch tests when --functorch option is specified
     if options.functorch:
+<<<<<<< HEAD
         selected_tests = [tname for tname in selected_tests if tname in FUNCTORCH_TESTS]
 
     if options.cpp:
         selected_tests = [tname for tname in selected_tests if tname in CPP_TESTS]
+=======
+        selected_tests = list(
+            filter(lambda test_name: test_name in FUNCTORCH_TESTS, selected_tests)
+        )
+
+    # Filter to only run einops tests when --einops option is specified
+    if options.einops:
+        selected_tests = list(
+            filter(
+                lambda test_name: test_name.startswith("test/dynamo/test_einops"),
+                selected_tests,
+            )
+        )
+
+    if options.cpp:
+        selected_tests = list(
+            filter(lambda test_name: test_name in CPP_TESTS, selected_tests)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         # Exclude all C++ tests otherwise as they are still handled differently
         # than Python test at the moment
@@ -1811,6 +2015,10 @@ def get_selected_tests(options) -> list[str]:
             "test_view_ops",
             "test_nn",
             "inductor/test_mps_basic",
+<<<<<<< HEAD
+=======
+            "inductor/test_torchinductor",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     else:
         # Exclude all mps tests otherwise
@@ -1862,6 +2070,16 @@ def get_selected_tests(options) -> list[str]:
             ]
         )
 
+<<<<<<< HEAD
+=======
+    if sys.version_info[:2] < (3, 13):
+        # Skip tests for older Python versions as they may use syntax or features
+        # not supported in those versions
+        options.exclude.extend(
+            [test for test in selected_tests if test.startswith("dynamo/cpython/3_13/")]
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     selected_tests = exclude_tests(options.exclude, selected_tests)
 
     if sys.platform == "win32" and not options.ignore_win_blocklist:
@@ -1879,6 +2097,10 @@ def get_selected_tests(options) -> list[str]:
         selected_tests = exclude_tests(ROCM_BLOCKLIST, selected_tests, "on ROCm")
 
     elif IS_S390X:
+<<<<<<< HEAD
+=======
+        selected_tests = exclude_tests(S390X_BLOCKLIST, selected_tests, "on s390x")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         selected_tests = exclude_tests(
             DISTRIBUTED_TESTS,
             selected_tests,
@@ -2044,11 +2266,14 @@ def run_tests(
         x for x in selected_tests if x not in selected_tests_parallel
     ]
 
+<<<<<<< HEAD
     # See Note [ROCm parallel CI testing]
     pool = get_context("spawn").Pool(
         NUM_PROCS, maxtasksperchild=None if torch.version.hip else 1
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NB: This is a hack to make conftest.py and files it depends on available
     # on CPP_TESTS_DIR. We should see if the file could be turned into a
     # full-fledge ptest plugin instead
@@ -2066,13 +2291,22 @@ def run_tests(
         ):
             shutil.copy(os.path.join(test_directory, conftest_file), cpp_file)
 
+<<<<<<< HEAD
     def handle_error_messages(failure: Optional[TestFailure]):
         if failure is None:
+=======
+    def handle_complete(failure: Optional[TestFailure]):
+        failed = failure is not None
+        if IS_CI and options.upload_artifacts_while_running:
+            zip_and_upload_artifacts(failed)
+        if not failed:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
         failures.append(failure)
         print_to_stderr(failure.message)
         return True
 
+<<<<<<< HEAD
     def parallel_test_completion_callback(failure):
         test_failed = handle_error_messages(failure)
         if IS_CI and options.upload_artifacts_while_running:
@@ -2084,6 +2318,8 @@ def run_tests(
         ):
             pool.terminate()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     keep_going_message = (
         "\n\nTip: You can keep running tests even on failure by passing --keep-going to run_test.py.\n"
         "If running on CI, add the 'keep-going' label to your PR and rerun your jobs."
@@ -2095,7 +2331,11 @@ def run_tests(
             if can_run_in_pytest(test):
                 options_clone.pytest = True
             failure = run_test_module(test, test_directory, options_clone)
+<<<<<<< HEAD
             test_failed = handle_error_messages(failure)
+=======
+            test_failed = handle_complete(failure)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (
                 test_failed
                 and not options.continue_through_error
@@ -2110,7 +2350,11 @@ def run_tests(
                 options_clone.pytest = True
             options_clone.additional_args.extend(["-m", "serial"])
             failure = run_test_module(test, test_directory, options_clone)
+<<<<<<< HEAD
             test_failed = handle_error_messages(failure)
+=======
+            test_failed = handle_complete(failure)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (
                 test_failed
                 and not options.continue_through_error
@@ -2118,7 +2362,28 @@ def run_tests(
             ):
                 raise RuntimeError(failure.message + keep_going_message)
 
+<<<<<<< HEAD
         os.environ["NUM_PARALLEL_PROCS"] = str(NUM_PROCS)
+=======
+        # This is used later to constrain memory per proc on the GPU. On ROCm
+        # the number of procs is the number of GPUs, so we don't need to do this
+        os.environ["NUM_PARALLEL_PROCS"] = str(1 if torch.version.hip else NUM_PROCS)
+
+        # See Note [ROCm parallel CI testing]
+        pool = get_context("spawn").Pool(
+            NUM_PROCS, maxtasksperchild=None if torch.version.hip else 1
+        )
+
+        def parallel_test_completion_callback(failure):
+            test_failed = handle_complete(failure)
+            if (
+                test_failed
+                and not options.continue_through_error
+                and not RERUN_DISABLED_TESTS
+            ):
+                pool.terminate()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for test in selected_tests_parallel:
             options_clone = copy.deepcopy(options)
             if can_run_in_pytest(test):

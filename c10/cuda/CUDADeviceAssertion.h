@@ -6,6 +6,10 @@
 namespace c10::cuda {
 
 #ifdef TORCH_USE_CUDA_DSA
+<<<<<<< HEAD
+=======
+C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wunused-function")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Copy string from `src` to `dst`
 static __device__ void dstrcpy(char* dst, const char* src) {
   int i = 0;
@@ -64,6 +68,10 @@ static __device__ void dsa_add_new_assertion_failure(
   self.thread_id[1] = thread_id.y;
   self.thread_id[2] = thread_id.z;
 }
+<<<<<<< HEAD
+=======
+C10_CLANG_DIAGNOSTIC_POP()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Emulates a kernel assertion. The assertion won't stop the kernel's progress,
 // so you should assume everything the kernel produces is garbage if there's an

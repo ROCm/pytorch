@@ -15,26 +15,47 @@ jobs:
   check_binary_linux_cpu:
     if: github.repository_owner == 'pytorch'
     name: Test check_binary.sh for Linux CPU
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job.yml@release/2.7
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       docker-image: python:3.11
       docker-build-dir: "skip-docker-build"
       script: |
           pushd .ci/pytorch/
+<<<<<<< HEAD
           pip install --pre torch --index-url https://download.pytorch.org/whl/test/cpu
           DESIRED_PYTHON=3.11 DESIRED_CUDA=cpu DESIRED_DEVTOOLSET=cxx11-abi PACKAGE_TYPE=manywheel ./check_binary.sh
+=======
+          pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cpu
+          DESIRED_PYTHON=3.11 DESIRED_CUDA=cpu PACKAGE_TYPE=manywheel ./check_binary.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           popd
 
   check_binary_linux_cuda:
     if: github.repository_owner == 'pytorch'
     name: Test check_binary.sh for Linux CUDA
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job.yml@release/2.7
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       runner: linux.4xlarge.nvidia.gpu
       docker-image: python:3.11
       docker-build-dir: "skip-docker-build"
       script: |
+<<<<<<< HEAD
           pushd .ci/pytorch/
           pip install --pre torch --index-url https://download.pytorch.org/whl/test/cu126
           DESIRED_PYTHON=3.11 DESIRED_CUDA=cu126 DESIRED_DEVTOOLSET=cxx11-abi PACKAGE_TYPE=manywheel ./check_binary.sh
+=======
+          STABLE_CUDA_VERSION=$(python3 .github/scripts/get_ci_variable.py --cuda-stable-version)
+          CUDA_VERSION_NODOT=$(echo ${STABLE_CUDA_VERSION} | tr -d '.')
+          pushd .ci/pytorch/
+          pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu${CUDA_VERSION_NODOT}
+          DESIRED_PYTHON=3.11 DESIRED_CUDA=cu${CUDA_VERSION_NODOT} PACKAGE_TYPE=manywheel ./check_binary.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           popd

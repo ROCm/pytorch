@@ -12,6 +12,10 @@ from torch.testing import FileCheck
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_utils import (
     NoTest,
+<<<<<<< HEAD
+=======
+    raise_on_run_directly,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipCUDANonDefaultStreamIf,
     skipIfRocm,
     TEST_CUDA,
@@ -36,6 +40,7 @@ if TEST_CUDA:
     torch.ones(1).cuda()  # initialize cuda context
     TEST_LARGE_TENSOR = torch.cuda.get_device_properties(0).total_memory >= 5e9
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -43,6 +48,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestCUDA(JitTestCase):
     """
@@ -698,3 +705,10 @@ class TestCUDA(JitTestCase):
         FileCheck().check("cuda::_maybe_exchange_device(").run(g)
         torch._C._jit_pass_inline(g)
         FileCheck().check("cuda::_maybe_exchange_device(").run(g)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

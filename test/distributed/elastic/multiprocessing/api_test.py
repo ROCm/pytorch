@@ -500,11 +500,21 @@ if not (TEST_WITH_DEV_DBG_ASAN or IS_WINDOWS or IS_MACOS):
                 logs_specs=DefaultLogsSpecs(log_dir=self.log_dir()),
             )
 
+<<<<<<< HEAD
             with mock.patch.object(
                 mpc, "_is_done", return_value=True
             ), mock.patch.object(mpc, "_pc"), mock.patch.object(
                 mpc._pc, "join", side_effect=[True, False, False, True]
             ) as mock_join:
+=======
+            with (
+                mock.patch.object(mpc, "_is_done", return_value=True),
+                mock.patch.object(mpc, "_pc"),
+                mock.patch.object(
+                    mpc._pc, "join", side_effect=[True, False, False, True]
+                ) as mock_join,
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mpc._poll()
                 self.assertEqual(4, mock_join.call_count)
 

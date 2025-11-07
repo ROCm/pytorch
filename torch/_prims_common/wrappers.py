@@ -5,7 +5,11 @@ import warnings
 from collections.abc import Sequence
 from functools import wraps
 from types import GenericAlias
+<<<<<<< HEAD
 from typing import Callable, NamedTuple, Optional, overload, TypeVar
+=======
+from typing import Callable, NamedTuple, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -285,7 +289,12 @@ def out_wrapper(
         is_factory_fn = all(p in sig.parameters for p in factory_kwargs)
 
         @wraps(fn)
+<<<<<<< HEAD
         def _fn(*args: _P.args, out=None, **kwargs: _P.kwargs):
+=======
+        def _fn(*args: _P.args, **kwargs: _P.kwargs):
+            out = kwargs.pop("out", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if is_factory_fn and out is not None:
                 for k in factory_kwargs:
                     out_attr = getattr(out, k)
@@ -306,6 +315,11 @@ def out_wrapper(
                 result = fn(*args, is_out=(out is not None), **kwargs)  # type: ignore[arg-type]
             else:
                 result = fn(*args, **kwargs)
+<<<<<<< HEAD
+=======
+            if result is NotImplemented:
+                return NotImplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert (
                 (isinstance(result, TensorLike) and is_tensor)
                 or (
@@ -367,7 +381,13 @@ def out_wrapper(
             annotation=out_type,
         )
         # Mark that the function now returns a tuple
+<<<<<<< HEAD
         assert isinstance(sig.return_annotation, str) or sig.return_annotation in (
+=======
+        assert isinstance(
+            sig.return_annotation, (str, TypeVar)
+        ) or sig.return_annotation in (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sig.empty,
             out_type,
             bc_out_type,
@@ -450,7 +470,13 @@ def backwards_not_supported(prim):
 # TODO: when tracing this will add torch tensors and not TensorMeta objects
 # to the trace -- we should fix this by adding a tracing context and NumberMeta classes
 # TODO: this wrapper is currently untested
+<<<<<<< HEAD
 def elementwise_unary_scalar_wrapper(fn: Callable) -> Callable:
+=======
+def elementwise_unary_scalar_wrapper(
+    fn: Callable[_P, _T],
+) -> Callable[_P, Union[_T, NumberType]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Allows unary operators that accept tensors to work with Python numbers.
     """

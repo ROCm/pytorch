@@ -79,7 +79,11 @@ std::unordered_map<CacheKey, cudnn_frontend::ExecutionPlan, at::native::ParamsHa
 }
 // TODO: we can use cudnn_frontend::ExecutionPlanCache when it supports caching
 // multiple operators
+<<<<<<< HEAD
 // reference: https://github.com/NVIDIA/cudnn-frontend/blob/main/samples/conv_sample.cpp#L293
+=======
+// reference: https://github.com/NVIDIA/cudnn-frontend/blob/main/samples/legacy_samples/conv_sample.cpp#L295
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //static cudnn_frontend::ExecutionPlanCache plan_cache("sample_cache");
 
 // currently we only support int8 symmetric (zero_point = 0 for inputs and output) quantized linear op

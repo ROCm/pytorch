@@ -76,6 +76,17 @@ TEST(TensorTest, ToTensorAndTensorAttributes) {
   REQUIRE_TENSOR_OPTIONS(at::kCPU, -1, at::kInt, at::kStrided);
 }
 
+<<<<<<< HEAD
+=======
+TEST(TensorTest, TensorAttributes) {
+  std::vector<float> v = {1.0, 2.0, 3.0};
+  auto options = c10::requires_grad(true);
+  auto tensor = at::from_blob(v.data(), {3}, options);
+  REQUIRE_TENSOR_OPTIONS(at::kCPU, -1, at::kFloat, at::kStrided);
+  ASSERT_TRUE(tensor.requires_grad());
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Not currently supported.
 // TEST(TensorTest, ToLayout) {
 //   auto tensor = at::empty({3, 4});
@@ -912,7 +923,13 @@ TEST(TensorTest, Arange) {
 }
 
 TEST(TensorTest, PrettyPrintTensorDataContainer) {
+<<<<<<< HEAD
   { ASSERT_EQ(c10::str(torch::detail::TensorDataContainer(1.1)), "1.1"); }
+=======
+  {
+    ASSERT_EQ(c10::str(torch::detail::TensorDataContainer(1.1)), "1.1");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   {
     ASSERT_EQ(
         c10::str(torch::detail::TensorDataContainer({1.1, 2.2})), "{1.1, 2.2}");

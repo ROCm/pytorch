@@ -24,7 +24,11 @@ class Sampler {
 
   /// Resets the `Sampler`'s internal state.
   /// Typically called before a new epoch.
+<<<<<<< HEAD
   /// Optionally, accepts a new size when reseting the sampler.
+=======
+  /// Optionally, accepts a new size when resetting the sampler.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void reset(std::optional<size_t> new_size) = 0;
 
   /// Returns the next index if possible, or an empty optional if the

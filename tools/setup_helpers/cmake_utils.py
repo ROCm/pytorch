@@ -28,7 +28,11 @@ def convert_cmake_value_to_python_value(
     cmake_type = cmake_type.upper()
     up_val = cmake_value.upper()
     if cmake_type == "BOOL":
+<<<<<<< HEAD
         # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/VariablesListsStrings#boolean-values-in-cmake
+=======
+        # https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#genex:BOOL
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return not (
             up_val in ("FALSE", "OFF", "N", "NO", "0", "", "NOTFOUND")
             or up_val.endswith("-NOTFOUND")

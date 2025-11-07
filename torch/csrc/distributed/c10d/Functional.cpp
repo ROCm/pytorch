@@ -266,34 +266,54 @@ TORCH_LIBRARY(_c10d_functional, m) {
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
           ::all_gather_into_tensor_out),
+<<<<<<< HEAD
       {at::Tag::pt2_compliant_tag});
+=======
+      {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "all_gather_into_tensor(Tensor input, int group_size, str group_name) -> Tensor",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
           ::all_gather_into_tensor),
+<<<<<<< HEAD
       {at::Tag::pt2_compliant_tag});
+=======
+      {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "all_gather_into_tensor_coalesced(Tensor[] inputs, int group_size, str group_name) -> Tensor[]",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
           ::all_gather_into_tensor_coalesced),
+<<<<<<< HEAD
       {at::Tag::pt2_compliant_tag});
+=======
+      {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "reduce_scatter_tensor(Tensor input, str reduce_op, int group_size, str group_name) -> Tensor",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd, ::reduce_scatter_tensor),
+<<<<<<< HEAD
       {at::Tag::pt2_compliant_tag});
+=======
+      {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "reduce_scatter_tensor_coalesced(Tensor[] inputs, str reduce_op, int group_size, str group_name) -> Tensor[]",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
           ::reduce_scatter_tensor_coalesced),
+<<<<<<< HEAD
       {at::Tag::pt2_compliant_tag});
+=======
+      {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "all_to_all_single("
@@ -303,7 +323,11 @@ TORCH_LIBRARY(_c10d_functional, m) {
       "str group_name) -> Tensor",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd, ::all_to_all_single),
+<<<<<<< HEAD
       {at::Tag::pt2_compliant_tag});
+=======
+      {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "broadcast(Tensor input, int src, str group_name) -> Tensor",

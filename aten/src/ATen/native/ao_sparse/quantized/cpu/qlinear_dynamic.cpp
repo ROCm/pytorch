@@ -6,6 +6,10 @@
 #include <c10/util/accumulate.h>
 
 #include <ATen/native/quantized/cpu/QuantUtils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/quantized/library.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <caffe2/utils/threadpool/pthreadpool-cpp.h>
 
 #include <ATen/native/ao_sparse/quantized/cpu/packed_params.h>
@@ -20,8 +24,11 @@
 
 namespace ao::sparse {
 
+<<<<<<< HEAD
 int register_linear_params();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_PYTORCH_QNNPACK
 template <>
 at::Tensor PackedLinearWeightQnnp::apply_dynamic_impl<true>(

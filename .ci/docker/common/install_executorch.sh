@@ -13,7 +13,11 @@ clone_executorch() {
   # and fetch the target commit
   pushd executorch
   git checkout "${EXECUTORCH_PINNED_COMMIT}"
+<<<<<<< HEAD
   git submodule update --init
+=======
+  git submodule update --init --recursive
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   popd
 
   chown -R jenkins executorch

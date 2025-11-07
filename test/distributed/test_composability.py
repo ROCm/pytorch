@@ -1,5 +1,6 @@
 # Owner(s): ["oncall: distributed"]
 import copy
+<<<<<<< HEAD
 import os
 import sys
 import tempfile
@@ -9,6 +10,12 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributed._tensor import DTensor
+=======
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.fsdp import fully_shard, MixedPrecisionPolicy
 from torch.distributed.pipelining import PipelineStage
@@ -20,6 +27,10 @@ from torch.distributed.pipelining.schedules import (
     ScheduleInterleavedZeroBubble,
     ScheduleLoopedBFS,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.tensor import DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_distributed import (
@@ -30,11 +41,21 @@ from torch.testing._internal.common_distributed import (
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
+=======
+    run_tests,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skip_but_pass_in_sandcastle_if,
     TEST_WITH_ROCM,
 )
 
 
+<<<<<<< HEAD
+=======
+device_type = "cuda"
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # MLP Layer
 class MLPModule(torch.nn.Module):
     def __init__(self, d_hid: int):
@@ -92,13 +113,17 @@ def loss_fn(y, target, scale=1e-4):
 
 
 class ComposabilityTest(MultiProcContinousTest):
+<<<<<<< HEAD
     world_size = 4
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @classmethod
     def backend_str(cls) -> str:
         # Testing with NCCL backend
         return "nccl"
 
+<<<<<<< HEAD
     @classmethod
     def setUpClass(cls):
         """
@@ -115,6 +140,11 @@ class ComposabilityTest(MultiProcContinousTest):
             "cuda", mesh_shape=mesh_shape, mesh_dim_names=mesh_dim_names
         )
         return device_mesh
+=======
+    @property
+    def device(self) -> torch.device:
+        return torch.device(device_type, self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _rand_microbatches(self, dp_mesh, num_microbatches, dim, dtype=torch.float32):
         full = [
@@ -216,7 +246,16 @@ class ComposabilityTest(MultiProcContinousTest):
             # https://github.com/pytorch/pytorch/issues/144530
             return
 
+<<<<<<< HEAD
         device_mesh = self._build_mesh((2, 2), ("dp", "pp"))
+=======
+        torch.get_device_module(device_type).set_device(self.device)
+        mesh_shape = (self.world_size // 2, 2)
+        mesh_dim_names = ("dp", "pp")
+        device_mesh = init_device_mesh(
+            "cuda", mesh_shape=mesh_shape, mesh_dim_names=mesh_dim_names
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pp_group = device_mesh["pp"].get_group()
         dp_mesh = device_mesh["dp"]
 
@@ -292,7 +331,16 @@ class ComposabilityTest(MultiProcContinousTest):
         if TEST_WITH_ROCM:
             return
 
+<<<<<<< HEAD
         device_mesh = self._build_mesh((2, 2), ("dp", "pp"))
+=======
+        torch.get_device_module(device_type).set_device(self.device)
+        mesh_shape = (self.world_size // 2, 2)
+        mesh_dim_names = ("dp", "pp")
+        device_mesh = init_device_mesh(
+            "cuda", mesh_shape=mesh_shape, mesh_dim_names=mesh_dim_names
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pp_group = device_mesh["pp"].get_group()
         dp_mesh = device_mesh["dp"]
 
@@ -376,6 +424,7 @@ class ComposabilityTest(MultiProcContinousTest):
                 name = ".".join(parts)
                 ref_p = ref_parameters[name]
                 self.assertTrue(isinstance(p.grad, DTensor))
+<<<<<<< HEAD
                 torch.testing.assert_close(p.grad.full_tensor(), ref_p.grad)
 
 
@@ -408,3 +457,14 @@ if __name__ == "__main__":
             nprocs=world_size,
             args=(world_size, rdvz_file),
         )
+=======
+                torch.testing.assert_close(
+                    p.grad.full_tensor(), ref_p.grad, atol=5e-5, rtol=2e-2
+                )
+
+
+instantiate_parametrized_tests(ComposabilityTest)
+
+if __name__ == "__main__":
+    run_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

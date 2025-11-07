@@ -8,7 +8,11 @@ from textwrap import dedent
 from typing import Dict, List
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_MACOS
+=======
+from torch.testing._internal.common_utils import IS_MACOS, raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import execWrapper, JitTestCase
 
 
@@ -617,3 +621,10 @@ class TestComplex(JitTestCase):
                 scripted = torch.jit.script(op)
                 jit_result = scripted(x, y)
                 self.assertEqual(eager_result, jit_result)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

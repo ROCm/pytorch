@@ -6,7 +6,11 @@ import typing
 import warnings
 from collections.abc import Sequence
 from contextlib import contextmanager
+<<<<<<< HEAD
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.export._trace
@@ -229,7 +233,11 @@ def get_dtype_as_int(tensor):
 # Those operators will be automatically populated to a instance method
 # of TS2FXGraphConverter with name convert_<namespace>_<opname>().
 # Please check __init__ for method population implementations.
+<<<<<<< HEAD
 kind_to_standard_operators = {
+=======
+kind_to_standard_operators: dict[str, Callable[..., Any]] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "prim::max": builtins.max,
     "prim::min": builtins.min,
     "prim::TupleIndex": operator.getitem,
@@ -1514,7 +1522,11 @@ DEBUG: (TORCH_LOGS="+export" <cmd>), additionally
     ):
         dynamic_shapes = _tree_map_with_path(
             lambda path, x: (
+<<<<<<< HEAD
                 [Dim.AUTO] * x.dim() if isinstance(x, torch.Tensor) else None  # type: ignore[attr-defined]
+=======
+                [Dim.AUTO] * x.dim() if isinstance(x, torch.Tensor) else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             self.sample_args,
         )
@@ -1549,6 +1561,10 @@ DEBUG: (TORCH_LOGS="+export" <cmd>), additionally
                     name_to_constant[spec.target], torch.Tensor
                 ), f"{type(name_to_constant[spec.target])} has been erroneously marked as buffer"
                 spec.kind = InputKind.CONSTANT_TENSOR
+<<<<<<< HEAD
+=======
+                spec.persistent = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ep.verifier().check(ep)
 
         return ep

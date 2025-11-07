@@ -176,6 +176,15 @@ def assert_size_stride(
     item: torch.Tensor,
     size: torch.types._size,
     stride: torch.types._size,
+<<<<<<< HEAD
+=======
+    op_name: str | None = None,
+): ...
+def assert_alignment(
+    item: torch.Tensor,
+    alignment: int,
+    op_name: str | None = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ): ...
 def check_obj_id(obj: object, expected: int) -> bool: ...
 def check_type_id(obj: object, expected: int) -> bool: ...

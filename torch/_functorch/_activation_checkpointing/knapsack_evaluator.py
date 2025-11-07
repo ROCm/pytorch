@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import operator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections import deque
 from typing import Callable
 
@@ -165,7 +169,11 @@ class KnapsackEvaluator:
                     for i in saved_nodes_idxs
                 ),
             )
+<<<<<<< HEAD
             peak_memory = max(memory_list, key=lambda x: x[0])[0]
+=======
+            peak_memory = max(memory_list, key=operator.itemgetter(0))[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             peak_memory = sum(
                 self._graph_info_provider.all_node_memories[
@@ -236,6 +244,7 @@ class KnapsackEvaluator:
         Returns:
             float: Memory budget at the knee point.
         """
+<<<<<<< HEAD
         import numpy as np
 
         results = self.evaluate_distribution_of_results_for_knapsack_algo(
@@ -258,4 +267,39 @@ class KnapsackEvaluator:
         memory_norm = (memory_values - memory_values.min()) / memory_range
         distances = np.sqrt(runtime_norm**2 + memory_norm**2)
         knee_index = np.argmin(distances)
+=======
+        results = self.evaluate_distribution_of_results_for_knapsack_algo(
+            knapsack_algo=knapsack_algo,
+            memory_budget_values=[
+                min_mem_budget
+                + i * (max_mem_budget - min_mem_budget) / (iterations - 1)
+                for i in range(iterations)
+            ],
+        )
+        runtime_values = [
+            result["percentage_of_theoretical_peak_runtime"] for result in results
+        ]
+        memory_values = [
+            result["percentage_of_theoretical_peak_memory"] for result in results
+        ]
+        runtime_range = max(runtime_values) - min(runtime_values)
+        memory_range = max(memory_values) - min(memory_values)
+        if runtime_range == 0 or memory_range == 0:
+            return max_mem_budget
+
+        # Normalize values
+        runtime_min = min(runtime_values)
+        memory_min = min(memory_values)
+        runtime_norm = [
+            (value - runtime_min) / runtime_range for value in runtime_values
+        ]
+        memory_norm = [(value - memory_min) / memory_range for value in memory_values]
+        # Calculate Euclidean distance
+        distances = [
+            (runtime_norm[i] ** 2 + memory_norm[i] ** 2) ** 0.5
+            for i in range(len(runtime_norm))
+        ]
+        # Find the knee point(shortest distance from the origin)
+        knee_index = distances.index(min(distances))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return results[knee_index]["memory_budget"]

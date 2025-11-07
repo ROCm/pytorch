@@ -73,6 +73,13 @@ class TORCH_API Backend : public torch::CustomClassHolder {
     return false;
   }
 
+<<<<<<< HEAD
+=======
+  virtual bool supportsTimeEstimation() const {
+    return false;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void startCoalescing() {
     TORCH_CHECK(
         false,

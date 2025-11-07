@@ -433,7 +433,11 @@ def enabled_metric_tables() -> OrderedSet[str]:
 
 @lru_cache
 def enabled_metric_tables_impl(config_str: str) -> OrderedSet[str]:
+<<<<<<< HEAD
     enabled = OrderedSet[str]()
+=======
+    enabled: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for name in config_str.split(","):
         name = name.strip()
         if not name:

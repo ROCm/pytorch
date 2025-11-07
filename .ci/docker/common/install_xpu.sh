@@ -26,7 +26,11 @@ function install_ubuntu() {
     wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
         | gpg --dearmor > /usr/share/keyrings/oneapi-archive-keyring.gpg.gpg
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg.gpg] \
+<<<<<<< HEAD
         https://apt.repos.intel.com/${XPU_REPO_NAME} all main" \
+=======
+        https://apt.repos.intel.com/oneapi all main" \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         | tee /etc/apt/sources.list.d/oneAPI.list
 
     # Update the packages list and repository index
@@ -47,9 +51,12 @@ function install_ubuntu() {
     # Development Packages
     apt-get install -y libigc-dev intel-igc-cm libigdfcl-dev libigfxcmrt-dev level-zero-dev
     # Install Intel Support Packages
+<<<<<<< HEAD
     if [[ "$XPU_VERSION" == "2025.0" ]]; then
         XPU_PACKAGES="${XPU_PACKAGES} intel-oneapi-dnnl=2025.0.1-6"
     fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     apt-get install -y ${XPU_PACKAGES}
 
     # Cleanup
@@ -77,7 +84,11 @@ function install_rhel() {
     tee > /etc/yum.repos.d/oneAPI.repo << EOF
 [oneAPI]
 name=Intel for Pytorch GPU dev repository
+<<<<<<< HEAD
 baseurl=https://yum.repos.intel.com/${XPU_REPO_NAME}
+=======
+baseurl=https://yum.repos.intel.com/oneapi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
@@ -85,9 +96,12 @@ gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.
 EOF
 
     # Install Intel Support Packages
+<<<<<<< HEAD
     if [[ "$XPU_VERSION" == "2025.0" ]]; then
         XPU_PACKAGES="${XPU_PACKAGES} intel-oneapi-dnnl-2025.0.1-6"
     fi
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     yum install -y ${XPU_PACKAGES}
     # The xpu-smi packages
     dnf install -y xpu-smi
@@ -124,7 +138,11 @@ function install_sles() {
         https://repositories.intel.com/gpu/sles/${VERSION_SP}${XPU_DRIVER_VERSION}/unified/intel-gpu-${VERSION_SP}.repo
     rpm --import https://repositories.intel.com/gpu/intel-graphics.key
     # To add the online network network package repository for the Intel Support Packages
+<<<<<<< HEAD
     zypper addrepo https://yum.repos.intel.com/${XPU_REPO_NAME} oneAPI
+=======
+    zypper addrepo https://yum.repos.intel.com/oneapi oneAPI
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     rpm --import https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 
     # The xpu-smi packages
@@ -147,10 +165,17 @@ if [[ "${XPU_DRIVER_TYPE,,}" == "rolling" ]]; then
     XPU_DRIVER_VERSION=""
 fi
 
+<<<<<<< HEAD
 XPU_REPO_NAME="intel-for-pytorch-gpu-dev"
 XPU_PACKAGES="intel-for-pytorch-gpu-dev-0.5 intel-pti-dev-0.9"
 if [[ "$XPU_VERSION" == "2025.0" ]]; then
     XPU_REPO_NAME="oneapi"
+=======
+# Default use Intel® oneAPI Deep Learning Essentials 2025.0
+if [[ "$XPU_VERSION" == "2025.1" ]]; then
+    XPU_PACKAGES="intel-deep-learning-essentials-2025.1"
+else
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     XPU_PACKAGES="intel-deep-learning-essentials-2025.0"
 fi
 

@@ -8,7 +8,15 @@ from typing import NamedTuple, Optional
 
 import torch
 from torch import Tensor
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchDynamo, TemporaryFileName
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfTorchDynamo,
+    TemporaryFileName,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Make the helper files in test/ importable
@@ -17,6 +25,7 @@ sys.path.append(pytorch_test_dir)
 from torch.testing._internal.jit_utils import clear_class_registry, JitTestCase
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -25,6 +34,8 @@ if __name__ == "__main__":
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestSaveLoad(JitTestCase):
     def test_different_modules(self):
         """
@@ -1197,3 +1208,10 @@ class TestSaveLoadFlatbuffer(JitTestCase):
         torch._C._get_model_extra_files_from_buffer(script_module_io, re_extra_files)
 
         self.assertEqual(extra_files, re_extra_files)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

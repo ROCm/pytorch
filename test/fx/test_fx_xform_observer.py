@@ -11,6 +11,7 @@ from torch.fx.traceback import NodeSourceAction
 from torch.testing._internal.common_utils import TestCase
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -19,6 +20,8 @@ if __name__ == "__main__":
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestGraphTransformObserver(TestCase):
     def test_graph_transform_observer(self):
         class M(torch.nn.Module):
@@ -186,3 +189,13 @@ class TestGraphTransformObserver(TestCase):
         self.assertEqual(len(gm2._create_node_hooks), 0)
         self.assertEqual(len(gm2._erase_node_hooks), 0)
         self.assertEqual(len(gm2._deepcopy_hooks), 0)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

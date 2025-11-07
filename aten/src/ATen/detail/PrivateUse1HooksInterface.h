@@ -23,6 +23,17 @@ struct TORCH_API PrivateUse1HooksInterface : AcceleratorHooksInterface {
 
   ~PrivateUse1HooksInterface() override = default;
 
+<<<<<<< HEAD
+=======
+  bool isBuilt() const override {
+    FAIL_PRIVATEUSE1HOOKS_FUNC(__func__);
+  }
+
+  bool isAvailable() const override {
+    FAIL_PRIVATEUSE1HOOKS_FUNC(__func__);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const at::Generator& getDefaultGenerator(
       c10::DeviceIndex device_index) const override {
     FAIL_PRIVATEUSE1HOOKS_FUNC(__func__);

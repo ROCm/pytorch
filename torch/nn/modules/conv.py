@@ -66,8 +66,14 @@ class _ConvNd(Module):
     ]
     __annotations__ = {"bias": Optional[torch.Tensor]}
 
+<<<<<<< HEAD
     def _conv_forward(self, input: Tensor, weight: Tensor, bias: Optional[Tensor]) -> Tensor:  # type: ignore[empty-body]
         ...
+=======
+    def _conv_forward(  # type: ignore[empty-body]
+        self, input: Tensor, weight: Tensor, bias: Optional[Tensor]
+    ) -> Tensor: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     in_channels: int
     _reversed_padding_repeated_twice: list[int]
@@ -187,10 +193,14 @@ class _ConvNd(Module):
                 init.uniform_(self.bias, -bound, bound)
 
     def extra_repr(self):
+<<<<<<< HEAD
         s = (
             "{in_channels}, {out_channels}, kernel_size={kernel_size}"
             ", stride={stride}"
         )
+=======
+        s = "{in_channels}, {out_channels}, kernel_size={kernel_size}, stride={stride}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.padding != (0,) * len(self.padding):
             s += ", padding={padding}"
         if self.dilation != (1,) * len(self.dilation):
@@ -279,9 +289,13 @@ class Conv1d(_ConvNd):
         padding_mode (str, optional): ``'zeros'``, ``'reflect'``,
             ``'replicate'`` or ``'circular'``. Default: ``'zeros'``
 
+<<<<<<< HEAD
     """.format(
             **reproducibility_notes, **convolution_notes
         )
+=======
+    """.format(**reproducibility_notes, **convolution_notes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + r"""
 
     Shape:
@@ -450,9 +464,13 @@ class Conv2d(_ConvNd):
             output. Default: ``True``
         padding_mode (str, optional): ``'zeros'``, ``'reflect'``,
             ``'replicate'`` or ``'circular'``. Default: ``'zeros'``
+<<<<<<< HEAD
     """.format(
             **reproducibility_notes, **convolution_notes
         )
+=======
+    """.format(**reproducibility_notes, **convolution_notes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + r"""
 
     Shape:
@@ -619,9 +637,13 @@ class Conv3d(_ConvNd):
         groups (int, optional): Number of blocked connections from input channels to output channels. Default: 1
         bias (bool, optional): If ``True``, adds a learnable bias to the output. Default: ``True``
         padding_mode (str, optional): ``'zeros'``, ``'reflect'``, ``'replicate'`` or ``'circular'``. Default: ``'zeros'``
+<<<<<<< HEAD
     """.format(
             **reproducibility_notes, **convolution_notes
         )
+=======
+    """.format(**reproducibility_notes, **convolution_notes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + r"""
 
     Shape:
@@ -883,9 +905,13 @@ class ConvTranspose1d(_ConvTransposeNd):
         groups (int, optional): Number of blocked connections from input channels to output channels. Default: 1
         bias (bool, optional): If ``True``, adds a learnable bias to the output. Default: ``True``
         dilation (int or tuple, optional): Spacing between kernel elements. Default: 1
+<<<<<<< HEAD
     """.format(
             **reproducibility_notes, **convolution_notes
         )
+=======
+    """.format(**reproducibility_notes, **convolution_notes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + r"""
 
     Shape:
@@ -998,7 +1024,14 @@ class ConvTranspose2d(_ConvTransposeNd):
 
     On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
 
+<<<<<<< HEAD
     * :attr:`stride` controls the stride for the cross-correlation.
+=======
+    * :attr:`stride` controls the stride for the cross-correlation. When stride > 1, ConvTranspose2d inserts zeros between input
+      elements along the spatial dimensions before applying the convolution kernel. This zero-insertion operation is the standard
+      behavior of transposed convolutions, which can increase the spatial resolution and is equivalent to a learnable
+      upsampling operation.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     * :attr:`padding` controls the amount of implicit zero padding on both
       sides for ``dilation * (kernel_size - 1) - padding`` number of points. See note
@@ -1048,9 +1081,13 @@ class ConvTranspose2d(_ConvTransposeNd):
         groups (int, optional): Number of blocked connections from input channels to output channels. Default: 1
         bias (bool, optional): If ``True``, adds a learnable bias to the output. Default: ``True``
         dilation (int or tuple, optional): Spacing between kernel elements. Default: 1
+<<<<<<< HEAD
     """.format(
             **reproducibility_notes, **convolution_notes
         )
+=======
+    """.format(**reproducibility_notes, **convolution_notes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + r"""
 
     Shape:
@@ -1140,6 +1177,17 @@ class ConvTranspose2d(_ConvTransposeNd):
         )
 
     def forward(self, input: Tensor, output_size: Optional[list[int]] = None) -> Tensor:
+<<<<<<< HEAD
+=======
+        """
+        Performs the forward pass.
+
+        Attributes:
+            input (Tensor): The input tensor.
+            output_size (list[int], optional): A list of integers representing
+                the size of the output tensor. Default is None.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.padding_mode != "zeros":
             raise ValueError(
                 "Only `zeros` padding mode is supported for ConvTranspose2d"
@@ -1238,9 +1286,13 @@ class ConvTranspose3d(_ConvTransposeNd):
         groups (int, optional): Number of blocked connections from input channels to output channels. Default: 1
         bias (bool, optional): If ``True``, adds a learnable bias to the output. Default: ``True``
         dilation (int or tuple, optional): Spacing between kernel elements. Default: 1
+<<<<<<< HEAD
     """.format(
             **reproducibility_notes, **convolution_notes
         )
+=======
+    """.format(**reproducibility_notes, **convolution_notes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + r"""
 
     Shape:

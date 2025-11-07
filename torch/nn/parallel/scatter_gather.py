@@ -35,8 +35,12 @@ def scatter(
     inputs: torch.Tensor,
     target_gpus: Sequence[Union[int, torch.device]],
     dim: int = ...,
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, ...]:
     ...
+=======
+) -> tuple[torch.Tensor, ...]: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -44,8 +48,12 @@ def scatter(
     inputs: T,
     target_gpus: Sequence[Union[int, torch.device]],
     dim: int = ...,
+<<<<<<< HEAD
 ) -> list[T]:
     ...
+=======
+) -> list[T]: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def scatter(inputs, target_gpus, dim=0):

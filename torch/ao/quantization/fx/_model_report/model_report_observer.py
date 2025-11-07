@@ -279,7 +279,11 @@ class ModelReportObserver(ObserverBase):
         self.constant_channels = torch.tensor([], device=device)
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise Exception(  # noqa: TRY002
             "calculate_qparams should not be called for ModelReportObserver"
         )

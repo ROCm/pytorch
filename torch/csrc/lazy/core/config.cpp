@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/lazy/core/config.h>
 
 C10_DEFINE_bool(torch_lazy_ir_debug, false, "Enable lazy tensor IR debugging")
@@ -76,9 +80,15 @@ namespace torch::lazy {
 std::string& getLTCForceFallback() {
   static std::string config;
   static bool _ignore = [&]() {
+<<<<<<< HEAD
     char* envptr = std::getenv("LTC_FORCE_FALLBACK");
     if (envptr) {
       config = std::string(envptr);
+=======
+    auto env = c10::utils::get_env("LTC_FORCE_FALLBACK");
+    if (env.has_value()) {
+      config = std::string(env.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return true;
   }();
@@ -86,5 +96,8 @@ std::string& getLTCForceFallback() {
   return config;
 }
 
+<<<<<<< HEAD
 // NOLINTEND(misc-use-internal-linkage)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::lazy

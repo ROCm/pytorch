@@ -19,3 +19,11 @@ SUPPORTABLE = [
 CAUSED_BY_EARLIER_GRAPH_BREAK = [
     "This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.",
 ]
+<<<<<<< HEAD
+=======
+INFERENCE_MODE = [
+    "Avoid using `tensor.is_inference()` and `torch.is_inference_mode_enabled()` in your compile code. "
+    "This is primarily used in conjunction with `torch.inference_mode`. Consider using `torch.no_grad` instead "
+    "because `torch.no_grad` leads to same improvements as `inference_mode` when `torch.compile` is used.",
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

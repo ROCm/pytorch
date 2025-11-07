@@ -18,5 +18,9 @@ from torch.ao.quantization.fuse_modules import (
     get_fuser_method,
 )
 
+<<<<<<< HEAD
 # for backward compatiblity
+=======
+# for backward compatibility
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization.fuser_method_mappings import fuse_conv_bn, fuse_conv_bn_relu

@@ -20,6 +20,7 @@ print_cmake_info() {
   CONDA_INSTALLATION_DIR=$(dirname "$CMAKE_EXEC")
   # Print all libraries under cmake rpath for debugging
   ls -la "$CONDA_INSTALLATION_DIR/../lib"
+<<<<<<< HEAD
 
   export CMAKE_EXEC
   # Explicitly add conda env lib folder to cmake rpath to address the flaky issue
@@ -30,4 +31,6 @@ print_cmake_info() {
   # to trust the executable. EXC_BAD_ACCESS (SIGKILL (Code Signature Invalid))
   # with an exit code 137 otherwise
   codesign -f -s - "${CMAKE_EXEC}" || true
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }

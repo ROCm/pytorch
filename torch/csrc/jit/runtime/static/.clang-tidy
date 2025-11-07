@@ -1,7 +1,11 @@
 # NOTE there must be no spaces before the '-', so put the comma after.
 # When making changes, be sure to verify the output of the following command to ensure
 # the desired checks are enabled (run from the directory containing a .clang-tidy file):
+<<<<<<< HEAD
 # ~/fbsource/tools/lint/clangtidy/clang-tidy-platform010 -list-checks
+=======
+# ~/fbsource/tools/lint/clangtidy/clang-tidy-platform010-clang-17 -list-checks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # NOTE: Please don't disable inheritance from the parent to make sure that common checks get propagated.
 
 # Remove noisy checks which are not necessary.

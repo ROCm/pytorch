@@ -157,12 +157,21 @@ def _convert_ondevice_jit(
     model, method_name, inplace=False, debug=False, quant_type=QuantType.STATIC
 ):
     _check_is_script_module(model)
+<<<<<<< HEAD
     assert (
         quant_type == QuantType.DYNAMIC
     ), "This API, while should work for static quant, is only tested for dynamic quant."
     assert not method_name.startswith(
         "observe_"
     ), "Pass in valid method to be quantized, e.g. forward"
+=======
+    assert quant_type == QuantType.DYNAMIC, (
+        "This API, while should work for static quant, is only tested for dynamic quant."
+    )
+    assert not method_name.startswith("observe_"), (
+        "Pass in valid method to be quantized, e.g. forward"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     observe_method_name = "observe_" + method_name
     quantize_method_name = "quantize_" + method_name
     model_c = model._c
@@ -230,12 +239,21 @@ def _quantize_jit(
         model = prepare_dynamic_jit(model, qconfig_dict, inplace)
         model = convert_dynamic_jit(model, True, debug)
     else:
+<<<<<<< HEAD
         assert (
             run_fn
         ), "Must provide calibration function for post training static quantization"
         assert (
             run_args
         ), "Must provide calibration dataset for post training static quantization"
+=======
+        assert run_fn, (
+            "Must provide calibration function for post training static quantization"
+        )
+        assert run_args, (
+            "Must provide calibration dataset for post training static quantization"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = prepare_jit(model, qconfig_dict, inplace)
         run_fn(model, *run_args)
         model = convert_jit(model, True, debug)
@@ -280,19 +298,35 @@ def quantize_jit(model, qconfig_dict, run_fn, run_args, inplace=False, debug=Fal
     from torch.ao.quantization import get_default_qconfig
     from torch.ao.quantization import quantize_jit
 
+<<<<<<< HEAD
     ts_model = torch.jit.script(float_model.eval())  # or torch.jit.trace(float_model, input)
     qconfig = get_default_qconfig('fbgemm')
+=======
+    ts_model = torch.jit.script(
+        float_model.eval()
+    )  # or torch.jit.trace(float_model, input)
+    qconfig = get_default_qconfig("fbgemm")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def calibrate(model, data_loader):
         model.eval()
         with torch.no_grad():
             for image, target in data_loader:
                 model(image)
 
+<<<<<<< HEAD
     quantized_model = quantize_jit(
         ts_model,
         {'': qconfig},
         calibrate,
         [data_loader_test])
+=======
+
+    quantized_model = quantize_jit(
+        ts_model, {"": qconfig}, calibrate, [data_loader_test]
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ```
     """
     torch._C._log_api_usage_once("quantization_api.quantize_jit.quantize_jit")
@@ -330,19 +364,35 @@ def quantize_dynamic_jit(model, qconfig_dict, inplace=False, debug=False):
     from torch.ao.quantization import per_channel_dynamic_qconfig
     from torch.ao.quantization import quantize_dynamic_jit
 
+<<<<<<< HEAD
     ts_model = torch.jit.script(float_model.eval())  # or torch.jit.trace(float_model, input)
     qconfig = get_default_qconfig('fbgemm')
+=======
+    ts_model = torch.jit.script(
+        float_model.eval()
+    )  # or torch.jit.trace(float_model, input)
+    qconfig = get_default_qconfig("fbgemm")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def calibrate(model, data_loader):
         model.eval()
         with torch.no_grad():
             for image, target in data_loader:
                 model(image)
 
+<<<<<<< HEAD
     quantized_model = quantize_dynamic_jit(
         ts_model,
         {'': qconfig},
         calibrate,
         [data_loader_test])
+=======
+
+    quantized_model = quantize_dynamic_jit(
+        ts_model, {"": qconfig}, calibrate, [data_loader_test]
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ```
     """
     torch._C._log_api_usage_once("quantization_api.quantize_jit.quantize_dynamic_jit")
@@ -401,6 +451,7 @@ def _quantize_ondevice_dynamic_jit(
     from torch.ao.quantization import per_channel_dynamic_qconfig
     from torch.ao.quantization.quantize_jit import _quantize_ondevice_dynamic_jit
 
+<<<<<<< HEAD
     ts_model = torch.jit.script(float_model.eval())  # or torch.jit.trace(float_model, input)
     qconfig = get_default_qconfig('fbgemm')
     quant_ready_model = _quantize_ondevice_dynamic_jit(
@@ -408,6 +459,15 @@ def _quantize_ondevice_dynamic_jit(
         {'': qconfig},
         'forward',
         True)
+=======
+    ts_model = torch.jit.script(
+        float_model.eval()
+    )  # or torch.jit.trace(float_model, input)
+    qconfig = get_default_qconfig("fbgemm")
+    quant_ready_model = _quantize_ondevice_dynamic_jit(
+        ts_model, {"": qconfig}, "forward", True
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ```
     """
     return _quantize_ondevice_dynamic_jit_impl(

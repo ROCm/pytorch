@@ -15,7 +15,11 @@ struct TORCH_API IPUHooksInterface : AcceleratorHooksInterface {
     TORCH_CHECK(false, "Cannot initialize IPU without ATen_ipu library.");
   }
 
+<<<<<<< HEAD
   bool hasPrimaryContext(DeviceIndex device_index) const override {
+=======
+  bool hasPrimaryContext(DeviceIndex /*device_index*/) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "Cannot initialize IPU without ATen_ipu library.");
     return false;
   }
@@ -26,7 +30,11 @@ struct TORCH_API IPUHooksInterface : AcceleratorHooksInterface {
   }
 
   Generator getNewGenerator(
+<<<<<<< HEAD
       DeviceIndex device_index [[maybe_unused]] = -1) const override {
+=======
+      DeviceIndex /*device_index*/ = -1) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "Cannot initialize IPU without ATen_ipu library.");
   }
 };

@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 from typing import Union
 
 from . import compiled_autograd, eval_frame, guards  # noqa: F401
 
 def strip_function_call(name: str) -> str: ...
 def is_valid_var_name(name: str) -> Union[bool, int]: ...
+=======
+from . import compiled_autograd, eval_frame, guards  # noqa: F401
+
+def strip_function_call(name: str) -> str: ...
+def is_valid_var_name(name: str) -> bool | int: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

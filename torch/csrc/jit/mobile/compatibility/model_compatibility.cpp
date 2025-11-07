@@ -137,7 +137,11 @@ uint64_t _get_model_bytecode_version(
 
 /********************** Operator Version **********************/
 
+<<<<<<< HEAD
 uint64_t _get_model_operator_version(
+=======
+static uint64_t _get_model_operator_version(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyTorchStreamReader& reader); // Forward Declare
 
 uint64_t _get_model_operator_version(std::istream& in) {
@@ -168,7 +172,11 @@ uint64_t _get_model_operator_version(PyTorchStreamReader& reader) {
 /********************** Operators and Info **********************/
 
 // Forward declare
+<<<<<<< HEAD
 std::unordered_map<std::string, OperatorInfo> _get_model_ops_and_info(
+=======
+static std::unordered_map<std::string, OperatorInfo> _get_model_ops_and_info(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<IValue> bytecode_ivalues);
 
 std::unordered_map<std::string, OperatorInfo> _get_model_ops_and_info(

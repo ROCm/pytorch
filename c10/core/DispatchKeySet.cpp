@@ -53,7 +53,11 @@ constexpr DispatchKeySet math_dispatch_keyset = backend_dispatch_keyset |
     // explicit kernels therefore we manually add the key to the
     // math_dispatch_keyset
     DispatchKeySet{DispatchKey::NestedTensor} |
+<<<<<<< HEAD
     // Functionalize should always re-use CompositeImplicit decomps.
+=======
+    // Functionalize should always reuse CompositeImplicit decomps.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DispatchKeySet{DispatchKey::Functionalize};
 
 constexpr DispatchKeySet nested_dispatch_keyset =
@@ -131,6 +135,11 @@ DispatchKeySet getBackendKeySetFromAutograd(DispatchKey t) {
       return DispatchKeySet(DispatchKey::IPU);
     case DispatchKey::AutogradXPU:
       return DispatchKeySet(DispatchKey::XPU);
+<<<<<<< HEAD
+=======
+    case DispatchKey::AutogradMAIA:
+      return DispatchKeySet(DispatchKey::MAIA);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case DispatchKey::AutogradPrivateUse1:
       return DispatchKeySet(DispatchKey::PrivateUse1);
     case DispatchKey::AutogradPrivateUse2:

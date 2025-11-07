@@ -43,6 +43,10 @@ from torch.testing._internal.common_quantization import (
     FunctionalConvReluModel,
     FunctionalConvReluConvModel,
 )
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Standard Libraries
 import copy
@@ -894,3 +898,9 @@ class TestEqualizeFx(QuantizationTestCase):
 
         # Check the order of nodes in the graph
         self.checkGraphModuleNodes(equalized_model, expected_node_list=node_list)
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

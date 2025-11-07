@@ -6,7 +6,10 @@ if(TARGET torch::xpurt)
 endif()
 
 set(XPU_HOST_CXX_FLAGS)
+<<<<<<< HEAD
 set(XPU_DEVICE_CXX_FLAGS)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Find SYCL library.
 find_package(SYCLToolkit REQUIRED)
@@ -37,12 +40,15 @@ torch_xpu_get_arch_list(XPU_ARCH_FLAGS)
 # propagate to torch-xpu-ops
 set(TORCH_XPU_ARCH_LIST ${XPU_ARCH_FLAGS})
 
+<<<<<<< HEAD
 if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND SYCL_COMPILER_VERSION VERSION_LESS_EQUAL PYTORCH_2_5_SYCL_TOOLKIT_VERSION)
   # for ABI compatibility on Linux
   string(APPEND XPU_HOST_CXX_FLAGS " -D__INTEL_PREVIEW_BREAKING_CHANGES")
   string(APPEND XPU_DEVICE_CXX_FLAGS " -fpreview-breaking-changes")
 endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 string(APPEND XPU_HOST_CXX_FLAGS " -DSYCL_COMPILER_VERSION=${SYCL_COMPILER_VERSION}")
 
 if(DEFINED ENV{XPU_ENABLE_KINETO})
@@ -51,6 +57,14 @@ else()
   set(XPU_ENABLE_KINETO FALSE)
 endif()
 
+<<<<<<< HEAD
 if(NOT WIN32)
+=======
+if(WIN32)
+  if(${SYCL_COMPILER_VERSION} GREATER_EQUAL 20250101)
+    set(XPU_ENABLE_KINETO TRUE)
+  endif()
+else()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   set(XPU_ENABLE_KINETO TRUE)
 endif()

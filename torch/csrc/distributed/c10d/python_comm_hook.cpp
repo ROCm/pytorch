@@ -28,7 +28,11 @@ c10::intrusive_ptr<c10::ivalue::Future> PythonCommHook::runHook(
   try {
     return py_fut.cast<std::shared_ptr<torch::jit::PythonFutureWrapper>>()->fut;
   } catch (const py::cast_error& e) {
+<<<<<<< HEAD
     auto type = py_fut.get_type();
+=======
+    auto type = py::type::handle_of(py_fut);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto errMsg = c10::str(
         e.what(),
         ". DDP communication hook's callback must return a "

@@ -135,6 +135,24 @@ class PythonSymNodeImpl : public c10::SymNodeImpl {
     return getPyObj().attr("guard_size_oblivious")(file, line).cast<bool>();
   }
 
+<<<<<<< HEAD
+=======
+  bool guard_or_false(const char* file, int64_t line) override {
+    py::gil_scoped_acquire acquire;
+    return getPyObj().attr("guard_or_false")(file, line).cast<bool>();
+  }
+
+  bool statically_known_true(const char* file, int64_t line) override {
+    py::gil_scoped_acquire acquire;
+    return getPyObj().attr("statically_known_true")(file, line).cast<bool>();
+  }
+
+  bool guard_or_true(const char* file, int64_t line) override {
+    py::gil_scoped_acquire acquire;
+    return getPyObj().attr("guard_or_true")(file, line).cast<bool>();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t int_() override {
     py::gil_scoped_acquire acquire;
     return getPyObj().attr("int_")().cast<int64_t>();

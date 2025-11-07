@@ -5,7 +5,11 @@ r"""This file is allowed to initialize CUDA context when imported."""
 import functools
 import torch
 import torch.cuda
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import LazyVal, TEST_NUMBA, TEST_WITH_ROCM, TEST_CUDA, IS_WINDOWS
+=======
+from torch.testing._internal.common_utils import LazyVal, TEST_NUMBA, TEST_WITH_ROCM, TEST_CUDA, IS_WINDOWS, IS_MACOS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import inspect
 import contextlib
 import os
@@ -24,6 +28,10 @@ else:
     TEST_CUDNN = LazyVal(lambda: TEST_CUDA and torch.backends.cudnn.is_acceptable(torch.tensor(1., device=CUDA_DEVICE)))
 
 TEST_CUDNN_VERSION = LazyVal(lambda: torch.backends.cudnn.version() if TEST_CUDNN else 0)
+<<<<<<< HEAD
+=======
+ROCM_VERSION = LazyVal(lambda : tuple(int(v) for v in torch.version.hip.split('.')[:2]) if torch.version.hip else (0, 0))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 SM53OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (5, 3))
 SM60OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (6, 0))
@@ -33,6 +41,10 @@ SM80OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_devic
 SM89OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (8, 9))
 SM90OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (9, 0))
 SM100OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (10, 0))
+<<<<<<< HEAD
+=======
+SM120OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (12, 0))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 IS_THOR = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability()[0] == 10
                   and torch.cuda.get_device_capability()[1] > 0)
@@ -48,15 +60,27 @@ def evaluate_gfx_arch_within(arch_list):
     # Hence the matching should be done reversely
     return any(arch in effective_arch for arch in arch_list)
 
+<<<<<<< HEAD
+=======
+def CDNA3OrLater():
+    return evaluate_gfx_arch_within(["gfx940", "gfx941", "gfx942", "gfx950"])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def CDNA2OrLater():
     return evaluate_gfx_arch_within(["gfx90a", "gfx942"])
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
+<<<<<<< HEAD
         arch_list = ["gfx90a", "gfx942", "gfx1100"]
         version = _get_torch_rocm_version()
         if version >= (6, 5):
             arch_list += ["gfx950"]
+=======
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
+        if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
+            arch_list += ["gfx1101", "gfx1150", "gfx1151", "gfx1200"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return evaluate_gfx_arch_within(arch_list)
     if TEST_CUDA:
         return not IS_WINDOWS and SM80OrLater
@@ -64,10 +88,16 @@ def evaluate_platform_supports_flash_attention():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
+<<<<<<< HEAD
         arch_list = ["gfx90a", "gfx942", "gfx1100"]
         version = _get_torch_rocm_version()
         if version >= (6, 5):
             arch_list += ["gfx950"]
+=======
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
+        if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
+            arch_list += ["gfx1101", "gfx1150", "gfx1151", "gfx1200"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return evaluate_gfx_arch_within(arch_list)
     if TEST_CUDA:
         return True
@@ -91,7 +121,10 @@ PLATFORM_SUPPORTS_BF16: bool = LazyVal(lambda: TEST_CUDA and SM80OrLater)
 def evaluate_platform_supports_fp8():
     if torch.cuda.is_available():
         if torch.version.hip:
+<<<<<<< HEAD
             ROCM_VERSION = tuple(int(v) for v in torch.version.hip.split('.')[:2])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             archs = ['gfx94']
             if ROCM_VERSION >= (6, 3):
                 archs.extend(['gfx120'])
@@ -109,7 +142,12 @@ PLATFORM_SUPPORTS_FP8: bool = LazyVal(lambda: evaluate_platform_supports_fp8())
 def _platform_supports_mx_gemm():
     if torch.cuda.is_available():
         if torch.version.hip:
+<<<<<<< HEAD
             return 'gfx95' in torch.cuda.get_device_properties(0).gcnArchName
+=======
+            if ROCM_VERSION >= (7, 0):
+                return 'gfx950' in torch.cuda.get_device_properties(0).gcnArchName
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return SM100OrLater
     return False
@@ -220,7 +258,11 @@ def tf32_enabled():
 # if device is specified, it will check if device is cuda
 # if dtype is specified, it will check if dtype is float32 or complex64
 # tf32 and fp32 are different only when all the three checks pass
+<<<<<<< HEAD
 def tf32_on_and_off(tf32_precision=1e-5):
+=======
+def tf32_on_and_off(tf32_precision=1e-5, only_if=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def with_tf32_disabled(self, function_call):
         with tf32_off():
             function_call()
@@ -235,9 +277,14 @@ def tf32_on_and_off(tf32_precision=1e-5):
 
         @functools.wraps(f)
         def wrapped(*args, **kwargs):
+<<<<<<< HEAD
             for k, v in zip(arg_names, args):
                 kwargs[k] = v
             cond = torch.cuda.is_tf32_supported()
+=======
+            kwargs.update(zip(arg_names, args))
+            cond = torch.cuda.is_tf32_supported() and only_if
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if 'device' in kwargs:
                 cond = cond and (torch.device(kwargs['device']).type == 'cuda')
             if 'dtype' in kwargs:
@@ -251,7 +298,10 @@ def tf32_on_and_off(tf32_precision=1e-5):
         return wrapped
     return wrapper
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This is a wrapper that wraps a test to run it with TF32 turned off.
 # This wrapper is designed to be used when a test uses matmul or convolutions
 # but the purpose of that test is not testing matmul or convolutions.
@@ -279,7 +329,11 @@ def _get_torch_cuda_version():
     return tuple(int(x) for x in cuda_version.split("."))
 
 def _get_torch_rocm_version():
+<<<<<<< HEAD
     if not TEST_WITH_ROCM:
+=======
+    if not TEST_WITH_ROCM or torch.version.hip is None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (0, 0)
     rocm_version = str(torch.version.hip)
     rocm_version = rocm_version.split("-")[0]    # ignore git sha
@@ -340,6 +394,17 @@ def _create_scaling_case(device="cuda", dtype=torch.float, optimizer_ctor=torch.
 def xfailIfSM89(func):
     return func if not IS_SM89 else unittest.expectedFailure(func)
 
+<<<<<<< HEAD
+=======
+def xfailIfSM100OrLater(func):
+    return func if not SM100OrLater else unittest.expectedFailure(func)
+
+def xfailIfSM120OrLater(func):
+    return func if not SM120OrLater else unittest.expectedFailure(func)
+
+def xfailIfDistributedNotSupported(func):
+    return func if not (IS_MACOS or IS_JETSON) else unittest.expectedFailure(func)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Importing this module should NOT eagerly initialize CUDA
 if not CUDA_ALREADY_INITIALIZED_ON_IMPORT:

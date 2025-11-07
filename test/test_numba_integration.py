@@ -36,7 +36,11 @@ class TestNumbaIntegration(common.TestCase):
             version: (int) Version 0
 
         See:
+<<<<<<< HEAD
         https://numba.pydata.org/numba-doc/latest/cuda/cuda_array_interface.html
+=======
+        https://numba.pydata.org/numba-doc/dev/cuda/cuda_array_interface.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         types = [
@@ -250,7 +254,11 @@ class TestNumbaIntegration(common.TestCase):
         will use the exposed device memory.
 
         See:
+<<<<<<< HEAD
         https://numba.pydata.org/numba-doc/latest/cuda/cuda_array_interface.html
+=======
+        https://numba.pydata.org/numba-doc/dev/cuda/cuda_array_interface.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         dtypes = [

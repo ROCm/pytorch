@@ -7,6 +7,11 @@ from sympy.printing.str import StrPrinter
 
 
 INDEX_TYPE = "int64_t"
+<<<<<<< HEAD
+=======
+INDEX_TYPE_MAX = (1 << 63) - 1
+INDEX_TYPE_MIN = -1 << 63
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This printer contains rules that are supposed to be generic for both C/C++ and
@@ -45,6 +50,18 @@ class ExprPrinter(StrPrinter):
     def _print_Identity(self, expr: sympy.Expr) -> str:
         return self._print(expr.args[0])
 
+<<<<<<< HEAD
+=======
+    def _print_Float(self, expr: sympy.Expr) -> str:
+        if expr._prec == 53:
+            # IEEE-754 double precision have 53 bits. SymPy prints them with
+            # 15 digits, but we need 17 for round-trip correctness
+            return str(sympy.Float(expr, dps=17))
+        else:
+            # We don't use other precisions in pytorch
+            return str(expr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This must be implemented because sympy will collect x * x into Pow(x, 2), without
     # any explicit intervention.  We print it just like x * x, notably, we
     # never generate sympy.Pow with floats.
@@ -253,6 +270,13 @@ class PythonPrinter(ExprPrinter):
         assert len(expr.args) == 1
         return f"math.atan({self._print(expr.args[0])})"
 
+<<<<<<< HEAD
+=======
+    def _print_OpaqueUnaryFn_log2(self, expr: sympy.Expr) -> str:
+        assert len(expr.args) == 1
+        return f"math.log2({self._print(expr.args[0])})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _print_RoundToInt(self, expr: sympy.Expr) -> str:
         assert len(expr.args) == 1
         return f"round({self._print(expr.args[0])})"
@@ -266,9 +290,22 @@ class PythonPrinter(ExprPrinter):
 
 class CppPrinter(ExprPrinter):
     def _print_Integer(self, expr: sympy.Expr) -> str:
+<<<<<<< HEAD
         return (
             f"{int(expr)}LL" if sys.platform in ["darwin", "win32"] else f"{int(expr)}L"
         )
+=======
+        suffix = "LL" if sys.platform in ["darwin", "win32"] else "L"
+        i = int(expr)
+        if i > INDEX_TYPE_MAX or i < INDEX_TYPE_MIN:
+            raise OverflowError(f"{i} too big to convert to {INDEX_TYPE}")
+        elif i == INDEX_TYPE_MIN:
+            assert i == (-1) << 63
+            # Writing -9223372036854775808L makes the value overflow
+            # as it is parsed as -(9223372036854775808L) by the C/C++ compiler
+            return f"(-1{suffix} << 63)"
+        return f"{i}{suffix}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _print_Where(self, expr: sympy.Expr) -> str:
         c, p, q = (
@@ -333,6 +370,13 @@ class CppPrinter(ExprPrinter):
     # TODO: PowByNatural: we need to implement our own int-int pow.  Do NOT
     # use std::pow, that operates on floats
     def _print_PowByNatural(self, expr: sympy.Expr) -> str:
+<<<<<<< HEAD
+=======
+        # Implement the special-case of 2**x for now
+        base, exp = expr.args
+        if base == 2:
+            return f"(1 << ({self._print(exp)}))"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError(
             f"_print_PowByNatural not implemented for {type(self)}"
         )
@@ -393,7 +437,11 @@ class CppPrinter(ExprPrinter):
         else:
             # Initializer list overload
             il = "{" + ", ".join(args) + "}"
+<<<<<<< HEAD
             return f"std::min({il})"
+=======
+            return f"std::min<{INDEX_TYPE}>({il})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _print_Max(self, expr: sympy.Expr) -> str:
         args = [self._print(a) for a in expr.args]
@@ -402,7 +450,11 @@ class CppPrinter(ExprPrinter):
         else:
             # Initializer list overload
             il = "{" + ", ".join(args) + "}"
+<<<<<<< HEAD
             return f"std::max({il})"
+=======
+            return f"std::max<{INDEX_TYPE}>({il})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _print_Abs(self, expr: sympy.Expr) -> str:
         assert len(expr.args) == 1
@@ -447,6 +499,12 @@ class CppPrinter(ExprPrinter):
     def _print_OpaqueUnaryFn_sqrt(self, expr: sympy.Expr) -> str:
         return f"std::sqrt({self._print(expr.args[0])})"
 
+<<<<<<< HEAD
+=======
+    def _print_OpaqueUnaryFn_log2(self, expr: sympy.Expr) -> str:
+        return f"std::log2({self._print(expr.args[0])})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _print_RoundToInt(self, expr: sympy.Expr) -> str:
         assert len(expr.args) == 1
         # TODO: dispatch to llrint depending on index type

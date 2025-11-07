@@ -147,7 +147,10 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 std::string shapes_as_str(TensorList tensors);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AdvancedIndex make_info(Tensor self, IOptTensorListRef orig);
 
 } // namespace at::native
@@ -176,9 +179,16 @@ TORCH_META_FUNC(gather)
   auto is_index_empty = index.numel() == 0;
   if (!is_index_empty) {
     TORCH_CHECK(
+<<<<<<< HEAD
         index.scalar_type() == at::ScalarType::Long,
         "gather",
         "(): Expected dtype int64 for index");
+=======
+        index.scalar_type() == ScalarType::Long ||
+            index.scalar_type() == ScalarType::Int,
+        "gather",
+        "(): Expected dtype int32/int64 for index");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (is_index_empty)
     return;
@@ -186,7 +196,11 @@ TORCH_META_FUNC(gather)
 }
 
 template <bool use_new_options = false, typename Meta>
+<<<<<<< HEAD
 void scatter_meta_impl(
+=======
+static void scatter_meta_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Meta& meta,
     const Tensor& self,
     int64_t dim,
@@ -358,7 +372,11 @@ TORCH_PRECOMPUTE_META_FUNC(index_copy)
 }
 
 template <typename Meta>
+<<<<<<< HEAD
 void index_func_meta_impl(
+=======
+static void index_func_meta_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Meta& meta,
     const Tensor& self,
     int64_t dim,
@@ -593,6 +611,7 @@ static bool all_strides_match(TensorList tensors) {
   return true;
 }
 
+<<<<<<< HEAD
 inline std::string shapes_as_str(TensorList tensors) {
   std::ostringstream os;
   bool first = true;
@@ -608,6 +627,8 @@ inline std::string shapes_as_str(TensorList tensors) {
   return os.str();
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Replace indexed dimensions in src with stride 0 and the size of the result
 // tensor. The offset in these dimensions is computed by the kernel using the
 // index tensor's values and the stride of src. The new shape is not meaningful.
@@ -1009,7 +1030,12 @@ Tensor& _index_put_impl_(
   }
   if ((self.device().type() == DeviceType::CUDA ||
        self.device().type() == DeviceType::XPU) &&
+<<<<<<< HEAD
       (accumulate || globalContext().deterministicAlgorithms())) {
+=======
+      (accumulate ||
+       (globalContext().deterministicAlgorithms() && value_.numel() > 1))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         value_.device() == self.device(),
         "expected device ",
@@ -2249,7 +2275,11 @@ template <
     typename T,
     typename ReduceStub,
     typename FillStub>
+<<<<<<< HEAD
 void scatter_impl(
+=======
+static void scatter_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     int64_t dim,
     const Tensor& index,
@@ -2822,7 +2852,11 @@ Tensor _gather_sparse_backward(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 int64_t count_nonzero_impl(TensorIteratorBase& iter, Range range) {
+=======
+static int64_t count_nonzero_impl(TensorIteratorBase& iter, Range range) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t num_nonzero = 0;
 
   auto loop = [&](char** data, const int64_t* strides, int64_t n) {

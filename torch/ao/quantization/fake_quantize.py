@@ -133,7 +133,11 @@ class FakeQuantize(FakeQuantizeBase):
     The output of this module is given by::
 
         x_out = (
+<<<<<<< HEAD
           clamp(round(x/scale + zero_point), quant_min, quant_max) - zero_point
+=======
+            clamp(round(x / scale + zero_point), quant_min, quant_max) - zero_point
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) * scale
 
     * :attr:`is_dynamic` indicates whether the fake quantie is a placeholder for dynamic quantization
@@ -177,9 +181,15 @@ class FakeQuantize(FakeQuantizeBase):
         super().__init__()
         # Populate quant_min/quant_max to observer_kwargs if valid
         if quant_min is not None and quant_max is not None:
+<<<<<<< HEAD
             assert (
                 quant_min <= quant_max
             ), "quant_min must be less than or equal to quant_max"
+=======
+            assert quant_min <= quant_max, (
+                "quant_min must be less than or equal to quant_max"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dtype = observer_kwargs.get("dtype", torch.quint8)
             if hasattr(observer, "p"):
                 # In case observer is _PartialWrapper, dtype can be stored in
@@ -218,15 +228,25 @@ class FakeQuantize(FakeQuantizeBase):
         self.is_per_channel = _is_per_channel(self.qscheme)
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.activation_post_process.calculate_qparams()
 
     def forward(self, X):
         if self.observer_enabled[0] == 1:
             self.activation_post_process(X.detach())
             _scale, _zero_point = self.calculate_qparams()
+<<<<<<< HEAD
             _scale, _zero_point = _scale.to(self.scale.device), _zero_point.to(
                 self.zero_point.device
+=======
+            _scale, _zero_point = (
+                _scale.to(self.scale.device),
+                _zero_point.to(self.zero_point.device),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             if self.scale.shape != _scale.shape:
                 self.scale.resize_(_scale.shape)
@@ -328,9 +348,15 @@ class FixedQParamsFakeQuantize(FakeQuantize):
     # TODO: rename observer to observer_ctr
     def __init__(self, observer):
         super().__init__(observer=observer)
+<<<<<<< HEAD
         assert (
             type(self.activation_post_process) == FixedQParamsObserver
         ), f"{self.__class__.__name__}'s observer must be a {FixedQParamsObserver.__name__}"
+=======
+        assert type(self.activation_post_process) == FixedQParamsObserver, (
+            f"{self.__class__.__name__}'s observer must be a {FixedQParamsObserver.__name__}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._observer_ctr = observer
         self.scale = self.activation_post_process.scale
         self.zero_point = self.activation_post_process.zero_point
@@ -341,7 +367,11 @@ class FixedQParamsFakeQuantize(FakeQuantize):
         )
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self):
+=======
+    def calculate_qparams(self):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.scale, self.zero_point
 
     @torch.jit.export
@@ -384,7 +414,13 @@ class FusedMovingAvgObsFakeQuantize(FakeQuantize):
         assert isinstance(
             self.activation_post_process,
             (MovingAverageMinMaxObserver, MovingAveragePerChannelMinMaxObserver),
+<<<<<<< HEAD
         ), "Fused observer+fake_quant module only works with MovingAverageMinMaxObserver"
+=======
+        ), (
+            "Fused observer+fake_quant module only works with MovingAverageMinMaxObserver"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.register_buffer("fake_quant_enabled", torch.tensor([1], dtype=torch.long))
         self.register_buffer("observer_enabled", torch.tensor([1], dtype=torch.long))
         self.is_symmetric_quant = _is_symmetric_quant(
@@ -392,7 +428,11 @@ class FusedMovingAvgObsFakeQuantize(FakeQuantize):
         )
 
     @torch.jit.export
+<<<<<<< HEAD
     def calculate_qparams(self) -> tuple[torch.Tensor, torch.Tensor]:
+=======
+    def calculate_qparams(self) -> tuple[torch.Tensor, torch.Tensor]:  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.activation_post_process.calculate_qparams()
 
     @torch.jit.export

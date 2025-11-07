@@ -32,16 +32,26 @@ std::tuple<at::Tensor, std::optional<at::Tensor>> PackedLinearWeight::unpack() {
         {N, K}, at::device(c10::kCPU).dtype(c10::kQInt8), w_scale[0], w_zp[0]);
   } else if (q_scheme == c10::kPerChannelAffine) {
     auto scales = at::from_blob(
+<<<<<<< HEAD
         w_scale.data(), w_scale.size(), device(c10::kCPU).dtype(c10::kFloat));
     auto zero_points = at::from_blob(
         w_zp.data(), w_zp.size(), device(c10::kCPU).dtype(c10::kInt));
+=======
+        w_scale.data(), w_scale.size(), at::device(c10::kCPU).dtype(c10::kFloat));
+    auto zero_points = at::from_blob(
+        w_zp.data(), w_zp.size(), at::device(c10::kCPU).dtype(c10::kInt));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     weight_origin = at::_empty_per_channel_affine_quantized(
         {N, K},
         scales.toType(c10::kDouble),
         zero_points.toType(c10::kLong),
         0, // The output channel axis is 0
+<<<<<<< HEAD
         device(c10::kCPU).dtype(c10::kQInt8));
+=======
+        at::device(c10::kCPU).dtype(c10::kQInt8));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   int8_t* weight_ptr_int8 =
@@ -81,10 +91,17 @@ std::tuple<at::Tensor, std::optional<at::Tensor>> PackedLinearWeightsQnnp::
       auto scales = at::from_blob(
           weight_scales_data,
           w_scales.sizes()[0] - kPaddingChannels,
+<<<<<<< HEAD
           device(c10::kCPU).dtype(c10::kFloat));
 
       at::Tensor zero_points = at::empty(
           w_zero_points.size() - kPaddingChannels, at::device(c10::kCPU).dtype(c10::kLong));
+=======
+          at::device(c10::kCPU).dtype(c10::kFloat));
+
+      at::Tensor zero_points = at::empty(
+          static_cast<int64_t>(w_zero_points.size() - kPaddingChannels), at::device(c10::kCPU).dtype(c10::kLong));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       for (const auto i : c10::irange(zero_points.numel())) {
         zero_points[i] = ((int64_t)w_zero_points[i] - 128);
       }
@@ -93,7 +110,11 @@ std::tuple<at::Tensor, std::optional<at::Tensor>> PackedLinearWeightsQnnp::
                           scales,
                           zero_points.toType(c10::kLong),
                           0, // The output channel axis is 0
+<<<<<<< HEAD
                           device(c10::kCPU).dtype(c10::kQInt8))
+=======
+                          at::device(c10::kCPU).dtype(c10::kQInt8))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                           .contiguous();
     } else {
       TORCH_INTERNAL_ASSERT(false, "Unsupported quantization scheme.");

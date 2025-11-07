@@ -5,6 +5,10 @@
 
 #include <ATen/native/mkldnn/xpu/detail/Attr.h>
 #include <ATen/native/mkldnn/xpu/detail/Utils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/mkldnn/xpu/detail/oneDNN.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mkldnn/xpu/detail/oneDNNContext.h>
 
 #include <oneapi/dnnl/dnnl.hpp>
@@ -84,8 +88,14 @@ at::Tensor quantized_convolution(
     std::optional<std::string_view> unary_attr,
     torch::List<std::optional<at::Scalar>> unary_scalars,
     std::optional<std::string_view> unary_algorithm) {
+<<<<<<< HEAD
   Attr attr =
       Attr(/*q_scale=*/1.0 / inv_output_scale, /*zp=*/output_zero_point);
+=======
+  Attr attr = Attr(
+      /*q_scale=*/static_cast<float>(1.0 / inv_output_scale),
+      /*zp=*/output_zero_point);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto ndim = act.ndimension();
   construct_attr_by_post_op(
@@ -106,9 +116,14 @@ at::Tensor quantized_convolution(
       output.defined(),
       "A valid output is required for quantized convolution.");
 
+<<<<<<< HEAD
   auto engine = GpuEngineManager::Instance().get_engine(
       {c10::kXPU, c10::xpu::current_device()});
   auto stream = GpuStreamManager::Instance().get_stream();
+=======
+  auto& engine = GpuEngineManager::Instance().get_engine();
+  auto& stream = GpuStreamManager::Instance().get_stream();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // input tensors config
   dnnl::memory::dims src_dims = act.sizes().vec();

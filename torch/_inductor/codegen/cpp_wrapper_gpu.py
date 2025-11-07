@@ -9,17 +9,34 @@ from typing_extensions import Self
 
 import sympy
 
+<<<<<<< HEAD
+=======
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch import dtype as torch_dtype
 from torch._inductor.codecache import get_cpp_wrapper_cubin_path_name
 from torch._inductor.runtime.runtime_utils import dynamo_timed
 
 from .. import config
 from ..codecache import CudaKernelParamCache
+<<<<<<< HEAD
 from ..ir import GraphPartitionSignature, TensorBox
 from ..utils import cache_on_self, get_gpu_type, GPU_ALIGN_BYTES, IndentedBuffer
 from ..virtualized import V
 from .aoti_hipify_utils import maybe_hipify_code_wrapper
 from .common import get_device_op_overrides
+=======
+from ..ir import (
+    GraphPartitionSignature,
+    TensorBox,
+    TMADescriptorExperimental,
+    TMADescriptorStable,
+)
+from ..utils import cache_on_self, get_gpu_type, GPU_ALIGN_BYTES, IndentedBuffer
+from ..virtualized import V
+from .aoti_hipify_utils import maybe_hipify_code_wrapper
+from .common import get_device_op_overrides, TritonScratchWorkspace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .cpp_utils import cexpr
 from .cpp_wrapper_cpu import CppWrapperCpu
 from .multi_kernel import MultiKernelCall
@@ -54,9 +71,19 @@ class DeferredTritonCallWrapper:
 
     wrapper_name: str
     kernel_name: str
+<<<<<<< HEAD
     arg_types: list[Any]
 
     def generate(self, wrapper: CppWrapperGpu):
+=======
+    kernel_name_to_body: dict[str, str]
+    arg_types: list[Any]
+
+    def generate(self, wrapper: CppWrapperGpu):
+        """
+        Generate the GPU kernel definition, as well as load and launch code.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prefix = wrapper.prefix
         if self.kernel_name.startswith("multi_kernel_"):
             # MultiKernel will select one kernel after running the autotune block
@@ -110,7 +137,16 @@ class DeferredTritonCallWrapper:
                     prefix.writeline(f"bool {name},")
                 else:
                     raise ValueError(f"Unexpected arg type {arg_type}")
+<<<<<<< HEAD
             prefix.writeline(f"{wrapper.device_codegen.cpp_stream_type()} stream_,")
+=======
+            prefix.writeline("int32_t device_idx_,")
+            prefix.writeline(
+                maybe_hipify_code_wrapper(
+                    f"{wrapper.device_codegen.cpp_stream_type()} stream_,"
+                )
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if V.graph.aot_mode:
                 prefix.writeline("kernels_type_& kernels_,")
             prefix.writeline(
@@ -118,14 +154,31 @@ class DeferredTritonCallWrapper:
             )
         prefix.writeline("){")
         with prefix.indent():
+<<<<<<< HEAD
+=======
+            if V.graph.aot_mode:
+                # Emit the original Triton kernel for debugging purposes
+                prefix.writeline("/*")
+                prefix.splice(self.kernel_name_to_body[self.kernel_name])
+                prefix.writeline("*/")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.generate_grid(prefix, inductor_meta, params)
             self.generate_load_kernel(prefix, kernel_var_name, params)
             self.generate_launch_kernel(prefix, wrapper, kernel_var_name, params)
         prefix.writeline("}")
+<<<<<<< HEAD
         # Ensure the cubin file is included in the package
         V.graph.wrapper_code.additional_files.append(
             params[get_cpp_wrapper_cubin_path_name()]
         )
+=======
+
+        if not config.aot_inductor.embed_kernel_binary:
+            # Ensure the cubin file is included in the package
+            V.graph.wrapper_code.additional_files.append(
+                params[get_cpp_wrapper_cubin_path_name()]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def generate_grid(
         self,
@@ -150,12 +203,36 @@ class DeferredTritonCallWrapper:
     def generate_load_kernel(self, prefix, kernel_var_name, params):
         prefix.writeline(f"if ({kernel_var_name} == nullptr) {{")
         with prefix.indent():
+<<<<<<< HEAD
             load_kernel_args = [
                 cpp_string_literal(params[get_cpp_wrapper_cubin_path_name()]),
                 cpp_string_literal(params["mangled_name"]),
                 str(params["shared_mem"]),
                 "cubin_dir_",
             ]
+=======
+            embed_kernel_args = [f"__{params['inductor_meta']['kernel_name']}_start"]
+            if torch.xpu.is_available():
+                # XPU needs the end address of the kernel to calculate the size of the kernel binary.
+                embed_kernel_args.append(
+                    f"__{params['inductor_meta']['kernel_name']}_end"
+                )
+
+            load_kernel_args = (
+                [
+                    *embed_kernel_args,
+                    cpp_string_literal(params["mangled_name"]),
+                    str(params["shared_mem"]),
+                ]
+                if V.graph.aot_mode and config.aot_inductor.embed_kernel_binary
+                else [
+                    cpp_string_literal(params[get_cpp_wrapper_cubin_path_name()]),
+                    cpp_string_literal(params["mangled_name"]),
+                    str(params["shared_mem"]),
+                    "cubin_dir_",
+                ]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prefix.writeline(
                 f"{kernel_var_name} = loadKernel({', '.join(load_kernel_args)}); "
             )
@@ -175,7 +252,15 @@ class DeferredTritonCallWrapper:
         arg_types = [arg_type_loookup[name] for name in call_args]
         arg_signatures = [triton_meta["signature"][name] for name in call_args]
         call_args_str = wrapper.generate_args_decl(
+<<<<<<< HEAD
             prefix, call_args, arg_types, arg_signatures
+=======
+            prefix,
+            call_args,
+            arg_types,
+            arg_signatures,
+            workspace_size=params.get("global_scratch") or 0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         prefix.writeline(f"void* kernel_args_[] = {{{call_args_str}}};")
         launch_kernel_args = [
@@ -201,7 +286,13 @@ class CppWrapperGpu(CppWrapperCpu):
         self.device_codegen = get_device_op_overrides(self.device)
         super().__init__()
         self.grid_id = count()
+<<<<<<< HEAD
         self._triton_call_wrappers: dict[str, DeferredTritonCallWrapper] = {}
+=======
+        self._kernel_name_to_body: dict[str, str] = {}
+        self._triton_call_wrappers: dict[str, DeferredTritonCallWrapper] = {}
+        self.autotune_input_prefix = "_REAL_AUTOTUNE_INPUT"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def create(
@@ -228,7 +319,11 @@ class CppWrapperGpu(CppWrapperCpu):
     def write_tma_descriptor_helpers_once(self):
         self.header.splice(self.device_codegen.tma_descriptor_helpers())
 
+<<<<<<< HEAD
     def write_get_raw_stream(self, device_idx: int, graph=None) -> str:
+=======
+    def write_get_raw_stream(self, device_idx: int, graph_name: str) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name = f"stream{device_idx}"
         self.writeline(
             maybe_hipify_code_wrapper(
@@ -240,6 +335,12 @@ class CppWrapperGpu(CppWrapperCpu):
         )
         return name
 
+<<<<<<< HEAD
+=======
+    def get_autotuning_input_name(self, idx):
+        return f"{self.autotune_input_prefix}_{idx}"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def codegen_inputs(self):
         # See Note: [Input Alignment handling in Inductor]
         #
@@ -279,7 +380,11 @@ class CppWrapperGpu(CppWrapperCpu):
 
         super().codegen_inputs()
 
+<<<<<<< HEAD
     def define_kernel(
+=======
+    def _define_kernel_helper(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         kernel_name: str,
         kernel_body: str,
@@ -288,6 +393,7 @@ class CppWrapperGpu(CppWrapperCpu):
         cpp_definition: Optional[str] = None,
     ):
         if gpu:
+<<<<<<< HEAD
             if config.triton.autotune_at_compile_time:
                 # Call PythonWrapperCodegen to create the autotune code block
                 PythonWrapperCodegen.define_kernel(
@@ -295,6 +401,16 @@ class CppWrapperGpu(CppWrapperCpu):
                 )
         else:
             return CppWrapperCpu.define_kernel(
+=======
+            self._kernel_name_to_body[kernel_name] = kernel_body
+            if config.triton.autotune_at_compile_time:
+                # Call PythonWrapperCodegen to create the autotune code block
+                PythonWrapperCodegen._define_kernel_helper(
+                    self, kernel_name, kernel_body, metadata, gpu, cpp_definition
+                )
+        else:
+            return CppWrapperCpu._define_kernel_helper(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self, kernel_name, kernel_body, metadata, gpu, cpp_definition
             )
 
@@ -305,17 +421,45 @@ class CppWrapperGpu(CppWrapperCpu):
     def finalize_prefix(self):
         """Define the triton kernels now that autotuning is finished"""
         old_prefix = self.prefix  # new content should go at start of prefix
+<<<<<<< HEAD
         self.prefix = IndentedBuffer()
         super().finalize_prefix()
         for kernel in self._triton_call_wrappers.values():
             self.prefix.writeline("\n")
             kernel.generate(self)
+=======
+
+        # Generating triton kernel callers can modify the prefix (cached dtypes),
+        # so do this before running finalize_prefix(), but put the generated code
+        # after the finalize_prefix() code.
+        self.prefix = IndentedBuffer()
+        for kernel in self._triton_call_wrappers.values():
+            self.prefix.writeline("\n")
+            kernel.generate(self)
+        triton_prefix = self.prefix
+
+        self.prefix = IndentedBuffer()
+        super().finalize_prefix()
+
+        self.prefix.splice(triton_prefix)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.prefix.writeline("\n")
         self.prefix.splice(old_prefix)
 
     def generate_tma_descriptor(self, desc):
         self.write_tma_descriptor_helpers_once()
 
+<<<<<<< HEAD
+=======
+        if isinstance(desc, TMADescriptorExperimental):
+            self._generate_experimental_tma_descriptor(desc)
+        else:
+            assert isinstance(desc, TMADescriptorStable)
+            self._generate_stable_tma_descriptor(desc)
+
+    def _generate_experimental_tma_descriptor(self, desc):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # generate data pointer for the source tensor
         source = self.generate_args_decl(
             code=self,
@@ -331,7 +475,11 @@ class CppWrapperGpu(CppWrapperCpu):
 
         # `source` is in the form of `&var_x`, where `var_x` is the data pointer
         # (CUdeviceptr); we dereference `source` and cast to `void*` to pass to
+<<<<<<< HEAD
         # the data pointer of the source tensor ot the helper function
+=======
+        # the data pointer of the source tensor to the helper function
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # `init{1,2}DTMADescriptor`
         ptr = f"reinterpret_cast<void*>(*({source}))"
         dims = ", ".join(self.val_to_arg_str(dim) for dim in desc.dims)
@@ -341,6 +489,51 @@ class CppWrapperGpu(CppWrapperCpu):
         args = f"&{desc_name}, {ptr}, {dims}, {block_dims}, {element_size}"
         self.writeline(f"{fn}({args});")
 
+<<<<<<< HEAD
+=======
+    def _generate_stable_tma_descriptor(self, desc):
+        source = self.generate_args_decl(
+            code=self,
+            call_args=[self.val_to_arg_str(desc.tensor)],
+            arg_types=[desc.tensor.get_dtype()],
+            arg_signatures=[None],
+            # these args are passed to initNDTMADescriptor, which is NOT a triton kernel
+            is_triton_kernel=False,
+        )
+
+        desc_name = desc.name
+        # Pack the relevant information into a StableTMADescriptor struct.
+        # See [Note: AOTI TMA Stable handling] for more details.
+        self.writeline(f"alignas(64) StableTMADescriptor {desc_name};")
+
+        def fill_array(name, values):
+            for i, val in enumerate(values):
+                self.writeline(f"{name}[{i}] = {val};")
+
+        ptr = f"reinterpret_cast<void*>(*({source}))"
+        rank = len(desc.tensor.get_size())
+
+        fill_array(f"{desc_name}.block_shape", desc.block_shape)
+        fill_array(f"{desc_name}.global_shape", desc.tensor.get_size())
+        fill_array(f"{desc_name}.strides", desc.tensor.get_stride())
+
+        element_size = self.val_to_arg_str(desc.tensor.get_dtype().itemsize)
+        fn = "initTMADescriptor"
+        args = ", ".join(
+            str(x)
+            for x in [
+                f"&{desc_name}.m",
+                ptr,
+                element_size,
+                rank,
+                f"{desc_name}.block_shape",
+                f"{desc_name}.global_shape",
+                f"{desc_name}.strides",
+            ]
+        )
+        self.writeline(f"{fn}({args});")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def generate_args_decl(
         self,
         code: Union[IndentedBuffer, Self],
@@ -348,6 +541,10 @@ class CppWrapperGpu(CppWrapperCpu):
         arg_types,
         arg_signatures,
         is_triton_kernel=True,
+<<<<<<< HEAD
+=======
+        workspace_size=0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Generates any declarations of args to pass into a kernel call, and then returns the arg names.
@@ -372,28 +569,93 @@ class CppWrapperGpu(CppWrapperCpu):
             "fp32": "float",
         }
 
+<<<<<<< HEAD
         def process_args(arg, arg_type, arg_signature=None):
             var_name = f"var_{next(self.arg_var_id)}"
             # ignore nvTmaDesc, as host-side TMA descriptors need
             # to be passed to the compiled Triton kernel by value
             if isinstance(arg_type, UnwrapUnspecArg) and arg_signature != "nvTmaDesc":
+=======
+        def signature_is_tma_desc(sig):
+            if not sig:
+                return False
+            if sig == "nvTmaDesc":
+                return True
+            if sig.startswith("tensordesc<"):
+                return True
+            return False
+
+        def process_tma_stable_arg(arg, arg_type, arg_signature, var_name):
+            # [Note: AOTI TMA Stable handling]
+            # For most args, a single arg passed to the python triton interface
+            # maps to a single arg in the cubin interface. However, for host-side
+            # TMA descriptors, a single python arg turns into 1 + 2 * N args in the
+            # cubin interface (where N is the rank).
+            #
+            # To do this: at TMA codegen time (for aoti), we generate a struct
+            # (StableTMADescriptor) containing the necessary information; and then
+            # when we call the function (i.e. here), we unpack the struct members.
+            code.writeline(f"auto {var_name} = {cexpr(arg)};")
+
+            result = []
+            result.append(f"&{var_name}.m")
+
+            # from https://github.com/triton-lang/triton/blob/16961b79bdac1b774b42d44e52fd55a266ec2866/third_party/nvidia/backend/driver.py#L111  # noqa: B950
+            match = re.match("tensordesc<([^[>]*)\\[([^]]*)\\]", arg_signature)
+            assert match is not None
+            shape = match.group(2)
+            ndim = shape.count(",") + 1
+
+            for i in range(ndim):
+                result.append(f"&{var_name}.block_shape[{i}]")
+
+            for i in range(ndim):
+                result.append(f"&{var_name}.strides[{i}]")
+
+            return result
+
+        def process_args(arg, arg_type, arg_signature=None):
+            var_name = f"var_{next(self.arg_var_id)}"
+            # ignore tma descriptors, as host-side TMA descriptors need
+            # to be passed to the compiled Triton kernel by value
+            if isinstance(arg_type, UnwrapUnspecArg) and not signature_is_tma_desc(
+                arg_signature
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.codegen_tensor_item(
                     arg_type.dtype,
                     arg,
                     var_name,
                     indented_buffer=code,
                 )
+<<<<<<< HEAD
             elif isinstance(arg_type, torch_dtype) and arg_signature != "nvTmaDesc":
+=======
+                new_args.append(f"&{var_name}")
+            elif isinstance(arg_type, torch_dtype) and not signature_is_tma_desc(
+                arg_signature
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 device_ptr_type = self.device_codegen.cpp_device_ptr()
                 code.writeline(
                     maybe_hipify_code_wrapper(
                         f"{device_ptr_type} {var_name} = reinterpret_cast<{device_ptr_type}>({arg}.data_ptr());"
                     )
                 )
+<<<<<<< HEAD
             elif arg_type in (sympy.Integer, int):
                 code.writeline(f"int {var_name} = {cexpr(arg)};")
             elif arg_type in (sympy.Float, float):
                 code.writeline(f"float {var_name} = {cexpr(arg)};")
+=======
+                new_args.append(f"&{var_name}")
+            elif arg_type in (sympy.Integer, int):
+                code.writeline(f"int {var_name} = {cexpr(arg)};")
+                new_args.append(f"&{var_name}")
+            elif arg_type in (sympy.Float, float):
+                code.writeline(f"float {var_name} = {cexpr(arg)};")
+                new_args.append(f"&{var_name}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # For symbolic call arguments, examine the arg signatures from triton meta
             # to explicitly cast to the right type
             # Reason: `auto` can infer unexpected type against kernel input signature.
@@ -405,9 +667,20 @@ class CppWrapperGpu(CppWrapperCpu):
                 code.writeline(
                     f"{signature2dtype[arg_signature]} {var_name} = {cexpr(arg)};"
                 )
+<<<<<<< HEAD
             else:
                 code.writeline(f"auto {var_name} = {cexpr(arg)};")
             new_args.append(f"&{var_name}")
+=======
+                new_args.append(f"&{var_name}")
+            elif arg_signature and arg_signature.startswith("tensordesc<"):
+                new_args.extend(
+                    process_tma_stable_arg(arg, arg_type, arg_signature, var_name)
+                )
+            else:
+                code.writeline(f"auto {var_name} = {cexpr(arg)};")
+                new_args.append(f"&{var_name}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for arg, arg_type, arg_signature in zip_longest(
             call_args, arg_types, arg_signatures
@@ -418,18 +691,34 @@ class CppWrapperGpu(CppWrapperCpu):
             is_triton_kernel
             and (
                 global_scratch := self.device_codegen.cpp_global_scratch(
+<<<<<<< HEAD
                     next(self.arg_var_id)
+=======
+                    next(self.arg_var_id),
+                    workspace=TritonScratchWorkspace(
+                        size=workspace_size,
+                        generate_dtype_str=(lambda: self.codegen_dtype(torch.uint8)),
+                    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             )
             is not None
         ):
             global_scratch_def, global_scratch_var = global_scratch
+<<<<<<< HEAD
             code.writeline(global_scratch_def)
+=======
+            code.writelines([maybe_hipify_code_wrapper(x) for x in global_scratch_def])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_args.append(f"&{global_scratch_var}")
 
         return ", ".join(new_args)
 
+<<<<<<< HEAD
     def generate_kernel_call(
+=======
+    def _generate_kernel_call_helper(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         kernel_name: str,
         call_args,
@@ -437,8 +726,16 @@ class CppWrapperGpu(CppWrapperCpu):
         device=None,
         triton=True,
         arg_types=None,
+<<<<<<< HEAD
         raw_args=None,
         triton_meta=None,
+=======
+        raw_keys=None,
+        raw_args=None,
+        triton_meta=None,
+        graph_name="",
+        original_fxnode_name=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Override the default value of argument 'gpu' to True here.
@@ -448,13 +745,21 @@ class CppWrapperGpu(CppWrapperCpu):
         device = device or V.graph.get_current_device_or_throw()
         if device.type == "cpu":
             # Even in CppWrapperGpu, we may see cpp kernels
+<<<<<<< HEAD
             return CppWrapperCpu.generate_kernel_call(
+=======
+            return CppWrapperCpu._generate_kernel_call_helper(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self,
                 kernel_name,
                 call_args,
                 device=device,
                 triton=triton,
                 arg_types=arg_types,
+<<<<<<< HEAD
+=======
+                raw_keys=raw_keys,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raw_args=raw_args,
                 triton_meta=triton_meta,
             )
@@ -465,21 +770,36 @@ class CppWrapperGpu(CppWrapperCpu):
             and kernel_name not in self.kernel_autotune_names
         ):
             # Call PythonWrapperCodegen to create the autotune code block
+<<<<<<< HEAD
             PythonWrapperCodegen.generate_kernel_call(
+=======
+            PythonWrapperCodegen._generate_kernel_call_helper(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self,
                 kernel_name,
                 call_args,
                 device=device,
                 triton=triton,
                 arg_types=arg_types,
+<<<<<<< HEAD
                 raw_args=raw_args,
                 triton_meta=triton_meta,
+=======
+                raw_keys=raw_keys,
+                raw_args=raw_args,
+                triton_meta=triton_meta,
+                original_fxnode_name=original_fxnode_name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         stream = (
             "stream"
             if V.graph.aot_mode
+<<<<<<< HEAD
             else self.write_get_raw_stream(device.index, V.graph)
+=======
+            else self.write_get_raw_stream(device.index, graph_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         if triton:
@@ -489,8 +809,18 @@ class CppWrapperGpu(CppWrapperCpu):
             wrapper_name = f"call_{kernel_name}"
             if wrapper_name not in self._triton_call_wrappers:
                 self._triton_call_wrappers[wrapper_name] = DeferredTritonCallWrapper(
+<<<<<<< HEAD
                     wrapper_name, kernel_name, arg_types
                 )
+=======
+                    wrapper_name,
+                    kernel_name,
+                    self._kernel_name_to_body,
+                    arg_types,
+                )
+            device_idx = "this->device_idx_" if V.graph.aot_mode else str(device.index)
+            call_args.append(device_idx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             call_args.append(stream)
             if V.graph.aot_mode:
                 call_args.append("kernels")

@@ -138,7 +138,11 @@ static PyMethodDef THXPStream_methods[] = {
     {"__eq__", THXPStream_eq, METH_O, nullptr},
     {nullptr}};
 
+<<<<<<< HEAD
 PyTypeObject THXPStreamType = {
+=======
+static PyTypeObject THXPStreamType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C._XpuStreamBase", /* tp_name */
     sizeof(THXPStream), /* tp_basicsize */

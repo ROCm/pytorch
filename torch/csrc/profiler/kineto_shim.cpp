@@ -1,11 +1,19 @@
 #include <torch/csrc/profiler/collection.h>
 #include <torch/csrc/profiler/kineto_shim.h>
+<<<<<<< HEAD
+=======
+#include <type_traits>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifdef USE_KINETO
 #include <libkineto.h>
 #endif
 
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch {
 
@@ -48,7 +56,10 @@ const std::set<libkineto::ActivityType> kXpuTypes = {
 const std::set<libkineto::ActivityType> kMtiaTypes = {
     libkineto::ActivityType::MTIA_CCP_EVENTS,
     libkineto::ActivityType::MTIA_RUNTIME,
+<<<<<<< HEAD
     libkineto::ActivityType::MTIA_WORKLOADD,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 const std::set<libkineto::ActivityType> hpuTypes = {
     libkineto::ActivityType::HPU_OP,
@@ -66,7 +77,11 @@ const std::set<libkineto::ActivityType> kPrivateUse1Types = {
 #endif // USE_KINETO
 
 static_assert(
+<<<<<<< HEAD
     c10::is_pod_v<DeviceAndResource>,
+=======
+    std::is_trivial_v<DeviceAndResource>,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "Kineto specific details should be in `kineto_ids`.");
 
 const DeviceAndResource kineto_ids() {
@@ -176,6 +191,7 @@ class ExperimentalConfigWrapper {
     return !config_.profiler_metrics.empty();
   }
 
+<<<<<<< HEAD
   void prepareTraceWithExperimentalOptions(bool add_cpu_activity) {
 #ifdef USE_KINETO
     std::set<libkineto::ActivityType> k_activities{
@@ -183,6 +199,17 @@ class ExperimentalConfigWrapper {
 
     // Only add CPU activities if we are measuring per kernel ranges
     if (add_cpu_activity && config_.profiler_measure_per_kernel) {
+=======
+  void prepareTraceWithExperimentalOptions(
+      std::set<libkineto::ActivityType>&& enabled_activities) {
+    std::set<libkineto::ActivityType> k_activities =
+        std::move(enabled_activities);
+#ifdef USE_KINETO
+    k_activities.insert(libkineto::ActivityType::CUDA_PROFILER_RANGE);
+
+    // Add CPU activities if we are measuring per kernel ranges
+    if (config_.profiler_measure_per_kernel) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       k_activities.insert(kCpuTypes.begin(), kCpuTypes.end());
     }
 
@@ -220,11 +247,17 @@ bool collectivesProfilerExists() {
 #if defined(KINETO_HAS_HCCL_PROFILER)
   return true;
 #endif
+<<<<<<< HEAD
   const char* val = std::getenv("TORCH_PROFILER_ENABLE_COLLECTIVE_PROFILING");
   if (val == nullptr) {
     return false;
   }
   return std::strcmp(val, "1") == 0;
+=======
+  const auto val =
+      c10::utils::get_env("TORCH_PROFILER_ENABLE_COLLECTIVE_PROFILING");
+  return val == "1";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #ifdef USE_KINETO
@@ -289,7 +322,11 @@ void prepareTrace(
 
   // Experimental Configuration options are present
   if (config && configWrap.assertValid()) {
+<<<<<<< HEAD
     configWrap.prepareTraceWithExperimentalOptions(has_cpu_activity);
+=======
+    configWrap.prepareTraceWithExperimentalOptions(std::move(k_activities));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return;
   }
 
@@ -393,7 +430,11 @@ c10::DeviceType deviceTypeFromActivity(libkineto::ActivityType activity_type) {
     }
     // TODO: T151322015
     case libkineto::ActivityType::MTIA_CCP_EVENTS:
+<<<<<<< HEAD
     case libkineto::ActivityType::MTIA_WORKLOADD: {
+=======
+    case libkineto::ActivityType::MTIA_INSIGHT: {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // PrivateUse1 kineto backend reuse above ActivityTypes,
       // If PrivateUse1 backend enabled, this should return
       // c10::DeviceType::PrivateUse1.

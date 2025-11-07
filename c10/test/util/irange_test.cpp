@@ -59,7 +59,11 @@ TEST(irange, empty_reverse_range_one_input) {
   ASSERT_EQ(test_vec, correct);
 }
 
+<<<<<<< HEAD
 constexpr std::array<int, 3> toy_iota() {
+=======
+static constexpr std::array<int, 3> toy_iota() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::array<int, 3> result = {0};
   for (const auto i : c10::irange(3)) {
     result[i] = i;
@@ -67,7 +71,11 @@ constexpr std::array<int, 3> toy_iota() {
   return result;
 }
 
+<<<<<<< HEAD
 constexpr std::array<int, 3> toy_iota_with_start(int start) {
+=======
+static constexpr std::array<int, 3> toy_iota_with_start(int start) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::array<int, 3> result = {0};
   for (const auto i : c10::irange(start, start + 3)) {
     result[i - start] = i;

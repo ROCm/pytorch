@@ -9,7 +9,11 @@ jobs:
     name: get-label-type
     # Don't run on forked repos
     if: github.repository_owner == 'pytorch'
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -27,7 +31,11 @@ jobs:
       # checkout because when we run this action we don't *have* a local
       # checkout. In other cases you should prefer a local checkout.
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           submodules: false
 
@@ -49,7 +57,11 @@ jobs:
           job_identifier: ${{ github.workflow }}
 
       - name: Download LLM Artifacts from S3
+<<<<<<< HEAD
         uses: seemethere/download-artifact-s3@v4
+=======
+        uses: seemethere/download-artifact-s3@1da556a7aa0a088e3153970611f6c432d58e80e6 # v4.2.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           name: llm_results
@@ -76,7 +88,11 @@ jobs:
           python3 tools/testing/do_target_determination_for_s3.py
 
       - name: Upload TD results to s3
+<<<<<<< HEAD
         uses: seemethere/upload-artifact-s3@v5
+=======
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: steps.td.outcome == 'success'
         with:
           name: td_results
@@ -85,7 +101,11 @@ jobs:
           path: td_results.json
 
       - name: Store TD results on GHA
+<<<<<<< HEAD
         uses: actions/upload-artifact@v4
+=======
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: steps.td.outcome == 'success'
         with:
           name: td_results.json

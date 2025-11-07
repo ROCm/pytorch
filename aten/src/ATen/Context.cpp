@@ -335,15 +335,28 @@ at::BlasBackend Context::blasPreferredBackend() {
     static const bool hipblaslt_preferred = []() {
       static const std::vector<std::string> archs = {
           "gfx90a", "gfx942",
+<<<<<<< HEAD
 #if ROCM_VERSION >= 60300
           "gfx1200", "gfx1201",
 #endif
+=======
+#if ROCM_VERSION >= 60400
+          "gfx1200", "gfx1201",
+#endif
+#if ROCM_VERSION >= 60402
+          "gfx1150", "gfx1151",
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if ROCM_VERSION >= 60500
           "gfx950"
 #endif
       };
       for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+<<<<<<< HEAD
         if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
+=======
+        if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return false;
         }
       }
@@ -364,12 +377,22 @@ at::BlasBackend Context::blasPreferredBackend() {
 #if ROCM_VERSION >= 60300
           "gfx1100", "gfx1101", "gfx1200", "gfx1201",
 #endif
+<<<<<<< HEAD
+=======
+#if ROCM_VERSION >= 60402
+          "gfx1150", "gfx1151",
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if ROCM_VERSION >= 60500
           "gfx950"
 #endif
       };
       for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+<<<<<<< HEAD
         if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
+=======
+        if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           TORCH_WARN_ONCE(
             "Attempting to use hipBLASLt on an unsupported architecture! "
             "Overriding blas backend to hipblas");
@@ -422,7 +445,11 @@ void Context::setROCmFAPreferredBackend(at::ROCmFABackend b) {
           "gfx90a",  "gfx942", "gfx950"
       };
       for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+<<<<<<< HEAD
         if (!detail::getCUDAHooks().isGPUArch(index, archs)) {
+=======
+        if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           TORCH_WARN_ONCE(
             "Attempting to use CK on an unsupported architecture! Cannot set backend to CK");
           return true;
@@ -618,7 +645,11 @@ Allocator* getCPUAllocator() {
 //    means the allow_tf32 flags are overridden and tf32 is force disabled
 // override_allow_tf32_flag = false
 //    means the original allow_tf32 flags are followed
+<<<<<<< HEAD
 thread_local bool override_allow_tf32_flag = false;
+=======
+thread_local static bool override_allow_tf32_flag = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 NoTF32Guard::NoTF32Guard() {
   if (!override_allow_tf32_flag) {
@@ -641,7 +672,11 @@ bool NoTF32Guard::should_disable_tf32() {
 // This information can be used, for example, to select implementations
 // with different numerical or performance characteristics.
 // See https://pytorch.org/docs/stable/notes/numerical_accuracy.html for details.
+<<<<<<< HEAD
 thread_local bool rocm_is_backward_pass;
+=======
+thread_local static bool rocm_is_backward_pass;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ROCmBackwardPassGuard::ROCmBackwardPassGuard() {
   rocm_is_backward_pass = true;
@@ -697,7 +732,11 @@ void Context::setAllowFP16ReductionCPU(bool b) {
 #else
     if (true)
 #endif
+<<<<<<< HEAD
       throw std::runtime_error("Float16 arithmetic is not supported by the CPU!");
+=======
+      TORCH_CHECK(false, "Float16 arithmetic is not supported by the CPU!");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   allow_fp16_reduction_cpu = b;
 }

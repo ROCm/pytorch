@@ -2,7 +2,10 @@
 
 import torch
 import torch.nn as nn
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed._shard.sharded_tensor import ShardedTensor
 
 

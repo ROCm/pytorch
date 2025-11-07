@@ -8,7 +8,11 @@
 
 namespace c10::impl {
 
+<<<<<<< HEAD
 thread_local TorchDispatchModeTLS torchDispatchModeState;
+=======
+thread_local static TorchDispatchModeTLS torchDispatchModeState;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool TorchDispatchModeTLS::any_modes_set(bool skip_infra_modes) {
   if (!torchDispatchModeState.stack_.empty())

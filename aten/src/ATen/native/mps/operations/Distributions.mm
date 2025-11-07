@@ -482,7 +482,11 @@ static Tensor& multinomial_with_replacement_mps_kernel(const Tensor& self,
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "multinomial_with_replacement:" + getTensorsStringKey({self}) + ":" + std::to_string(n_sample);
+=======
+    std::string key = "multinomial_with_replacement:" + getTensorsStringKey({self}) + ":" + std::to_string(n_sample);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<RandomCachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSShape* prob_shape = getMPSShape(self_v);
       newCachedGraph->stateTensor = mpsGraphRankedPlaceHolder(mpsGraph, MPSDataTypeInt32, @[ @7 ]);

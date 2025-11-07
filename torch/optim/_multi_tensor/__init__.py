@@ -5,6 +5,10 @@ Most commonly used methods are already supported, and the interface is general
 enough, so that more sophisticated ones can be also easily integrated in the
 future.
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from functools import partialmethod
 
 from torch import optim

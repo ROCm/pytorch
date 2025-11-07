@@ -585,7 +585,11 @@ cpu_adaptive_max_pool3d_channels_last(
   using Vec = vec::Vectorized<scalar_t>;
   using integer_t = vec::int_same_size_t<scalar_t>;
   using iVec = vec::Vectorized<integer_t>;
+<<<<<<< HEAD
   // for the convience of vectorization, use integer of the same size of scalar_t,
+=======
+  // for the convenience of vectorization, use integer of the same size of scalar_t,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //   e.g. int32_t for float, int64_t for double
   // need to make sure doesn't overflow
   TORCH_CHECK(input_height * input_width <= std::numeric_limits<integer_t>::max());

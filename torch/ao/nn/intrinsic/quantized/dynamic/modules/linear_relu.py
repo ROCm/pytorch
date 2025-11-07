@@ -27,6 +27,10 @@ class LinearReLU(nnqd.Linear):
         >>> print(output.size())
         torch.Size([128, 30])
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _FLOAT_MODULE = nni.LinearReLU  # type: ignore[assignment]
 
     def __init__(self, in_features, out_features, bias=True, dtype=torch.qint8):
@@ -56,5 +60,9 @@ class LinearReLU(nnqd.Linear):
         )
 
     @classmethod
+<<<<<<< HEAD
     def from_reference(cls, ref_qlinear_relu):
+=======
+    def from_reference(cls, ref_qlinear_relu):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().from_reference(ref_qlinear_relu[0])

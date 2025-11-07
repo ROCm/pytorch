@@ -11,6 +11,7 @@ from torch.testing import FileCheck
 # Make the helper files in test/ importable
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import freeze_rng_state, JitTestCase
 
 
@@ -22,6 +23,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import freeze_rng_state, JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestRemoveMutation(JitTestCase):
     def test_aten_inplace(self):
         def test_not_new_alias(x):
@@ -318,3 +325,10 @@ class TestRemoveMutation(JitTestCase):
 
         self.run_pass("remove_mutation", mod_script.forward.graph)
         FileCheck().check("aten::add_").run(test_multiple_uses.graph)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

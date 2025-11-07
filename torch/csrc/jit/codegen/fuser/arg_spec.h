@@ -16,7 +16,10 @@ namespace torch::jit::fuser {
 // Note: the device to run on is included in the arg spec because kernels
 //  are compiled per-device.
 struct TORCH_API ArgSpec {
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ArgSpec(at::TensorList inputs, const int _device)
       : descs_{c10::fmap<TensorDesc>(inputs)},
         hash_code_{c10::get_hash(_device, inputs.size(), descs_)},

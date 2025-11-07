@@ -1,9 +1,17 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
+=======
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import traceback
 import unittest
 import warnings
+<<<<<<< HEAD
+=======
+from functools import lru_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo
@@ -11,6 +19,10 @@ import torch._dynamo.config
 import torch._dynamo.test_case
 import torch.utils._pytree as python_pytree
 from torch._dynamo.exc import Unsupported
+<<<<<<< HEAD
+=======
+from torch._dynamo.testing import skipIfNotPy312
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.utils import counters
 from torch.testing._internal.common_utils import (
     IS_FBCODE,
@@ -35,6 +47,17 @@ make sure that there is a test for it.
 """
 
 
+<<<<<<< HEAD
+=======
+class GenericCtxMgr:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GraphBreakMessagesTest(LoggingTestCase):
     def test_dynamic_shape_operator(self):
         def fn():
@@ -87,7 +110,16 @@ from user code:
                 torch.Tensor([1])
             ),
             """\
+<<<<<<< HEAD
 Tensor.item
+=======
+Unsupported Tensor.item() call with capture_scalar_outputs=False
+  Explanation: Dynamo does not support tracing `Tensor.item()` with config.capture_scalar_outputs=False.
+  Hint: Set `torch._dynamo.config.capture_scalar_outputs = True` or `export TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1` to include these operations in the captured graph.
+
+  Developer debug context: call_method TensorVariable() item () {}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -107,7 +139,11 @@ from user code:
                 """\
 Data dependent operator
   Explanation: Operator `aten.equal.default` has a non-Tensor output whose value is dependent on the data of Tensor inputs.
+<<<<<<< HEAD
   Hint: Consider wrapping the operator into a PyTorch-understood custom operator (see https:/pytorch.org/tutorials/advanced/custom_ops_landing_page.html)
+=======
+  Hint: Consider wrapping the operator into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Developer debug context: aten.equal.default
 
@@ -117,6 +153,36 @@ from user code:
     return torch.equal(x, x)""",
             )
 
+<<<<<<< HEAD
+=======
+    def test_sort_with_nonconstant_keys(self):
+        lst = [
+            torch.tensor(4),
+            torch.tensor(1),
+            torch.tensor(2),
+            torch.tensor(3),
+        ]
+
+        def fn(lst):
+            return sorted(lst)
+
+        self.assertExpectedInlineMunged(
+            Unsupported,
+            lambda: torch.compile(fn, backend="eager", fullgraph=True)(lst),
+            """\
+sort with non-constant keys
+  Explanation: Cannot perform sort with non-constant key. First non-constant key type: <class 'torch.Tensor'>. Most notably, we cannot sort with Tensor or SymInt keys, but we can sort ints.
+  Hint: Use something else as the key.
+
+  Developer debug context: TensorVariable()
+
+
+from user code:
+   File "test_error_messages.py", line N, in fn
+    return sorted(lst)""",
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_super_call_method(self):
         def fn(it):
             return [x + 1 for x in it]
@@ -141,6 +207,36 @@ from user code:
     return [x + 1 for x in it]""",
         )
 
+<<<<<<< HEAD
+=======
+    def test_dict_items_input(self):
+        def fn(x, items):
+            it = iter(items)
+            return next(it), x.sin()
+
+        x = torch.randn(3)
+        dct = {"a": 3, "b": 3}
+
+        self.assertExpectedInlineMunged(
+            Unsupported,
+            lambda: torch.compile(fn, backend="eager", fullgraph=True)(x, dct.items()),
+            """\
+Unsupported method call
+  Explanation: Dynamo does not know how to trace method `__iter__` of class `dict_items`
+  Hint: Avoid calling `dict_items.__iter__` in your code.
+  Hint: Please report an issue to PyTorch.
+  Hint: Consider moving the creation of dict view object (e.g. `dict.keys()`, `dict.items()`,) to the compiled region, instead of passing it as an input to the compiled region.
+  Hint: Dynamo does not fully support tracing builtin iterators (e.g. `map`, `zip`, `enumerate`) passed in from uncompiled to compiled regions (e.g. `torch.compile(fn)(enumerate(...))`). This can happen unintentionally if a previous graph break happens with a builtin iterator in the local scope.
+
+  Developer debug context: call_method UserDefinedObjectVariable(dict_items) __iter__ () {}
+
+
+from user code:
+   File "test_error_messages.py", line N, in fn
+    it = iter(items)""",
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_super_call_function(self):
         def fn(it):
             return [x + 1 for x in it()]
@@ -176,6 +272,10 @@ from user code:
 Unsupported context manager
   Explanation: Dynamo does not know how to enter a `int` context manager.
   Hint: Avoid using the unsupported context manager.
+<<<<<<< HEAD
+=======
+  Hint: If the context manager seems like it should be supported (e.g. torch.set_grad_enabled), then it may be the case that it was created outside the compiled region, which Dynamo does not support. Supported context managers can cross graph break boundaries only if they are local non-closure variables, or are intermediate values.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Hint: File an issue to PyTorch. Simple context managers can potentially be supported, but note that context managers can't be supported in general
 
   Developer debug context: Attempted SETUP_WITH/BEFORE_WITH on ConstantVariable(int: 3)
@@ -246,7 +346,11 @@ from user code:
 Attempted to call function marked as skipped
   Explanation: Dynamo developers have intentionally marked that the function `skip` in file `case.py` should not be traced.
   Hint: Avoid calling the function `skip`.
+<<<<<<< HEAD
   Hint: Remove the function `skip` or the file `case.py` from torch/_dynamo/trace_rules.py. More graph breaks may occur as a result of attempting to trace into the function.
+=======
+  Hint: Apply `@torch._dynamo.dont_skip_tracing` to the function `skip` to force tracing into the function. More graph breaks may occur as a result of attempting to trace into the function.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Hint: Please file an issue to PyTorch.
 
   Developer debug context: module: unittest.case, qualname: skip, skip reason: <missing reason>
@@ -295,10 +399,17 @@ from user code:
 Attempted to inline function marked as skipped
   Explanation: Dynamo developers have intentionally marked that the function `skip` should not be traced.
   Hint: Avoid calling the function `skip`.
+<<<<<<< HEAD
   Hint: Remove the function `case.py` from torch/_dynamo/trace_rules.py. More graph breaks may occur as a result of attempting to trace into the function.
   Hint: Please file an issue to PyTorch.
 
   Developer debug context: qualname: skip, name: skip, filename: `case.py`, skip reason: skipped according trace_rules.lookup SKIP_DIRS
+=======
+  Hint: Apply `@torch._dynamo.dont_skip_tracing` to the function `skip` to force tracing into the function. More graph breaks may occur as a result of attempting to trace into the function.
+  Hint: Please file an issue to PyTorch.
+
+  Developer debug context: qualname: skip, name: skip, filename: `case.py`, skip reason: skipped according trace_rules.lookup unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 from user code:
@@ -307,6 +418,7 @@ from user code:
             post_munge=post_munge,
         )
 
+<<<<<<< HEAD
     def test_disable(self):
         @torch.compiler.disable
         def inner():
@@ -339,6 +451,8 @@ from user code:
             post_munge=post_munge,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_graph_break_fn(self):
         def fn():
             torch._dynamo.graph_break()
@@ -600,6 +714,7 @@ from user code:
         )
 
     def test_generic_ctx_mgr_graph_break(self):
+<<<<<<< HEAD
         class CtxMgr:
             def __enter__(self):
                 return self
@@ -613,6 +728,14 @@ from user code:
                     pass
                 with CtxMgr():
                     with CtxMgr():
+=======
+        def fn():
+            with GenericCtxMgr():
+                with GenericCtxMgr():
+                    pass
+                with GenericCtxMgr():
+                    with GenericCtxMgr():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         pass
                     torch._dynamo.graph_break()
 
@@ -627,7 +750,11 @@ Graph break under GenericContextWrappingVariable
   Hint: Move the offending context manager(s) to outside the compiled region.
   Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
 
+<<<<<<< HEAD
   Developer debug context: Active generic context managers: [GenericContextWrappingVariable(CtxMgr), GenericContextWrappingVariable(CtxMgr)]
+=======
+  Developer debug context: Active generic context managers: [GenericContextWrappingVariable(GenericCtxMgr), GenericContextWrappingVariable(GenericCtxMgr)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 from user code:
@@ -637,21 +764,66 @@ from user code:
 
         self.assertExpectedInline(
             munge_exc(cm.exception.__cause__, suppress_suffix=True, skip=0),
+<<<<<<< HEAD
             """None""",
         )
 
     def test_unsupported_bytecode(self):
+=======
+            """\
+Call to `torch._dynamo.graph_break()`
+  Explanation: User-inserted graph break. Message: None
+  Hint: Remove the `torch._dynamo.graph_break()` call.
+
+  Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
+""",
+        )
+
+    def test_load_build_class(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def fn():
             class Foo:
                 pass
 
             return Foo
 
+<<<<<<< HEAD
         def post_munge(s):
             s = re.sub(r"0x[0-9A-Fa-f]+", "0xmem_addr", s)
             s = re.sub(
                 r"Instruction\(.*opname='LOAD_BUILD_CLASS'.*\)\n",
                 "Instruction(LOAD_BUILD_CLASS)",
+=======
+        self.assertExpectedInlineMunged(
+            Unsupported,
+            lambda: torch.compile(fn, backend="eager", fullgraph=True)(),
+            """\
+LOAD_BUILD_CLASS bytecode not supported
+  Explanation: Dynamo does not support tracing classes that are defined in the compiled region.
+  Hint: Move the class definition out of the compiled region.
+  Hint: It may be possible to write Dynamo tracing rules for this code. Please report an issue to PyTorch if you encounter this graph break often and it is causing performance issues.
+
+  Developer debug context:
+
+
+from user code:
+   File "test_error_messages.py", line N, in fn
+    class Foo:""",
+        )
+
+    @skipIfNotPy312
+    def test_unsupported_bytecode(self):
+        async def fn():
+            async for i in range(3):
+                print(i)
+            return 1
+
+        def post_munge(s):
+            s = re.sub(r"0x[0-9A-Fa-f]+", "0xmem_addr", s)
+            s = re.sub(
+                r"Instruction\(.*opname='GET_AITER'.*\)\n",
+                "Instruction(GET_AITER)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 s,
             )
             return s
@@ -661,6 +833,7 @@ from user code:
             lambda: torch.compile(fn, backend="eager", fullgraph=True)(),
             """\
 Missing bytecode handler
+<<<<<<< HEAD
   Explanation: Dynamo does not know how to handle the bytecode instruction `LOAD_BUILD_CLASS`.
   Hint: Do not trace code that produces the `LOAD_BUILD_CLASS` bytecode instruction (see https:/docs.python.org/3/library/dis.html for bytecode semantics).
   Hint: It may be possible to write Dynamo tracing rules for this code. Please report an issue to PyTorch if you encounter this graph break often and it is causing performance issues.
@@ -670,6 +843,17 @@ Missing bytecode handler
 from user code:
    File "test_error_messages.py", line N, in fn
     class Foo:""",
+=======
+  Explanation: Dynamo does not know how to handle the bytecode instruction `GET_AITER`.
+  Hint: Do not trace code that produces the `GET_AITER` bytecode instruction (see https://docs.python.org/3/library/dis.html for bytecode semantics).
+  Hint: It may be possible to write Dynamo tracing rules for this code. Please report an issue to PyTorch if you encounter this graph break often and it is causing performance issues.
+
+  Developer debug context: GET_AITER with args (<torch._dynamo.symbolic_convert.InstructionTranslator object at 0xmem_addr>, Instruction(GET_AITER)
+
+from user code:
+   File "test_error_messages.py", line N, in fn
+    async for i in range(3):""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             post_munge=post_munge,
         )
 
@@ -690,9 +874,15 @@ from user code:
             """\
 Reconstruction failure
   Explanation: Dynamo has no bytecode reconstruction implemented for sourceless variable UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo)).
+<<<<<<< HEAD
   Hint: If Dynamo attempting to trace a return statement and your code is attempting to return a variable that Dynamo cannot reconstruct, then remove it from the return statement.
   Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
   Hint: Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't havereconstruction rules may be fundamentally unreconstructable.
+=======
+  Hint: If Dynamo is attempting to trace a return statement and your code is attempting to return a variable that Dynamo cannot reconstruct, then remove it from the return statement.
+  Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
+  Hint: Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't have reconstruction rules may be fundamentally unreconstructable.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Developer debug context: UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo))
 
@@ -744,9 +934,15 @@ User code traceback:
             """\
 Reconstruction failure
   Explanation: Dynamo has no bytecode reconstruction implemented for sourceless variable UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure_gb.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo)).
+<<<<<<< HEAD
   Hint: If Dynamo attempting to trace a return statement and your code is attempting to return a variable that Dynamo cannot reconstruct, then remove it from the return statement.
   Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
   Hint: Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't havereconstruction rules may be fundamentally unreconstructable.
+=======
+  Hint: If Dynamo is attempting to trace a return statement and your code is attempting to return a variable that Dynamo cannot reconstruct, then remove it from the return statement.
+  Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
+  Hint: Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't have reconstruction rules may be fundamentally unreconstructable.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Developer debug context: UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure_gb.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo))
 
@@ -835,6 +1031,47 @@ User code traceback:
 """,
         )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(IS_FBCODE, "assert gets patched in internal pytest")
+    @make_logging_test(graph_breaks=True)
+    def test_assert_failure_in_generic_ctx_mgr(self, records):
+        def fn(x):
+            with GenericCtxMgr():
+                assert x is None
+
+        with self.assertRaises(AssertionError):
+            torch.compile(fn, backend="eager")(torch.randn(3))
+
+        # only 1 graph break message
+        self.assertEqual(len(records), 1)
+        self.assertExpectedInline(
+            munge_exc(records[0].getMessage(), suppress_suffix=True, skip=0),
+            """\
+Graph break: skip: from user code at:
+  File "test_error_messages.py", line N, in fn
+    assert x is None
+""",
+        )
+        self.assertExpectedInline(
+            munge_exc(records[0].exc_info[1], suppress_suffix=True, skip=0),
+            """\
+Data-dependent assertion failed (cannot compile partial graph)
+  Explanation: Dynamo has determined when encountering a data-dependent assert failure that it should not compile the partial graph.
+  Hint: This graph break is fundamental - it is unlikely that Dynamo will ever be able to trace through your code. Consider finding a workaround.
+  Hint: Use `torch._assert()` to raise a hard AssertionError when the check fails. This error will propagate back the user code that called the compiled function (i.e. Dynamo will not trace any exception handling).
+  Hint: Remove the assert statement.
+  Hint: Move the assert statement outside of any context managers in order to graph break with partial graph compilation (if fullgraph=False).
+
+  Developer debug context: value: ConstantVariable(bool: False)
+
+
+from user code:
+   File "test_error_messages.py", line N, in fn
+    assert x is None""",
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_no_internal_compiler_stacktrace(self):
         def fn():
             gn()
@@ -864,8 +1101,13 @@ User code traceback:
 Traceback (most recent call last):
   File "test_error_messages.py", line N, in test_no_internal_compiler_stacktrace
     torch.compile(fn, backend="eager", fullgraph=True)()
+<<<<<<< HEAD
   File "eval_frame.py", line N, in _fn
     raise e.with_traceback(None) from None
+=======
+  File "eval_frame.py", line N, in compile_wrapper
+    raise e.with_traceback(None) from e.__cause__  # User compiler error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch._dynamo.exc.Unsupported: Call to `torch._dynamo.graph_break()`
   Explanation: User-inserted graph break. Message: None
   Hint: Remove the `torch._dynamo.graph_break()` call.
@@ -1010,8 +1252,20 @@ User code traceback:
         self.assertIn("Foo().attr = x  # 0", records[-1].getMessage())
         self.assertIn("Foo().attr = x  # 1", records[-1].getMessage())
 
+<<<<<<< HEAD
         self.assertExpectedInline(
             munge_exc(records[-1].getMessage(), skip=0),
+=======
+        def post_munge(s):
+            return re.sub(
+                r"torch_dynamo_resume_in_f(\d)_at_(\d+)",
+                r"torch_dynamo_resume_in_f\1_at_N",
+                s,
+            )
+
+        self.assertExpectedInline(
+            post_munge(munge_exc(records[-1].getMessage(), skip=0)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """\
 Graph break in user code at test_error_messages.py:N
 Graph Break Reason: STORE_ATTR-caused graph break
@@ -1020,12 +1274,20 @@ User code traceback:
     f3(torch.randn(3))
   File "test_error_messages.py", line N, in f3
     Foo().attr = x  # 0
+<<<<<<< HEAD
   File "test_error_messages.py", line N, in torch_dynamo_resume_in_f3_at_999
+=======
+  File "test_error_messages.py", line N, in torch_dynamo_resume_in_f3_at_N
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Foo().attr = x  # 1
 
 ========== most recent `torch.compile` tracing attempt started here ==========
 
+<<<<<<< HEAD
   File "test_error_messages.py", line N, in torch_dynamo_resume_in_f3_at_1000
+=======
+  File "test_error_messages.py", line N, in torch_dynamo_resume_in_f3_at_N
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Foo().attr = x
 
 NOTE: the most recent `torch.compile` tracing attempt might not be where you applied `torch.compile`! This is due to how graph breaks are implemented - the optimized code object returned by Dynamo will call another Dynamo-generated resume function and tracing is re-enabled by calling the resume function as a normal Python function, which Dynamo intercepts as a top-level frame.
@@ -1077,6 +1339,139 @@ User code traceback:
 """,
         )
 
+<<<<<<< HEAD
+=======
+    @make_logging_test(dynamo=logging.DEBUG)
+    def test_lru_cache_warning_logs_user_stack_trace(self, records):
+        @lru_cache
+        def foo(x):
+            return x + 1
+
+        torch.compile(foo, backend="eager")(torch.randn(4))
+
+        lru_cache_log = None
+        for record in records:
+            if "call to a lru_cache wrapped function at:" in record.getMessage():
+                lru_cache_log = record.getMessage()
+                break
+
+        self.assertIsNotNone(lru_cache_log, "No lru_cache warning was logged")
+
+        self.assertExpectedInline(
+            munge_exc(lru_cache_log),
+            """\
+call to a lru_cache wrapped function at: _dynamo/external_utils.py:N
+  File "test_error_messages.py", line N, in test_lru_cache_warning_logs_user_stack_trace
+    torch.compile(foo, backend="eager")(torch.randn(4))
+""",
+        )
+
+    @make_logging_test(dynamo=logging.DEBUG)
+    def test_lru_cache_warning_logs_nested_call(self, records):
+        @lru_cache
+        def foo(x):
+            return x + 1
+
+        def nested(x):
+            return foo(x)
+
+        torch.compile(nested, backend="eager")(torch.randn(4))
+
+        lru_cache_log = None
+        for record in records:
+            if "call to a lru_cache wrapped function at:" in record.getMessage():
+                lru_cache_log = record.getMessage()
+                break
+
+        self.assertIsNotNone(lru_cache_log, "No lru_cache warning was logged")
+
+        self.assertExpectedInline(
+            munge_exc(lru_cache_log),
+            """\
+call to a lru_cache wrapped function at: test_error_messages.py:N
+  File "test_error_messages.py", line N, in test_lru_cache_warning_logs_nested_call
+    torch.compile(nested, backend="eager")(torch.randn(4))
+  File "test_error_messages.py", line N, in nested
+    return foo(x)
+""",
+        )
+
+    def test_disable_message(self):
+        @torch.compile(backend="eager", fullgraph=True)
+        def outer(fn, x):
+            return fn(x)
+
+        @torch.compiler.disable
+        def f(x):
+            return x + 1
+
+        def post_munge(s):
+            return re.sub(r"0x[0-9A-Fa-f]+", "0xmem_addr", s)
+
+        self.assertExpectedInlineMunged(
+            Unsupported,
+            lambda: outer(f, torch.randn(3)),
+            """\
+Skip calling `torch.compiler.disable()`d function
+  Explanation: Skip calling function `<function GraphBreakMessagesTest.test_disable_message.<locals>.f at 0xmem_addr>` since it was wrapped with `torch.compiler.disable` (reason: None)
+  Hint: Remove the `torch.compiler.disable` call
+
+  Developer debug context: <function GraphBreakMessagesTest.test_disable_message.<locals>.f at 0xmem_addr>
+
+
+from user code:
+   File "test_error_messages.py", line N, in outer
+    return fn(x)""",
+            post_munge=post_munge,
+        )
+
+        @torch.compiler.disable(reason="test message")
+        def g(x):
+            return x + 2
+
+        self.assertExpectedInlineMunged(
+            Unsupported,
+            lambda: outer(g, torch.randn(3)),
+            """\
+Skip calling `torch.compiler.disable()`d function
+  Explanation: Skip calling function `<function GraphBreakMessagesTest.test_disable_message.<locals>.g at 0xmem_addr>` since it was wrapped with `torch.compiler.disable` (reason: test message)
+  Hint: Remove the `torch.compiler.disable` call
+
+  Developer debug context: <function GraphBreakMessagesTest.test_disable_message.<locals>.g at 0xmem_addr>
+
+
+from user code:
+   File "test_error_messages.py", line N, in outer
+    return fn(x)""",
+            post_munge=post_munge,
+        )
+
+        class Mod(torch.nn.Module):
+            def forward(self, x):
+                return x + 3
+
+        mod = Mod()
+        mod.compile()
+        mod = torch.compiler.disable(mod, reason="test message 2")
+
+        self.assertExpectedInlineMunged(
+            Unsupported,
+            lambda: outer(mod, torch.randn(3)),
+            """\
+Unsupported function call (delayed)
+  Explanation: Dynamo determined that a graph break should occur when calling `L['fn']`. Reason: Optimized `nn.Module` is wrapped with `torch.compiler.disable` (reason: test message 2)
+
+
+  Developer debug context: source: LocalSource(local_name='fn', is_input=True, dynamism=None, is_derefed_cell_contents=False)
+
+
+from user code:
+   File "test_error_messages.py", line N, in outer
+    return fn(x)""",
+            post_munge=post_munge,
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

@@ -26,7 +26,11 @@ namespace py = pybind11;
 // torch.tensor([[1.0, -1.0, 2.0, -2.0]]).unsqueeze(-1).unsqueeze(-1)
 //
 // In the future, preprocess will accept a dedicated object
+<<<<<<< HEAD
 c10::IValue preprocess(
+=======
+static c10::IValue preprocess(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const torch::jit::Module& mod,
     const c10::Dict<c10::IValue, c10::IValue>& method_compile_spec,
     const torch::jit::BackendDebugHandleGenerator& generate_debug_handles) {

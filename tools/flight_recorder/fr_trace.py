@@ -14,7 +14,11 @@ Not Yet Implemented
 - TODO- tracebacks aren't implemented
 
 Known Issues
+<<<<<<< HEAD
 - Flight Recorder buffer sequence_id information is not sufficient to match collectives and coalseced collectives
+=======
+- Flight Recorder buffer sequence_id information is not sufficient to match collectives and coalesced collectives
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   unless we have the trace data from the beginning of the program.  To enable confident analysis of trace buffers that
   do not start from zero (and to simplify the script's matching logic) we need to add more information to the recorder.
 - Currently, the script omits checking the 'status' of collectives.  We can look for the first 'non completed'

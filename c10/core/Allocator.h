@@ -40,6 +40,13 @@ class C10_API DataPtr {
   void* operator->() const {
     return ptr_.get();
   }
+<<<<<<< HEAD
+=======
+  C10_ALWAYS_INLINE bool /* success */ unsafe_reset_data_and_ctx(
+      void* new_data_and_ctx) {
+    return ptr_.unsafe_reset_data_and_ctx(new_data_and_ctx);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void clear() {
     ptr_.clear();
   }
@@ -409,5 +416,29 @@ struct DurationStat {
   int64_t min = 0;
   int64_t count = 0;
 };
+<<<<<<< HEAD
+=======
+
+// Size pretty-printer
+inline std::string format_size(uint64_t size) {
+  std::ostringstream os;
+  os.precision(2);
+  os << std::fixed;
+  if (size <= 1024) {
+    os << size << " bytes";
+  } else if (size <= 1048576) {
+    os << (static_cast<double>(size) / 1024.0);
+    os << " KiB";
+  } else if (size <= 1073741824ULL) {
+    os << static_cast<double>(size) / 1048576.0;
+    os << " MiB";
+  } else {
+    os << static_cast<double>(size) / 1073741824.0;
+    os << " GiB";
+  }
+  return os.str();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace CachingAllocator
 } // namespace c10

@@ -28,6 +28,10 @@
 #include <ATen/NativeFunctions.h>
 #else
 #include <ATen/ops/_fused_sdp_choice_native.h>
+<<<<<<< HEAD
+=======
+#include <ATen/ops/_fused_sdp_choice_ops.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/_masked_softmax.h>
 #include <ATen/ops/_native_multi_head_attention_native.h>
 #include <ATen/ops/_nested_from_padded.h>
@@ -448,6 +452,10 @@ REGISTER_AVX512_DISPATCH(_fused_sdp_choice_stub, &_fused_sdp_choice_cpp)
 REGISTER_VSX_DISPATCH(_fused_sdp_choice_stub, &_fused_sdp_choice_cpp)
 REGISTER_ZVECTOR_DISPATCH(_fused_sdp_choice_stub, &_fused_sdp_choice_cpp)
 REGISTER_SVE256_DISPATCH(_fused_sdp_choice_stub, &_fused_sdp_choice_cpp)
+<<<<<<< HEAD
+=======
+REGISTER_HPU_DISPATCH(_fused_sdp_choice_stub, &_fused_sdp_choice_meta)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 int64_t _fused_sdp_choice_meta(
     const Tensor& query_,
@@ -459,6 +467,23 @@ int64_t _fused_sdp_choice_meta(
     std::optional<double> scale,
     bool enable_gqa) {
   auto query_key_set = query_.key_set();
+<<<<<<< HEAD
+=======
+  bool has_hpu = query_key_set.has(c10::DispatchKey::HPU);
+  if (has_hpu) {
+    auto choice_int = at::_ops::_fused_sdp_choice::redispatch(
+        c10::DispatchKeySet(DispatchKey::HPU),
+        query_,
+        key,
+        value,
+        attn_mask_,
+        dropout_p,
+        is_causal,
+        scale,
+        enable_gqa);
+    return choice_int;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if defined(USE_ROCM)
   bool has_rocm = query_key_set.has(c10::DispatchKey::HIP);
   if (has_rocm) {
@@ -556,7 +581,17 @@ std::optional<Tensor> convert_boolean_attn_mask_cudnn(const std::optional<Tensor
 template<int alignment>
 bool aligned_tensor(const at::Tensor& tensor){
   for(const auto i : c10::irange(tensor.dim() - 1)){
+<<<<<<< HEAD
     if(tensor.sym_stride(i) % alignment != 0){
+=======
+    auto stride = tensor.sym_stride(i).maybe_as_int();
+    // If the stride is unknown at compilation time, assume it is unaligned
+    // and always pad it. This is helpful to avoid unnecessary guards.
+    if (!stride)
+      return false;
+
+    if((*stride) % alignment != 0){
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return false;
     }
   }

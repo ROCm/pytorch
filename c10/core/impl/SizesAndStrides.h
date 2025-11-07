@@ -50,6 +50,23 @@ class C10_API SizesAndStrides {
     }
   }
 
+<<<<<<< HEAD
+=======
+  bool operator==(const SizesAndStrides& other) const {
+    if (size_ != other.size_) {
+      return false;
+    }
+    return !(
+        isInline()
+            ? std::memcmp(
+                  inlineStorage_, other.inlineStorage_, sizeof(inlineStorage_))
+            : std::memcmp(
+                  outOfLineStorage_,
+                  other.outOfLineStorage_,
+                  storageBytes(size_)));
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SizesAndStrides& operator=(const SizesAndStrides& rhs) {
     if (this == &rhs) {
       return *this;

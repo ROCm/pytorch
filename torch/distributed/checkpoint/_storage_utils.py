@@ -17,7 +17,11 @@ def _storage_setup(
 
     if not checkpoint_id:
         raise RuntimeError(
+<<<<<<< HEAD
             "`checkpoint_id` must be specificed if "
+=======
+            "`checkpoint_id` must be specified if "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "storage_reader/storage_writer is None."
         )
 

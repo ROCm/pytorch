@@ -7,10 +7,17 @@ torch.manual_seed(1337)
 
 
 class Net(torch.nn.Module):
+<<<<<<< HEAD
     def __init__(self, device):
         super().__init__()
         self.w_pre = torch.randn(4, 4, device=device)
         self.w_add = torch.randn(4, 4, device=device)
+=======
+    def __init__(self, device, size=4):
+        super().__init__()
+        self.w_pre = torch.randn(size, size, device=device)
+        self.w_add = torch.randn(size, size, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward(self, x):
         w_transpose = torch.transpose(self.w_pre, 0, 1)
@@ -30,6 +37,10 @@ class NetWithTensorConstants(torch.nn.Module):
 
 
 data = {}
+<<<<<<< HEAD
+=======
+large_data = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 data_with_tensor_constants = {}
 
 
@@ -84,6 +95,50 @@ def generate_basic_tests():
             )
 
 
+<<<<<<< HEAD
+=======
+def generate_large_tests():
+    device = "cuda"
+    model = Net(device, size=4096).to(device=device)
+    x = torch.randn((4096, 4096), device=device)
+    with torch.no_grad():
+        ref_output = model(x)
+
+    torch._dynamo.reset()
+    for use_runtime_constant_folding in [True, False]:
+        with torch.no_grad():
+            model_so_path = aot_compile(
+                model,
+                (x,),
+                options={
+                    "aot_inductor.use_runtime_constant_folding": use_runtime_constant_folding
+                },
+            )
+            # Also store a .pt2 file using the aoti_compile_and_package API
+            pt2_package_path = torch._inductor.aoti_compile_and_package(
+                torch.export.export(
+                    model,
+                    (x,),
+                ),
+                inductor_configs={
+                    "aot_inductor.use_runtime_constant_folding": use_runtime_constant_folding
+                },
+            )
+
+        suffix = "_use_runtime_constant_folding" if use_runtime_constant_folding else ""
+        large_data.update(
+            {  # noqa: F541
+                f"model_so_path{suffix}": model_so_path,
+                f"pt2_package_path{suffix}": pt2_package_path,
+                "inputs": [x],
+                "outputs": [ref_output],
+                "w_pre": model.w_pre,
+                "w_add": model.w_add,
+            }
+        )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # AOTI model which will create additional tensors during autograd.
 def generate_test_with_additional_tensors():
     if not torch.cuda.is_available():
@@ -115,6 +170,10 @@ def generate_test_with_additional_tensors():
 
 
 generate_basic_tests()
+<<<<<<< HEAD
+=======
+generate_large_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 generate_test_with_additional_tensors()
 
 
@@ -127,6 +186,10 @@ class Serializer(torch.nn.Module):
 
 
 torch.jit.script(Serializer(data)).save("data.pt")
+<<<<<<< HEAD
+=======
+torch.jit.script(Serializer(large_data)).save("large_data.pt")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch.jit.script(Serializer(data_with_tensor_constants)).save(
     "data_with_tensor_constants.pt"
 )

@@ -361,7 +361,11 @@ def _init_device_handle(
     See the :ref:`Accelerators<accelerators>` for details.
 
 
+<<<<<<< HEAD
     This method will be called once ignored paramters was determined, as the device handle maybe needed
+=======
+    This method will be called once ignored parameters was determined, as the device handle maybe needed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for other initialization.
     """
     determined_device = None
@@ -517,7 +521,11 @@ def _init_extension(state: _FSDPState, device_mesh: DeviceMesh = None) -> _FSDPS
     if device_mesh and root_mesh != state._device_mesh:
         state._fsdp_extension = DTensorExtensions(state._device_handle)
     else:
+<<<<<<< HEAD
         # We need to explicilty set _fsdp_extension to None.
+=======
+        # We need to explicitly set _fsdp_extension to None.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Otherwise, we will run into an infinite recursion when getting the attribute.
         state._fsdp_extension = None
     return state

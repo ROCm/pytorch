@@ -5,7 +5,10 @@ import copy
 import functools
 import math
 import threading
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Optional, Union
 
 import torch
@@ -15,18 +18,31 @@ import torch.utils._pytree as pytree
 from torch.autograd.grad_mode import _unsafe_preserve_version_counter
 from torch.distributed.device_mesh import DeviceMesh, init_device_mesh
 from torch.distributed.fsdp import fully_shard, MixedPrecisionPolicy
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_fsdp import (
     check_sharded_parity,
     FSDPTest,
     FSDPTestMultiThread,
+<<<<<<< HEAD
+=======
+    get_devtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MLP,
 )
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.two_tensor import TwoTensor
 
 
+<<<<<<< HEAD
+=======
+device_type = torch.device(get_devtype())
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def two_tensor_fsdp_pre_all_gather_v1(
     self, mesh: DeviceMesh
 ) -> tuple[tuple[torch.Tensor, ...], Any]:
@@ -222,7 +238,11 @@ class TestFullyShardAllGatherExtensionsMultiProcess(
     def _test_all_gather_extensions_train_parity(self, reshard_after_forward: bool):
         torch.manual_seed(42)
         model = self._init_two_tensor_mlp()
+<<<<<<< HEAD
         ref_model = copy.deepcopy(model).cuda()
+=======
+        ref_model = copy.deepcopy(model).to(device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref_optim = torch.optim.Adam(ref_model.parameters(), lr=1e-2, foreach=True)
         fully_shard_fn = functools.partial(
             fully_shard, reshard_after_forward=reshard_after_forward
@@ -234,7 +254,11 @@ class TestFullyShardAllGatherExtensionsMultiProcess(
         check_sharded_parity(self, ref_model, model)
 
         torch.manual_seed(42 + self.rank + 1)
+<<<<<<< HEAD
         inp = torch.randn((2, 8), device="cuda")
+=======
+        inp = torch.randn((2, 8), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for iter_idx in range(10):
             losses: list[torch.Tensor] = []
             for _model in (ref_model, model):
@@ -261,9 +285,15 @@ class TestFullyShardAllGatherExtensionsMultiThread(
 
     @property
     def device(self) -> torch.device:
+<<<<<<< HEAD
         return torch.device("cuda:0")
 
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+        return torch.device(device_type)
+
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_gather_extensions_end_to_end(self):
         with self._patch_two_tensor_fsdp_all_gather(pre_all_gather_version=1):
             self.run_subtests(
@@ -297,13 +327,21 @@ class TestFullyShardAllGatherExtensionsMultiThread(
 
         # Run a few iterations to check for errors
         torch.manual_seed(42 + self.rank + 1)
+<<<<<<< HEAD
         inp = torch.randn((2, 8), device="cuda")
+=======
+        inp = torch.randn((2, 8), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(3):
             model(inp).sum().backward()
             optim.step()
             optim.zero_grad()
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_gather_extensions_monkey_patch(self):
         tls = threading.local()
         tls.ran_pre_all_gather = False
@@ -368,14 +406,22 @@ class TestFullyShardAllGatherExtensionsMultiThread(
 
         # Run a few iterations to check for errors
         torch.manual_seed(42 + self.rank + 1)
+<<<<<<< HEAD
         inp = torch.randn((2, 8), device="cuda")
+=======
+        inp = torch.randn((2, 8), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(3):
             model(inp).sum().backward()
             optim.step()
             optim.zero_grad()
         assert tls.ran_pre_all_gather
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_gather_extension_outer_size_stride(self):
         """
         NOTE: We cannot easily test the incorrect case where the user-defined
@@ -383,31 +429,54 @@ class TestFullyShardAllGatherExtensionsMultiThread(
         only some ranks may require padding, in which case only those ranks
         will error out and the all-gather will timeout.
         """
+<<<<<<< HEAD
         assert (
             self.world_size >= 2
         ), f"Assumes world size of at least 2 but got {self.world_size=}"
+=======
+        assert self.world_size >= 2, (
+            f"Assumes world size of at least 2 but got {self.world_size=}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = MLP(dim=3, dim_multiplier=3)
         for module in model.modules():
             for param_name, param in module.named_parameters(recurse=False):
                 if "weight" in param_name:
                     param = nn.Parameter(BFloat16AllGatherTensor(param))
                     setattr(module, param_name, param)
+<<<<<<< HEAD
         fully_shard(model)
         optim = torch.optim.AdamW(model.parameters(), lr=1e-2, fused=True)
         torch.manual_seed(42 + self.rank + 1)
         inp = torch.randn((2, 3), device="cuda")
+=======
+        # need to fix reshard_after_forward=True
+        # https://github.com/pytorch/pytorch/issues/154836
+        fully_shard(model, reshard_after_forward=False)
+        optim = torch.optim.AdamW(model.parameters(), lr=1e-2, fused=True)
+        torch.manual_seed(42 + self.rank + 1)
+        inp = torch.randn((2, 3), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         loss = model(inp).sum()
         loss.backward()
         optim.step()
         optim.zero_grad()
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "no cuda")
+=======
+    @skip_if_lt_x_gpu(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_all_gather_extension_hsdp_mesh(self):
         tls = threading.local()
         replicate_size = 2
         shard_size = self.world_size // replicate_size
         mesh = init_device_mesh(
+<<<<<<< HEAD
             "cuda",
+=======
+            device_type.type,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (replicate_size, shard_size),
             mesh_dim_names=("dp_replicate", "dp_shard"),
         )
@@ -456,7 +525,11 @@ class TestFullyShardAllGatherExtensionsMultiThread(
                     local_param
                 )
 
+<<<<<<< HEAD
         inp = torch.randn((2, 8), device="cuda")
+=======
+        inp = torch.randn((2, 8), device=device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model(inp)
         # Check that FSDP passes only the shard mesh to the pre-all-gather
         self.assertEqual(tls.mesh.ndim, 1)

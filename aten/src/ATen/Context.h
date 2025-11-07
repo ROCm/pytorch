@@ -550,7 +550,12 @@ inline size_t getNumGPUs() {
   // devices for a specific device type, add that function to the
   // relevant library (e.g., similar to at::cuda::device_count())
   if (hasCUDA() && hasHIP()) {
+<<<<<<< HEAD
     throw std::runtime_error(
+=======
+    TORCH_CHECK(
+        false,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Enabling both CUDA and HIP in ATen is not supported, as HIP masquerades "
         "to be CUDA (e.g., when you say CUDA, on a HIP build of ATen, this actually "
         "means HIP.  Rebuild PyTorch with one or the other disabled.");

@@ -276,6 +276,7 @@ void Logger::set_runtime_stats_and_log() {
   num_iterations_stats_recorded_++;
   // Set ith iteration when the runtime stats are set.
   ddp_logging_data_->ints_map["iteration"] = reducer_->num_iterations_;
+<<<<<<< HEAD
   // When get_ddp_logging_data() is called, "unused_parameter_size",
   // "has_rebuilt_buckets" and "rebuilt_bucket_sizes" are updated in the latest
   // sampling iteration.
@@ -287,6 +288,14 @@ void Logger::set_runtime_stats_and_log() {
     // No unused params in this iteration
     ddp_logging_data_->ints_map["unused_parameter_size"] = 0;
   }
+=======
+  ddp_logging_data_->ints_map["num_buckets_reduced"] =
+      reducer_->num_buckets_reduced_;
+  // When get_ddp_logging_data() is called, "unused_parameter_size",
+  // "has_rebuilt_buckets" and "rebuilt_bucket_sizes" are updated in the latest
+  // sampling iteration.
+  ddp_logging_data_->ints_map["unused_parameter_size"] = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& unused_index : reducer_->unused_parameters_) {
     const auto& v = reducer_->params_[unused_index];
     ddp_logging_data_->ints_map["unused_parameter_size"] +=

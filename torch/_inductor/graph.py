@@ -3,7 +3,10 @@ from __future__ import annotations
 import contextlib
 import functools
 import itertools
+<<<<<<< HEAD
 import json
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import operator
 import os
@@ -24,15 +27,27 @@ from torch import device, Tensor
 from torch._decomp import get_decompositions
 from torch._dynamo.utils import defake, dynamo_timed
 from torch._library.fake_class_registry import FakeScriptObject
+<<<<<<< HEAD
+=======
+from torch._library.utils import get_layout_constraint_tag
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import LazyString, trace_structured
 from torch._prims_common import (
     compute_required_storage_length,
     make_channels_last_strides_for,
 )
 from torch._subclasses.fake_tensor import FakeTensor
+<<<<<<< HEAD
 from torch.fx.experimental._backward_state import BackwardState
 from torch.fx.experimental.sym_node import magic_methods, method_to_operator
 from torch.fx.experimental.symbolic_shapes import (
+=======
+from torch._utils_internal import full_aoti_runtime_assert
+from torch.fx.experimental._backward_state import BackwardState
+from torch.fx.experimental.sym_node import magic_methods, method_to_operator
+from torch.fx.experimental.symbolic_shapes import (
+    _get_placeholder_expr,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     free_unbacked_symbols,
     has_free_symbols,
     resolve_unbacked_bindings,
@@ -50,6 +65,10 @@ from . import config, ir, metrics
 from .codegen.common import (
     BackendFeature,
     DeviceOpOverrides,
+<<<<<<< HEAD
+=======
+    FileBackedGraphModule,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_backend_features,
     get_device_op_overrides,
     get_wrapper_codegen_for_device,
@@ -86,6 +105,10 @@ from .lowering import (
     maybe_layout_constraints,
     needs_realized_inputs,
     require_contiguous,
+<<<<<<< HEAD
+=======
+    tag_to_layout_constraint,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unsupported_output_tensor,
 )
 from .runtime import autotune_cache
@@ -97,10 +120,18 @@ from .utils import (
     get_cloned_parameter_buffer_name,
     get_donated_idxs,
     get_sympy_Expr_dtype,
+<<<<<<< HEAD
+=======
+    GraphPartitionMap,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_same_tensor,
     maybe_get_suppress_shape_guards_ctx,
     normalize_name,
     should_assume_input_aligned,
+<<<<<<< HEAD
+=======
+    SUPPORTED_MKLDNN_DEVICES,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ValueWithLineMap,
 )
 from .virtualized import NullHandler, V
@@ -113,9 +144,18 @@ if TYPE_CHECKING:
     from torch._higher_order_ops.effects import _EffectType
     from torch.fx import GraphModule
     from torch.fx.graph import Graph
+<<<<<<< HEAD
     from .codegen.wrapper import PythonWrapperCodegen
     from .scheduler import BaseSchedulerNode
 
+=======
+
+    from .codegen.wrapper import PythonWrapperCodegen
+    from .scheduler import BaseSchedulerNode
+
+    CompiledModule = Union[ModuleType, FileBackedGraphModule]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.codecache import output_code_log
 
 
@@ -180,7 +220,16 @@ def get_user_visible_output_strides(g: Graph) -> dict[Node, tuple[int, ...]]:
     if "user_visible_output_idxs" not in output_node.meta:
         return ret
 
+<<<<<<< HEAD
     for idx, node in enumerate(output_node.args[0]):
+=======
+    if not isinstance(output_node.args[0], torch.fx.Node):
+        output_node_args = output_node.args[0]
+    else:
+        output_node_args = output_node.args
+
+    for idx, node in enumerate(output_node_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if idx in output_node.meta["user_visible_output_idxs"]:
             ret[node] = output_node.meta["original_output_strides"][idx]
     return ret
@@ -244,6 +293,17 @@ def mark_nodes_dislike_padding(
             cur.meta["dislike_padding"] = True
             continue
 
+<<<<<<< HEAD
+=======
+        if (
+            isinstance(cur.target, torch._ops.OpOverload)
+            and get_layout_constraint_tag(cur.target)
+            == torch._C.Tag.needs_exact_strides
+        ):
+            cur.meta["dislike_padding"] = True
+            continue
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         op = _get_overload_packet(cur)
         if not op:
             continue
@@ -320,7 +380,12 @@ class GraphLowering(torch.fx.Interpreter):
         self.graph_input_names: list[str] = []
         self.graph_inputs: dict[str, Union[TensorBox, TorchBindObject, sympy.Expr]] = {}
         self.graph_inputs_original: dict[str, InputBuffer] = {}
+<<<<<<< HEAD
         self.zero_dim_cpu_tensor_list = OrderedSet[str]()
+=======
+        self.partition_maps: Optional[list[GraphPartitionMap]] = None
+        self.zero_dim_cpu_tensor_list: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device_types: OrderedSet[str] = (
             const_module.device_types if const_module else OrderedSet()
         )
@@ -346,6 +411,7 @@ class GraphLowering(torch.fx.Interpreter):
         self.constants: dict[str, torch.Tensor] = (
             const_module.constants if const_module else {}
         )
+<<<<<<< HEAD
         self.torchbind_constants: dict[str, torch._C.ScriptObject] = {}
         self.seen_subgraphs: dict[str, ir.Subgraph] = {}
         self.constant_reprs: dict[str, str] = {}
@@ -355,6 +421,25 @@ class GraphLowering(torch.fx.Interpreter):
         self.mutated_buffers = OrderedSet[str]()
         self.never_reuse_buffers = OrderedSet[str]()
         self.inplaced_to_remove = OrderedSet[str]()
+=======
+        self.named_buffers: dict[str, torch.Tensor] = (
+            const_module.named_buffers if const_module else {}
+        )
+        self.named_parameters: dict[str, torch.Tensor] = (
+            const_module.named_parameters if const_module else {}
+        )
+        self.torchbind_constants: dict[
+            str, Union[torch._C.ScriptObject, FakeScriptObject]
+        ] = {}
+        self.seen_subgraphs: dict[str, ir.Subgraph] = {}
+        self.constant_reprs: dict[str, str] = {}
+        self.removed_operations: OrderedSet[str] = OrderedSet()
+        self.removed_buffers: OrderedSet[str] = OrderedSet()
+        self.removed_inplace_buffers: OrderedSet[str] = OrderedSet()
+        self.mutated_buffers: OrderedSet[str] = OrderedSet()
+        self.never_reuse_buffers: OrderedSet[str] = OrderedSet()
+        self.inplaced_to_remove: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device_ops: DeviceOpOverrides = None  # type: ignore[assignment]
         self.wrapper_code: PythonWrapperCodegen = None  # type: ignore[assignment]
         # See `ProxyExecutor Design Note` in ir.py for more details
@@ -370,7 +455,11 @@ class GraphLowering(torch.fx.Interpreter):
 
         self.current_node: torch.fx.Node = None  # type: ignore[assignment]
         self.lists: dict[str, list[str]] = {}
+<<<<<<< HEAD
         self.mutated_inputs = OrderedSet[str]()
+=======
+        self.mutated_inputs: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.mutated_input_idxs: list[int] = []
         self.name_to_buffer: dict[str, ir.Buffer] = {}
         self.name_to_users: defaultdict[str, list[ir.IRNode]] = defaultdict(list)
@@ -390,6 +479,15 @@ class GraphLowering(torch.fx.Interpreter):
         self.post_grad_graph_id = next(_post_grad_graph_counter)
         self.scheduler: torch._inductor.scheduler.Scheduler = None  # type: ignore[assignment]
 
+<<<<<<< HEAD
+=======
+        # record intermediate results for input of UsedDefinedTritonKernels
+        # This will be used if autotuning is done in one pass.
+        self.autotuning_inputs: Optional[list[torch.Tensor]] = None
+        self.autotuning_mapping: Optional[dict[str, dict[str, int]]] = None
+        self.autotuning_grids: Optional[dict[str, Any]] = None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # current_device is set only during codegen of a device-specific kernel
         # a graph can have many devices
         self.current_device: Optional[torch.device] = None
@@ -411,6 +509,13 @@ class GraphLowering(torch.fx.Interpreter):
         # only keeping one node per device for stack trace purposes
         self.device_node_mapping: dict[torch.device, torch.fx.Node] = {}
         self.orig_gm: torch.fx.GraphModule = gm.__copy__()
+<<<<<<< HEAD
+=======
+        for k, v in self.orig_gm.named_buffers():
+            self.named_buffers[k] = v
+        for k, v in self.orig_gm.named_parameters():
+            self.named_parameters[k] = v
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.dynamo_flat_name_to_original_fqn = self.module.meta.get(  # type: ignore[operator, union-attr]
             "dynamo_flat_name_to_original_fqn", {}
         )
@@ -421,15 +526,27 @@ class GraphLowering(torch.fx.Interpreter):
         self.get_backend_features = functools.lru_cache(None)(get_backend_features)
 
         self.effectful_ops: dict[_EffectType, ir.Buffer] = {}
+<<<<<<< HEAD
         self.aligned_inputs: OrderedSet[str] = OrderedSet()
         self.no_fuse_buffer_names = OrderedSet[str]()
+=======
+        # Track the buffers that we know is unaligned
+        # This can either be a graph input or the output of fallback
+        # kernels.
+        self.unaligned_buffers: OrderedSet[str] = OrderedSet()
+        self.no_fuse_buffer_names: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.low_precision_codegen_ops: OrderedSet[str] = OrderedSet()
         # more aggressive prologue fusion
         self.invoke_quant_ops: OrderedSet[str] = OrderedSet()
 
         # Below field is related to printing debug intermediate tensor values info for debugging
+<<<<<<< HEAD
         self.all_codegen_kernel_names = OrderedSet[str]()
+=======
+        self.all_codegen_kernel_names: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # state used by for Kernel.workspace
         self.workspace_id = itertools.count()
@@ -571,7 +688,11 @@ class GraphLowering(torch.fx.Interpreter):
             torch.backends.mkldnn.enabled
             and torch.backends.mkldnn.is_available()
             and all(
+<<<<<<< HEAD
                 n.args[idx].meta["val"].device == torch.device("cpu")
+=======
+                n.args[idx].meta["val"].device.type in SUPPORTED_MKLDNN_DEVICES
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for n in conv_nodes
                 for idx in [0, 1]
             )
@@ -1023,7 +1144,16 @@ class GraphLowering(torch.fx.Interpreter):
         example = super().placeholder(target, args, kwargs)  # type: ignore[arg-type]
         target = self.qualify_name(target)
         if isinstance(example, SymTypes):
+<<<<<<< HEAD
             expr = example.node.expr
+=======
+            # TODO fix partitioning issue and re-enable for backward
+            # https://github.com/pytorch/pytorch/issues/155468.
+            if not V.graph.is_backward:
+                expr = _get_placeholder_expr(example.node)
+            else:
+                expr = example.node.expr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.graph_inputs[target] = expr
             self.graph_input_names.append(target)
             return expr
@@ -1107,8 +1237,13 @@ class GraphLowering(torch.fx.Interpreter):
         # expensive and cause recompiles; Instead, we're generating code
         # based on the alignment of the example input without guarding.
         with maybe_get_suppress_shape_guards_ctx():
+<<<<<<< HEAD
             if should_assume_input_aligned(example):
                 self.aligned_inputs.add(target)
+=======
+            if not should_assume_input_aligned(example):
+                self.unaligned_buffers.add(target)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return tensor
 
     def call_function(self, target: Callable, args: Any, kwargs: dict[str, Any]) -> Any:  # type: ignore[type-arg, override]
@@ -1140,6 +1275,7 @@ class GraphLowering(torch.fx.Interpreter):
                     error.operator_str(target, args, kwargs),
                 )
 
+<<<<<<< HEAD
                 # use contiguous unless the (custom) op asks something else
                 # explicitly
                 if torch._C.Tag.needs_fixed_stride_order in target.tags:
@@ -1166,6 +1302,28 @@ class GraphLowering(torch.fx.Interpreter):
                 # contiguous input since some eager kernels does not
                 # support non-contiguous inputs. They may silently cause
                 # accuracy problems. Check https://github.com/pytorch/pytorch/issues/140452
+=======
+                tag = get_layout_constraint_tag(target, with_default=False)
+                if (
+                    tag is None
+                    and torch._library.utils.is_builtin(target)
+                    and self.is_backward
+                ):
+                    # for implicit fallback ATen ops during backward, if there
+                    # is no layout constraint tag, we conservatively require contiguous
+                    # input since some eager kernels do not
+                    # support non-contiguous inputs. Otherwise they may silently cause
+                    # accuracy problems. Check https://github.com/pytorch/pytorch/issues/140452
+                    # We only do this For ATen ops and for backward.
+                    #
+                    # TODO: should really switch to "needs_fixed_stride" constraint on these
+                    # and identify them one by one.
+                    decided_constraint = require_contiguous  # type: ignore[assignment]
+                else:
+                    tag = get_layout_constraint_tag(target, with_default=True)
+                    decided_constraint = tag_to_layout_constraint(tag)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 make_fallback(target, layout_constraint=decided_constraint)
 
             elif get_decompositions([target]):
@@ -1183,7 +1341,38 @@ class GraphLowering(torch.fx.Interpreter):
             layout_constraints = maybe_layout_constraints(target)
             if layout_constraints:
                 old_args, old_kwargs = args, kwargs
+<<<<<<< HEAD
                 args, kwargs = layout_constraints(n, *args, **kwargs)
+=======
+                if layout_constraints is constrain_to_fake_tensors:
+                    # only constrain_to_fake_tensor if this exists.
+                    # otherwise, no constraints at all: the implication is
+                    # that this operator was inserted by a custom pass
+                    # so we'll give them the freedom.
+                    if "eager_input_vals" in n.meta:
+                        fake_args, fake_kwargs = n.meta["eager_input_vals"]
+
+                        # (fake_args, fake_kwargs) might not align with (args, kwargs).
+                        # we need to normalize them based on the schema
+                        assert isinstance(target, torch._ops.OpOverload)
+
+                        def normalize(args: Any, kwargs: Any) -> tuple[Any, Any]:
+                            result = torch.fx.operator_schemas.normalize_function(
+                                target, args, kwargs
+                            )
+                            assert result is not None
+                            return result[0], result[1]
+
+                        fake_args, fake_kwargs = normalize(fake_args, fake_kwargs)
+                        args, kwargs = normalize(args, kwargs)
+                        old_args, old_kwargs = normalize(old_args, old_kwargs)
+
+                        args, kwargs = constrain_to_fake_tensors(
+                            args, kwargs, fake_args, fake_kwargs
+                        )
+                else:
+                    args, kwargs = layout_constraints(n, *args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             out = lowerings[target](*args, **kwargs)  # type: ignore[index]
 
@@ -1229,9 +1418,15 @@ class GraphLowering(torch.fx.Interpreter):
             self.constant_reprs[target] = ""
             return TorchBindObject(name=target, value=value)
         elif isinstance(value, FakeScriptObject):
+<<<<<<< HEAD
             self.torchbind_constants[target] = value.real_obj
             self.constant_reprs[target] = ""
             return TorchBindObject(name=target, value=value.real_obj)
+=======
+            self.torchbind_constants[target] = value
+            self.constant_reprs[target] = ""
+            return TorchBindObject(name=target, value=value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         assert isinstance(value, torch.Tensor)
         if (
@@ -1404,6 +1599,10 @@ class GraphLowering(torch.fx.Interpreter):
                     k: v.meta["val"] if isinstance(v, torch.fx.Node) else v
                     for k, v in kwargs.items()
                 },
+<<<<<<< HEAD
+=======
+                old_kwargs["tma_descriptor_metadata"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             for name in mutated:
                 old_arg = old_kwargs["kwargs"][name]
@@ -1451,7 +1650,11 @@ class GraphLowering(torch.fx.Interpreter):
 
     def run_node(self, n: torch.fx.Node) -> object:
         def debug(msg: str) -> None:
+<<<<<<< HEAD
             log.debug("lowering %s %s", LazyString(n.format_node), msg)
+=======
+            log.debug("lowering %s %s", LazyString(n.format_node), msg)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         from torch._inductor.compiler_bisector import CompilerBisector
 
@@ -1471,7 +1674,12 @@ class GraphLowering(torch.fx.Interpreter):
         ):
             if (
                 n.op == "call_function"
+<<<<<<< HEAD
                 and n.target is not operator.getitem
+=======
+                and n.target
+                not in (operator.getitem, torch._higher_order_ops.invoke_subgraph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and (
                     fallback_node_due_to_unsupported_type(n)
                     or CompilerBisector.disable_subsystem(
@@ -1497,9 +1705,15 @@ class GraphLowering(torch.fx.Interpreter):
                     old_args = args  # type: ignore[possibly-undefined]
                     old_kwargs = kwargs  # type: ignore[possibly-undefined]
 
+<<<<<<< HEAD
                     if arg_kwarg_vals := n.meta.get("arg_kwarg_vals"):
                         inp_args = arg_kwarg_vals[0]
                         inp_kwargs = arg_kwarg_vals[1]
+=======
+                    if eager_input_vals := n.meta.get("eager_input_vals"):
+                        inp_args = eager_input_vals[0]
+                        inp_kwargs = eager_input_vals[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         args, kwargs = constrain_to_fake_tensors(
                             args, kwargs, inp_args, inp_kwargs
                         )
@@ -1653,7 +1867,11 @@ class GraphLowering(torch.fx.Interpreter):
                                 torch.ops.mkldnn._convolution_pointwise.binary,
                                 torch.ops.mkldnn._convolution_pointwise_.binary,
                                 torch.ops.mkldnn._convolution_transpose_pointwise.default,
+<<<<<<< HEAD
                                 torch.ops.onednn.qconv2d_pointwise.default,
+=======
+                                torch.ops.onednn.qconv_pointwise.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 torch.ops.onednn.qconv2d_pointwise.binary,
                             ]
                             if torch._C.has_mkl:
@@ -1730,6 +1948,20 @@ class GraphLowering(torch.fx.Interpreter):
         for op in self.operations[operation_watermark:]:
             new_unbacked_defs |= op.get_unbacked_symbol_defs()
 
+<<<<<<< HEAD
+=======
+        shape_env = V.graph.sizevars.shape_env
+
+        # An input can an unbacked symint i.e.: when mark_unabcked is used.
+        # in that case add it to new_unbacked_defs.
+        if (
+            n.op == "placeholder"
+            and isinstance(result, sympy.Symbol)
+            and shape_env.is_unbacked_symint(result)
+        ):
+            new_unbacked_defs.add(result)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def format_new_defs() -> str:
             r = [
                 f"unbacked_symbol_defs={buf.get_unbacked_symbol_defs()} in:\n{buf}\n"
@@ -1741,6 +1973,7 @@ class GraphLowering(torch.fx.Interpreter):
             )
             return "***\n".join(r)
 
+<<<<<<< HEAD
         if n.op != "placeholder":
             # Note [Backwards runtime asserts]
             # Backwards poses an interesting problem for deferred runtime
@@ -1769,6 +2002,119 @@ class GraphLowering(torch.fx.Interpreter):
                 self.register_buffer(assert_op, set_name=True)
                 self.register_operation(assert_op)
 
+=======
+        # We do not skip unbacked symints that are input for backward see the note below.
+        if V.graph.is_backward and n.op == "placeholder":
+            return result
+
+        # Note [Backwards runtime asserts]
+        # Backwards poses an interesting problem for deferred runtime
+        # asserts.  In the easy case, we may solely close over data
+        # dependent sized tensors, and there are no binding sites for
+        # unbacked SymInts.  In this case, we can just drop all the
+        # runtime asserts on the floor: no non-placeholder bindings, no
+        # problem.
+        #
+        # However, it is *possible* for a fresh runtime assert to show up
+        # between forwards and backwards.  Right now, the freezing process
+        # that happens when we lower forwards means that we will freeze
+        # runtime asserts, and then the moment the backwards lowering
+        # process attempts to add a new deferred runtime assert, we will
+        # fail.  Let's say you remove that assert.  Now when we get here,
+        # we need to make sure we actually emit these asserts (because we
+        # can't emit them in forwards, we already compiled it).  So we
+        # have to do something here.  But we don't want to reemit ALL
+        # deferred runtime asserts, we only want to emit the NEW ones.
+        # Therefore needing some sort of stratification in the ShapeEnv.
+        # This is all doable, it just hasn't been done yet.
+
+        unbacked_bindings = resolve_unbacked_bindings(
+            V.graph.sizevars.shape_env, n.meta.get("unbacked_bindings", {})
+        )
+        assert unbacked_bindings is not None
+        # When we do lowering, it is possible we reallocate unbacked SymInts.
+        # So we need to line up the unbacked SymInts when performing the test
+        # here
+        #
+        # In principle, we could permit lowering to introduce MORE unbacked
+        # SymInts: as long as all the old unbacked ones are accounted for,
+        # it's fine for inductor to introduce extra calls to item()/unbacked()
+        # whatever.  This actually happens in practice when an unbacked SymInt
+        # gets memoized away; naively, when Inductor reprocesses a kernel, it
+        # doesn't know that the memo still applies, and ends up allocating a
+        # new symbol.  However, this is generally a bad thing: we may still
+        # end up needing to test equalities on the symbols, and a fresh
+        # symbol is likely to hit lots of GuardOnDataDependent errors that
+        # we already know facts for.
+        renamed_unbacked_bindings = OrderedSet(
+            V.fake_mode.shape_env.unbacked_renamings.get(s, s)
+            for s in unbacked_bindings.keys()
+        )
+        assert new_unbacked_defs >= renamed_unbacked_bindings, (
+            f"failed {new_unbacked_defs} >= {renamed_unbacked_bindings} (inductor >= fx)\n"
+            f"fx node is: {n.format_node()}\n"
+            f"new operations are:\n\n{format_new_defs()}"
+        )
+        self.create_deferred_runtime_asserts(n, new_unbacked_defs)
+        return result
+
+    def create_deferred_runtime_asserts(
+        self, n: torch.fx.Node, new_unbacked_defs: OrderedSet[sympy.Symbol]
+    ) -> None:
+        # [NOTE] Codegen runtime asserts in Inductor
+        #
+        # We need to generate runtime asserts directly in Inductor instead
+        # of just reusing the asserts from input graphs because we reuse the
+        # same ShapeEnv as before. In particular, on subsequent graph passes,
+        # we would immediately turn all of these assertions into noops,
+        # because when we evaluated their expressions, we would see that
+        # because we had a deferred runtime assert in the ShapeEnv, we
+        # know "oh, of course this expression is True" already.
+        # One example is below:
+        #
+        # class Model(torch.nn.Module):
+        #     def forward(self, a, b, c):
+        #         nz = torch.nonzero(a)
+        #         ones = a.new_ones([nz.size(0), b.size(0)])
+        #         torch._check(ones.size(0) >= 1)
+        #         equals = torch.add(ones, c)
+        #         return equals
+        # torch._dynamo.mark_dynamic(c, 0)
+        # When we reuse the ShapeEnv in Inductor lowering, the check that checks
+        # a and nonzero have the same shape would be evaluated to True after we resolve
+        # unbacked bindings using the ShapeEnv.
+        # See test_unbacked_equals_input_size_runtime_assertion in test_aot_inductor.
+        #
+        #
+        # In addition to the Inductor generated runtime asserts, we also
+        # need the runtime asserts from the input graph, because some derived
+        # runtime asserts on backed symints are not generated in Inductor. One example is
+        # this: `y = x.reshape(100, -1).clone()`. x.shape[0] needs to be a multiple of 100.
+        # See test_aoti_runtime_asserts_backed_symint in test_aot_inductor.
+
+        def make_assert(expr: SympyBoolean, msg: str) -> None:
+            assert_op = ir.AssertScalar(expr, msg)
+            self.register_buffer(assert_op, set_name=True)
+            self.register_operation(assert_op)
+
+        if (
+            full_aoti_runtime_assert()
+            and n.target == torch.ops.aten._assert_scalar.default
+            and self.aot_mode
+        ):
+            node_args, _ = self.fetch_args_kwargs_from_env(n)
+            if node_args[0] != True:  # noqa: E712
+                make_assert(node_args[0], f"{node_args[0]} to be True")
+        else:
+            # bound_unbacked_symbols tracks the symbols that are created so far,
+            # we use it to make sure that runtime assertions are added after all
+            # symbols used in them are defined.
+            self.bound_unbacked_symbols |= new_unbacked_defs
+
+            shape_env = V.graph.sizevars.shape_env
+
+            # Emit code for runtime asserts that can be inserted at this point.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i0 in new_unbacked_defs:
                 ras = self.ras_by_symbol.pop(i0, [])
                 # NB: size-like not needed, we won't retrace
@@ -1798,6 +2144,7 @@ class GraphLowering(torch.fx.Interpreter):
                     else:
                         make_assert(ra.expr, f"{ra.expr}")
 
+<<<<<<< HEAD
             self.bound_unbacked_symbols |= new_unbacked_defs
 
             unbacked_bindings = resolve_unbacked_bindings(
@@ -1830,6 +2177,8 @@ class GraphLowering(torch.fx.Interpreter):
 
         return result
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def validate_can_generate_cpp_wrapper(self) -> None:
         if config.disable_cpp_codegen:
             raise CppWrapperCodegenError("C++ codegen is disabled")
@@ -1872,6 +2221,7 @@ class GraphLowering(torch.fx.Interpreter):
         )
 
         if self.const_module:
+<<<<<<< HEAD
             # If we have const module, we could reuse the kernels
             # This could avoid duplication and save time on doing recompilation (if Triton.)
             self.wrapper_code._names_iter = self.const_module.wrapper_code._names_iter
@@ -1879,6 +2229,104 @@ class GraphLowering(torch.fx.Interpreter):
                 self.const_module.wrapper_code.src_to_kernel
             )
 
+=======
+            self.wrapper_code._names_iter = self.const_module.wrapper_code._names_iter
+
+    def extract_autotune_inputs(
+        self, example_inputs: list[Union[int, float, torch.Tensor]]
+    ) -> None:
+        import copy
+
+        cloned_gm = copy.deepcopy(self.orig_gm)
+        example_inputs = copy.deepcopy(example_inputs)
+        triton_nodes = []
+        for node in cloned_gm.graph.nodes:
+            if (
+                node.op == "call_function"
+                and node.target is torch.ops.higher_order.triton_kernel_wrapper_mutation
+            ):
+                triton_nodes.append(node)
+
+        # Store grid related nodes
+        grid_inputs: list[torch.fx.Node] = []
+        visited_grids: dict[torch.fx.Node, int] = {}
+        # Store kwargs related nodes
+        triton_inputs: dict[str, Any] = {}
+        kwargs_inputs: list[torch.fx.Node] = []
+        visited_kwargs: dict[Any, int] = {}
+        for node in triton_nodes:
+            # first check whether we have fx node in grid settings.
+            for grid in node.kwargs["grid"]:
+                for val in grid:
+                    if val in visited_grids:
+                        continue
+
+                    if isinstance(val, torch.fx.Node):
+                        visited_grids[val] = len(grid_inputs)
+                        grid_inputs.append(val)
+
+            kwargs = node.kwargs["kwargs"]
+            # identify which args might be mutated, those should be cloned.
+            mutated = torch._higher_order_ops.triton_kernel_wrap.get_mutated_tensors(
+                node.kwargs["kernel_idx"],
+                node.kwargs["constant_args_idx"],
+                {
+                    k: v.meta["val"] if isinstance(v, torch.fx.Node) else v
+                    for k, v in kwargs.items()
+                },
+                node.kwargs["tma_descriptor_metadata"],
+            )
+
+            new_kwargs: dict[str, int] = {}
+            with cloned_gm.graph.inserting_before(node):
+                for k, v in kwargs.items():
+                    if k in mutated:
+                        new_node = cloned_gm.graph.call_function(torch.clone, args=(v,))
+                        new_kwargs[k] = len(kwargs_inputs)
+                        kwargs_inputs.append(new_node)
+                        continue
+
+                    if v in visited_kwargs:
+                        new_kwargs[k] = visited_kwargs[v]
+                        continue
+                    visited_kwargs[v] = len(kwargs_inputs)
+                    kwargs_inputs.append(v)
+                    new_kwargs[k] = visited_kwargs[v]
+            triton_inputs[node.name] = new_kwargs
+
+        new_outputs = kwargs_inputs + grid_inputs
+        for node in cloned_gm.graph.nodes:
+            if node.op == "output":
+                node.args = (tuple(new_outputs),)
+                break
+
+        cloned_gm.recompile()
+        runner = torch.fx.Interpreter(cloned_gm)
+        returned_outputs = runner.run(example_inputs)
+        # Extract and store the grid for autotuning
+        if len(grid_inputs) > 0:
+            grid_outputs = returned_outputs[len(kwargs_inputs) :]
+            self.autotuning_grids = {}
+            for node in triton_nodes:
+                dynamic_grid = False
+                new_grids: list[tuple[Any]] = []
+                for grid in node.kwargs["grid"]:
+                    new_grid = []
+                    for val in grid:
+                        if not isinstance(val, torch.fx.Node):
+                            new_grid.append(val)
+                            continue
+                        dynamic_grid = True
+                        new_grid.append(grid_outputs[visited_grids[val]])
+                    new_grids.append(tuple(new_grid))
+
+                if dynamic_grid:
+                    self.autotuning_grids[node.name] = new_grids
+        # Store the kwargs input for autotuning
+        self.autotuning_inputs = returned_outputs[: len(kwargs_inputs)]
+        self.autotuning_mapping = triton_inputs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def codegen_with_cpp_wrapper(
         self,
     ) -> tuple[ValueWithLineMap, ValueWithLineMap]:
@@ -1886,6 +2334,7 @@ class GraphLowering(torch.fx.Interpreter):
         For GPU, Triton kernels are autotuned and stored as cubin files
         """
         if any(device in self.device_types for device in ["cuda", "xpu"]):
+<<<<<<< HEAD
             if config.triton.autotune_at_compile_time:
                 # If autotune_at_compile_time is True, we can do the codegen in one-pass
                 # TODO: once autotune_at_compile_time is stable, we should delete the else branch
@@ -1895,6 +2344,10 @@ class GraphLowering(torch.fx.Interpreter):
                 self.cpp_wrapper = False
                 compiled = self.compile_to_module().call
 
+=======
+
+            def extract_real_inputs() -> list[Union[int, float, torch.Tensor]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 def materialize(
                     x: Union[torch.SymInt, torch.SymFloat, torch.Tensor],
                 ) -> Union[int, float, torch.Tensor]:
@@ -1961,7 +2414,31 @@ class GraphLowering(torch.fx.Interpreter):
                         assert isinstance(mutated_inp, torch.Tensor)
                         real_inputs[idx] = clone_preserve_strides(mutated_inp)
                         del mutated_inp
+<<<<<<< HEAD
 
+=======
+                return real_inputs
+
+            if config.triton.autotune_at_compile_time:
+                # If autotune_at_compile_time is True, we can do the codegen in one-pass
+                # We will construct the autotuning values if user defined kernel exists.
+                if config.triton.autotune_with_sample_inputs:
+                    user_defined_kernels = False
+                    for op in self.operations:
+                        if isinstance(op, ir.UserDefinedTritonKernel):
+                            user_defined_kernels = True
+                            break
+                    if user_defined_kernels:
+                        real_inputs = extract_real_inputs()
+                        self.extract_autotune_inputs(real_inputs)
+                return self.codegen()
+            else:
+                # first pass
+                self.cpp_wrapper = False
+                compiled = self.compile_to_module().call
+
+                real_inputs = extract_real_inputs()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 with torch.utils._python_dispatch._disable_current_modes():
                     compiled(real_inputs)
                 del real_inputs
@@ -2005,6 +2482,7 @@ class GraphLowering(torch.fx.Interpreter):
                 "Finished codegen for all nodes. The list of kernel names available: %s",
                 V.graph.all_codegen_kernel_names,
             )
+<<<<<<< HEAD
             # Dump provenance artifacts for debugging trace
             provenance_info = (
                 V.debug.log_inductor_triton_kernel_to_post_grad_node_info()
@@ -2031,6 +2509,8 @@ class GraphLowering(torch.fx.Interpreter):
                     },
                     payload_fn=lambda: json.dumps(node_mappings),
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             result = self.wrapper_code.generate(self.is_inference)
             self.wrapper_code.pop_codegened_graph()
@@ -2043,7 +2523,11 @@ class GraphLowering(torch.fx.Interpreter):
         graph. The parent graph is passed as an argument: the
         intention is to inline codegening of the subgraph in
         the parent graph's wrapper code (including the generated
+<<<<<<< HEAD
         kerenls). The wrapper code is not finalized (via `.generate()`
+=======
+        kernels). The wrapper code is not finalized (via `.generate()`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         call), as this will be done in the parent graph's `codegen()`.
         """
         with dynamo_timed("GraphLowering.codegen_subgraph", log_pt2_compile_event=True):
@@ -2073,7 +2557,11 @@ class GraphLowering(torch.fx.Interpreter):
     # No-op to be patched for unit tests
     save_output_code: Optional[Callable[[str], None]] = None
 
+<<<<<<< HEAD
     def compile_to_module(self) -> ModuleType:
+=======
+    def compile_to_module(self) -> CompiledModule:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with dynamo_timed(
             "GraphLowering.compile_to_module",
             phase_name="code_gen",
@@ -2082,6 +2570,7 @@ class GraphLowering(torch.fx.Interpreter):
         ):
             return self._compile_to_module()
 
+<<<<<<< HEAD
     def _compile_to_module(self) -> ModuleType:
         from .codecache import PyCodeCache
 
@@ -2095,6 +2584,52 @@ class GraphLowering(torch.fx.Interpreter):
                 '"""\n'
                 + "Compile-time auto-tuning block: \n"
                 + self.wrapper_code.kernel_autotune_defs.getvalue()
+=======
+    def _compile_to_module(self) -> CompiledModule:
+        # If we're here, we don't have to worry about the kernel code, which is only
+        # returned separately in AOTInductor mode.
+        wrapper_code, _ = (
+            self.codegen_with_cpp_wrapper() if self.cpp_wrapper else self.codegen()
+        )
+
+        if isinstance(wrapper_code, ValueWithLineMap):
+            mod = self._compile_to_module_lines(wrapper_code)
+        elif isinstance(wrapper_code, FileBackedGraphModule):
+            mod = wrapper_code
+        else:
+            raise NotImplementedError(
+                f"Unrecognized wrapper code type: {type(wrapper_code)}"
+            )
+
+        # Logged twice as per https://github.com/pytorch/pytorch/pull/99038#discussion_r1167826029
+        # TODO. Revisit this once the logging API is more mature
+        assert mod.__file__ is not None
+
+        log_module_code(mod.__file__)
+        log.debug("Output code written to: %s", mod.__file__)
+        output_code_log.info("Output code written to: %s", mod.__file__)
+        if config.benchmark_kernel:
+            print(f"Compiled module path: {mod.__file__}", file=sys.stderr)
+        V.debug.output_code(mod.__file__)
+        V.debug.copy(os.path.splitext(mod.__file__)[0] + ".debug")
+
+        return mod
+
+    def _compile_to_module_lines(
+        self, wrapper_code: ValueWithLineMap
+    ) -> CompiledModule:
+        from .codecache import PyCodeCache
+
+        if config.triton.autotune_at_compile_time:
+            # sanitize docstrings in kernel defs (#155006)
+            kernel_autotune_defs = self.wrapper_code.kernel_autotune_defs.getvalue()
+            kernel_autotune_defs = kernel_autotune_defs.replace('"""', '\\"\\"\\"')
+
+            tuning_code = (
+                '"""\n'
+                + "Compile-time auto-tuning block: \n"
+                + kernel_autotune_defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 + self.wrapper_code.kernel_autotune_calls.getvalue()
                 + '"""\n'
             )
@@ -2140,6 +2675,7 @@ class GraphLowering(torch.fx.Interpreter):
         if config.benchmark_harness and config.profile_bandwidth_output:
             # run the inputs code gen to get the bandwidth info
             mod.benchmark_compiled_module(times=1, repeat=1)
+<<<<<<< HEAD
         # Logged twice as per https://github.com/pytorch/pytorch/pull/99038#discussion_r1167826029
         # TODO. Revisit this once the logging API is more mature
         assert mod.__file__ is not None
@@ -2151,6 +2687,9 @@ class GraphLowering(torch.fx.Interpreter):
             print(f"Compiled module path: {mod.__file__}", file=sys.stderr)
         V.debug.output_code(mod.__file__)
         V.debug.copy(os.path.splitext(mod.__file__)[0] + ".debug")
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return mod
 
     def get_output_names(self) -> list[str]:

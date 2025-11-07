@@ -1,8 +1,13 @@
 #pragma once
 
 #include <ATen/cpu/vec/intrinsics.h>
+<<<<<<< HEAD
 #include <ATen/cpu/vec/vec_base.h>
 #include <ATen/cpu/vec/vec256/vsx/vsx_helpers.h>
+=======
+#include <ATen/cpu/vec/vec256/vsx/vsx_helpers.h>
+#include <ATen/cpu/vec/vec_base.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/qint32.h>
 #include <array>
 
@@ -24,14 +29,24 @@
 // specified by float_vec_return_type.
 //
 // When writing kernels with these vectors, it is expected that floating-
+<<<<<<< HEAD
 // point operations will be carried out in a loop over Vectorized<T>::float_num_vecs
 // iterations.
+=======
+// point operations will be carried out in a loop over
+// Vectorized<T>::float_num_vecs iterations.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at {
 namespace vec {
 inline namespace CPU_CAPABILITY {
 
 template <>
+<<<<<<< HEAD
+=======
+struct is_vec_specialized_for<c10::qint32> : std::bool_constant<true> {};
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct Vectorized<c10::qint32> {
  private:
   union {
@@ -68,7 +83,12 @@ struct Vectorized<c10::qint32> {
   C10_ALWAYS_INLINE Vectorized(vint32 v) : _vec0{v}, _vec1{v} {}
   C10_ALWAYS_INLINE Vectorized(vbool32 vmask) : _vecb0{vmask}, _vecb1{vmask} {}
   C10_ALWAYS_INLINE Vectorized(vint32 v1, vint32 v2) : _vec0{v1}, _vec1{v2} {}
+<<<<<<< HEAD
   C10_ALWAYS_INLINE Vectorized(vbool32 v1, vbool32 v2) : _vecb0{v1}, _vecb1{v2} {}
+=======
+  C10_ALWAYS_INLINE Vectorized(vbool32 v1, vbool32 v2)
+      : _vecb0{v1}, _vecb1{v2} {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Vectorized(const c10::qint32& val)
       : _vec0(vec_splats(val.val_)), _vec1(vec_splats(val.val_)) {}
@@ -114,11 +134,23 @@ struct Vectorized<c10::qint32> {
     vfloat32 float_vals1 = vec_float(_vec1);
     vfloat32 scale_vec0 = scale.vec0();
     vfloat32 scale_vec1 = scale.vec1();
+<<<<<<< HEAD
     vfloat32 scale_zp_premul0 = scale_zp_premul.vec0();
     vfloat32 scale_zp_premul1 = scale_zp_premul.vec1();
     return {Vectorized<float>{
         vec_madd(scale_vec0, float_vals0, scale_zp_premul0),
         vec_madd(scale_vec1, float_vals1, scale_zp_premul1)}};
+=======
+    vfloat32 zero_point_vec0 = zero_point.vec0();
+    vfloat32 zero_point_vec1 = zero_point.vec1();
+
+    vfloat32 vec_sub_zero_point_0 = vec_sub(float_vals0, zero_point_vec0);
+    vfloat32 vec_sub_zero_point_1 = vec_sub(float_vals1, zero_point_vec1);
+    Vectorized<float> vf0 = {
+        vec_mul(scale_vec0, vec_sub_zero_point_0),
+        vec_mul(scale_vec1, vec_sub_zero_point_1)};
+    return {vf0};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   float_vec_return_type dequantize(
@@ -154,8 +186,13 @@ struct Vectorized<c10::qint32> {
     vecf1 = vec_mul(vecf1, inverse_scale_v);
     vecf0 = vec_add(vec_rint(vecf0), vec_zero_point);
     vecf1 = vec_add(vec_rint(vecf1), vec_zero_point);
+<<<<<<< HEAD
     vint32 veci0  = vec_signed(vecf0);
     vint32 veci1  = vec_signed(vecf1);
+=======
+    vint32 veci0 = vec_signed(vecf0);
+    vint32 veci1 = vec_signed(vecf1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     veci0 = vec_max(veci0, vmin);
     veci1 = vec_max(veci1, vmin);
@@ -199,8 +236,13 @@ struct Vectorized<c10::qint32> {
     vecf0 = vec_rint(vecf0);
     vecf1 = vec_rint(vecf1);
 
+<<<<<<< HEAD
     vint32 veci0  = vec_add(vec_signed(vecf0),vec_zero_point);
     vint32 veci1  = vec_add(vec_signed(vecf1),vec_zero_point);
+=======
+    vint32 veci0 = vec_add(vec_signed(vecf0), vec_zero_point);
+    vint32 veci1 = vec_add(vec_signed(vecf1), vec_zero_point);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     veci0 = vec_max(veci0, vmin);
     veci1 = vec_max(veci1, vmin);
@@ -242,6 +284,7 @@ Vectorized<c10::qint32> inline minimum(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::qint32> C10_ALWAYS_INLINE operator+(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
   return Vectorized<c10::qint32>{vec_add(a.vec0(), b.vec0()), vec_add(a.vec1(), b.vec1())};
 }
@@ -277,5 +320,55 @@ Vectorized<c10::qint32> C10_ALWAYS_INLINE operator^(const Vectorized<c10::qint32
 }
 
 } // namespace
+=======
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator+(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{
+      vec_add(a.vec0(), b.vec0()), vec_add(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator-(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{
+      vec_sub(a.vec0(), b.vec0()), vec_sub(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator*(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{
+      vec_mul(a.vec0(), b.vec0()), vec_mul(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator/(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{a.vec0() / b.vec0(), a.vec1() / b.vec1()};
+}
+
+template <>
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator&(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{
+      vec_and(a.vec0(), b.vec0()), vec_and(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator|(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{
+      vec_or(a.vec0(), b.vec0()), vec_or(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::qint32> C10_ALWAYS_INLINE
+operator^(const Vectorized<c10::qint32>& a, const Vectorized<c10::qint32>& b) {
+  return Vectorized<c10::qint32>{
+      vec_xor(a.vec0(), b.vec0()), vec_xor(a.vec1(), b.vec1())};
+}
+
+} // namespace CPU_CAPABILITY
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace vec
 } // namespace at

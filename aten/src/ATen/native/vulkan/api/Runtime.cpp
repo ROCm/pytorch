@@ -78,6 +78,12 @@ VkInstance create_instance(const RuntimeConfiguration& config) {
 #ifdef VK_EXT_debug_report
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
 #endif /* VK_EXT_debug_report */
+<<<<<<< HEAD
+=======
+#ifdef __APPLE__
+        VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+#endif // __APPLE__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     };
 
     find_requested_layers_and_extensions(
@@ -90,7 +96,15 @@ VkInstance create_instance(const RuntimeConfiguration& config) {
   const VkInstanceCreateInfo instance_create_info{
       VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, // sType
       nullptr, // pNext
+<<<<<<< HEAD
       0u, // flags
+=======
+#ifdef __APPLE__
+      VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR, // flags
+#else // __APPLE__
+      0u, // flags
+#endif // __APPLE__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       &application_info, // pApplicationInfo
       static_cast<uint32_t>(enabled_layers.size()), // enabledLayerCount
       enabled_layers.data(), // ppEnabledLayerNames

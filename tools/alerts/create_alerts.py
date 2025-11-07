@@ -11,7 +11,11 @@ from difflib import SequenceMatcher
 from typing import Any
 
 import requests
+<<<<<<< HEAD
 from setuptools import distutils  # type: ignore[import]
+=======
+from setuptools import distutils  # type: ignore[import,attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 ALL_SKIPPED_THRESHOLD = 100

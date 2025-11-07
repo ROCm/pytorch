@@ -27,7 +27,12 @@ namespace torch::lazy {
 // be simplified but it should probably be done together with
 // designing/refactoring the overall approach to get/set of default eager/lazy
 // device types
+<<<<<<< HEAD
 torch::lazy::BackendDevice GetDeviceOrCurrent(const std::string& device_str) {
+=======
+static torch::lazy::BackendDevice GetDeviceOrCurrent(
+    const std::string& device_str) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (device_str.empty()) {
     getBackend()->GetDefaultDeviceType();
     return torch::lazy::BackendDevice();
@@ -35,15 +40,26 @@ torch::lazy::BackendDevice GetDeviceOrCurrent(const std::string& device_str) {
   return torch::lazy::atenDeviceToBackendDevice(c10::Device(device_str));
 }
 
+<<<<<<< HEAD
 std::ptrdiff_t GetTensorId(const at::Tensor& tensor) {
+=======
+static std::ptrdiff_t GetTensorId(const at::Tensor& tensor) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   torch::lazy::LazyTensorPtr lazy_tensor = torch::lazy::TryGetLtcTensor(tensor);
   return lazy_tensor->GetUniqueId();
 }
 
+<<<<<<< HEAD
 std::string GetTensorsDump(
     const std::vector<at::Tensor>& tensors,
     const std::function<std::string(c10::ArrayRef<const torch::lazy::Node*>)>&
         coverter) {
+=======
+static std::string GetTensorsDump(
+    const std::vector<at::Tensor>& tensors,
+    const std::function<std::string(c10::ArrayRef<const torch::lazy::Node*>)>&
+        converter) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<const torch::lazy::Node*> nodes;
   std::vector<torch::lazy::Value> values;
   for (auto& tensor : tensors) {
@@ -53,10 +69,17 @@ std::string GetTensorsDump(
     values.push_back(lazy_tensor->GetIrValue());
     nodes.push_back(values.back().node.get());
   }
+<<<<<<< HEAD
   return coverter(nodes);
 }
 
 std::vector<torch::lazy::LazyTensorPtr> GetLtcTensors(
+=======
+  return converter(nodes);
+}
+
+static std::vector<torch::lazy::LazyTensorPtr> GetLtcTensors(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::vector<at::Tensor>& tensors,
     bool want_all) {
   std::vector<torch::lazy::LazyTensorPtr> lazy_tensors;
@@ -76,14 +99,23 @@ std::vector<torch::lazy::LazyTensorPtr> GetLtcTensors(
   return lazy_tensors;
 }
 
+<<<<<<< HEAD
 std::string GetTensorsBackendGraph(const std::vector<at::Tensor>& tensors) {
+=======
+static std::string GetTensorsBackendGraph(
+    const std::vector<at::Tensor>& tensors) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<torch::lazy::LazyTensorPtr> lazy_tensors =
       GetLtcTensors(tensors, /*want_all=*/false);
   return torch::lazy::LazyGraphExecutor::Get()->DumpBackendComputation(
       lazy_tensors);
 }
 
+<<<<<<< HEAD
 void SyncTensors(
+=======
+static void SyncTensors(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::vector<at::Tensor>& tensors,
     const std::vector<std::string>& devices,
     bool wait,
@@ -101,7 +133,11 @@ void initLazyBindings(PyObject* module) {
 
   lazy.def(
       "_mark_step",
+<<<<<<< HEAD
       // TODO(whc) this API should probably change from vector<string> to
+=======
+      // TODO(whc) this API should probably change from vector<std::string> to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // vector<c10::device> but in a separate PR
       [](const std::string& device_str,
          const std::vector<std::string>& devices,
@@ -144,18 +180,32 @@ void initLazyBindings(PyObject* module) {
   lazy.def(
       "_get_tensors_text",
       [](const std::vector<at::Tensor>& tensors) -> std::string {
+<<<<<<< HEAD
         auto coverter = [](c10::ArrayRef<const torch::lazy::Node*> nodes) {
           return torch::lazy::DumpUtil::ToText(nodes);
         };
         return GetTensorsDump(tensors, coverter);
+=======
+        auto converter = [](c10::ArrayRef<const torch::lazy::Node*> nodes) {
+          return torch::lazy::DumpUtil::ToText(nodes);
+        };
+        return GetTensorsDump(tensors, converter);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       });
   lazy.def(
       "_get_tensors_dot",
       [](const std::vector<at::Tensor>& tensors) -> std::string {
+<<<<<<< HEAD
         auto coverter = [](c10::ArrayRef<const torch::lazy::Node*> nodes) {
           return torch::lazy::DumpUtil::ToDot(nodes);
         };
         return GetTensorsDump(tensors, coverter);
+=======
+        auto converter = [](c10::ArrayRef<const torch::lazy::Node*> nodes) {
+          return torch::lazy::DumpUtil::ToDot(nodes);
+        };
+        return GetTensorsDump(tensors, converter);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       });
   lazy.def(
       "_get_tensors_backend",
@@ -323,10 +373,18 @@ void initLazyBindings(PyObject* module) {
 #endif // !(defined(FBCODE_CAFFE2) || defined(OVRSOURCE))
   });
 
+<<<<<<< HEAD
   // GetPythonFramesFunction() has not ever worked with torchdeploy/multipy
   // possibly becuase GetPythonFrames resolves to external cpython rather
   // than embedded cpython. So far this problem has only been observed
   // internally, so we will just block it off there.
+=======
+  // GetPythonFramesFunction() has not ever worked with
+  // torchdeploy/multipy possibly because  // codespell:ignore multipy
+  // GetPythonFrames resolves to external cpython rather than embedded cpython.
+  // So far this problem has only been observed internally, so we will just
+  // block it off there.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if !(defined(USE_DEPLOY))
 

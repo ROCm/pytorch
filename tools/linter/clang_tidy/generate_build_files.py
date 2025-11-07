@@ -31,7 +31,12 @@ def gen_compile_commands() -> None:
     os.environ["USE_PRECOMPILED_HEADERS"] = "1"
     os.environ["CC"] = "clang"
     os.environ["CXX"] = "clang++"
+<<<<<<< HEAD
     run_cmd([sys.executable, "setup.py", "--cmake-only", "build"])
+=======
+    os.environ["CMAKE_ONLY"] = "1"
+    run_cmd([sys.executable, "setup.py", "build"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def run_autogen() -> None:

@@ -39,7 +39,11 @@ struct TORCH_API PyCompilerInterface {
       // NOLINTNEXTLINE(performance-unnecessary-value-param)
       std::vector<at::TypePtr> packed_args_schema,
       bool is_custom_function = false,
+<<<<<<< HEAD
       bool is_traceable = true) {
+=======
+      bool is_traceable = true) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(false, "Needs to be overridden");
   }
 
@@ -51,14 +55,22 @@ struct TORCH_API PyCompilerInterface {
       const std::string& fn_name,
       const variable_list& inputs,
       const ivalue_list& packed_args,
+<<<<<<< HEAD
       const c10::IValue& output_metadata) {
+=======
+      const c10::IValue& output_metadata) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(false, "Needs to be overridden");
   }
   virtual variable_list call_copy_slices_prologue(
       PyObject* py_compiler,
       const variable_list& inputs,
       const at::TensorGeometry& base,
+<<<<<<< HEAD
       const at::TensorGeometry& view) {
+=======
+      const at::TensorGeometry& view) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(false, "Needs to be overridden");
   }
   virtual variable_list call_copy_slices_epilogue(
@@ -66,13 +78,28 @@ struct TORCH_API PyCompilerInterface {
       const std::vector<bool>& needs_input_grad,
       const at::Tensor& result,
       const variable_list& res,
+<<<<<<< HEAD
       const at::Tensor& grad_slice) {
+=======
+      const at::Tensor& grad_slice) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(false, "Needs to be overridden");
   }
   virtual at::Tensor call_unpack(
       PyObject* py_compiler,
       std::optional<size_t> hook_id,
+<<<<<<< HEAD
       size_t hook_input_id) {
+=======
+      size_t hook_input_id) const {
+    TORCH_INTERNAL_ASSERT(false, "Needs to be overridden");
+  }
+  virtual void call_accumulate_grad(
+      PyObject* py_compiler,
+      const at::Tensor& variable,
+      const at::Tensor& grad,
+      bool has_post_hooks) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(false, "Needs to be overridden");
   }
 };
@@ -91,7 +118,11 @@ struct TORCH_API PyCompilerGuard {
 // including torch/csrc/autograd/engine.h breaks BC by somehow introducing
 // symbol resolution issues. Instead requiring downstream users to include
 // engine.h to access collect_input_metadata, we provide it here (with a
+<<<<<<< HEAD
 // different name to avoid ambigous symbols...)
+=======
+// different name to avoid ambiguous symbols...)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API std::vector<std::optional<InputMetadata>> get_input_metadata(
     const edge_list& edges);
 
@@ -158,6 +189,10 @@ struct NodeCall {
   uint32_t id;
   std::shared_ptr<Node> node;
   std::vector<std::pair<int, int>> tensor_pre_hooks;
+<<<<<<< HEAD
+=======
+  std::vector<std::pair<int, int>> cpp_tensor_pre_hooks;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<int> pre_hooks;
   std::vector<int> post_hooks;
   std::vector<int> post_acc_grad_hooks;
@@ -327,6 +362,15 @@ struct AutogradCompilerCall {
     return hooks.size() - 1;
   }
 
+<<<<<<< HEAD
+=======
+  size_t emplace_cpp_tensor_pre_hook(
+      std::function<at::TensorBase(const at::TensorBase&)>&& fn) {
+    cpp_tensor_pre_hooks.emplace_back(std::move(fn));
+    return cpp_tensor_pre_hooks.size() - 1;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t emplace_packed_input(c10::SafePyObject&& input) {
     packed_inputs.emplace_back(std::move(input));
     return packed_inputs.size() - 1;
@@ -342,6 +386,11 @@ struct AutogradCompilerCall {
   LiftedIValueArgs lifted_ivalue_args;
   std::vector<int64_t> dyn_size_inputs;
   std::vector<c10::SafePyObject> hooks;
+<<<<<<< HEAD
+=======
+  std::vector<std::function<at::TensorBase(const at::TensorBase&)>>
+      cpp_tensor_pre_hooks;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<c10::SafePyObject> packed_inputs;
   NodeCalls node_calls;
   SizeInput::DynType default_dyn_type;
@@ -556,7 +605,12 @@ class CompiledNodeArgs {
     }
   }
   void collect(const InputMetadata& t) {
+<<<<<<< HEAD
     TORCH_CHECK(!t.is_nested_tensor(), "NestedTensor not implemented");
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        !t.is_nested_tensor(), "NestedTensor support not implemented. ");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     collect(t.options());
     collect(t.is_tensor_subclass());
     collect(t.shape_as_dim_vector());
@@ -596,12 +650,21 @@ class CompiledNodeArgs {
 #undef COLLECT_AS_BYTES
 
   void collect_hooks_from(Node* fn) {
+<<<<<<< HEAD
     TORCH_CHECK(
         fn->retains_grad_hooks().empty(),
         "retains_grad_hooks not implemented for compiled autograd");
     for (auto& i : fn->tensor_pre_hooks()) {
       i->compiled_args(*this);
     }
+=======
+    for (auto& i : fn->tensor_pre_hooks()) {
+      i->compiled_args(*this);
+    }
+    for (auto& [_, i] : fn->retains_grad_hooks()) {
+      i->compiled_args(*this);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto& i : fn->pre_hooks()) {
       i->compiled_args(*this);
     }
@@ -641,6 +704,26 @@ class CompiledNodeArgs {
     _node_call.tensor_pre_hooks.emplace_back(fn_id, index);
   }
 
+<<<<<<< HEAD
+=======
+  void add_cpp_single_tensor_pre_hook(
+      const std::function<at::TensorBase(const at::TensorBase&)>& hook,
+      size_t idx) {
+    auto wrapper = [hook](const at::TensorBase& grad) {
+      // handle when hook returns nothing
+      auto out = hook(grad);
+      if (!out.defined()) {
+        return grad;
+      }
+      return out;
+    };
+
+    auto hook_id = _compiler.emplace_cpp_tensor_pre_hook(std::move(wrapper));
+    collect_size(hook_id);
+    _node_call.cpp_tensor_pre_hooks.emplace_back(hook_id, idx);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void add_pre_hook(c10::SafePyObject&& obj) {
     auto fn_id = _compiler.emplace_hook(std::move(obj));
     collect_size(fn_id);
@@ -1034,7 +1117,11 @@ class SwapSavedVariables {
 // (e.g. MulBackward0_apply_functional). Compiled Autograd's initial graph
 // capture wants to take a variant of this function and proxy it into the graph.
 // Every autograd node defines an apply_with_saved function, that when invoked,
+<<<<<<< HEAD
 // proxys a call to a function into the Compiled Autograd graph.
+=======
+// proxies a call to a function into the Compiled Autograd graph.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //
 // Some requirements that we have are:
 // - The proxy'ed function must have inputs that are FX-graphable types.
@@ -1077,7 +1164,12 @@ struct IValuePacker {
     // with certain compiler settings
     // (see https://github.com/pytorch/pytorch/pull/144707 for examples).
     // It's not clear what the problem is, so we're going to ignore it for now.
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(false, "torch.compile not supported on Windows");
+=======
+    TORCH_CHECK_NOT_IMPLEMENTED(
+        false, "torch.compile not supported on Windows");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
     if constexpr (::std::is_same_v<T, at::Tensor>) {
       return at::TensorType::get();
@@ -1114,7 +1206,12 @@ struct IValuePacker {
       // define how to pack and unpack an object of this time into an IValue
       // by creating a specialization of IValuePacker for this type.
       // See NOTE: [Compiled Autograd and backward functions] for context.
+<<<<<<< HEAD
       TORCH_INTERNAL_ASSERT(false, "IValuePacker not implemented for type");
+=======
+      TORCH_CHECK_NOT_IMPLEMENTED(
+          false, "IValuePacker not implemented for type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return at::NoneType::get();
     }
 #endif
@@ -1237,11 +1334,19 @@ inline at::TensorOptions unpack_TensorOptions(
   at::TensorOptions result;
   auto maybe_requires_grad = std::get<0>(tuple);
   if (maybe_requires_grad.has_value()) {
+<<<<<<< HEAD
     result = result.requires_grad(maybe_requires_grad.value());
   }
   auto maybe_memory_format = std::get<1>(tuple);
   if (maybe_memory_format.has_value()) {
     result = result.memory_format(maybe_memory_format.value());
+=======
+    result = result.requires_grad(maybe_requires_grad);
+  }
+  auto maybe_memory_format = std::get<1>(tuple);
+  if (maybe_memory_format.has_value()) {
+    result = result.memory_format(maybe_memory_format);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   auto maybe_device = std::get<2>(tuple);
   if (maybe_device.has_value()) {
@@ -1254,11 +1359,19 @@ inline at::TensorOptions unpack_TensorOptions(
   }
   auto maybe_layout = std::get<4>(tuple);
   if (maybe_layout.has_value()) {
+<<<<<<< HEAD
     result = result.layout(maybe_layout.value());
   }
   auto maybe_pinned_memory = std::get<5>(tuple);
   if (maybe_pinned_memory.has_value()) {
     result = result.pinned_memory(maybe_pinned_memory.value());
+=======
+    result = result.layout(maybe_layout);
+  }
+  auto maybe_pinned_memory = std::get<5>(tuple);
+  if (maybe_pinned_memory.has_value()) {
+    result = result.pinned_memory(maybe_pinned_memory);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return result;
 }

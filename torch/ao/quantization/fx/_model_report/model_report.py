@@ -84,7 +84,13 @@ class ModelReport:
         >>> # xdoctest: +SKIP
         >>> # get the necessary qconfig
         >>> config = PrepareCustomConfig()
+<<<<<<< HEAD
         >>> skipped_module_names, skipped_module_classes = get_skipped_module_name_and_classes(config, False)
+=======
+        >>> skipped_module_names, skipped_module_classes = (
+        ...     get_skipped_module_name_and_classes(config, False)
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> # initialize our model and get GraphModule
         >>> model = SomeModel()
@@ -92,7 +98,16 @@ class ModelReport:
         >>> graph_module = GraphModule(model, tracer.trace(model))
 
         >>> # get our set of detectors and ModelReport instance
+<<<<<<< HEAD
         >>> detector_set = set([DynamicStaticDetector(tolerance=0.5), InputWeightEqualizationDetector(ratio_threshold=0.7)])
+=======
+        >>> detector_set = set(
+        ...     [
+        ...         DynamicStaticDetector(tolerance=0.5),
+        ...         InputWeightEqualizationDetector(ratio_threshold=0.7),
+        ...     ]
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> tracer_reporter = ModelReport(graph_module, tracer_detector_set)
 
         >>> # now we insert the observers and callibrate the model
@@ -102,7 +117,13 @@ class ModelReport:
         >>>     tracer_model_with_observers(example_input)
 
         >>> # finally we generate the reports and optionally remove the observers we inserted
+<<<<<<< HEAD
         >>> reports = tracer_reporter.generate_model_report(remove_inserted_observers=True)
+=======
+        >>> reports = tracer_reporter.generate_model_report(
+        ...     remove_inserted_observers=True
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> # Optional: we can generate the qconfig mapping based on the suggestions
         >>> qconfigs = model_report.generate_qconfig_mapping()

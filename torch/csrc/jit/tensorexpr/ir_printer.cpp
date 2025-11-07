@@ -60,7 +60,11 @@ template <
     std::enable_if_t<std::is_same_v<
         decltype(detail::bin_op_deducer(std::declval<Op>())),
         void>>* = nullptr>
+<<<<<<< HEAD
 void visitBinaryOp(
+=======
+static void visitBinaryOp(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NodePtr<Op> v,
     const std::string& op_str,
     IRPrinter* printer,

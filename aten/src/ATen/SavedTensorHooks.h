@@ -36,7 +36,11 @@ struct TORCH_API SavedTensorDefaultHooks {
       c10::SafePyObject unpack_hook);
   static std::pair<c10::SafePyObject, c10::SafePyObject> pop_hooks();
   static std::optional<std::pair<c10::SafePyObject, c10::SafePyObject>>
+<<<<<<< HEAD
   get_hooks();
+=======
+  get_hooks(bool ignore_is_tracing = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static void lazy_initialize();
 
   static const impl::SavedTensorDefaultHooksTLS& get_tls_state();
@@ -48,7 +52,13 @@ struct TORCH_API SavedTensorDefaultHooks {
   // disabled, then the following will raise an error:
   // - Attempting to push_hooks
   // - calling disable(message) with a non-zero stack (hooks) size
+<<<<<<< HEAD
   static void disable(const std::string& error_message);
+=======
+  static void disable(
+      const std::string& error_message,
+      const bool fail_if_non_empty = true);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static void enable();
   static bool is_enabled();
   static const std::optional<std::string>& get_disabled_error_message();

@@ -6,12 +6,19 @@ from typing import Union
 import torch
 import torch.nn as nn
 from torch.distributed._composable import checkpoint
+<<<<<<< HEAD
 from torch.distributed._tensor import init_device_mesh
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed._tools.fsdp2_mem_tracker import FSDPMemTracker
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     apply_activation_checkpointing,
     CheckpointWrapper,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp import (
     CPUOffloadPolicy,
     fully_shard,
@@ -166,7 +173,11 @@ class TestTrackerFullyShard1DTrainingCore(FSDPTest):
         self.assertAlmostEqual(
             accuracy,
             1.0,
+<<<<<<< HEAD
             delta=0.16,
+=======
+            delta=0.1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             msg=f"Tracker Max:{tracker_max} CUDA Max:{cuda_max}",
         )
         del inp
@@ -258,7 +269,11 @@ class TestTrackerFullyShard1DTrainingCompose(FSDPTest):
         self.assertAlmostEqual(
             accuracy,
             1.0,
+<<<<<<< HEAD
             delta=0.25,
+=======
+            delta=0.1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             msg=f"Tracker Max:{tracker_max} CUDA Max:{cuda_max}",
         )
         del inp

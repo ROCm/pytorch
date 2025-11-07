@@ -169,7 +169,11 @@ struct RNNParams {
 };
 
 template<bool is_single_direction>
+<<<<<<< HEAD
 std::vector<int64_t> _output_size(const RNNParams& rnn) {
+=======
+static std::vector<int64_t> _output_size(const RNNParams& rnn) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto output_channels = is_single_direction ? rnn.hidden_size
                                              : rnn.hidden_size * rnn.num_directions;
   return {rnn.seq_length, rnn.mini_batch, output_channels};
@@ -457,7 +461,11 @@ static std::tuple<Tensor, Tensor, Tensor> mkldnn_rnn(
     int64_t mode, int64_t hidden_size,
     int64_t num_layers, bool has_biases, bool batch_first, double dropout_p,
     bool train, bool bidirectional, IntArrayRef batch_sizes) {
+<<<<<<< HEAD
   TORCH_CHECK(batch_sizes.size() == 0, "mkldnn_rnn doesn't support packed input");
+=======
+  TORCH_CHECK(batch_sizes.empty(), "mkldnn_rnn doesn't support packed input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (static_cast<ideep::rnn_kind>(mode) != ideep::rnn_kind::LSTM) {
     TORCH_CHECK(!cx_.defined(), "mkldnn_rnn: illegal defined cx for non-LSTM RNN");
   }

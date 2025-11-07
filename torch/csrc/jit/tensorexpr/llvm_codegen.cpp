@@ -2603,8 +2603,15 @@ void LLVMCodeGenImpl::visit(const AllocatePtr& v) {
   }
 
 #if LLVM_VERSION_MAJOR > 17
+<<<<<<< HEAD
   llvm::Instruction* I = irb_.CreateMalloc(
       LongTy_, dtypeToLLVM(v->dtype()), size, nullptr, nullptr, "");
+=======
+  irb_.SetInsertPoint(irb_.GetInsertBlock());
+  llvm::Instruction* I = irb_.CreateMalloc(
+      LongTy_, dtypeToLLVM(v->dtype()), size, nullptr, nullptr, "");
+  varToVal_[v->buffer_var()] = I;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   llvm::Instruction* I = llvm::CallInst::CreateMalloc(
       irb_.GetInsertBlock(),
@@ -2613,11 +2620,18 @@ void LLVMCodeGenImpl::visit(const AllocatePtr& v) {
       size,
       nullptr,
       nullptr);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Insert the bitcast into the block.
   irb_.SetInsertPoint(irb_.GetInsertBlock());
   llvm::Value* malloc = irb_.Insert(I);
   varToVal_[v->buffer_var()] = malloc;
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void LLVMCodeGenImpl::visit(const PlacementAllocatePtr& v) {
@@ -2641,7 +2655,11 @@ void LLVMCodeGenImpl::visit(const FreePtr& v) {
 
   if (!llvm::isa<llvm::AllocaInst>(ptr)) {
 #if LLVM_VERSION_MAJOR > 17
+<<<<<<< HEAD
     irb_.Insert(irb_.CreateFree(ptr));
+=======
+    irb_.CreateFree(ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
     irb_.Insert(llvm::CallInst::CreateFree(ptr, irb_.GetInsertBlock()));
 #endif

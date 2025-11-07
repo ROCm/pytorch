@@ -12,7 +12,11 @@ namespace py = pybind11;
 
 namespace torch::jit {
 
+<<<<<<< HEAD
 std::optional<std::string> maybeConvertToString(const py::object& obj) {
+=======
+static std::optional<std::string> maybeConvertToString(const py::object& obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (obj.is_none()) {
     return std::nullopt;
   }
@@ -58,14 +62,24 @@ struct SourceRangeFactory {
 };
 
 template <typename T>
+<<<<<<< HEAD
 List<T> wrap_list(const SourceRange& fallback_pos, std::vector<T>&& vec) {
+=======
+static List<T> wrap_list(
+    const SourceRange& fallback_pos,
+    std::vector<T>&& vec) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (vec.empty())
     return List<T>::create(fallback_pos, std::move(vec));
   return List<T>::create(vec.front().range(), std::move(vec));
 }
 
 template <typename T>
+<<<<<<< HEAD
 Maybe<T> wrap_maybe(const SourceRange& fallback_pos, T* val) {
+=======
+static Maybe<T> wrap_maybe(const SourceRange& fallback_pos, T* val) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return val ? Maybe<T>::create(val->range(), *val)
              : Maybe<T>::create(fallback_pos);
 }

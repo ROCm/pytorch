@@ -5,6 +5,10 @@ Metal is Apple's API for programming metal GPU (graphics processor unit). Using 
 performance can be achieved, by running work on the metal GPU(s).
 See https://developer.apple.com/documentation/metalperformanceshaders for more details.
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Union
 
 import torch

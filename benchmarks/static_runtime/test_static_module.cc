@@ -16,8 +16,11 @@ using namespace torch;
 using namespace torch::jit;
 using namespace torch::jit::test;
 
+<<<<<<< HEAD
 C10_DECLARE_bool(static_runtime_disable_debug_memory_overlap_check);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 
 StaticModule makeStaticModuleFromScript(const std::string& script) {

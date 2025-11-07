@@ -27,7 +27,10 @@ from torch._C._distributed_rpc import (
     get_rpc_timeout,
     PyRRef,
     RemoteProfilerManager,
+<<<<<<< HEAD
     TensorPipeAgent,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     WorkerInfo,
 )
 from torch.futures import Future
@@ -371,6 +374,11 @@ def shutdown(graceful=True, timeout=DEFAULT_SHUTDOWN_TIMEOUT):
     if graceful:
         try:
             agent = _get_current_rpc_agent()
+<<<<<<< HEAD
+=======
+            from torch._C._distributed_rpc import TensorPipeAgent
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not isinstance(agent, TensorPipeAgent) or agent.is_static_group:
                 _wait_all_workers(timeout)
                 _delete_all_user_and_unforked_owner_rrefs()

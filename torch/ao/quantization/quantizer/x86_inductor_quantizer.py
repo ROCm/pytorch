@@ -84,6 +84,10 @@ propagation_quantizable_ops = int8_in_int8_out_ops
 # Operators support the int8 data type
 # and recipe is configured by default in X86InductorQuantizer.
 default_quantizable_ops = propagation_quantizable_ops | {
+<<<<<<< HEAD
+=======
+    torch.ops.aten.conv1d.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.ops.aten.conv2d.default,
     torch.ops.aten.linear.default,
 }
@@ -185,6 +189,10 @@ def _global_config_filter(nodes: list[Node]) -> bool:
 def _map_module_function_to_aten_operator_type():
     module_function_to_aten_operator: dict[Callable, torch._ops.OpOverloadPacket] = {}
     map_list = (
+<<<<<<< HEAD
+=======
+        ([torch.nn.Conv2d, F.conv1d], torch.ops.aten.conv1d.default),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ([torch.nn.Conv2d, F.conv2d], torch.ops.aten.conv2d.default),
         ([torch.nn.Linear, F.linear], torch.ops.aten.linear.default),
         ([torch.nn.MaxPool2d, F.max_pool2d], torch.ops.aten.max_pool2d.default),
@@ -701,8 +709,13 @@ class X86InductorQuantizer(Quantizer):
         # Once we've annotated the model with quantization configurations, we also need to annotate
         # the output of quantizable operations. For example, if we annotated `maxpool2d` to quantize its inputs,
         # we will quantize its output accordingly. This enables us to fuse the dq-operator-q into a quantized op.
+<<<<<<< HEAD
         # Refer to https://github.com/intel/intel-extension-for-pytorch/blob/
         # 90d19323d96afc53fcc22ba5a7bb3fb07fdd6c1c/intel_extension_for_pytorch/quantization/_recipe.py#L487
+=======
+        # Refer to
+        # https://github.com/intel/intel-extension-for-pytorch/blob/90d19323d96afc53fcc22ba5a7bb3fb07fdd6c1c/intel_extension_for_pytorch/quantization/_recipe.py#L487  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._annotate_output_for_int8_in_int8_out_pattern_entry(model)
 
@@ -730,8 +743,13 @@ class X86InductorQuantizer(Quantizer):
 
         # Step2: Recipe to propagate annotation for patterns beside conv/linear.
         # Go through all the nodes from start to end.
+<<<<<<< HEAD
         # Recipe refer to https://github.com/intel/intel-extension-for-pytorch/blob/
         # 90d19323d96afc53fcc22ba5a7bb3fb07fdd6c1c/intel_extension_for_pytorch/quantization/_recipe.py#L538
+=======
+        # Recipe refer to
+        # https://github.com/intel/intel-extension-for-pytorch/blob/90d19323d96afc53fcc22ba5a7bb3fb07fdd6c1c/intel_extension_for_pytorch/quantization/_recipe.py#L538  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._annotate_propagation_quantizable_pattern_entry(
             model, quantization_config, filter_fn
@@ -805,6 +823,7 @@ class X86InductorQuantizer(Quantizer):
                 binary_node_input_qspec_map[extra_input_node] = get_input_act_qspec(
                     quantization_config
                 )
+<<<<<<< HEAD
                 binary_node.meta[
                     QUANT_ANNOTATION_KEY
                 ] = _X86InductorQuantizationAnnotation(
@@ -818,6 +837,21 @@ class X86InductorQuantizer(Quantizer):
                     output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
                     _annotated=True,
                     _is_output_of_quantized_pattern=True,
+=======
+                binary_node.meta[QUANT_ANNOTATION_KEY] = (
+                    _X86InductorQuantizationAnnotation(
+                        input_qspec_map=binary_node_input_qspec_map,
+                        _annotated=True,
+                    )
+                )
+                unary_node.meta[QUANT_ANNOTATION_KEY] = (
+                    _X86InductorQuantizationAnnotation(
+                        # TODO<leslie> Remove the annotate of output in QAT when qat util support pattern matcher.
+                        output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
+                        _annotated=True,
+                        _is_output_of_quantized_pattern=True,
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 _annotate_nodes_not_quantize([binary_node, unary_node])
@@ -875,6 +909,7 @@ class X86InductorQuantizer(Quantizer):
                 binary_node_input_qspec_map[extra_input_node] = get_input_act_qspec(
                     quantization_config
                 )
+<<<<<<< HEAD
                 binary_node.meta[
                     QUANT_ANNOTATION_KEY
                 ] = _X86InductorQuantizationAnnotation(
@@ -883,6 +918,16 @@ class X86InductorQuantizer(Quantizer):
                     output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
                     _annotated=True,
                     _is_output_of_quantized_pattern=True,
+=======
+                binary_node.meta[QUANT_ANNOTATION_KEY] = (
+                    _X86InductorQuantizationAnnotation(
+                        input_qspec_map=binary_node_input_qspec_map,
+                        # TODO<leslie> Remove the annotate of output in QAT when qat util support pattern matcher.
+                        output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
+                        _annotated=True,
+                        _is_output_of_quantized_pattern=True,
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 _annotate_nodes_not_quantize(binary_node)
@@ -932,6 +977,7 @@ class X86InductorQuantizer(Quantizer):
 
             self._annotate_conv_node_helper(conv_node, False, quantization_config)
             if quantization_config is not None:
+<<<<<<< HEAD
                 unary_node.meta[
                     QUANT_ANNOTATION_KEY
                 ] = _X86InductorQuantizationAnnotation(
@@ -939,6 +985,15 @@ class X86InductorQuantizer(Quantizer):
                     output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
                     _annotated=True,
                     _is_output_of_quantized_pattern=True,
+=======
+                unary_node.meta[QUANT_ANNOTATION_KEY] = (
+                    _X86InductorQuantizationAnnotation(
+                        # TODO<leslie> Remove the annotate of output in QAT when qat util support pattern matcher.
+                        output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
+                        _annotated=True,
+                        _is_output_of_quantized_pattern=True,
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 _annotate_nodes_not_quantize(unary_node)
@@ -973,6 +1028,7 @@ class X86InductorQuantizer(Quantizer):
 
             self._annotate_conv_node_helper(conv_node, False, quantization_config)
             if quantization_config is not None:
+<<<<<<< HEAD
                 bn_output_node.meta[
                     QUANT_ANNOTATION_KEY
                 ] = _X86InductorQuantizationAnnotation(
@@ -980,6 +1036,15 @@ class X86InductorQuantizer(Quantizer):
                     output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
                     _annotated=True,
                     _is_output_of_quantized_pattern=True,
+=======
+                bn_output_node.meta[QUANT_ANNOTATION_KEY] = (
+                    _X86InductorQuantizationAnnotation(
+                        # TODO<leslie> Remove the annotate of output in QAT when qat util support pattern matcher.
+                        output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
+                        _annotated=True,
+                        _is_output_of_quantized_pattern=True,
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 _annotate_nodes_not_quantize(bn_output_node)
@@ -1156,6 +1221,10 @@ class X86InductorQuantizer(Quantizer):
             [torch.nn.Conv2d, torch.nn.Hardswish],
             [torch.nn.Conv2d, torch.nn.ReLU6],
             [torch.nn.Conv2d, torch.nn.SiLU],
+<<<<<<< HEAD
+=======
+            [torch.nn.Conv1d, torch.nn.ReLU],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         for unary_pattern in unary_patterns:
             partitions = find_sequential_partitions(gm, unary_pattern)
@@ -1168,9 +1237,15 @@ class X86InductorQuantizer(Quantizer):
             conv_node, unary_node = self._get_output_nodes_of_partitions(
                 [conv_partition, unary_partition]
             )
+<<<<<<< HEAD
             if (
                 conv_node.op != "call_function"
                 or conv_node.target != torch.ops.aten.conv2d.default
+=======
+            if conv_node.op != "call_function" or conv_node.target not in (
+                torch.ops.aten.conv2d.default,
+                torch.ops.aten.conv1d.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 continue
             if _skip_annotate([unary_node, conv_node], filter_fn):
@@ -1378,9 +1453,15 @@ class X86InductorQuantizer(Quantizer):
     ) -> None:
         r"""
         Check and insert observer at output of node in int8_in_int8_out_ops if needed.
+<<<<<<< HEAD
         Recipe refers to https://github.com/intel/intel-extension-for-pytorch/blob/
         90d19323d96afc53fcc22ba5a7bb3fb07fdd6c1c/intel_extension_for_pytorch/quantization/_utils.py#L495
         """
+=======
+        Recipe refers to
+        https://github.com/intel/intel-extension-for-pytorch/blob/90d19323d96afc53fcc22ba5a7bb3fb07fdd6c1c/intel_extension_for_pytorch/quantization/_utils.py#L495
+        """  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         edge_or_node: tuple[Node, Node]
         if (node.target in int8_in_int8_out_ops) and (_is_any_annotated([node])):
             if node.target == torch.ops.aten.max_pool2d.default:
@@ -1553,6 +1634,7 @@ class X86InductorQuantizer(Quantizer):
                     linear_node, False, quantization_config
                 )
                 # We don't insert q-dq before the binary input node due to accuracy issues
+<<<<<<< HEAD
                 binary_node.meta[
                     QUANT_ANNOTATION_KEY
                 ] = _X86InductorQuantizationAnnotation(
@@ -1566,6 +1648,21 @@ class X86InductorQuantizer(Quantizer):
                     ] = _X86InductorQuantizationAnnotation(
                         _annotated=True,
                         _is_output_of_quantized_pattern=True,
+=======
+                binary_node.meta[QUANT_ANNOTATION_KEY] = (
+                    _X86InductorQuantizationAnnotation(
+                        input_qspec_map={},
+                        _annotated=True,
+                        _is_output_of_quantized_pattern=(not has_unary),
+                    )
+                )
+                if unary_node is not None:
+                    unary_node.meta[QUANT_ANNOTATION_KEY] = (
+                        _X86InductorQuantizationAnnotation(
+                            _annotated=True,
+                            _is_output_of_quantized_pattern=True,
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
     def validate(self, model: torch.fx.GraphModule) -> None:

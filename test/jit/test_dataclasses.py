@@ -1,8 +1,12 @@
 # Owner(s): ["oncall: jit"]
+<<<<<<< HEAD
 # flake8: noqa
 
 import sys
 import unittest
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass, field, InitVar
 from enum import Enum
 from typing import List, Optional
@@ -10,6 +14,10 @@ from typing import List, Optional
 from hypothesis import given, settings, strategies as st
 
 import torch
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -171,3 +179,10 @@ class TestDataclasses(JitTestCase):
 
         with self.assertRaises(OSError):
             torch.jit.script(f)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

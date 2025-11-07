@@ -115,7 +115,11 @@ C10_ALWAYS_INLINE static const std::
 // Not every backend and not every functionality counts as a "building block
 // key". This is mostly to give us more levers to pull in the design space.
 // Backend keys and functionality keys that count as "building blocks" will
+<<<<<<< HEAD
 // contribute to a full cross product of functionality that can be overriden.
+=======
+// contribute to a full cross product of functionality that can be overridden.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //
 // For example, right now we have at least 12 "backend" building
 // blocks (CPU, CUDA, XLA, ...) and at least 5 "functionality"
@@ -394,10 +398,21 @@ class DispatchKeySet final {
   bool empty() const {
     return repr_ == 0;
   }
+<<<<<<< HEAD
   uint64_t raw_repr() {
     return repr_;
   }
 
+=======
+  uint64_t raw_repr() const {
+    return repr_;
+  }
+
+  static DispatchKeySet from_raw_repr(uint64_t x) {
+    return DispatchKeySet(RAW, x);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DispatchKey highestFunctionalityKey() const {
     auto functionality_idx = indexOfHighestBit();
     // This means that none of the functionality bits were set.
@@ -663,6 +678,10 @@ constexpr DispatchKeySet autocast_dispatch_keyset = DispatchKeySet({
     DispatchKey::AutocastXLA,
     DispatchKey::AutocastPrivateUse1,
     DispatchKey::AutocastMTIA,
+<<<<<<< HEAD
+=======
+    DispatchKey::AutocastMAIA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 });
 
 // See Note [TLS Initialization]
@@ -681,6 +700,10 @@ constexpr DispatchKeySet default_excluded_set = DispatchKeySet({
     DispatchKey::AutocastXLA,
     DispatchKey::AutocastPrivateUse1,
     DispatchKey::AutocastMTIA,
+<<<<<<< HEAD
+=======
+    DispatchKey::AutocastMAIA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 });
 
 constexpr DispatchKeySet autograd_dispatch_keyset_with_ADInplaceOrView =
@@ -706,7 +729,10 @@ constexpr DispatchKeySet autogradother_backends =
         // Technically, HIP will now redispatch to its own custom AutogradHIP
         // slot in the runtime table.
         {DispatchKey::FPGA,
+<<<<<<< HEAD
          DispatchKey::MAIA,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          DispatchKey::Vulkan,
          DispatchKey::Metal,
          DispatchKey::CustomRNGKeyId,
@@ -756,6 +782,10 @@ constexpr auto inplace_or_view_ks =
 constexpr auto autograd_cpu_ks = DispatchKeySet(DispatchKey::AutogradCPU);
 constexpr auto autograd_ipu_ks = DispatchKeySet(DispatchKey::AutogradIPU);
 constexpr auto autograd_mtia_ks = DispatchKeySet(DispatchKey::AutogradMTIA);
+<<<<<<< HEAD
+=======
+constexpr auto autograd_maia_ks = DispatchKeySet(DispatchKey::AutogradMAIA);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 constexpr auto autograd_xpu_ks = DispatchKeySet(DispatchKey::AutogradXPU);
 constexpr auto autograd_cuda_ks = DispatchKeySet(DispatchKey::AutogradCUDA);
 constexpr auto autograd_xla_ks = DispatchKeySet(DispatchKey::AutogradXLA);
@@ -835,6 +865,11 @@ inline DispatchKeySet getAutogradRelatedKeySetFromBackend(BackendComponent t) {
       return inplace_or_view_ks | autograd_ipu_ks;
     case BackendComponent::MTIABit:
       return inplace_or_view_ks | autograd_mtia_ks;
+<<<<<<< HEAD
+=======
+    case BackendComponent::MAIABit:
+      return inplace_or_view_ks | autograd_maia_ks;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case BackendComponent::XPUBit:
       return inplace_or_view_ks | autograd_xpu_ks;
     case BackendComponent::CUDABit:
@@ -864,6 +899,10 @@ inline DispatchKeySet getAutogradRelatedKeySetFromBackend(BackendComponent t) {
 inline DispatchKeySet getAutocastRelatedKeySetFromBackend(BackendComponent t) {
   constexpr auto autocast_cpu_ks = DispatchKeySet(DispatchKey::AutocastCPU);
   constexpr auto autocast_mtia_ks = DispatchKeySet(DispatchKey::AutocastMTIA);
+<<<<<<< HEAD
+=======
+  constexpr auto autocast_maia_ks = DispatchKeySet(DispatchKey::AutocastMAIA);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   constexpr auto autocast_xpu_ks = DispatchKeySet(DispatchKey::AutocastXPU);
   constexpr auto autocast_ipu_ks = DispatchKeySet(DispatchKey::AutocastIPU);
   constexpr auto autocast_hpu_ks = DispatchKeySet(DispatchKey::AutocastHPU);
@@ -877,6 +916,11 @@ inline DispatchKeySet getAutocastRelatedKeySetFromBackend(BackendComponent t) {
       return autocast_cpu_ks;
     case BackendComponent::MTIABit:
       return autocast_mtia_ks;
+<<<<<<< HEAD
+=======
+    case BackendComponent::MAIABit:
+      return autocast_maia_ks;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case BackendComponent::XPUBit:
       return autocast_xpu_ks;
     case BackendComponent::IPUBit:

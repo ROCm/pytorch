@@ -15,7 +15,10 @@ except ImportError:
 
 import gc
 import re
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import textwrap
 import unittest
 import weakref
@@ -57,7 +60,10 @@ class SimpleNet(nn.Module):
         return self.fc2(self.fc1(x))
 
 
+<<<<<<< HEAD
 @unittest.skipIf(sys.version_info >= (3, 13), "segfaults")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestTorchTidyProfiler(TestCase):
     def _get_tensor_fields(self, node, index):
         self.assertIsNotNone(node)

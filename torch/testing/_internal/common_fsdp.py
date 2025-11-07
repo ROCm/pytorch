@@ -1180,7 +1180,11 @@ class FSDPTest(MultiProcessTestCase):
         return run_subtests(self, *args, **kwargs)
 
     @classmethod
+<<<<<<< HEAD
     def _run(cls, rank, test_name, file_name, pipe, **kwargs):
+=======
+    def _run(cls, rank, test_name, file_name, pipe, **kwargs):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self = cls(test_name)
         self.rank = rank
         self.file_name = file_name

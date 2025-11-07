@@ -35,7 +35,11 @@ struct Section {
 /// Memory maps a file into the address space read-only, and manages the
 /// lifetime of the mapping. Here are a few use cases:
 /// 1. Used in the loader to read in initial image, and to inspect
+<<<<<<< HEAD
 // ELF files for dependencies before callling dlopen.
+=======
+// ELF files for dependencies before calling dlopen.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ///
 /// 2. Used in unity to load the elf file.
 struct MemFile {
@@ -46,7 +50,11 @@ struct MemFile {
         "failed to open {}: {}",
         filename_,
         c10::utils::str_error(errno));
+<<<<<<< HEAD
     struct stat s {};
+=======
+    struct stat s{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (-1 == fstat(fd_, &s)) {
       close(fd_); // destructors don't run during exceptions
       UNWIND_CHECK(

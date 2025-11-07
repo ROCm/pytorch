@@ -11,6 +11,7 @@ from numpy.testing import assert_array_equal
 import torch
 import torch.nn.functional as F
 from torch.distributed._functional_collectives import AsyncCollectiveTensor
+<<<<<<< HEAD
 from torch.distributed._tensor import (
     DeviceMesh,
     distribute_tensor,
@@ -27,12 +28,31 @@ from torch.distributed._tensor.placement_types import (
 )
 from torch.distributed.tensor._api import _shard_tensor
 from torch.distributed.tensor.debug import CommDebugMode
+=======
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import (
+    DeviceMesh,
+    distribute_tensor,
+    DTensor,
+    Partial,
+    Replicate,
+    Shard,
+)
+from torch.distributed.tensor._api import _shard_tensor
+from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+from torch.distributed.tensor.debug import CommDebugMode
+from torch.distributed.tensor.experimental import implicit_replication
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     parallelize_module,
     RowwiseParallel,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_FBCODE, run_tests
+=======
+from torch.testing._internal.common_utils import IS_FBCODE, run_tests, skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     with_comms,
@@ -543,6 +563,10 @@ class DTensorTest(DTensorTestBase):
         reloaded_st = torch.load(buffer, weights_only=True)
         self.assertEqual(sharded_tensor, reloaded_st)
 
+<<<<<<< HEAD
+=======
+    @skipIfHpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_comms
     @unittest.skipIf(
         IS_FBCODE,
@@ -743,7 +767,11 @@ class DTensorMeshTest(DTensorTestBase):
             ),
         ]
 
+<<<<<<< HEAD
         from torch.distributed._tensor._utils import (
+=======
+        from torch.distributed.tensor._utils import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compute_local_shape_and_global_offset,
         )
 
@@ -956,7 +984,11 @@ class TestDTensorPlacementTypes(DTensorTestBase):
             )
             if size == 0:
                 # when tensor size is 0, there is no padding needed for all the ranks.
+<<<<<<< HEAD
                 expected_pad_sizes = []
+=======
+                expected_pad_sizes = [0] * self.world_size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert_array_equal(expected_pad_sizes, pad_sizes)
 
                 is_tensor_empty = [
@@ -1009,7 +1041,12 @@ class DTensorLogTest(LoggingTestCase):
             """\
 import logging
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor import  init_device_mesh, distribute_tensor, Shard
+=======
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import distribute_tensor, Shard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 mesh = init_device_mesh("cuda", (1,), mesh_dim_names=("dp",))
 placements = [Shard(0)]

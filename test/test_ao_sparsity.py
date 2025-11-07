@@ -1,4 +1,8 @@
 # Owner(s): ["module: unknown"]
+<<<<<<< HEAD
+=======
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Kernels
 from ao.sparsity.test_kernels import (  # noqa: F401
@@ -56,4 +60,12 @@ from ao.sparsity.test_sparsity_utils import TestSparsityUtilFunctions  # noqa: F
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
+=======
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     run_tests()

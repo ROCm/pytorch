@@ -1,7 +1,14 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 
 import torch
 from torch import Tensor
+=======
+from typing import Generic, Optional, TypeVar
+
+import torch
+from torch import Size, Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributions import constraints
 from torch.distributions.distribution import Distribution
 from torch.distributions.utils import _sum_rightmost
@@ -11,7 +18,14 @@ from torch.types import _size
 __all__ = ["Independent"]
 
 
+<<<<<<< HEAD
 class Independent(Distribution):
+=======
+D = TypeVar("D", bound=Distribution)
+
+
+class Independent(Distribution, Generic[D]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Reinterprets some of the batch dims of a distribution as event dims.
 
@@ -42,17 +56,33 @@ class Independent(Distribution):
     """
 
     arg_constraints: dict[str, constraints.Constraint] = {}
+<<<<<<< HEAD
 
     def __init__(
         self, base_distribution, reinterpreted_batch_ndims, validate_args=None
     ):
+=======
+    base_dist: D
+
+    def __init__(
+        self,
+        base_distribution: D,
+        reinterpreted_batch_ndims: int,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if reinterpreted_batch_ndims > len(base_distribution.batch_shape):
             raise ValueError(
                 "Expected reinterpreted_batch_ndims <= len(base_distribution.batch_shape), "
                 f"actual {reinterpreted_batch_ndims} vs {len(base_distribution.batch_shape)}"
             )
+<<<<<<< HEAD
         shape = base_distribution.batch_shape + base_distribution.event_shape
         event_dim = reinterpreted_batch_ndims + len(base_distribution.event_shape)
+=======
+        shape: Size = base_distribution.batch_shape + base_distribution.event_shape
+        event_dim: int = reinterpreted_batch_ndims + len(base_distribution.event_shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         batch_shape = shape[: len(shape) - event_dim]
         event_shape = shape[len(shape) - event_dim :]
         self.base_dist = base_distribution

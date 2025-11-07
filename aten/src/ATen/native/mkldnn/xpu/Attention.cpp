@@ -1,5 +1,9 @@
 #include <ATen/native/mkldnn/xpu/detail/oneDNN.h>
 #include <ATen/native/transformers/attention.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/transformers/sdp_utils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/transformers/sdp_utils_cpp.h>
 #include <c10/util/Array.h>
 #include <torch/library.h>
@@ -9,27 +13,50 @@ bool check_head_dim_size_xpu(sdp::sdp_params const& params, bool debug) {
   const auto query_size_last = params.query.sym_size(-1);
   const auto key_size_last = params.key.sym_size(-1);
   const auto value_size_last = params.value.sym_size(-1);
+<<<<<<< HEAD
   if ((query_size_last != key_size_last) ||
       (query_size_last != value_size_last)) {
     if (debug) {
       TORCH_WARN(
           "OneDNN attention requires q,k,v to have the same last dimension.",
+=======
+  if (query_size_last != key_size_last) {
+    if (debug) {
+      TORCH_WARN(
+          "OneDNN attention requires q,k to have the same last dimension.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           " Got Query.size(-1): ",
           query_size_last,
           ", Key.size(-1): ",
           key_size_last,
+<<<<<<< HEAD
           ", Value.size(-1): ",
           value_size_last,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           " instead.");
     }
     return false;
   }
+<<<<<<< HEAD
   if (query_size_last > 256) {
     if (debug) {
       TORCH_WARN(
           "OneDNN attention requires q,k,v to have head dimension less than 256.",
           " Got ",
           query_size_last,
+=======
+
+  constexpr int MAX_HEAD_DIM = 576;
+  const auto max_size_last = query_size_last.max(value_size_last);
+  if (max_size_last > MAX_HEAD_DIM) {
+    if (debug) {
+      TORCH_WARN(
+          "OneDNN attention requires q,k,v to have head dimension less than ",
+          MAX_HEAD_DIM,
+          ". Got ",
+          max_size_last,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           " instead.");
     }
     return false;
@@ -174,6 +201,12 @@ _scaled_dot_product_fused_attention_overrideable_xpu(
       query.size(3) == key.size(3),
       "scaled_dot_product_fused_attention_overrideable_xpu: Q/K should have the same head_dim");
   TORCH_INTERNAL_ASSERT(
+<<<<<<< HEAD
+=======
+      query.size(1) % key.size(1) == 0,
+      "scaled_dot_product_fused_attention_overrideable_xpu: number of heads in K/V must divide number of heads in Q");
+  TORCH_INTERNAL_ASSERT(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       dropout_p == 0.0,
       "scaled_dot_product_fused_attention_overrideable_xpu: Currently do not support dropout > 0");
   TORCH_INTERNAL_ASSERT(
@@ -181,31 +214,54 @@ _scaled_dot_product_fused_attention_overrideable_xpu(
       "scaled_dot_product_fused_attention_overrideable_xpu: attn_bias cannot present with is_causal");
 
   const int64_t batch_size = query.size(0);
+<<<<<<< HEAD
   const int64_t num_head = query.size(1);
   const int64_t num_head_kv = key.size(1);
   const int64_t head_dim = query.size(3);
+=======
+  const int64_t num_head_q = query.size(1);
+  const int64_t num_head_kv = key.size(1);
+  const int64_t head_dim_qk = query.size(3);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int64_t head_dim_v = value.size(3);
   const int64_t seq_len_q = query.size(2);
   const int64_t seq_len_kv = key.size(2);
 
+<<<<<<< HEAD
   auto opts = query.options();
   auto output = at::empty({batch_size, num_head, seq_len_q, head_dim}, opts);
+=======
+  at::Tensor output;
+  std::vector<int64_t> output_shape = {
+      batch_size, num_head_q, seq_len_q, head_dim_v};
+  alloc_with_matching_layout(query, output, output_shape);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor logsumexp, debug_attn_mask; // not supported
 
   at::native::onednn::gpu_float_sdpa(
       batch_size,
       seq_len_q,
       seq_len_kv,
+<<<<<<< HEAD
       num_head,
       num_head_kv,
       head_dim,
+=======
+      num_head_q,
+      num_head_kv,
+      head_dim_qk,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       head_dim_v,
       query,
       key,
       value,
       attn_bias,
       is_causal,
+<<<<<<< HEAD
       scale.has_value() ? scale.value() : (1.0 / std::sqrt(head_dim)),
+=======
+      scale.has_value() ? scale.value() : (1.0 / std::sqrt(head_dim_qk)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       output);
 
   // rng not used

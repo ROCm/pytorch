@@ -28,7 +28,11 @@ add_executable(test_lazy
 # TODO temporary until we can delete the old gtest polyfills.
 target_compile_definitions(test_lazy PRIVATE USE_GTEST)
 
+<<<<<<< HEAD
 set(LAZY_TEST_DEPENDENCIES torch gtest)
+=======
+set(LAZY_TEST_DEPENDENCIES torch gtest_main)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 target_link_libraries(test_lazy PRIVATE ${LAZY_TEST_DEPENDENCIES})
 target_include_directories(test_lazy PRIVATE ${ATen_CPU_INCLUDE})

@@ -48,7 +48,11 @@ Below are the agent implementations provided by torchelastic.
 Extending the Agent
 ---------------------
 
+<<<<<<< HEAD
 To extend the agent you can implement ```ElasticAgent`` directly, however
+=======
+To extend the agent you can implement ``ElasticAgent`` directly, however
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 we recommend you extend ``SimpleElasticAgent`` instead, which provides
 most of the scaffolding and leaves you with a few specific abstract methods
 to implement.
@@ -64,6 +68,7 @@ to implement.
 Watchdog in the Agent
 ---------------------
 
+<<<<<<< HEAD
 A named pipe based watchdog can be enabled in ```LocalElasticAgent``` if an
 environment variable ``TORCHELASTIC_ENABLE_FILE_TIMER`` with value 1 has
 been defined in the ```LocalElasticAgent``` process.
@@ -74,14 +79,32 @@ will internally create a unique file name and set it to the environment
 variable ```TORCHELASTIC_TIMER_FILE```, and this environment variable will
 be propagated to the worker processes to allow them to connect to the same
 named pipe that ```LocalElasticAgent``` uses.
+=======
+A named pipe based watchdog can be enabled in ``LocalElasticAgent`` if an
+environment variable ``TORCHELASTIC_ENABLE_FILE_TIMER`` with value 1 has
+been defined in the ``LocalElasticAgent`` process.
+Optionally, another environment variable ``TORCHELASTIC_TIMER_FILE``
+can be set with a unique file name for the named pipe. If the environment
+variable ``TORCHELASTIC_TIMER_FILE`` is not set, ``LocalElasticAgent``
+will internally create a unique file name and set it to the environment
+variable ``TORCHELASTIC_TIMER_FILE``, and this environment variable will
+be propagated to the worker processes to allow them to connect to the same
+named pipe that ``LocalElasticAgent`` uses.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 Health Check Server
 -------------------
 
+<<<<<<< HEAD
 A health check monitoring server can be enabled in ```LocalElasticAgent```
 if an environment variable ``TORCHELASTIC_HEALTH_CHECK_PORT`` has been defined
 in the ```LocalElasticAgent``` process.
+=======
+A health check monitoring server can be enabled in ``LocalElasticAgent``
+if an environment variable ``TORCHELASTIC_HEALTH_CHECK_PORT`` has been defined
+in the ``LocalElasticAgent`` process.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Adding interface for health check server which can be extended by starting tcp/http
 server on the specified port number.
 Additionally, health check server will have callback to check watchdog is alive.

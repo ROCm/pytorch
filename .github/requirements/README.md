@@ -11,6 +11,7 @@ jobs, but it also allows them to be cached properly to improve CI
 reliability.
 
 The list of support files are as follows:
+<<<<<<< HEAD
 
 * Conda:
   * conda-env-iOS. This is used by iOS build and test jobs to setup the
@@ -22,5 +23,8 @@ The list of support files are as follows:
 * Pip:
   * pip-requirements-iOS.txt. This is used by iOS build and test jobs to
     setup the pip environment
+=======
+* Pip:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   * pip-requirements-macOS.txt. This is used by MacOS build and test jobs to
     setup the pip environment

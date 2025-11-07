@@ -270,6 +270,10 @@ class Backend(str):  # noqa: SLOT000
         "cpu": GLOO,
         "cuda": NCCL,
         "xpu": XCCL,
+<<<<<<< HEAD
+=======
+        "mps": GLOO,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     backend_capability: dict[str, list[str]] = {
@@ -339,7 +343,11 @@ class Backend(str):  # noqa: SLOT000
 
         if devices is not None:
             for device in devices:
+<<<<<<< HEAD
                 if device != "cpu" and device != "cuda":
+=======
+                if device not in Backend.default_device_backend_map:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     Backend.default_device_backend_map[device] = name.lower()
         Backend.backend_type_map[name.lower()] = ProcessGroup.BackendType.CUSTOM
 
@@ -546,7 +554,11 @@ class _CollOp:
     Args:
         op (Callable): A collective function, e.g. ``torch.distributed.all_reduce``.
         tensor (Tensor): Tensor to operate on.
+<<<<<<< HEAD
         dst_tensor (Tensor, optional): Provided when source and destinaton tensors are not the same.
+=======
+        dst_tensor (Tensor, optional): Provided when source and destination tensors are not the same.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         redop (ReduceOp, optional): reduce operation.
         root (int, optional): root of broadcast or reduce.
     """
@@ -1073,17 +1085,30 @@ def _get_global_rank(group, rank) -> int:
     return get_global_rank(group, rank)
 
 
+<<<<<<< HEAD
 def get_process_group_ranks(group: ProcessGroup) -> list[int]:
+=======
+def get_process_group_ranks(group: Optional[ProcessGroup]) -> list[int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Get all ranks associated with ``group``.
 
     Args:
+<<<<<<< HEAD
         group (ProcessGroup): ProcessGroup to get all ranks from.
+=======
+        group (Optional[ProcessGroup]): ProcessGroup to get all ranks from.
+            If None, the default process group will be used.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         List of global ranks ordered by group rank.
     """
+<<<<<<< HEAD
     return list(_world.pg_group_ranks[group].keys())
+=======
+    return list(_world.pg_group_ranks[group or _get_default_group()].keys())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_group_size(group) -> int:
@@ -1152,12 +1177,24 @@ def _canonicalize_group_rank(
     if group_rank is not None:
         if global_rank is not None:
             raise ValueError("Can't specify both group_rank and global_rank")
+<<<<<<< HEAD
         global_rank = get_global_rank(group, group_rank)
     else:
         if global_rank is None:
             raise ValueError("Must specify global_rank or group_rank")
         group_rank = get_group_rank(group, global_rank)
     return global_rank if return_global else group_rank
+=======
+        if return_global:
+            return get_global_rank(group, group_rank)
+    else:
+        if global_rank is None:
+            raise ValueError("Must specify global_rank or group_rank")
+        if return_global:
+            return global_rank
+        group_rank = get_group_rank(group, global_rank)
+    return group_rank
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _check_not_self_rank(group: ProcessGroup, rank: int, rank_type: str):
@@ -1359,7 +1396,17 @@ def get_backend(group: Optional[ProcessGroup] = None) -> Backend:
     pg = group or _get_default_group()
     if _rank_not_in_group(pg):
         raise ValueError("Invalid process group specified")
+<<<<<<< HEAD
     pg_store = _world.pg_map[pg] if pg in _world.pg_map else None
+=======
+
+    pg_store = _world.pg_map.get(pg, None)
+    if pg_store is None:
+        raise ValueError(
+            f"Process group {pg} is not initialized in the world group map. Please initialize the group first."
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Backend(not_none(pg_store)[0])
 
 
@@ -1368,7 +1415,11 @@ def get_default_backend_for_device(device: Union[str, torch.device]) -> str:
     Return the default backend for the given device.
 
     Args:
+<<<<<<< HEAD
         Union[str, torch.device]: The device to get the default backend for.
+=======
+        device (Union[str, torch.device]): The device to get the default backend for.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         The default backend for the given device as a lower case string.
@@ -1538,7 +1589,11 @@ def init_process_group(
     store: Optional[Store] = None,
     group_name: str = "",
     pg_options: Optional[Any] = None,
+<<<<<<< HEAD
     device_id: Optional[torch.device] = None,
+=======
+    device_id: Optional[Union[torch.device, int]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     Initialize the default distributed process group.
@@ -1573,6 +1628,11 @@ def init_process_group(
             process must have exclusive access to every GPU it uses, as sharing
             GPUs between processes can result in deadlock or NCCL invalid usage.
             ``ucc`` backend is experimental.
+<<<<<<< HEAD
+=======
+            Default backend for the device can be queried with
+            :func:`get_default_backend_for_device`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         init_method (str, optional): URL specifying how to initialize the
                                      process group. Default is "env://" if no
                                      ``init_method`` or ``store`` is specified.
@@ -1599,17 +1659,29 @@ def init_process_group(
             options we support is ``ProcessGroupNCCL.Options`` for the ``nccl``
             backend, ``is_high_priority_stream`` can be specified so that
             the nccl backend can pick up high priority cuda streams when
+<<<<<<< HEAD
             there're compute kernels waiting. For other availble options to config nccl,
             See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-t
         device_id (torch.device, optional): a single, specific device
             to "bind" this process to, allowing for backend-specific
+=======
+            there're compute kernels waiting. For other available options to config nccl,
+            See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-t
+        device_id (torch.device | int, optional): a single, specific device
+            this process will work on, allowing for backend-specific
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             optimizations.  Currently this has two effects, only under
             NCCL: the communicator is immediately formed (calling
             ``ncclCommInit*`` immediately rather than the normal lazy
             call) and sub-groups will use ``ncclCommSplit`` when
             possible to avoid unnecessary overhead of group creation. If you
             want to know NCCL initialization error early, you can also use this
+<<<<<<< HEAD
             field.
+=======
+            field. If an `int` is provided, the API assumes that the accelerator
+            type at compile time will be used.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note:: To enable ``backend == Backend.MPI``, PyTorch needs to be built from source
         on a system that supports MPI.
@@ -1654,6 +1726,42 @@ def init_process_group(
     elif init_method is None:
         init_method = "env://"
 
+<<<<<<< HEAD
+=======
+    # Get the compile-time accelerator type.
+    # None indicates no accelerator support.
+    acc = torch.accelerator.current_accelerator()
+
+    # Auto complete device id
+    if isinstance(device_id, int):
+        if acc is None:
+            raise ValueError(
+                "device_id is an int, but no accelerator support is found from the current compilation. "
+                "Please use a different compiled version that supports your accelerator."
+            )
+        device_id = torch.device(acc.type, device_id)
+
+    # Sanity check device_id
+    if device_id is not None and device_id.type != "cpu":
+        # Type
+        if acc is None or device_id.type != acc.type:
+            raise ValueError(
+                f"device_id {device_id} does not match the current compilation's accelerator support: {acc}. "
+                "Please use a different compiled version that supports your accelerator."
+            )
+        # Index
+        if device_id.index is None:
+            raise ValueError("Please use a device_id with index.")
+        # Range
+        if device_id.index >= torch.accelerator.device_count():
+            raise ValueError(
+                f"device_id {device_id} is out of range. Please use a device index less than "
+                f"the number of accelerators available: {torch.accelerator.device_count()}."
+            )
+
+    logger.info("Using device: %s", device_id)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # If user did not provide a backend string but provided a device id, e.g.
     # >>> init_process_group(device_id=device)
     # we try to figure out the backend name based on the device type.
@@ -1939,9 +2047,19 @@ def _new_process_group_helper(
             # TODO: remove this check after lazy initialization is supported
             # if pg_options is not None:
             #     raise RuntimeError("GLOO options not supported")
+<<<<<<< HEAD
             backend_class = ProcessGroupGloo(
                 backend_prefix_store, group_rank, group_size, timeout=timeout
             )
+=======
+            if not is_gloo_available():
+                raise RuntimeError("Distributed package doesn't have Gloo built in")
+            backend_class = ProcessGroupGloo(
+                backend_prefix_store, group_rank, group_size, timeout=timeout
+            )
+            backend_class.options.global_ranks_in_group = global_ranks_in_group
+            backend_class.options.group_name = group_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             backend_type = ProcessGroup.BackendType.GLOO
         elif backend_str == Backend.NCCL:
             if not is_nccl_available():
@@ -2494,7 +2612,11 @@ class _CoalescingManager:
     def __init__(self) -> None:
         self.works: list[Work] = []
 
+<<<<<<< HEAD
     def append(self, work: Work):
+=======
+    def append(self, work: Optional[Work] = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if work:
             self.works.append(work)
 
@@ -2507,7 +2629,11 @@ class _CoalescingManager:
 def _coalescing_manager(
     group: Optional[ProcessGroup] = None,
     device: Optional[torch.device] = None,
+<<<<<<< HEAD
     async_ops: Optional[bool] = False,
+=======
+    async_ops: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Context manager used to coalesce collectives or P2P operations when possible.
@@ -2546,6 +2672,10 @@ def _coalescing_manager(
         group._start_coalescing(device)
     cm = _CoalescingManager()
     yield cm
+<<<<<<< HEAD
+=======
+    work = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     op_list = _world.pg_coalesce_state.pop(group)
     if op_list:
         # Collectives supporting "Fast Path" coalescing are captured.
@@ -2559,6 +2689,10 @@ def _coalescing_manager(
             tensors = [op.tensor for op in op_list]
             all_reduce_opts = AllreduceCoalescedOptions()
             all_reduce_opts.reduceOp = not_none(op_list[0].redop)
+<<<<<<< HEAD
+=======
+            all_reduce_opts.asyncOp = async_ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             work = group.allreduce_coalesced(tensors, all_reduce_opts)
         elif op0 == all_gather_into_tensor:
             inputs = []
@@ -2566,6 +2700,11 @@ def _coalescing_manager(
             for op in op_list:
                 inputs.append(op.tensor)
                 outputs.append(not_none(op.dst_tensor))
+<<<<<<< HEAD
+=======
+            all_gather_opts = AllgatherOptions()
+            all_gather_opts.asyncOp = async_ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             work = group.allgather_into_tensor_coalesced(outputs, inputs)
         elif op0 == reduce_scatter_tensor:
             inputs = []
@@ -2575,6 +2714,10 @@ def _coalescing_manager(
                 outputs.append(not_none(op.dst_tensor))
             reduce_opts = ReduceScatterOptions()
             reduce_opts.reduceOp = not_none(op_list[0].redop)
+<<<<<<< HEAD
+=======
+            reduce_opts.asyncOp = async_ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             work = group.reduce_scatter_tensor_coalesced(outputs, inputs, reduce_opts)
         else:
             raise AssertionError(
@@ -2587,9 +2730,69 @@ def _coalescing_manager(
         work = group._end_coalescing(device)
 
     if async_ops:
+<<<<<<< HEAD
         cm.append(work)  # type: ignore[possibly-undefined]
     else:
         work.wait()  # type: ignore[possibly-undefined]
+=======
+        cm.append(work)
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+
+
+class _TimeEstimator:
+    def __init__(self) -> None:
+        self.estimated_time: Optional[float] = None
+
+
+@contextlib.contextmanager
+def _time_estimator(
+    group: Optional[ProcessGroup] = None,
+    device: Optional[torch.device] = None,
+):
+    """
+    Context manager used to estimate time of collectives.
+    Within the context manager, nothing is actually run and the backend just simulates
+    the collective time only.
+
+    Args:
+        group (`ProcessGroup`, optional): The process group to work on. If None,
+            the default process group will be used.
+        device (`torch.device`, optional): Default is None, set to a device if
+            there isn't a `**_coalesced` implementation by the backend.
+
+    Examples:
+        >>> # xdoctest: +SKIP("no rank")
+        >>> # Synchronous ops
+        >>> with _time_estimator() as cm:
+        >>>     for i in range(num_colls):
+        >>>         dist.all_reduce(tensors[i])
+        >>> # estimate time is stored in cm.estimated_time
+
+    .. warning::
+       :func:`_time_estimator` currently only support NCCL backend but it can
+       easily be extended to other backends.
+
+       Also a NCCL communicator needs to be created because only with a real communicator can we do accurate estimation.
+       The communicator internally has knowledge about the links it runs on
+       (e.g. intra-node or inter-node, whether the links are NVLink or PCI-e or IB).
+    """
+    # TODO: We need to also support torch inductor for the time estimator.
+    group = group or _get_default_group()
+    device = device or _get_pg_default_device(group)
+    backend = group._get_backend(device)
+    if not backend.supports_time_estimate:
+        raise NotImplementedError(
+            f"collective time estimator is not supported in the current version of backend {backend}"
+        )
+    backend._start_time_estimate()  # type: ignore[attr-defined]
+    cm = _TimeEstimator()
+    yield cm
+    cm.estimated_time = backend._end_time_estimate()  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def batch_isend_irecv(p2p_op_list: list[P2POp]) -> list[Work]:
@@ -2714,8 +2917,16 @@ def broadcast(
     work = group.broadcast([tensor], opts)
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -2795,6 +3006,10 @@ def all_reduce(tensor, op=ReduceOp.SUM, group=None, async_op=False):
 
     opts = AllreduceOptions()
     opts.reduceOp = op
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if group is None:
         group = _get_default_group()
 
@@ -2811,8 +3026,16 @@ def all_reduce(tensor, op=ReduceOp.SUM, group=None, async_op=False):
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -2871,13 +3094,25 @@ def all_reduce_coalesced(tensors, op=ReduceOp.SUM, group=None, async_op=False):
 
     opts = AllreduceCoalescedOptions()
     opts.reduceOp = op
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     group = group or _get_default_group()
     work = group.allreduce_coalesced(tensors, opts)
 
     if async_op:
         return work.get_future()
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -2922,11 +3157,23 @@ def reduce(
     opts = ReduceOptions()
     opts.reduceOp = op
     opts.rootRank = group_dst
+<<<<<<< HEAD
     work = group.reduce([tensor], opts)
     if async_op:
         return work
     else:
         work.wait()
+=======
+    opts.asyncOp = async_op
+    work = group.reduce([tensor], opts)
+    if async_op:
+        return work
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _object_to_tensor(obj, device, group):
@@ -2935,7 +3182,11 @@ def _object_to_tensor(obj, device, group):
         _pickler(f).dump(obj)
         byte_storage = torch.ByteStorage._from_buffer(f.getvalue())  # type: ignore[attr-defined]
         # Do not replace `torch.ByteTensor` or `torch.LongTensor` with torch.tensor and specifying dtype.
+<<<<<<< HEAD
         # Otherwise, it will casue 100X slowdown.
+=======
+        # Otherwise, it will cause 100X slowdown.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # See: https://github.com/pytorch/pytorch/issues/65696
         byte_tensor = torch.ByteTensor(byte_storage).to(device)
         if get_debug_level() == DebugLevel.DETAIL and is_nccl_available():
@@ -2993,11 +3244,22 @@ def all_gather_object(object_list, obj, group=None):
     .. note:: For NCCL-based processed groups, internal tensor representations
         of objects must be moved to the GPU device before communication takes
         place. In this case, the device used is given by
+<<<<<<< HEAD
         ``torch.cuda.current_device()`` and it is the user's responsiblity to
+=======
+        ``torch.cuda.current_device()`` and it is the user's responsibility to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ensure that this is set so that each rank has an individual GPU, via
         ``torch.cuda.set_device()``.
 
     .. warning::
+<<<<<<< HEAD
+=======
+        Object collectives have a number of serious performance and scalability
+        limitations.  See :ref:`object_collectives` for details.
+
+    .. warning::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :func:`all_gather_object` uses ``pickle`` module implicitly, which is
         known to be insecure. It is possible to construct malicious pickle data
         which will execute arbitrary code during unpickling. Only call this
@@ -3093,11 +3355,22 @@ def gather_object(
     .. note:: For NCCL-based processed groups, internal tensor representations
         of objects must be moved to the GPU device before communication takes
         place. In this case, the device used is given by
+<<<<<<< HEAD
         ``torch.cuda.current_device()`` and it is the user's responsiblity to
+=======
+        ``torch.cuda.current_device()`` and it is the user's responsibility to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ensure that this is set so that each rank has an individual GPU, via
         ``torch.cuda.set_device()``.
 
     .. warning::
+<<<<<<< HEAD
+=======
+        Object collectives have a number of serious performance and scalability
+        limitations.  See :ref:`object_collectives` for details.
+
+    .. warning::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :func:`gather_object` uses ``pickle`` module implicitly, which is
         known to be insecure. It is possible to construct malicious pickle data
         which will execute arbitrary code during unpickling. Only call this
@@ -3127,14 +3400,23 @@ def gather_object(
     group = _group_or_default_group(group)
     if dst is None and group_dst is None:
         dst = 0
+<<<<<<< HEAD
     global_dst = _canonicalize_group_rank(group, dst, group_dst, return_global=True)
+=======
+    group_dst = _canonicalize_group_rank(group, dst, group_dst, return_global=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _rank_not_in_group(group):
         _warn_not_in_group("gather_object")
         return
 
     # Ensure object_gather_list is specified appropriately.
+<<<<<<< HEAD
     my_global_rank = get_rank()
     _validate_output_list_for_rank(my_global_rank, global_dst, object_gather_list)
+=======
+    my_group_rank = group.rank()
+    _validate_output_list_for_rank(my_group_rank, group_dst, object_gather_list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     current_device = _get_object_coll_device(group)
     input_tensor, local_size = _object_to_tensor(obj, current_device, group)
 
@@ -3155,7 +3437,11 @@ def gather_object(
     # Resize tensor to max size across all ranks.
     input_tensor.resize_(max_object_size)
     # Avoid populating output tensors if the result won't be gathered on this rank.
+<<<<<<< HEAD
     if my_global_rank == global_dst:
+=======
+    if my_group_rank == group_dst:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         coalesced_output_tensor = torch.empty(
             max_object_size * group_size, dtype=torch.uint8, device=current_device
         )
@@ -3167,11 +3453,19 @@ def gather_object(
     # All ranks call gather with equal-sized tensors.
     gather(
         input_tensor,
+<<<<<<< HEAD
         gather_list=output_tensors if my_global_rank == global_dst else None,  # type: ignore[possibly-undefined]
         dst=global_dst,
         group=group,
     )
     if my_global_rank != global_dst:
+=======
+        gather_list=output_tensors if my_group_rank == group_dst else None,  # type: ignore[possibly-undefined]
+        group_dst=group_dst,
+        group=group,
+    )
+    if my_group_rank != group_dst:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
 
     assert object_gather_list is not None, "Must provide object_gather_list on dst rank"
@@ -3219,6 +3513,13 @@ def send_object_list(
         ``torch.cuda.set_device()``.
 
     .. warning::
+<<<<<<< HEAD
+=======
+        Object collectives have a number of serious performance and scalability
+        limitations.  See :ref:`object_collectives` for details.
+
+    .. warning::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :func:`send_object_list` uses ``pickle`` module implicitly, which
         is known to be insecure. It is possible to construct malicious pickle
         data which will execute arbitrary code during unpickling. Only call this
@@ -3317,6 +3618,13 @@ def recv_object_list(
         ``torch.cuda.set_device()``.
 
     .. warning::
+<<<<<<< HEAD
+=======
+        Object collectives have a number of serious performance and scalability
+        limitations.  See :ref:`object_collectives` for details.
+
+    .. warning::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :func:`recv_object_list` uses ``pickle`` module implicitly, which
         is known to be insecure. It is possible to construct malicious pickle
         data which will execute arbitrary code during unpickling. Only call this
@@ -3427,6 +3735,13 @@ def broadcast_object_list(
         will be a blocking call.
 
     .. warning::
+<<<<<<< HEAD
+=======
+        Object collectives have a number of serious performance and scalability
+        limitations.  See :ref:`object_collectives` for details.
+
+    .. warning::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :func:`broadcast_object_list` uses ``pickle`` module implicitly, which
         is known to be insecure. It is possible to construct malicious pickle
         data which will execute arbitrary code during unpickling. Only call this
@@ -3455,7 +3770,11 @@ def broadcast_object_list(
     group = _group_or_default_group(group)
     if src is None and group_src is None:
         src = 0
+<<<<<<< HEAD
     global_src = _canonicalize_group_rank(group, src, group_src, return_global=True)
+=======
+    group_src = _canonicalize_group_rank(group, src, group_src, return_global=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _rank_not_in_group(group):
         _warn_not_in_group("broadcast_object_list")
         return
@@ -3467,9 +3786,15 @@ def broadcast_object_list(
     # case it is not ``None`` we move the size and object tensors to be
     # broadcasted to this device.
     current_device = device or _get_object_coll_device(group)
+<<<<<<< HEAD
     my_global_rank = get_rank()
     # Serialize object_list elements to tensors on src rank.
     if my_global_rank == global_src:
+=======
+    my_group_rank = group.rank()
+    # Serialize object_list elements to tensors on src rank.
+    if my_group_rank == group_src:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_list, size_list = zip(
             *[_object_to_tensor(obj, current_device, group) for obj in object_list]
         )
@@ -3480,12 +3805,20 @@ def broadcast_object_list(
         )
 
     # Broadcast object sizes
+<<<<<<< HEAD
     broadcast(object_sizes_tensor, src=global_src, group=group)
+=======
+    broadcast(object_sizes_tensor, group_src=group_src, group=group)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Concatenate and broadcast serialized object tensors
     # Note: torch.cat will do an extra memory copy to the current device, if the tensor_list
     # has only one element, we can skip the copy.
+<<<<<<< HEAD
     if my_global_rank == global_src:
+=======
+    if my_group_rank == group_src:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(tensor_list) == 1:  # type: ignore[possibly-undefined]
             object_tensor = tensor_list[0]
         else:
@@ -3497,10 +3830,17 @@ def broadcast_object_list(
             device=current_device,
         )
 
+<<<<<<< HEAD
     broadcast(object_tensor, src=global_src, group=group)
     # Deserialize objects using their stored sizes.
     offset = 0
     if my_global_rank != global_src:
+=======
+    broadcast(object_tensor, group_src=group_src, group=group)
+    # Deserialize objects using their stored sizes.
+    offset = 0
+    if my_group_rank != group_src:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i, obj_size in enumerate(object_sizes_tensor):
             obj_view = object_tensor[offset : offset + obj_size]
             obj_view = obj_view.type(torch.uint8)
@@ -3546,6 +3886,13 @@ def scatter_object_list(
         blocking call.
 
     .. warning::
+<<<<<<< HEAD
+=======
+        Object collectives have a number of serious performance and scalability
+        limitations.  See :ref:`object_collectives` for details.
+
+    .. warning::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :func:`scatter_object_list` uses ``pickle`` module implicitly, which
         is known to be insecure. It is possible to construct malicious pickle
         data which will execute arbitrary code during unpickling. Only call this
@@ -3575,7 +3922,11 @@ def scatter_object_list(
     group = _group_or_default_group(group)
     if src is None and group_src is None:
         src = 0
+<<<<<<< HEAD
     global_src = _canonicalize_group_rank(group, src, group_src, return_global=True)
+=======
+    group_src = _canonicalize_group_rank(group, src, group_src, return_global=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _rank_not_in_group(group):
         _warn_not_in_group("scatter_object_list")
         return
@@ -3588,9 +3939,15 @@ def scatter_object_list(
             "Expected argument scatter_object_output_list to be a list of size at least 1."
         )
 
+<<<<<<< HEAD
     my_global_rank = get_rank()
     pg_device = _get_object_coll_device(group)
     if my_global_rank == global_src:
+=======
+    my_group_rank = group.rank()
+    pg_device = _get_object_coll_device(group)
+    if my_group_rank == group_src:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if scatter_object_input_list is None:
             raise ValueError(
                 "source rank must provide non-None scatter_object_input_list"
@@ -3610,7 +3967,11 @@ def scatter_object_list(
             tensor.resize_(max_tensor_size)
     else:
         max_tensor_size = torch.tensor([0], dtype=torch.long, device=pg_device)
+<<<<<<< HEAD
     broadcast(max_tensor_size, src=global_src, group=group)
+=======
+    broadcast(max_tensor_size, group_src=group_src, group=group)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Scatter actual serialized objects
     output_tensor = torch.empty(
@@ -3618,8 +3979,13 @@ def scatter_object_list(
     )
     scatter(
         output_tensor,
+<<<<<<< HEAD
         scatter_list=None if my_global_rank != global_src else tensor_list,  # type: ignore[possibly-undefined]
         src=global_src,
+=======
+        scatter_list=None if my_group_rank != group_src else tensor_list,  # type: ignore[possibly-undefined]
+        group_src=group_src,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         group=group,
     )
 
@@ -3627,8 +3993,13 @@ def scatter_object_list(
     obj_tensor_size = torch.tensor([0], dtype=torch.long, device=pg_device)
     scatter(
         obj_tensor_size,
+<<<<<<< HEAD
         scatter_list=None if my_global_rank != global_src else tensor_sizes,  # type: ignore[possibly-undefined]
         src=global_src,
+=======
+        scatter_list=None if my_group_rank != group_src else tensor_sizes,  # type: ignore[possibly-undefined]
+        group_src=group_src,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         group=group,
     )
 
@@ -3725,12 +4096,26 @@ def all_gather(tensor_list, tensor, group=None, async_op=False):
     tensor = tensor if not tensor.is_complex() else torch.view_as_real(tensor)
 
     group = group or _get_default_group()
+<<<<<<< HEAD
     work = group.allgather([tensor_list], [tensor])
 
     if async_op:
         return work
     else:
         work.wait()
+=======
+    opts = AllgatherOptions()
+    opts.asyncOp = async_op
+    work = group.allgather([tensor_list], [tensor], opts)
+
+    if async_op:
+        return work
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -3783,10 +4168,13 @@ def all_gather_into_tensor(output_tensor, input_tensor, group=None, async_op=Fal
                 [3, 4]], device='cuda:0') # Rank 0
         tensor([[1, 2],
                 [3, 4]], device='cuda:1') # Rank 1
+<<<<<<< HEAD
 
     .. warning::
         The Gloo backend does not support this API.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     # Dynamo has built-in logic to map legacy distributed ops to functional collectives.
     # Let's redirect to a torch function mode that can mimic this logic outside Dynamo
@@ -3837,8 +4225,16 @@ def all_gather_into_tensor(output_tensor, input_tensor, group=None, async_op=Fal
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -3948,12 +4344,26 @@ def all_gather_coalesced(
     ]
 
     group = group or _get_default_group()
+<<<<<<< HEAD
     work = group.allgather_coalesced(output_tensor_lists, input_tensor_list)
 
     if async_op:
         return work.get_future()
     else:
         work.wait()
+=======
+    opts = AllgatherOptions()
+    opts.asyncOp = async_op
+    work = group.allgather_coalesced(output_tensor_lists, input_tensor_list, opts)
+
+    if async_op:
+        return work.get_future()
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _validate_output_list_for_rank(my_rank, dst, gather_list):
@@ -4031,21 +4441,40 @@ def gather(
         return
     if dst is None and group_dst is None:
         dst = 0
+<<<<<<< HEAD
     global_dst = _canonicalize_group_rank(group, dst, group_dst, return_global=True)
     group_dst = _canonicalize_group_rank(group, dst, group_dst, return_global=False)
     my_global_rank = get_rank()
     _validate_output_list_for_rank(my_global_rank, global_dst, gather_list)
     output_tensors = [gather_list] if global_dst == my_global_rank else []
+=======
+    group_dst = _canonicalize_group_rank(group, dst, group_dst, return_global=False)
+    my_group_rank = group.rank()
+    _validate_output_list_for_rank(my_group_rank, group_dst, gather_list)
+    output_tensors = [gather_list] if group_dst == my_group_rank else []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     input_tensors = [tensor]
 
     opts = GatherOptions()
     opts.rootRank = group_dst
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     work = group.gather(output_tensors, input_tensors, opts)
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -4114,7 +4543,10 @@ def scatter(
     group = _group_or_default_group(group)
     if src is None and group_src is None:
         src = 0
+<<<<<<< HEAD
     global_src = _canonicalize_group_rank(group, src, group_src, return_global=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     group_src = _canonicalize_group_rank(group, src, group_src, return_global=False)
     if _rank_not_in_group(group):
         _warn_not_in_group("scatter")
@@ -4124,8 +4556,13 @@ def scatter(
     ]
     tensor = tensor if not tensor.is_complex() else torch.view_as_real(tensor)
 
+<<<<<<< HEAD
     my_global_rank = get_rank()
     if global_src == my_global_rank:
+=======
+    my_group_rank = group.rank()
+    if group_src == my_group_rank:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not scatter_list:
             raise ValueError(
                 "Argument ``scatter_list`` must be specified on source rank."
@@ -4147,8 +4584,16 @@ def scatter(
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -4180,14 +4625,26 @@ def reduce_scatter(output, input_list, op=ReduceOp.SUM, group=None, async_op=Fal
 
     opts = ReduceScatterOptions()
     opts.reduceOp = op
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     group = group or _get_default_group()
     work = group.reduce_scatter([output], [input_list], opts)
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -4241,9 +4698,12 @@ def reduce_scatter_tensor(output, input, op=ReduceOp.SUM, group=None, async_op=F
         tensor([0, 2], device='cuda:0') # Rank 0
         tensor([4, 6], device='cuda:1') # Rank 1
 
+<<<<<<< HEAD
     .. warning::
         The Gloo backend does not support this API.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     # Dynamo has built-in logic to map legacy distributed ops to functional collectives.
     # Let's redirect to a torch function mode that can mimic this logic outside Dynamo
@@ -4287,8 +4747,16 @@ def reduce_scatter_tensor(output, input, op=ReduceOp.SUM, group=None, async_op=F
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @deprecated(
@@ -4441,6 +4909,10 @@ def all_to_all_single(
         return
 
     opts = AllToAllOptions()
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _check_single_tensor(output, "output")
     _check_single_tensor(input, "input")
     _ensure_all_tensors_same_dtype(output, input)
@@ -4460,8 +4932,16 @@ def all_to_all_single(
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -4562,6 +5042,10 @@ def all_to_all(output_tensor_list, input_tensor_list, group=None, async_op=False
         return
 
     opts = AllToAllOptions()
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _check_tensor_list(output_tensor_list, "output_tensor_list")
     _check_tensor_list(input_tensor_list, "input_tensor_list")
     _ensure_all_tensors_same_dtype(output_tensor_list, input_tensor_list)
@@ -4578,8 +5062,16 @@ def all_to_all(output_tensor_list, input_tensor_list, group=None, async_op=False
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_exception_logger
@@ -4611,6 +5103,10 @@ def barrier(
         return
 
     opts = BarrierOptions()
+<<<<<<< HEAD
+=======
+    opts.asyncOp = async_op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Detect the accelerator on the machine. If no accelerator is available, it
     # returns CPU.
     device = torch._C._get_accelerator()
@@ -4636,8 +5132,16 @@ def barrier(
 
     if async_op:
         return work
+<<<<<<< HEAD
     else:
         work.wait()
+=======
+    elif (
+        work is not None
+    ):  # Backward compatible with backends that don't sync at CPP level
+        work.wait()
+    # Otherwise, the backend has sync'ed at CPP level
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def monitored_barrier(
@@ -4704,7 +5208,11 @@ def monitored_barrier(
     if timeout is None:
         timeout = _get_default_timeout(get_backend(group))
     elif isinstance(timeout, float):
+<<<<<<< HEAD
         # TODO(whc) aparently some existing test case for monitored_barrier passes in a timeout in float format?
+=======
+        # TODO(whc) apparently some existing test case for monitored_barrier passes in a timeout in float format?
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warnings.warn(
             "Please specify timeout arg as a timedelta. "
             f"Converting current value of {timeout} assuming it represents seconds",
@@ -4802,16 +5310,28 @@ def split_group(
     group_desc: Optional[str] = None,
 ) -> Optional[ProcessGroup]:
     """
+<<<<<<< HEAD
     Create a new process group splitted from the given parent process group.
 
     warning:: This is an experimental API and only the ``NCCL`` backend supports this API.
     Other backends will raise an error.
     Users of this API must gurantee that all ranks in the parent group enter this API call,
+=======
+    Create a new process group split from the given parent process group.
+
+    warning:: This is an experimental API. Only the ``NCCL`` and custom plugin backends
+    are supported. Other backends will raise an error.
+    Users of this API must guarantee that all ranks in the parent group enter this API call,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     and the split of the sub groups is the same across all ranks in the parent group.
 
     Args:
         parent_pg (ProcessGroup, optional): The parent process group. If None,
+<<<<<<< HEAD
             the default process group will be used. Users need to gurantee that
+=======
+            the default process group will be used. Users need to guarantee that
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             the parent group is fully initialized (e.g, communicators are initialized)
         split_ranks (list[list[int]]): the split ranks, which is a list of list of ranks.
             Users need to make sure the validity of the split ranks such that one
@@ -4821,12 +5341,18 @@ def split_group(
             [[0, 1], [2, 3]]. Note [[0,1]] is also a valid split, in which case ranks 2, 3 would
             return a non-group member.
         timeout (timedelta, optional): see `init_process_group` for details and default value.
+<<<<<<< HEAD
         pg_options (ProcessGroupOptions, optional): only ProcessGroupNCCLOptions is supported now.
             specifying what additional options need to be passed in during
             the construction of specific process groups. i.e.``is_high_priority_stream``
             can be specified so that process group can pick up high priority cuda streams.
             For other availble options to config nccl,
             See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-t
+=======
+        pg_options (ProcessGroupOptions, optional): Additional options need to be passed in during
+            the construction of specific process groups. i.e.``is_high_priority_stream``
+            can be specified so that process group can pick up high priority cuda streams.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         group_desc (str, optional): a string to describe the process group.
 
     Returns:
@@ -4870,18 +5396,26 @@ def split_group(
 
     # if the parent backend does not support splitting, raise error
     # currently this API only support NCCL backend
+<<<<<<< HEAD
     if (
         not parent_backend
         or not parent_backend.supports_splitting
         or not isinstance(parent_backend, ProcessGroupNCCL)
     ):
+=======
+    if not parent_backend or not parent_backend.supports_splitting:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise RuntimeError(
             "No backend for the parent process group or its backend does not support splitting"
         )
 
     # set the group_desc before the color or no_cloor split
     group_desc = (
+<<<<<<< HEAD
         f"{parent_pg.group_desc}:split:{parent_backend.comm_split_count()}"
+=======
+        f"{parent_pg.group_desc}:split:{parent_backend.comm_split_count()}"  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if group_desc is None
         else group_desc
     )
@@ -4891,11 +5425,15 @@ def split_group(
     backend = Backend(parent_backend_str)
     backend_config = BackendConfig(backend)
 
+<<<<<<< HEAD
     if pg_options is not None:
         assert isinstance(pg_options, ProcessGroupNCCL.Options), (
             "Expected pg_options argument to be of type ProcessGroupNCCL.Options"
         )
     else:
+=======
+    if pg_options is None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # default pg_options same as the parent process group
         pg_options = parent_backend.options
 
@@ -4926,7 +5464,11 @@ def split_group(
     # if my rank does not belong to any sub group,
     # no_color split should be called
     if my_group is None or group_rank == -1:
+<<<<<<< HEAD
         parent_backend.perform_nocolor_split(device_id)
+=======
+        parent_backend.perform_nocolor_split(device_id)  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
     group_name = _process_group_name(my_group, use_hashed_name=False)
@@ -4939,6 +5481,7 @@ def split_group(
         group_rank,
         len(my_group),
     )
+<<<<<<< HEAD
     backend_type = ProcessGroup.BackendType.NCCL
     pg.bound_device_id = device_id
     pg._set_default_backend(backend_type)
@@ -4951,6 +5494,42 @@ def split_group(
     backend_class = ProcessGroupNCCL(
         prefix_store, group_rank, len(my_group), pg_options
     )
+=======
+    pg.bound_device_id = device_id  # type: ignore[union-attr]
+    pg_options._timeout = timeout  # type: ignore[union-attr]
+    pg_options.split_from = parent_backend  # type: ignore[union-attr]
+    pg_options.split_color = _process_group_color(my_group)  # type: ignore[union-attr]
+    pg_options.global_ranks_in_group = global_ranks_in_my_group  # type: ignore[union-attr]
+    pg_options.group_name = group_name  # type: ignore[union-attr]
+
+    if parent_backend_str == Backend.NCCL:
+        backend_type = ProcessGroup.BackendType.NCCL
+        if not isinstance(pg_options, ProcessGroupNCCL.Options):
+            raise RuntimeError(
+                "Expected pg_options argument to be of type ProcessGroupNCCL.Options"
+            )
+        backend_class = ProcessGroupNCCL(
+            prefix_store, group_rank, len(my_group), pg_options
+        )
+    else:
+        assert parent_backend_str.upper() in Backend._plugins, (
+            f"Unknown c10d backend type {parent_backend_str.upper()}"
+        )
+        backend_plugin = Backend._plugins[parent_backend_str.upper()]
+        creator_fn = backend_plugin.creator_fn
+        extended_api = backend_plugin.extended_api
+        backend_type = ProcessGroup.BackendType.CUSTOM
+        if not extended_api:
+            backend_class = creator_fn(prefix_store, group_rank, len(my_group), timeout)
+        else:
+            dist_backend_opts = _DistributedBackendOptions()
+            dist_backend_opts.store = prefix_store
+            dist_backend_opts.group_rank = group_rank
+            dist_backend_opts.group_size = len(my_group)
+            backend_class = creator_fn(dist_backend_opts, pg_options)
+
+    pg._set_default_backend(backend_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_class._set_sequence_number_for_group()
 
     pg._register_backend(torch.device("cuda"), backend_type, backend_class)
@@ -5017,9 +5596,15 @@ def new_group(
         group, they must be synchronized with other cuda streams by calling `work.wait()`
         before using another process group.
 
+<<<<<<< HEAD
         See `Using multiple NCCL communicators concurrently <https://docs.nvid
         ia.com/deeplearning/nccl/user-guide/docs/usage/communicators.html#using
         -multiple-nccl-communicators-concurrently>`_ for more details.
+=======
+        See `Using multiple NCCL communicators concurrently
+        <https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/communicators.html#using-multiple-nccl-communicators-concurrently>`
+        for more details.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Args:
         ranks (list[int]): List of ranks of group members. If ``None``, will be
@@ -5037,11 +5622,18 @@ def new_group(
             specifying what additional options need to be passed in during
             the construction of specific process groups. i.e. for the ``nccl``
             backend, ``is_high_priority_stream`` can be specified so that
+<<<<<<< HEAD
             process group can pick up high priority cuda streams. For other availble options to config nccl,
             See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-t
         use_local_synchronization (bool, optional): perform a group-local
             barrier at the end of the process group creation. This is different
             in that non-member ranks don't need to call into API and don't
+=======
+            process group can pick up high priority cuda streams. For other available options to config nccl,
+            See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-tuse_local_synchronization
+            (bool, optional): perform a group-local barrier at the end of the process group creation.
+            This is different in that non-member ranks don't need to call into API and don't
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             join the barrier.
         group_desc (str, optional): a string to describe the process group.
         device_id (torch.device, optional): a single, specific device
@@ -5059,7 +5651,11 @@ def new_group(
     as non-member ranks don't join the group barrier().
 
     N.B. use_local_synchronization=True can lead to deadlocks when each rank creates
+<<<<<<< HEAD
     multiple overlaping process groups. To avoid that, make sure all ranks follow the
+=======
+    multiple overlapping process groups. To avoid that, make sure all ranks follow the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     same global creation order.
     """
     return _new_group_with_tag(
@@ -5237,6 +5833,11 @@ def new_subgroups(
             the default subgroup size is equal to the number of devices on each machine,
             based on the assumption that each machine has exactly the same
             number of devices. Default is ``None``.
+<<<<<<< HEAD
+=======
+        group (ProcessGroup, optional): The process group to work on. If
+            ``None``, the default process group will be used. Default is ``None``.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         timeout (timedelta, optional): see `init_process_group` for details and default value.
         backend (str or Backend, optional): The backend to use. Depending on
             build-time configurations, valid values are ``gloo`` and ``nccl``.
@@ -5282,12 +5883,17 @@ def new_subgroups(
     if group_size <= 0:
         raise ValueError(f"The arg 'group_size' ({group_size}) must be positive")
 
+<<<<<<< HEAD
     world_size = get_world_size()
+=======
+    world_size = get_world_size(group=group)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if world_size < group_size:
         raise ValueError(
             f"The arg 'group_size' ({group_size}) must not exceed the world size ({world_size})"
         )
     if world_size % group_size != 0:
+<<<<<<< HEAD
         raise ValueError("The world size must be divisible by 'group_size'")
 
     subgroups = []
@@ -5312,6 +5918,24 @@ def new_subgroups(
             logger.info("Rank %s is assigned to subgroup %s", rank, ranks_in_subgroup)
 
     return cur_subgroup, subgroups
+=======
+        raise ValueError(
+            f"The world size ({world_size}) must be divisible by '{group_size=}'"
+        )
+
+    # TODO: Use itertools.batched(get_process_group_ranks(group=group), group_size) instead when Python 3.12 is supported.
+    ranks = get_process_group_ranks(group=group)
+    ranks_per_subgroup_list = [
+        ranks[i : i + group_size] for i in range(0, len(ranks), group_size)
+    ]
+    return new_subgroups_by_enumeration(
+        ranks_per_subgroup_list,
+        timeout=timeout,
+        backend=backend,
+        pg_options=pg_options,
+        group_desc=group_desc,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def new_subgroups_by_enumeration(

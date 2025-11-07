@@ -2,6 +2,10 @@
 
 #include <ATen/mps/MPSProfiler.h>
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <fmt/format.h>
 
 // these need to be literal strings when passed to os_signpost*()
@@ -91,11 +95,19 @@ std::string CopyInfo::buildTensorString(const void* buffer, const OptionalTensor
 
 MPSProfiler::MPSProfiler() : m_os_log_events(nullptr), m_os_log_intervals(nullptr) {
   // see enum LogOptions for the description.
+<<<<<<< HEAD
   static const char* log_options_str = getenv(kEVLogProfileInfoStr);
   m_log_options = log_options_str ? strtol(log_options_str, nullptr, 0) : 0;
   // see enums profilerOptions and SignpostTypes for the description.
   static const char* trace_signpost_str = getenv(kEVTraceSignpostsStr);
   uint32_t trace_signposts = trace_signpost_str ? strtol(trace_signpost_str, nullptr, 0) : 0;
+=======
+  static const auto log_options_str = c10::utils::get_env(kEVLogProfileInfoStr);
+  m_log_options = log_options_str ? strtol(log_options_str->c_str(), nullptr, 0) : 0;
+  // see enums profilerOptions and SignpostTypes for the description.
+  static const auto trace_signpost_str = c10::utils::get_env(kEVTraceSignpostsStr);
+  uint32_t trace_signposts = trace_signpost_str ? strtol(trace_signpost_str->c_str(), nullptr, 0) : 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(m_log_options <= LogOptions::LOG_COUNT,
               "invalid log options ",
@@ -779,8 +791,13 @@ void MPSProfiler::handleIntSignal(int signal) {
 }
 
 // used to capture sigint signal to log profiling stats
+<<<<<<< HEAD
 struct sigaction MPSProfiler::currentSigint {};
 struct sigaction MPSProfiler::previousSigint {};
+=======
+struct sigaction MPSProfiler::currentSigint{};
+struct sigaction MPSProfiler::previousSigint{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool MPSProfiler::isCapturing() const {
   return [captureManager isCapturing];

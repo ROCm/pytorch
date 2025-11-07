@@ -215,7 +215,11 @@ Tensor as_strided_tensorimpl_mps(const Tensor& self,
   // when we create/run the view graph.
   IntArrayRef base_shape = mps::updateTensorBaseShape(self);
   TORCH_INTERNAL_ASSERT(
+<<<<<<< HEAD
       base_shape.size() > 0, "Failed to update the base shape of tensor's buffer at ", self.storage().data());
+=======
+      !base_shape.empty(), "Failed to update the base shape of tensor's buffer at ", self.storage().data());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return result;
 }

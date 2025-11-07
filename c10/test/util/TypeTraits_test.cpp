@@ -51,7 +51,11 @@ struct Functor {
 auto lambda = []() {};
 // func() and func__ just exists to silence a compiler warning about lambda
 // being unused
+<<<<<<< HEAD
 bool func() {
+=======
+static bool func() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   lambda();
   return true;
 }
@@ -151,6 +155,10 @@ struct MyStatelessConstFunctor final {
   Result operator()(Args...) const {}
 };
 
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void func() {
   auto stateless_lambda = [](int a) { return a; };
   static_assert(is_stateless_lambda<decltype(stateless_lambda)>::value, "");

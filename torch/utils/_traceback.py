@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from types import TracebackType
 from typing import Optional
 import tempfile
@@ -6,6 +7,16 @@ import traceback
 import contextlib
 import inspect
 import os.path
+=======
+import contextlib
+import inspect
+import os.path
+import tempfile
+import traceback
+from types import TracebackType
+from typing import Optional
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # This file contains utilities for ensuring dynamically compile()'d
 # code fragments display their line numbers in backtraces.
@@ -44,6 +55,10 @@ import os.path
 # - Before running the compiled code, enter the
 #   report_compile_source_on_error() context manager.
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @contextlib.contextmanager
 def report_compile_source_on_error():
     try:
@@ -83,15 +98,28 @@ def report_compile_source_on_error():
                 # Don't delete the temporary file so the user can inspect it
                 # TODO: This creates a temporary file for every frame, but we
                 # technically only need one per distinct __compile_source__
+<<<<<<< HEAD
                 with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".py") as f:
+=======
+                with tempfile.NamedTemporaryFile(
+                    mode="w", delete=False, suffix=".py"
+                ) as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     f.write(source)
                 # Create a frame.  Python doesn't let you construct
                 # FrameType directly, so just make one with compile
                 frame = tb.tb_frame
+<<<<<<< HEAD
                 code = compile('__inspect_currentframe()', f.name, 'eval')
                 code = code.replace(co_name=frame.f_code.co_name)
                 # Python 3.11 only
                 if hasattr(frame.f_code, 'co_linetable'):
+=======
+                code = compile("__inspect_currentframe()", f.name, "eval")
+                code = code.replace(co_name=frame.f_code.co_name)
+                # Python 3.11 only
+                if hasattr(frame.f_code, "co_linetable"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # We can't copy ALL of the metadata over, because you
                     # can cause Python to segfault this way.  What exactly
                     # do we need?  We need enough information for
@@ -109,6 +137,7 @@ def report_compile_source_on_error():
                 fake_frame = eval(
                     code,
                     frame.f_globals,
+<<<<<<< HEAD
                     {
                         **frame.f_locals,
                         '__inspect_currentframe': inspect.currentframe
@@ -117,6 +146,11 @@ def report_compile_source_on_error():
                 fake_tb = TracebackType(
                     None, fake_frame, tb.tb_lasti, tb.tb_lineno
                 )
+=======
+                    {**frame.f_locals, "__inspect_currentframe": inspect.currentframe},
+                )
+                fake_tb = TracebackType(None, fake_frame, tb.tb_lasti, tb.tb_lineno)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 stack.append(fake_tb)
             else:
                 stack.append(tb)
@@ -131,6 +165,10 @@ def report_compile_source_on_error():
 
         raise exc.with_traceback(tb_next)  # noqa: B904
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def shorten_filename(fn, *, base=None):
     """Shorten a source filepath, with the assumption that torch/ subdirectories don't need to be shown to user."""
     if base is None:
@@ -141,7 +179,12 @@ def shorten_filename(fn, *, base=None):
     except ValueError:
         return fn
     else:
+<<<<<<< HEAD
         return fn[len(prefix) + 1:]
+=======
+        return fn[len(prefix) + 1 :]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def format_frame(frame, *, base=None, line=False):
     """
@@ -154,12 +197,22 @@ def format_frame(frame, *, base=None, line=False):
         extra_line = f"{frame.line}  # "
     return f"{extra_line}{shorten_filename(frame.filename, base=base)}:{frame.lineno} in {frame.name}"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def format_traceback_short(tb):
     """Format a TracebackType in a short way, printing only the inner-most frame."""
     return format_frame(traceback.extract_tb(tb)[-1])
 
+<<<<<<< HEAD
 class CapturedTraceback:
     __slots__ = ['tb', 'skip']
+=======
+
+class CapturedTraceback:
+    __slots__ = ["tb", "skip"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, tb, skip=0):
         self.tb = tb
@@ -176,6 +229,7 @@ class CapturedTraceback:
             return traceback.StackSummary()
 
         return _extract_symbolized_tb(
+<<<<<<< HEAD
             torch._C._profiler.symbolize_tracebacks([self.tb])[0],
             self.skip
         )
@@ -185,6 +239,19 @@ class CapturedTraceback:
             'tb': None,  # TB is not pickleable
             'skip': self.skip,
         })
+=======
+            torch._C._profiler.symbolize_tracebacks([self.tb])[0], self.skip
+        )
+
+    def __getstate__(self):
+        return (
+            None,
+            {
+                "tb": None,  # TB is not pickleable
+                "skip": self.skip,
+            },
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def extract(*, script=False, cpp=False, skip=0):
@@ -207,7 +274,11 @@ class CapturedTraceback:
             torch._C._profiler.gather_traceback(python=True, script=script, cpp=cpp),
             # Elide extract() frame if we don't have script/cpp frames.  If
             # we do have those frames, it doesn't work so force zero.
+<<<<<<< HEAD
             0 if script or cpp else skip + 1
+=======
+            0 if script or cpp else skip + 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def format(self):
@@ -251,5 +322,9 @@ def _extract_symbolized_tb(tb, skip):
     """
     stack = traceback.StackSummary()
     for f in reversed(tb[skip:]):
+<<<<<<< HEAD
         stack.append(traceback.FrameSummary(f['filename'], f['line'], f['name']))
+=======
+        stack.append(traceback.FrameSummary(f["filename"], f["line"], f["name"]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return stack

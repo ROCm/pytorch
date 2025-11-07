@@ -8,6 +8,11 @@ class TORCH_API PrefixStore : public Store {
  public:
   explicit PrefixStore(std::string prefix, c10::intrusive_ptr<Store> store);
 
+<<<<<<< HEAD
+=======
+  c10::intrusive_ptr<Store> clone() override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using Store::set;
   void set(const std::string& key, const std::vector<uint8_t>& value) override;
 
@@ -50,6 +55,16 @@ class TORCH_API PrefixStore : public Store {
   // Returns true if this store support append, multiGet and multiSet
   bool hasExtendedApi() const override;
 
+<<<<<<< HEAD
+=======
+  void queuePush(const std::string& key, const std::vector<uint8_t>& value)
+      override;
+
+  std::vector<uint8_t> queuePop(const std::string& key, bool block) override;
+
+  int64_t queueLen(const std::string& key) override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::intrusive_ptr<Store> getUnderlyingStore();
 
   // Recursively to fetch the store before layers of wrapping with PrefixStore.

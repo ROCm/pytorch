@@ -6,6 +6,10 @@
 #include <ATen/WrapDimUtils.h>
 #include <ATen/ExpandUtils.h>
 #include <ATen/native/Resize.h>
+<<<<<<< HEAD
+=======
+#include <ATen/MemoryOverlap.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 #ifndef AT_PER_OPERATOR_HEADERS
@@ -77,6 +81,12 @@ Tensor & cross_out(const Tensor & input, const Tensor & other, const std::option
 
 TORCH_IMPL_FUNC(linalg_cross_out)
 (const Tensor & input, const Tensor & other, int64_t dim, const Tensor & out) {
+<<<<<<< HEAD
+=======
+  at::assert_no_internal_overlap(out);
+  at::assert_no_overlap(out, input);
+  at::assert_no_overlap(out, other);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   dim = maybe_wrap_dim(dim, input.dim());
   auto out_size = out.sizes();
   Tensor input_broadcasted = input.expand(out_size);

@@ -40,5 +40,9 @@ RegisterHandler tracebackHandler{
 
       res.setContent(std::move(file_contents), "text/plain");
     }};
+<<<<<<< HEAD
 }
+=======
+} // namespace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10d::control_plane

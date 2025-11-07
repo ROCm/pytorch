@@ -14,13 +14,19 @@
 #include <ATen/ops/atan2_native.h>
 #include <ATen/ops/div_native.h>
 #include <ATen/ops/eq_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/floor_divide_native.h>
 #include <ATen/ops/fmod_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/ge_native.h>
 #include <ATen/ops/gt_native.h>
 #include <ATen/ops/hypot_native.h>
 #include <ATen/ops/le_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/lerp_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/logaddexp2_native.h>
 #include <ATen/ops/logaddexp_native.h>
 #include <ATen/ops/logical_and_native.h>
@@ -29,11 +35,17 @@
 #include <ATen/ops/lt_native.h>
 #include <ATen/ops/maximum_native.h>
 #include <ATen/ops/minimum_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/mul_native.h>
 #include <ATen/ops/ne_native.h>
 #include <ATen/ops/pow.h>
 #include <ATen/ops/pow_native.h>
 #include <ATen/ops/remainder_native.h>
+=======
+#include <ATen/ops/ne_native.h>
+#include <ATen/ops/pow.h>
+#include <ATen/ops/pow_native.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/result_type.h>
 #include <ATen/ops/sub_native.h>
 #include <ATen/ops/view_as_real.h>
@@ -46,7 +58,11 @@ namespace mps {
 struct BinaryOpCachedGraph : public MPSCachedGraph {
   BinaryOpCachedGraph(MPSGraph* graph) : MPSCachedGraph(graph) {}
   MPSGraphTensor *primaryTensor = nil, *secondaryTensor = nil;
+<<<<<<< HEAD
   MPSGraphTensor *alphaTensor = nil, *outputTensor = nil;
+=======
+  MPSGraphTensor* outputTensor = nil;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 typedef MPSGraphTensor* (^BinaryOpBlock)(BinaryOpCachedGraph*, MPSGraphTensor*, MPSGraphTensor*);
@@ -61,10 +77,15 @@ static inline Tensor legacy_complex_as_view(const Tensor& t) {
   return at::view_as_real(t.dim() != 0 ? t : t.to(kMPS));
 }
 
+<<<<<<< HEAD
 // alpha is always 1.0 except when this function is called from add_sub_lerp_template()
 static void binaryOpTensor(const Tensor& self,
                            const Tensor& other,
                            const Scalar& alpha,
+=======
+static void binaryOpTensor(const Tensor& self,
+                           const Tensor& other,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                            const Tensor& output_,
                            std::string op_name,
                            BinaryOpBlock binaryBlock) {
@@ -119,7 +140,11 @@ static void binaryOpTensor(const Tensor& self,
   }
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = op_name + getTensorsStringKey({self, other, output_});
+=======
+    std::string key = op_name + getTensorsStringKey({self, other, output_});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<BinaryOpCachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       newCachedGraph->primaryTensor =
           mpsGraphRankedPlaceHolder(mpsGraph, getMPSScalarType(inputDataType), getMPSShape(self));
@@ -148,7 +173,10 @@ static void binaryOpTensor(const Tensor& self,
     Placeholder otherPlaceholder;
     MPSScalar self_scalar;
     MPSScalar other_scalar;
+<<<<<<< HEAD
     MPSScalar alpha_scalar;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (is_self_scalar && !self.is_mps()) {
       self_scalar = getMPSScalar(self.item(), inputDataType);
@@ -173,12 +201,15 @@ static void binaryOpTensor(const Tensor& self,
       feeds[otherPlaceholder.getMPSGraphTensor()] = otherPlaceholder.getMPSGraphTensorData();
     }
 
+<<<<<<< HEAD
     // 'cachedGraph->alphaTensor' is not nil only if add_sub_lerp_template() was called with an alpha value != 1.0
     if (cachedGraph->alphaTensor) {
       alpha_scalar = getMPSScalar(alpha, common_dtype);
       feeds[cachedGraph->alphaTensor] = getMPSGraphTensorFromScalar(mpsStream, alpha_scalar);
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Placeholder outputPlaceholder = Placeholder(cachedGraph->outputTensor, needsCopyToOutput ? output : output_);
     runMPSGraph(mpsStream, cachedGraph->graph(), feeds, outputPlaceholder);
 
@@ -190,6 +221,7 @@ static void binaryOpTensor(const Tensor& self,
 
 static void binaryOpScalar(const Tensor& self,
                            const Scalar& other,
+<<<<<<< HEAD
                            const Scalar& alpha,
                            const Tensor& output,
                            std::string op_name,
@@ -251,6 +283,12 @@ static void div_mode_template(const Tensor& self,
                  output,
                  op_name + "_mps:" + (rounding_mode.has_value() ? c10::str(*rounding_mode) : ""),
                  div_mode_op_block);
+=======
+                           const Tensor& output,
+                           std::string op_name,
+                           BinaryOpBlock binaryBlock) {
+  binaryOpTensor(self, wrapped_scalar_tensor(other), output, op_name, binaryBlock);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static void add_sub_lerp_template(const Tensor& self,
@@ -258,19 +296,27 @@ static void add_sub_lerp_template(const Tensor& self,
                                   const Scalar& alpha,
                                   const Tensor& output,
                                   std::string op_name) {
+<<<<<<< HEAD
   if (alpha.toDouble() == 0.0) {
+=======
+  if (!alpha.isComplex() && alpha.toDouble() == 0.0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!self.is_alias_of(output)) { // if inplace, no-op
       output.copy_(self);
     }
     return;
   }
 
+<<<<<<< HEAD
   const bool alpha_has_value = alpha.toDouble() != 1.0;
   if (alpha_has_value) {
     auto commonDtype = at::result_type(self, other);
     at::native::alpha_check(commonDtype, alpha);
   }
 
+=======
+  const bool alpha_has_value = alpha.isComplex() || alpha.toDouble() != 1.0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!alpha_has_value && op_name == "lerp") {
     if (!self.is_alias_of(other)) { // if inplace, no-op
       output.copy_(other);
@@ -278,6 +324,7 @@ static void add_sub_lerp_template(const Tensor& self,
     return;
   }
 
+<<<<<<< HEAD
   BinaryOpBlock add_sub_lerp_op_block = ^BinaryOpFn(cachedGraph, primaryCastTensor, secondaryCastTensor) {
     MPSGraph* mpsGraph = cachedGraph->graph();
     MPSGraphTensor* secondaryTensor = secondaryCastTensor;
@@ -308,10 +355,20 @@ static void add_sub_lerp_template(const Tensor& self,
                  output,
                  op_name + "_out_mps:" + (alpha_has_value ? getMPSTypeString(alpha.type()) : ""),
                  add_sub_lerp_op_block);
+=======
+  if (alpha_has_value) {
+    auto commonDtype = at::result_type(self, other);
+    at::native::alpha_check(commonDtype, alpha);
+    mps::binary_op_kernel(op_name + "_alpha", self, other, output, alpha);
+  } else {
+    mps::binary_op_kernel(op_name, self, other, output);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace mps
 
+<<<<<<< HEAD
 #define CREATE_MPS_BINARY_COMPARISON_OP_FUNC(func_out, func_stub, other_type)                       \
   Tensor& func_out(const Tensor& self, const other_type& other, Tensor& output) {                   \
     mps::binaryOp##other_type(                                                                      \
@@ -359,6 +416,42 @@ static void add_sub_lerp_template(const Tensor& self,
                                                               secondaryTensor:secondaryCastTensor \
                                                                          name:nil];               \
                               });                                                                 \
+=======
+#define CREATE_MPS_BINARY_COMPARISON_OP_FUNC(func_out, func_stub, other_type)                               \
+  Tensor& func_out(const Tensor& self, const other_type& other, Tensor& output) {                           \
+    mps::binaryOp##other_type(                                                                              \
+        self, other, output, #func_stub, ^BinaryOpFn(cachedGraph, primaryCastTensor, secondaryCastTensor) { \
+          MPSGraph* mpsGraph = cachedGraph->graph();                                                        \
+          return [mpsGraph func_stub##                                                                      \
+              WithPrimaryTensor:mps::castMPSTensor(mpsGraph, primaryCastTensor, ScalarType::Bool)           \
+                secondaryTensor:mps::castMPSTensor(mpsGraph, secondaryCastTensor, ScalarType::Bool)         \
+                           name:nil];                                                                       \
+        });                                                                                                 \
+    return output;                                                                                          \
+  }
+
+#define CREATE_MPS_STRUCTURED_BINARY_OP_FUNC(func_out, func_stub, other_type)                               \
+  TORCH_IMPL_FUNC(func_out)(const Tensor& self, const other_type& other, const Tensor& output) {            \
+    mps::binaryOp##other_type(                                                                              \
+        self, other, output, #func_stub, ^BinaryOpFn(cachedGraph, primaryCastTensor, secondaryCastTensor) { \
+          MPSGraph* mpsGraph = cachedGraph->graph();                                                        \
+          return [mpsGraph func_stub##WithPrimaryTensor:primaryCastTensor                                   \
+                                        secondaryTensor:secondaryCastTensor                                 \
+                                                   name:nil];                                               \
+        });                                                                                                 \
+  }
+
+// output of Boolean Ops will be cast to "MPSDataTypeBool" at the end of binaryOpTensor()
+#define CREATE_MPS_STRUCTURED_BOOLEAN_OP_FUNC(func_out, func_stub, other_type)                              \
+  TORCH_IMPL_FUNC(func_out)(const Tensor& self, const other_type& other, const Tensor& output) {            \
+    mps::binaryOp##other_type(                                                                              \
+        self, other, output, #func_stub, ^BinaryOpFn(cachedGraph, primaryCastTensor, secondaryCastTensor) { \
+          MPSGraph* mpsGraph = cachedGraph->graph();                                                        \
+          return [mpsGraph func_stub##WithPrimaryTensor:primaryCastTensor                                   \
+                                        secondaryTensor:secondaryCastTensor                                 \
+                                                   name:nil];                                               \
+        });                                                                                                 \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
 // Boolean Binary Ops
@@ -384,6 +477,7 @@ CREATE_MPS_BINARY_COMPARISON_OP_FUNC(logical_and_out_mps, logicalAND, Tensor);
 CREATE_MPS_BINARY_COMPARISON_OP_FUNC(logical_or_out_mps, logicalOR, Tensor);
 CREATE_MPS_BINARY_COMPARISON_OP_FUNC(logical_xor_out_mps, logicalXOR, Tensor);
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(mul_out_mps)(const Tensor& self, const Tensor& other, const Tensor& output) {
   if (!mps::supportsComplex() && (c10::isComplexType(self.scalar_type()) || c10::isComplexType(other.scalar_type()))) {
     return mps::complex_mul_out(self, other, output);
@@ -423,10 +517,21 @@ TORCH_IMPL_FUNC(add_out_mps)(const Tensor& self, const Tensor& other, const Scal
                                       mps::legacy_complex_as_view(output),
                                       "add");
   }
+=======
+TORCH_IMPL_FUNC(atan2_out_mps)(const Tensor& self, const Tensor& other, const Tensor& output) {
+  mps::binaryOpTensor(self, other, output, "atan2", ^BinaryOpFn(cachedGraph, primaryCastTensor, secondaryCastTensor) {
+    MPSGraph* mpsGraph = cachedGraph->graph();
+    return [mpsGraph atan2WithPrimaryTensor:primaryCastTensor secondaryTensor:secondaryCastTensor name:nil];
+  });
+}
+
+TORCH_IMPL_FUNC(add_out_mps)(const Tensor& self, const Tensor& other, const Scalar& alpha, const Tensor& output) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mps::add_sub_lerp_template(self, other, alpha, output, "add");
 }
 
 TORCH_IMPL_FUNC(sub_out_mps)(const Tensor& self, const Tensor& other, const Scalar& alpha, const Tensor& output) {
+<<<<<<< HEAD
   if ((isComplexType(self.scalar_type()) || isComplexType(other.scalar_type())) && !alpha.isComplex() &&
       !mps::supportsComplex()) {
     // Complex sub with non-complex alpha is just add over views
@@ -436,6 +541,8 @@ TORCH_IMPL_FUNC(sub_out_mps)(const Tensor& self, const Tensor& other, const Scal
                                       mps::legacy_complex_as_view(output),
                                       "sub");
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mps::add_sub_lerp_template(self, other, alpha, output, "sub");
 }
 
@@ -447,6 +554,7 @@ TORCH_IMPL_FUNC(pow_Scalar_out_mps)(const Scalar& base, const Tensor& exp, const
   }
 }
 
+<<<<<<< HEAD
 Tensor& floor_divide_out_mps(const Tensor& self, const Tensor& other, Tensor& result) {
   mps::div_mode_template(self, other, "floor", result, "floor_divide_out");
   return result;
@@ -470,6 +578,8 @@ TORCH_IMPL_FUNC(fmod_mps_out)(const Tensor& self, const Tensor& other, const Ten
   mps::div_mode_template(self, other, "trunc", output, "fmod_mps_out");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_IMPL_FUNC(hypot_out_mps)(const Tensor& self, const Tensor& other, const Tensor& output) {
   mps::BinaryOpBlock hypot_op_block = ^BinaryOpFn(cachedGraph, primaryCastTensor, secondaryCastTensor) {
     MPSGraph* mpsGraph = cachedGraph->graph();
@@ -483,7 +593,11 @@ TORCH_IMPL_FUNC(hypot_out_mps)(const Tensor& self, const Tensor& other, const Te
                                                                name:nil];
     return [mpsGraph squareRootWithTensor:sumTensor name:nil];
   };
+<<<<<<< HEAD
   mps::binaryOpTensor(self, other, Scalar(1.0), output, "hypot_out_mps", hypot_op_block);
+=======
+  mps::binaryOpTensor(self, other, output, "hypot_out_mps", hypot_op_block);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_IMPL_FUNC(logaddexp_out_mps)(const Tensor& self, const Tensor& other, const Tensor& output) {
@@ -495,7 +609,11 @@ TORCH_IMPL_FUNC(logaddexp_out_mps)(const Tensor& self, const Tensor& other, cons
                                        name:nil];
     return [mpsGraph logarithmWithTensor:sumTensor name:nil];
   };
+<<<<<<< HEAD
   mps::binaryOpTensor(self, other, Scalar(1.0), output, "logaddexp_out_mps", logaddexp_op_block);
+=======
+  mps::binaryOpTensor(self, other, output, "logaddexp_out_mps", logaddexp_op_block);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_IMPL_FUNC(logaddexp2_out_mps)(const Tensor& self, const Tensor& other, const Tensor& output) {
@@ -507,7 +625,11 @@ TORCH_IMPL_FUNC(logaddexp2_out_mps)(const Tensor& self, const Tensor& other, con
                                        name:nil];
     return [mpsGraph logarithmBase2WithTensor:sumTensor name:nil];
   };
+<<<<<<< HEAD
   mps::binaryOpTensor(self, other, Scalar(1.0), output, "logaddexp2_out_mps", logaddexp2_op_block);
+=======
+  mps::binaryOpTensor(self, other, output, "logaddexp2_out_mps", logaddexp2_op_block);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_IMPL_FUNC(xlogy_out_mps)(const Tensor& self, const Tensor& other, const Tensor& output) {
@@ -532,10 +654,16 @@ TORCH_IMPL_FUNC(xlogy_out_mps)(const Tensor& self, const Tensor& other, const Te
                                                   name:nil];
     return outputTensor;
   };
+<<<<<<< HEAD
   mps::binaryOpTensor(self, other, Scalar(1.0), output, "xlogy_out_mps", xlogy_op_block);
 }
 
 TORCH_IMPL_FUNC(lerp_Scalar_mps)(const Tensor& self, const Tensor& end, const Scalar& weight, const Tensor& out) {
   mps::add_sub_lerp_template(self, end, weight, out, "lerp");
 }
+=======
+  mps::binaryOpTensor(self, other, output, "xlogy_out_mps", xlogy_op_block);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

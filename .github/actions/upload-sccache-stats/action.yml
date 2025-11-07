@@ -22,6 +22,7 @@ runs:
         retention-days: 14
         if-no-files-found: warn
         path: sccache-stats-*.json
+<<<<<<< HEAD
 
     - name: Format sccache stats
       shell: bash
@@ -37,3 +38,5 @@ runs:
         dry-run: false
         schema-version: v3
         github-token: ${{ inputs.github-token }}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -11,6 +11,10 @@ from torch._inductor import config as inductor_config
 from torch._inductor.fuzzer import ConfigFuzzer, MODULE_DEFAULTS, SamplingMethod, Status
 from torch._inductor.test_case import run_tests, TestCase
 from torch.testing._internal import fake_config_module as fake_config
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import IS_LINUX
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 
 
@@ -163,6 +167,10 @@ class TestConfigFuzzer(TestCase):
         )
 
     @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not IS_LINUX, "PerfCounters are only supported on Linux")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_dynamo_bisect(self):
         # these values just chosen randomly, change to different ones if necessary
         key_1 = {"dead_code_elimination": False, "specialize_int": True}

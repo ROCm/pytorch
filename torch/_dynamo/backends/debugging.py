@@ -56,7 +56,11 @@ def make_eager_backend_with_torch_function_mode(mode):
 
 
 def make_eager_backend_with_torch_function_modes(modes):
+<<<<<<< HEAD
     """Used to trace HOPs (cond and while) for eager exectution, the metadata
+=======
+    """Used to trace HOPs (cond and while) for eager execution, the metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TF mode mutates vars outside of the scope of the HOP, and we can't have graph breaks
     in the HOP, so we need to externally run this mode and not trace it."""
     from contextlib import ExitStack

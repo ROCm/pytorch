@@ -27,7 +27,11 @@ def if_rocm(if_true, if_false = []):
 def if_sycl(if_true, if_false = []):
     """Helper for selecting based on the whether SYCL/ComputeCPP is configured."""
 
+<<<<<<< HEAD
     # NOTE: Tensorflow expects some stange behavior (see their if_sycl) if we
+=======
+    # NOTE: Tensorflow expects some strange behavior (see their if_sycl) if we
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # actually plan on supporting this at some point.
     return select({
         "//conditions:default": if_false,

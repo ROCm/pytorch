@@ -10,7 +10,11 @@ from torch._dynamo.test_case import TestCase
 from torch._export.converter import TS2EPConverter
 from torch.export import ExportedProgram
 from torch.testing._internal.common_quantized import override_quantized_engine
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_WINDOWS, run_tests
+=======
+from torch.testing._internal.common_utils import IS_WINDOWS, run_tests, xfailIfS390X
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.torchbind_impls import (
     _empty_tensor_queue,
     init_torchbind_implementations,
@@ -24,6 +28,7 @@ class TestConverter(TestCase):
     def setUp(self):
         init_torchbind_implementations()
 
+<<<<<<< HEAD
         @torch._library.register_fake_class("_TorchScriptTesting::_TensorQueue")
         class _FakeTensorQueue:
             def __init__(self, queue):
@@ -50,6 +55,8 @@ class TestConverter(TestCase):
             def float_size(self):
                 return float(len(self.queue))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.torch_bind_ops = [
             torch.ops._TorchScriptTesting.queue_pop,
             torch.ops._TorchScriptTesting.queue_push,
@@ -57,9 +64,13 @@ class TestConverter(TestCase):
         ]
 
     def tearDown(self):
+<<<<<<< HEAD
         torch._library.fake_class_registry.deregister_fake_class(
             "_TorchScriptTesting::_TensorQueue"
         )
+=======
+        return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _check_equal_ts_ep_converter(
         self,
@@ -1431,6 +1442,11 @@ class TestConverter(TestCase):
         IS_WINDOWS,
         "Windows does not support qnnpack",
     )
+<<<<<<< HEAD
+=======
+    # qnnpack not supported on s390x
+    @xfailIfS390X
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_ts2ep_convert_quantized_model(self):
         class Standalone(torch.nn.Module):
             def __init__(self):
@@ -1474,6 +1490,11 @@ class TestConverter(TestCase):
             ep_out, _ = pytree.tree_flatten(ep.module()(*inp))
             self._check_tensor_list_equal(orig_out, ep_out)
 
+<<<<<<< HEAD
+=======
+    # qnnpack not supported on s390x
+    @xfailIfS390X
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_ts2ep_convert_quantized_model_with_opcontext(self):
         class M(torch.nn.Module):
             def __init__(self, linear_op):
@@ -1491,6 +1512,29 @@ class TestConverter(TestCase):
         inp = (torch.randn(1, 10),)
         self._check_equal_ts_ep_converter(m, inp, ["script"])
 
+<<<<<<< HEAD
+=======
+    def test_ts2ep_convert_quantized_model_with_opcontext_and_constant(self):
+        class M(torch.nn.Module):
+            def __init__(self, linear_op):
+                super().__init__()
+                self.linear_op = linear_op
+
+            def forward(self, x):
+                x = torch.ops.prepacked.linear_clamp_run(
+                    x + torch.ones(1), self.linear_op
+                )
+                return x
+
+        linear_op = torch.ops.prepacked.linear_clamp_prepack(
+            torch.randn(10, 10), torch.randn(10)
+        )
+
+        m = M(linear_op)
+        inp = (torch.randn(1, 10),)
+        self._check_equal_ts_ep_converter(m, inp, ["script"])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

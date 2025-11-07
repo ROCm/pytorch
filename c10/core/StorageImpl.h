@@ -121,6 +121,14 @@ struct C10_API StorageImpl : public c10::intrusive_ptr_target {
     size_bytes_is_heap_allocated_ = false;
   }
 
+<<<<<<< HEAD
+=======
+  void unsafe_set_nbytes(size_t size_bytes) {
+    TORCH_INTERNAL_ASSERT_DEBUG_ONLY(!size_bytes_is_heap_allocated_);
+    size_bytes_.unsafe_set_data(size_bytes);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set_nbytes(c10::SymInt size_bytes) {
     size_bytes_ = std::move(size_bytes);
   }

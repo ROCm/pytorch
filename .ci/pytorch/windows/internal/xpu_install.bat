@@ -10,6 +10,7 @@ if not "%CUDA_VERSION%" == "xpu" (
 set SRC_DIR=%NIGHTLIES_PYTORCH_ROOT%
 if not exist "%SRC_DIR%\temp_build" mkdir "%SRC_DIR%\temp_build"
 
+<<<<<<< HEAD
 set XPU_INSTALL_MODE=%~1
 if "%XPU_INSTALL_MODE%"=="" goto xpu_bundle_install_start
 if "%XPU_INSTALL_MODE%"=="bundle" goto xpu_bundle_install_start
@@ -57,6 +58,25 @@ if not [%XPU_VERSION%]==[] if [%XPU_VERSION%]==[2025.0] (
     set XPU_EXTRA_VERSION=2025.0.1+1226
     set XPU_EXTRA_INSTALLED=0
     set XPU_EXTRA_UNINSTALL=0
+=======
+:xpu_bundle_install_start
+
+set XPU_BUNDLE_PARENT_DIR=C:\Program Files (x86)\Intel\oneAPI
+set XPU_BUNDLE_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9d6d6c17-ca2d-4735-9331-99447e4a1280/intel-deep-learning-essentials-2025.0.1.28_offline.exe
+set XPU_BUNDLE_PRODUCT_NAME=intel.oneapi.win.deep-learning-essentials.product
+set XPU_BUNDLE_VERSION=2025.0.1+20
+set XPU_BUNDLE_INSTALLED=0
+set XPU_BUNDLE_UNINSTALL=0
+set XPU_EXTRA_URL=NULL
+set XPU_EXTRA_PRODUCT_NAME=intel.oneapi.win.compiler.product
+set XPU_EXTRA_VERSION=2025.0.1+1226
+set XPU_EXTRA_INSTALLED=0
+set XPU_EXTRA_UNINSTALL=0
+
+if not [%XPU_VERSION%]==[] if [%XPU_VERSION%]==[2025.1] (
+    set XPU_BUNDLE_URL=https://registrationcenter-download.intel.com/akdlm/IRC_NAS/75d4eb97-914a-4a95-852c-7b9733d80f74/intel-deep-learning-essentials-2025.1.3.8_offline.exe
+    set XPU_BUNDLE_VERSION=2025.1.3+5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 :: Check if XPU bundle is target version or already installed

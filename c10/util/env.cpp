@@ -7,11 +7,22 @@
 
 namespace c10::utils {
 
+<<<<<<< HEAD
 static std::shared_mutex env_mutex;
 
 // Set an environment variable.
 void set_env(const char* name, const char* value, bool overwrite) {
   std::lock_guard lk(env_mutex);
+=======
+static std::shared_mutex& get_env_mutex() {
+  static std::shared_mutex env_mutex;
+  return env_mutex;
+}
+
+// Set an environment variable.
+void set_env(const char* name, const char* value, bool overwrite) {
+  std::lock_guard lk(get_env_mutex());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -46,7 +57,11 @@ void set_env(const char* name, const char* value, bool overwrite) {
 
 // Reads an environment variable and returns the content if it is set
 std::optional<std::string> get_env(const char* name) noexcept {
+<<<<<<< HEAD
   std::shared_lock lk(env_mutex);
+=======
+  std::shared_lock lk(get_env_mutex());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -77,10 +92,17 @@ bool has_env(const char* name) noexcept {
 std::optional<bool> check_env(const char* name) {
   auto env_opt = get_env(name);
   if (env_opt.has_value()) {
+<<<<<<< HEAD
     if (*env_opt == "0") {
       return false;
     }
     if (*env_opt == "1") {
+=======
+    if (env_opt == "0") {
+      return false;
+    }
+    if (env_opt == "1") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return true;
     }
     TORCH_WARN(

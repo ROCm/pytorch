@@ -1,4 +1,9 @@
 #pragma once
+<<<<<<< HEAD
+=======
+#include <set>
+#include <string>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <unordered_set>
 #include <vector>
 #include <ATen/core/symbol.h>
@@ -18,6 +23,18 @@ namespace c10 {
  */
 class AliasInfo {
  public:
+<<<<<<< HEAD
+=======
+  AliasInfo() = default;
+  AliasInfo(bool is_write, const std::set<std::string>& before_qual_strings, const std::set<std::string>& after_qual_strings) : isWrite_(is_write) {
+    for (const auto& s: before_qual_strings) {
+      beforeSets_.insert(Symbol::fromQualString(s));
+    }
+    for (const auto& s : after_qual_strings) {
+      afterSets_.insert(Symbol::fromQualString(s));
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Symbol for the set that can alias anything
   static Symbol wildcardSet() {
     static const Symbol wc = Symbol::fromQualString("alias::*");

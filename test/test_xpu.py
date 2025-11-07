@@ -1,5 +1,9 @@
 # Owner(s): ["module: intel"]
 
+<<<<<<< HEAD
+=======
+import re
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import subprocess
 import sys
 import tempfile
@@ -22,7 +26,10 @@ from torch.testing._internal.common_utils import (
     find_library_location,
     IS_LINUX,
     IS_WINDOWS,
+<<<<<<< HEAD
     NoTest,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     run_tests,
     suppress_warnings,
     TEST_XPU,
@@ -31,10 +38,13 @@ from torch.testing._internal.common_utils import (
 from torch.utils.checkpoint import checkpoint_sequential
 
 
+<<<<<<< HEAD
 if not TEST_XPU:
     print("XPU not available, skipping tests", file=sys.stderr)
     TestCase = NoTest  # noqa: F811
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST_MULTIXPU = torch.xpu.device_count() > 1
 
 cpu_device = torch.device("cpu")
@@ -74,6 +84,10 @@ _xpu_computation_ops = [
 ]
 
 
+<<<<<<< HEAD
+=======
+@unittest.skipIf(not TEST_XPU, "XPU not available, skipping tests")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestXpu(TestCase):
     def test_device_behavior(self):
         current_device = torch.xpu.current_device()
@@ -136,6 +150,10 @@ class TestXpu(TestCase):
                 device_capability["architecture"],
             )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_wrong_xpu_fork(self):
         stderr = TestCase.runWithPytorchAPIUsageStderr(
             """\
@@ -158,6 +176,12 @@ if __name__ == "__main__":
         )
         self.assertRegex(stderr, "Cannot re-initialize XPU in forked subprocess.")
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        IS_WINDOWS, "Only for lazy initialization on Linux, not applicable on Windows."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_lazy_init(self):
         """Validate that no XPU calls are made during `import torch` call"""
 
@@ -192,9 +216,17 @@ model = torch.nn.Sequential(
     torch.nn.ReLU(),
     torch.nn.MaxPool2d(2, 2),
 )
+<<<<<<< HEAD
 test_multi_process(model, input)
 test_multi_process(model, input)
 print(torch.xpu.device_count())
+=======
+
+if __name__ == "__main__":
+    test_multi_process(model, input)
+    test_multi_process(model, input)
+    print(torch.xpu.device_count())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
         rc = check_output(test_script)
         self.assertEqual(rc, str(torch.xpu.device_count()))
@@ -245,7 +277,11 @@ print(torch.xpu.device_count())
         stream.record_event(end_event)
         torch.xpu.synchronize()
         if int(torch.version.xpu) >= 20250000:
+<<<<<<< HEAD
             start_event.elapsed_time(end_event)
+=======
+            self.assertGreater(start_event.elapsed_time(end_event), 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             with self.assertRaisesRegex(
                 NotImplementedError,
@@ -253,6 +289,18 @@ print(torch.xpu.device_count())
             ):
                 start_event.elapsed_time(end_event)
 
+<<<<<<< HEAD
+=======
+        event = torch.xpu.Event(enable_timing=True)
+        self.assertEqual(event.sycl_event, 0)
+        self.assertEqual(event.event_id, 0)
+
+        event.record()
+        self.assertNotEqual(event.sycl_event, 0)
+        self.assertNotEqual(event.event_id, 0)
+        self.assertEqual(event.sycl_event, event.event_id)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_generic_stream_event(self):
         stream = torch.Stream("xpu")
         self.assertEqual(stream.device_index, torch.xpu.current_device())
@@ -287,7 +335,11 @@ print(torch.xpu.device_count())
         self.assertNotEqual(event1.event_id, event2.event_id)
         self.assertEqual(c_xpu.cpu(), a + b)
         if int(torch.version.xpu) >= 20250000:
+<<<<<<< HEAD
             event1.elapsed_time(event2)
+=======
+            self.assertGreater(event1.elapsed_time(event2), 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             with self.assertRaisesRegex(
                 NotImplementedError,
@@ -309,6 +361,27 @@ print(torch.xpu.device_count())
         with self.assertRaisesRegex(RuntimeError, "The device index is out of range"):
             torch.accelerator.current_stream(torch.accelerator.device_count())
 
+<<<<<<< HEAD
+=======
+    def test_device_context_manager(self):
+        prev_device = torch.xpu.current_device()
+        with torch.accelerator.device_index(None):
+            self.assertEqual(torch.xpu.current_device(), prev_device)
+        self.assertEqual(torch.xpu.current_device(), prev_device)
+        with torch.accelerator.device_index(0):
+            self.assertEqual(torch.xpu.current_device(), 0)
+        self.assertEqual(torch.xpu.current_device(), prev_device)
+
+    @unittest.skipIf(not TEST_MULTIXPU, "only one GPU detected")
+    def test_multi_device_context_manager(self):
+        src_device = 0
+        dst_device = 1
+        torch.xpu.set_device(src_device)
+        with torch.accelerator.device_index(dst_device):
+            self.assertEqual(torch.xpu.current_device(), 1)
+        self.assertEqual(torch.xpu.current_device(), src_device)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_stream_context_manager(self):
         prev_stream = torch.xpu.current_stream()
         with torch.xpu.Stream() as stream:
@@ -521,6 +594,7 @@ print(torch.xpu.device_count())
             library = find_library_location("libtorch_xpu.so")
             cmd = f"ldd {library} | grep libsycl"
             results = subprocess.check_output(cmd, shell=True).strip().split(b"\n")
+<<<<<<< HEAD
             # There should be only one libsycl.so or libsycl-preview.so
             self.assertEqual(len(results), 1)
             for result in results:
@@ -530,6 +604,12 @@ print(torch.xpu.device_count())
                     self.assertLess(compiler_version, 20250000)
                 else:
                     self.fail("Unexpected libsycl library")
+=======
+            # There should be only one libsycl.so
+            self.assertEqual(len(results), 1)
+            for result in results:
+                self.assertTrue(b"libsycl.so" in result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_dlpack_conversion(self):
         x = make_tensor((5,), dtype=torch.float32, device="xpu")
@@ -548,6 +628,10 @@ print(torch.xpu.device_count())
 instantiate_device_type_tests(TestXpu, globals(), only_for="xpu", allow_xpu=True)
 
 
+<<<<<<< HEAD
+=======
+@unittest.skipIf(not TEST_XPU, "XPU not available, skipping tests")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestXpuAutocast(TestAutocast):
     # These operators are not implemented on XPU backend and we can NOT fall back
     # them to CPU. So we have to skip them at this moment.
@@ -628,6 +712,10 @@ class TestXpuAutocast(TestAutocast):
             self.assertEqual(result.dtype, torch.float16)
 
 
+<<<<<<< HEAD
+=======
+@unittest.skipIf(not TEST_XPU, "XPU not available, skipping tests")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestXpuTrace(TestCase):
     def setUp(self):
         torch._C._activate_gpu_trace()
@@ -690,5 +778,38 @@ class TestXpuTrace(TestCase):
         self.mock.assert_called_once_with(event._as_parameter_.value)
 
 
+<<<<<<< HEAD
+=======
+class TestXPUAPISanity(TestCase):
+    def test_is_bf16_supported(self):
+        self.assertEqual(
+            torch.xpu.is_bf16_supported(including_emulation=True),
+            torch.xpu.is_available(),
+        )
+
+    def test_get_arch_list(self):
+        if not torch.xpu._is_compiled():
+            self.assertEqual(len(torch.xpu.get_arch_list()), 0)
+
+    def test_torch_config_for_xpu(self):
+        config = torch.__config__.show()
+        value = re.search(r"USE_XPU=([^,]+)", config)
+        self.assertIsNotNone(value)
+        if torch.xpu._is_compiled():
+            self.assertTrue(value.group(1) in ["ON", "1"])
+            value = re.search(r"USE_XCCL=([^,]+)", config)
+            if torch.distributed.is_xccl_available():
+                self.assertTrue(value.group(1) in ["ON", "1"])
+            else:
+                self.assertTrue(value.group(1) in ["OFF", "0"])
+        else:
+            self.assertTrue(value.group(1) in ["OFF", "0"])
+            self.assertFalse(torch.distributed.is_xccl_available())
+            value = re.search(r"USE_XCCL=([^,]+)", config)
+            self.assertIsNotNone(value)
+            self.assertTrue(value.group(1) in ["OFF", "0"])
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

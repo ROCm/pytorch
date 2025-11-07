@@ -57,18 +57,30 @@ class ComptimeTests(torch._dynamo.test_case.TestCase):
         self.assertExpectedInline(
             FILE.getvalue().strip(),
             """\
+<<<<<<< HEAD
 FakeTensor(..., size=(s0,))
 2
 [FakeTensor(..., size=(s0,)), 2]
 (FakeTensor(..., size=(s0,)), 2)
 {'foo': FakeTensor(..., size=(s0,))}
+=======
+FakeTensor(..., size=(s77,))
+2
+[FakeTensor(..., size=(s77,)), 2]
+(FakeTensor(..., size=(s77,)), 2)
+{'foo': FakeTensor(..., size=(s77,))}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 range(1, 3, 1)
 Employee(name='foo', id=2)
 UserDefinedListVariable(mylist)
 defaultdict(NestedUserFunctionVariable(), {})
 set()
 {'a','b'}
+<<<<<<< HEAD
 s0""",
+=======
+s77""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_print_graph(self):
@@ -309,6 +321,16 @@ y = FakeTensor(..., size=(2,))
             'obj_weakref': None
             'guarded_class': None
         }
+<<<<<<< HEAD
+=======
+        global '' AUTOGRAD_SAVED_TENSORS_HOOKS
+        {
+            'guard_types': None,
+            'code': None,
+            'obj_weakref': None
+            'guarded_class': None
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         global '' GRAD_MODE
         {
             'guard_types': None,

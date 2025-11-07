@@ -9,6 +9,10 @@ from collections import defaultdict, namedtuple, OrderedDict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Literal, TYPE_CHECKING, TypeVar
+<<<<<<< HEAD
+=======
+from typing_extensions import assert_never
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import yaml
 
@@ -17,7 +21,10 @@ import torchgen.api.meta as meta
 import torchgen.api.native as native
 import torchgen.api.structured as structured
 import torchgen.dest as dest
+<<<<<<< HEAD
 from torchgen.aoti.fallback_ops import inductor_fallback_ops
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torchgen.api import cpp
 from torchgen.api.translate import translate
 from torchgen.api.types import (
@@ -36,10 +43,15 @@ from torchgen.context import (
     with_native_function_and_indices,
 )
 from torchgen.gen_aoti_c_shim import (
+<<<<<<< HEAD
     gen_aoti_c_shim,
     gen_static_dispatch_backend_call_signature,
     get_fallback_op_name,
     get_header_for_aoti,
+=======
+    gen_aoti_c_shim_files,
+    gen_static_dispatch_backend_call_signature,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torchgen.gen_functionalization_type import (
     gen_functionalization_definition,
@@ -84,7 +96,10 @@ from torchgen.native_function_generation import (
 )
 from torchgen.selective_build.selector import SelectiveBuilder
 from torchgen.utils import (
+<<<<<<< HEAD
     assert_never,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     concatMap,
     context,
     FileManager,
@@ -509,7 +524,11 @@ def static_dispatch(
 ) -> str:
     """
     For a given `NativeFunction`, find out the corresponding backend and dispatch to it. If more than one
+<<<<<<< HEAD
     backends exsit, fallback to static dispatch by determining dispatch key from inputs.
+=======
+    backends exist, fallback to static dispatch by determining dispatch key from inputs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Arguments:
         sig: A CppSignature or DispatcherSignature for this native function we want to use.
         f: NativeFunction to generate static dispatch.
@@ -2395,6 +2414,7 @@ def gen_source_files(
             else:
                 raise AssertionError(f"unrecognized {dispatch_key} for ufunc")
 
+<<<<<<< HEAD
         structured_func_group_dict = {}
         for func_group in structured_native_functions:
             for func in func_group.functions():
@@ -2490,6 +2510,21 @@ codegen to generate the correct cpp call for this op. Contact AOTInductor team f
 
         del fm
 
+=======
+        del fm
+
+    gen_aoti_c_shim_files(
+        aoti_fm=aoti_fm,
+        aoti_backends=aoti_backends,
+        native_functions=native_functions,
+        backend_indices=backend_indices,
+        structured_native_functions=structured_native_functions,
+        extra_cuda_headers=extra_cuda_headers,
+        update_aoti_c_shim=update_aoti_c_shim,
+        extend_aoti_c_shim=extend_aoti_c_shim,
+    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # BackendSelect is generated specially
     def gen_backend_select() -> dict[str, list[str]]:
         relevant_fns = [
@@ -2696,7 +2731,11 @@ codegen to generate the correct cpp call for this op. Contact AOTInductor team f
     #     but they could theoretically be called from user code (I added these kernels for completeness,
     #     since the ops are part of the public API).
     # (2) A derivative formula for every {view}_copy operator
+<<<<<<< HEAD
     #     {view}_copy operators can re-use the same derivative formulas as their {view} op counterparts,
+=======
+    #     {view}_copy operators can reuse the same derivative formulas as their {view} op counterparts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #     so rather than stamping all of the entries out in derivatives.yaml,
     #     we codegen them in.
     #     This is similar to how autograd codegen doesn't require inplace ops to have a derivatives.yaml entry.
@@ -2820,6 +2859,14 @@ def main() -> None:
         action="store_true",
         help="Generate XPU registration code when set",
     )
+<<<<<<< HEAD
+=======
+    parser.add_argument(
+        "--mtia",
+        action="store_true",
+        help="Generate MTIA registration code when set",
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # TODO: --op-registration-whitelist will be removed when all call-sites
     # for gen.py are moved over to using the operator YAML file for mobile
@@ -2904,20 +2951,71 @@ def main() -> None:
 
     from torchgen.model import dispatch_keys
 
+<<<<<<< HEAD
     # TODO: stop generating CUDA kernels for non-CUDA builds
     ignore_keys = set()
     if not options.mps:
+=======
+    # Only a limited set of dispatch keys get CPUFunctions.h headers generated
+    # for them; this is the set
+    functions_keys = {
+        DispatchKey.CPU,
+        DispatchKey.CUDA,
+        DispatchKey.CompositeImplicitAutograd,
+        DispatchKey.CompositeImplicitAutogradNestedTensor,
+        DispatchKey.CompositeExplicitAutograd,
+        DispatchKey.CompositeExplicitAutogradNonFunctional,
+        DispatchKey.Meta,
+        DispatchKey.MTIA,
+    }
+
+    aoti_backends = {
+        DispatchKey.CPU,
+        DispatchKey.CUDA,
+    }
+
+    # TODO: stop generating CUDA kernels for non-CUDA builds
+    ignore_keys = set()
+
+    if options.mps or options.update_aoti_c_shim:
+        functions_keys.add(DispatchKey.MPS)
+        aoti_backends.add(DispatchKey.MPS)
+    else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ignore_keys.add(DispatchKey.MPS)
 
         if DispatchKey.MPS in dispatch_keys:
             del dispatch_keys[dispatch_keys.index(DispatchKey.MPS)]
 
+<<<<<<< HEAD
     if not options.xpu:
+=======
+    if options.xpu or options.update_aoti_c_shim:
+        functions_keys.add(DispatchKey.XPU)
+        aoti_backends.add(DispatchKey.XPU)
+    else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ignore_keys.add(DispatchKey.XPU)
 
         if DispatchKey.XPU in dispatch_keys:
             del dispatch_keys[dispatch_keys.index(DispatchKey.XPU)]
 
+<<<<<<< HEAD
+=======
+    if not options.mtia:
+        ignore_keys.add(DispatchKey.MTIA)
+
+        if DispatchKey.MTIA in dispatch_keys:
+            del dispatch_keys[dispatch_keys.index(DispatchKey.MTIA)]
+
+    if options.backend_whitelist:
+        dispatch_keys = [
+            k
+            for k in dispatch_keys
+            if is_generic_dispatch_key(k) or str(k) in options.backend_whitelist
+        ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parsed_yaml = parse_native_yaml(native_yaml_path, tags_yaml_path, ignore_keys)
     valid_tags = _GLOBAL_PARSE_TAGS_YAML_CACHE[tags_yaml_path]
     native_functions, backend_indices = (
@@ -2967,6 +3065,7 @@ def main() -> None:
     if options.xpu:
         device_fms["xpu"] = make_file_manager(options=options)
 
+<<<<<<< HEAD
     # Only a limited set of dispatch keys get CPUFunctions.h headers generated
     # for them; this is the set
     functions_keys = {
@@ -2998,6 +3097,8 @@ def main() -> None:
             if is_generic_dispatch_key(k) or str(k) in options.backend_whitelist
         ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     static_dispatch_idx: list[BackendIndex] = []
     if options.static_dispatch_backend:
         static_dispatch_idx = [

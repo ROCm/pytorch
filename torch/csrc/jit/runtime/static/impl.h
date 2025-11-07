@@ -815,10 +815,15 @@ class TORCH_API BlockRunner {
   std::vector<ProcessedNode> nodes_;
 };
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 class TORCH_API StaticNodeInfo {
  public:
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+class TORCH_API StaticNodeInfo {
+ public:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   StaticNodeInfo(
       Node* n,
       ProcessedFunction* fn,
@@ -873,6 +878,12 @@ class TORCH_API ProcessedNodeMetadata {
   // if the contained type (BlockRunner) is not copyable
   ProcessedNodeMetadata(const ProcessedNodeMetadata&) = delete;
   ProcessedNodeMetadata& operator=(const ProcessedNodeMetadata&) = delete;
+<<<<<<< HEAD
+=======
+  ProcessedNodeMetadata(ProcessedNodeMetadata&&) = delete;
+  ProcessedNodeMetadata&& operator=(ProcessedNodeMetadata&&) = delete;
+  ~ProcessedNodeMetadata() = default;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::vector<BlockRunner>& block_runners() {
     return block_runners_;
@@ -895,10 +906,15 @@ class TORCH_API ProcessedNodeMetadata {
   torch::jit::TaskLauncher* launcher_;
 };
 
+<<<<<<< HEAD
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 class TORCH_API ProcessedNode {
  public:
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+class TORCH_API ProcessedNode {
+ public:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ProcessedNode() = default;
 
   ProcessedNode(const StaticNodeInfo& other, IValue* values)
@@ -917,6 +933,10 @@ class TORCH_API ProcessedNode {
   ProcessedNode(const ProcessedNode&) = delete;
   ProcessedNode& operator=(const ProcessedNode& other) = delete;
   ProcessedNode& operator=(ProcessedNode&&) = default;
+<<<<<<< HEAD
+=======
+  ~ProcessedNode() = default;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void run();
 
@@ -1025,10 +1045,17 @@ class TORCH_API ProcessedNode {
 
   [[nodiscard]] bool verify_inputs_dont_overlap_outputs(bool force_check) const;
 
+<<<<<<< HEAD
   Node* node_;
   const ProcessedFunction* fn_;
   ProcessedNodeInputs inputs_;
   uint16_t outputs_offset_;
+=======
+  Node* node_{nullptr};
+  const ProcessedFunction* fn_{nullptr};
+  ProcessedNodeInputs inputs_;
+  uint16_t outputs_offset_{0};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool overlap_detected_{false};
   IValue* values_ = nullptr; // unowned
   // Metadata for ProcessedNode.
@@ -1145,3 +1172,7 @@ class TORCH_API StaticRuntime {
 };
 
 } // namespace torch::jit
+<<<<<<< HEAD
+=======
+C10_DECLARE_bool(static_runtime_disable_debug_memory_overlap_check);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -398,6 +398,7 @@ def _format_memory(nbytes):
     MB = 1024 * KB
     GB = 1024 * MB
     if abs(nbytes) >= GB:
+<<<<<<< HEAD
         return f"{nbytes * 1.0 / GB:.2f} Gb"
     elif abs(nbytes) >= MB:
         return f"{nbytes * 1.0 / MB:.2f} Mb"
@@ -405,6 +406,15 @@ def _format_memory(nbytes):
         return f"{nbytes * 1.0 / KB:.2f} Kb"
     else:
         return str(nbytes) + " b"
+=======
+        return f"{nbytes * 1.0 / GB:.2f} GB"
+    elif abs(nbytes) >= MB:
+        return f"{nbytes * 1.0 / MB:.2f} MB"
+    elif abs(nbytes) >= KB:
+        return f"{nbytes * 1.0 / KB:.2f} KB"
+    else:
+        return str(nbytes) + " B"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _attr_formatter(name):
@@ -609,6 +619,10 @@ class FunctionEvent(FormattedTimesMixin):
                 DeviceType.CUDA,
                 DeviceType.PrivateUse1,
                 DeviceType.MTIA,
+<<<<<<< HEAD
+=======
+                DeviceType.HPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             return self.time_range.elapsed_us()
 
@@ -633,6 +647,10 @@ class FunctionEvent(FormattedTimesMixin):
                 DeviceType.CUDA,
                 DeviceType.PrivateUse1,
                 DeviceType.MTIA,
+<<<<<<< HEAD
+=======
+                DeviceType.HPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             return self.device_time_total
 

@@ -2,7 +2,12 @@
 import torch
 import torch.distributed._functional_collectives as funcol
 import torch.distributed.tensor._random as random
+<<<<<<< HEAD
 from torch.distributed._tensor import init_device_mesh, Replicate
+=======
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import Replicate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.parallel.api import parallelize_module
 from torch.distributed.tensor.parallel.style import ColwiseParallel
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
@@ -20,10 +25,17 @@ class TensorParallelRandomStateTests(DTensorTestBase):
         assert shape[0] % n == 0
         local_shape = [shape[0] // n, shape[1]]
 
+<<<<<<< HEAD
         slice_idx = [
             slice(idx * local_shape[0], (idx + 1) * local_shape[0]),
             slice(local_shape[1]),
         ]
+=======
+        slice_idx = (
+            slice(idx * local_shape[0], (idx + 1) * local_shape[0]),
+            slice(local_shape[1]),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return large_tensor[slice_idx]
 
     def check_gathered_tensors(self, self_rank, size, gathered_tensors, assertFunc):

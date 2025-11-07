@@ -75,9 +75,13 @@ def inner(x):
     return x - torch.tensor(655, dtype=torch.half, device='GPU_TYPE') * 100
 
 inner(torch.tensor(655 * 100, dtype=torch.half, device='GPU_TYPE'))
+<<<<<<< HEAD
 """.replace(
             "GPU_TYPE", GPU_TYPE
         )
+=======
+""".replace("GPU_TYPE", GPU_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # If we disable RMSE against fp64, this triggers accuracy error,
         # as the increased precision from torch.compile changes the result

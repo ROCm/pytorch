@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+#pragma once
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/macros/Macros.h>
 #include <c10/util/Synchronized.h>
 #include <array>
@@ -68,7 +73,13 @@ class LeftRight final {
 
   ~LeftRight() {
     // wait until any potentially running writers are finished
+<<<<<<< HEAD
     { std::unique_lock<std::mutex> lock(_writeMutex); }
+=======
+    {
+      std::unique_lock<std::mutex> lock(_writeMutex);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // wait until any potentially running readers are finished
     while (_counters[0].load() != 0 || _counters[1].load() != 0) {

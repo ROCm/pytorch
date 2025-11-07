@@ -57,7 +57,13 @@ class TORCH_API Reducer {
       bool find_unused_parameters,
       bool gradient_as_bucket_view,
       std::unordered_map<size_t, std::string> param_names,
+<<<<<<< HEAD
       int64_t first_bucket_bytes_cap);
+=======
+      int64_t first_bucket_bytes_cap,
+      bool skip_all_reduce_unused_params,
+      bool use_python_reducer);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ~Reducer() noexcept(false);
 
@@ -431,6 +437,11 @@ class TORCH_API Reducer {
   // track the number of buckets that have been ready for
   // communication calls like allReduce or communication hooks.
   int num_buckets_ready_;
+<<<<<<< HEAD
+=======
+  // track the number of buckets that have been reduced.
+  int num_buckets_reduced_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Timing information.
   int64_t backward_compute_start_time_ = -1;
@@ -492,6 +503,11 @@ class TORCH_API Reducer {
 
   bool static_graph_;
 
+<<<<<<< HEAD
+=======
+  bool skip_all_reduce_unused_params_;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Key: size_t (index), Value: the number of times that a variable's
   // autograd_hook() should be triggered before marking this variable's grad as
   // ready for communication. Map will not change after 1st iteration.
@@ -522,6 +538,12 @@ class TORCH_API Reducer {
   bool static_graph_first_iteration();
   bool static_graph_after_first_iteration();
 
+<<<<<<< HEAD
+=======
+  bool is_unused_bucket(Bucket& bucket);
+  bool should_skip_all_reduce_bucket(Bucket& bucket);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // comm_hook_ is used to access the DDP communication hook if registered.
   std::unique_ptr<CommHookInterface> comm_hook_;
 
@@ -554,6 +576,12 @@ class TORCH_API Reducer {
   void checkAndRaiseMarkedTwiceError(size_t curVariableIndex);
   // Retrieves parameter corresponding to the given VariableIndex.
   at::Tensor& get_param_from_index(size_t index);
+<<<<<<< HEAD
+=======
+  // Python reducer keeps C++ reducer initialized. To remove this flag,
+  // we need to refactor the DDP wrapper's initialization.
+  bool use_python_reducer_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Cached bucket index to model parameter mapping. Populated after buckets
   // are rebuilt after which this mapping is static.

@@ -422,11 +422,20 @@ static __global__ void chunk_cat_cuda_kernel(
 }
 
 bool all_contiguous(TensorList tensors) {
+<<<<<<< HEAD
   bool contiguous = true;
   for (const auto& t : tensors) {
     contiguous &= t.is_non_overlapping_and_dense();
   }
   return contiguous;
+=======
+  for (const auto& t : tensors) {
+    if (!t.is_contiguous()) {
+      return false;
+    }
+  }
+  return true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Get leading dimensions before `dim`-th dimension.

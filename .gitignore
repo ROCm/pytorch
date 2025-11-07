@@ -47,6 +47,10 @@ docs/source/generated/
 docs/source/compile/generated/
 log
 usage_log.txt
+<<<<<<< HEAD
+=======
+usage_log*
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 test-reports/
 test/*.bak
 test/**/*.bak
@@ -62,9 +66,13 @@ test/forward_backward_compatibility/nightly_schemas.txt
 dropout_model.pt
 test/generated_type_hints_smoketest.py
 test/htmlcov
+<<<<<<< HEAD
 test/cpp_extensions/install/
 test/cpp_extensions/open_registration_extension/install
 test/cpp_extensions/libtorch_agnostic_extension/install
+=======
+test/cpp_extensions/**/install
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 test/kernel.errors.txt
 third_party/build/
 third_party/nccl/
@@ -180,6 +188,10 @@ compile_commands.json
 *.egg-info/
 docs/source/scripts/activation_images/
 docs/source/scripts/quantization_backend_configs/
+<<<<<<< HEAD
+=======
+docs/source/scripts/lr_scheduler_images/
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ## General
 
@@ -213,6 +225,7 @@ docs/source/scripts/quantization_backend_configs/
 # Compiled MATLAB
 *.mex*
 
+<<<<<<< HEAD
 # IPython notebook checkpoints
 .ipynb_checkpoints
 
@@ -222,6 +235,8 @@ docs/source/scripts/quantization_backend_configs/
 *.swp
 *~
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # NFS handle files
 **/.nfs*
 
@@ -391,3 +406,9 @@ android/pytorch_android_torchvision/.cxx
 .arcconfig
 .stable_pyre_client
 .pyre_client
+<<<<<<< HEAD
+=======
+
+# Claude Code local configuration
+CLAUDE.local.md
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

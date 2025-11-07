@@ -56,7 +56,11 @@ bool allContiguous(at::TensorList tensors) {
 
 void getLaunchConfig(dim3* block, dim3* grid, int64_t numel) {
   c10::DeviceIndex curDevice = -1;
+<<<<<<< HEAD
   c10::cuda::GetDevice(&curDevice);
+=======
+  AT_CUDA_CHECK(c10::cuda::GetDevice(&curDevice));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   *block = cuda::getApplyBlock();
   TORCH_INTERNAL_ASSERT(cuda::getApplyGrid(numel, *grid, curDevice),
                         "Could not get grid size for pointwise apply.");

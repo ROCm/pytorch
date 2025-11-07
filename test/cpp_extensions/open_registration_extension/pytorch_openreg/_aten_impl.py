@@ -25,6 +25,7 @@ def impl_factory(name):
     return _
 
 
+<<<<<<< HEAD
 # TODO: replace it with implementing torch.openreg.device
 class DeviceContext:
     def __init__(self, device):
@@ -37,6 +38,8 @@ class DeviceContext:
         driver.exec("uncheckedSetDevice", self.prev)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _openreg_kernel_fallback(op, *args, **kwargs):
     def get_tensor_device(*args):
         for arg in args:
@@ -48,7 +51,11 @@ def _openreg_kernel_fallback(op, *args, **kwargs):
         return _kernel_fallback(op, *args, **kwargs)
 
     # Mimicks the DeviceGuard system we have in aten
+<<<<<<< HEAD
     with DeviceContext(device):
+=======
+    with torch.openreg.device(device):  # type: ignore[misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return _kernel_fallback(op, *args, **kwargs)
 
 
@@ -90,9 +97,15 @@ def _kernel_fallback(op, *args, **kwargs):
     elif op._schema.is_mutable or op is torch.ops.aten._copy_from.default:
         # Only handle inplace ops returning their first arg
         assert len(args) >= 1, f"Inplace {op} needs at least one arg"
+<<<<<<< HEAD
         assert (
             len(op._schema.returns) == 1
         ), f"NYI Inplace {op} with more than one return"
+=======
+        assert len(op._schema.returns) == 1, (
+            f"NYI Inplace {op} with more than one return"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         op_name = op.overloadpacket._qualified_op_name
         real_res = args[0]
     elif any(r.alias_info is not None for r in op._schema.returns):
@@ -140,13 +153,21 @@ def _kernel_fallback(op, *args, **kwargs):
 
 
 def copy_from_device(from_):
+<<<<<<< HEAD
     with DeviceContext(from_.device):
+=======
+    with torch.openreg.device(from_.device):  # type: ignore[misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args, _ = prepare_for_sending((from_,), {})
         return driver.exec("send_data", *args)
 
 
 def copy_from_host_to_device(from_, to_):
+<<<<<<< HEAD
     with DeviceContext(to_.device):
+=======
+    with torch.openreg.device(to_.device):  # type: ignore[misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args, _ = prepare_for_sending((to_,), {})
         driver.exec("recv_data", from_, *args)
     return to_

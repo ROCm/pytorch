@@ -114,7 +114,11 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
   bool initialized() override;
   double getMemoryFraction(c10::DeviceIndex device) override;
   void setMemoryFraction(double fraction, c10::DeviceIndex device) override;
+<<<<<<< HEAD
   void emptyCache() override;
+=======
+  void emptyCache(c10::cuda::MempoolId_t mempool_id = {0, 0}) override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void enable(bool) override {}
   bool isEnabled() const override {
     return true;
@@ -128,7 +132,12 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
       c10::DeviceIndex device) override;
   void resetAccumulatedStats(c10::DeviceIndex device) override;
   void resetPeakStats(c10::DeviceIndex device) override;
+<<<<<<< HEAD
   c10::cuda::CUDACachingAllocator::SnapshotInfo snapshot() override;
+=======
+  c10::cuda::CUDACachingAllocator::SnapshotInfo snapshot(
+      c10::cuda::MempoolId_t mempool) override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void beginAllocateToPool(
       c10::DeviceIndex device,
       c10::cuda::MempoolId_t mempool_id,
@@ -145,7 +154,12 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
       bool enabled,
       c10::cuda::CUDACachingAllocator::CreateContextFn context_recorder,
       size_t alloc_trace_max_entries,
+<<<<<<< HEAD
       c10::cuda::CUDACachingAllocator::RecordContext when) override;
+=======
+      c10::cuda::CUDACachingAllocator::RecordContext when,
+      bool clearHistory) override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void attachOutOfMemoryObserver(
       c10::cuda::CUDACachingAllocator::OutOfMemoryObserver observer) override;
   void attachAllocatorTraceTracker(
@@ -184,7 +198,11 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
   std::function<void(int, c10::cuda::MempoolId_t)> end_allocate_to_pool_fn_;
   std::function<void(int, c10::cuda::MempoolId_t)> relase_pool_fn_;
   std::mutex allocator_mutex_;
+<<<<<<< HEAD
   // We do the bookeeping here in order to simplify custom allocators
+=======
+  // We do the bookkeeping here in order to simplify custom allocators
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::unordered_map<void*, _AllocationMetadata> allocation_metadata_;
 
   bool initialized_ = false;

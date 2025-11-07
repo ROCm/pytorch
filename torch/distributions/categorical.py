@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import nan, Tensor
 from torch.distributions import constraints
@@ -51,7 +56,16 @@ class Categorical(Distribution):
     arg_constraints = {"probs": constraints.simplex, "logits": constraints.real_vector}
     has_enumerate_support = True
 
+<<<<<<< HEAD
     def __init__(self, probs=None, logits=None, validate_args=None):
+=======
+    def __init__(
+        self,
+        probs: Optional[Tensor] = None,
+        logits: Optional[Tensor] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (probs is None) == (logits is None):
             raise ValueError(
                 "Either `probs` or `logits` must be specified, but not both."
@@ -61,6 +75,10 @@ class Categorical(Distribution):
                 raise ValueError("`probs` parameter must be at least one-dimensional.")
             self.probs = probs / probs.sum(-1, keepdim=True)
         else:
+<<<<<<< HEAD
+=======
+            assert logits is not None  # helps mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if logits.dim() < 1:
                 raise ValueError("`logits` parameter must be at least one-dimensional.")
             # Normalize

@@ -21,6 +21,10 @@
 #include <torch/csrc/distributed/c10d/Store.hpp>
 #include <torch/csrc/distributed/c10d/Types.hpp>
 #include <torch/csrc/distributed/c10d/Utils.hpp>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/distributed/c10d/logger.hpp>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/ThreadLocalState.h>
 
@@ -28,6 +32,16 @@ namespace c10d {
 
 constexpr const char* GLOO_BACKEND_NAME = "gloo";
 
+<<<<<<< HEAD
+=======
+// Control whether or not connections are established in a full mesh or lazily
+// as needed.
+static std::vector<std::string> TORCH_GLOO_LAZY_INIT = {"TORCH_GLOO_LAZY_INIT"};
+
+// Returns default value for lazyInit.
+bool TORCH_API getDefaultGlooLazyInit();
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // ProcessGroupGloo implements Gloo bindings for c10d.
 //
 // All functions on this class are expected to be called in the same
@@ -57,6 +71,10 @@ class TORCH_API ProcessGroupGloo : public Backend {
   class TORCH_API AsyncWork : public Work {
    public:
     explicit AsyncWork(
+<<<<<<< HEAD
+=======
+        std::shared_ptr<gloo::Context> context,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::vector<std::vector<at::Tensor>> outputTensors,
         OpType opType,
         uint64_t seq,
@@ -74,13 +92,29 @@ class TORCH_API ProcessGroupGloo : public Backend {
 
     c10::intrusive_ptr<c10::ivalue::Future> getFuture() override;
     uint64_t getSequencenumber() const override;
+<<<<<<< HEAD
 
+=======
+    std::chrono::milliseconds getTimeout() const;
+    virtual const std::vector<at::Tensor> getInputTensors() = 0;
+    virtual const std::vector<at::Tensor> getOutputTensors() = 0;
+    inline std::string getProfilerTitle() const {
+      return profilingTitle_;
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     inline at::ThreadLocalState getTLS() const {
       return tls_;
     }
 
    protected:
     friend class ProcessGroupGloo;
+<<<<<<< HEAD
+=======
+    // unique id used to tell the trace buffer that this
+    // work has completed
+    std::optional<uint64_t> trace_id_;
+    std::shared_ptr<gloo::Context> context_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
    private:
     void finishWorkGloo();
@@ -93,6 +127,10 @@ class TORCH_API ProcessGroupGloo : public Backend {
     c10::intrusive_ptr<at::ivalue::Future> future_;
     std::function<void()> recordFunctionBeforeCallback_;
     const uint64_t seq_;
+<<<<<<< HEAD
+=======
+    std::string profilingTitle_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     at::ThreadLocalState tls_;
   };
 
@@ -230,6 +268,11 @@ class TORCH_API ProcessGroupGloo : public Backend {
       return c10::make_intrusive<Options>(timeout);
     }
 
+<<<<<<< HEAD
+=======
+    std::vector<uint64_t> global_ranks_in_group;
+    std::string group_name;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<std::shared_ptr<::gloo::transport::Device>> devices;
     int threads;
   };
@@ -244,16 +287,27 @@ class TORCH_API ProcessGroupGloo : public Backend {
 
   // Create new device instance for specific interface.
   static std::shared_ptr<::gloo::transport::Device> createDeviceForInterface(
+<<<<<<< HEAD
       const std::string& interface);
 
   // Create new device instance for specific hostname or address.
   static std::shared_ptr<::gloo::transport::Device> createDeviceForHostname(
       const std::string& hostname);
+=======
+      const std::string& interface,
+      bool lazyInit = false);
+
+  // Create new device instance for specific hostname or address.
+  static std::shared_ptr<::gloo::transport::Device> createDeviceForHostname(
+      const std::string& hostname,
+      bool lazyInit = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Create new device instance.
   // It tries to resolve this machine's hostname and bind to that address.
   // If that fails (i.e. the hostname doesn't resolve to an address), it
   // falls back to binding to the loopback address.
+<<<<<<< HEAD
   static std::shared_ptr<::gloo::transport::Device> createDefaultDevice();
 
   // Create ProcessGroupGloo instance.
@@ -262,6 +316,10 @@ class TORCH_API ProcessGroupGloo : public Backend {
       int rank,
       int size,
       std::chrono::milliseconds timeout);
+=======
+  static std::shared_ptr<::gloo::transport::Device> createDefaultDevice(
+      bool lazyInit = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   explicit ProcessGroupGloo(
       const c10::intrusive_ptr<Store>& store,
@@ -275,6 +333,11 @@ class TORCH_API ProcessGroupGloo : public Backend {
     return options_;
   }
 
+<<<<<<< HEAD
+=======
+  const std::vector<uint64_t>& groupRanks() const;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::intrusive_ptr<Work> broadcast(
       std::vector<at::Tensor>& tensors,
       const BroadcastOptions& opts = BroadcastOptions()) override;
@@ -367,7 +430,11 @@ class TORCH_API ProcessGroupGloo : public Backend {
 
   void enableCollectivesTiming() override;
 
+<<<<<<< HEAD
   const std::unique_ptr<::gloo::rendezvous::Store>& _getStore() const {
+=======
+  const std::shared_ptr<::gloo::rendezvous::Store>& _getStore() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return store_;
   }
 
@@ -393,7 +460,11 @@ class TORCH_API ProcessGroupGloo : public Backend {
   }
 
  protected:
+<<<<<<< HEAD
   std::unique_ptr<::gloo::rendezvous::Store> store_;
+=======
+  std::shared_ptr<::gloo::rendezvous::Store> store_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const c10::intrusive_ptr<Options> options_;
 
   // Every Gloo context represents a set of connections to its peers.
@@ -435,6 +506,12 @@ class TORCH_API ProcessGroupGloo : public Backend {
   std::condition_variable workProduceCV_;
   std::condition_variable workConsumeCV_;
   uint64_t seq_{0};
+<<<<<<< HEAD
+=======
+  size_t local_id_;
+  std::shared_ptr<ProcessGroupStatus> pgStatus_ =
+      std::make_shared<ProcessGroupStatus>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace c10d

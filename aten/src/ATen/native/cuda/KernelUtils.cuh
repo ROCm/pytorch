@@ -8,8 +8,13 @@
 // ROCm 6.3 is planned to have these functions, but until then here they are.
 #if defined(USE_ROCM) && ROCM_VERSION >= 60201
 #include <device_functions.h>
+<<<<<<< HEAD
 #include <hip/hip_bf16.h>
 #include <hip/hip_fp16.h>
+=======
+#include <hip/hip_fp16.h>
+#include <hip/hip_bf16.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __device__ inline __hip_bfloat162 preview_unsafeAtomicAdd(__hip_bfloat162* address, __hip_bfloat162 value) {
 #if (defined(__gfx942__)) && \
@@ -259,6 +264,14 @@ __device__ inline void cmtdStore(void* address, T value) {
 #endif
 
 #if (defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) || defined(__gfx950__))
+<<<<<<< HEAD
+=======
+// This function implements warp-level opportunistic fastatomics
+// To reduce contention on an atomicAdd, this replaces per-thread atomicAdd with a per-warp atomicAdd.
+// We identify all the threads within a warp that will perform an atomicAdd on the same destination
+// address and perform the addition on the CU. Each warp elects a leader thread which does the
+// atomicAdd to the destination address.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <class scalar_t, class index_t>
 __device__ __forceinline__ void opportunistic_fastAtomicAdd(
     scalar_t* self_ptr,
@@ -267,7 +280,12 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
     scalar_t value) {
 
     scalar_t* dst = self_ptr + index;
+<<<<<<< HEAD
     //Try to pack coalseced bf16 and fp16
+=======
+
+    //pack coalseced bf16 and fp16
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if constexpr (std::is_same<scalar_t, c10::BFloat16>::value || std::is_same<scalar_t, c10::Half>::value)
     {
         typedef unsigned short __attribute__((ext_vector_type(2))) vec_short2;
@@ -309,7 +327,10 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
             return;
         }
     }
+<<<<<<< HEAD
     // not coalsced, so now let try to capture lane-matches...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (numel > 16 /*<-hueristic threshold*/ * 64 ) {
       // well shucks, unlikely to capture same-dest atomics in a wave.
@@ -318,6 +339,7 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
       return;
     }
 
+<<<<<<< HEAD
     auto mask = __match_any_sync(__activemask(), (int64_t)dst);
     int leader = __ffsll(mask) - 1;    // select a leader
     scalar_t crnt_val = (scalar_t)0;
@@ -328,6 +350,30 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
      while (crnt_msk != 0) {
         if (crnt_msk & 1) {
             punner add_val = { .l = __shfl(pnr.l ,crnt_idx) };
+=======
+    // not coalsced, so now let try to capture lane-matches...
+    // __activemask() -- finds the set of threads in the warp that are about to perform atomicAdd
+    // __match_any_sync() -- returns bit mask of the threads that have same dest addr
+    auto mask = __match_any_sync(__activemask(), (int64_t)dst);
+
+    // select a leader thread
+    int leader = __ffsll(mask) - 1;
+
+    scalar_t crnt_val = (scalar_t)0;
+    auto crnt_msk = mask >> (leader);
+    int crnt_idx = leader;
+
+    // __shfl is limited in the dtypes it accepts
+    // That's why, we need these if/else to correctly do the addition on the CU
+    if constexpr(sizeof(scalar_t) <= sizeof(int)) {
+     union punner { int l; scalar_t s; };
+     punner pnr = {};
+     pnr.s = value;
+     while (crnt_msk != 0) {
+        if (crnt_msk & 1) {
+            punner add_val = {};
+            add_val.l = __shfl(pnr.l ,crnt_idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             crnt_val += add_val.s;
         }
         crnt_idx++;
@@ -335,10 +381,20 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
      }
     }
     else if constexpr(sizeof(scalar_t) <= sizeof(long)) {
+<<<<<<< HEAD
      union punner { long l; scalar_t s; } pnr = { .s = value };
      while (crnt_msk != 0) {
         if (crnt_msk & 1) {
             punner add_val = { .l = __shfl(pnr.l ,crnt_idx) };
+=======
+     union punner { long l; scalar_t s; };
+     punner pnr = {};
+     pnr.s = value;
+     while (crnt_msk != 0) {
+        if (crnt_msk & 1) {
+            punner add_val = {};
+            add_val.l = __shfl(pnr.l ,crnt_idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             crnt_val += add_val.s;
         }
         crnt_idx++;
@@ -346,10 +402,20 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
      }
     }
     else if constexpr(sizeof(scalar_t) <= sizeof(long long)) {
+<<<<<<< HEAD
      union punner { long long l; scalar_t s; } pnr = { .s = value };
      while (crnt_msk != 0) {
         if (crnt_msk & 1) {
             punner add_val = { .l = __shfl(pnr.l ,crnt_idx) };
+=======
+     union punner { long long l; scalar_t s; };
+     punner pnr = {};
+     pnr.s = value;
+     while (crnt_msk != 0) {
+        if (crnt_msk & 1) {
+            punner add_val = {};
+            add_val.l = __shfl(pnr.l ,crnt_idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             crnt_val += add_val.s;
         }
         crnt_idx++;
@@ -357,11 +423,22 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
      }
     }
     else {
+<<<<<<< HEAD
      union punner { long long l[2]; scalar_t s; } pnr = { .s = value };
      while (crnt_msk != 0) {
         if (crnt_msk & 1) {
             punner add_val = { .l[0] = __shfl(pnr.l[0] ,crnt_idx) };
 	    add_val.l[1] = __shfl(pnr.l[1] ,crnt_idx);
+=======
+     union punner { long long l[2]; scalar_t s; };
+     punner pnr = {};
+     pnr.s = value;
+     while (crnt_msk != 0) {
+        if (crnt_msk & 1) {
+            punner add_val = {};
+            add_val.l[0] = __shfl(pnr.l[0] ,crnt_idx);
+            add_val.l[1] = __shfl(pnr.l[1] ,crnt_idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             crnt_val += add_val.s;
         }
         crnt_idx++;
@@ -370,7 +447,12 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
     }
 
 
+<<<<<<< HEAD
     if (__lane_id() == leader) {  // only leader-lane does the update
+=======
+    //Once the correct crnt_val is determined, only the leader thread does the update to the dest addr
+    if (__lane_id() == leader) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       fastAtomicAdd(self_ptr, index, numel, crnt_val, true);
     }
 }

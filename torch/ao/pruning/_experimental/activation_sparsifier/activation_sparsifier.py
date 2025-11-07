@@ -75,6 +75,7 @@ class ActivationSparsifier:
         >>>     return torch.eye(data.shape).to(data.device)
         >>>
         >>>
+<<<<<<< HEAD
         >>> act_sparsifier.register_layer(model.some_layer, aggregate_fn=agg_fn, reduce_fn=reduce_fn, mask_fn=mask_fn)
         >>>
         >>> # start training process
@@ -82,6 +83,20 @@ class ActivationSparsifier:
         >>>     # epoch starts
         >>>         # model.forward(), compute_loss() and model.backwards()
         >>>     # epoch ends
+=======
+        >>> act_sparsifier.register_layer(
+        ...     model.some_layer,
+        ...     aggregate_fn=agg_fn,
+        ...     reduce_fn=reduce_fn,
+        ...     mask_fn=mask_fn,
+        ... )
+        >>>
+        >>> # start training process
+        >>> for _ in [...]:
+        >>> # epoch starts
+        >>> # model.forward(), compute_loss() and model.backwards()
+        >>> # epoch ends
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>>     act_sparsifier.step()
         >>> # end training process
         >>> sparsifier.squash_mask()
@@ -231,9 +246,15 @@ class ActivationSparsifier:
         self.data_groups[name] = local_args
         agg_hook = layer.register_forward_pre_hook(self._aggregate_hook(name=name))
 
+<<<<<<< HEAD
         self.state[name][
             "mask"
         ] = None  # mask will be created when model forward is called.
+=======
+        self.state[name]["mask"] = (
+            None  # mask will be created when model forward is called.
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # attach agg hook
         self.data_groups[name]["hook"] = agg_hook
@@ -255,9 +276,15 @@ class ActivationSparsifier:
             Hence, if get_mask() is called before model.forward(), an
             error will be raised.
         """
+<<<<<<< HEAD
         assert (
             name is not None or layer is not None
         ), "Need at least name or layer obj to retrieve mask"
+=======
+        assert name is not None or layer is not None, (
+            "Need at least name or layer obj to retrieve mask"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if name is None:
             assert layer is not None
@@ -360,9 +387,15 @@ class ActivationSparsifier:
                 configs["hook"] = configs["layer"].register_forward_pre_hook(
                     self._sparsify_hook(name)
                 )
+<<<<<<< HEAD
             configs[
                 "hook_state"
             ] = "sparsify"  # signals that sparsify hook is now attached
+=======
+            configs["hook_state"] = (
+                "sparsify"  # signals that sparsify hook is now attached
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _get_serializable_data_groups(self):
         """Exclude hook and layer from the config keys before serializing

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+<<<<<<< HEAD
 import copy
 import dataclasses
 import io
@@ -10,6 +11,12 @@ import logging
 import os
 import unittest
 import warnings
+=======
+import dataclasses
+import io
+import os
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Collection, Iterable, Mapping, Sequence
 from typing import Any, Callable, Optional, Union
 
@@ -187,6 +194,7 @@ class _TestONNXRuntime(pytorch_test_common.ExportTestCase):
         if not is_model_script and not self.is_script:
             _run_test(model, tracing_remained_onnx_input_idx)
 
+<<<<<<< HEAD
     def run_test_with_fx_to_onnx_exporter_and_onnx_runtime(
         self,
         model: _ModelType,
@@ -323,6 +331,8 @@ class _TestONNXRuntime(pytorch_test_common.ExportTestCase):
                     has_mutation=has_mutation,
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def run_ort(
     onnx_model: Union[str, torch.onnx.ONNXProgram],
@@ -369,6 +379,7 @@ def run_ort(
     return session.run(None, ort_input)
 
 
+<<<<<<< HEAD
 def _try_clone_model(model: _ModelType) -> _ModelType:
     """Used for preserving original model in case forward mutates model states."""
     try:
@@ -412,18 +423,23 @@ def _compare_pytorch_onnx_with_ort(
     torch.testing.assert_close(onnx_outputs, ref_outputs, rtol=rtol, atol=atol)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # The min onnx opset version to test for
 MIN_ONNX_OPSET_VERSION = 9
 # The max onnx opset version to test for
 MAX_ONNX_OPSET_VERSION = _constants.ONNX_TORCHSCRIPT_EXPORTER_MAX_OPSET
 TESTED_OPSETS = range(MIN_ONNX_OPSET_VERSION, MAX_ONNX_OPSET_VERSION + 1)
 
+<<<<<<< HEAD
 # The min onnx opset version to test for
 FX_MIN_ONNX_OPSET_VERSION = 18
 # The max onnx opset version to test for
 FX_MAX_ONNX_OPSET_VERSION = 18
 FX_TESTED_OPSETS = range(FX_MIN_ONNX_OPSET_VERSION, FX_MAX_ONNX_OPSET_VERSION + 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BOOL_TYPES = (torch.bool,)
 
 INT_TYPES = (

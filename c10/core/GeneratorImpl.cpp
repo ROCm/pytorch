@@ -32,7 +32,11 @@ c10::intrusive_ptr<GeneratorImpl> GeneratorImpl::clone() const {
 }
 
 void GeneratorImpl::graphsafe_set_state(
+<<<<<<< HEAD
     const c10::intrusive_ptr<c10::GeneratorImpl>& state) {
+=======
+    const c10::intrusive_ptr<c10::GeneratorImpl>& /*state*/) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK_NOT_IMPLEMENTED(
       false, "graphsafe_set_state is not supported in this Generator");
 }
@@ -91,9 +95,13 @@ uint64_t getNonDeterministicRandom(bool is_cuda) {
   uint64_t s = 0;
   if (!is_cuda) {
 #ifdef _WIN32
+<<<<<<< HEAD
     s = (uint64_t)std::chrono::high_resolution_clock::now()
             .time_since_epoch()
             .count();
+=======
+    s = (uint64_t)std::chrono::steady_clock::now().time_since_epoch().count();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #elif defined(__SGX_ENABLED__)
     TORCH_CHECK(
         sgx_read_rand(reinterpret_cast<uint8_t*>(&s), sizeof(s)) == SGX_SUCCESS,

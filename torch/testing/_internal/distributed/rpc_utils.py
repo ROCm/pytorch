@@ -6,9 +6,15 @@ import unittest
 
 from torch.testing._internal.common_distributed import MultiProcessTestCase
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     TEST_WITH_DEV_DBG_ASAN,
     find_free_port,
     IS_SANDCASTLE,
+=======
+    find_free_port,
+    IS_SANDCASTLE,
+    TEST_WITH_DEV_DBG_ASAN,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.distributed.ddp_under_dist_autograd_test import (
     CudaDdpComparisonTest,
@@ -21,15 +27,35 @@ from torch.testing._internal.distributed.nn.api.remote_module_test import (
     ThreeWorkersRemoteModuleTest,
 )
 from torch.testing._internal.distributed.rpc.dist_autograd_test import (
+<<<<<<< HEAD
     DistAutogradTest,
     CudaDistAutogradTest,
     FaultyAgentDistAutogradTest,
     TensorPipeAgentDistAutogradTest,
     TensorPipeCudaDistAutogradTest
+=======
+    CudaDistAutogradTest,
+    DistAutogradTest,
+    FaultyAgentDistAutogradTest,
+    TensorPipeAgentDistAutogradTest,
+    TensorPipeCudaDistAutogradTest,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.distributed.rpc.dist_optimizer_test import (
     DistOptimizerTest,
 )
+<<<<<<< HEAD
+=======
+from torch.testing._internal.distributed.rpc.examples.parameter_server_test import (
+    ParameterServerTest,
+)
+from torch.testing._internal.distributed.rpc.examples.reinforcement_learning_rpc_test import (
+    ReinforcementLearningRpcTest,
+)
+from torch.testing._internal.distributed.rpc.faulty_agent_rpc_test import (
+    FaultyAgentRpcTest,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed.rpc.jit.dist_autograd_test import (
     JitDistAutogradTest,
 )
@@ -40,6 +66,7 @@ from torch.testing._internal.distributed.rpc.jit.rpc_test_faulty import (
 from torch.testing._internal.distributed.rpc.rpc_agent_test_fixture import (
     RpcAgentTestFixture,
 )
+<<<<<<< HEAD
 from torch.testing._internal.distributed.rpc.faulty_agent_rpc_test import (
     FaultyAgentRpcTest,
 )
@@ -52,6 +79,13 @@ from torch.testing._internal.distributed.rpc.rpc_test import (
 from torch.testing._internal.distributed.rpc.examples.parameter_server_test import ParameterServerTest
 from torch.testing._internal.distributed.rpc.examples.reinforcement_learning_rpc_test import (
     ReinforcementLearningRpcTest,
+=======
+from torch.testing._internal.distributed.rpc.rpc_test import (
+    CudaRpcTest,
+    RpcTest,
+    TensorPipeAgentCudaRpcTest,
+    TensorPipeAgentRpcTest,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -61,15 +95,26 @@ def _check_and_set_tcp_init():
     # different ports.
     use_tcp_init = os.environ.get("RPC_INIT_WITH_TCP", None)
     if use_tcp_init == "1":
+<<<<<<< HEAD
         os.environ["MASTER_ADDR"] = '127.0.0.1'
         os.environ["MASTER_PORT"] = str(find_free_port())
 
+=======
+        os.environ["MASTER_ADDR"] = "127.0.0.1"
+        os.environ["MASTER_PORT"] = str(find_free_port())
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _check_and_unset_tcp_init():
     use_tcp_init = os.environ.get("RPC_INIT_WITH_TCP", None)
     if use_tcp_init == "1":
         del os.environ["MASTER_ADDR"]
         del os.environ["MASTER_PORT"]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # The tests for the RPC module need to cover multiple possible combinations:
 # - different aspects of the API, each one having its own suite of tests;
 # - different agents (ProcessGroup, TensorPipe, ...);
@@ -80,8 +125,15 @@ def _check_and_unset_tcp_init():
 # we call the generate_tests function of this file, passing to it a fixture for
 # the agent, which then gets mixed-in with each test suite.
 
+<<<<<<< HEAD
 @unittest.skipIf(
     TEST_WITH_DEV_DBG_ASAN, "Skip ASAN as torch + multiprocessing spawn have known issues"
+=======
+
+@unittest.skipIf(
+    TEST_WITH_DEV_DBG_ASAN,
+    "Skip ASAN as torch + multiprocessing spawn have known issues",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 class SpawnHelper(MultiProcessTestCase):
     def setUp(self):
@@ -169,8 +221,15 @@ def generate_tests(
     for test_class in tests:
         if IS_SANDCASTLE and TEST_WITH_DEV_DBG_ASAN:
             print(
+<<<<<<< HEAD
                 f'Skipping test {test_class} on sandcastle for the following reason: '
                 'Skip dev-asan as torch + multiprocessing spawn have known issues', file=sys.stderr)
+=======
+                f"Skipping test {test_class} on sandcastle for the following reason: "
+                "Skip dev-asan as torch + multiprocessing spawn have known issues",
+                file=sys.stderr,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
 
         name = f"{prefix}{test_class.__name__}"

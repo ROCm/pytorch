@@ -3,6 +3,10 @@
 
 #include <c10/util/Exception.h>
 #include <c10/util/StringUtil.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 #include <caffe2/serialize/versions.h>
 #include <torch/csrc/jit/api/function_impl.h>
@@ -47,12 +51,20 @@ bool reportSourceLocation(size_t file_size) {
   if (file_size < 512ull * 1024) {
     return true;
   }
+<<<<<<< HEAD
   const char* enable_env =
       std::getenv("PYTORCH_JIT_ENABLE_LARGE_SOURCE_LOCATION");
   bool flag = true;
   if (enable_env == nullptr || std::strcmp(enable_env, "0") == 0 ||
       std::strcmp(enable_env, "FALSE") == 0 ||
       std::strcmp(enable_env, "false") == 0) {
+=======
+  const auto enable_env =
+      c10::utils::get_env("PYTORCH_JIT_ENABLE_LARGE_SOURCE_LOCATION");
+  bool flag = true;
+  if (!enable_env.has_value() || enable_env == "0" || enable_env == "FALSE" ||
+      enable_env == "false") {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     flag = false;
   }
   return flag;
@@ -624,11 +636,14 @@ static Value* materializeConstant(
   return new_constant;
 }
 
+<<<<<<< HEAD
 inline bool isSupportedListElementType(const TypePtr& type) {
   return type->isSubtypeOf(*TensorType::get()) ||
       type->isSubtypeOf(*NumberType::get());
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Information for each def being emitted.
 // Defs can be nested to support closures so we need a stack of this information
 // Currently records information about the functions return type.

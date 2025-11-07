@@ -86,7 +86,11 @@ struct TORCH_API CUDAHooksInterface : AcceleratorHooksInterface {
     TORCH_CHECK(false, "Cannot get device of pointer on CUDA without ATen_cuda library. ", CUDA_HELP);
   }
 
+<<<<<<< HEAD
   bool isPinnedPtr(const void* data) const override {
+=======
+  bool isPinnedPtr(const void* /*data*/)  const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return false;
   }
 
@@ -200,7 +204,11 @@ struct TORCH_API CUDAHooksInterface : AcceleratorHooksInterface {
   }
 
 #ifdef USE_ROCM
+<<<<<<< HEAD
   virtual bool isGPUArch(DeviceIndex /*device_index*/, const std::vector<std::string>& /*archs*/) const {
+=======
+  virtual bool isGPUArch(const std::vector<std::string>& /*archs*/, DeviceIndex = -1 /*device_index*/) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "Cannot check GPU arch without ATen_cuda library. ", CUDA_HELP);
   }
 #endif

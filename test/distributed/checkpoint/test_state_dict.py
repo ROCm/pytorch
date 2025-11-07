@@ -11,7 +11,10 @@ import torch.distributed as dist
 import torch.nn as nn
 from torch.distributed._composable import replicate
 from torch.distributed._shard.sharded_tensor import ShardedTensor
+<<<<<<< HEAD
 from torch.distributed._tensor import DTensor, init_device_mesh
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.algorithms._checkpoint.checkpoint_wrapper import (
     apply_activation_checkpointing,
 )
@@ -26,6 +29,10 @@ from torch.distributed.checkpoint.state_dict import (
     set_optimizer_state_dict,
     StateDictOptions,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp import (
     fully_shard,
     FullyShardedDataParallel as FSDP,
@@ -34,6 +41,10 @@ from torch.distributed.fsdp import (
 )
 from torch.distributed.fsdp.wrap import ModuleWrapPolicy
 from torch.distributed.optim import _apply_optimizer_in_backward
+<<<<<<< HEAD
+=======
+from torch.distributed.tensor import DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     parallelize_module,
@@ -676,9 +687,13 @@ class TestStateDict(DTensorTestBase, VerifyStateDictMixin):
             fully_shard(layer)
         fully_shard(model)
         optim = torch.optim.Adam(model.parameters(), lr=1e-2)
+<<<<<<< HEAD
         torch.optim.lr_scheduler.LambdaLR(
             optim, lr_lambda=[lambda epoch: 0.95**epoch]
         )
+=======
+        torch.optim.lr_scheduler.LambdaLR(optim, lr_lambda=[lambda epoch: 0.95**epoch])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         opt_state_dict = ptd_state_dict.get_optimizer_state_dict(
             model,
             optim,
@@ -913,6 +928,33 @@ class TestStateDict(DTensorTestBase, VerifyStateDictMixin):
 
     @with_comms
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
+=======
+    def test_set_cpu_model_state_dict_broadcast_from_rank0(self) -> None:
+        torch.manual_seed(42)
+        model = nn.Linear(2, 2)
+        expected_state_dict = {
+            k: v.detach().clone() for k, v in model.state_dict().items()
+        }
+        state_dict = expected_state_dict if torch.distributed.get_rank() == 0 else {}
+        model._apply(lambda t: torch.zeros_like(t))
+
+        set_model_state_dict(
+            model,
+            state_dict,
+            options=StateDictOptions(full_state_dict=True, broadcast_from_rank0=True),
+        )
+
+        for (actual_name, tensor), (expected_name, expected_tensor) in zip(
+            model.state_dict().items(),
+            expected_state_dict.items(),
+        ):
+            assert actual_name == expected_name
+            torch.testing.assert_close(tensor, expected_tensor, msg=expected_name)
+
+    @with_comms
+    @skip_if_lt_x_gpu(2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multi_device_load_model_state_dict(self) -> None:
         torch.manual_seed(0)
         with torch.device("meta"):

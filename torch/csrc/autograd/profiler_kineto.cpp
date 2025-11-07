@@ -8,7 +8,10 @@
 #include <c10/util/flat_hash_map.h>
 #include <c10/util/irange.h>
 #include <c10/util/overloaded.h>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/profiler/api.h>
 #include <torch/csrc/profiler/collection.h>
 #include <torch/csrc/profiler/containers.h>
@@ -21,8 +24,11 @@
 #include <torch/csrc/profiler/standalone/privateuse1_observer.h>
 #include <torch/csrc/profiler/util.h>
 
+<<<<<<< HEAD
 #include <ATen/Context.h>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <stdexcept>
 #include <utility>
 
@@ -625,7 +631,11 @@ void prepareProfiler(
     /*
      * Sending a warning and passing the non-standard event to the backend
      * Backend can abort if the event is not supported.
+<<<<<<< HEAD
      * TODO Should we gracefully drop the invalid event if we have atleast one
+=======
+     * TODO Should we gracefully drop the invalid event if we have at least one
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
      * valid?
      */
     auto is_standard_event = [](const std::string& event) -> bool {
@@ -693,6 +703,7 @@ void toggleCollectionDynamic(
     const bool enable,
     const std::set<torch::profiler::impl::ActivityType>& activities) {
   if (activities.count(torch::autograd::profiler::ActivityType::CPU) > 0 &&
+<<<<<<< HEAD
       activities.count(torch::autograd::profiler::ActivityType::CUDA) == 0) {
     LOG(WARNING)
         << "Toggling CPU activity with CUDA activity on may result in traces with CUDA events on artibrary tracks";
@@ -704,6 +715,22 @@ void toggleCollectionDynamic(
   }
   for (auto act : activities) {
     if (act == torch::autograd::profiler::ActivityType::CUDA) {
+=======
+      (activities.count(torch::autograd::profiler::ActivityType::CUDA) == 0 ||
+       activities.count(torch::autograd::profiler::ActivityType::XPU) == 0)) {
+    LOG(WARNING)
+        << "Toggling CPU activity with GPU activity on may result in traces with GPU events on artibrary tracks";
+  } else if (
+      (activities.count(torch::autograd::profiler::ActivityType::CUDA) > 0 ||
+       activities.count(torch::autograd::profiler::ActivityType::XPU) > 0) &&
+      activities.count(torch::autograd::profiler::ActivityType::CPU) == 0) {
+    LOG(WARNING)
+        << "Toggling GPU activity with CPU activity on may result in traces with incorrect correlation between CPU and GPU events";
+  }
+  for (auto act : activities) {
+    if (act == torch::autograd::profiler::ActivityType::CUDA ||
+        act == torch::autograd::profiler::ActivityType::XPU) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       torch::profiler::impl::kineto::toggleCollectionDynamic(enable);
     } else if (act == torch::autograd::profiler::ActivityType::CPU) {
       toggleCPUCollectionDynamic(enable);
@@ -860,6 +887,25 @@ std::unique_ptr<ProfilerResult> disableProfiler() {
 
   return result;
 }
+<<<<<<< HEAD
+=======
+namespace tracer = torch::profiler::impl::python_tracer;
+static std::unique_ptr<tracer::PythonMemoryTracerBase> memory_tracer;
+void startMemoryProfile() {
+  if (memory_tracer == nullptr) {
+    memory_tracer = tracer::PythonMemoryTracerBase::make();
+  }
+  memory_tracer->start();
+}
+
+void stopMemoryProfile() {
+  memory_tracer->stop();
+}
+
+void exportMemoryProfile(const std::string& filename) {
+  memory_tracer->export_memory_history(filename);
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 KinetoEvent::KinetoEvent(
     const std::shared_ptr<const torch::profiler::impl::Result>& result,

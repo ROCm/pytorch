@@ -318,10 +318,17 @@ class ScriptMeta(type):
                     else:
                         return infer_methods_to_compile(module)
 
+<<<<<<< HEAD
                 self.__dict__[
                     "_actual_script_module"
                 ] = torch.jit._recursive.create_script_module(
                     self, make_stubs, share_types=not added_methods_in_init
+=======
+                self.__dict__["_actual_script_module"] = (
+                    torch.jit._recursive.create_script_module(
+                        self, make_stubs, share_types=not added_methods_in_init
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
                 # Delete the Python attributes that now shadow the ScriptModule

@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 r"""Weight Normalization from https://arxiv.org/abs/1602.07868."""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, TypeVar
 from typing_extensions import deprecated
 

@@ -7,7 +7,11 @@ from collections import namedtuple
 from typing import Dict, List, NamedTuple, Tuple
 
 import torch
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_WINDOWS
+=======
+from torch.testing._internal.common_utils import IS_WINDOWS, raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase, make_global
 
 
@@ -15,6 +19,7 @@ from torch.testing._internal.jit_utils import JitTestCase, make_global
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -22,6 +27,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestTyping(JitTestCase):
     def test_dict_in_not_in(self):
@@ -140,7 +147,11 @@ class TestTyping(JitTestCase):
 
         # Check for invalid key and value type annotation
         def wrong_key_value_type(
+<<<<<<< HEAD
             dictionary: Dict[torch.jit.ScriptModule, torch.jit.ScriptModule]
+=======
+            dictionary: Dict[torch.jit.ScriptModule, torch.jit.ScriptModule],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             return
 
@@ -688,3 +699,10 @@ class TestTyping(JitTestCase):
         mod2 = LowestModule()
         mod_s = torch.jit.script(mod)
         mod2_s = torch.jit.script(mod2)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

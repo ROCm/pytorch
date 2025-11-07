@@ -347,7 +347,11 @@ void FixupONNXLoopNodeInputs(Node* node, int opset_version) {
 }
 } // anonymous namespace
 
+<<<<<<< HEAD
 std::vector<Value*> FixupONNXLoopNode(Node* node, int opset_version) {
+=======
+static std::vector<Value*> FixupONNXLoopNode(Node* node, int opset_version) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto output_size = node->outputs().size();
   GRAPH_DEBUG("before FixupONNXLoopBlockInputs: ", *node->owningGraph());
   FixupONNXLoopBlockInputs(node);
@@ -368,7 +372,11 @@ std::vector<Value*> FixupONNXLoopNode(Node* node, int opset_version) {
 
 // Check if node is prim::Uninitialized,
 // or output of prim::Uninitialized->onnx::Identity
+<<<<<<< HEAD
 bool IsUninitializedNode(Node* n) {
+=======
+static bool IsUninitializedNode(Node* n) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (n->kind() == ::c10::onnx::Identity &&
       n->inputs()[0]->node()->kind() == prim::Uninitialized)
     return true;
@@ -380,7 +388,11 @@ bool IsUninitializedNode(Node* n) {
 // Infer shape and type of the uninitialized_output from the corresponding
 // output of the other subblock. prim::Uninitialized node is proven to be
 // unused. So replace this node with one of the inferred shape and type.
+<<<<<<< HEAD
 void InferShapeTypeForUninitializedOutput(
+=======
+static void InferShapeTypeForUninitializedOutput(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Graph* graph,
     Block* block,
     Value* uninitialized_output,
@@ -399,7 +411,11 @@ void InferShapeTypeForUninitializedOutput(
     } else {
       const_node->t_(attr::value, at::zeros({}, elem_type));
       const_node->output()->setType(
+<<<<<<< HEAD
           TensorType::create(*(output_type->scalarType()), at::kCPU, {}, {}));
+=======
+          TensorType::create(output_type->scalarType(), at::kCPU, {}, {}));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   } else if (auto output_type = other_output->type()->cast<ListType>()) {
     TypePtr elem = output_type->getElementType();
@@ -456,7 +472,11 @@ void InferShapeTypeForUninitializedOutput(
 //       -> (%1, %y.1, %7)
 //   ...
 
+<<<<<<< HEAD
 void ONNXFixupUninitializedOutput(Node* node, int opset_version) {
+=======
+static void ONNXFixupUninitializedOutput(Node* node, int opset_version) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (node->kind() != ::c10::onnx::If) {
     return;
   }
@@ -510,7 +530,11 @@ void ONNXFixupUninitializedOutput(Node* node, int opset_version) {
   }
 }
 
+<<<<<<< HEAD
 void ONNXMergeIfBlockOutputShapes(Node* node) {
+=======
+static void ONNXMergeIfBlockOutputShapes(Node* node) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_INTERNAL_ASSERT(node->kind() == ::c10::onnx::If);
   Block* then_block = node->blocks().at(0);
   Block* else_block = node->blocks().at(1);
@@ -663,7 +687,11 @@ void ONNXMergeIfBlockOutputShapes(Node* node) {
   }
 }
 
+<<<<<<< HEAD
 std::vector<Value*> FixupONNXIfNode(Node* node, int opset_version) {
+=======
+static std::vector<Value*> FixupONNXIfNode(Node* node, int opset_version) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (node->kind() != ::c10::onnx::If) {
     return node->outputs().vec();
   }

@@ -104,7 +104,14 @@ TESTS = discover_tests(
         "distributed/test_c10d_spawn",
         "distributions/test_transforms",
         "distributions/test_utils",
+<<<<<<< HEAD
         "test/inductor/test_aot_inductor_utils",
+=======
+        "lazy/test_meta_kernel",
+        "lazy/test_extract_compiled_graph",
+        "test/inductor/test_aot_inductor_utils",
+        "onnx/test_onnxscript_no_runtime",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "onnx/test_pytorch_onnx_onnxruntime_cuda",
         "onnx/test_models",
         # These are not C++ tests

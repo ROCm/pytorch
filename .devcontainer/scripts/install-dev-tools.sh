@@ -8,6 +8,12 @@ git submodule update --init --recursive
 make setup-lint
 
 # Add CMAKE_PREFIX_PATH to bashrc
+<<<<<<< HEAD
 echo 'export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}' >> ~/.bashrc
 # Add linker path so that cuda-related libraries can be found
 echo 'export LDFLAGS="-L${CONDA_PREFIX}/lib/ $LDFLAGS"' >> ~/.bashrc
+=======
+echo 'export CMAKE_PREFIX_PATH=/usr/local' >> ~/.bashrc
+# Add linker path so that cuda-related libraries can be found
+echo 'export LDFLAGS="-L/usr/local/cuda/lib64/ $LDFLAGS"' >> ~/.bashrc
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

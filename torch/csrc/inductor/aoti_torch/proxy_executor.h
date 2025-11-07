@@ -6,6 +6,24 @@
 
 namespace torch::aot_inductor {
 
+<<<<<<< HEAD
+=======
+enum class DynamicArgType : int {
+  TensorType = 0,
+  ListTensorType = 1,
+  ListOptionalTensorType = 2,
+  IntType = 3,
+  ListIntType = 4,
+  NoneType = 5,
+};
+
+inline bool isTensorType(DynamicArgType arg_type) {
+  return arg_type == DynamicArgType::TensorType ||
+      arg_type == DynamicArgType::ListTensorType ||
+      arg_type == DynamicArgType::ListOptionalTensorType;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ProxyExecutor {
  public:
   ProxyExecutor() = default;

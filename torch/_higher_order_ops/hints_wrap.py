@@ -3,12 +3,18 @@ import torch
 import torch.utils._pytree as pytree
 from torch._C import DispatchKey
 from torch._higher_order_ops.utils import (
+<<<<<<< HEAD
     _has_potential_branch_input_alias,
     _has_potential_branch_input_mutation,
     autograd_not_implemented,
     reenter_make_fx,
     unique_graph_id,
     UnsupportedAliasMutationException,
+=======
+    autograd_not_implemented,
+    reenter_make_fx,
+    unique_graph_id,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch._ops import HigherOrderOperator
 from torch._subclasses.fake_tensor import FakeTensorMode
@@ -77,7 +83,11 @@ def hints_wrapper_dense(body_fn, args, kwargs, hints):
     return body_fn(*args, **kwargs)
 
 
+<<<<<<< HEAD
 hints_wrapper.py_impl(DispatchKey.Autograd)(
+=======
+hints_wrapper.py_autograd_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     autograd_not_implemented(hints_wrapper, deferred_error=True)
 )
 
@@ -91,12 +101,18 @@ def hints_wrapper_fake_tensor_mode(mode, body_func, args, kwargs, hints):
 
 @hints_wrapper.py_functionalize_impl
 def hints_wrapper_functionalize(ctx, body_fn, args, kwargs, hints):
+<<<<<<< HEAD
+=======
+    from torch._higher_order_ops.utils import _check_alias_and_mutation
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unwrapped_args = ctx.unwrap_tensors(args)
     unwrapped_kwargs = ctx.unwrap_tensors(kwargs)
     unwrapped_hints = ctx.unwrap_tensors(hints)
     with ctx.redispatch_to_next():
         functional_body_fn = ctx.functionalize(body_fn)
         pre_dispatch = hasattr(ctx, "mode") and ctx.mode.pre_dispatch
+<<<<<<< HEAD
         if _has_potential_branch_input_mutation(
             body_fn, unwrapped_args, pre_dispatch=pre_dispatch
         ):
@@ -109,6 +125,12 @@ def hints_wrapper_functionalize(ctx, body_fn, args, kwargs, hints):
             raise UnsupportedAliasMutationException(
                 "body_fn of hints_wrapper might be aliasing the input!"
             )
+=======
+        _check_alias_and_mutation(
+            body_fn, unwrapped_args, "hints_wrapper", pre_dispatch
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputs = hints_wrapper(
             functional_body_fn,
             unwrapped_args,

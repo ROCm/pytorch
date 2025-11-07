@@ -8,6 +8,10 @@ import sys
 import tempfile
 import threading
 import time
+<<<<<<< HEAD
+=======
+from concurrent.futures import ThreadPoolExecutor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from datetime import timedelta
 from sys import platform
 
@@ -148,6 +152,78 @@ class StoreTestBase:
     def test_append(self):
         self._test_append(self._create_store())
 
+<<<<<<< HEAD
+=======
+    def _create_store_or_skip_if_no_queues(self) -> dist.Store:
+        store = self._create_store()
+
+        try:
+            store.queue_push("test_queue_support", "1")
+        except NotImplementedError:
+            self.skipTest("Store does not support queues")
+
+        return store
+
+    def test_queues(self) -> None:
+        store = self._create_store_or_skip_if_no_queues()
+
+        self.assertFalse(store.check(["foo"]))
+        self.assertEqual(store.queue_len("foo"), 0)
+
+        store.queue_push("foo", "1")
+        store.queue_push("foo", "2")
+
+        self.assertTrue(store.check(["foo"]))
+        self.assertEqual(store.queue_len("foo"), 2)
+        store.wait(["foo"])
+
+        self.assertEqual(store.queue_pop("foo"), b"1")
+        self.assertEqual(store.queue_pop("foo"), b"2")
+
+        self.assertFalse(store.check(["foo"]))
+        self.assertEqual(store.queue_len("foo"), 0)
+
+    def test_queues_nonblocking(self) -> None:
+        store = self._create_store_or_skip_if_no_queues()
+
+        with self.assertRaisesRegex(dist.QueueEmptyError, "empty"):
+            store.queue_pop("foo", block=False)
+
+        store.queue_push("foo", "a")
+        self.assertEqual(store.queue_pop("foo", block=False), b"a")
+
+    def test_queues_bidirectional(self) -> None:
+        store = self._create_store_or_skip_if_no_queues()
+
+        def worker_a():
+            local_store = store.clone()
+
+            local_store.queue_push("a", "a1")
+            self.assertEqual(local_store.queue_pop("b"), b"b1")
+
+        def worker_b():
+            local_store = store.clone()
+
+            self.assertEqual(local_store.queue_pop("a"), b"a1")
+            local_store.queue_push("b", "b1")
+
+        # test bidirectional communication
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [
+                pool.submit(worker_a),
+                pool.submit(worker_b),
+            ]
+            for fut in futures:
+                fut.result()
+
+    def test_queues_timeout(self) -> None:
+        store = self._create_store_or_skip_if_no_queues()
+
+        store.set_timeout(timedelta(seconds=0.01))
+        with self.assertRaisesRegex(DistStoreError, "timeout"):
+            store.queue_pop("non_existant")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_multi_set(self, store):
         if not store.has_extended_api():
             # Just return for stores that don't support extended APIs.
@@ -172,6 +248,18 @@ class StoreTestBase:
     def test_multi_get(self):
         self._test_multi_get(self._create_store())
 
+<<<<<<< HEAD
+=======
+    def test_clone(self):
+        a = self._create_store()
+        b = a.clone()
+
+        self.assertIsInstance(b, dist.Store)
+
+        a.set("foo", "bar")
+        self.assertEqual(b.get("foo"), b"bar")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This is the number of keys used in test_set_get. Adding this as a class
     # property instead of hardcoding in the test since some Store
     # implementations will have differing number of keys. In the base case,
@@ -293,12 +381,17 @@ class TCPStoreTest(TestCase, StoreTestBase):
             # Use noqa to silence flake8.
             # Need to store in an unused variable here to ensure the first
             # object is not destroyed before the second object is created.
+<<<<<<< HEAD
             store1 = dist.TCPStore(
                 addr, port, 1, True, use_libuv=self._use_libuv
             )  # noqa: F841
             store2 = dist.TCPStore(
                 addr, port, 1, True, use_libuv=self._use_libuv
             )  # noqa: F841
+=======
+            store1 = dist.TCPStore(addr, port, 1, True, use_libuv=self._use_libuv)  # noqa: F841
+            store2 = dist.TCPStore(addr, port, 1, True, use_libuv=self._use_libuv)  # noqa: F841
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(store1.libuvBackend, self._use_libuv)
             self.assertEqual(store2.libuvBackend, self._use_libuv)
 
@@ -567,6 +660,7 @@ class LibUvTCPStoreTest(TCPStoreTest):
             addr, world_size, wait_for_workers=False, use_libuv=True
         )
 
+<<<<<<< HEAD
     def test_take_over_listen_socket(self):
         """
         override the take_over_listen_socket test in TCPStoreTest.
@@ -594,6 +688,8 @@ class LibUvTCPStoreTest(TCPStoreTest):
                 use_libuv=self._use_libuv,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class PrefixTCPStoreTest(TestCase, StoreTestBase):
     def setUp(self):
@@ -655,6 +751,12 @@ class MyPythonStore(dist.Store):
             val = self.store[key] = newValue
         return val
 
+<<<<<<< HEAD
+=======
+    def clone(self) -> "MyPythonStore":
+        return self
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class PythonStoreTest(TestCase):
     def test_set_get(self):
@@ -712,7 +814,11 @@ class RendezvousFileTest(TestCase):
 
     def test_nominal(self):
         with tempfile.NamedTemporaryFile(delete=False) as file:
+<<<<<<< HEAD
             url = f'file:///{file.name.replace(os.path.sep, "/")}?world_size=2'
+=======
+            url = f"file:///{file.name.replace(os.path.sep, '/')}?world_size=2"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gen0 = dist.rendezvous(url + "&rank=0")
             store0, rank0, size0 = next(gen0)
             self.assertEqual(0, rank0)
@@ -1123,8 +1229,14 @@ class TestClientProtocol(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     assert (
         not torch.cuda._initialized
     ), "test_distributed must not have initialized CUDA context on main process"
+=======
+    assert not torch.cuda._initialized, (
+        "test_distributed must not have initialized CUDA context on main process"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     run_tests()

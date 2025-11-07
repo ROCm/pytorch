@@ -60,9 +60,15 @@ class TORCH_API Shape {
 
   // Sizes are the upper bound sizes for a tensor, used by XLA.
   std::vector<int64_t> sizes_;
+<<<<<<< HEAD
   // Stores which dimmensions are symbolic
   // If nullopt, either it hasn't been initialized or the symbolic
   // dimmensions are not calculatable
+=======
+  // Stores which dimensions are symbolic
+  // If nullopt, either it hasn't been initialized or the symbolic
+  // dimensions are not calculable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<std::vector<bool>> is_symbolic_ = std::nullopt;
 };
 

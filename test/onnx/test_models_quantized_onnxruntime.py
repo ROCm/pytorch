@@ -10,6 +10,10 @@ import torchvision
 
 import torch
 from torch import nn
+<<<<<<< HEAD
+=======
+from torch.testing._internal import common_utils
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_test_image_tensor():
@@ -95,3 +99,10 @@ class TestQuantizedModelsONNXRuntime(onnx_test_common._TestONNXRuntime):
             pretrained=True, quantize=True
         )
         self.run_test(model, _get_test_image_tensor())
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    common_utils.run_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

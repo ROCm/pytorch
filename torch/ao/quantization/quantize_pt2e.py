@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+import typing_extensions
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch._export.passes.constant_folding import constant_fold
 from torch.ao.quantization.pt2e.duplicate_dq_pass import DuplicateDQPass
@@ -19,6 +24,10 @@ from .pt2e.qat_utils import _fold_conv_bn_qat, _fuse_conv_bn_qat
 from .pt2e.representation import reference_representation_rewrite
 from .pt2e.utils import _disallow_eval_train, _fuse_conv_bn_, _get_node_name_to_scope
 from .quantize_fx import _convert_to_reference_decomposed_fx
+<<<<<<< HEAD
+=======
+from .utils import DEPRECATION_WARNING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -28,6 +37,10 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
+=======
+@typing_extensions.deprecated(DEPRECATION_WARNING)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def prepare_pt2e(
     model: GraphModule,
     quantizer: Quantizer,
@@ -107,6 +120,10 @@ def prepare_pt2e(
     return model
 
 
+<<<<<<< HEAD
+=======
+@typing_extensions.deprecated(DEPRECATION_WARNING)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def prepare_qat_pt2e(
     model: GraphModule,
     quantizer: Quantizer,
@@ -203,6 +220,10 @@ def _quant_node_constraint(n: Node) -> bool:
     return n.op == "call_function" and n.target in _QUANT_OPS
 
 
+<<<<<<< HEAD
+=======
+@typing_extensions.deprecated(DEPRECATION_WARNING)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def convert_pt2e(
     model: GraphModule,
     use_reference_representation: bool = False,
@@ -228,7 +249,11 @@ def convert_pt2e(
         # for detailed explanation of output quantized model
         quantized_model = convert_pt2e(prepared_model)
 
+<<<<<<< HEAD
     """  # flake8: noqa
+=======
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._C._log_api_usage_once("quantization_api.quantize_pt2e.convert_pt2e")
     if not isinstance(use_reference_representation, bool):
         raise ValueError(

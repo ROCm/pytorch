@@ -200,6 +200,10 @@ static void initGlobalStreamState() {
 // Init a single CUDA or HIP stream
 // See Note [HIP Lazy Streams]
 static void initSingleStream(int p, DeviceIndex device_index, int i) {
+<<<<<<< HEAD
+=======
+  CUDAGuard device_guard(device_index);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& stream = streams[p][device_index][i];
   auto pri = -p; // lower number is higher priority
 
@@ -244,7 +248,17 @@ static void initCUDAStreamsOnce() {
 
 // Helper to verify the GPU index is valid
 static inline void check_gpu(DeviceIndex device_index) {
+<<<<<<< HEAD
   TORCH_INTERNAL_ASSERT(device_index >= 0 && device_index < num_gpus);
+=======
+  TORCH_CHECK(
+      device_index >= 0 && device_index < num_gpus,
+      "Device index value ",
+      static_cast<int>(device_index),
+      " is out of index range [0, ",
+      static_cast<int>(num_gpus),
+      ")");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Helper to determine the index of the stream to return

@@ -5,6 +5,10 @@
 #include <torch/csrc/autograd/functions/pybind.h>
 #include <torch/csrc/autograd/functions/tensor.h>
 #include <torch/csrc/autograd/generated/python_functions.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/autograd/python_autograd.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/python_cpp_function.h>
 #include <torch/csrc/autograd/python_variable.h>
 #ifdef USE_DISTRIBUTED
@@ -70,10 +74,17 @@ template <
     typename T,
     typename ValueT,
     typename ParamsT,
+<<<<<<< HEAD
     ValueT ParamsT::*ptr,
     typename ConvertArgT,
     PyObject* (*Convert)(ConvertArgT)>
 PyObject* getTupleAttr(PyObject* obj, void* _unused) {
+=======
+    ValueT ParamsT::* ptr,
+    typename ConvertArgT,
+    PyObject* (*Convert)(ConvertArgT)>
+static PyObject* getTupleAttr(PyObject* obj, void* _unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   THPCppFunction* self = (THPCppFunction*)obj;
   auto& arr = ((T*)(self->cdata.get()))->*ptr;
@@ -92,10 +103,17 @@ template <
     typename T,
     typename ValueT,
     typename ParamsT,
+<<<<<<< HEAD
     ValueT ParamsT::*ptr,
     typename ConvertArgT,
     PyObject* (*Convert)(ConvertArgT)>
 PyObject* getValueAttr(PyObject* obj, void* _unused) {
+=======
+    ValueT ParamsT::* ptr,
+    typename ConvertArgT,
+    PyObject* (*Convert)(ConvertArgT)>
+static PyObject* getValueAttr(PyObject* obj, void* _unused) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   THPCppFunction* self = (THPCppFunction*)obj;
   auto& val = ((T*)(self->cdata.get()))->*ptr;

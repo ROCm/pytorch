@@ -106,8 +106,12 @@ def _recursive_to(inputs, target_device, use_side_stream_for_tensor_copies):
                 return (obj.to(target_device),)
             else:
                 # If the custom module is not registered to torch, stream is not used for acceleration
+<<<<<<< HEAD
                 device_mod = getattr(torch, device.type, None)
                 if device.type == "cpu" or device_mod is None:
+=======
+                if device.type == "cpu":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return (obj.to(target_device),)
 
                 from torch.nn.parallel._functions import _get_stream
@@ -115,11 +119,19 @@ def _recursive_to(inputs, target_device, use_side_stream_for_tensor_copies):
                 # Perform CPU -> target_device copies in a background stream. This code is
                 # motivated from similar logic in torch/nn/parallel/_functions.py
                 stream = _get_stream(target_device)
+<<<<<<< HEAD
                 with device_mod.stream(stream):
                     output = obj.to(target_device)
                 # synchronize with the copy stream
                 with device_mod.device(target_device.index):
                     current_stream = device_mod.current_stream()
+=======
+                with stream:
+                    output = obj.to(target_device)
+                # synchronize with the copy stream
+                with torch.accelerator.device_index(target_device.index):
+                    current_stream = torch.accelerator.current_stream()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Sync the current stream with the copy stream
                     current_stream.wait_stream(stream)
                     # Ensure tensor memory is not reused until work on

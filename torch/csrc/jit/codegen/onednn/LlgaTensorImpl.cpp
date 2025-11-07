@@ -31,7 +31,11 @@ dnnl::engine& Engine::getEngine() {
   static dnnl::graph::allocator alloc{
       pytorch_default_allocator, pytorch_default_deallocator};
   static dnnl::engine cpu_engine = dnnl::graph::make_engine_with_allocator(
+<<<<<<< HEAD
       dnnl::engine::kind::cpu, /* device_id = */ 0, alloc);
+=======
+      dnnl::engine::kind::cpu, /* index = */ 0, alloc);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return cpu_engine;
 }
 

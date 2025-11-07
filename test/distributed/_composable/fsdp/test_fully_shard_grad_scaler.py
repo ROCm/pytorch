@@ -4,7 +4,11 @@ import copy
 import torch
 import torch.nn as nn
 from torch.amp.grad_scaler import GradScaler, OptState
+<<<<<<< HEAD
 from torch.distributed._tensor import init_device_mesh
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp import fully_shard
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
@@ -12,13 +16,24 @@ from torch.distributed.tensor.parallel import (
     RowwiseParallel,
 )
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+<<<<<<< HEAD
 from torch.testing._internal.common_fsdp import FSDPTest, MLP
 from torch.testing._internal.common_utils import run_tests, skipIfRocm
+=======
+from torch.testing._internal.common_fsdp import FSDPTest, get_devtype, MLP
+from torch.testing._internal.common_utils import run_tests
+
+
+device_type = torch.device(get_devtype())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestFullyShardGradientScaler(FSDPTest):
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_gradient_scaler(self):
         self.run_subtests(
             {"has_inf": [True, False], "test_2d": [True, False]},
@@ -28,16 +43,28 @@ class TestFullyShardGradientScaler(FSDPTest):
     def _test_gradient_scaler(self, has_inf: bool, test_2d: bool):
         torch.manual_seed(0)
         model = nn.Sequential(
+<<<<<<< HEAD
             *[nn.Linear(4, 4, device="cuda", bias=False) for _ in range(2)]
+=======
+            *[nn.Linear(4, 4, device=device_type, bias=False) for _ in range(2)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         for layer in model:
             fully_shard(layer)
         fully_shard(model)
+<<<<<<< HEAD
         input = torch.randn([4, 4], device="cuda")
 
         if test_2d:
             mesh_2d = init_device_mesh(
                 "cuda", (2, self.world_size // 2), mesh_dim_names=("dp", "tp")
+=======
+        input = torch.randn([4, 4], device=device_type)
+
+        if test_2d:
+            mesh_2d = init_device_mesh(
+                device_type.type, (2, self.world_size // 2), mesh_dim_names=("dp", "tp")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             dp_mesh, tp_mesh = mesh_2d["dp"], mesh_2d["tp"]
             model = nn.Sequential(MLP(2), MLP(2), MLP(2))
@@ -57,10 +84,17 @@ class TestFullyShardGradientScaler(FSDPTest):
             for module in model:
                 fully_shard(module, mesh=dp_mesh)
             fully_shard(model, mesh=dp_mesh)
+<<<<<<< HEAD
             input = torch.randn((2,), device="cuda")
 
         loss = model(input).sum()
         scaler = GradScaler(init_scale=2.0, enabled=True)
+=======
+            input = torch.randn((2,), device=device_type)
+
+        loss = model(input).sum()
+        scaler = GradScaler(init_scale=2.0, enabled=True, device=device_type.type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         opt = torch.optim.Adam(model.parameters(), lr=1e-2)
         scaler.scale(loss).backward()
         inv_scale = scaler._scale.double().reciprocal().float()

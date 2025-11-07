@@ -103,7 +103,11 @@ The code below could be run to generate a snapshot file which records the state 
     print(f"Export is done.")
 
 Open `pytorch.org/memory_viz <https://pytorch.org/memory_viz>`_ and drag/drop the generated pickled snapshot file into the visualizer.
+<<<<<<< HEAD
 The memeory usage is described as below:
+=======
+The memory usage is described as below:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. image:: _static/img/onnx/torch_dynamo_exporter_memory_usage.png
 

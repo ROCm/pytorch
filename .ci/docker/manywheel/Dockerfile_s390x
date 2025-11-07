@@ -5,7 +5,13 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV LANGUAGE=C.UTF-8
 
+<<<<<<< HEAD
 ARG DEVTOOLSET_VERSION=13
+=======
+# there is a bugfix in gcc >= 14 for precompiled headers and s390x vectorization interaction.
+# with earlier gcc versions test/inductor/test_cpu_cpp_wrapper.py will fail.
+ARG DEVTOOLSET_VERSION=14
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Installed needed OS packages. This is to support all
 # the binary builds (torch, vision, audio, text, data)
 RUN yum -y install epel-release
@@ -42,6 +48,10 @@ RUN yum install -y \
   llvm-devel \
   libzstd-devel \
   python3.12-devel \
+<<<<<<< HEAD
+=======
+  python3.12-test \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python3.12-setuptools \
   python3.12-pip \
   python3-virtualenv \
@@ -57,7 +67,12 @@ RUN yum install -y \
   libxslt-devel \
   libxml2-devel \
   openssl-devel \
+<<<<<<< HEAD
   valgrind
+=======
+  valgrind \
+  ninja-build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ENV PATH=/opt/rh/gcc-toolset-${DEVTOOLSET_VERSION}/root/usr/bin:$PATH
 ENV LD_LIBRARY_PATH=/opt/rh/gcc-toolset-${DEVTOOLSET_VERSION}/root/usr/lib64:/opt/rh/gcc-toolset-${DEVTOOLSET_VERSION}/root/usr/lib:$LD_LIBRARY_PATH
@@ -101,6 +116,7 @@ CMD ["/bin/bash"]
 
 # install test dependencies:
 # - grpcio requires system openssl, bundled crypto fails to build
+<<<<<<< HEAD
 # - ml_dtypes 0.4.0 requires some fixes provided in later commits to build
 RUN dnf install -y \
   protobuf-devel \
@@ -122,3 +138,37 @@ RUN cd ~ && \
   python3 setup.py bdist_wheel && \
   pip3 install dist/*.whl && \
   rm -rf ml_dtypes
+=======
+RUN dnf install -y \
+  hdf5-devel \
+  python3-h5py \
+  git
+
+RUN env GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=True pip3 install grpcio
+
+# cmake-3.28.0 from pip for onnxruntime
+RUN python3 -mpip install cmake==3.28.0
+
+# build onnxruntime 1.21.0 from sources.
+# it is not possible to build it from sources using pip,
+# so just build it from upstream repository.
+# h5py is dependency of onnxruntime_training.
+# h5py==3.11.0 builds with hdf5-devel 1.10.5 from repository.
+# h5py 3.11.0 doesn't build with numpy >= 2.3.0.
+# install newest flatbuffers version first:
+# for some reason old version is getting pulled in otherwise.
+# packaging package is required for onnxruntime wheel build.
+RUN pip3 install flatbuffers && \
+  pip3 install cython 'pkgconfig>=1.5.5' 'setuptools>=77' 'numpy<2.3.0' && \
+  pip3 install --no-build-isolation h5py==3.11.0 && \
+  pip3 install packaging && \
+  git clone https://github.com/microsoft/onnxruntime && \
+  cd onnxruntime && git checkout v1.21.0 && \
+  git submodule update --init --recursive && \
+  ./build.sh --config Release --parallel 0 --enable_pybind \
+  --build_wheel --enable_training --enable_training_apis \
+  --enable_training_ops --skip_tests --allow_running_as_root \
+  --compile_no_warning_as_error && \
+  pip3 install ./build/Linux/Release/dist/onnxruntime_training-*.whl && \
+  cd .. && /bin/rm -rf ./onnxruntime
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

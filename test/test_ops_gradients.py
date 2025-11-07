@@ -14,7 +14,10 @@ from torch.testing._internal.common_utils import (
     TestCase,
     TestGradients,
     unMarkDynamoStrictTest,
+<<<<<<< HEAD
     xfailIfS390X,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.custom_op_db import custom_op_db
 from torch.testing._internal.hop_db import hop_db
@@ -29,7 +32,10 @@ _gradcheck_ops = partial(
 @unMarkDynamoStrictTest
 class TestBwdGradients(TestGradients):
     # Tests that gradients are computed correctly
+<<<<<<< HEAD
     @xfailIfS390X
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @_gradcheck_ops(op_db + hop_db + custom_op_db)
     def test_fn_grad(self, device, dtype, op):
         # This is verified by test_dtypes in test_ops.py

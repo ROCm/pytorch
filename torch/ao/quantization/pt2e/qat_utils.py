@@ -882,8 +882,17 @@ def _fold_conv_bn_qat(m: GraphModule) -> GraphModule:
             node.target == torch.ops.aten.add_.Tensor
             and node.args[0].op == "get_attr"
             and node.args[1] == 1
+<<<<<<< HEAD
             and torch.nn.modules.batchnorm.BatchNorm2d
             in [val[1] for val in node.meta["source_fn_stack"]]
+=======
+            and (
+                torch.nn.modules.batchnorm.BatchNorm2d
+                in [val[1] for val in node.meta["source_fn_stack"]]
+                or torch.nn.modules.batchnorm.BatchNorm1d
+                in [val[1] for val in node.meta["source_fn_stack"]]
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             m.graph.erase_node(node)
 

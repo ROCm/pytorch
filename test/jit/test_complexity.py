@@ -13,7 +13,10 @@ pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 from torch.testing._internal.common_utils import (
     IS_FBCODE,
+<<<<<<< HEAD
     run_tests,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_default_dtype,
     suppress_warnings,
 )
@@ -105,4 +108,11 @@ class TestComplexity(JitTestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     run_tests()
+=======
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

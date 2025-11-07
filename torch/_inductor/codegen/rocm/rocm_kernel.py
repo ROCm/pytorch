@@ -3,7 +3,13 @@ import logging
 from collections.abc import Sequence
 from typing import Any, Callable, Optional, TYPE_CHECKING, Union
 
+<<<<<<< HEAD
 from torch._inductor.codegen.cpp_wrapper_cpu import CppWrapperCpu
+=======
+import torch._inductor.config as config
+from torch._inductor.codegen.cpp_wrapper_cpu import CppWrapperCpu
+from torch._inductor.utils import do_bench_using_profiling
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ...ir import Buffer, ChoiceCaller, IRNode, Layout, PrimitiveInfoType, TensorBox
 from ...virtualized import V
@@ -11,6 +17,10 @@ from ..common import Kernel, OpOverrides, WorkspaceArg, WorkspaceZeroMode
 from ..cpp_utils import CppPrinter
 from .rocm_benchmark_request import ROCmBenchmarkRequest
 from .rocm_template_buffer import ROCmTemplateBuffer
+<<<<<<< HEAD
+=======
+from .rocm_utils import DTYPE_TO_ROCM_TYPE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -109,7 +119,11 @@ class ROCmTemplateKernel(ROCmKernel):
                 self.named_nodes[name] = node
                 self.args.output_buffers[node.get_name()] = name
 
+<<<<<<< HEAD
         arg_defs, *_ = self.args.cpp_argdefs()
+=======
+        arg_defs, *_ = self.args.cpp_argdefs(DTYPE_TO_ROCM_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         runtime_arg_defs = [f"{arg.ty} {arg.name}" for arg in self.runtime_arg_info]
 
@@ -141,7 +155,11 @@ class ROCmTemplateKernel(ROCmKernel):
             # Kinda hacky because we always originally initialize name with "KERNEL_NAME"
             # So, we replace with the real kernel name passed as an arg to this function.
             self.signature = self.signature.replace("KERNEL_NAME", name)
+<<<<<<< HEAD
             _, call_args, arg_types = self.args.cpp_argdefs()
+=======
+            _, call_args, arg_types = self.args.cpp_argdefs(DTYPE_TO_ROCM_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             _, call_args, _, arg_types = self.args.python_argdefs()
 
@@ -246,7 +264,14 @@ class ROCmTemplateCaller(ChoiceCaller):
 
     def benchmark(self, *args, out) -> float:
         assert self.bmreq is not None
+<<<<<<< HEAD
         return self.bmreq.benchmark(*args, output_tensor=out)
+=======
+        if config.profile_bandwidth_with_do_bench_using_profiling:
+            algo = self.bmreq.make_run_fn(*args, out=out)
+            return do_bench_using_profiling(algo)
+        return self.bmreq.benchmark(*args, out=out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __str__(self) -> str:
         return f"ROCmTemplateCaller(source_file={self.bmreq.source_file}, {self.info_dict()})"

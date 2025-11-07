@@ -4,7 +4,11 @@ import torch
 import torch.export
 import torch.fx
 from torch.onnx._internal.exporter import _decomp, _registration
+<<<<<<< HEAD
 from torch.onnx._internal.fx import diagnostics, passes
+=======
+from torch.onnx._internal.fx import passes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def decompose_with_registry(
@@ -25,11 +29,15 @@ def insert_type_promotion_nodes(
     """Inplace pass to insert explicit type promotion nodes, recursively through nested modules."""
     for module in graph_module.modules():
         assert isinstance(module, torch.fx.GraphModule)
+<<<<<<< HEAD
         diagnostic_context = diagnostics.DiagnosticContext(
             "torch.onnx.export",
             torch.__version__,
         )
         passes.InsertTypePromotion(diagnostic_context, module).run()
+=======
+        passes.InsertTypePromotion(module).run()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def remove_assertion_nodes(graph_module: torch.fx.GraphModule) -> torch.fx.GraphModule:

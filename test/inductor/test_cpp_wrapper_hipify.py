@@ -79,6 +79,24 @@ class TestCppWrapperHipify(TestCase):
                 return func;
             }
 
+<<<<<<< HEAD
+=======
+            static inline hipFunction_t loadKernel(const void* start, const std::string &funcName, uint32_t sharedMemBytes) {
+                hipModule_t mod;
+                hipFunction_t func;
+                CUDA_DRIVER_CHECK(hipModuleLoadData(&mod, start));
+                CUDA_DRIVER_CHECK(hipModuleGetFunction(&func, mod, funcName.c_str()));
+                if (sharedMemBytes > 0) {
+                    CUDA_DRIVER_CHECK(hipFuncSetAttribute(
+                        func,
+                        hipFuncAttributeMaxDynamicSharedMemorySize,
+                        sharedMemBytes
+                    ))
+                }
+                return func;
+            }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             static inline void launchKernel(
                     hipFunction_t func,
                     uint32_t gridX,

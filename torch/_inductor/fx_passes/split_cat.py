@@ -2,6 +2,10 @@
 import itertools
 import logging
 import operator
+<<<<<<< HEAD
+=======
+from collections import defaultdict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Sequence
 from typing import Any, Callable, Optional, Union
 from typing_extensions import TypeAlias
@@ -71,6 +75,10 @@ post_grad_pass_names = [
     "pad_aten_mm_pass",
     "split_cat_aten_pass",
     "select_cat_aten_pass",
+<<<<<<< HEAD
+=======
+    "move_view_after_cat_aten_pass",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 for pass_name in pre_grad_pass_names:
@@ -245,7 +253,11 @@ def remove_split_with_size_one(match: Match, *args, **kwargs):
         return
     # remove the dummy split whose split sections size is one
     # theoretically nodes with no users should be removed, but we have seen the corner case
+<<<<<<< HEAD
     # thus we add its uers check to walk around the StopIteration error.
+=======
+    # thus we add its users check to walk around the StopIteration error.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if len(split_sections) == 1 and len(split_node.users.keys()) > 0:
         # find the grand children of the split_node
         next_users = find_next_users(split_node)
@@ -865,7 +877,12 @@ class SplitCatSimplifier:
                 elif isinstance(user_input, tuple):  # Split being simplified
                     # Verify equal split
                     subset_split_sections = split_sections[  # type: ignore[index]
+<<<<<<< HEAD
                         user_input[0] : user_input[1] + 1
+=======
+                        user_input[0] : user_input[1]
+                        + 1  # type: ignore[index]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ]
                     # All sections should be equal
                     if len(OrderedSet(subset_split_sections)) != 1:  # type: ignore[arg-type]
@@ -1446,7 +1463,11 @@ def has_same_parent_node(node: torch.fx.Node):
         if prev_node is None:
             prev_node = getitem.args[0]  # type: ignore[union-attr]
         else:
+<<<<<<< HEAD
             if getitem.args[0] != prev_node:
+=======
+            if getitem.args[0] != prev_node:  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return False
     return True
 
@@ -1522,7 +1543,11 @@ def merge_getitem_cat(match: Match, split_sections: list[int], dim: int):
             # find the index of getitems to be cated/stacked
             # type: ignore[union-attr]
             indices = [arg.args[1] for arg in cat_user.args[0]]  # type: ignore[union-attr]
+<<<<<<< HEAD
             # the gettitems to be merged must be consecutive, otherwise
+=======
+            # the getitems to be merged must be consecutive, otherwise
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # returned sliced tensor could be wrong
             if not is_sorted_and_consecutive(indices):  # type: ignore[arg-type]
                 continue
@@ -1624,7 +1649,11 @@ def mutate_cat_node(match: Match, split_sections: list[int], dim: int):
             for getitem in cat_user.args[0]:  # type: ignore[union-attr]
                 indices.append(getitem.args[1])  # type: ignore[union-attr]
                 idx_to_getitem[getitem.args[1]] = getitem  # type: ignore[union-attr]
+<<<<<<< HEAD
             # the gettitems to be merged must be consecutive, otherwise
+=======
+            # the getitems to be merged must be consecutive, otherwise
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # returned sliced tensor could be wrong
             if not is_sorted_and_consecutive(indices):  # type: ignore[arg-type]
                 continue
@@ -1668,7 +1697,11 @@ def mutate_cat_node(match: Match, split_sections: list[int], dim: int):
 getitem_split_aten = ListOf(
     CallFunction(
         operator.getitem,
+<<<<<<< HEAD
         CallFunctionVarArgs(torch.ops.aten.split.Tensor, users=MULTIPLE),
+=======
+        CallFunctionVarArgs([torch.ops.aten.split_with_sizes.default], users=MULTIPLE),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Ignored(),
         _users=MULTIPLE,
     ),
@@ -1697,8 +1730,13 @@ def normalize_split_default_aten(match: Match, *args, **kwargs):
         return
     if split_dim < 0:  # Normalize split dim
         split_dim += split_input.meta["val"].dim()
+<<<<<<< HEAD
 
     new_args = (split_input, split_size)
+=======
+    split_section_list = [split_size] * (len(split_node.meta["val"]))
+    new_args = (split_input, split_section_list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_kwargs = {"dim": split_dim}
     if (
         split_node.args == new_args
@@ -1709,7 +1747,52 @@ def normalize_split_default_aten(match: Match, *args, **kwargs):
 
     with graph.inserting_after(split_node):
         new_split_node = graph.call_function(
+<<<<<<< HEAD
             torch.ops.aten.split.Tensor,
+=======
+            torch.ops.aten.split_with_sizes.default,
+            args=new_args,
+            kwargs=new_kwargs,  # type: ignore[arg-type]
+        )
+    split_node.replace_all_uses_with(new_split_node)
+    new_split_node.meta.update(split_node.meta)
+    graph.erase_node(split_node)
+    counters["inductor"]["normalization_aten_pass"] += 1
+
+
+@register_graph_pattern(
+    CallFunctionVarArgs(torch.ops.aten.split_with_sizes.default, users=MULTIPLE),
+    pass_dict=construct_pattern_matcher_pass("normalization_aten_pass"),
+)
+def normalize_split_with_size_default_aten(match: Match, *args, **kwargs):
+    split_node = match.nodes[0]
+    graph = match.graph
+    split_input, split_sections, split_dim = _get_split_args_default(split_node)
+    if split_input is None or split_dim is None or split_sections is None:
+        log.debug("couldn't find split args")
+        return
+    if not is_node_meta_valid(split_node):
+        log.debug("val absent for node: %s", split_node)
+        return
+    if any(isinstance(section, torch.SymInt) for section in split_sections):
+        # TODO dynamic_shapes with assume_static_by_default=False fails while AOT Autograd tracing.
+        return
+    if split_dim < 0:  # Normalize split dim
+        split_dim += split_input.meta["val"].dim()
+
+    new_args = (split_input, split_sections)
+    new_kwargs = {"dim": split_dim}
+    if (
+        split_node.args == new_args
+        and split_node.kwargs == new_kwargs
+        and split_node.op == "call_function"
+    ):
+        return
+
+    with graph.inserting_after(split_node):
+        new_split_node = graph.call_function(
+            torch.ops.aten.split_with_sizes.default,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             args=new_args,
             kwargs=new_kwargs,  # type: ignore[arg-type]
         )
@@ -1731,12 +1814,19 @@ def normalize_split_default_aten(match: Match, *args, **kwargs):
 def merge_split_cat_aten(match: Match, *args, **kwargs):
     graph = match.graph
     split_node = match.nodes[0]
+<<<<<<< HEAD
     split_input, _, split_dim = _get_split_args_default(split_node)
+=======
+    threshold_to_cat = torch._inductor.config.post_grad_fusion_options[
+        "split_cat_aten_pass"
+    ].get("threshold_to_cat", 10)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # get the getitem nodes from the split node
     getitem_nodes = list(split_node.users.keys())
     for cat_node in list(getitem_nodes[0].users.keys()):
         cat_dim = get_arg_value(cat_node, 1, "dim")
         cat_inputs = get_arg_value(cat_node, 0, "tensors")
+<<<<<<< HEAD
         # check split node and cat node has same dim, and all getitem nodes have same parent node
         if split_dim != cat_dim or not has_same_parent_node(cat_node):
             continue
@@ -1752,6 +1842,77 @@ def merge_split_cat_aten(match: Match, *args, **kwargs):
         # remove the cat node
         graph.erase_node(cat_node)
         # remove getitem nodes and split node with no users
+=======
+        if len(cat_inputs) < threshold_to_cat:
+            continue
+        # check split node and cat node has same dim, and all getitem nodes have same parent node
+        parent_to_indices = defaultdict(list)  # type: ignore[var-annotated]
+        parent_to_getitems = defaultdict(list)  # type: ignore[var-annotated]
+        for cat_input in cat_inputs:
+            # skip all non-getitem cat input
+            if cat_input.target != operator.getitem:
+                continue
+            current_getitem_parent = cat_input.args[0]
+            split_dim = get_arg_value(current_getitem_parent, 2, "dim")
+            if split_dim != cat_dim:
+                break
+            getitem_idx = cat_input.args[1]
+            if (
+                current_getitem_parent not in parent_to_indices
+            ) or getitem_idx != parent_to_indices[current_getitem_parent][-1][-1] + 1:
+                parent_to_indices[current_getitem_parent].append([getitem_idx])
+                parent_to_getitems[current_getitem_parent].append([cat_input])
+            else:
+                parent_to_getitems[current_getitem_parent][-1].append(cat_input)
+                parent_to_indices[current_getitem_parent][-1].append(getitem_idx)
+
+        cat_inputs_list = list(cat_inputs)
+        update_cat_arg = []
+        # iterate through the indices to construct the slice nodes
+        for parent, indices in parent_to_indices.items():
+            for idx, indice in enumerate(indices):
+                start, end = indice[0], indice[-1]
+                split_sections = list(parent.args[1])
+                input_of_current_getitem_parent = parent.args[0]
+                if len(indice) >= threshold_to_cat or len(indice) == len(
+                    split_sections
+                ):
+                    if len(indice) != len(split_sections):
+                        # get the start and end slicing indices
+                        slice_node = graph.call_function(
+                            torch.ops.aten.slice.Tensor,
+                            args=(
+                                input_of_current_getitem_parent,
+                                split_dim,  # type: ignore[possibly-undefined]
+                                sum(split_sections[:start]),
+                                sum(split_sections[: end + 1]),
+                            ),
+                        )
+                    else:
+                        slice_node = input_of_current_getitem_parent
+                    # find the index in the cat_inputs_list given the getitem node
+                    update_cat_arg.append(
+                        (
+                            slice_node,
+                            cat_inputs_list.index(parent_to_getitems[parent][idx][0]),
+                            cat_inputs_list.index(parent_to_getitems[parent][idx][-1]),
+                        )
+                    )
+
+        result = []
+        i = 0
+        for slice_tensor, start, end in update_cat_arg:
+            while i < start:
+                result.append(cat_inputs_list[i])
+                i += 1
+            result.append(slice_tensor)
+            i = end + 1
+        while i < len(cat_inputs_list):
+            result.append(cat_inputs_list[i])
+            i += 1
+
+        cat_node.update_arg(0, result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for getitem_node in getitem_nodes:
             if len(getitem_node.users) == 0:
                 graph.erase_node(getitem_node)
@@ -1969,7 +2130,11 @@ def update_args_from_split_getitem(
     threshold_to_cat: int = 2,
 ):
     split_input, split_size, split_dim = _get_split_args_default(parents_seen[-1])
+<<<<<<< HEAD
     # case 1: the number of getitems is the same as the split size, elimiate the split
+=======
+    # case 1: the number of getitems is the same as the split size, eliminate the split
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if len(split_size) == len(getitem_indices) and is_sorted_and_consecutive(
         getitem_indices
     ):
@@ -2064,7 +2229,11 @@ def update_args_from_unbind_getitem(
     unbind_input = get_arg_value(parents_seen[-1], 0, "input")  # split or unbind input
     unbind_dim = get_arg_value(parents_seen[-1], 1, "dim")  # split or unbind dim
     cat_dim = get_arg_value(node, 1, "dim")  # cat or stack dim
+<<<<<<< HEAD
     # case 1: the number of getitems is the same as the split size, elimiate the split
+=======
+    # case 1: the number of getitems is the same as the split size, eliminate the split
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size = list(unbind_input.meta["example_value"].shape)[unbind_dim]
     if size == len(getitem_indices):
         cat_shape = torch.cat(
@@ -2766,3 +2935,98 @@ def move_reshape_out_of_split_stack(match: Match, *args, **kwargs):
                 remove_split_unbind_children(graph, stack_inputs)  # type: ignore[arg-type]
                 remove_split_unbind_children(graph, split_users)  # type: ignore[arg-type]
             counters["inductor"]["move_reshape_out_of_split_stack_pass"] += 1
+<<<<<<< HEAD
+=======
+
+
+view_getitem_split_aten = ListOf(
+    CallFunction(
+        [torch.ops.aten.reshape.default],
+        CallFunction(
+            operator.getitem,
+            CallFunctionVarArgs(
+                torch.ops.aten.split_with_sizes.default, users=MULTIPLE
+            ),
+            Ignored(),
+            _users=MULTIPLE,
+        ),
+        Arg(),
+        _users=MULTIPLE,
+    ),
+    partial=True,
+)
+
+
+@register_graph_pattern(
+    CallFunction(
+        torch.ops.aten.cat.default,
+        view_getitem_split_aten,
+        dim=Ignored(),
+        _users=MULTIPLE,
+    ),
+    pass_dict=construct_pattern_matcher_pass("move_view_after_cat_aten_pass"),
+)
+def move_view_after_cat(match: Match, *args, **kwargs):
+    split_node = next(
+        node
+        for node in match.nodes
+        if node.target == torch.ops.aten.split_with_sizes.default
+    )
+    split_input, split_section, split_dim = _get_split_args_default(split_node)
+    split_users = list(split_node.users.keys())
+    getitem_indices = [
+        getitem.args[1] for getitem in split_users if getitem.target == operator.getitem
+    ]
+    if not is_sorted_and_consecutive(getitem_indices):  # type: ignore[arg-type]
+        return
+    cat_nodes = [
+        node for node in match.nodes if node.target == torch.ops.aten.cat.default
+    ]
+    graph = match.graph
+    for cat_node in cat_nodes:
+        if not is_node_meta_valid(cat_node):
+            log.debug("example value absent for node: %s", cat_node)
+            continue
+        cat_dim = _get_dim(cat_node)
+        cat_inputs = get_arg_value(cat_node, 0, "tensors")  # type: ignore[union-attr]
+        # we only consider the following special case
+        if len(cat_inputs) != len(split_section):
+            continue
+        # check if the cat inputs are all the view nodes
+        if not all(
+            view_node.target == torch.ops.aten.reshape.default
+            for view_node in cat_inputs
+        ):
+            continue
+        # check if the view nodes are all from getitem nodes
+        if not all(
+            view_node.args[0].target == operator.getitem for view_node in cat_inputs
+        ):
+            continue
+        view_indices = [view.args[0].args[1] for view in cat_inputs]
+        if not is_sorted_and_consecutive(view_indices):  # type: ignore[arg-type]
+            continue
+        if cat_dim != split_dim:
+            # construct permute node
+            permute_list = list(range(len(cat_node.meta["val"].shape) + 1))
+            permute_list[split_dim], permute_list[cat_dim] = (
+                permute_list[cat_dim],
+                permute_list[split_dim],
+            )
+            permute_node = graph.call_function(
+                torch.ops.aten.permute.default,
+                args=(split_input, permute_list),
+            )
+        else:
+            permute_node = split_input
+
+        with graph.inserting_before(cat_node):
+            view_node = graph.call_function(
+                torch.ops.aten.reshape.default,
+                args=(permute_node, list(cat_node.meta["val"].shape)),
+            )
+            cat_node.replace_all_uses_with(view_node)
+            view_node.meta.update(cat_node.meta)
+            graph.erase_node(cat_node)
+        counters["inductor"]["move_view_after_cat_aten_pass"] += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

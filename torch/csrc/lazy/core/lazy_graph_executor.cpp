@@ -1042,7 +1042,11 @@ std::vector<BackendDataPtr> LazyGraphExecutor::GatherTensorsData(
 void LazyGraphExecutor::TensorCollectionBarrier(SyncTensorCollection* coll) {
   if (coll) {
     static const std::string invalid_device(
+<<<<<<< HEAD
         "Unknown0"); /* Temp solution to idetify unassigned devices */
+=======
+        "Unknown0"); /* Temp solution to identify unassigned devices */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (coll->device.toString() == invalid_device || !coll->unlocker.empty()) {
       return;
     }

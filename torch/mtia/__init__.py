@@ -30,6 +30,29 @@ _initialization_lock = threading.Lock()
 _lazy_seed_tracker = _LazySeedTracker()
 
 
+<<<<<<< HEAD
+=======
+if hasattr(torch._C, "_mtia_exchangeDevice"):
+    _exchange_device = torch._C._mtia_exchangeDevice
+else:
+
+    def _exchange_device(device: int) -> int:
+        if device < 0:
+            return -1
+        raise RuntimeError("PyTorch was compiled without MTIA support")
+
+
+if hasattr(torch._C, "_mtia_maybeExchangeDevice"):
+    _maybe_exchange_device = torch._C._mtia_maybeExchangeDevice
+else:
+
+    def _maybe_exchange_device(device: int) -> int:
+        if device < 0:
+            return -1
+        raise RuntimeError("PyTorch was compiled without MTIA support")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def init():
     _lazy_init()
 
@@ -177,6 +200,16 @@ def snapshot() -> dict[str, Any]:
     return torch._C._mtia_memorySnapshot()
 
 
+<<<<<<< HEAD
+=======
+def attach_out_of_memory_observer(
+    observer: Callable[[int, int, int, int], None],
+) -> None:
+    r"""Attach an out-of-memory observer to MTIA memory allocator"""
+    torch._C._mtia_attachOutOfMemoryObserver(observer)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_device_capability(device: Optional[_device_t] = None) -> tuple[int, int]:
     r"""Return capability of a given device as a tuple of (major version, minor version).
 
@@ -219,6 +252,20 @@ def set_device(device: _device_t) -> None:
         torch._C._accelerator_hooks_set_current_device(device)
 
 
+<<<<<<< HEAD
+=======
+def get_device_properties(device: Optional[_device_t] = None) -> dict[str, Any]:
+    r"""Return a dictionary of MTIA device properties
+
+    Args:
+        device (torch.device or int, optional) selected device. Returns
+            statistics for the current device, given by current_device(),
+            if device is None (default).
+    """
+    return torch._C._mtia_getDeviceProperties(_get_device_index(device, optional=True))
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class device:
     r"""Context-manager that changes the selected device.
 
@@ -356,8 +403,15 @@ __all__ = [
     "max_memory_allocated",
     "reset_peak_memory_stats",
     "get_device_capability",
+<<<<<<< HEAD
     "record_memory_history",
     "snapshot",
+=======
+    "get_device_properties",
+    "record_memory_history",
+    "snapshot",
+    "attach_out_of_memory_observer",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "empty_cache",
     "set_device",
     "set_stream",

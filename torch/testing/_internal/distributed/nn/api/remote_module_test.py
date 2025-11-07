@@ -5,11 +5,21 @@ import enum
 import torch
 import torch.distributed.rpc as rpc
 import torch.testing._internal.dist_utils as dist_utils
+<<<<<<< HEAD
 from torch import Tensor, nn
 from torch._jit_internal import Future
 from torch.distributed.nn import RemoteModule
 from torch.distributed.nn.api.remote_module import _REMOTE_MODULE_PICKLED_ATTRIBUTES
 from torch.distributed.nn.api.remote_module import _RemoteModule
+=======
+from torch import nn, Tensor
+from torch._jit_internal import Future
+from torch.distributed.nn import RemoteModule
+from torch.distributed.nn.api.remote_module import (
+    _REMOTE_MODULE_PICKLED_ATTRIBUTES,
+    _RemoteModule,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_utils import TemporaryFileName, TEST_WITH_ROCM
 from torch.testing._internal.distributed.rpc.rpc_agent_test_fixture import (
@@ -35,16 +45,28 @@ def remote_module_attributes(remote_module):
 def remote_forward(remote_module, args):
     return remote_module.forward(*args)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # RPC handler for running forward_async on the destination worker.
 def remote_forward_async(remote_module, args):
     # Since future cannot be pickled and sent over the RPC layer,
     # have to wait and behave just like ``forward_sync``.
     return remote_module.forward_async(*args).wait()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # RPC handler for getting training mode on the destination worker.
 def get_remote_training_arg(module_rref):
     return module_rref.local_value().training
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ModuleCreationMode(enum.Enum):
     MODULE_CTOR_WITH_INTERFACE = "module_ctor_with_interface"
     MODULE_CTOR = "module_ctor"
@@ -147,7 +169,10 @@ class RemoteModuleTest(CommonRemoteModuleTest):
         ):
             RemoteModule(remote_device, BadModule, args, kwargs).forward()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dist_utils.dist_init
     def test_forward_async(self):
         if self.rank != 0:
@@ -269,11 +294,27 @@ class RemoteModuleTest(CommonRemoteModuleTest):
             dst_worker_name, modes=[ModuleCreationMode.MODULE_CTOR]
         ):
             remote_module.train()
+<<<<<<< HEAD
             ret1 = rpc.rpc_sync(dst_worker_name, get_remote_training_arg, args=(remote_module.get_module_rref(),))
             self.assertEqual(ret1, True)
 
             remote_module.eval()
             ret2 = rpc.rpc_sync(dst_worker_name, get_remote_training_arg, args=(remote_module.get_module_rref(),))
+=======
+            ret1 = rpc.rpc_sync(
+                dst_worker_name,
+                get_remote_training_arg,
+                args=(remote_module.get_module_rref(),),
+            )
+            self.assertEqual(ret1, True)
+
+            remote_module.eval()
+            ret2 = rpc.rpc_sync(
+                dst_worker_name,
+                get_remote_training_arg,
+                args=(remote_module.get_module_rref(),),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ret2, False)
 
     @dist_utils.dist_init
@@ -466,7 +507,13 @@ class RemoteModuleTest(CommonRemoteModuleTest):
             dst_worker_name, modes=[ModuleCreationMode.MODULE_CTOR_WITH_INTERFACE]
         ):
             with TemporaryFileName() as fname:
+<<<<<<< HEAD
                 with self.assertRaisesRegex(torch.jit.Error, "can only be pickled when using RPC"):
+=======
+                with self.assertRaisesRegex(
+                    torch.jit.Error, "can only be pickled when using RPC"
+                ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch.save(remote_module, fname)
 
 
@@ -556,9 +603,13 @@ class ThreeWorkersRemoteModuleTest(CommonRemoteModuleTest):
             )
 
             args = (torch.ones(1), 2, "3")
+<<<<<<< HEAD
             ret1 = rpc.rpc_sync(
                 dst_worker1_name, remote_forward, (remote_module, args)
             )
+=======
+            ret1 = rpc.rpc_sync(dst_worker1_name, remote_forward, (remote_module, args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ret2 = rpc.rpc_sync(
                 dst_worker2_name, remote_forward, (remote_module2, args)
             )
@@ -613,6 +664,7 @@ class CudaRemoteModuleTest(CommonRemoteModuleTest):
             ]
 
         if TEST_WITH_ROCM:
+<<<<<<< HEAD
             errorString = (r"HIP error: invalid device ordinal\n"
                            r"HIP kernel errors might be asynchronously reported at some other API call, "
                            r"so the stacktrace below might be incorrect.\n"
@@ -622,6 +674,17 @@ class CudaRemoteModuleTest(CommonRemoteModuleTest):
         with self.assertRaisesRegex(
             RuntimeError, errorString
         ):
+=======
+            errorString = (
+                r"HIP error: invalid device ordinal\n"
+                r"HIP kernel errors might be asynchronously reported at some other API call, "
+                r"so the stacktrace below might be incorrect.\n"
+                r"For debugging consider passing AMD_SERIALIZE_KERNEL=3"
+            )
+        else:
+            errorString = r"CUDA error: invalid device ordinal"
+        with self.assertRaisesRegex(RuntimeError, errorString):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [
                 m.forward()
                 for m in self._create_remote_module_iter(

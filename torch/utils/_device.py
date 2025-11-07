@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Optional
 import torch
 from torch.overrides import TorchFunctionMode, _pop_mode, _push_mode
@@ -8,6 +9,20 @@ import functools
 
 CURRENT_DEVICE: Optional[torch.device] = None
 
+=======
+import functools
+from typing import Optional
+
+import torch
+from torch._C import _len_torch_function_stack
+from torch.overrides import _pop_mode, _push_mode, TorchFunctionMode
+from torch.utils._contextlib import context_decorator
+
+
+CURRENT_DEVICE: Optional[torch.device] = None
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.lru_cache(1)
 def _device_constructors():
     return {
@@ -24,7 +39,10 @@ def _device_constructors():
         torch.fft.fftfreq,
         torch.fft.rfftfreq,
         torch.full,
+<<<<<<< HEAD
         torch.fill,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.hamming_window,
         torch.hann_window,
         torch.kaiser_window,
@@ -33,7 +51,10 @@ def _device_constructors():
         torch.nested.nested_tensor,
         # This function doesn't actually take a device argument
         # torch.normal,
+<<<<<<< HEAD
         torch.ones,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.rand,
         torch.randn,
         torch.randint,
@@ -47,16 +68,25 @@ def _device_constructors():
         torch.sparse_bsc_tensor,
         torch.tril_indices,
         torch.triu_indices,
+<<<<<<< HEAD
         torch.vander,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.zeros,
         torch.asarray,
         # weird ones
         torch.tensor,
         torch.as_tensor,
         torch.scalar_tensor,
+<<<<<<< HEAD
         torch.asarray,
     }
 
+=======
+    }
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # NB: This is directly called from C++ in torch/csrc/Device.cpp
 class DeviceContext(TorchFunctionMode):
     def __init__(self, device):
@@ -77,7 +107,10 @@ class DeviceContext(TorchFunctionMode):
         for mode in reversed(cur_stack):
             _push_mode(mode)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __exit__(self, exc_type, exc_val, exc_tb):
         global CURRENT_DEVICE
         CURRENT_DEVICE = self.old_device
@@ -99,14 +132,26 @@ class DeviceContext(TorchFunctionMode):
 
     def __torch_function__(self, func, types, args=(), kwargs=None):
         kwargs = kwargs or {}
+<<<<<<< HEAD
         if func in _device_constructors() and kwargs.get('device') is None:
             kwargs['device'] = self.device
         return func(*args, **kwargs)
 
+=======
+        if func in _device_constructors() and kwargs.get("device") is None:
+            kwargs["device"] = self.device
+        return func(*args, **kwargs)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # NB: This is directly called from C++ in torch/csrc/Device.cpp
 def device_decorator(device, func):
     return context_decorator(lambda: device, func)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def set_device(device):
     """
     Set the default device inside of the wrapped function by decorating it with this function.

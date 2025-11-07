@@ -27,6 +27,15 @@ cmake --version
 echo "Environment variables:"
 env
 
+<<<<<<< HEAD
+=======
+# The sccache wrapped version of nvcc gets put in /opt/cache/lib in docker since
+# there are some issues if it is always wrapped, so we need to add it to PATH
+# during CI builds.
+# https://github.com/pytorch/pytorch/blob/0b6c0898e6c352c8ea93daec854e704b41485375/.ci/docker/common/install_cache.sh#L97
+export PATH="/opt/cache/lib:$PATH"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if [[ "$BUILD_ENVIRONMENT" == *cuda* ]]; then
   # Use jemalloc during compilation to mitigate https://github.com/pytorch/pytorch/issues/116289
   export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
@@ -35,7 +44,11 @@ if [[ "$BUILD_ENVIRONMENT" == *cuda* ]]; then
 fi
 
 if [[ "$BUILD_ENVIRONMENT" == *cuda11* ]]; then
+<<<<<<< HEAD
   if [[ "$BUILD_ENVIRONMENT" != *cuda11.3* && "$BUILD_ENVIRONMENT" != *clang* ]]; then
+=======
+  if [[ "$BUILD_ENVIRONMENT" != *clang* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: there is a linking issue when building with UCC using clang,
     # disable it for now and to be fix later.
     # TODO: disable UCC temporarily to enable CUDA 12.1 in CI
@@ -52,12 +65,15 @@ fi
 export USE_LLVM=/opt/llvm
 export LLVM_DIR=/opt/llvm/lib/cmake/llvm
 
+<<<<<<< HEAD
 if [[ "$BUILD_ENVIRONMENT" == *executorch* ]]; then
   # To build test_edge_op_registration
   export BUILD_EXECUTORCH=ON
   export USE_CUDA=0
 fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if ! which conda; then
   # In ROCm CIs, we are doing cross compilation on build machines with
   # intel cpu and later run tests on machines with amd cpu.
@@ -171,6 +187,15 @@ fi
 if [[ "$BUILD_ENVIRONMENT" == *xpu* ]]; then
   # shellcheck disable=SC1091
   source /opt/intel/oneapi/compiler/latest/env/vars.sh
+<<<<<<< HEAD
+=======
+  # shellcheck disable=SC1091
+  source /opt/intel/oneapi/ccl/latest/env/vars.sh
+  # shellcheck disable=SC1091
+  source /opt/intel/oneapi/mpi/latest/env/vars.sh
+  # Enable XCCL build
+  export USE_XCCL=1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   # XPU kineto feature dependencies are not fully ready, disable kineto build as temp WA
   export USE_KINETO=0
   export TORCH_XPU_ARCH_LIST=pvc
@@ -251,6 +276,10 @@ if [[ "$BUILD_ENVIRONMENT" == *-bazel-* ]]; then
   set -e -o pipefail
 
   get_bazel
+<<<<<<< HEAD
+=======
+  python3 tools/optional_submodules.py checkout_eigen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   # Leave 1 CPU free and use only up to 80% of memory to reduce the change of crashing
   # the runner
@@ -277,10 +306,15 @@ else
     # or building non-XLA tests.
     if [[ "$BUILD_ENVIRONMENT" != *rocm*  &&
           "$BUILD_ENVIRONMENT" != *xla* ]]; then
+<<<<<<< HEAD
       if [[ "$BUILD_ENVIRONMENT" != *py3.8* ]]; then
         # Install numpy-2.0.2 for builds which are backward compatible with 1.X
         python -mpip install numpy==2.0.2
       fi
+=======
+      # Install numpy-2.0.2 for builds which are backward compatible with 1.X
+      python -mpip install numpy==2.0.2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       WERROR=1 python setup.py clean
 
@@ -303,6 +337,21 @@ else
     fi
     pip_install_whl "$(echo dist/*.whl)"
 
+<<<<<<< HEAD
+=======
+    if [[ "$BUILD_ENVIRONMENT" == *xpu* ]]; then
+      echo "Checking that xpu is compiled"
+      pushd dist/
+      if python -c 'import torch; exit(0 if torch.xpu._is_compiled() else 1)'; then
+        echo "XPU support is compiled in."
+      else
+        echo "XPU support is NOT compiled in."
+        exit 1
+      fi
+      popd
+    fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: I'm not sure why, but somehow we lose verbose commands
     set -x
 

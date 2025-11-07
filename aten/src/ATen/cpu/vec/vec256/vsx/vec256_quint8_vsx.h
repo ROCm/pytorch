@@ -1,8 +1,13 @@
 #pragma once
 
 #include <ATen/cpu/vec/intrinsics.h>
+<<<<<<< HEAD
 #include <ATen/cpu/vec/vec_base.h>
 #include <ATen/cpu/vec/vec256/vsx/vsx_helpers.h>
+=======
+#include <ATen/cpu/vec/vec256/vsx/vsx_helpers.h>
+#include <ATen/cpu/vec/vec_base.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <c10/util/irange.h>
 #include <c10/util/quint8.h>
@@ -26,13 +31,24 @@
 // specified by float_vec_return_type.
 //
 // When writing kernels with these vectors, it is expected that floating-
+<<<<<<< HEAD
 // point operations will be carried out in a loop over Vectorized<T>::float_num_vecs
 // iterations.
+=======
+// point operations will be carried out in a loop over
+// Vectorized<T>::float_num_vecs iterations.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at {
 namespace vec {
 inline namespace CPU_CAPABILITY {
 
+<<<<<<< HEAD
+=======
+template <>
+struct is_vec_specialized_for<c10::quint8> : std::bool_constant<true> {};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const vint16 mask_unsigned = vec_splats((short int)0xFF);
 template <>
 struct Vectorized<c10::quint8> {
@@ -155,6 +171,7 @@ struct Vectorized<c10::quint8> {
     vfloat32 vecf1_3 = vec_float(veci7);
     vfloat32 scale_vec0 = scale.vec0();
     vfloat32 scale_vec1 = scale.vec1();
+<<<<<<< HEAD
     vfloat32 scale_zp_premul0 = scale_zp_premul.vec0();
     vfloat32 scale_zp_premul1 = scale_zp_premul.vec1();
     return {
@@ -175,6 +192,41 @@ struct Vectorized<c10::quint8> {
   float_vec_return_type C10_ALWAYS_INLINE dequantize(
       Vectorized<float> scale,
       Vectorized<float> zero_point) const {
+=======
+
+    vfloat32 zero_point_vec0 = zero_point.vec0();
+    vfloat32 zero_point_vec1 = zero_point.vec1();
+
+    vfloat32 vec_substract_src_zp0_0 = vec_sub(vecf0_0, zero_point_vec0);
+    vfloat32 vec_substract_src_zp1_0 = vec_sub(vecf1_0, zero_point_vec1);
+    Vectorized<float> vf0_zp = {
+        vec_mul(scale_vec0, vec_substract_src_zp0_0),
+        vec_mul(scale_vec1, vec_substract_src_zp1_0)};
+
+    vfloat32 vec_substract_src_zp0_1 = vec_sub(vecf0_1, zero_point_vec0);
+    vfloat32 vec_substract_src_zp1_1 = vec_sub(vecf1_1, zero_point_vec1);
+    Vectorized<float> vf1_zp = {
+        vec_mul(scale_vec0, vec_substract_src_zp0_1),
+        vec_mul(scale_vec1, vec_substract_src_zp1_1)};
+
+    vfloat32 vec_substract_src_zp0_2 = vec_sub(vecf0_2, zero_point_vec0);
+    vfloat32 vec_substract_src_zp1_2 = vec_sub(vecf1_2, zero_point_vec1);
+    Vectorized<float> vf2_zp = {
+        vec_mul(scale_vec0, vec_substract_src_zp0_2),
+        vec_mul(scale_vec1, vec_substract_src_zp1_2)};
+
+    vfloat32 vec_substract_src_zp0_3 = vec_sub(vecf0_3, zero_point_vec0);
+    vfloat32 vec_substract_src_zp1_3 = vec_sub(vecf1_3, zero_point_vec1);
+    Vectorized<float> vf3_zp = {
+        vec_mul(scale_vec0, vec_substract_src_zp0_3),
+        vec_mul(scale_vec1, vec_substract_src_zp1_3)};
+
+    return {vf0_zp, vf1_zp, vf2_zp, vf3_zp};
+  }
+
+  float_vec_return_type C10_ALWAYS_INLINE
+  dequantize(Vectorized<float> scale, Vectorized<float> zero_point) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // unpacking unsigned as signed
     vint16 vecshi0 = vec_unpackh((vint8)_vec0);
     vint16 vecshi1 = vec_unpackl((vint8)_vec0);
@@ -214,6 +266,10 @@ struct Vectorized<c10::quint8> {
     vfloat32 vecf1_3 = vec_float(veci7);
     vfloat32 scale_vec0 = scale.vec0();
     vfloat32 scale_vec1 = scale.vec1();
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     vfloat32 zero_point0 = zero_point.vec0();
     vfloat32 zero_point1 = zero_point.vec1();
     return {
@@ -298,12 +354,23 @@ struct Vectorized<c10::quint8> {
     return {vec0, vec1};
   }
 
+<<<<<<< HEAD
   Vectorized<c10::quint8> C10_ALWAYS_INLINE relu(Vectorized<c10::quint8> zero_point) const {
     return {vec_max(_vec0, zero_point._vec0), vec_max(_vec1, zero_point._vec1)};
   }
 
   Vectorized<c10::quint8> C10_ALWAYS_INLINE
   relu6(Vectorized<c10::quint8> zero_point, Vectorized<c10::quint8> q_six) const {
+=======
+  Vectorized<c10::quint8> C10_ALWAYS_INLINE
+  relu(Vectorized<c10::quint8> zero_point) const {
+    return {vec_max(_vec0, zero_point._vec0), vec_max(_vec1, zero_point._vec1)};
+  }
+
+  Vectorized<c10::quint8> C10_ALWAYS_INLINE relu6(
+      Vectorized<c10::quint8> zero_point,
+      Vectorized<c10::quint8> q_six) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     vuint8 max0 = vec_max(_vec0, zero_point._vec0);
     vuint8 max1 = vec_max(_vec1, zero_point._vec1);
     return {vec_min(max0, q_six._vec0), vec_min(max1, q_six._vec1)};
@@ -462,6 +529,7 @@ Vectorized<c10::quint8> inline minimum(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::quint8> C10_ALWAYS_INLINE operator+(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
   return Vectorized<c10::quint8>{vec_add(a.vec0(), b.vec0()), vec_add(a.vec1(), b.vec1())};
 }
@@ -497,5 +565,55 @@ Vectorized<c10::quint8> C10_ALWAYS_INLINE operator^(const Vectorized<c10::quint8
 }
 
 } // namespace
+=======
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator+(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{
+      vec_add(a.vec0(), b.vec0()), vec_add(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator-(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{
+      vec_sub(a.vec0(), b.vec0()), vec_sub(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator*(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{
+      vec_mul(a.vec0(), b.vec0()), vec_mul(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator/(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{a.vec0() / b.vec0(), a.vec1() / b.vec1()};
+}
+
+template <>
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator&(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{
+      vec_and(a.vec0(), b.vec0()), vec_and(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator|(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{
+      vec_or(a.vec0(), b.vec0()), vec_or(a.vec1(), b.vec1())};
+}
+
+template <>
+Vectorized<c10::quint8> C10_ALWAYS_INLINE
+operator^(const Vectorized<c10::quint8>& a, const Vectorized<c10::quint8>& b) {
+  return Vectorized<c10::quint8>{
+      vec_xor(a.vec0(), b.vec0()), vec_xor(a.vec1(), b.vec1())};
+}
+
+} // namespace CPU_CAPABILITY
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace vec
 } // namespace at

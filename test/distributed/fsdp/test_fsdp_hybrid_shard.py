@@ -6,7 +6,10 @@ from collections import Counter
 from enum import auto, Enum
 from functools import partial
 from typing import Optional
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -32,9 +35,12 @@ from torch.testing._internal.common_fsdp import (
     FSDPTest,
     TransformerWithSharedParams,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     run_tests,
@@ -125,8 +131,14 @@ class TestFSDPHybridShard(FSDPTest):
     def test_hsdp_save_load_state_dict(self):
         model = MyModel().cuda()
         num_node_devices = torch.cuda.device_count()
+<<<<<<< HEAD
         shard_rank_lists = list(range(0, num_node_devices // 2)), list(
             range(num_node_devices // 2, num_node_devices)
+=======
+        shard_rank_lists = (
+            list(range(0, num_node_devices // 2)),
+            list(range(num_node_devices // 2, num_node_devices)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         shard_groups = (
             dist.new_group(shard_rank_lists[0]),
@@ -175,8 +187,14 @@ class TestFSDPHybridShard(FSDPTest):
     def test_hsdp_sync_module_state(self):
         model = MyModel().cuda()
         num_node_devices = torch.cuda.device_count()
+<<<<<<< HEAD
         shard_rank_lists = list(range(0, num_node_devices // 2)), list(
             range(num_node_devices // 2, num_node_devices)
+=======
+        shard_rank_lists = (
+            list(range(0, num_node_devices // 2)),
+            list(range(num_node_devices // 2, num_node_devices)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         shard_groups = (
             dist.new_group(shard_rank_lists[0]),
@@ -231,7 +249,10 @@ class TestFSDPHybridShard(FSDPTest):
     # resharded after forward.
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fsdp_hybrid_shard_basic_setup(self):
         """
         Tests basic functionality of HYBRID_SHARD and _HYBRID_SHARD_ZERO2:
@@ -315,8 +336,14 @@ class TestFSDPHybridShard(FSDPTest):
         cntr = Counter()
         patched_allreduce = partial(patched_collective, orig_ar, cntr)
         patched_reduce_scatter = partial(patched_collective, orig_rs, cntr)
+<<<<<<< HEAD
         with patch_allreduce(patched_allreduce), patch_reduce_scatter(
             patched_reduce_scatter
+=======
+        with (
+            patch_allreduce(patched_allreduce),
+            patch_reduce_scatter(patched_reduce_scatter),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             inp = hsdp_model.get_input(device=torch.cuda.current_device())
             out = hsdp_model(inp[0], inp[1])
@@ -360,9 +387,15 @@ class TestFSDPHybridShard(FSDPTest):
             use_orig_params,
             hsdp_process_groups=hsdp_pgs,
         )
+<<<<<<< HEAD
         assert (
             hsdp_model._inter_node_pg.size() > 1
         ), "HSDP model initialized without replication"
+=======
+        assert hsdp_model._inter_node_pg.size() > 1, (
+            "HSDP model initialized without replication"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fsdp_optim = torch.optim.Adam(fsdp_model.parameters(), lr=1e-2)
         hsdp_optim = torch.optim.Adam(hsdp_model.parameters(), lr=1e-2)
         torch.manual_seed(global_pg.rank() + 1)

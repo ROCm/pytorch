@@ -23,7 +23,11 @@ on:
       vc-year:
         required: false
         type: string
+<<<<<<< HEAD
         default: "2019"
+=======
+        default: "2022"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         description: The Visual Studio year to use for building.
       build-with-debug:
         required: false
@@ -84,10 +88,17 @@ jobs:
           git config --global core.fsmonitor false
 
       - name: Clean up leftover processes on non-ephemeral Windows runner
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/cleanup-runner@release/2.7
 
       - name: Setup SSH (Click me for login details)
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/cleanup-runner@release/2.8
+
+      - name: Setup SSH (Click me for login details)
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
           instructions: |
@@ -98,11 +109,19 @@ jobs:
             To start build locally, change working folder to \actions-runner\_work\pytorch\pytorch,
             Activate miniconda and Visual Studio environment, by running:
               call C:\Jenkins\Miniconda3\Scripts\activate.bat C:\Jenkins\Miniconda3
+<<<<<<< HEAD
               call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+              call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+      # [see note: pytorch repo ref]
+      - name: Checkout PyTorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: true
 
@@ -173,7 +192,11 @@ jobs:
       # Upload to github so that people can click and download artifacts
       - name: Upload artifacts to s3
         if: steps.build.outcome != 'skipped'
+<<<<<<< HEAD
         uses: seemethere/upload-artifact-s3@v5
+=======
+        uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           retention-days: 14
           if-no-files-found: error

@@ -20,6 +20,10 @@ inline PyObject* TypeError_to_NotImplemented_(
   return ret;
 }
 
+<<<<<<< HEAD
 void initTorchFunctions();
+=======
+void initTorchFunctions(PyObject* module);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::autograd

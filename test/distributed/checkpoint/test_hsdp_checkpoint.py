@@ -5,16 +5,27 @@ import torch
 import torch.distributed.checkpoint as dist_cp
 import torch.nn as nn
 import torch.nn.functional as F
+<<<<<<< HEAD
 from torch.distributed._tensor import init_device_mesh, Replicate
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint.default_planner import (
     DefaultLoadPlanner,
     DefaultSavePlanner,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.fsdp.fully_sharded_data_parallel import (
     ShardingStrategy,
     StateDictType,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.tensor import Replicate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,

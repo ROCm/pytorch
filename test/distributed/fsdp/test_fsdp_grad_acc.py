@@ -24,7 +24,10 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
     run_tests,
+<<<<<<< HEAD
     skipIfRocm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_DEV_DBG_ASAN,
 )
 
@@ -153,9 +156,15 @@ class TestGradAcc(FSDPTest):
             batches.append(tuple(permute_tensor(t) for t in batch))
         for batch1, batch2 in itertools.combinations(batches, r=2):
             for t1, t2 in zip(batch1, batch2):
+<<<<<<< HEAD
                 assert not torch.all(
                     t1 == t2
                 ), "Check the test to make sure that batches are distinct"
+=======
+                assert not torch.all(t1 == t2), (
+                    "Check the test to make sure that batches are distinct"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Concatenate the batches along the given batch dimension
         concat_batch: tuple[torch.Tensor, ...] = tuple(
@@ -275,7 +284,10 @@ class TestGradAcc(FSDPTest):
         )
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("use_orig_params", [False, True])
     def test_grad_acc_cpu_offload(
         self,

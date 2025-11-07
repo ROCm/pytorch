@@ -29,7 +29,11 @@ from onnxscript import (
 # NOTE: We do not care about unsigned types beyond UINT8 because PyTorch does not us them.
 # More detail can be found: https://pytorch.org/docs/stable/tensors.html
 
+<<<<<<< HEAD
 _TensorType = Union[
+=======
+TensorType = Union[
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     BFLOAT16,
     BOOL,
     COMPLEX64,
@@ -56,11 +60,19 @@ RealType = Union[
     INT64,
 ]
 
+<<<<<<< HEAD
 TTensor = TypeVar("TTensor", bound=_TensorType)
 # Duplicate TTensor for inputs/outputs that accept the same set of types as TTensor
 # but do not constrain the type to be the same as the other inputs/outputs
 TTensor2 = TypeVar("TTensor2", bound=_TensorType)
 TTensorOrString = TypeVar("TTensorOrString", bound=Union[_TensorType, STRING])
+=======
+TTensor = TypeVar("TTensor", bound=TensorType)
+# Duplicate TTensor for inputs/outputs that accept the same set of types as TTensor
+# but do not constrain the type to be the same as the other inputs/outputs
+TTensor2 = TypeVar("TTensor2", bound=TensorType)
+TTensorOrString = TypeVar("TTensorOrString", bound=Union[TensorType, STRING])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TFloat = TypeVar("TFloat", bound=_FloatType)
 TFloatOrUInt8 = TypeVar(
     "TFloatOrUInt8", bound=Union[FLOAT, FLOAT16, DOUBLE, INT8, UINT8]

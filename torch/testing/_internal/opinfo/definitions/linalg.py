@@ -725,7 +725,11 @@ def sample_inputs_linalg_lstsq(op_info, device, dtype, requires_grad=False, **kw
     if device.type == "cpu" or has_cusolver():
         deltas = (-1, 0, +1)
     # only square systems if Cusolver is not available
+<<<<<<< HEAD
     # becase we solve a lstsq problem with a transposed matrix in the backward
+=======
+    # because we solve a lstsq problem with a transposed matrix in the backward
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         deltas = (0,)
 
@@ -1442,6 +1446,10 @@ op_db: list[OpInfo] = [
                 device_type="cpu",
                 dtypes=(torch.complex128,),
             ),
+<<<<<<< HEAD
+=======
+            skipCUDAIfRocm,  # regression in ROCm 6.4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
     ),
     OpInfo(
@@ -1554,6 +1562,17 @@ op_db: list[OpInfo] = [
         supports_fwgrad_bwgrad=True,
         check_batched_grad=False,
         decorators=[skipCUDAIfNoMagmaAndNoCusolver, skipCPUIfNoLapack, with_tf32_off],
+<<<<<<< HEAD
+=======
+        skips=(
+            DecorateInfo(
+                toleranceOverride({torch.float32: tol(atol=8e-5, rtol=2e-6)}),
+                "TestConsistency",
+                "test_output_grad_match",
+                device_type="mps",
+            ),
+        ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sample_inputs_func=sample_inputs_linalg_matrix_power,
     ),
     OpInfo(
@@ -1742,6 +1761,7 @@ op_db: list[OpInfo] = [
         dtypes=floating_and_complex_types_and(torch.float16, torch.bfloat16),
         generate_args_kwargs=sample_kwargs_vector_norm,
         aten_name="linalg_vector_norm",
+<<<<<<< HEAD
         skips=(
             # FIXME: sum reduces all dimensions when dim=[]
             DecorateInfo(unittest.expectedFailure, "TestReductions", "test_dim_empty"),
@@ -1749,6 +1769,8 @@ op_db: list[OpInfo] = [
                 unittest.expectedFailure, "TestReductions", "test_dim_empty_keepdim"
             ),
         ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ),
     OpInfo(
         "linalg.lu_factor",
@@ -2284,6 +2306,15 @@ op_db: list[OpInfo] = [
                 "test_noncontiguous_samples",
                 device_type="cpu",
             ),
+<<<<<<< HEAD
+=======
+            DecorateInfo(
+                toleranceOverride({torch.float32: tol(atol=2e-04, rtol=3e-06)}),
+                "TestConsistency",
+                "test_output_match",
+                device_type="mps",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
         skips=(
             DecorateInfo(
@@ -2327,6 +2358,7 @@ python_ref_db: list[OpInfo] = [
         torch_opinfo_name="linalg.vector_norm",
         supports_out=True,
         op_db=op_db,
+<<<<<<< HEAD
         skips=(
             # FIXME: sum reduces all dimensions when dim=[]
             DecorateInfo(unittest.expectedFailure, "TestReductions", "test_dim_empty"),
@@ -2334,6 +2366,8 @@ python_ref_db: list[OpInfo] = [
                 unittest.expectedFailure, "TestReductions", "test_dim_empty_keepdim"
             ),
         ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ),
     PythonRefInfo(
         "_refs.linalg.matrix_norm",

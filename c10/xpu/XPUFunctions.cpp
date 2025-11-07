@@ -133,8 +133,18 @@ inline void initGlobalDevicePoolState() {
 #else
   // The default context is utilized for each Intel GPU device, allowing the
   // retrieval of the context from any GPU device.
+<<<<<<< HEAD
   gDevicePool.context = std::make_unique<sycl::context>(
       gDevicePool.devices[0]->get_platform().ext_oneapi_get_default_context());
+=======
+  const auto& platform = gDevicePool.devices[0]->get_platform();
+  gDevicePool.context = std::make_unique<sycl::context>(
+#if SYCL_COMPILER_VERSION >= 20250200
+      platform.khr_get_default_context());
+#else
+      platform.ext_oneapi_get_default_context());
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 }
 

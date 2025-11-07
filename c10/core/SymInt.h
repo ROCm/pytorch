@@ -224,6 +224,14 @@ class C10_API SymInt {
 
   operator SymFloat() const;
 
+<<<<<<< HEAD
+=======
+  void unsafe_set_data(size_t nbytes) {
+    TORCH_INTERNAL_ASSERT_DEBUG_ONLY(!is_heap_allocated());
+    data_ = static_cast<int64_t>(nbytes);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Don't use this.  Prefer maybe_as_int instead
   int64_t as_int_unchecked() const {
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY(!is_heap_allocated());
@@ -414,6 +422,7 @@ inline SymBool sym_ge(const SymInt& a, const SymInt& b) {
   return a.sym_ge(b);
 }
 
+<<<<<<< HEAD
 inline bool definitely_true(
     const c10::SymBool& b,
     const char* file,
@@ -421,4 +430,6 @@ inline bool definitely_true(
   return b.has_hint() && b.guard_bool(file, line);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10

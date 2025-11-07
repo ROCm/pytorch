@@ -16,24 +16,33 @@
 #include <ATen/native/Resize.h>
 #include <ATen/native/UnaryOps.h>
 #include <ATen/native/cpu/Loops.h>
+<<<<<<< HEAD
 #include <ATen/native/quantized/AffineQuantizer.h>
 #include <ATen/native/transformers/attention.h>
 #include <ATen/native/transformers/sdp_utils_cpp.h>
 #include <ATen/ops/abs_native.h>
+=======
+#include <ATen/native/transformers/attention.h>
+#include <ATen/native/transformers/sdp_utils_cpp.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/view.h>
 
 #include <unordered_map>
 
 static uint64_t add_counter = 0;
 static uint64_t last_saved_value = 0;
+<<<<<<< HEAD
 static c10::DeviceIndex custom_device_index = 0;
 
 static uint64_t abs_counter = 0;
 static uint64_t last_abs_saved_value = 0;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static uint64_t storageImpl_counter = 0;
 static uint64_t last_storageImpl_saved_value = 0;
 
+<<<<<<< HEAD
 namespace {
 
 // Using the simplest way to obtain continuous Tensor data and process it.
@@ -202,6 +211,8 @@ void custom_set_backend_meta(const at::Tensor& t) {
   t.unsafeGetTensorImpl()->set_backend_meta(new_tmeta);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // A dummy storageImpl for our custom device, that secretly uses the CPU
 c10::intrusive_ptr<c10::StorageImpl> make_custom_storage_impl(c10::StorageImpl::use_byte_size_t,
                                                               c10::SymInt size_bytes,
@@ -256,6 +267,7 @@ at::Tensor& custom_set_source_Storage(at::Tensor& result, c10::Storage src) {
   return result;
 }
 
+<<<<<<< HEAD
 std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, c10::SymInt, c10::SymInt, at::Tensor, at::Tensor, at::Tensor>
 custom_scaled_dot_product_fused_attention_overrideable(
     const at::Tensor & query,
@@ -309,6 +321,8 @@ custom_scaled_dot_product_fused_attention_overrideable_backward(
           at::empty_like(attn_bias));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // This macro does the heavy lifting.
 // With TORCH_LIBRARY_IMPL, you can register custom kernels for your backend.
 // For open registration, we're registering all of our kernels to the PrivateUse1 dispatch key.
@@ -322,10 +336,13 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("add.Tensor", &custom_add_Tensor);
   m.impl("_copy_from_and_resize", &custom__copy_from_and_resize);
   m.impl("set_.source_Storage", &custom_set_source_Storage);
+<<<<<<< HEAD
   m.impl("quantize_per_tensor", at::native::quantize_per_tensor);
   m.impl("_fused_sdp_choice", &_fused_sdp_choice_privateuse1);
   m.impl("_scaled_dot_product_fused_attention_overrideable", &custom_scaled_dot_product_fused_attention_overrideable);
   m.impl("_scaled_dot_product_fused_attention_overrideable_backward", &custom_scaled_dot_product_fused_attention_overrideable_backward);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack) {
@@ -356,6 +373,7 @@ bool custom_add_called() {
   return called;
 }
 
+<<<<<<< HEAD
 void set_custom_device_index(c10::DeviceIndex device_index) {
   custom_device_index = device_index;
 }
@@ -366,6 +384,10 @@ const at::Generator& default_generator(c10::DeviceIndex device_index) {
 
 void fallback_with_undefined_tensor() {
   at::Tensor first = at::empty((2,3)).to(at::DeviceType::PrivateUse1);
+=======
+void fallback_with_undefined_tensor() {
+  at::Tensor first = at::empty({2, 3}).to(at::DeviceType::PrivateUse1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor second = at::Tensor();
   at::Tensor step = at::empty({}).fill_(2).to(at::DeviceType::PrivateUse1);
   at::Tensor grad_scale = at::empty({}).fill_(0.00001).to(at::DeviceType::PrivateUse1);
@@ -415,6 +437,7 @@ at::Tensor custom_autograd_fn_aliasing(at::Tensor x) {
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("custom_device", &get_custom_device, "get custom device object");
     m.def("custom_add_called", &custom_add_called, "check if our custom add function was called");
+<<<<<<< HEAD
     m.def("set_custom_device_index", &set_custom_device_index, "set custom device index");
     m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
     m.def("custom_storageImpl_called", &custom_storageImpl_called, "check if our custom abs function was called");
@@ -422,6 +445,10 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("check_backend_meta", &check_backend_meta, "check if BackendMeta serialization correctly");
     m.def("custom_serialization_registry", &custom_serialization_registry, "register custom serialization function");
     m.def("default_generator", &default_generator, "default_generator for privateuse1");
+=======
+    m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
+    m.def("custom_storageImpl_called", &custom_storageImpl_called, "check if our custom abs function was called");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     m.def("fallback_with_undefined_tensor", &fallback_with_undefined_tensor, "fallback_with_undefined_tensor for privateuse1");
 
     // Co-opting this file to more easily test torch.compile'ing of custom autograd functions in C++

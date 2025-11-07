@@ -2,6 +2,10 @@
 
 import io
 import sys
+<<<<<<< HEAD
+=======
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -242,6 +246,64 @@ class TestDistWrapper(DTensorTestBase):
         expected_objects = rank
         assert scattered_objects == expected_objects
 
+<<<<<<< HEAD
+=======
+    @with_comms
+    @skip_if_lt_x_gpu(2)
+    def test_broadcast_object_with_nonzero_coordinator(self):
+        # Everybody uses WORLD, but src is coordinator_rank=1
+        dist_wrapper = _DistWrapper(
+            group=dist.group.WORLD,
+            use_dist=True,
+            coordinator_rank=1,
+        )
+
+        rank = dist.get_rank()
+        # only local rank 1 supplies the payload
+        payload: Optional[int] = rank if rank == 1 else None
+
+        result = dist_wrapper.broadcast_object(payload)
+        # every rank should receive the value from global rank 1
+        assert result == 1
+
+    @with_comms
+    @skip_if_lt_x_gpu(4)
+    def test_broadcast_object_global_local_mismatch(self):
+        # reproduces issue 152310
+
+        mesh_2d = dist.init_device_mesh(self.device_type, (2, self.world_size // 2))
+        dist_wrapper = _DistWrapper(
+            group=mesh_2d.get_group(1),
+            use_dist=True,
+            coordinator_rank=1,  # local coordinator index within the subgroup
+        )
+
+        rank = mesh_2d.get_rank()
+
+        # only the local coordinator in each subgroup provides payload
+        payload: Optional[int] = rank if dist_wrapper.is_coordinator else None
+        got = dist_wrapper.broadcast_object(payload)
+
+        # ensure we broadcast from the *global* coordinator rank,
+        # not the local index.  For rows [0,1] this is global rank 1;
+        # for rows [2,3] this is global rank 3.
+        expected = dist_wrapper.global_coordinator_rank
+        assert got == expected
+
+    @with_comms
+    @skip_if_lt_x_gpu(2)
+    def test_barrier(self):
+        mesh_2d = dist.init_device_mesh(self.device_type, (2, self.world_size // 2))
+        torch.random.manual_seed(dist.get_rank())
+
+        dist_wrapper = _DistWrapper(
+            mesh_2d.get_group(1), use_dist=True, coordinator_rank=0
+        )
+
+        # No exception should be raised.
+        dist_wrapper.barrier()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

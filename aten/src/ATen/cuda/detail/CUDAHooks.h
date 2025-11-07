@@ -58,7 +58,11 @@ struct CUDAHooks : public at::CUDAHooksInterface {
   DeviceIndex getCurrentDevice() const override;
 
 #ifdef USE_ROCM
+<<<<<<< HEAD
   bool isGPUArch(DeviceIndex device_index, const std::vector<std::string>& archs) const override;
+=======
+  bool isGPUArch(const std::vector<std::string>& archs, DeviceIndex device_index = -1) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
   void deviceSynchronize(DeviceIndex device_index) const override;
 };

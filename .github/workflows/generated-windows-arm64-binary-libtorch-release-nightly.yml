@@ -1,11 +1,19 @@
 # @generated DO NOT EDIT MANUALLY
 
+<<<<<<< HEAD
 # Template is at:    .github/templates/windows_arm64_binary_build_workflow.yml.j2
+=======
+# Template is at:    .github/templates/windows_binary_build_workflow.yml.j2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Generation script: .github/scripts/generate_ci_workflows.py
 name: windows-arm64-binary-libtorch-release
 
 on:
   push:
+<<<<<<< HEAD
+=======
+    # NOTE: Meta Employees can trigger new nightlies using: https://fburl.com/trigger_pytorch_nightly_build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     branches:
       - nightly
     tags:
@@ -17,24 +25,44 @@ on:
   workflow_dispatch:
 
 env:
+<<<<<<< HEAD
+=======
+  # Needed for conda builds
+  ALPINE_IMAGE: "308535385114.dkr.ecr.us-east-1.amazonaws.com/tool/alpine"
+  AWS_DEFAULT_REGION: us-east-1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   BUILD_ENVIRONMENT: windows-arm64-binary-libtorch-release
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PR_NUMBER: ${{ github.event.pull_request.number }}
   SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
   SKIP_ALL_TESTS: 1
+<<<<<<< HEAD
+=======
+  OS: windows-arm64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PYTORCH_ROOT: /pytorch
   DOWNLOADS_DIR: c:\temp\downloads
   DEPENDENCIES_DIR: c:\temp\dependencies
   ENABLE_APL: 1
   ENABLE_OPENBLAS: 0
   MSVC_VERSION : 14.42
+<<<<<<< HEAD
   AWS_DEFAULT_REGION: us-east-1
+=======
+concurrency:
+  group: windows-arm64-binary-libtorch-release-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
+  cancel-in-progress: true
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -43,8 +71,13 @@ jobs:
   libtorch-cpu-shared-with-deps-release-build:
     if: ${{ github.repository_owner == 'pytorch' }}
     needs: get-label-type
+<<<<<<< HEAD
     runs-on: "windows-11-arm64"
     timeout-minutes: 240
+=======
+    runs-on: "windows-11-arm64-preview"
+    timeout-minutes: 300
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     env:
       PYTORCH_ROOT: ${{ github.workspace }}/pytorch
       PACKAGE_TYPE: libtorch
@@ -59,9 +92,12 @@ jobs:
       # without this value pip does not get installed for some reason
       DESIRED_PYTHON: "3.9"
     steps:
+<<<<<<< HEAD
       # NOTE: These environment variables are put here so that they can be applied on every job equally
       #       They are also here because setting them at a workflow level doesn't give us access to the
       #       runner.temp variable, which we need.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Populate binary env
         shell: cmd
         run: |
@@ -73,10 +109,19 @@ jobs:
         run: |
           mkdir "%NIGHTLIES_PYTORCH_ROOT%"
           mkdir "%PYTORCH_FINAL_PACKAGE_DIR%"
+<<<<<<< HEAD
+=======
+      - name: Enable long paths
+        shell: cmd
+        run: |
+          git config --system --get core.longpaths || echo "core.longpaths is not set, setting it now"
+          git config --system core.longpaths true
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Git checkout PyTorch
         uses: actions/checkout@v4
         with:
           path: "pytorch"
+<<<<<<< HEAD
       - name: Bootstrap Build Tools
         shell: cmd
         run: |
@@ -93,6 +138,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: "pytorch"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           submodules: recursive
       - name: Bootstrap Python
         shell: cmd
@@ -117,11 +164,19 @@ jobs:
       - name: Populate binary env
         shell: bash
         run: |
+<<<<<<< HEAD
           "pytorch/.circleci/scripts/binary_populate_env.sh"
       - name: Build PyTorch binary
         shell: bash
         run: |
           "pytorch/.circleci/scripts/binary_windows_arm64_build.sh"
+=======
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Build PyTorch binary
+        shell: bash
+        run: |
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_windows_build.sh"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - uses: actions/upload-artifact@v4.4.0
         if: always()
         with:
@@ -134,8 +189,13 @@ jobs:
     needs:
       - libtorch-cpu-shared-with-deps-release-build
       - get-label-type
+<<<<<<< HEAD
     runs-on: "windows-11-arm64"
     timeout-minutes: 240
+=======
+    runs-on: "windows-11-arm64-preview"
+    timeout-minutes: 300
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     env:
       PYTORCH_ROOT: ${{ github.workspace }}/pytorch
       PACKAGE_TYPE: libtorch
@@ -150,15 +210,19 @@ jobs:
       # without this value pip does not get installed for some reason
       DESIRED_PYTHON: "3.9"
     steps:
+<<<<<<< HEAD
       # NOTE: These environment variables are put here so that they can be applied on every job equally
       #       They are also here because setting them at a workflow level doesn't give us access to the
       #       runner.temp variable, which we need.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Populate binary env
         shell: cmd
         run: |
           echo BINARY_ENV_FILE=%RUNNER_TEMP%/env>> %GITHUB_ENV%
           echo PYTORCH_FINAL_PACKAGE_DIR=%RUNNER_TEMP%/artifacts>> %GITHUB_ENV%
           echo WIN_PACKAGE_WORK_DIR=%RUNNER_TEMP%>> %GITHUB_ENV%
+<<<<<<< HEAD
       - uses: actions/download-artifact@v4.1.7
         name: Download Build Artifacts
         with:
@@ -176,6 +240,13 @@ jobs:
         shell: cmd
         run: |
           rmdir /s /q "pytorch"
+=======
+      - name: Enable long paths
+        shell: cmd
+        run: |
+          git config --system --get core.longpaths || echo "core.longpaths is not set, setting it now"
+          git config --system core.longpaths true
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Git checkout PyTorch
         uses: actions/checkout@v4
         with:
@@ -189,14 +260,18 @@ jobs:
         shell: cmd
         run: |
           "pytorch/.ci/pytorch/windows/arm64/bootstrap_python.bat"
+<<<<<<< HEAD
       - name: Bootstrap Build Tools
         shell: cmd
         run: |
           "pytorch/.ci/pytorch/windows/arm64/bootstrap_buildtools.bat"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Bootstrap Rust
         shell: cmd
         run: |
           "pytorch/.ci/pytorch/windows/arm64/bootstrap_rust.bat"
+<<<<<<< HEAD
       - name: Populate binary env
         shell: bash
         run: |
@@ -205,6 +280,21 @@ jobs:
         shell: bash
         run: |
           "pytorch/.circleci/scripts/binary_windows_arm64_test.sh"
+=======
+      - uses: actions/download-artifact@v4.1.7
+        name: Download Build Artifacts
+        with:
+          name: libtorch-cpu-shared-with-deps-release
+          path: "${{ env.PYTORCH_FINAL_PACKAGE_DIR }}"
+      - name: Populate binary env
+        shell: bash
+        run: |
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_populate_env.sh"
+      - name: Test PyTorch binary
+        shell: bash
+        run: |
+          "${PYTORCH_ROOT}/.circleci/scripts/binary_windows_test.sh"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   libtorch-cpu-shared-with-deps-release-upload:  # Uploading
     if: ${{ github.repository_owner == 'pytorch' }}
     permissions:

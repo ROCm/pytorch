@@ -2,10 +2,13 @@
     ignore = dirty
     path = third_party/pybind11
     url = https://github.com/pybind/pybind11.git
+<<<<<<< HEAD
 [submodule "third_party/eigen"]
     ignore = dirty
     path = third_party/eigen
     url = https://gitlab.com/libeigen/eigen.git
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 [submodule "third_party/googletest"]
     ignore = dirty
     path = third_party/googletest
@@ -25,7 +28,11 @@
 [submodule "third_party/gloo"]
     ignore = dirty
     path = third_party/gloo
+<<<<<<< HEAD
     url = https://github.com/facebookincubator/gloo
+=======
+    url = https://github.com/pytorch/gloo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 [submodule "third_party/NNPACK_deps/pthreadpool"]
     ignore = dirty
     path = third_party/pthreadpool

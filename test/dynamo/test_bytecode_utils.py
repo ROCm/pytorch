@@ -53,8 +53,13 @@ class BytecodeTests(torch._dynamo.test_case.TestCase):
         fn_str = f"""\
 def fn():
     foo.bar(1, 2, 3)
+<<<<<<< HEAD
 {str(chr(10)).join(' ' * 4 + 'x' + str(i) + ' = 1' for i in range(1 << 9))}
     l = [{' '.join('x' + str(i) + ',' for i in range(1 << 9))}]
+=======
+{str(chr(10)).join(" " * 4 + "x" + str(i) + " = 1" for i in range(1 << 9))}
+    l = [{" ".join("x" + str(i) + "," for i in range(1 << 9))}]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         locals = {}
         exec(fn_str, {}, locals)

@@ -6,6 +6,10 @@ import operator
 import types
 from collections.abc import Mapping, Sequence
 from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar, Union
+<<<<<<< HEAD
+=======
+from typing_extensions import ParamSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._C import _fx_map_aggregate, _fx_map_arg, _NodeBase
@@ -58,6 +62,11 @@ Argument = Optional[
     ]
 ]
 ArgumentT = TypeVar("ArgumentT", bound=Argument)
+<<<<<<< HEAD
+=======
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _legal_ops = dict.fromkeys(
     [
@@ -74,7 +83,11 @@ _legal_ops = dict.fromkeys(
 # Dynamo is unable to trace global set[Callable].__contains__.
 # See https://github.com/pytorch/pytorch/issues/145761. Since we only have
 # a handful of ops so switch to list of callables.
+<<<<<<< HEAD
 _side_effectful_need_to_be_preserved_pre_dispatch: list[Callable] = [
+=======
+_side_effectful_need_to_be_preserved_pre_dispatch: list[Callable[..., Any]] = [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._C._set_grad_enabled,
     torch.amp._enter_autocast,
     torch.amp._exit_autocast,
@@ -82,7 +95,11 @@ _side_effectful_need_to_be_preserved_pre_dispatch: list[Callable] = [
 
 # TODO: Either refactor this into 2 functions 1 dce for functional graphs and 1 dce for all graphs,
 # or add logic to correctly mark all inplace ops as side effectful.
+<<<<<<< HEAD
 _side_effectful_functions: set[Callable] = {
+=======
+_side_effectful_functions: set[Callable[..., Any]] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._assert,
     torch._assert_async,
     _ops.aten._assert_async.msg,
@@ -95,14 +112,23 @@ _side_effectful_functions: set[Callable] = {
     _ops.profiler._record_function_exit,
     _ops.inductor.accumulate_grad_.default,
     operator.setitem,
+<<<<<<< HEAD
 } | set(_side_effectful_need_to_be_preserved_pre_dispatch)
+=======
+    *_side_effectful_need_to_be_preserved_pre_dispatch,
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if hasattr(_ops.inductor, "resize_storage_bytes_"):
     _side_effectful_functions.add(_ops.inductor.resize_storage_bytes_.default)
 
 
 @compatibility(is_backward_compatible=False)
+<<<<<<< HEAD
 def has_side_effect(fn: Callable) -> Callable:
+=======
+def has_side_effect(fn: Callable[_P, _R]) -> Callable[_P, _R]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _side_effectful_functions.add(fn)
     return fn
 
@@ -511,9 +537,15 @@ class Node(_NodeBase):
             idx (int): The index of the element in ``self.args`` to be inserted before.
             arg (Argument): The new argument value to insert into ``args``
         """
+<<<<<<< HEAD
         assert (
             0 <= idx <= len(self.args)
         ), "insert_args index must be between 0 and len(self.args)"
+=======
+        assert 0 <= idx <= len(self.args), (
+            "insert_args index must be between 0 and len(self.args)"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args_left = self.args[:idx]
         args_right = self.args[idx:]
 
@@ -714,11 +746,21 @@ class Node(_NodeBase):
         return [n for n in to_process if n not in skipped]
 
     @compatibility(is_backward_compatible=False)
+<<<<<<< HEAD
     def is_impure(self) -> bool:
+=======
+    def is_impure(self, impure_random: bool = True) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns whether this op is impure, i.e. if its op is a placeholder or
         output, or if a call_function or call_module which is impure.
 
+<<<<<<< HEAD
+=======
+        Args:
+            impure_random (bool): Whether to treat rand op as impure.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Returns:
 
             bool: If the op is impure or not.
@@ -732,14 +774,22 @@ class Node(_NodeBase):
                 # impure since it mutates inputs
                 return True
 
+<<<<<<< HEAD
             if getattr(self.target, "_nondeterministic_seeded", False):
                 # impure since it mutates RNG state
                 return True
+=======
+            if impure_random:
+                if getattr(self.target, "_nondeterministic_seeded", False):
+                    # impure since it mutates RNG state
+                    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return self.target in _side_effectful_functions
 
         # Check if an impure module.
         if self.op == "call_module":
+<<<<<<< HEAD
             assert (
                 self.graph.owning_module is not None
             ), "self.graph.owning_module not set for purity check"
@@ -747,6 +797,15 @@ class Node(_NodeBase):
             assert (
                 target_mod is not None
             ), f"Did not find expected submodule target {self.target}"
+=======
+            assert self.graph.owning_module is not None, (
+                "self.graph.owning_module not set for purity check"
+            )
+            target_mod = self.graph.owning_module.get_submodule(self.target)
+            assert target_mod is not None, (
+                f"Did not find expected submodule target {self.target}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return getattr(target_mod, "_is_impure", False)
 
         return False
@@ -789,10 +848,24 @@ class Node(_NodeBase):
                 self.kwargs,
                 arg_types,
                 kwarg_types,
+<<<<<<< HEAD
             )
         elif self.op == "call_module":
             assert isinstance(self.target, str)
             return normalize_module(root, self.target, self.args, self.kwargs)  # type: ignore[arg-type]
+=======
+                normalize_to_only_use_kwargs=normalize_to_only_use_kwargs,
+            )
+        elif self.op == "call_module":
+            assert isinstance(self.target, str)
+            return normalize_module(
+                root,
+                self.target,
+                self.args,  # type: ignore[arg-type]
+                self.kwargs,
+                normalize_to_only_use_kwargs=normalize_to_only_use_kwargs,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return None
 

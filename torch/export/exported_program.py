@@ -7,11 +7,19 @@ import functools
 import operator
 import types
 import warnings
+<<<<<<< HEAD
 from collections import namedtuple
+=======
+from collections import defaultdict, namedtuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any, Callable, final, Optional, TYPE_CHECKING, Union
 
+<<<<<<< HEAD
+=======
+from torch._guards import tracing, TracingContext
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.utils import autograd_not_implemented
 from torch._library.fake_class_registry import FakeScriptObject
 from torch._subclasses.fake_impls import (
@@ -20,6 +28,10 @@ from torch._subclasses.fake_impls import (
     register_op_impl,
 )
 from torch._subclasses.fake_tensor import FakeTensorMode
+<<<<<<< HEAD
+=======
+from torch.fx._symbolic_trace import _ConstantAttributeType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx._utils import first_call_function_nn_module_stack
 from torch.fx.graph import _PyTreeCodeGen, _PyTreeInfo
 from torch.fx.immutable_collections import immutable_dict, immutable_list
@@ -186,7 +198,11 @@ _BACKEND_KEYS_TO_OVERRIDE = [
 
 
 @contextmanager
+<<<<<<< HEAD
 def _override_composite_implicit_decomp(cia_ops_to_callable, safe=True):
+=======
+def _override_composite_implicit_decomp(cia_ops_to_callable):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This function overrides CompositeImplicitAutograd decomp for
     # functional composite ops that user specified. Ideally we want to not-decompose
     # ALL composite ops but today's C++ functinalization relies on
@@ -194,6 +210,7 @@ def _override_composite_implicit_decomp(cia_ops_to_callable, safe=True):
     # Hence we can only do it for functional ops. One caveat is that
     # there are some composite ops that lie about their schema (claimed to be
     # functional but not really aka dropout), for these cases, we just decompose.
+<<<<<<< HEAD
 
     # When safe=False, we will assume that ops_to_preserve can be mutating/aliasing
     # and their usual decompositions need to be shadowed rather than overridden.
@@ -201,6 +218,8 @@ def _override_composite_implicit_decomp(cia_ops_to_callable, safe=True):
     # replace their CompositeImplicitAutograd kernels with NotImplemented.
     # The only current users of this mode are variants of aten::to that we will
     # replace with aten::_to_copy in FunctionalTensorMode.__torch_dispatch__.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     saved_tables = {}
     patched_ops = set()
     for op_overload, decomp_callable in cia_ops_to_callable.items():
@@ -218,10 +237,16 @@ def _override_composite_implicit_decomp(cia_ops_to_callable, safe=True):
         if torch._C.DispatchKey.CompositeImplicitAutograd in op_overload.py_kernels:
             del op_overload.py_kernels[torch._C.DispatchKey.CompositeImplicitAutograd]
 
+<<<<<<< HEAD
         if safe:
             op_overload.py_impl(torch._C.DispatchKey.CompositeImplicitAutograd)(
                 decomp_callable
             )
+=======
+        op_overload.py_impl(torch._C.DispatchKey.CompositeImplicitAutograd)(
+            decomp_callable
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # [NOTE] Directly registering fake tensor rule to CIA ops
         # The problem we are facing here is if your CIA custom rule
@@ -277,6 +302,7 @@ def _override_composite_implicit_decomp(cia_ops_to_callable, safe=True):
             _deregister_op_impl(op)
 
 
+<<<<<<< HEAD
 @contextmanager
 def _override_decomp_aten_to_variants():
     # Preserve variants of aten::to understanding that they are mutating/aliasing
@@ -294,6 +320,10 @@ def _override_decomp_aten_to_variants():
 
 def _split_decomp_table_to_cia_and_python_decomp(
     decomp_table: dict[torch._ops.OperatorBase, Callable]
+=======
+def _split_decomp_table_to_cia_and_python_decomp(
+    decomp_table: dict[torch._ops.OperatorBase, Callable],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[dict[torch._ops.OperatorBase, Callable], ...]:
     all_preservable_cia_ops = set(_collect_all_valid_cia_ops())
     cia_ops_to_callable = {}
@@ -462,12 +492,24 @@ def _decompose_and_get_gm_with_new_signature_constants(
                 else:
                     retracing_args.append(node.meta["val"])
 
+<<<<<<< HEAD
         with (
             fake_mode
         ), _override_decomp_aten_to_variants(), _override_composite_implicit_decomp(
             cia_to_decomp,
         ), _enable_graph_inputs_of_type_nn_module(
             ep.example_inputs
+=======
+        tx = TracingContext(fake_mode)
+
+        with (
+            fake_mode,
+            _override_composite_implicit_decomp(
+                cia_to_decomp,
+            ),
+            _enable_graph_inputs_of_type_nn_module(ep.example_inputs),
+            tracing(tx),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             retracing_args_unwrapped = pytree.tree_unflatten(
                 retracing_args, mod._in_spec
@@ -559,6 +601,7 @@ def _decompose_and_get_gm_with_new_signature_constants(
         # the state dict of ep.module but ep.module only stores params
         # buffers that participate in forward. If we undo this behaviour,
         # it would break some downstream users.
+<<<<<<< HEAD
         for name, p in unwrapped_params_buffers.items():
             if name not in wrapped_params_buffers:
                 ep.state_dict[name] = p
@@ -573,6 +616,27 @@ def _decompose_and_get_gm_with_new_signature_constants(
                     ep.state_dict.pop(name)
 
         return gm, new_graph_signature, ep.state_dict
+=======
+        new_state_dict = {
+            **ep.state_dict,
+            **{
+                name: p
+                for name, p in unwrapped_params_buffers.items()
+                if name not in wrapped_params_buffers
+            },
+        }
+
+        for name, p in wrapped_params_buffers.items():
+            # Buffers can be persistent/non-persistent
+            if name not in new_state_dict:
+                assert not isinstance(p, torch.nn.Parameter)
+
+            if name in new_state_dict:
+                if name not in unwrapped_params_buffers:
+                    new_state_dict.pop(name)
+
+        return gm, new_graph_signature, new_state_dict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     old_placeholders = [
         node for node in ep.graph_module.graph.nodes if node.op == "placeholder"
@@ -585,15 +649,28 @@ def _decompose_and_get_gm_with_new_signature_constants(
 
     # TODO(zhxhchen17) Return the new graph_signature directly.
     fake_mode = detect_fake_mode(fake_args)
+<<<<<<< HEAD
     fake_mode = contextlib.nullcontext() if fake_mode is None else fake_mode
+=======
+    fake_mode = contextlib.nullcontext() if fake_mode is None else fake_mode  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     custom_triton_ops_decomposition_ctx = (
         contextlib.nullcontext
         if decompose_custom_triton_ops
         else _disable_custom_triton_op_functional_decomposition
     )
+<<<<<<< HEAD
     with _ignore_backend_decomps(), fake_mode, _override_composite_implicit_decomp(
         cia_to_decomp
     ), custom_triton_ops_decomposition_ctx():
+=======
+    with (
+        _ignore_backend_decomps(),
+        fake_mode,
+        _override_composite_implicit_decomp(cia_to_decomp),
+        custom_triton_ops_decomposition_ctx(),
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gm, graph_signature = aot_export_module(
             ep.graph_module,
             fake_args,
@@ -834,25 +911,135 @@ def _common_getitem_elimination_pass(
 
 
 def _get_updated_module_call_graph(
+<<<<<<< HEAD
     gm: torch.fx.GraphModule,
+=======
+    old_gm: torch.fx.GraphModule,
+    old_graph_signature: ExportGraphSignature,
+    gm: torch.fx.GraphModule,
+    graph_signature: ExportGraphSignature,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     old_module_call_graph: list[ModuleCallEntry],
 ):
     new_module_call_graph = copy.deepcopy(old_module_call_graph)
 
+<<<<<<< HEAD
     # use node-level provenance metadata to create a map
     # from old node names to new node names
     provenance: dict[str, str] = {}
+=======
+    old_nodes = {node.name: node for node in old_gm.graph.nodes}
+
+    old_graph_params_buffers = {
+        **old_graph_signature.inputs_to_parameters,
+        **old_graph_signature.inputs_to_buffers,
+    }
+    new_graph_params_buffers = {
+        **graph_signature.inputs_to_parameters,
+        **graph_signature.inputs_to_buffers,
+    }
+
+    # use node-level provenance metadata to create a map
+    # from old node names to new node names
+    provenance: dict[str, str] = {}
+
+    user_input_counter = 0
+    old_user_input_names = [
+        node.target for node in old_gm.graph.nodes if node.op == "placeholder"
+    ]
+    old_user_input_names = list(
+        filter(
+            lambda x: x not in old_graph_params_buffers
+            and x not in old_graph_signature.input_tokens,
+            old_user_input_names,
+        )
+    )
+    new_user_input_names = [
+        node.target for node in gm.graph.nodes if node.op == "placeholder"
+    ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node in gm.graph.nodes:
         if history := node.meta.get("from_node", []):
             provenance[history[-1].name] = node.name
 
+<<<<<<< HEAD
+=======
+        # For params and buffers, we might have applied parameterizaiton rule
+        # so that the names might have changed. But for user inputs, we know we
+        # must preserve the old name.
+        elif node.op == "placeholder":
+            if not (
+                node.target in new_graph_params_buffers
+                or node.target in graph_signature.input_tokens
+            ):
+                if node.target in new_user_input_names:
+                    assert isinstance(node.name, str)
+                    old_name = old_user_input_names[user_input_counter]
+                    assert isinstance(old_name, str)
+                    provenance[old_name] = node.name
+                    user_input_counter += 1
+
+    # For all the parameters and buffers, we first see
+    # if they are result of paramerizaitons and if they
+    # are, we log them and error later
+    old_param_to_desugared = defaultdict(list)
+    for name, target in new_graph_params_buffers.items():
+        # if the parameters are not parametrized, the naming won't change.
+        if not target.startswith("parametrizations."):
+            # If we are in strict mode, we can't just reuse the param names
+            if name in old_graph_params_buffers:
+                provenance[name] = name
+        else:
+            old_target = ".".join(target.split(".")[1:-1])
+            old_param_to_desugared[old_target].append(name)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # map old names to new names in module call signatures
     for entry in new_module_call_graph:
         signature = entry.signature
         if signature is None:
             continue
         for x in [*signature.inputs, *signature.outputs]:
+<<<<<<< HEAD
             x.name = provenance.get(x.name, x.name)
+=======
+            # We noticed that submodule is taking subclass as input. we can't
+            # preserve signature here.
+            if x.name in old_param_to_desugared:
+                raise ValueError(
+                    f"It looks like {x.name} is a tensor subclass. "
+                    f"Preserving submodule that takes subclass parameter is not supported"
+                    f" in inference IR because we desugar them, resulting in more tensors"
+                )
+
+            if x.name in provenance:
+                x.name = provenance[x.name]
+
+            # This can happen when aten.to is called at graph boundaries.
+            # Basically aten.to at post-dispatch level can either be copy
+            # or alias. In the alias case, we will no-op it so it will
+            # disappear from the graph. If we detect such case, we should
+            # reuse the input to aten.to as the new input to the submodule.
+            # Technically this can happen for other maybe aliasing ops,
+            # but aten.to is probably the most common one.
+            elif x.name in old_nodes:
+                old_node = old_nodes[x.name]
+                if old_node.op == "call_function" and old_node.target in [
+                    torch.ops.aten.to.dtype_layout,
+                    torch.ops.aten.to.device,
+                    torch.ops.aten.to.dtype,
+                ]:
+                    old_target = old_node.args[0].name
+                    if old_target not in provenance:
+                        raise ValueError(
+                            f"It looks like {old_target} is a tensor subclass. "
+                            f"Preserving submodule that takes subclass parameter is not supported"
+                            f" in inference IR because we desugar them, resulting in more tensors"
+                        )
+
+                    x.name = provenance[old_target]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return new_module_call_graph
 
@@ -882,7 +1069,14 @@ def _decompose_exported_program(
     # new nodes due to decompositions. So we need to update these signatures
     # in the decomposed exported program's module_call_graph.
     new_module_call_graph = _get_updated_module_call_graph(
+<<<<<<< HEAD
         gm,
+=======
+        ep.graph_module,
+        ep.graph_signature,
+        gm,
+        new_graph_signature,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ep.module_call_graph,
     )
 
@@ -934,9 +1128,13 @@ class ExportedProgram:
         range_constraints: "dict[sympy.Symbol, Any]",
         module_call_graph: list[ModuleCallEntry],
         example_inputs: Optional[tuple[tuple[Any, ...], dict[str, Any]]] = None,
+<<<<<<< HEAD
         constants: Optional[
             dict[str, Union[torch.Tensor, FakeScriptObject, torch._C.ScriptObject]]
         ] = None,
+=======
+        constants: Optional[dict[str, _ConstantAttributeType]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *,
         verifiers: Optional[list[type[Verifier]]] = None,
     ):
@@ -1303,10 +1501,18 @@ class ExportedProgram:
         graph_module = self.graph_module.print_readable(
             print_output=False, colored=False
         ).replace("\n", "\n    ")
+<<<<<<< HEAD
         string = (
             "ExportedProgram:\n"
             f"    {graph_module}\n"
             f"Graph signature: {self.graph_signature}\n"
+=======
+        graph_signature = str(self.graph_signature).replace("\n", "\n    ")
+        string = (
+            "ExportedProgram:\n"
+            f"    {graph_module}\n"
+            f"Graph signature: {graph_signature}\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"Range constraints: {self.range_constraints}\n"
         )
         return string
@@ -1437,9 +1643,15 @@ class ExportedProgram:
                 if node.op != "placeholder":
                     break
 
+<<<<<<< HEAD
                 assert i < len(
                     old_signature.input_specs
                 ), "Number of inputs changed after transformation"
+=======
+                assert i < len(old_signature.input_specs), (
+                    "Number of inputs changed after transformation"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 old_input_spec = old_signature.input_specs[i]
                 arg = (
                     old_input_spec.arg
@@ -1462,9 +1674,15 @@ class ExportedProgram:
 
             new_output_specs = []
             for i, node in enumerate(output_node.args[0]):
+<<<<<<< HEAD
                 assert i < len(
                     old_signature.output_specs
                 ), "Number of outputs changed after transformation"
+=======
+                assert i < len(old_signature.output_specs), (
+                    "Number of outputs changed after transformation"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 old_output_spec = old_signature.output_specs[i]
                 arg = (
                     old_output_spec.arg
@@ -1522,9 +1740,15 @@ class ExportedProgram:
     # TODO: remove this
     @final
     def _validate(self):
+<<<<<<< HEAD
         assert (
             len(self.verifiers) > 0
         ), "ExportedProgram must have at least one verifier."
+=======
+        assert len(self.verifiers) > 0, (
+            "ExportedProgram must have at least one verifier."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for v in self.verifiers:
             v().check(self)
 

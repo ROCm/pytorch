@@ -1,5 +1,9 @@
 # @lint-ignore-every FBCODEBZLADDLOADS
+<<<<<<< HEAD
 load("//tools/build_defs:glob_defs.bzl", "subdir_glob")
+=======
+load("@fbsource//tools/build_defs:glob_defs.bzl", "subdir_glob")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # shared by internal and OSS BUCK
 def define_tools_targets(
@@ -287,6 +291,7 @@ def define_tools_targets(
             ":autograd",
         ],
     )
+<<<<<<< HEAD
 
     python_test(
         name = "test_torchgen_executorch",
@@ -302,3 +307,5 @@ def define_tools_targets(
             torchgen_deps,
         ],
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

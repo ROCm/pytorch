@@ -616,6 +616,13 @@ class DistributedDataParallel(Module, Joinable):
                     as these named params will be ignored by DDP reducer.
         param_to_hook_all_reduce (torch.nn.Parameter): a parameter to hook delayed all reduce
                     of parameters specified in ``delay_all_reduce_named_params``.
+<<<<<<< HEAD
+=======
+        skip_all_reduce_unused_params: When set to True, DDP will skip reducing unused parameters.
+                    This requires that unused parameters remain the same across all ranks throughout
+                    the entire training process. If this condition is not met, it may cause
+                    desynchronization and result in training hang.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
     Attributes:
@@ -649,9 +656,19 @@ class DistributedDataParallel(Module, Joinable):
         param_to_hook_all_reduce=None,
         mixed_precision: Optional[_MixedPrecision] = None,
         device_mesh=None,
+<<<<<<< HEAD
     ):
         super().__init__()
         Joinable.__init__(self)
+=======
+        skip_all_reduce_unused_params=False,
+    ):
+        super().__init__()
+        Joinable.__init__(self)
+        self._use_python_reducer = (
+            torch._dynamo.utils.get_optimize_ddp_mode() == "python_reducer"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.logger: Optional[dist.Logger] = None
         if bool(delay_all_reduce_named_params is not None) != bool(
             param_to_hook_all_reduce is not None
@@ -751,7 +768,11 @@ class DistributedDataParallel(Module, Joinable):
                     "DistributedDataParallel device_ids and output_device arguments "
                     "only work with single-device/multiple-device GPU modules or CPU modules, "
                     f"but got device_ids {device_ids}, output_device {output_device}, "
+<<<<<<< HEAD
                     f"and module parameters {({p.device for p in self._module_parameters})}.",
+=======
+                    f"and module parameters { ({p.device for p in self._module_parameters}) }.",  # noqa: E201,E202
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             self.device_ids = None
@@ -826,6 +847,11 @@ class DistributedDataParallel(Module, Joinable):
             if self._delay_all_reduce_all_params:
                 return
 
+<<<<<<< HEAD
+=======
+        self.skip_all_reduce_unused_params = skip_all_reduce_unused_params
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Build parameters for reducer.
         parameters, expect_sparse_gradient = self._build_params_for_reducer()
 
@@ -908,8 +934,11 @@ class DistributedDataParallel(Module, Joinable):
         # True. The hooks will be deregistered if compiled_autograd is not
         # enabled.
         self._accum_grad_hooks: list[RemovableHandle] = []
+<<<<<<< HEAD
         optimize_ddp = torch._dynamo.utils.get_optimize_ddp_mode()
         self._use_python_reducer = optimize_ddp == "python_reducer"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self._use_python_reducer:
             torch._inductor.config._fuse_ddp_communication = True
             torch._inductor.config._fuse_ddp_bucket_size = bucket_cap_mb
@@ -1220,6 +1249,11 @@ class DistributedDataParallel(Module, Joinable):
                 if self.bucket_bytes_cap_default
                 else self.bucket_bytes_cap
             ),
+<<<<<<< HEAD
+=======
+            self.skip_all_reduce_unused_params,
+            self._use_python_reducer,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self.logger = dist.Logger(self.reducer)
@@ -1510,7 +1544,12 @@ class DistributedDataParallel(Module, Joinable):
         work = Join.notify_join_context(self)
         if work:
             self.reducer._set_forward_pass_work_handle(
+<<<<<<< HEAD
                 work, self._divide_by_initial_world_size  # type: ignore[arg-type]
+=======
+                work,
+                self._divide_by_initial_world_size,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # Calling _rebuild_buckets before forward computation,

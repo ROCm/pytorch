@@ -25,6 +25,10 @@
 #include <ATen/core/function_schema.h>
 #include <ATen/core/stack.h>
 #include <ATen/record_function.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 #include <torch/csrc/profiler/standalone/execution_trace_observer.h>
 #include <torch/csrc/profiler/util.h>
@@ -112,6 +116,44 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
   // Uses the underlying TensorImpl object pointer as the key and map to its
   // unique id.
   std::map<const void*, ID> objectId{};
+<<<<<<< HEAD
+=======
+
+  using weak_storage_ptr = c10::weak_intrusive_ptr<StorageImpl>;
+  std::unordered_map<const void*, ID> data_ptr_to_storage_id{};
+  std::unordered_map<const void*, weak_storage_ptr>
+      data_ptr_to_weak_storage_ptr{};
+
+  ID get_tensor_storage_ID(const c10::Storage& t_storage) {
+    const std::lock_guard<std::recursive_mutex> lock(gMutex);
+
+    const void* raw_data_ptr = t_storage.data();
+    auto iter = data_ptr_to_weak_storage_ptr.find(raw_data_ptr);
+    if (iter == data_ptr_to_weak_storage_ptr.end()) {
+      ID id = storage_id_++;
+      data_ptr_to_storage_id.emplace(raw_data_ptr, id);
+      data_ptr_to_weak_storage_ptr.emplace(
+          raw_data_ptr, t_storage.getWeakStorageImpl());
+      return id;
+    } else {
+      // check if the storage is still alive
+      if (iter->second.expired()) {
+        ID id = storage_id_++;
+        // std::unorder_map does not change if the key is already in the map.
+        // So we need to remove the key and insert the key with the new value.
+        data_ptr_to_storage_id.erase(raw_data_ptr);
+        data_ptr_to_storage_id[raw_data_ptr] = id;
+        data_ptr_to_weak_storage_ptr.erase(raw_data_ptr);
+        data_ptr_to_weak_storage_ptr.emplace(
+            raw_data_ptr, t_storage.getWeakStorageImpl());
+        return id;
+      } else {
+        return data_ptr_to_storage_id[raw_data_ptr];
+      }
+    }
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Observer run state.
   enum class RunState { uninitialized, disabled, enabled };
 
@@ -170,10 +212,19 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
 
   // All tensors and operators have an unique id assigned. Increment id for each
   // new tensor or operator node.
+<<<<<<< HEAD
   // 0 -> unintialized
   // 1 -> root ID
   // 2 ... -> regular node ID
   std::atomic<ID> id_{2};
+=======
+  // 0 -> uninitialized
+  // 1 -> root ID
+  // 2 ... -> regular node ID
+  std::atomic<ID> id_{2};
+
+  std::atomic<ID> storage_id_{1};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // Using a singleton manager here to allow init and delete the observer object.
@@ -444,8 +495,13 @@ convertIValue(
     // symbolic sizes/strides implies t->storage_offset() will fail
     if (tensor_impl->has_storage() &&
         !tensor_impl->has_symbolic_sizes_strides()) {
+<<<<<<< HEAD
       auto& t_storage = tensor_impl->storage();
       storage_id = getObjectID(ob, t_storage.data());
+=======
+      const c10::Storage& t_storage = tensor_impl->storage();
+      storage_id = ob.get_tensor_storage_ID(t_storage);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       offset = tensor_impl->storage_offset();
       numel = tensor_impl->numel();
       itemsize = tensor_impl->itemsize();
@@ -606,6 +662,7 @@ static void handleKernelBackendInfo(
             fc.kernelFile.substr(fc.kernelFile.find_last_of('/') + 1);
       }
 
+<<<<<<< HEAD
       // get grid information
       TORCH_INTERNAL_ASSERT(
           kwinputs.find("grid") != kwinputs.end(),
@@ -615,6 +672,8 @@ static void handleKernelBackendInfo(
       fc.inputTypes.emplace_back("\"String\"");
       fc.inputShapes.emplace_back("[]");
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // get stream information
       TORCH_INTERNAL_ASSERT(
           kwinputs.find("stream") != kwinputs.end(),
@@ -907,18 +966,31 @@ bool addExecutionTraceObserver(const std::string& output_file_path) {
 
     // check if the environment variable is set to force recording integer
     // tensors
+<<<<<<< HEAD
     auto env_variable =
         getenv("ENABLE_PYTORCH_EXECUTION_TRACE_SAVE_INTEGRAL_TENSOR_RANGE");
     if (env_variable != nullptr) {
+=======
+    auto env_variable = c10::utils::get_env(
+        "ENABLE_PYTORCH_EXECUTION_TRACE_SAVE_INTEGRAL_TENSOR_RANGE");
+    if (env_variable.has_value()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ob.record_integral_tensor_range = true;
     }
 
     // check if the environment variable is set to force recording integer
     // tensors
+<<<<<<< HEAD
     env_variable =
         getenv("ENABLE_PYTORCH_EXECUTION_TRACE_SAVE_INTEGRAL_TENSOR_DATA");
     if (env_variable != nullptr) {
       std::istringstream stream(env_variable);
+=======
+    env_variable = c10::utils::get_env(
+        "ENABLE_PYTORCH_EXECUTION_TRACE_SAVE_INTEGRAL_TENSOR_DATA");
+    if (env_variable.has_value()) {
+      std::istringstream stream(env_variable.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::string token;
       while (std::getline(stream, token, ',')) {
         ob.nodeListForSavingIntegerTensor.insert(token);

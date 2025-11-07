@@ -6,6 +6,7 @@ import unittest
 
 import torch
 from torch.nn import init
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfLegacyJitExecutor
 from torch.testing._internal.jit_utils import JitTestCase
 
@@ -18,6 +19,15 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    skipIfLegacyJitExecutor,
+)
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestGenerator(JitTestCase):
     # torch.jit.trace does not properly capture the generator manual seed
     # and thus is non deterministic even if the generator is manually seeded
@@ -193,3 +203,10 @@ class TestGenerator(JitTestCase):
         except:  # noqa: B001, E722
             print(loaded_module.forward.code)
             raise
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

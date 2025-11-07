@@ -455,9 +455,15 @@ class AutogradFunctionTests(torch._dynamo.test_case.TestCase):
 
                 # Modify gradient using .data (Dangerous: Breaks autograd tracking!)
                 modified_grad = grad_output.clone()
+<<<<<<< HEAD
                 modified_grad.data[
                     input_tensor.data < 0
                 ] = 0  # Zero-out gradients for negative inputs
+=======
+                modified_grad.data[input_tensor.data < 0] = (
+                    0  # Zero-out gradients for negative inputs
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 return modified_grad * 3
 
@@ -598,7 +604,10 @@ class GraphModule(torch.nn.Module):
         l_weird_b = L_weird_b
         l_weird_c = L_weird_c
 
+<<<<<<< HEAD
         function_ctx = torch.autograd.function.FunctionCtx();  function_ctx = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fwd_body_0 = self.fwd_body_0
         bwd_body_0 = self.bwd_body_0
         autograd_function_apply: "f32[]" = torch.ops.higher_order.autograd_function_apply(fwd_body_0, bwd_body_0, l_x_, l_z_, l_weird_b, l_weird_c, args_tensor_mask = [True, False, True], non_differentiable_idx = []);  fwd_body_0 = bwd_body_0 = l_x_ = l_z_ = l_weird_b = l_weird_c = None
@@ -1120,7 +1129,10 @@ class GraphModule(torch.nn.Module):
         l_x_ = L_x_
         l_weight_ = L_weight_
 
+<<<<<<< HEAD
         function_ctx = torch.autograd.function.FunctionCtx();  function_ctx = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fwd_body_0 = self.fwd_body_0
         bwd_body_0 = self.bwd_body_0
         autograd_function_apply: "f32[5, 4]" = torch.ops.higher_order.autograd_function_apply(fwd_body_0, bwd_body_0, l_x_, l_weight_, args_tensor_mask = [True, True], non_differentiable_idx = []);  fwd_body_0 = bwd_body_0 = l_x_ = l_weight_ = None
@@ -1305,7 +1317,10 @@ class GraphModule(torch.nn.Module):
         l_x_ = L_x_
         l_y_ = L_y_
 
+<<<<<<< HEAD
         function_ctx = torch.autograd.function.FunctionCtx();  function_ctx = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fwd_body_0 = self.fwd_body_0
         bwd_body_0 = self.bwd_body_0
         autograd_function_apply = torch.ops.higher_order.autograd_function_apply(fwd_body_0, bwd_body_0, l_x_, l_y_, args_tensor_mask = [True, True], non_differentiable_idx = [1]);  fwd_body_0 = bwd_body_0 = l_x_ = l_y_ = None
@@ -1474,7 +1489,11 @@ class GraphModule(torch.nn.Module):
         self.assertEqual(out, x + 1)
         self.assertEqual(x.grad.shape, shape)
         self.assertEqual(cnt.frame_count, 1)
+<<<<<<< HEAD
         self.assertEqual(cnt.op_count, 2)
+=======
+        self.assertEqual(cnt.op_count, 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @requires_cuda
     def test_triton_kernel_basic(self):

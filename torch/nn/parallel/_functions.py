@@ -11,9 +11,15 @@ from torch.nn.parallel import comm
 class Broadcast(Function):
     @staticmethod
     def forward(ctx, target_gpus, *inputs):
+<<<<<<< HEAD
         assert all(
             i.device.type != "cpu" for i in inputs
         ), "Broadcast function not implemented for CPU tensors"
+=======
+        assert all(i.device.type != "cpu" for i in inputs), (
+            "Broadcast function not implemented for CPU tensors"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         target_gpus = [_get_device_index(x, True) for x in target_gpus]
         ctx.target_gpus = target_gpus
         if len(inputs) == 0:
@@ -56,9 +62,15 @@ class ReduceAddCoalesced(Function):
 class Gather(Function):
     @staticmethod
     def forward(ctx, target_device, dim, *inputs):
+<<<<<<< HEAD
         assert all(
             i.device.type != "cpu" for i in inputs
         ), "Gather function not implemented for CPU tensors"
+=======
+        assert all(i.device.type != "cpu" for i in inputs), (
+            "Gather function not implemented for CPU tensors"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if target_device == "cpu":
             ctx.target_device = "cpu"
         else:
@@ -96,17 +108,28 @@ class Scatter(Function):
         ctx.dim = dim
         ctx.input_device = input.get_device() if input.device.type != "cpu" else -1
         streams = None
+<<<<<<< HEAD
         if torch.cuda.is_available() and ctx.input_device == -1:
             # Perform CPU to GPU copies in a background stream
             streams = [
                 _get_stream(torch.device("cuda", device)) for device in target_gpus
             ]
+=======
+        if torch.accelerator.is_available() and ctx.input_device == -1:
+            # Perform CPU to GPU copies in a background stream
+            streams = [_get_stream(torch.device(device)) for device in target_gpus]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputs = comm.scatter(input, target_gpus, chunk_sizes, ctx.dim, streams)
         # Synchronize with the copy stream
         if streams is not None:
             for i, output in enumerate(outputs):
+<<<<<<< HEAD
                 with torch.cuda.device(target_gpus[i]):
                     main_stream = torch.cuda.current_stream()
+=======
+                with torch.accelerator.device_index(target_gpus[i]):
+                    main_stream = torch.accelerator.current_stream()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     main_stream.wait_stream(streams[i])
                     output.record_stream(main_stream)
         return outputs
@@ -123,6 +146,7 @@ _streams: Optional[list[Optional[torch.Stream]]] = None
 def _get_stream(device: torch.device):
     """Get a background stream for copying between CPU and target device."""
     global _streams
+<<<<<<< HEAD
     if device.type == "cpu":
         return None
     device_mod = getattr(torch, device.type, None)
@@ -132,4 +156,13 @@ def _get_stream(device: torch.device):
         _streams = [None] * device_mod.device_count()
     if _streams[device.index] is None:
         _streams[device.index] = device_mod.Stream(device.index)
+=======
+    if device.type == "cpu" or not torch.accelerator.is_available():
+        return None
+    assert torch.accelerator.current_accelerator().type == device.type
+    if _streams is None:
+        _streams = [None] * torch.accelerator.device_count()
+    if _streams[device.index] is None:
+        _streams[device.index] = torch.Stream(device.index)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _streams[device.index]

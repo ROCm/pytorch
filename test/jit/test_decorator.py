@@ -1,10 +1,14 @@
 # Owner(s): ["oncall: jit"]
+<<<<<<< HEAD
 # flake8: noqa
 
 import sys
 import unittest
 from enum import Enum
 from typing import List, Optional
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from jit.myfunction_a import my_function_a
@@ -24,3 +28,13 @@ class TestDecorator(JitTestCase):
         fn = my_function_a
         fx = torch.jit.script(fn)
         self.assertEqual(fn(1.0), fx(1.0))
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

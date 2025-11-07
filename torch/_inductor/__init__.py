@@ -4,15 +4,28 @@ from __future__ import annotations
 import io
 import logging
 import os
+<<<<<<< HEAD
 from typing import Any, IO, Optional, TYPE_CHECKING, Union
+=======
+from typing import Any, IO, Literal, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._inductor.config
 import torch.fx
 
+<<<<<<< HEAD
+=======
+from .standalone_compile import CompiledArtifact  # noqa: TC001
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING:
     from torch._inductor.utils import InputType
     from torch.export import ExportedProgram
+<<<<<<< HEAD
+=======
+    from torch.export.pt2_archive._package_weights import Weights
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.types import FileLike
 
 __all__ = [
@@ -20,6 +33,10 @@ __all__ = [
     "list_mode_options",
     "list_options",
     "cudagraph_mark_step_begin",
+<<<<<<< HEAD
+=======
+    "standalone_compile",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -194,13 +211,21 @@ def _aoti_compile_and_package_inner(
         path = [
             os.path.splitext(file)[0]
             for file in aoti_files
+<<<<<<< HEAD
             if os.path.splitext(file)[1] == ".so"
+=======
+            if isinstance(file, str) and os.path.splitext(file)[1] == ".so"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         if len(path) == 0:
             path = [
                 os.path.splitext(file)[0]
                 for file in aoti_files
+<<<<<<< HEAD
                 if os.path.splitext(file)[1] == ".cpp"
+=======
+                if isinstance(file, str) and os.path.splitext(file)[1] == ".cpp"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
         package_path = path[0] + ".pt2"
 
@@ -232,7 +257,13 @@ def _aoti_compile_and_package_inner(
     return package_path
 
 
+<<<<<<< HEAD
 def aoti_load_package(path: FileLike, run_single_threaded: bool = False) -> Any:  # type: ignore[type-arg]
+=======
+def aoti_load_package(
+    path: FileLike, run_single_threaded: bool = False, device_index: int = -1
+) -> Any:  # type: ignore[type-arg]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Loads the model from the PT2 package.
 
@@ -251,10 +282,23 @@ def aoti_load_package(path: FileLike, run_single_threaded: bool = False) -> Any:
         run_single_threaded (bool): Whether the model should be run without
             thread synchronization logic. This is useful to avoid conflicts with
             CUDAGraphs.
+<<<<<<< HEAD
     """
     from torch._inductor.package import load_package
 
     return load_package(path, run_single_threaded=run_single_threaded)
+=======
+        device_index (int): The index of the device to which the PT2 package is
+            to be loaded. By default, `device_index=-1` is used, which corresponds
+            to the device `cuda` when using CUDA. Passing `device_index=1` would
+            load the package to `cuda:1`, for example.
+    """
+    from torch._inductor.package import load_package
+
+    return load_package(
+        path, run_single_threaded=run_single_threaded, device_index=device_index
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def aot_compile(
@@ -263,7 +307,11 @@ def aot_compile(
     kwargs: Optional[dict[str, Any]] = None,
     *,
     options: Optional[dict[str, Any]] = None,
+<<<<<<< HEAD
 ) -> Union[str, list[str]]:
+=======
+) -> Union[str, list[Union[str, Weights]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Ahead-of-time compile a given FX graph with TorchInductor into a shared library.
 
@@ -283,12 +331,23 @@ def aot_compile(
     flat_example_inputs, options = _aoti_flatten_inputs(
         gm, args, kwargs, options=options
     )
+<<<<<<< HEAD
 
     return compile_fx_aot(
         gm,
         flat_example_inputs,  # type: ignore[arg-type]
         config_patches=options,
     )
+=======
+    from torch._export.utils import _compiling_state_context
+
+    with _compiling_state_context():
+        return compile_fx_aot(
+            gm,
+            flat_example_inputs,  # type: ignore[arg-type]
+            config_patches=options,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def list_mode_options(
@@ -356,3 +415,49 @@ def cudagraph_mark_step_begin():
     from .cudagraph_trees import mark_step_begin
 
     mark_step_begin()
+<<<<<<< HEAD
+=======
+
+
+def standalone_compile(
+    gm: torch.fx.GraphModule,
+    example_inputs: list[InputType],
+    *,
+    dynamic_shapes: Literal[
+        "from_example_inputs", "from_tracing_context", "from_graph"
+    ] = "from_graph",
+    options: Optional[dict[str, Any]] = None,
+) -> CompiledArtifact:
+    """
+    Precompilation API for inductor.
+
+    .. code-block:: python
+
+        compiled_artifact = torch._inductor.standalone_compile(gm, args)
+        compiled_artifact.save(path=path, format="binary")
+
+        # Later on a new process
+        loaded = torch._inductor.CompiledArtifact.load(path=path, format="binary")
+        compiled_out = loaded(*args)
+
+    Args:
+        gm: Graph Module
+        example_inputs: Inputs for the graph module
+        dynamic_shapes: If "from_graph" (default), we will use the dynamic
+            shapes in the passed-in graph module.
+            If "from_tracing_context", we use the dynamic shape info in the
+            ambient tracing context.
+            If "from_example_inputs", we will specialize the graph on the
+            example_inputs.
+        options: Inductor compilation options
+
+    Returns:
+        CompiledArtifact that can be saved to disk or invoked directly.
+    """
+    from .standalone_compile import standalone_compile
+
+    options = options if options else {}
+    return standalone_compile(
+        gm, example_inputs, dynamic_shapes=dynamic_shapes, options=options
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

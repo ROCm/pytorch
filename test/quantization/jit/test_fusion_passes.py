@@ -4,6 +4,10 @@
 import torch
 from torch.testing import FileCheck
 from torch.testing._internal.common_quantization import QuantizationTestCase
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestFusionPasses(QuantizationTestCase):
@@ -104,3 +108,10 @@ class TestFusionPasses(QuantizationTestCase):
         ).check("quantized::add_scalar_relu_out").run(scripted_m.graph)
         output = scripted_m(qA, 3.0, qC)
         self.assertEqual(ref_output, output)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

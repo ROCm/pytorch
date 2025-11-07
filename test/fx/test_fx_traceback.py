@@ -102,7 +102,11 @@ class TestFXNodeSource(TestCase):
         )
 
         # Check node "linear" is created from node "x" in PropagateUnbackedSymInts
+<<<<<<< HEAD
         key_provenance = provenance["linear"]
+=======
+        key_provenance = provenance["linear"][0]["from_node"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(len(key_provenance), 1)
         key_provenance = key_provenance[0]
         check_node_source(
@@ -151,7 +155,13 @@ class TestFXNodeSource(TestCase):
             )
 
             # Check node "linear" is then created from node "x" in PropagateUnbackedSymInts
+<<<<<<< HEAD
             key_provenance = get_first_node_source_and_check(key_provenance)
+=======
+            key_provenance = get_first_node_source_and_check(key_provenance)[
+                "from_node"
+            ][0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             check_node_source(
                 key_provenance,
                 "x",
@@ -167,3 +177,13 @@ class TestFXNodeSource(TestCase):
                 "Interpreter_FlattenInputOutputSignature",
                 CREATE_STR,
             )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise RuntimeError(
+        "This test is not currently used and should be "
+        "enabled in discover_tests.py if required."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

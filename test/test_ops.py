@@ -62,7 +62,10 @@ from torch.testing._internal.common_utils import (
     run_tests,
     set_default_dtype,
     skipIfTorchDynamo,
+<<<<<<< HEAD
     skipIfRocm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipIfTorchInductor,
     slowTest,
     suppress_warnings,
@@ -119,8 +122,11 @@ _ops_and_refs_with_no_numpy_ref = [op for op in ops_and_refs if op.ref is None]
 aten = torch.ops.aten
 
 meta_consistency_out_dtype_mismatch_xfails = {
+<<<<<<< HEAD
     xfail("addbmm"),
     xfail("addmv"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("alias_copy"),
     xfail("all"),
     xfail("amax"),
@@ -128,7 +134,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("aminmax"),
     xfail("any"),
     xfail("as_strided_copy"),
+<<<<<<< HEAD
     xfail("baddbmm"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("bucketize"),
     xfail("conj_physical"),
     xfail("cross"),
@@ -136,7 +145,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("cummin"),
     xfail("diag"),
     xfail("diagonal_copy"),
+<<<<<<< HEAD
     xfail("dot"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("expand_copy"),
     xfail("fft.ihfft2"),
     xfail("fft.ihfftn"),
@@ -160,7 +172,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("linalg.lu_factor"),
     xfail("linalg.lu_factor_ex"),
     xfail("linalg.lu_solve"),
+<<<<<<< HEAD
     xfail("linalg.matrix_power"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("linalg.qr"),
     xfail("linalg.slogdet"),
     xfail("linalg.solve"),
@@ -169,12 +184,18 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("logcumsumexp"),
     xfail("lu_solve"),
     xfail("lu_unpack"),
+<<<<<<< HEAD
     xfail("matmul"),
     xfail("mm"),
     xfail("mode"),
     xfail("msort"),
     xfail("multinomial"),
     xfail("mv"),
+=======
+    xfail("mode"),
+    xfail("msort"),
+    xfail("multinomial"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("nan_to_num"),
     xfail("nanmean"),
     xfail("narrow_copy"),
@@ -183,7 +204,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("nn.functional.avg_pool3d"),
     xfail("nn.functional.gelu"),
     xfail("nn.functional.hardshrink"),
+<<<<<<< HEAD
     xfail("nn.functional.linear"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("nn.functional.logsigmoid"),
     xfail("nn.functional.softplus"),
     xfail("nn.functional.softshrink"),
@@ -211,7 +235,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("triu"),
     xfail("unfold_copy"),
     xfail("unsqueeze_copy"),
+<<<<<<< HEAD
     xfail("vdot"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("view_copy"),
     xfail("where"),
     # Output has dynamic shape.
@@ -1431,6 +1458,7 @@ class TestCommon(TestCase):
             # `cfloat` input -> `float` output
             self.assertEqual(actual, expected, exact_dtype=False)
 
+<<<<<<< HEAD
     @skipIfRocm
     @ops(op_db, allowed_dtypes=(torch.bool,))
     def test_non_standard_bool_values(self, device, dtype, op):
@@ -1446,6 +1474,10 @@ class TestCommon(TestCase):
             if self._testMethodName in rocm_blocklist:
                 self.skipTest("Failed on ROCm")
 
+=======
+    @ops(op_db, allowed_dtypes=(torch.bool,))
+    def test_non_standard_bool_values(self, device, dtype, op):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test boolean values other than 0x00 and 0x01 (gh-54789)
         def convert_boolean_tensors(x):
             if not isinstance(x, torch.Tensor) or x.dtype != torch.bool:
@@ -1839,6 +1871,10 @@ class TestCompositeCompliance(TestCase):
         def check_cow_input(
             arg,
             arg_copy,
+<<<<<<< HEAD
+=======
+            arg_raw,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             idx_or_kw,
             backward_or_forward="forward",
             supports_cow_input_no_materialize=op.supports_cow_input_no_materialize_forward,
@@ -1851,6 +1887,16 @@ class TestCompositeCompliance(TestCase):
             ) + f" during {backward_or_forward} call"
 
             if is_strided_tensor(arg):
+<<<<<<< HEAD
+=======
+                self.assertTrue(
+                    torch._C._is_cow_tensor(arg_raw),
+                    msg=(
+                        f"{arg_name} raw input should remain COW, but it "
+                        "unexpectedly materialized."
+                    ),
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 is_cow = torch._C._is_cow_tensor(arg)
 
                 if supports_cow_input_no_materialize and not check_ignore_materialize(
@@ -1875,6 +1921,20 @@ class TestCompositeCompliance(TestCase):
                             "but the operation mutated its data."
                         ),
                     )
+<<<<<<< HEAD
+=======
+                else:
+                    self.assertTrue(
+                        torch.allclose(
+                            arg_raw, arg_copy, rtol=0, atol=0, equal_nan=True
+                        ),
+                        msg=(
+                            f"{arg_name} materialized, which is allowed in this "
+                            "case, but the COW input data was mutated, which is "
+                            "not allowed."
+                        ),
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for sample in samples:
             args_raw = [sample.input] + list(sample.args)
@@ -1915,10 +1975,17 @@ class TestCompositeCompliance(TestCase):
 
             # Check that COW inputs remain COW after the forward op is executed
             for idx, arg in enumerate(args):
+<<<<<<< HEAD
                 check_cow_input(arg, args_copy[idx], idx)
 
             for kw, arg in kwargs.items():
                 check_cow_input(arg, kwargs_copy[kw], kw)
+=======
+                check_cow_input(arg, args_copy[idx], args_raw[idx], idx)
+
+            for kw, arg in kwargs.items():
+                check_cow_input(arg, kwargs_copy[kw], kwargs_raw[kw], kw)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Call backward op if it is supported. This part of the test is
             # based on `composite_compliance.check_backward_formula`
@@ -1968,6 +2035,10 @@ class TestCompositeCompliance(TestCase):
                         check_cow_input(
                             arg,
                             args_copy[idx],
+<<<<<<< HEAD
+=======
+                            args_raw[idx],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             idx,
                             backward_or_forward="backward",
                             supports_cow_input_no_materialize=op.supports_cow_input_no_materialize_backward,
@@ -1979,6 +2050,10 @@ class TestCompositeCompliance(TestCase):
                         check_cow_input(
                             output_grad,
                             output_grads_copy[idx],
+<<<<<<< HEAD
+=======
+                            output_grads_raw[idx],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             f"output grad {idx}",
                             backward_or_forward="backward",
                             supports_cow_input_no_materialize=op.supports_cow_input_no_materialize_backward,

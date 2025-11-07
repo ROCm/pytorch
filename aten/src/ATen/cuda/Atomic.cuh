@@ -330,9 +330,24 @@ inline __device__ void gpuAtomicAddNoReturn(int64_t *address, int64_t val) { gpu
 inline __device__ void gpuAtomicAddNoReturn(bool *address, bool val) { gpuAtomicAdd(address, val); }
 inline __device__ void gpuAtomicAddNoReturn(at::Half *address, at::Half val) { gpuAtomicAdd(address, val); }
 inline __device__ void gpuAtomicAddNoReturn(at::BFloat16 *address, at::BFloat16 val) { gpuAtomicAdd(address, val); }
+<<<<<<< HEAD
 inline __device__ void gpuAtomicAddNoReturn(double *address, double val) { gpuAtomicAdd(address, val); }
 
 /* Special case fp32 atomic. */
+=======
+
+/* Note [HIP unsafeAtomicAdd]
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Use unsafeAtomicAdd instead of atomicAdd for fp32 and fp64.
+ * On HIP, atomicAdd is always correct but is a slow CAS loop.
+ * unsafeAtomicAdd will use HW instructions and is much faster,
+ * but the caller must guarantee the pointer is GPU memory.
+ * If the pointer is system memory, the result is a silent no-op.
+ * This guarantee is upheld by all PyTorch uses of unsafeAtomicAdd.
+ * AMD HIP atomic header file is named amd_hip_atomic.h and is
+ * under the LLVM compiler directory.
+ */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if defined(USE_ROCM)
 inline __device__ void gpuAtomicAddNoReturn(float *address, float val) {
 #if defined(__gfx908__)
@@ -341,8 +356,15 @@ inline __device__ void gpuAtomicAddNoReturn(float *address, float val) {
   (void)unsafeAtomicAdd(address, val);
 #endif
 }
+<<<<<<< HEAD
 #else
 inline __device__ void gpuAtomicAddNoReturn(float *address, float val) { gpuAtomicAdd(address, val); }
+=======
+inline __device__ void gpuAtomicAddNoReturn(double *address, double val) { (void)unsafeAtomicAdd(address, val); }
+#else
+inline __device__ void gpuAtomicAddNoReturn(float *address, float val) { gpuAtomicAdd(address, val); }
+inline __device__ void gpuAtomicAddNoReturn(double *address, double val) { gpuAtomicAdd(address, val); }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 // Atomic multiplication implementation.
@@ -399,7 +421,11 @@ template <typename T>
 __host__ __device__ T safe_max(T a, T b) {
   #if defined(__HIPCC__)
   // TODO: remove this special case for HIP when issue is fixed:
+<<<<<<< HEAD
   //       https://github.com/ROCm-Developer-Tools/HIP/issues/2209
+=======
+  //       https://github.com/ROCm/hip/issues/2209
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     T max = at::_isnan(a) ? a : (at::_isnan(b) ? b : std::max<T>(a, b));
   #else
     T max = at::_isnan(b) ? b : std::max<T>(a, b);
@@ -459,7 +485,11 @@ template <typename T>
 __host__ __device__ T safe_min(T a, T b) {
   #if defined(__HIPCC__)
   // TODO: remove this special case for HIP when issue is fixed:
+<<<<<<< HEAD
   //       https://github.com/ROCm-Developer-Tools/HIP/issues/2209
+=======
+  //       https://github.com/ROCm/hip/issues/2209
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     T min = at::_isnan(a) ? a : (at::_isnan(b) ? b : std::min<T>(a, b));
   #else
     T min = at::_isnan(b) ? b : std::min<T>(a, b);

@@ -2,6 +2,10 @@
 
 import hashlib
 from itertools import chain
+<<<<<<< HEAD
+=======
+from types import ModuleType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Optional, TYPE_CHECKING
 
 import torch
@@ -13,6 +17,7 @@ from torch.fx.operator_schemas import normalize_function
 from torch.fx.passes.shape_prop import TensorMetadata
 
 
+<<<<<<< HEAD
 try:
     import pydot
 
@@ -20,6 +25,21 @@ try:
 except ModuleNotFoundError:
     HAS_PYDOT = False
     pydot = None
+=======
+if TYPE_CHECKING:
+    import pydot
+
+    HAS_PYDOT = True
+else:
+    pydot: Optional[ModuleType]
+    try:
+        import pydot
+
+        HAS_PYDOT = True
+    except ModuleNotFoundError:
+        HAS_PYDOT = False
+        pydot = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["FxGraphDrawer"]
@@ -416,7 +436,11 @@ if HAS_PYDOT:
                     label=self._get_node_label(
                         graph_module, node, skip_node_names_in_args, parse_stack_trace
                     ),
+<<<<<<< HEAD
                     **style,
+=======
+                    **style,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
                 current_graph = dot_graph
@@ -428,7 +452,11 @@ if HAS_PYDOT:
                         buf_name_to_subgraph[buf_name] = pydot.Cluster(
                             buf_name, label=buf_name
                         )
+<<<<<<< HEAD
                     current_graph = buf_name_to_subgraph.get(buf_name)
+=======
+                    current_graph = buf_name_to_subgraph.get(buf_name)  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 current_graph.add_node(dot_node)
 
@@ -445,7 +473,11 @@ if HAS_PYDOT:
                         dot_w_node = pydot.Node(
                             pname1,
                             label="{" + label1 + self._get_tensor_label(ptensor) + "}",
+<<<<<<< HEAD
                             **_WEIGHT_TEMPLATE,
+=======
+                            **_WEIGHT_TEMPLATE,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                         dot_graph.add_node(dot_w_node)
                         dot_graph.add_edge(pydot.Edge(pname1, node.name))
@@ -461,7 +493,11 @@ if HAS_PYDOT:
             for subgraph in buf_name_to_subgraph.values():
                 subgraph.set("color", "royalblue")
                 subgraph.set("penwidth", "2")
+<<<<<<< HEAD
                 dot_graph.add_subgraph(subgraph)
+=======
+                dot_graph.add_subgraph(subgraph)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             for node in graph_module.graph.nodes:
                 if ignore_getattr and node.op == "get_attr":

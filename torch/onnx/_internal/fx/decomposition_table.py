@@ -80,7 +80,11 @@ def create_onnx_friendly_decomposition_table(
     built-in aten-to-aten decomposition.
 
     Args:
+<<<<<<< HEAD
         registry (torch.onnx.OnnxRegistry): The ONNX registry for PyTorch.
+=======
+        registry: The ONNX registry for PyTorch.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         Dict[torch._ops.OperatorBase, Callable]: A dictionary that maps op overloads to their corresponding

@@ -6,7 +6,10 @@ from torch._dynamo.exc import UserError, UserErrorType
 from torch.export.dynamic_shapes import (
     _check_dynamic_shapes,
     _DerivedDim,
+<<<<<<< HEAD
     _Dim,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _DimHint,
     _tree_map_with_path,
     Dim,
@@ -19,7 +22,11 @@ from .serialize import _dataclass_to_dict
 @dataclasses.dataclass
 class RootDim:
     """
+<<<<<<< HEAD
     This represents a _Dim object.
+=======
+    This represents a Dim object.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     min: int
@@ -137,7 +144,11 @@ def _dump_dynamic_shapes(
         if not isinstance(tensor, torch.Tensor):
             return None
         if shape is None:
+<<<<<<< HEAD
             return [Dim.STATIC] * len(tensor.shape)  # type: ignore[attr-defined]
+=======
+            return [Dim.STATIC] * len(tensor.shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         out = []
         if isinstance(shape, dict):
@@ -150,7 +161,11 @@ def _dump_dynamic_shapes(
         return out
 
     def _track_dim_from_dims(
+<<<<<<< HEAD
         val: Union[None, int, _DimHint, _Dim]
+=======
+        val: Union[None, int, _DimHint, Dim]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Union[None, int, str]:
         """
         Tracks dims, ranges, derived dims from the standardized dynamic_shapes spec.
@@ -158,9 +173,15 @@ def _dump_dynamic_shapes(
         if val is None or isinstance(val, int):  # non-tensor input or static
             return val
         if isinstance(val, _DimHint):  # store enum as string
+<<<<<<< HEAD
             return val.__class__.__name__ + "." + val.name
 
         assert isinstance(val, _Dim)
+=======
+            return val.__class__.__name__ + "." + val.type.name
+
+        assert isinstance(val, Dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # track root dim
         root = val.root if isinstance(val, _DerivedDim) else val  # type: ignore[attr-defined]
@@ -290,13 +311,20 @@ def _load_dynamic_shapes(
             modulus, remainder = sympy.polys.polytools.div(expr, symbol)
             ddim = dim_cache[name]
             if modulus != 1:
+<<<<<<< HEAD
                 ddim = int(modulus) * ddim
             if remainder != 0:
                 ddim = ddim + int(remainder)
+=======
+                ddim = int(modulus) * ddim  # type: ignore[assignment, operator]
+            if remainder != 0:
+                ddim = ddim + int(remainder)  # type: ignore[assignment, operator]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dim_cache[_expr] = ddim  # cache derived dims
 
     def deserialize_shape(
         val: Union[None, int, str]
+<<<<<<< HEAD
     ) -> Union[None, int, _Dim, _DimHint]:
         if val is None or isinstance(val, int):
             return val
@@ -304,6 +332,17 @@ def _load_dynamic_shapes(
             return _DimHint.AUTO
         elif val == "_DimHint.STATIC":
             return _DimHint.STATIC
+=======
+    ) -> Union[None, int, Dim, _DimHint]:
+        if val is None or isinstance(val, int):
+            return val
+        elif val == "_DimHint.AUTO":
+            return _DimHint.AUTO()
+        elif val == "_DimHint.DYNAMIC":
+            return _DimHint.DYNAMIC()
+        elif val == "_DimHint.STATIC":
+            return _DimHint.STATIC()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(val, str):
             raise UserError(
                 UserErrorType.INVALID_INPUT,
@@ -316,6 +355,10 @@ def _load_dynamic_shapes(
                 "Expected dims in `spec['dynamic_shapes']` to be tracked in `spec['dims']`, "
                 f"got {val} which is not in {dims.keys()}",
             )
+<<<<<<< HEAD
         return dim_cache[val]
+=======
+        return dim_cache[val]  # type: ignore[return-value]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return tree_map(deserialize_shape, dynamic_shapes)

@@ -129,12 +129,18 @@ UPGRADER_CPP_SRC = CodeTemplate(
     MOBILE_UPGRADERS_HEADER_DESCRIPTION
     + """
 #include <caffe2/serialize/versions.h>
+<<<<<<< HEAD
 #include <torch/csrc/jit/mobile/upgrader_mobile.h>
 
 namespace c10 {
 TypePtr parseType(const std::string& pythonStr);
 } // namespace c10
 
+=======
+#include <torch/csrc/jit/mobile/type_parser.h>
+#include <torch/csrc/jit/mobile/upgrader_mobile.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace torch {
 namespace jit {
 

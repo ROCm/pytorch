@@ -16,7 +16,11 @@ namespace torch::distributed::rpc {
 namespace {
 
 py::tuple toPyTuple(const RRefForkData& rrefForkData) {
+<<<<<<< HEAD
   // add GIL as it is contructing a py::object
+=======
+  // add GIL as it is constructing a py::object
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   pybind11::gil_scoped_acquire ag;
   return py::make_tuple(
       rrefForkData.ownerId_,
@@ -86,12 +90,23 @@ TypePtr tryInferTypeWithTypeHint(
   // Check if value is an instance of a ScriptClass. If not, skip type inference
   // because it will try to script the class that value is in instance of, and
   // this should be avoided.
+<<<<<<< HEAD
   py::bool_ can_compile = py::module::import("torch._jit_internal")
                               .attr("can_compile_class")(value.get_type());
 
   if (py::cast<bool>(can_compile)) {
     py::object existing_ty = py::module::import("torch.jit._state")
                                  .attr("_get_script_class")(value.get_type());
+=======
+  py::bool_ can_compile =
+      py::module::import("torch._jit_internal")
+          .attr("can_compile_class")(py::type::handle_of(value));
+
+  if (py::cast<bool>(can_compile)) {
+    py::object existing_ty =
+        py::module::import("torch.jit._state")
+            .attr("_get_script_class")(py::type::handle_of(value));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (existing_ty.is_none()) {
       return PyObjectType::get();

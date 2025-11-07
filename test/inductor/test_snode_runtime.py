@@ -32,6 +32,10 @@ def calculate_runtime(f, *args) -> float:
     Assumes all inputs are fp32
     """
     metrics.reset()
+<<<<<<< HEAD
+=======
+    torch._logging.set_logs(inductor_metrics=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.compile(f, backend=compile_but_use_eager)(*args)
     print(metrics.node_runtimes)
 
@@ -39,6 +43,10 @@ def calculate_runtime(f, *args) -> float:
     for pair in metrics.node_runtimes:
         ret += pair[1]
 
+<<<<<<< HEAD
+=======
+    torch._logging.set_logs()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ret
 
 
@@ -235,6 +243,10 @@ class TestCommAnalysis(TestCase):
         )
         try:
             metrics.reset()
+<<<<<<< HEAD
+=======
+            torch._logging.set_logs(inductor_metrics=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.compile(fn)(*inps)
             found_collective = False
             for snode, runtime in metrics.node_runtimes:
@@ -251,6 +263,10 @@ class TestCommAnalysis(TestCase):
                 self.assertNotZero(runtime)
             # Make sure a collective kernel is found in graph
             self.assertTrue(found_collective)
+<<<<<<< HEAD
+=======
+            torch._logging.set_logs()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         finally:
             dist.destroy_process_group()
 

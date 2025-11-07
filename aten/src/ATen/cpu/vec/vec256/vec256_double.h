@@ -15,6 +15,7 @@ namespace at::vec {
 // See Note [CPU_CAPABILITY namespace]
 inline namespace CPU_CAPABILITY {
 
+<<<<<<< HEAD
 
 #if defined(CPU_CAPABILITY_AVX2)
 
@@ -22,6 +23,19 @@ template <> class Vectorized<double> {
 private:
   __m256d values;
 public:
+=======
+#if defined(CPU_CAPABILITY_AVX2)
+
+template <>
+struct is_vec_specialized_for<double> : std::bool_constant<true> {};
+
+template <>
+class Vectorized<double> {
+ private:
+  __m256d values;
+
+ public:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using value_type = double;
   using size_type = int;
   static constexpr size_type size() {
@@ -39,6 +53,7 @@ public:
     return values;
   }
   template <int64_t mask>
+<<<<<<< HEAD
   static Vectorized<double> blend(const Vectorized<double>& a, const Vectorized<double>& b) {
     return _mm256_blend_pd(a.values, b.values, mask);
   }
@@ -52,6 +67,30 @@ public:
   }
   static Vectorized<double> set(const Vectorized<double>& a, const Vectorized<double>& b,
                             int64_t count = size()) {
+=======
+  static Vectorized<double> blend(
+      const Vectorized<double>& a,
+      const Vectorized<double>& b) {
+    return _mm256_blend_pd(a.values, b.values, mask);
+  }
+  static Vectorized<double> blendv(
+      const Vectorized<double>& a,
+      const Vectorized<double>& b,
+      const Vectorized<double>& mask) {
+    return _mm256_blendv_pd(a.values, b.values, mask.values);
+  }
+  template <typename step_t>
+  static Vectorized<double> arange(
+      double base = 0.,
+      step_t step = static_cast<step_t>(1)) {
+    return Vectorized<double>(
+        base, base + step, base + 2 * step, base + 3 * step);
+  }
+  static Vectorized<double> set(
+      const Vectorized<double>& a,
+      const Vectorized<double>& b,
+      int64_t count = size()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     switch (count) {
       case 0:
         return a;
@@ -68,11 +107,19 @@ public:
     if (count == size())
       return _mm256_loadu_pd(reinterpret_cast<const double*>(ptr));
 
+<<<<<<< HEAD
 
     __at_align__ double tmp_values[size()];
     // Ensure uninitialized memory does not change the output value See https://github.com/pytorch/pytorch/issues/32502
     // for more details. We do not initialize arrays to zero using "={0}" because gcc would compile it to two
     // instructions while a loop would be compiled to one instruction.
+=======
+    __at_align__ double tmp_values[size()];
+    // Ensure uninitialized memory does not change the output value See
+    // https://github.com/pytorch/pytorch/issues/32502 for more details. We do
+    // not initialize arrays to zero using "={0}" because gcc would compile it
+    // to two instructions while a loop would be compiled to one instruction.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (const auto i : c10::irange(size())) {
       tmp_values[i] = 0.0;
     }
@@ -91,10 +138,18 @@ public:
       std::memcpy(ptr, tmp_values, count * sizeof(double));
     }
   }
+<<<<<<< HEAD
   const double& operator[](int idx) const  = delete;
   double& operator[](int idx) = delete;
   int zero_mask() const {
     // returns an integer mask where all zero elements are translated to 1-bit and others are translated to 0-bit
+=======
+  const double& operator[](int idx) const = delete;
+  double& operator[](int idx) = delete;
+  int zero_mask() const {
+    // returns an integer mask where all zero elements are translated to 1-bit
+    // and others are translated to 0-bit
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __m256d cmp = _mm256_cmp_pd(values, _mm256_set1_pd(0.0), _CMP_EQ_OQ);
     return _mm256_movemask_pd(cmp);
   }
@@ -102,8 +157,14 @@ public:
     return _mm256_cmp_pd(values, _mm256_set1_pd(0.0), _CMP_UNORD_Q);
   }
   bool has_inf_nan() const {
+<<<<<<< HEAD
     __m256d self_sub  = _mm256_sub_pd(values, values);
     return (_mm256_movemask_epi8(_mm256_castpd_si256(self_sub)) & 0x77777777) != 0;
+=======
+    __m256d self_sub = _mm256_sub_pd(values, values);
+    return (_mm256_movemask_epi8(_mm256_castpd_si256(self_sub)) & 0x77777777) !=
+        0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   Vectorized<double> map(double (*const f)(double)) const {
     __at_align__ double tmp[size()];
@@ -156,10 +217,17 @@ public:
   Vectorized<double> atanh() const {
     return Vectorized<double>(Sleef_atanhd4_u10(values));
   }
+<<<<<<< HEAD
   Vectorized<double> atan2(const Vectorized<double> &b) const {
     return Vectorized<double>(Sleef_atan2d4_u10(values, b));
   }
   Vectorized<double> copysign(const Vectorized<double> &sign) const {
+=======
+  Vectorized<double> atan2(const Vectorized<double>& b) const {
+    return Vectorized<double>(Sleef_atan2d4_u10(values, b));
+  }
+  Vectorized<double> copysign(const Vectorized<double>& sign) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Vectorized<double>(Sleef_copysignd4(values, sign));
   }
   Vectorized<double> erf() const {
@@ -186,7 +254,11 @@ public:
   Vectorized<double> fmod(const Vectorized<double>& q) const {
     return Vectorized<double>(Sleef_fmodd4(values, q));
   }
+<<<<<<< HEAD
   Vectorized<double> hypot(const Vectorized<double> &b) const {
+=======
+  Vectorized<double> hypot(const Vectorized<double>& b) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Vectorized<double>(Sleef_hypotd4_u05(values, b));
   }
   Vectorized<double> i0() const {
@@ -198,7 +270,11 @@ public:
   Vectorized<double> digamma() const {
     return map(calc_digamma);
   }
+<<<<<<< HEAD
   Vectorized<double> igamma(const Vectorized<double> &x) const {
+=======
+  Vectorized<double> igamma(const Vectorized<double>& x) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __at_align__ double tmp[size()];
     __at_align__ double tmp_x[size()];
     store(tmp);
@@ -208,7 +284,11 @@ public:
     }
     return loadu(tmp);
   }
+<<<<<<< HEAD
   Vectorized<double> igammac(const Vectorized<double> &x) const {
+=======
+  Vectorized<double> igammac(const Vectorized<double>& x) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __at_align__ double tmp[size()];
     __at_align__ double tmp_x[size()];
     store(tmp);
@@ -252,11 +332,20 @@ public:
   Vectorized<double> neg() const {
     return _mm256_xor_pd(_mm256_set1_pd(-0.), values);
   }
+<<<<<<< HEAD
   Vectorized<double> nextafter(const Vectorized<double> &b) const {
     return Vectorized<double>(Sleef_nextafterd4(values, b));
   }
   Vectorized<double> round() const {
     return _mm256_round_pd(values, (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+=======
+  Vectorized<double> nextafter(const Vectorized<double>& b) const {
+    return Vectorized<double>(Sleef_nextafterd4(values, b));
+  }
+  Vectorized<double> round() const {
+    return _mm256_round_pd(
+        values, (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   Vectorized<double> tan() const {
     return Vectorized<double>(Sleef_tand4_u10(values));
@@ -279,7 +368,11 @@ public:
   Vectorized<double> rsqrt() const {
     return _mm256_div_pd(_mm256_set1_pd(1), _mm256_sqrt_pd(values));
   }
+<<<<<<< HEAD
   Vectorized<double> pow(const Vectorized<double> &b) const {
+=======
+  Vectorized<double> pow(const Vectorized<double>& b) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Vectorized<double>(Sleef_powd4_u10(values, b));
   }
   // Comparison using the _CMP_**_OQ predicate.
@@ -318,22 +411,46 @@ public:
 };
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator+(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline operator+(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_add_pd(a, b);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator-(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline operator-(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_sub_pd(a, b);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator*(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline operator*(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_mul_pd(a, b);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator/(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline operator/(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_div_pd(a, b);
 }
 
@@ -345,7 +462,13 @@ inline Vectorized<double> Vectorized<double>::frac() const {
 // Implements the IEEE 754 201X `maximum` operation, which propagates NaN if
 // either input is a NaN.
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline maximum(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline maximum(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<double> max = _mm256_max_pd(a, b);
   Vectorized<double> isnan = _mm256_cmp_pd(a, b, _CMP_UNORD_Q);
   // Exploit the fact that all-ones is a NaN.
@@ -355,7 +478,13 @@ Vectorized<double> inline maximum(const Vectorized<double>& a, const Vectorized<
 // Implements the IEEE 754 201X `minimum` operation, which propagates NaN if
 // either input is a NaN.
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline minimum(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline minimum(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<double> min = _mm256_min_pd(a, b);
   Vectorized<double> isnan = _mm256_cmp_pd(a, b, _CMP_UNORD_Q);
   // Exploit the fact that all-ones is a NaN.
@@ -363,31 +492,63 @@ Vectorized<double> inline minimum(const Vectorized<double>& a, const Vectorized<
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline clamp(const Vectorized<double>& a, const Vectorized<double>& min, const Vectorized<double>& max) {
+=======
+Vectorized<double> inline clamp(
+    const Vectorized<double>& a,
+    const Vectorized<double>& min,
+    const Vectorized<double>& max) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_min_pd(max, _mm256_max_pd(min, a));
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline clamp_min(const Vectorized<double>& a, const Vectorized<double>& min) {
+=======
+Vectorized<double> inline clamp_min(
+    const Vectorized<double>& a,
+    const Vectorized<double>& min) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_max_pd(min, a);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline clamp_max(const Vectorized<double>& a, const Vectorized<double>& max) {
+=======
+Vectorized<double> inline clamp_max(
+    const Vectorized<double>& a,
+    const Vectorized<double>& max) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_min_pd(max, a);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator&(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline operator&(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_and_pd(a, b);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator|(const Vectorized<double>& a, const Vectorized<double>& b) {
+=======
+Vectorized<double> inline operator|(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_or_pd(a, b);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline operator^(const Vectorized<double>& a, const Vectorized<double>& b) {
   return _mm256_xor_pd(a, b);
 }
@@ -413,6 +574,41 @@ inline Vectorized<double> Vectorized<double>::lt(const Vectorized<double>& other
 }
 
 inline Vectorized<double> Vectorized<double>::le(const Vectorized<double>& other) const {
+=======
+Vectorized<double> inline operator^(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b) {
+  return _mm256_xor_pd(a, b);
+}
+
+inline Vectorized<double> Vectorized<double>::eq(
+    const Vectorized<double>& other) const {
+  return (*this == other) & Vectorized<double>(1.0);
+}
+
+inline Vectorized<double> Vectorized<double>::ne(
+    const Vectorized<double>& other) const {
+  return (*this != other) & Vectorized<double>(1.0);
+}
+
+inline Vectorized<double> Vectorized<double>::gt(
+    const Vectorized<double>& other) const {
+  return (*this > other) & Vectorized<double>(1.0);
+}
+
+inline Vectorized<double> Vectorized<double>::ge(
+    const Vectorized<double>& other) const {
+  return (*this >= other) & Vectorized<double>(1.0);
+}
+
+inline Vectorized<double> Vectorized<double>::lt(
+    const Vectorized<double>& other) const {
+  return (*this < other) & Vectorized<double>(1.0);
+}
+
+inline Vectorized<double> Vectorized<double>::le(
+    const Vectorized<double>& other) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (*this <= other) & Vectorized<double>(1.0);
 }
 
@@ -422,7 +618,12 @@ inline void convert(const double* src, double* dst, int64_t n) {
 #ifndef __msvc_cl__
 #pragma unroll
 #endif
+<<<<<<< HEAD
   for (i = 0; i <= (n - Vectorized<double>::size()); i += Vectorized<double>::size()) {
+=======
+  for (i = 0; i <= (n - Vectorized<double>::size());
+       i += Vectorized<double>::size()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _mm256_storeu_pd(dst + i, _mm256_loadu_pd(src + i));
   }
 #ifndef __msvc_cl__
@@ -435,16 +636,35 @@ inline void convert(const double* src, double* dst, int64_t n) {
 
 #ifdef CPU_CAPABILITY_AVX2
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline fmadd(const Vectorized<double>& a, const Vectorized<double>& b, const Vectorized<double>& c) {
+=======
+Vectorized<double> inline fmadd(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b,
+    const Vectorized<double>& c) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_fmadd_pd(a, b, c);
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<double> inline fmsub(const Vectorized<double>& a, const Vectorized<double>& b, const Vectorized<double>& c) {
+=======
+Vectorized<double> inline fmsub(
+    const Vectorized<double>& a,
+    const Vectorized<double>& b,
+    const Vectorized<double>& c) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return _mm256_fmsub_pd(a, b, c);
 }
 #endif
 
 #endif
 
+<<<<<<< HEAD
 }} // namespace at::vec::CPU_CAPABILITY
+=======
+} // namespace CPU_CAPABILITY
+} // namespace at::vec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -9,7 +9,11 @@ namespace torch::unwind {
 template <typename T>
 struct RangeTable {
   RangeTable() {
+<<<<<<< HEAD
     // guarentee that lower_bound[-1] is always valid
+=======
+    // guarantee that lower_bound[-1] is always valid
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     addresses_.push_back(0);
     payloads_.emplace_back(std::nullopt);
   }

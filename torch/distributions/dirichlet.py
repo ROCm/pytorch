@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.autograd import Function
@@ -54,7 +59,15 @@ class Dirichlet(ExponentialFamily):
     support = constraints.simplex
     has_rsample = True
 
+<<<<<<< HEAD
     def __init__(self, concentration, validate_args=None):
+=======
+    def __init__(
+        self,
+        concentration: Tensor,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if concentration.dim() < 1:
             raise ValueError(
                 "`concentration` parameter must be at least one-dimensional."

@@ -143,7 +143,11 @@ ExprHandle abs(const ExprHandle& v) {
 }
 
 // The default tanh is quite slow, use the Eigen version from here:
+<<<<<<< HEAD
 // https://bitbucket.org/eigen/eigen/src/94875feeeeb9abe5509b314197da1991ba2070f5/Eigen/src/Core/MathFunctionsImpl.h#lines-26
+=======
+// https://github.com/TUW-VieVS/VieSchedpp/blob/master/Eigen/src/Core/MathFunctionsImpl.h#L26
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ExprHandle fast_tanh(const ExprHandle& v) {
   // TODO: use a dedicated bind-var to make sure v is not evaluated multiple
   // times. Clamp the input expression to [-9, 9]
@@ -205,7 +209,11 @@ ExprHandle fast_sigmoid(const ExprHandle& x) {
 
 ExprHandle fast_log(const ExprHandle& v) {
   // this implementation is taken from sleef:
+<<<<<<< HEAD
   // https://github.com/shibatch/sleef/blob/master/src/libm/sleefsp.c#L1131
+=======
+  // https://github.com/shibatch/sleef/blob/master/src/libm/sleefsimdsp.c#L1277
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // to generate coefficients, this tool is provided
   // https://github.com/shibatch/sleef/blob/master/src/gencoef/gencoef.txt
   auto ilogb2kf = [](const ExprHandle& x) {

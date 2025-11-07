@@ -15,6 +15,10 @@ from torch.distributed.checkpoint.filesystem import (
     FileSystemBase,
     FileSystemReader,
     FileSystemWriter,
+<<<<<<< HEAD
+=======
+    SerializationFormat,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -90,6 +94,14 @@ class FileSystem(FileSystemBase):
     def rm_file(self, path: Union[str, os.PathLike]) -> None:
         self.fs.rm(path)
 
+<<<<<<< HEAD
+=======
+    def ls(self, path: Union[str, os.PathLike]) -> list[str]:
+        # setting detail to False explicitly to keep the list[str] return type,
+        # instead of the list[Dict] return type when detail=True
+        return self.fs.ls(path, detail=False)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: add the dcp.async_save mixin
 class FsspecWriter(FileSystemWriter):
@@ -115,6 +127,10 @@ class FsspecWriter(FileSystemWriter):
         per_thread_copy_ahead: int = 10_000_000,
         overwrite: bool = True,
         _extensions: Optional[Sequence[StreamTransformExtension]] = None,
+<<<<<<< HEAD
+=======
+        serialization_format: SerializationFormat = SerializationFormat.TORCH_SAVE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         **kwargs,
     ) -> None:
         """
@@ -139,6 +155,10 @@ class FsspecWriter(FileSystemWriter):
             per_thread_copy_ahead,
             overwrite=overwrite,
             _extensions=_extensions,
+<<<<<<< HEAD
+=======
+            serialization_format=serialization_format,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.fs = FileSystem()
         self.path = self.fs.init_path(path, **kwargs)

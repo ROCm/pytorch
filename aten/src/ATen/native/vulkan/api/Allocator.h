@@ -41,7 +41,11 @@
 */
 #endif /* VULKAN_DEBUG */
 
+<<<<<<< HEAD
 // Note: Do not try to use C10 convenience macors here, as this header is
+=======
+// Note: Do not try to use C10 convenience macros here, as this header is
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // included from ExecuTorch that does not want to have dependency on C10
 #ifdef __clang__
 #pragma clang diagnostic push

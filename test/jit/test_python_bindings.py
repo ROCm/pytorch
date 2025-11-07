@@ -2,6 +2,7 @@
 
 import torch
 from torch.testing import FileCheck
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -13,6 +14,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestPythonBindings(JitTestCase):
     def test_cu_get_functions(self):
         @torch.jit.script
@@ -114,3 +121,10 @@ graph(%p207 : Tensor,
         graph3 = torch._C.parse_ir(ir)
         graph3 = torch._C._jit_pass_canonicalize(graph3, False)
         FileCheck().check_not("%p207").run(graph3)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -71,7 +71,14 @@ from torch.testing._internal.common_quantized import (
     qengine_is_fbgemm,
     qengine_is_qnnpack,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import set_default_dtype
+=======
+from torch.testing._internal.common_utils import (
+    raise_on_run_directly,
+    set_default_dtype,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import (
     attrs_with_prefix,
     get_forward,
@@ -3880,3 +3887,10 @@ class TestQuantizeJit(QuantizationTestCase):
                 )
             # compare result with eager mode
             self.assertEqual(quantized_model(self.calib_data[0][0]), result_eager)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

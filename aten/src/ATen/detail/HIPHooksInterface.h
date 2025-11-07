@@ -6,8 +6,11 @@
 
 #include <ATen/detail/AcceleratorHooksInterface.h>
 
+<<<<<<< HEAD
 #include <memory>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NB: Class must live in `at` due to limitations of Registry.h.
 namespace at {
 
@@ -37,7 +40,11 @@ struct TORCH_API HIPHooksInterface : AcceleratorHooksInterface {
     return -1;
   }
 
+<<<<<<< HEAD
   bool isPinnedPtr(const void* data) const override {
+=======
+  bool isPinnedPtr(const void* /*data*/ ) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return false;
   }
 
@@ -49,7 +56,11 @@ struct TORCH_API HIPHooksInterface : AcceleratorHooksInterface {
     return 0;
   }
 
+<<<<<<< HEAD
   bool hasPrimaryContext(DeviceIndex device_index) const override {
+=======
+  bool hasPrimaryContext(DeviceIndex /*device_index*/ ) const override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "Cannot check primary context without ATen_hip library.");
   }
 };

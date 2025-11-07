@@ -15,7 +15,15 @@
 namespace torch::autograd {
 
 struct InputBuffer {
+<<<<<<< HEAD
   explicit InputBuffer(size_t size) : buffer(size) {}
+=======
+  explicit InputBuffer(size_t size)
+      : buffer(size),
+        opt_accum_streams(size),
+        ready_events(size),
+        ready_streams(size) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   InputBuffer(const InputBuffer& other) = delete;
   InputBuffer(InputBuffer&& other) = default;
   explicit InputBuffer(variable_list&& inputs) : buffer(std::move(inputs)) {}
@@ -38,6 +46,17 @@ struct InputBuffer {
   static std::vector<Variable> variables(InputBuffer&& g);
 
   std::vector<Variable> buffer;
+<<<<<<< HEAD
+=======
+  // The stream used for accumulation when a variable is used multiple times.
+  std::vector<std::optional<c10::Stream>> opt_accum_streams;
+  // The events you need to wait for to ensure the corresponding buffers
+  // are ready. The events are updated as we accumulate into the buffer.
+  std::vector<std::optional<c10::Event>> ready_events;
+  // The streams corresponding to the events above. This is only used to
+  // check if more synchronization is needed or not.
+  std::vector<std::optional<c10::Stream>> ready_streams;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace torch::autograd

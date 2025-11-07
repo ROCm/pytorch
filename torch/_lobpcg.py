@@ -498,7 +498,11 @@ def lobpcg(
       [DuerschEtal2018] Jed A. Duersch, Meiyue Shao, Chao Yang, Ming
       Gu. (2018) A Robust and Efficient Implementation of LOBPCG.
       SIAM J. Sci. Comput., 40(5), C655-C676. (22 pages)
+<<<<<<< HEAD
       https://epubs.siam.org/doi/abs/10.1137/17M1129830
+=======
+      https://arxiv.org/abs/1704.07458
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     """
 
@@ -783,11 +787,18 @@ class LOBPCG:
         A_norm = self.fvars["A_norm"]
         B_norm = self.fvars["B_norm"]
         E, X, R = self.E, self.X, self.R
+<<<<<<< HEAD
         rerr = (
             torch.norm(R, 2, (0,))
             * (torch.norm(X, 2, (0,)) * (A_norm + E[: X.shape[-1]] * B_norm)) ** -1
         )
         converged = rerr.real < tol  # this is a norm so imag is 0.0
+=======
+        rerr = torch.norm(R, 2, (0,)) / (
+            torch.norm(X, 2, (0,)) * (A_norm + torch.abs(E[: X.shape[-1]]) * B_norm)
+        )
+        converged = rerr < tol
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         count = 0
         for b in converged:
             if not b:

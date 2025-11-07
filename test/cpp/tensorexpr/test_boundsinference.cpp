@@ -202,9 +202,13 @@ TEST(BoundsInference, _5) {
   Tensor b = Compute("b", {n}, [&](const VarHandle& i) { return a.load(i); });
   LoopNest l({b});
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   ForPtr inner;
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+  ForPtr inner;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr tail;
   std::vector<ForPtr> loops = l.getLoopStmtsFor(b);
   LoopNest::splitWithTail(loops[0], 16, &inner, &tail);
@@ -680,7 +684,10 @@ TEST(BoundsInference, GetPotentialHazardsLoopSplit) {
   });
 
   LoopNest l({A});
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ForPtr inner, tail;
 
   // Splitting with tail by something offset creates a tail which also writes to

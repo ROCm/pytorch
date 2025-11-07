@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import math
+<<<<<<< HEAD
+=======
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -93,7 +97,17 @@ class LowRankMultivariateNormal(Distribution):
     support = constraints.real_vector
     has_rsample = True
 
+<<<<<<< HEAD
     def __init__(self, loc, cov_factor, cov_diag, validate_args=None):
+=======
+    def __init__(
+        self,
+        loc: Tensor,
+        cov_factor: Tensor,
+        cov_diag: Tensor,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if loc.dim() < 1:
             raise ValueError("loc must be at least one-dimensional.")
         event_shape = loc.shape[-1:]

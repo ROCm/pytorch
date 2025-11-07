@@ -11,6 +11,10 @@ import torch
 import torch.distributed.tensor._dispatch as op_dispatch
 import torch.distributed.tensor._random as random
 import torch.nn as nn
+<<<<<<< HEAD
+=======
+from torch._export.wrappers import mark_subclass_constructor_exportable_experimental
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _mesh_resources, DeviceMesh
 from torch.distributed.tensor._collective_utils import check_tensor_meta, mesh_broadcast
 from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
@@ -268,7 +272,11 @@ class DTensor(torch.Tensor):
         # new method instruct wrapper tensor from local_tensor and add
         # placement spec, it does not do actual distribution
         assert spec.tensor_meta is not None, "TensorMeta should not be None!"
+<<<<<<< HEAD
         r = torch.Tensor._make_wrapper_subclass(  # type: ignore[attr-defined]
+=======
+        r = torch.Tensor._make_wrapper_subclass(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cls,
             spec.tensor_meta.shape,
             strides=spec.tensor_meta.stride,
@@ -282,6 +290,14 @@ class DTensor(torch.Tensor):
         r._local_tensor = local_tensor
         return r
 
+<<<<<<< HEAD
+=======
+    @torch._disable_dynamo
+    @mark_subclass_constructor_exportable_experimental
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # pyre-fixme[14]: `__repr__` overrides method defined in `DTensor` inconsistently.
     # pyre-fixme[3]: Return type must be annotated.
     def __repr__(self):  # type: ignore[override]
@@ -340,7 +356,11 @@ class DTensor(torch.Tensor):
     @torch._disable_dynamo
     # pyre-fixme[3]: Return type must be annotated.
     # pyre-fixme[2]: Parameter must be annotated.
+<<<<<<< HEAD
     def __torch_dispatch__(cls, func, types, args=(), kwargs=None):
+=======
+    def __torch_dispatch__(cls, func, types, args=(), kwargs=None):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return DTensor._op_dispatcher.dispatch(
             func,
             args,
@@ -475,10 +495,19 @@ class DTensor(torch.Tensor):
         placements: Optional[Sequence[Placement]] = None,
         *,
         async_op: bool = False,
+<<<<<<< HEAD
     ) -> "DTensor":
         """
         ``redistribute`` performs necessary collective operations that redistribute the current
         DTensor from its current placements to a new placements, or from is current DeviceMesh
+=======
+        forward_dtype: Optional[torch.dtype] = None,
+        backward_dtype: Optional[torch.dtype] = None,
+    ) -> "DTensor":
+        """
+        ``redistribute`` performs necessary collective operations that redistribute the current
+        DTensor from its current placements to a new placements, or from its current DeviceMesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to a new DeviceMesh. i.e. we can turn a Sharded DTensor to a Replicated DTensor by
         specifying a Replicate placement for each dimension of the DeviceMesh.
 
@@ -507,6 +536,15 @@ class DTensor(torch.Tensor):
         Keyword args:
             async_op (bool, optional): whether to perform the DTensor redistribute operation
                 asynchronously or not. Default: False
+<<<<<<< HEAD
+=======
+            forward_dtype (torch.dtype, optional): the local tensor datatype can be converted to
+                ``forward_dtype`` before redistributing the local tensor in its forward.
+                The result DTensor will be in ``forward_dtype`` Default: None.
+            backward_dtype (torch.dtype, optional): the local tensor datatype can be converted to
+                ``backward_dtype`` before redistributing the local tensor in its backward.
+                The result DTensor gradient would be converted back to the current DTensor dtype. Default: None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         Returns:
             A :class:`DTensor` object
@@ -539,7 +577,13 @@ class DTensor(torch.Tensor):
         placements = tuple(placements)
 
         # pyre-fixme[16]: `Redistribute` has no attribute `apply`.
+<<<<<<< HEAD
         return Redistribute.apply(self, device_mesh, placements, async_op)
+=======
+        return Redistribute.apply(
+            self, device_mesh, placements, async_op, forward_dtype, backward_dtype
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def full_tensor(
         self, *, grad_placements: Optional[Sequence[Placement]] = None
@@ -980,8 +1024,11 @@ def _dtensor_init_helper(  # type: ignore[no-untyped-def]
     placements: Optional[Sequence[Placement]] = None,
     **kwargs,
 ) -> DTensor:
+<<<<<<< HEAD
     # from torch.distributed._tensor.placement_types import DTensorSpec, TensorMeta
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # if device_mesh is None, use the one from mesh resources
     device_mesh = device_mesh or _mesh_resources.get_current_mesh()
     kwargs["device"] = device_mesh.device_type

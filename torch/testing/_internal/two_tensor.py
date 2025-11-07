@@ -2,6 +2,10 @@
 
 import torch
 import torch.utils._pytree as pytree
+<<<<<<< HEAD
+=======
+from torch._export.wrappers import mark_subclass_constructor_exportable_experimental
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import return_and_correct_aliasing
 
 
@@ -36,6 +40,11 @@ class TwoTensor(torch.Tensor):
         assert a.storage_offset() == b.storage_offset()
         return out
 
+<<<<<<< HEAD
+=======
+    @torch._disable_dynamo
+    @mark_subclass_constructor_exportable_experimental
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, a, b, outer_size=None, outer_stride=None):
         self.a = a
         self.b = b

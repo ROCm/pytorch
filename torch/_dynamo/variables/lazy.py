@@ -22,15 +22,26 @@ class LazyCache:
     def realize(self) -> None:
         assert self.vt is None
         from ..symbolic_convert import InstructionTranslator
+<<<<<<< HEAD
+=======
+        from . import builder
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         tx = InstructionTranslator.current_tx()
 
         if isinstance(self.value, LazySymNodeFormatString):
+<<<<<<< HEAD
             source = None
         else:
             source = self.source
 
         self.vt = VariableTracker.build(tx, self.value, source)
+=======
+            self.vt = builder.SourcelessBuilder.create(tx, self.value)
+        else:
+            self.vt = builder.VariableBuilder(tx, self.source)(self.value)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         del self.value
         del self.source
 

@@ -55,7 +55,11 @@ def main(argv: list[str]) -> None:
 
     results = Runner(work_orders, cadence=30.0).run()
 
+<<<<<<< HEAD
     # TODO: Annotate with TypedDict when 3.8 is the minimum supported verson.
+=======
+    # TODO: Annotate with TypedDict when 3.8 is the minimum supported version.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grouped_results: dict[str, dict[str, list[Union[float, int]]]] = {
         key: {"times": [], "counts": []} for key in keys
     }

@@ -2,6 +2,10 @@
 
 #include <c10/cuda/CUDAMacros.h>
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <atomic>
 #include <cstddef>
@@ -12,6 +16,15 @@
 
 namespace c10::cuda::CUDACachingAllocator {
 
+<<<<<<< HEAD
+=======
+enum class Expandable_Segments_Handle_Type : int {
+  UNSPECIFIED = 0,
+  POSIX_FD = 1,
+  FABRIC_HANDLE = 2,
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Environment config parser
 class C10_CUDA_API CUDAAllocatorConfig {
  public:
@@ -33,6 +46,18 @@ class C10_CUDA_API CUDAAllocatorConfig {
 #endif
   }
 
+<<<<<<< HEAD
+=======
+  static Expandable_Segments_Handle_Type expandable_segments_handle_type() {
+    return instance().m_expandable_segments_handle_type;
+  }
+
+  static void set_expandable_segments_handle_type(
+      Expandable_Segments_Handle_Type handle_type) {
+    instance().m_expandable_segments_handle_type = handle_type;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static bool release_lock_on_cudamalloc() {
     return instance().m_release_lock_on_cudamalloc;
   }
@@ -59,7 +84,11 @@ class C10_CUDA_API CUDAAllocatorConfig {
 
   // This is used to round-up allocation size to nearest power of 2 divisions.
   // More description below in function roundup_power2_next_division
+<<<<<<< HEAD
   // As ane example, if we want 4 divisions between 2's power, this can be done
+=======
+  // As an example, if we want 4 divisions between 2's power, this can be done
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // using env variable: PYTORCH_CUDA_ALLOC_CONF=roundup_power2_divisions:4
   static size_t roundup_power2_divisions(size_t size);
 
@@ -80,19 +109,37 @@ class C10_CUDA_API CUDAAllocatorConfig {
   static CUDAAllocatorConfig& instance() {
     static CUDAAllocatorConfig* s_instance = ([]() {
       auto inst = new CUDAAllocatorConfig();
+<<<<<<< HEAD
       const char* env = getenv("PYTORCH_CUDA_ALLOC_CONF");
+=======
+      auto env = c10::utils::get_env("PYTORCH_CUDA_ALLOC_CONF");
+#ifdef USE_ROCM
+      // convenience for ROCm users, allow alternative HIP token
+      if (!env.has_value()) {
+        env = c10::utils::get_env("PYTORCH_HIP_ALLOC_CONF");
+      }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       inst->parseArgs(env);
       return inst;
     })();
     return *s_instance;
   }
 
+<<<<<<< HEAD
   void parseArgs(const char* env);
+=======
+  void parseArgs(const std::optional<std::string>& env);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   CUDAAllocatorConfig();
 
+<<<<<<< HEAD
   static void lexArgs(const char* env, std::vector<std::string>& config);
+=======
+  static void lexArgs(const std::string& env, std::vector<std::string>& config);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static void consumeToken(
       const std::vector<std::string>& config,
       size_t i,
@@ -127,6 +174,11 @@ class C10_CUDA_API CUDAAllocatorConfig {
   std::atomic<double> m_garbage_collection_threshold;
   std::atomic<size_t> m_pinned_num_register_threads;
   std::atomic<bool> m_expandable_segments;
+<<<<<<< HEAD
+=======
+  std::atomic<Expandable_Segments_Handle_Type>
+      m_expandable_segments_handle_type;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::atomic<bool> m_release_lock_on_cudamalloc;
   std::atomic<bool> m_pinned_use_cuda_host_register;
   std::atomic<bool> m_pinned_use_background_threads;

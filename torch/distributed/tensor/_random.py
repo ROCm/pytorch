@@ -329,12 +329,22 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
             if isinstance(placement, Shard):
                 mesh_dim_size = mesh.size(idx)
                 shard_dim = placement.dim
+<<<<<<< HEAD
                 local_size_on_rank_0[shard_dim] = placement._local_shard_size_on_dim(
                     dtensor_shape[shard_dim],
                     mesh_dim_size,
                     0,
                     return_offset=False,
                 )[0]
+=======
+                local_size_on_rank_0[shard_dim], _ = (
+                    placement._local_shard_size_and_offset(
+                        dtensor_shape[shard_dim],
+                        mesh_dim_size,
+                        0,
+                    )
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         from torch.distributed.tensor._ops.utils import prod
 

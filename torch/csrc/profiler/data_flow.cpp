@@ -58,7 +58,11 @@ struct RawTensors {
 
 void calculateUniqueTensorIDs(
     std::vector<std::shared_ptr<Result>>& sorted_results) {
+<<<<<<< HEAD
   // This task is equivilent to https://leetcode.com/problems/number-of-islands/
+=======
+  // This task is equivalent to https://leetcode.com/problems/number-of-islands/
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We first cluster events with a greedy index assignment, and then merge
   // groups that overlap.
   std::vector<RawTensorInfo> tensors;

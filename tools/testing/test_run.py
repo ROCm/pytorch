@@ -285,7 +285,11 @@ class ShardedTest:
         if not isinstance(other, ShardedTest):
             raise NotImplementedError
 
+<<<<<<< HEAD
         # This is how the list was implicity sorted when it was a NamedTuple
+=======
+        # This is how the list was implicitly sorted when it was a NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.name != other.name:
             return self.name < other.name
         if self.shard != other.shard:

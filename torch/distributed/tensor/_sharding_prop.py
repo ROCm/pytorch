@@ -12,10 +12,17 @@ from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
 from torch.distributed.tensor._op_schema import (
     OpInfo,
     OpSchema,
+<<<<<<< HEAD
     OpStrategy,
     OutputSharding,
     OutputSpecType,
     PlacementStrategy,
+=======
+    OpSpec,
+    OpStrategy,
+    OutputSharding,
+    OutputSpecType,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RuntimeSchemaInfo,
     StrategyType,
     TupleStrategy,
@@ -77,6 +84,11 @@ class ShardingPropagator:
             aten.reshape.default: 1,
             aten.view.default: 1,
             aten._unsafe_view.default: 1,
+<<<<<<< HEAD
+=======
+            aten.select_backward.default: 1,
+            aten.slice_backward.default: 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
     def register_sharding_prop_rule(
@@ -225,7 +237,11 @@ class ShardingPropagator:
 
         def spec_to_strategy(spec: object) -> object:
             if isinstance(spec, DTensorSpec):
+<<<<<<< HEAD
                 return OpStrategy([PlacementStrategy(spec)])
+=======
+                return OpStrategy([OpSpec(spec)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif (
                 isinstance(spec, (list, tuple))
                 and len(spec) > 0
@@ -363,8 +379,13 @@ class ShardingPropagator:
                 )
             elif isinstance(op_strategy, TupleStrategy):
                 # tuple strategy output sharding processing
+<<<<<<< HEAD
                 # runtime selected placement strategy for each TupleStrategy input arg
                 selected_strategies: list[PlacementStrategy] = []
+=======
+                # runtime select OpSpec for each TupleStrategy input arg
+                selected_strategies: list[OpSpec] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out_spec_list: list[DTensorSpec] = []
                 for strategy in op_strategy.childs:
                     assert isinstance(strategy, OpStrategy)
@@ -485,6 +506,7 @@ class ShardingPropagator:
                 f"Operator {op_schema.op} does not have a sharding strategy registered."
             )
 
+<<<<<<< HEAD
     def _select_strategy(self, strategy: OpStrategy) -> PlacementStrategy:
         if len(strategy.strategies) == 1:
             # short cut with only one possible strategy
@@ -500,6 +522,23 @@ class ShardingPropagator:
 
         # for eager execution, we just select the one with the minimal redistribute cost
         return strategy.strategies[strategy_costs.index(min(strategy_costs))]
+=======
+    def _select_strategy(self, strategy: OpStrategy) -> OpSpec:
+        if len(strategy.strategies) == 1:
+            # short cut with only one possible OpSpec
+            return strategy.strategies[0]
+
+        op_spec_costs: list[float] = []
+        for op_spec in strategy.strategies:
+            assert op_spec.redistribute_cost is not None, (
+                "must set redistribute cost each OpSpec!"
+            )
+            redistribute_cost = sum(chain.from_iterable(op_spec.redistribute_cost))
+            op_spec_costs.append(redistribute_cost)
+
+        # for eager execution, we just select the one with the minimal redistribute cost
+        return strategy.strategies[op_spec_costs.index(min(op_spec_costs))]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _adjust_shape_and_stride_args(
         self,

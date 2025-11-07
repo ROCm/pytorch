@@ -23,7 +23,11 @@ TODO
 
 ## `RecordFunction` ##
 
+<<<<<<< HEAD
 [/aten/src/ATen/record_function.h](/aten/src/ATen/record_function.h)
+=======
+[aten/src/ATen/record_function.h](../../../aten/src/ATen/record_function.h)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 `RecordFunction` is used by the profiler to instrument CPU-side events.
 
@@ -38,7 +42,11 @@ There is also a python binding for `RecordFunction` in python (`with torch.profi
 The autograd engine is responsible for automatically computing gradients.
 
 The profiler records two pieces of information from the autograd engine:
+<<<<<<< HEAD
 * [Sequence number](/aten/src/ATen/SequenceNumber.h): this is a unique-per-thread index assigned to each op call(\*) in the forward pass. When a backward op is triggered, it is also assigned a sequence number matching the sequence number of the forward op that caused that backward op to be executed. Using this information, the profiler is able to match forward and backward ops; in chrome traces, this feature can be enabled with the "fwd_bwd" flow events
+=======
+* [Sequence number](../../../aten/src/ATen/SequenceNumber.h): this is a unique-per-thread index assigned to each op call(\*) in the forward pass. When a backward op is triggered, it is also assigned a sequence number matching the sequence number of the forward op that caused that backward op to be executed. Using this information, the profiler is able to match forward and backward ops; in chrome traces, this feature can be enabled with the "fwd_bwd" flow events
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 * [Forward thread id](https://github.com/pytorch/pytorch/blob/2e3fce54506ba82eee2c890410bf7a1405a64ec6/aten/src/ATen/record_function.h#L357): Autograd can be used in multi-threaded environments. The forward thread ID indicates the ID of the thread on which the forward op was executed on. This information is needed because the sequence number, mentioned above, is only unique within a thread; the forward thread ID is used for differentiating different ops with the same sequence number.
 
 (\*) Note that only op invocations whose inputs require gradients are assigned a sequence number

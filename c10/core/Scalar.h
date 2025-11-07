@@ -13,7 +13,10 @@
 #include <c10/core/SymNodeImpl.h>
 #include <c10/macros/Export.h>
 #include <c10/macros/Macros.h>
+<<<<<<< HEAD
 #include <c10/util/Deprecated.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/Exception.h>
 #include <c10/util/Half.h>
 #include <c10/util/TypeCast.h>
@@ -187,9 +190,15 @@ class C10_API Scalar {
     return Tag::HAS_d == tag || Tag::HAS_sd == tag;
   }
 
+<<<<<<< HEAD
   C10_DEPRECATED_MESSAGE(
       "isIntegral is deprecated. Please use the overload with 'includeBool' parameter instead.")
   bool isIntegral() const {
+=======
+  [[deprecated(
+      "isIntegral is deprecated. Please use the overload with 'includeBool' parameter instead.")]] bool
+  isIntegral() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Tag::HAS_i == tag || Tag::HAS_si == tag || Tag::HAS_u == tag;
   }
   bool isIntegral(bool includeBool) const {

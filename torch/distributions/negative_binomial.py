@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch.nn.functional as F
 from torch import Tensor
@@ -38,7 +43,17 @@ class NegativeBinomial(Distribution):
     }
     support = constraints.nonnegative_integer
 
+<<<<<<< HEAD
     def __init__(self, total_count, probs=None, logits=None, validate_args=None):
+=======
+    def __init__(
+        self,
+        total_count: Union[Tensor, float],
+        probs: Optional[Tensor] = None,
+        logits: Optional[Tensor] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (probs is None) == (logits is None):
             raise ValueError(
                 "Either `probs` or `logits` must be specified, but not both."
@@ -50,6 +65,10 @@ class NegativeBinomial(Distribution):
             ) = broadcast_all(total_count, probs)
             self.total_count = self.total_count.type_as(self.probs)
         else:
+<<<<<<< HEAD
+=======
+            assert logits is not None  # helps mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (
                 self.total_count,
                 self.logits,

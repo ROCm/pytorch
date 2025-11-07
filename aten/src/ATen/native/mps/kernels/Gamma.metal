@@ -81,7 +81,12 @@ kernel void polygamma(
     constant int64_t& order [[buffer(2)]],
     uint id [[thread_position_in_grid]]) {
   // already blocked if n <= 1
+<<<<<<< HEAD
   output[id] = static_cast<T1>(c10::metal::polygamma(order, input[id]));
+=======
+  output[id] = static_cast<T1>(
+      c10::metal::polygamma(order, static_cast<float>(input[id])));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #define INSTANTIATE_GAMMA_KERNELS(DTYPE0, DTYPE1)                             \

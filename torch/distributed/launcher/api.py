@@ -64,6 +64,12 @@ class LaunchConfig:
         local_addr: address of the local node if any. If not set, a lookup on the local
                 machine's FQDN will be performed.
         local_ranks_filter: ranks for which to show logs in console. If not set, show from all.
+<<<<<<< HEAD
+=======
+        event_log_handler: name of the event logging handler as registered in
+          `elastic/events/handlers.py <https://docs.pytorch.org/docs/stable/elastic/events.html>`_.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note::
         `rdzv_timeout` is a legacy argument that will be removed in future.
@@ -87,6 +93,10 @@ class LaunchConfig:
     log_line_prefix_template: Optional[str] = None
     metrics_cfg: dict[str, str] = field(default_factory=dict)
     local_addr: Optional[str] = None
+<<<<<<< HEAD
+=======
+    event_log_handler: str = "null"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         default_timeout = 900
@@ -194,6 +204,7 @@ def launch_agent(
 
     logger.info(
         "Starting elastic_operator with launch configs:\n"
+<<<<<<< HEAD
         "  entrypoint       : %(entrypoint)s\n"
         "  min_nodes        : %(min_nodes)s\n"
         "  max_nodes        : %(max_nodes)s\n"
@@ -206,6 +217,21 @@ def launch_agent(
         "  monitor_interval : %(monitor_interval)s\n"
         "  log_dir          : %(log_dir)s\n"
         "  metrics_cfg      : %(metrics_cfg)s\n",
+=======
+        "  entrypoint         : %(entrypoint)s\n"
+        "  min_nodes          : %(min_nodes)s\n"
+        "  max_nodes          : %(max_nodes)s\n"
+        "  nproc_per_node     : %(nproc_per_node)s\n"
+        "  run_id             : %(run_id)s\n"
+        "  rdzv_backend       : %(rdzv_backend)s\n"
+        "  rdzv_endpoint      : %(rdzv_endpoint)s\n"
+        "  rdzv_configs       : %(rdzv_configs)s\n"
+        "  max_restarts       : %(max_restarts)s\n"
+        "  monitor_interval   : %(monitor_interval)s\n"
+        "  log_dir            : %(log_dir)s\n"
+        "  metrics_cfg        : %(metrics_cfg)s\n"
+        "  event_log_handler  : %(event_log_handler)s\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         {
             "entrypoint": entrypoint_name,
             "min_nodes": config.min_nodes,
@@ -219,6 +245,10 @@ def launch_agent(
             "monitor_interval": config.monitor_interval,
             "log_dir": config.logs_specs.root_log_dir,  # type: ignore[union-attr]
             "metrics_cfg": config.metrics_cfg,
+<<<<<<< HEAD
+=======
+            "event_log_handler": config.event_log_handler,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
     )
 
@@ -245,6 +275,10 @@ def launch_agent(
         master_addr=master_addr,
         master_port=master_port,
         local_addr=config.local_addr,
+<<<<<<< HEAD
+=======
+        event_log_handler=config.event_log_handler,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     agent = LocalElasticAgent(
@@ -260,7 +294,11 @@ def launch_agent(
 
         result = agent.run()
         # records that agent.run() has succeeded NOT that workers have succeeded
+<<<<<<< HEAD
         events.record(agent.get_event_succeeded())
+=======
+        events.record(agent.get_event_succeeded(), config.event_log_handler)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if result.is_failed():
             # ChildFailedError is treated specially by @record
@@ -280,10 +318,17 @@ def launch_agent(
         # since this closes the rendezvous on this rdzv_id permanently and
         # prevents any additional scaling events
         shutdown_rdzv = False
+<<<<<<< HEAD
         events.record(agent.get_event_failed())
         raise
     except Exception:
         events.record(agent.get_event_failed())
+=======
+        events.record(agent.get_event_failed(), config.event_log_handler)
+        raise
+    except Exception:
+        events.record(agent.get_event_failed(), config.event_log_handler)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise
     finally:
         if shutdown_rdzv:

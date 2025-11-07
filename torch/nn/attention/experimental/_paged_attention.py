@@ -182,9 +182,13 @@ class PagedAttention:
         logical_block_offset = input_pos % self.page_size  # [B, S]
         physical_block_idx = torch.gather(
             self.page_table[batch_idx], 1, logical_block_idx.to(torch.int64)
+<<<<<<< HEAD
         ).to(
             torch.int32
         )  # [B, S]
+=======
+        ).to(torch.int32)  # [B, S]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         addr = (physical_block_idx * self.page_size + logical_block_offset).view(
             -1

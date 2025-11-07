@@ -143,7 +143,11 @@ static Tensor make_feature_noise(const Tensor& input) {
 }
 
 static bool is_fused_kernel_acceptable(const Tensor& input, double p) {
+<<<<<<< HEAD
   return (input.is_cuda() || input.is_xpu() || input.is_lazy()) && p > 0 && p < 1 && input.numel() > 0;
+=======
+  return (input.is_cuda() || input.is_xpu() || input.is_lazy() || input.is_privateuseone()) && p > 0 && p < 1 && input.numel() > 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // NB: sure, we could have used different overloads here, but I would feel insecure

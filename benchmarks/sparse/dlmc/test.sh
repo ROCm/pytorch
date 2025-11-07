@@ -2,7 +2,11 @@
 
 DATASET_ROOT_DIR=$HOME/datasets/
 
+<<<<<<< HEAD
 # wget https://storage.googleapis.com/sgk-sc2020/dlmc.tar.gz -P $DATASET_ROOT_DIR
+=======
+# wget https://storage.googleapis.com/sgk-sc2020/dlmc.tar.gz -P $DATASET_ROOT_DIR  # @lint-ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # tar -xvf $DATASET_ROOT_DIR/dlmc.tar.gz
 
 echo "!! SPARSE SPMS TIME BENCHMARK!! "

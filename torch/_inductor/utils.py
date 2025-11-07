@@ -16,6 +16,10 @@ import os
 import platform
 import re
 import shutil
+<<<<<<< HEAD
+=======
+import statistics
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import tempfile
 import textwrap
@@ -42,6 +46,10 @@ from typing_extensions import (
     dataclass_transform,
     ParamSpec,
     Self,
+<<<<<<< HEAD
+=======
+    TypeAlias,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TypeGuard,
 )
 from unittest import mock
@@ -54,6 +62,13 @@ from torch.utils._ordered_set import OrderedSet
 from torch.utils._pytree import tree_map_only
 
 
+<<<<<<< HEAD
+=======
+OPTIMUS_EXCLUDE_POST_GRAD = [
+    "activation_quantization_aten_pass",
+]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence, ValuesView
 
@@ -66,7 +81,19 @@ if TYPE_CHECKING:
     from .codegen.common import WorkspaceArg
     from .codegen.wrapper import PythonWrapperCodegen
     from .graph import GraphLowering
+<<<<<<< HEAD
     from .ir import Buffer, ExternKernel, IRNode, Layout, Operation, ReinterpretView
+=======
+    from .ir import (
+        Buffer,
+        ExternKernel,
+        ExternKernelOut,
+        IRNode,
+        Layout,
+        Operation,
+        ReinterpretView,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .output_code import CompiledFxGraph
     from .scheduler import BaseSchedulerNode, SchedulerBuffer
 
@@ -77,7 +104,11 @@ T = TypeVar("T")
 
 # defines here before import torch._dynamo is for avoiding circular import
 # when get_gpu_type is imported from dynamo
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_gpu_type() -> str:
     avail_gpus = [x for x in GPU_TYPES if getattr(torch, x).is_available()]
     assert len(avail_gpus) <= 1
@@ -151,6 +182,98 @@ class align(sympy.Function):
             return value
 
 
+<<<<<<< HEAD
+=======
+@dataclasses.dataclass(frozen=True)
+class GraphPartitionMap:
+    """
+    Mapping from the partition info (e.g., input/output) to the graph info
+    """
+
+    # a unique id of graph partition
+    id: int
+
+    # map partition input/output indices to graph input/output indices. None indicates
+    # a partition input/output is not a graph input/output.
+    input_index_mapping: list[Optional[int]]
+    output_index_mapping: list[Optional[int]]
+
+    # name of constants read/written by the graph partition
+    constant_names: list[str]
+
+
+def fp8_bench(fn: Callable[[], Any], warmup: int = 25, rep: int = 100) -> float:
+    """
+    Returns benchmark results by examining torch profiler events.
+    This could be more accurate as it doesn't count CPU side overhead.
+    However, this also requires manually excluding irrelevant event, e.g.
+    vectorized_elementwise_kernel which is used to fill L2 cache,
+    various CUDA events, etc, so could also be fragile.
+    """
+
+    fn()
+    torch.cuda.synchronize()
+    cache = torch.empty(int(256e6 // 4), dtype=torch.float16, device="cuda")
+
+    # Estimate the runtime of the function
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
+    start_event.record()
+    for _ in range(5):
+        cache.zero_()
+        fn()
+    end_event.record()
+    torch.cuda.synchronize()
+    estimate_ms = start_event.elapsed_time(end_event) / 5
+
+    # compute number of warmup and repeat
+    n_warmup = max(1, int(warmup / estimate_ms))
+    n_repeat = max(1, int(rep / estimate_ms))
+
+    # Warm-up
+    for _ in range(n_warmup):
+        fn()
+
+    start_event = [torch.cuda.Event(enable_timing=True) for _ in range(n_repeat)]
+    end_event = [torch.cuda.Event(enable_timing=True) for _ in range(n_repeat)]
+    with torch.profiler.profile(
+        activities=[
+            torch.profiler.ProfilerActivity.CUDA,
+        ]
+    ) as p:
+        torch.cuda.synchronize()
+        for i in range(n_repeat):
+            cache.zero_()
+            start_event[i].record()
+            with torch.cuda.nvtx.range("RunCudaModule"):
+                fn()
+            end_event[i].record()
+        torch.cuda.synchronize()
+        times = torch.tensor(
+            [s.elapsed_time(e) for s, e in zip(start_event, end_event)]
+        )
+
+    res = torch.mean(times).item()
+    log.debug("raw events")
+    log.debug(p.key_averages().table(sort_by="self_device_time_total", row_limit=-1))
+    filtered_events = EventList(
+        [
+            event
+            for event in p.events()
+            if event.device_type == DeviceType.CUDA and "fused_abs_max_0" in event.name
+        ]
+    )
+    if filtered_events:
+        res -= (
+            statistics.mean(event.device_time_total for event in filtered_events)
+            / 1000.0
+        )
+
+    log.debug("profiling results: %s ms", res)
+    return res
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def do_bench_using_profiling(
     fn: Callable[[], Any], warmup: int = 25, rep: int = 100
 ) -> float:
@@ -185,6 +308,11 @@ def do_bench_using_profiling(
     for _ in range(n_warmup):
         fn()
 
+<<<<<<< HEAD
+=======
+    torch.cuda.synchronize()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with torch.profiler.profile(
         activities=[
             torch.profiler.ProfilerActivity.CUDA,
@@ -235,7 +363,11 @@ def do_bench_using_profiling(
     return res
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def has_torchvision_roi_align() -> bool:
     try:
         from torchvision.ops import roi_align  # noqa: F401
@@ -276,6 +408,7 @@ def unique(it: Iterable[_T]) -> ValuesView[_T]:
 
 
 def ceildiv(
+<<<<<<< HEAD
     numer: Union[int, sympy.Expr], denom: Union[int, sympy.Expr]
 ) -> Union[int, sympy.Expr]:
     if isinstance(numer, sympy.Expr) or isinstance(denom, sympy.Expr):
@@ -287,12 +420,29 @@ def ceildiv(
         f"{numer}: {type(numer)}, {denom}: {type(denom)}"
     )
     return runtime_ceildiv(numer, denom)
+=======
+    number: Union[int, sympy.Expr], denom: Union[int, sympy.Expr]
+) -> Union[int, sympy.Expr]:
+    if isinstance(number, sympy.Expr) or isinstance(denom, sympy.Expr):
+        return CeilDiv(sympy.sympify(number), sympy.sympify(denom))
+    # TODO: There is a bug in a call to this function, to repro:
+    # python benchmarks/dynamo/huggingface.py --inductor -d cuda --accuracy
+    # --amp --only YituTechConvBert --dynamic-shapes
+    assert isinstance(number, int) and isinstance(denom, int), (
+        f"{number}: {type(number)}, {denom}: {type(denom)}"
+    )
+    return runtime_ceildiv(number, denom)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _type_of(key: Optional[torch.dtype]) -> str:
     # Use the function here to get rid of dependencies on the Triton during the codegen.
     # Refer to Triton implementation here:
+<<<<<<< HEAD
     # https://github.com/openai/triton/blob/98b5945d2aef679e00ebca8e07c35c3658ec76de/python/triton/runtime/jit.py#L238
+=======
+    # https://github.com/triton-lang/triton/blob/98b5945d2aef679e00ebca8e07c35c3658ec76de/python/triton/runtime/jit.py#L238
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # `None` is nullptr.  Implicitly convert to *i8.
     if key is None:
         return "*i8"
@@ -308,6 +458,10 @@ def _type_of(key: Optional[torch.dtype]) -> str:
         # TODO: remove when support is added in triton
         # https://github.com/triton-lang/triton/issues/6054
         "float8_e8m0fnu": "u8",
+<<<<<<< HEAD
+=======
+        "float4_e2m1fn_x2": "u8",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "float16": "fp16",
         "bfloat16": "bf16",
         "float32": "fp32",
@@ -322,8 +476,12 @@ def _type_of(key: Optional[torch.dtype]) -> str:
         "uint64": "u64",
     }
     # reinterpret can create triton type
+<<<<<<< HEAD
     for v in list(tys.values()):
         tys[v] = v
+=======
+    tys.update({v: v for v in list(tys.values())})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return key if isinstance(key, str) else f"*{tys[dtype_str]}"
 
 
@@ -338,6 +496,26 @@ def convert_shape_to_inductor(
     return [sympy.sympify(i) for i in lst]
 
 
+<<<<<<< HEAD
+=======
+def convert_to_symint(i: Union[int, sympy.Expr]) -> Union[int, torch.SymInt]:
+    """
+    Like convert_shape_to_symint, but operates on a single expression.
+    """
+    from .virtualized import V
+
+    return (
+        i
+        if isinstance(i, int)
+        else (
+            int(i)
+            if isinstance(i, sympy.Integer)
+            else V.graph.sizevars.shape_env.create_symintnode(i, hint=None)
+        )
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def convert_shape_to_symint(
     lst: Iterable[Union[int, sympy.Expr]],
 ) -> list[Union[int, torch.SymInt]]:
@@ -345,6 +523,7 @@ def convert_shape_to_symint(
     Takes a list of shapes from Inductor and converts them into symints (or just
     ints if all shapes are static).
     """
+<<<<<<< HEAD
     from .virtualized import V
 
     return [
@@ -359,6 +538,9 @@ def convert_shape_to_symint(
         )
         for i in lst
     ]
+=======
+    return [convert_to_symint(i) for i in lst]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_view(op: torch._ops.OpOverload) -> bool:
@@ -617,9 +799,13 @@ def get_kernel_metadata(
             single_graph = inductor_nodes[0].graph
             # create a map of idx -> node and cache it
             if not hasattr(single_graph, "_inductor_kernel_metadata_node_to_idx_map"):
+<<<<<<< HEAD
                 node_to_idx_map = {}
                 for idx, n in enumerate(single_graph.nodes):
                     node_to_idx_map[n] = idx
+=======
+                node_to_idx_map = {n: idx for idx, n in enumerate(single_graph.nodes)}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 single_graph._inductor_kernel_metadata_node_to_idx_map = node_to_idx_map  # type: ignore[attr-defined]
             inductor_nodes.sort(
                 key=lambda n: single_graph._inductor_kernel_metadata_node_to_idx_map[n]  # type: ignore[attr-defined]
@@ -701,6 +887,7 @@ def sympy_str(expr: sympy.Expr) -> str:
     somewhat worse, as it doesn't do as much simplification.  So don't
     use this for final codegen.
     """
+<<<<<<< HEAD
     if isinstance(expr, sympy.Symbol):
         return expr.name
     if isinstance(expr, sympy.Add):
@@ -711,6 +898,47 @@ def sympy_str(expr: sympy.Expr) -> str:
     if isinstance(expr, (ModularIndexing, CleanDiv, FloorDiv, Identity)):
         return f"{expr.func.__name__}({', '.join(map(sympy_str, expr.args))})"
     return str(expr)
+=======
+
+    def is_neg_lead(expr: sympy.Expr) -> bool:
+        return (
+            isinstance(expr, sympy.Mul) and len(expr.args) == 2 and expr.args[0] == -1
+        )
+
+    def sympy_str_add(expr: sympy.Expr) -> str:
+        if isinstance(expr, sympy.Add):
+            # Special case 'a - b'. Note that 'a - b - c' will still appear as
+            # 'a + -1 * b + -1 * c'.
+            if len(expr.args) == 2 and is_neg_lead(expr.args[1]):
+                return f"{sympy_str_mul(expr.args[0])} - {sympy_str_mul(expr.args[1].args[1])}"
+            else:
+                return " + ".join(map(sympy_str_mul, expr.args))
+        else:
+            return sympy_str_mul(expr)
+
+    def sympy_str_mul(expr: sympy.Expr) -> str:
+        if isinstance(expr, sympy.Mul):
+            if is_neg_lead(expr):
+                # Special case '-a'. Note that 'a * -b' will still appear as
+                # '-1 * a * b'.
+                return f"-{sympy_str_atom(expr.args[1])}"
+            else:
+                return " * ".join(map(sympy_str_atom, expr.args))
+        else:
+            return sympy_str_atom(expr)
+
+    def sympy_str_atom(expr: sympy.Expr) -> str:
+        if isinstance(expr, sympy.Symbol):
+            return expr.name
+        elif isinstance(expr, (sympy.Add, sympy.Mul)):
+            return f"({sympy_str_add(expr)})"
+        elif isinstance(expr, (ModularIndexing, CleanDiv, FloorDiv, Identity)):
+            return f"{expr.func.__name__}({', '.join(map(sympy_str, expr.args))})"
+        else:
+            return str(expr)
+
+    return sympy_str_add(expr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_bounds_index_expr(index: sympy.Expr) -> ValueRanges[Any]:
@@ -837,8 +1065,25 @@ def get_first_incompatible_cudagraph_node(
     for node in gm.graph.nodes:
         if str(node.target) in forbidden_set:
             return node
+<<<<<<< HEAD
         if (val := node.meta.get("val")) is not None and free_unbacked_symbols(val):
             return node
+=======
+
+        if (
+            not torch._inductor.config.graph_partition
+            and isinstance(node.target, torch._ops.OpOverload)
+            and torch._C.Tag.cudagraph_unsafe in node.target.tags
+        ):
+            # skip cudagraph if a cudagraph_unsafe op is detected.
+            # graph_partition helps by splitting on this cudagraph_unsafe
+            # op and cudagraphifying the subgraphs.
+            return node
+
+        if (val := node.meta.get("val")) is not None and free_unbacked_symbols(val):
+            return node
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return None
 
 
@@ -849,6 +1094,7 @@ def output_node(gm: torch.fx.GraphModule) -> Node:
     return last_node
 
 
+<<<<<<< HEAD
 _registered_caches: list[Any] = []
 
 
@@ -870,6 +1116,25 @@ def clear_inductor_caches() -> None:
     """
     for obj in _registered_caches:
         obj.cache_clear()
+=======
+def get_all_devices(gm: torch.fx.GraphModule) -> OrderedSet[torch.device]:
+    placeholder_nodes = gm.graph.find_nodes(op="placeholder")
+    input_devices: OrderedSet[torch.device] = OrderedSet(
+        node.meta["val"].device
+        for node in placeholder_nodes
+        if isinstance(node.meta.get("val"), torch.Tensor)
+    )
+
+    out_arg = output_node(gm).args[0]  # type: ignore[union-attr]
+    out_args = out_arg if isinstance(out_arg, tuple) else (out_arg,)
+    out_devices: OrderedSet[torch.device] = OrderedSet(
+        arg.meta["val"].device
+        for arg in out_args
+        if isinstance(arg, torch.fx.Node)
+        and isinstance(arg.meta.get("val"), torch.Tensor)
+    )
+    return input_devices | out_devices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 import gc
@@ -888,7 +1153,15 @@ def unload_xpu_triton_pyds() -> None:
                     kernel, torch._inductor.runtime.triton_heuristics.CachingAutotuner
                 ):
                     for result in kernel.compile_results:
+<<<<<<< HEAD
                         result.kernel.run.mod.__del__()
+=======
+                        if isinstance(
+                            result,
+                            torch._inductor.runtime.triton_heuristics.TritonCompileResult,
+                        ):
+                            result.kernel.run.mod.__del__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         del sys.modules[module_name]
 
     # unload spirv_utils.pyd
@@ -900,19 +1173,55 @@ def unload_xpu_triton_pyds() -> None:
     gc.collect()
 
 
+<<<<<<< HEAD
 @contextlib.contextmanager
 def fresh_inductor_cache(
+=======
+_registered_caches: list[Any] = []
+
+
+def clear_on_fresh_cache(obj: Any) -> Any:
+    """
+    Use this decorator to register any caches that should be cache_clear'd
+    with fresh_cache().
+    """
+    if not hasattr(obj, "cache_clear") or not callable(obj.cache_clear):
+        raise AttributeError(f"{obj} does not have a cache_clear method")
+
+    _registered_caches.append(obj)
+    return obj
+
+
+def clear_caches() -> None:
+    """
+    Clear all registered caches.
+    """
+    for obj in _registered_caches:
+        obj.cache_clear()
+
+
+@contextlib.contextmanager
+def fresh_cache(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cache_entries: Optional[dict[str, Any]] = None,
     dir: Optional[str] = None,
     delete: bool = True,
 ) -> Iterator[None]:
     """
+<<<<<<< HEAD
     Contextmanager that provides a clean tmp cachedir for inductor.
+=======
+    Contextmanager that provides a clean tmp cachedir for pt2 caches.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Optionally, pass a dict as 'cache_entries' to get a list of filenames and sizes
     generated with this cache instance.
     """
+<<<<<<< HEAD
     clear_inductor_caches()
+=======
+    clear_caches()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     inductor_cache_dir = tempfile.mkdtemp(dir=dir)
     try:
@@ -953,7 +1262,17 @@ def fresh_inductor_cache(
         log.warning("on error, temporary cache dir kept at %s", inductor_cache_dir)
         raise
     finally:
+<<<<<<< HEAD
         clear_inductor_caches()
+=======
+        clear_caches()
+
+
+# Deprecated functions -- only keeping them for BC reasons
+clear_on_fresh_inductor_cache = clear_on_fresh_cache
+clear_inductor_caches = clear_caches
+fresh_inductor_cache = fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def argsort(seq: Sequence[Any]) -> list[int]:
@@ -1025,6 +1344,18 @@ class IndentedBuffer:
         self._lines: list[Union[DeferredLineBase, LineContext, str]] = []
         self._indent = initial_indent
 
+<<<<<<< HEAD
+=======
+    @contextlib.contextmanager
+    def set_tabwidth(self, tabwidth: int) -> Iterator[None]:
+        prev = self.tabwidth
+        try:
+            self.tabwidth = tabwidth
+            yield
+        finally:
+            self.tabwidth = prev
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def getvaluewithlinemap(self) -> ValueWithLineMap:
         buf = StringIO()
         p = 1
@@ -1226,7 +1557,11 @@ class DelayReplaceLine(DeferredLineBase):
         return DelayReplaceLine(self.key, self.value_fn, line)
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_big_gpu(index_or_device: Union[int, torch.device] = 0) -> bool:
     if isinstance(index_or_device, torch.device):
         device = index_or_device
@@ -1270,12 +1605,23 @@ def get_num_sms() -> int:
 def get_tma_workspace_arg(
     num_tma_descriptors: int,
     device: torch.device,
+<<<<<<< HEAD
+=======
+    num_programs: Optional[int] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> WorkspaceArg:
     """Builds and returns a WorkspaceArg for the device side TMA workspace buffer."""
     from .codegen.common import WorkspaceArg, WorkspaceZeroMode
 
+<<<<<<< HEAD
     zero_mode = WorkspaceZeroMode.from_bool(False)
     size = get_num_sms() * num_tma_descriptors * TMA_DESCRIPTOR_SIZE
+=======
+    if num_programs is None:
+        num_programs = get_num_sms()
+    zero_mode = WorkspaceZeroMode.from_bool(False)
+    size = num_programs * num_tma_descriptors * TMA_DESCRIPTOR_SIZE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return WorkspaceArg(
         count=size,
         zero_mode=zero_mode,
@@ -1284,6 +1630,7 @@ def get_tma_workspace_arg(
     )
 
 
+<<<<<<< HEAD
 def use_max_autotune() -> bool:
     return (
         config.max_autotune or config.max_autotune_gemm or config.search_autotune_cache
@@ -1293,6 +1640,17 @@ def use_max_autotune() -> bool:
 def _use_template_for_gpu(
     layout: Layout, allowed_layout_dtypes: list[torch.dtype]
 ) -> bool:
+=======
+def _use_template_for_gpu(
+    layout: Layout, allowed_layout_dtypes: list[torch.dtype]
+) -> bool:
+    if layout.dtype not in allowed_layout_dtypes:
+        log.debug(
+            "Not using template since dtype %s is not in allowed layout dtypes %s",
+            layout.dtype,
+            allowed_layout_dtypes,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (
         is_gpu(layout.device.type)
         and layout.dtype in allowed_layout_dtypes
@@ -1330,14 +1688,22 @@ def use_triton_template(
             )
             or (layout.device.type == "cpu" and layout.dtype in layout_dtypes)
         )
+<<<<<<< HEAD
         and use_max_autotune()
+=======
+        and (config.max_autotune or config.max_autotune_gemm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         and _use_autotune_backend("TRITON")
         and has_backend_feature(layout.device, BackendFeature.TRITON_TEMPLATES)
     )
 
 
 def use_triton_tma_template(*matrices: IRNode) -> bool:
+<<<<<<< HEAD
     from torch.utils._triton import has_triton_tma_device
+=======
+    from torch.utils._triton import has_triton_stable_tma_api, has_triton_tma_device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     from .virtualized import V
 
@@ -1366,6 +1732,13 @@ def use_triton_tma_template(*matrices: IRNode) -> bool:
         inner_bytes = inner_dim * dtype.itemsize
         return V.graph.sizevars.statically_known_multiple_of(inner_bytes, TMA_ALIGNMENT)
 
+<<<<<<< HEAD
+=======
+    if has_triton_stable_tma_api() and config.cpp_wrapper:
+        # TODO(dberard) remove this when we get AOTI support for new TMA APIs (#155047)
+        return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (
         config.triton.enable_persistent_tma_matmul
         and has_triton_tma_device()
@@ -1385,10 +1758,19 @@ def use_cutlass_template(layout: Layout, m: int, n: int, k: int) -> bool:
     if torch.version.hip:
         return False
 
+<<<<<<< HEAD
     layout_dtypes = [torch.float16, torch.bfloat16, torch.float32, torch.int32]
     res = (
         _use_template_for_gpu(layout, layout_dtypes)
         and use_max_autotune()
+=======
+    # output dtype
+    # FP32 not supported: https://github.com/pytorch/pytorch/issues/145952
+    layout_dtypes = [torch.float16, torch.bfloat16, torch.int32]
+    res = (
+        _use_template_for_gpu(layout, layout_dtypes)
+        and (config.max_autotune or config.max_autotune_gemm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         and _use_autotune_backend("CUTLASS")
     )
 
@@ -1403,12 +1785,110 @@ def use_cutlass_template(layout: Layout, m: int, n: int, k: int) -> bool:
     return res
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+def _use_cutlass_for_op(op_name: str) -> bool:
+    """Check if CUTLASS should be used for the given operation."""
+    enabled_ops = config.cuda.cutlass_enabled_ops.upper()
+    if enabled_ops == "ALL":
+        return True
+    return op_name.upper() in [x.strip() for x in enabled_ops.split(",")]
+
+
+decompose_k_threshold = 32
+
+# To limit compile time
+k_splits_limit = 5
+
+# Hand-tuned
+default_k_splits = [16, 32, 64, 128, 256]
+
+_IntLike: TypeAlias = Union[int, sympy.Expr]
+
+
+def use_decompose_k_choice(m: _IntLike, n: _IntLike, k: _IntLike) -> bool:
+    from torch._inductor.virtualized import V
+
+    return (
+        V.graph.sizevars.statically_known_true(
+            sympy.And(
+                sympy.Ge(k, decompose_k_threshold * m),
+                sympy.Ge(k, decompose_k_threshold * n),
+            )
+        )
+        and not V.graph.aot_mode  # TODO: Support AOTI for decomposeK
+        and not V.graph.cpp_wrapper
+        and not config.disable_decompose_k
+    )
+
+
+@functools.cache
+def get_k_splits(m: _IntLike, n: _IntLike, k: _IntLike) -> list[int]:
+    # If k is a sympy expression, we can't do any splitting
+    if isinstance(k, sympy.Expr) and not k.is_number:
+        return default_k_splits
+
+    if (isinstance(m, sympy.Expr) and not m.is_number) or (
+        isinstance(n, sympy.Expr) and not n.is_number
+    ):
+        max_k_split = 256
+    else:
+        max_k_split = min(k // m, k // n)
+
+    min_k_split = 2
+    # Get all divisors of k, k has to be divisible by kPart
+    divisors = sympy.divisors(k)
+
+    divisors = [
+        divisor
+        for divisor in divisors
+        if divisor <= max_k_split and divisor >= min_k_split
+    ]
+
+    pow_of_2_divisors, mul_of_32_divisors, rest_of_splits = [], [], []
+
+    for d in divisors:
+        kPart = k // d
+
+        # Smaller than 128 might not even fit in a single tile, BLOCK_K can be 128
+        if kPart < 128:
+            continue
+
+        # Power of 2 divisors are best performing, conform to hardware
+        if (kPart & kPart - 1) == 0 and kPart >= 128:
+            pow_of_2_divisors.append(d)
+        # Else check if creates a multiple of 32
+        elif kPart % 32 == 0:
+            mul_of_32_divisors.append(d)
+        # otherwise, take the smallest values
+        else:
+            rest_of_splits.append(d)
+
+    if config.max_autotune_gemm_search_space == "EXHAUSTIVE":
+        return pow_of_2_divisors + mul_of_32_divisors + rest_of_splits
+    # If the # of power of 2 divisors are greater than k_splits_limit, return all
+    # This should be ok for compile time, all perfect squares between 128 and min(k / m, k / n)
+    # should never be a massive amount
+    if len(pow_of_2_divisors) >= k_splits_limit:
+        return pow_of_2_divisors
+    else:
+        best_splits = pow_of_2_divisors + mul_of_32_divisors + rest_of_splits
+        # Otherwise, conform results to k_splits_limit
+        return best_splits[:k_splits_limit]
+
+
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _rocm_native_device_arch_name(device: str) -> str:
     return torch.cuda.get_device_properties(device).gcnArchName
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def try_import_ck_lib() -> tuple[
     Optional[str], Callable[[], list[Any]], Callable[[], list[Any]], type[Any]
 ]:
@@ -1440,7 +1920,11 @@ def try_import_ck_lib() -> tuple[
 
 def use_ck_template(layout: Layout) -> bool:
     # config knobs check 1
+<<<<<<< HEAD
     if not use_max_autotune():
+=======
+    if not (config.max_autotune or config.max_autotune_gemm):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
     # platform check
     if not torch.version.hip:
@@ -1494,12 +1978,31 @@ def use_ck_gemm_template(layout: Layout, m: int, n: int, k: int) -> bool:
     )
 
 
+<<<<<<< HEAD
+=======
+def use_ck_tile_gemm_template(layout: Layout, m: int, n: int, k: int) -> bool:
+    from .virtualized import V
+
+    return (
+        _use_autotune_backend("CKTILE")
+        and use_ck_template(layout)
+        and V.graph.sizevars.size_hint(m * n * k, fallback=-1) > 0
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def use_ck_conv_template(layout: Layout) -> bool:
     return _use_conv_autotune_backend("CK") and use_ck_template(layout)
 
 
 def _use_template_for_cpu(layout: Layout) -> bool:
+<<<<<<< HEAD
     return use_max_autotune() and layout.device.type == "cpu"
+=======
+    return (
+        config.max_autotune or config.max_autotune_gemm
+    ) and layout.device.type == "cpu"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def use_cpp_bmm_template(
@@ -1548,6 +2051,10 @@ def use_cpp_gemm_template(
     # TODO(jgong5): support dynamic shapes for n or k
     if has_free_symbols((n, k)):
         return False
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(mat2, ir.BaseView):
         mat2 = mat2.unwrap_view()
 
@@ -1579,7 +2086,13 @@ def use_cpp_gemm_template(
 
 
 def use_aten_gemm_kernels() -> bool:
+<<<<<<< HEAD
     return not use_max_autotune() or _use_autotune_backend("ATEN")
+=======
+    return not (
+        config.max_autotune or config.max_autotune_gemm
+    ) or _use_autotune_backend("ATEN")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class DebugDirManager:
@@ -1618,8 +2131,13 @@ def run_and_get_code(
 
 
 def run_and_get_kernels(
+<<<<<<< HEAD
     fn: Callable[..., Any], *args: Any, **kwargs: Any
 ) -> tuple[Any, list[str]]:
+=======
+    fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs
+) -> tuple[_T, list[str]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     result, source_codes = run_and_get_code(fn, *args, **kwargs)
     kernels = []
     for code in source_codes:
@@ -1636,7 +2154,11 @@ def run_fw_bw_and_get_code(fn: Callable[..., Any]) -> tuple[Any, list[str]]:
     return run_and_get_code(run_with_backward)
 
 
+<<<<<<< HEAD
 def get_code(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> list[str]:
+=======
+def get_code(fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs) -> list[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Get the inductor-generated code, but skip any actual compilation or running."""
     from .graph import GraphLowering
 
@@ -1680,7 +2202,11 @@ def get_code(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> list[str]:
     return source_codes
 
 
+<<<<<<< HEAD
 def get_triton_code(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> str:
+=======
+def get_triton_code(fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     source_codes = get_code(fn, *args, **kwargs)
     # Can have two outputs if backwards was eagerly compiled
     assert 1 <= len(source_codes) <= 2, (
@@ -1689,7 +2215,13 @@ def get_triton_code(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> str:
     return source_codes[0]
 
 
+<<<<<<< HEAD
 def run_and_get_triton_code(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> str:
+=======
+def run_and_get_triton_code(
+    fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs
+) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _, source_codes = run_and_get_code(fn, *args, **kwargs)
     # Can have two outputs if backwards was eagerly compiled
     assert 1 <= len(source_codes) <= 2, (
@@ -1699,7 +2231,11 @@ def run_and_get_triton_code(fn: Callable[..., Any], *args: Any, **kwargs: Any) -
 
 
 def run_and_get_graph_lowering(
+<<<<<<< HEAD
     fn: Callable[..., Any], *args: Any, **kwargs: Any
+=======
+    fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[Any, list[GraphLowering]]:
     from torch._inductor.graph import GraphLowering
     from torch._inductor.output_code import CompiledFxGraph
@@ -1845,7 +2381,11 @@ def parallel_num_threads() -> int:
     return threads
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_backend_num_stages() -> int:
     from .runtime.triton_helpers import get_backend_options
 
@@ -1853,14 +2393,22 @@ def get_backend_num_stages() -> int:
     return options.get("num_stages", 2 if torch.version.hip else 3)
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_device_tflops(dtype: torch.dtype) -> int:
     from triton.testing import get_max_simd_tflops, get_max_tensorcore_tflops
 
     assert dtype in (torch.float16, torch.bfloat16, torch.float32)
 
     if inspect.signature(get_max_simd_tflops).parameters.get("clock_rate"):
+<<<<<<< HEAD
         # Triton API change in https://github.com/openai/triton/pull/2293
+=======
+        # Triton API change in https://github.com/triton-lang/triton/pull/2293
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._utils_internal import max_clock_rate
 
         sm_clock = max_clock_rate()
@@ -1881,7 +2429,11 @@ def get_device_tflops(dtype: torch.dtype) -> int:
             return get_max_simd_tflops(torch.float32)
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_gpu_dram_gbps() -> int:
     from triton.testing import get_dram_gbps
 
@@ -2225,7 +2777,11 @@ def is_gpu(device: Optional[str]) -> bool:
 
 
 def device_need_guard(device: str) -> bool:
+<<<<<<< HEAD
     return is_gpu(device)
+=======
+    return device != "mps" and is_gpu(device)  # TODO: MPS does not expose streams now
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def needs_fallback_due_to_atomic_add_limitations(dtype: torch.dtype) -> bool:
@@ -2237,6 +2793,10 @@ def needs_fallback_due_to_atomic_add_limitations(dtype: torch.dtype) -> bool:
         and dtype == torch.bfloat16
         and torch.cuda.is_available()
         and torch.cuda.get_device_capability() >= (9, 0)
+<<<<<<< HEAD
+=======
+        and config.bfloat16_atomic_adds_enabled
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         return False
     else:
@@ -2354,8 +2914,13 @@ def maybe_get_suppress_shape_guards_ctx() -> contextlib.AbstractContextManager[N
 
 
 def run_and_get_cpp_code(
+<<<<<<< HEAD
     fn: Callable[..., Any], *args: Any, **kwargs: Any
 ) -> tuple[Any, str]:
+=======
+    fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs
+) -> tuple[_T, str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # We use the patch context manager instead of using it as a decorator.
     # In this way, we can ensure that the attribute is patched and unpatched correctly
     # even if this run_and_get_cpp_code function is called multiple times.
@@ -2399,15 +2964,36 @@ def shape_env_from_inputs(inputs: Sequence[InputType]) -> Optional[ShapeEnv]:
 
 
 def align_inputs_from_check_idxs(
+<<<<<<< HEAD
     model: Callable[[list[InputType]], Any],
     inputs_to_check: Sequence[int],
 ) -> Callable[[list[InputType]], Any]:
+=======
+    model: Callable[[list[InputType]], _T],
+    inputs_to_check: Sequence[int],
+    mutated_input_idxs: OrderedSet[int],
+) -> Callable[[list[InputType]], _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if len(inputs_to_check) == 0:
         return model
 
     def run(new_inputs: list[InputType]) -> Any:
+<<<<<<< HEAD
         copy_misaligned_inputs(new_inputs, inputs_to_check)
         return model(new_inputs)
+=======
+        old_tensors, new_tensors = copy_misaligned_inputs(
+            new_inputs, inputs_to_check, mutated_input_idxs
+        )
+        out = model(new_inputs)
+
+        # If a mutated tensor was cloned to be aligned, we need to reflect back the mutation to the
+        # original tensor.
+        if len(old_tensors):
+            torch._foreach_copy_(old_tensors, new_tensors)
+
+        return out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return run
 
@@ -2425,6 +3011,7 @@ def clone_preserve_strides(x: torch.Tensor) -> torch.Tensor:
 
 
 def copy_misaligned_inputs(
+<<<<<<< HEAD
     new_inputs: list[InputType], check_inputs_idxs: Sequence[int]
 ) -> None:
     for i in check_inputs_idxs:
@@ -2433,6 +3020,36 @@ def copy_misaligned_inputs(
         if _inp.data_ptr() % ALIGNMENT:
             new_inputs[i] = clone_preserve_strides(_inp)
 
+=======
+    new_inputs: list[InputType],
+    check_inputs_idxs: Sequence[int],
+    return_pair_idxs: Optional[OrderedSet[int]] = None,
+) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
+    """
+    Clones misaligned tensors which we inferred were aligned. Returns a tuple of [old_tensors], [new_tensors] for every
+    cloned tensor which is in `return_pair_idxs`.
+    """
+
+    old_tensors: list[torch.Tensor] = []
+    new_tensors: list[torch.Tensor] = []
+
+    # hoist above loop because this is on the hot path
+    ret_pair_defined = return_pair_idxs is not None
+    for i in check_inputs_idxs:
+        _inp = new_inputs[i]
+        assert isinstance(_inp, torch.Tensor), (
+            f"Expected tensors only, but got: {type(_inp)}"
+        )
+        if _inp.data_ptr() % ALIGNMENT:
+            new_inputs[i] = clone_preserve_strides(_inp)
+
+            if ret_pair_defined and i in return_pair_idxs:  # type: ignore[operator]
+                old_tensors.append(_inp)
+                new_tensors.append(new_inputs[i])  # type: ignore[arg-type]
+
+    return old_tensors, new_tensors
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def remove_unaligned_input_idxs(
     inputs: Sequence[InputType],
@@ -2461,7 +3078,11 @@ def expr_fits_within_32bit(e: sympy.Expr) -> bool:
 
     # Allow for unhinted e as long as we can still statically prove
     # (e.g., via ValueRanges) that it is still in bounds
+<<<<<<< HEAD
     if V.graph.sizevars.is_expr_static_and_true(e <= int_max):
+=======
+    if V.graph.sizevars.statically_known_true(e <= int_max):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
     # Otherwise, the hint MUST exist and be in range
     return has_hint(e) and size_hint(e) <= int_max
@@ -2529,6 +3150,10 @@ _triton_type_mapping = {
     # TODO: remove when support is added in triton
     # https://github.com/triton-lang/triton/issues/6054
     "tl.float8_e8m0fnu": "tl.uint8",
+<<<<<<< HEAD
+=======
+    "tl.float4_e2m1fn_x2": "tl.uint8",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 _torch_triton_mapping = {v: k for k, v in _triton_type_mapping.items()}
 
@@ -2572,7 +3197,11 @@ def is_same_mkldnn_tensor(data: torch.Tensor, value: torch.Tensor) -> bool:
     )
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def boolean_ops() -> tuple[str, ...]:
     return (
         "isinf",
@@ -2611,10 +3240,38 @@ def register_op_dtype_propagation_rules(
     )
 
 
+<<<<<<< HEAD
 def upcast_compute_type(dtype: torch.dtype) -> torch.dtype:
     """Maybe upcast [b]float16 to float32"""
     if config.triton.codegen_upcast_to_fp32 and (
         dtype in (torch.float16, torch.bfloat16)
+=======
+op_requires_libdevice_fp64: OrderedSet[str] = OrderedSet()
+
+
+def register_op_requires_libdevice_fp64(name: str) -> None:
+    op_requires_libdevice_fp64.add(name)
+
+
+def get_current_backend() -> str:
+    from torch._inductor.virtualized import V
+
+    device_str = V.graph.get_current_device_or_throw().type
+    if device_str == "cpu":
+        return config.cpu_backend
+    elif device_str == "mps":
+        return "mps"
+    else:
+        return config.cuda_backend
+
+
+def upcast_compute_type(dtype: torch.dtype) -> torch.dtype:
+    """Maybe upcast [b]float16 to float32"""
+    if (
+        dtype in (torch.float16, torch.bfloat16)
+        and config.triton.codegen_upcast_to_fp32
+        and get_current_backend() == "triton"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         return torch.float32
     return dtype
@@ -2695,6 +3352,7 @@ def get_donated_idxs() -> Optional[list[int]]:
 
 
 def set_kernel_post_grad_provenance_tracing(
+<<<<<<< HEAD
     node_schedule: Sequence[BaseSchedulerNode], kernel_name: str
 ) -> None:
     from .codegen.simd_kernel_features import DisableReduction, EnableReduction
@@ -2707,6 +3365,41 @@ def set_kernel_post_grad_provenance_tracing(
                     origin.name
                     for origin in node.node.origins  # type: ignore[attr-defined]
                 ]
+=======
+    node_schedule: Union[Sequence[BaseSchedulerNode], ExternKernelOut],
+    kernel_name: str,
+    is_extern: bool = False,
+) -> None:
+    from .codegen.simd_kernel_features import DisableReduction, EnableReduction
+    from .ir import ExternKernelOut
+    from .virtualized import V
+
+    if is_extern:
+        assert isinstance(node_schedule, ExternKernelOut)
+        curr_node_info = (
+            V.debug._inductor_triton_kernel_to_post_grad_node_info.setdefault(
+                kernel_name, []
+            )
+        )
+        curr_node_info.extend(
+            origin.name
+            for origin in node_schedule.origins
+            if origin.name not in curr_node_info
+        )
+    else:
+        assert isinstance(node_schedule, list)
+        for snode in node_schedule:
+            if snode not in (EnableReduction, DisableReduction):
+                if snode.node is not None:
+                    curr_node_info = V.debug._inductor_triton_kernel_to_post_grad_node_info.setdefault(
+                        kernel_name, []
+                    )
+                    curr_node_info.extend(
+                        origin.name
+                        for origin in snode.node.origins
+                        if origin.name not in curr_node_info
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TritonAttrsDescriptorVersion(enum.Enum):
@@ -2719,7 +3412,11 @@ class TritonAttrsDescriptorVersion(enum.Enum):
     V4_DICT = 4  # a raw dict
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_triton_attrs_descriptor_version() -> TritonAttrsDescriptorVersion:
     if importlib.util.find_spec("triton") is None:
         return TritonAttrsDescriptorVersion.V0_NO_TRITON
@@ -2747,3 +3444,85 @@ def get_triton_attrs_descriptor_version() -> TritonAttrsDescriptorVersion:
 
 def triton_version_uses_attrs_dict() -> bool:
     return get_triton_attrs_descriptor_version() == TritonAttrsDescriptorVersion.V4_DICT
+<<<<<<< HEAD
+=======
+
+
+def is_cudagraph_unsafe_op(node: Operation) -> bool:
+    """
+    Returns True if the node is an op that is not cudagraphable.
+    Usually only custom ops have this tag.
+    """
+    from . import ir
+
+    if not isinstance(node, ir.FallbackKernel):
+        return False
+
+    if (
+        isinstance(node.op_overload, torch._ops.OpOverload)
+        and torch._C.Tag.cudagraph_unsafe in node.op_overload.tags
+    ):
+        return True
+
+    return False
+
+
+def get_ld_library_path() -> str:
+    path = os.environ.get("LD_LIBRARY_PATH", "")
+    if config.is_fbcode():
+        from libfb.py.parutil import get_runtime_path
+
+        runtime_path = get_runtime_path()
+        if runtime_path:
+            lib_path = os.path.join(runtime_path, "runtime", "lib")
+            path = os.pathsep.join([lib_path, path]) if path else lib_path
+
+    return path
+
+
+def is_codegen_graph_partition_subgraph(wrapper: PythonWrapperCodegen) -> bool:
+    from torch._inductor.codegen.wrapper import SubgraphPythonWrapperCodegen
+
+    return (
+        isinstance(wrapper, SubgraphPythonWrapperCodegen)
+        and wrapper.partition_signatures is not None
+    )
+
+
+def dtype_from_size(size: int) -> torch.dtype:
+    from .virtualized import V
+
+    if V.graph.sizevars.statically_known_lt(
+        size, 2**31
+    ) and V.graph.sizevars.statically_known_geq(size, -(2**31)):
+        return torch.int32
+    else:
+        return torch.int64
+
+
+SUPPORTED_MKLDNN_DEVICES = ("cpu", "xpu")
+
+
+def is_mkldnn_bf16_supported(device_type: str) -> bool:
+    """
+    Returns True if the device supports MKL-DNN BF16.
+    """
+    if device_type == "cpu":
+        return torch.ops.mkldnn._is_mkldnn_bf16_supported()
+    elif "xpu" in device_type:
+        # match "xpu", "xpu:0", "xpu:1", etc.
+        return True
+    return False
+
+
+def is_mkldnn_fp16_supported(device_type: str) -> bool:
+    """
+    Returns True if the device supports MKL-DNN FP16.
+    """
+    if device_type == "cpu":
+        return torch.ops.mkldnn._is_mkldnn_fp16_supported()
+    elif "xpu" in device_type:
+        # match "xpu", "xpu:0", "xpu:1", etc.
+        return True
+    return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

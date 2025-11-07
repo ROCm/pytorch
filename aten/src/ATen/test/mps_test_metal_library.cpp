@@ -54,6 +54,10 @@ TEST(MPSTestMetalLibrary, ArangeWithArgsShader) {
   });
   ASSERT_TRUE((x==y).all().item().toBool());
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(MPSTestMetalLibrary, Arange2DShader) {
   const auto size = 16;
   auto x = torch::empty({size, size}, at::device(at::kMPS));
@@ -71,3 +75,44 @@ TEST(MPSTestMetalLibrary, Arange2DShader) {
   });
   ASSERT_EQ(x.sum().item().to<int>(), 65280);
 }
+<<<<<<< HEAD
+=======
+
+TEST(MPSTestMetalLibrary, ArgumentBuffers) {
+  constexpr auto nbuffers = 64;
+  const auto size = 32;
+  std::vector<at::Tensor> ibuffers;
+  std::vector<void *> ibuffers_gpu_ptrs;
+  for([[maybe_unused]] auto idx: c10::irange(nbuffers)) {
+    ibuffers.push_back(torch::rand({size}, at::device(at::kMPS)));
+    ibuffers_gpu_ptrs.push_back(get_tensor_gpu_address(ibuffers.back()));
+  }
+  auto output = torch::empty({size}, at::device(at::kMPS));
+  DynamicMetalShaderLibrary lib(R"MTL(
+  constant constexpr auto nbuffers = 64;
+  struct Inputs {
+    metal::array<device float *, nbuffers> args;
+  };
+
+  kernel void sum_all(device float* output, constant Inputs& inputs, uint idx [[thread_position_in_grid]]) {
+    output[idx] = 0;
+    for(auto i = 0; i < nbuffers; ++i) {
+      output[idx] += inputs.args[i][idx];
+    }
+  }
+  )MTL");
+  auto func = lib.getKernelFunction("sum_all");
+  func->runCommandBlock([&] {
+     func->startEncoding();
+     func->setArg(0, output);
+     func->setArg(1, ibuffers_gpu_ptrs);
+     func->dispatch(size);
+  });
+  // Compute sum of all 64 input tensors
+  auto result = torch::zeros({size}, at::device(at::kMPS));
+  for(auto buf: ibuffers) {
+    result += buf;
+  }
+  ASSERT_EQ(result.sum().item().to<float>(), output.sum().item().to<float>());
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

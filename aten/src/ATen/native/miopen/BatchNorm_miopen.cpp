@@ -80,7 +80,13 @@ std::tuple<Tensor, Tensor, Tensor> miopen_batch_norm(
     checkAllDefined(c, {running_mean, running_var});
   }
   checkAllSameGPU(c, {input, weight, bias, running_mean, running_var});
+<<<<<<< HEAD
   if (input->scalar_type() != ScalarType::Half && input->scalar_type() != ScalarType::BFloat16) {
+=======
+  if (input->scalar_type() == ScalarType::Half || input->scalar_type() == ScalarType::BFloat16) {
+    checkScalarType(c, weight, ScalarType::Float);
+  } else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     checkAllSameType(c, {input, weight});
   }
   checkAllSameType(c, {weight, bias, running_mean, running_var});

@@ -1,5 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
+<<<<<<< HEAD
 # flake8: noqa
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .binary import _apply_native_binary, _is_native_binary
 from .core import is_masked_tensor, MaskedTensor

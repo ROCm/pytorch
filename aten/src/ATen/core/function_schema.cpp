@@ -41,9 +41,21 @@ FunctionSchema FunctionSchema::cloneWithRealTypes(bool with_symint) const {
     }
   };
   std::vector<Argument> new_arguments, new_returns;
+<<<<<<< HEAD
   std::transform(arguments().begin(), arguments().end(), std::back_inserter(new_arguments), cloneWithRealTypes);
   // NB: SymInt returns are always SymInt
   std::transform(returns().begin(), returns().end(), std::back_inserter(new_returns), alwaysCloneWithRealTypes);
+=======
+  new_arguments.reserve(arguments().size());
+  for (const auto& arg: arguments()) {
+    new_arguments.push_back(cloneWithRealTypes(arg));
+  }
+  // NB: SymInt returns are always SymInt
+  new_returns.reserve(returns().size());
+  for (const auto& ret: returns()) {
+    new_returns.push_back(alwaysCloneWithRealTypes(ret));
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return FunctionSchema(
     name(),
     overload_name(),

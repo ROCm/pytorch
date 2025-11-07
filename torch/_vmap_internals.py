@@ -219,7 +219,11 @@ def _vmap(
     # The `allow_none_pass_through` argument is a temporary workaround may be removed.
     # Currently it enables us to wrap the call in `autograd.grad` to the autograd engine,
     # which may return None if any of the inputs are unused. See the issue discussing this:
+<<<<<<< HEAD
     # https://github.com/facebookresearch/functorch/issues/159.
+=======
+    # https://github.com/pytorch/functorch/issues/159.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @functools.wraps(func)
     def wrapped(*args):
         _check_out_dims_is_int_or_int_tuple(out_dims, func)

@@ -88,6 +88,10 @@ Keyword args:
     out (Tensor, optional): the output tensor.
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> a = torch.arange(-0.5, 1, 0.5)
     >>> a
     tensor([-0.5000,  0.0000,  0.5000])
@@ -189,6 +193,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> a = torch.tensor([1, 0.5])
     >>> torch.special.polygamma(1, a)
     tensor([1.64493, 4.9348])
@@ -592,6 +600,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> torch.special.i0e(torch.arange(5, dtype=torch.float32))
     tensor([1.0000, 0.4658, 0.3085, 0.2430, 0.2070])
 """.format(
@@ -618,6 +630,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> torch.special.i1(torch.arange(5, dtype=torch.float32))
     tensor([0.0000, 0.5652, 1.5906, 3.9534, 9.7595])
 """.format(
@@ -645,6 +661,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> torch.special.i1e(torch.arange(5, dtype=torch.float32))
     tensor([0.0000, 0.2079, 0.2153, 0.1968, 0.1788])
 """.format(
@@ -671,6 +691,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> torch.special.ndtr(torch.tensor([-3., -2, -1, 0, 1, 2, 3]))
     tensor([0.0013, 0.0228, 0.1587, 0.5000, 0.8413, 0.9772, 0.9987])
 """.format(
@@ -700,6 +724,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> torch.special.ndtri(torch.tensor([0, 0.25, 0.5, 0.75, 1]))
     tensor([   -inf, -0.6745,  0.0000,  0.6745,     inf])
 """.format(
@@ -726,6 +754,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> torch.special.log_ndtr(torch.tensor([-3., -2, -1, 0, 1, 2, 3]))
     tensor([-6.6077 -3.7832 -1.841  -0.6931 -0.1728 -0.023  -0.0014])
 """.format(
@@ -765,6 +797,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> t = torch.randn(4)
     >>> t
     tensor([ 0.2252, -0.2948,  1.0267, -1.1566])
@@ -838,6 +874,10 @@ Args:
         is performed. This is useful for preventing data type overflows. Default: None.
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> t = torch.ones(2, 2)
     >>> torch.special.log_softmax(t, 0)
     tensor([[-0.6931, -0.6931],
@@ -868,6 +908,10 @@ Keyword args:
     {out}
 
 Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> x = torch.tensor([2., 4.])
     >>> torch.special.zeta(x, 1)
     tensor([1.6449, 1.0823])
@@ -894,7 +938,11 @@ Computes the `multivariate log-gamma function
 
 where :math:`C = \log(\pi) \cdot \frac{p (p - 1)}{4}` and :math:`\Gamma(-)` is the Gamma function.
 
+<<<<<<< HEAD
 All elements must be greater than :math:`\frac{p - 1}{2}`, otherwise the behavior is undefiend.
+=======
+All elements must be greater than :math:`\frac{p - 1}{2}`, otherwise the behavior is undefined.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
     + """
 
@@ -1151,7 +1199,11 @@ Keyword args:
 chebyshev_polynomial_u = _add_docstr(
     _special.special_chebyshev_polynomial_u,
     r"""
+<<<<<<< HEAD
 chebyshev_polynomial_t(input, n, *, out=None) -> Tensor
+=======
+chebyshev_polynomial_u(input, n, *, out=None) -> Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Chebyshev polynomial of the second kind :math:`U_{n}(\text{input})`.
 
@@ -1160,7 +1212,11 @@ If :math:`n = 0`, :math:`1` is returned. If :math:`n = 1`,
 :math:`|\text{input}| > 1`, the recursion:
 
 .. math::
+<<<<<<< HEAD
     T_{n + 1}(\text{input}) = 2 \times \text{input} \times T_{n}(\text{input}) - T_{n - 1}(\text{input})
+=======
+    U_{n + 1}(\text{input}) = 2 \times \text{input} \times U_{n}(\text{input}) - U_{n - 1}(\text{input})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 is evaluated. Otherwise, the explicit trigonometric formula:
 

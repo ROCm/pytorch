@@ -6,6 +6,10 @@ import sys
 import types
 from collections.abc import Iterator, Mapping
 from typing import Any, Callable, Optional, TypeVar, Union
+<<<<<<< HEAD
+=======
+from typing_extensions import Self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed.rpc as rpc
@@ -319,6 +323,7 @@ class _RemoteModule(nn.Module):
     def add_module(self, name: str, module: Optional[Module]) -> None:
         _raise_not_supported(self.add_module.__name__)
 
+<<<<<<< HEAD
     def apply(self: T, fn: Callable[[Module], None]) -> T:  # type: ignore[return]
         _raise_not_supported(self.apply.__name__)
 
@@ -347,6 +352,36 @@ class _RemoteModule(nn.Module):
         _raise_not_supported(self.half.__name__)
 
     def bfloat16(self: T) -> T:  # type: ignore[return]
+=======
+    def apply(self, fn: Callable[[Module], None]) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.apply.__name__)
+
+    def cuda(self, device: Optional[Union[int, device]] = None) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.cuda.__name__)
+
+    def ipu(self, device: Optional[Union[int, device]] = None) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.ipu.__name__)
+
+    def xpu(self, device: Optional[Union[int, device]] = None) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.xpu.__name__)
+
+    def cpu(self) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.cpu.__name__)
+
+    def type(self, dst_type: Union[dtype, str]) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.type.__name__)
+
+    def float(self) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.float.__name__)
+
+    def double(self) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.double.__name__)
+
+    def half(self) -> Self:  # type: ignore[return]
+        _raise_not_supported(self.half.__name__)
+
+    def bfloat16(self) -> Self:  # type: ignore[return]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _raise_not_supported(self.bfloat16.__name__)
 
     def to(self, *args, **kwargs) -> T:  # type: ignore[misc, return, type-var]
@@ -428,6 +463,7 @@ class _RemoteModule(nn.Module):
     ):
         _raise_not_supported(self.named_modules.__name__)
 
+<<<<<<< HEAD
     def train(self: T, mode: bool = True) -> T:
         return self.module_rref.rpc_sync().train()  # type: ignore[operator, union-attr]
 
@@ -435,12 +471,25 @@ class _RemoteModule(nn.Module):
         return self.module_rref.rpc_sync().eval()  # type: ignore[operator, union-attr]
 
     def requires_grad_(self: T, requires_grad: bool = True) -> T:  # type: ignore[return]
+=======
+    def train(self, mode: bool = True) -> Self:
+        return self.module_rref.rpc_sync().train()  # type: ignore[operator, union-attr]
+
+    def eval(self) -> Self:
+        return self.module_rref.rpc_sync().eval()  # type: ignore[operator, union-attr]
+
+    def requires_grad_(self, requires_grad: bool = True) -> Self:  # type: ignore[return]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _raise_not_supported(self.requires_grad_.__name__)
 
     def zero_grad(self, set_to_none: bool = True) -> None:
         _raise_not_supported(self.zero_grad.__name__)
 
+<<<<<<< HEAD
     def share_memory(self: T) -> T:  # type: ignore[return]
+=======
+    def share_memory(self) -> Self:  # type: ignore[return]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _raise_not_supported(self.share_memory.__name__)
 
     def extra_repr(self) -> str:  # type: ignore[return]

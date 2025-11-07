@@ -7,6 +7,10 @@
 #include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/jit_log.h>
 #include <torch/csrc/jit/passes/quantization/helper.h>
+<<<<<<< HEAD
+=======
+#include <atomic>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 
 #include <stack>
@@ -17,7 +21,11 @@ namespace torch::jit {
 
 namespace {
 
+<<<<<<< HEAD
 bool autocast_enabled = true;
+=======
+std::atomic<bool> autocast_enabled = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 struct AutocastContext {
   bool gpu_enabled = false;
@@ -509,9 +517,13 @@ void handleBlock(Block* block, AutocastContext initial_state) {
 } // namespace
 
 bool setAutocastMode(bool value) {
+<<<<<<< HEAD
   auto old_value = autocast_enabled;
   autocast_enabled = value;
   return old_value;
+=======
+  return autocast_enabled.exchange(value);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool autocastEnabled() {

@@ -13,15 +13,24 @@ class Tensor;
 namespace native {
 
 template<typename O, typename C>
+<<<<<<< HEAD
 void _assert_match(const O& original, const C& compared, const std::string& name) {
+=======
+static void _assert_match(const O& original, const C& compared, const std::string& name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (compared) {
     bool equal = (original == compared.value());
     if (!equal) {
       std::stringstream msg;
+<<<<<<< HEAD
       msg << "Tensor " << name << " mismatch!";
       if (!equal) {
         throw std::runtime_error(msg.str());
       }
+=======
+      msg << "Tensor " << name << " mismatch! Expected: " << compared.value() << ", Got: " << original;
+      throw std::runtime_error(msg.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 }
@@ -30,7 +39,13 @@ void _assert_tensor_metadata_meta_symint(at::Tensor const& tensor, at::OptionalS
   _assert_match(tensor.sym_sizes(), sizes, "sizes");
   _assert_match(tensor.sym_strides(), strides, "strides");
   _assert_match(tensor.dtype(), dtype, "dtype");
+<<<<<<< HEAD
   _assert_match(tensor.device(), device, "device");
+=======
+  if (tensor.device().type() != DeviceType::Meta) {
+    _assert_match(tensor.device(), device, "device");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _assert_match(tensor.layout(), layout, "layout");
 }
 
@@ -38,7 +53,13 @@ void _assert_tensor_metadata(at::Tensor const& tensor, at::OptionalIntArrayRef s
   _assert_match(tensor.sizes(), sizes, "sizes");
   _assert_match(tensor.strides(), strides, "strides");
   _assert_match(tensor.dtype(), dtype, "dtype");
+<<<<<<< HEAD
   _assert_match(tensor.device(), device, "device");
+=======
+  if (tensor.device().type() != DeviceType::Meta) {
+    _assert_match(tensor.device(), device, "device");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _assert_match(tensor.layout(), layout, "layout");
 }
 

@@ -200,7 +200,11 @@ inline at::ScalarType scalar_type(at::ScalarType s) {
     switch (_st) {                                                          \
       __VA_ARGS__                                                           \
       default:                                                              \
+<<<<<<< HEAD
         TORCH_CHECK(                                                        \
+=======
+        TORCH_CHECK_NOT_IMPLEMENTED(                                        \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             false,                                                          \
             '"',                                                            \
             at_dispatch_name,                                               \

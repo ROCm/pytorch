@@ -36,6 +36,10 @@
 #include "torch/csrc/autograd/generated/python_return_types.h"
 
 #include <ATen/core/Tensor.h>
+<<<<<<< HEAD
+=======
+#include <ATen/core/grad_mode.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/FuncTorchTLS.h>
 #include "c10/core/Stream.h"
 
@@ -291,6 +295,16 @@ static Tensor dispatch_copy_(const Tensor & self, const Tensor & other, bool non
   return self.copy_(other, non_blocking);
 }
 
+<<<<<<< HEAD
+=======
+static void maybe_warn_requires_grad(const Tensor & self) {
+  if (at::GradMode::is_enabled() && self.requires_grad()) {
+    TORCH_WARN_ONCE("Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.\n"
+                    "Consider using tensor.detach() first.");
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  static PyObject * THPVariable_copy_(PyObject* self, PyObject* args, PyObject* kwargs)
 {
   HANDLE_TH_ERRORS
@@ -325,6 +339,10 @@ static PyObject * THPVariable_float_scalar(PyObject* self, PyObject* args) {
   }
   jit::tracer::warn("Converting a tensor to a Python float", jit::tracer::WARN_PYTHON_DATAFLOW);
   auto& self_ = THPVariable_Unpack(self);
+<<<<<<< HEAD
+=======
+  maybe_warn_requires_grad(self_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return wrap(dispatch_to<double>(self_));
   END_HANDLE_TH_ERRORS
 }
@@ -336,6 +354,10 @@ static PyObject * THPVariable_complex_scalar(PyObject* self, PyObject* args) {
   }
   jit::tracer::warn("Converting a tensor to a Python complex", jit::tracer::WARN_PYTHON_DATAFLOW);
   auto& self_ = THPVariable_Unpack(self);
+<<<<<<< HEAD
+=======
+  maybe_warn_requires_grad(self_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return wrap(dispatch_to<c10::complex<double>>(self_));
   END_HANDLE_TH_ERRORS
 }
@@ -842,7 +864,11 @@ static PyObject * THPVariable_requires_grad_(PyObject* self, PyObject* args, PyO
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 inline bool dispatch_is_contiguous(const Tensor & self, MemoryFormat memory_format) {
+=======
+static inline bool dispatch_is_contiguous(const Tensor & self, MemoryFormat memory_format) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return self.is_contiguous(memory_format);
 }
 

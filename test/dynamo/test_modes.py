@@ -207,6 +207,21 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
 
         self.assertEqual(_len_torch_function_stack(), 0)
 
+<<<<<<< HEAD
+=======
+    def test_is_torch_function_all_disabled(self):
+        @torch.compile(fullgraph=True)
+        def fn(x):
+            return (
+                torch._C._is_torch_function_all_disabled(),
+                torch.add(x, 1.0),
+            )
+
+        input = torch.ones(2, 2)
+        res, _ = fn(input)
+        self.assertFalse(res)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_error_empty_stack_pop_torch_function_mode(self):
         @torch.compile(fullgraph=True)
         def fn(x):
@@ -361,9 +376,13 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
         inp = (torch.ones(2, 2) + 1).as_subclass(TestSubclass)
 
         fn_opt = torch.compile(fn, fullgraph=True)
+<<<<<<< HEAD
         with TestMode(), torch._dynamo.config.patch(
             "traceable_tensor_subclasses", {TestSubclass}
         ):
+=======
+        with TestMode():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with torch._C.DisableTorchFunctionSubclass():
                 expected = fn(inp)
                 actual = fn_opt(inp)
@@ -392,9 +411,13 @@ class TorchFunctionModeTests(torch._dynamo.test_case.TestCase):
         inp = (torch.ones(2, 2) + 1).as_subclass(TestSubclass)
 
         fn_opt = torch.compile(fn, fullgraph=True)
+<<<<<<< HEAD
         with TestMode(), torch._dynamo.config.patch(
             "traceable_tensor_subclasses", {TestSubclass}
         ):
+=======
+        with TestMode():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected = fn(inp)
             actual = fn_opt(inp)
 

@@ -12,7 +12,11 @@ from ..pattern_matcher import fwd_only, register_replacement
 aten = torch.ops.aten
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _misc_patterns_init():
     from .joint_graph import patterns as joint_graph_patterns
     from .post_grad import pass_patterns as post_grad_patterns_all

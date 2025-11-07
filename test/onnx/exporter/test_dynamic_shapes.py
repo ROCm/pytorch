@@ -558,7 +558,11 @@ class TestDynamicShapes(common_utils.TestCase):
         expected_dynamic_shapes = {
             "input_x": [
                 {
+<<<<<<< HEAD
                     0: torch.export.Dim.AUTO,
+=======
+                    0: torch.export.Dim.DYNAMIC,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     1: torch.export.Dim.STATIC,
                 },
                 {
@@ -566,7 +570,11 @@ class TestDynamicShapes(common_utils.TestCase):
                     1: dimx,
                 },
             ],
+<<<<<<< HEAD
             "input_b": {2: torch.export.Dim.AUTO},
+=======
+            "input_b": {2: torch.export.Dim.DYNAMIC},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         dynamic_shapes_with_export_dim, need_axis_mapping = (
             _dynamic_shapes.convert_str_to_export_dim(dynamic_shapes)
@@ -598,7 +606,11 @@ class TestDynamicShapes(common_utils.TestCase):
                 },
                 {
                     0: torch.export.Dim.AUTO,
+<<<<<<< HEAD
                     1: torch.export.Dim.AUTO,
+=======
+                    1: torch.export.Dim.DYNAMIC,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 },
             ],
             {2: torch.export.Dim.STATIC},

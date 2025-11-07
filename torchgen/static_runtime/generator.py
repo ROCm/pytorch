@@ -324,6 +324,10 @@ def ivalue_type_conversion_method(
         BaseTy.str: (
             (False, "toStringView()"),
             (False, "toOptional<c10::string_view>()"),
+<<<<<<< HEAD
+=======
+            (False, "toOptional<::std::string_view>()"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
     }
 

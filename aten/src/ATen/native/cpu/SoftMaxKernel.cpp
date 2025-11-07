@@ -2,6 +2,11 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/native/cpu/SoftmaxKernel.h>
 
+<<<<<<< HEAD
+=======
+#include <ATen/native/cpu/LogSoftmaxKernelImpl.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <algorithm>
 #include <iterator>
 #include <numeric>
@@ -28,7 +33,10 @@
 // We use a chunk size such that it'd fit in L1D.
 
 namespace at::native {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 template <typename scalar_t>
 inline void _vec_log_softmax_lastdim(
@@ -36,6 +44,7 @@ inline void _vec_log_softmax_lastdim(
     scalar_t* output_data_base,
     int64_t outer_size,
     int64_t dim_size) {
+<<<<<<< HEAD
   using Vec = vec::Vectorized<vec::vec_scalar_t<scalar_t>>;
   // Coincidentally, at::internal::GRAIN_SIZE is 32768, which is equal to the
   // size of L1D cache on many processors. Some processors have 48 KB L1D cache
@@ -45,6 +54,12 @@ inline void _vec_log_softmax_lastdim(
       1,
       at::internal::GRAIN_SIZE / (sizeof(scalar_t) * dim_size));
   int64_t CHUNK_SIZE = std::min<int64_t>(MAX_CHUNK_SIZE, outer_size);
+=======
+  const auto chunk_size = vec_log_softmax_lastdim_chunk_size<scalar_t>(
+      at::internal::GRAIN_SIZE,
+      outer_size,
+      dim_size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Note: grain_size value of 0
   // We don't change the number of OpenMP threads in the OpenMP thread-pool,
   // so some threads do useful work, while others don't.
@@ -52,6 +67,7 @@ inline void _vec_log_softmax_lastdim(
   // work among threads in an equitable manner. We compute CHUNK_SIZE to ensure
   // each thread's computations would be efficient.
   parallel_for(0, outer_size, 0, [&](int64_t begin, int64_t end) {
+<<<<<<< HEAD
     // MSVC requires such a declaration of dynamic arrays
     // Source: https://stackoverflow.com/a/33423538
     auto tmp_sum_scalar = std::make_unique<scalar_t[]>(CHUNK_SIZE);
@@ -106,6 +122,15 @@ inline void _vec_log_softmax_lastdim(
             dim_size);
       }
     }
+=======
+    serial_vec_log_softmax_lastdim_range(
+        input_data_base,
+        output_data_base,
+        dim_size,
+        chunk_size,
+        begin,
+        end);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
 }
 
@@ -891,6 +916,7 @@ _vec_logsoftmax(
     int64_t outer_size,
     int64_t inner_size,
     int64_t dim_size) {
+<<<<<<< HEAD
   using Vec = vec::Vectorized<scalar_t>;
   int64_t BLOCK_SIZE = 128 * 1024;
   int64_t MAX_CHUNK_SIZE = std::max<int64_t>(BLOCK_SIZE / dim_size / sizeof(scalar_t), Vec::size());
@@ -985,6 +1011,25 @@ _vec_logsoftmax(
         }
       }
     }
+=======
+  const auto [CHUNK_SIZE_binding, num_chunks_binding] = vec_logsoftmax_chunk_size_and_num_chunks<scalar_t>(
+      inner_size, dim_size);
+  // Work around "capturing a structured binding is not yet supported in OpenMP".
+  const auto CHUNK_SIZE = CHUNK_SIZE_binding;
+  const auto num_chunks = num_chunks_binding;
+
+  // See Note: grain_size value of 0
+  at::parallel_for(0, outer_size * num_chunks, 0, [&](int64_t begin, int64_t end) {
+    serial_vec_logsoftmax_range(
+        input_data_base,
+        output_data_base,
+        inner_size,
+        CHUNK_SIZE,
+        num_chunks,
+        dim_size,
+        begin,
+        end);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
 }
 
@@ -996,6 +1041,7 @@ _vec_logsoftmax(
     int64_t outer_size,
     int64_t inner_size,
     int64_t dim_size) {
+<<<<<<< HEAD
   using Vec = vec::Vectorized<scalar_t>;
   using fVec = vec::Vectorized<float>;
   int64_t BLOCK_SIZE = 128 * 1024;
@@ -1115,6 +1161,25 @@ _vec_logsoftmax(
         }
       }
     }
+=======
+  const auto [CHUNK_SIZE_binding, num_chunks_binding] = vec_logsoftmax_chunk_size_and_num_chunks<scalar_t>(
+      inner_size, dim_size);
+  // Work around "capturing a structured binding is not yet supported in OpenMP".
+  const auto CHUNK_SIZE = CHUNK_SIZE_binding;
+  const auto num_chunks = num_chunks_binding;
+
+  // See Note: grain_size value of 0
+  at::parallel_for(0, outer_size * num_chunks, 0, [&](int64_t begin, int64_t end) {
+    serial_vec_logsoftmax_range(
+        input_data_base,
+        output_data_base,
+        inner_size,
+        CHUNK_SIZE,
+        num_chunks,
+        dim_size,
+        begin,
+        end);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
 }
 

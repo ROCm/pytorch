@@ -3,9 +3,15 @@
 import os
 
 import torch
+<<<<<<< HEAD
 import torch.distributed._functional_collectives as funcol
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.distributed._tensor import DTensor
+=======
+import torch.distributed as dist
+import torch.distributed._functional_collectives as funcol
+from torch._subclasses.fake_tensor import FakeTensorMode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _mesh_resources, DeviceMesh, init_device_mesh
 from torch.distributed.distributed_c10d import (
     _get_default_group,
@@ -14,10 +20,17 @@ from torch.distributed.distributed_c10d import (
     get_world_size,
     init_process_group,
     is_initialized,
+<<<<<<< HEAD
     is_nccl_available,
     new_group,
     ProcessGroup,
 )
+=======
+    new_group,
+    ProcessGroup,
+)
+from torch.distributed.tensor import DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._collective_utils import (
     mesh_broadcast,
     mesh_scatter,
@@ -34,6 +47,7 @@ from torch.testing._internal.distributed.fake_pg import FakeStore
 from torch.utils._typing_utils import not_none
 
 
+<<<<<<< HEAD
 def _get_device_type(world_size):
     if (
         torch.cuda.is_available()
@@ -47,10 +61,18 @@ def _get_device_type(world_size):
 
 
 def _set_env_var(addr="localhost", port="25364", world_size=1, rank=0):
+=======
+def _set_env_var(addr="localhost", port="25364", world_size=1, rank=0, local_rank=-1):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     os.environ["MASTER_ADDR"] = addr
     os.environ["MASTER_PORT"] = port
     os.environ["WORLD_SIZE"] = f"{world_size}"
     os.environ["RANK"] = f"{rank}"
+<<<<<<< HEAD
+=======
+    if local_rank != -1:
+        os.environ["LOCAL_RANK"] = f"{local_rank}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class DeviceMeshTestGlooBackend(DTensorTestBase):
@@ -70,6 +92,72 @@ class DeviceMeshTestGlooBackend(DTensorTestBase):
             self.assertEqual(mesh_group, default_group)
 
 
+<<<<<<< HEAD
+=======
+class DeviceMeshSetDeviceTest(DTensorTestBase):
+    @property
+    def world_size(self):
+        return 4
+
+    @skip_if_lt_x_gpu(4)
+    def test_manual_set_device(self):
+        mesh_tensor = torch.arange(4).reshape(2, 2)
+        self.assertTrue(not is_initialized())
+
+        # Set the device on each process before DeviceMesh constructor,
+        # and device to be different than the default world rank
+        torch.cuda.set_device((self.rank + 2) % self.world_size)
+        _set_env_var(world_size=self.world_size, rank=self.rank)
+        DeviceMesh(self.device_type, mesh_tensor)
+        self.assertTrue(is_initialized())
+
+        # check that the device is set to the correct device
+        # and respect the previous set_device calls
+        self.assertEqual(torch.cuda.current_device(), (self.rank + 2) % self.world_size)
+        self.destroy_pg()
+
+    @skip_if_lt_x_gpu(4)
+    def test_auto_set_device_from_local_rank(self):
+        mesh_tensor = torch.arange(4).reshape(2, 2)
+        self.assertTrue(not is_initialized())
+        # set the local rank to be different than the default world rank,
+        # DeviceMesh should respect LOCAL_RANK env var if it's set
+        local_rank = (self.rank + 1) % self.world_size
+
+        _set_env_var(
+            world_size=self.world_size,
+            rank=self.rank,
+            local_rank=local_rank,
+        )
+        DeviceMesh(self.device_type, mesh_tensor)
+        self.assertTrue(is_initialized())
+
+        # check that the device is set to the correct device
+        # and respect the LOCAL_RANK env var
+        self.assertEqual(torch.cuda.current_device(), local_rank)
+        self.destroy_pg()
+
+    @skip_if_lt_x_gpu(4)
+    def test_auto_set_device_from_heuristic(self):
+        mesh_tensor = torch.arange(4).reshape(2, 2)
+        self.assertTrue(not is_initialized())
+
+        _set_env_var(
+            world_size=self.world_size,
+            rank=self.rank,
+        )
+        with self.assertWarnsRegex(
+            UserWarning, "It seems like you did not set/select the default device"
+        ):
+            DeviceMesh(self.device_type, mesh_tensor)
+        self.assertTrue(is_initialized())
+
+        # check that the device is set to the correct device
+        self.assertEqual(torch.cuda.current_device(), self.rank)
+        self.destroy_pg()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DeviceMeshTest(DTensorTestBase):
     @property
     def world_size(self):
@@ -77,6 +165,7 @@ class DeviceMeshTest(DTensorTestBase):
 
     @skip_if_lt_x_gpu(4)
     def test_init_process_group(self):
+<<<<<<< HEAD
         device_type = _get_device_type(self.world_size)
         mesh_tensor = torch.arange(4).reshape(2, 2)
         self.assertTrue(not is_initialized())
@@ -84,6 +173,14 @@ class DeviceMeshTest(DTensorTestBase):
         DeviceMesh(device_type, mesh_tensor)
         self.assertTrue(is_initialized())
         self.destroy_pg()
+=======
+        mesh_tensor = torch.arange(4).reshape(2, 2)
+        self.assertTrue(not is_initialized())
+        _set_env_var(world_size=self.world_size, rank=self.rank)
+        DeviceMesh(self.device_type, mesh_tensor)
+        self.assertTrue(is_initialized())
+        self.destroy_pg(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_if_lt_x_gpu(4)
@@ -211,7 +308,11 @@ class DeviceMeshTest(DTensorTestBase):
         local_tensor = torch.randn(2, 8)
         global_tensor = funcol.all_gather_tensor(
             local_tensor, gather_dim=0, group=(mesh, 0)
+<<<<<<< HEAD
         )
+=======
+        ).wait()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(global_tensor.shape, (self.world_size * 2, 8))
 
     @with_comms
@@ -222,7 +323,11 @@ class DeviceMeshTest(DTensorTestBase):
         mesh_pg = ref_global_mesh.get_group()
         global_mesh = DeviceMesh.from_group(mesh_pg, self.device_type)
         self.assertEqual(ref_global_mesh, global_mesh)
+<<<<<<< HEAD
         self.assertEqual(ref_global_mesh._dim_group_infos, global_mesh._dim_group_infos)
+=======
+        self.assertEqual(ref_global_mesh._dim_group_names, global_mesh._dim_group_names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             ref_global_mesh._coordinate_on_dim, global_mesh._coordinate_on_dim
         )
@@ -231,7 +336,11 @@ class DeviceMeshTest(DTensorTestBase):
             mesh_pg, self.device_type, mesh=torch.arange(self.world_size)
         )
         self.assertEqual(ref_global_mesh, global_mesh)
+<<<<<<< HEAD
         self.assertEqual(ref_global_mesh._dim_group_infos, global_mesh._dim_group_infos)
+=======
+        self.assertEqual(ref_global_mesh._dim_group_names, global_mesh._dim_group_names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             ref_global_mesh._coordinate_on_dim, global_mesh._coordinate_on_dim
         )
@@ -410,6 +519,7 @@ class DeviceMeshTestNDim(DTensorTestBase):
             mesh_dim_names=("dp_replicate", "dp_shard"),
         )
 
+<<<<<<< HEAD
         ref_mesh_dp_dim_group_infos = ref_mesh._dim_group_infos[:2]
         for (_, ref_ranks, _), (_, ranks, _) in zip(
             ref_mesh_dp_dim_group_infos, dp_mesh._dim_group_infos
@@ -428,6 +538,22 @@ class DeviceMeshTestNDim(DTensorTestBase):
             dp_mesh["dp_shard"]._dim_group_infos, ref_mesh["dp_shard"]._dim_group_infos
         ):
             self.assertEqual(ref_ranks, ranks)
+=======
+        ref_mesh_dp_dim_group_names = ref_mesh._dim_group_names[:2]
+        self.assertEqual(ref_mesh_dp_dim_group_names, dp_mesh._dim_group_names[:2])
+        # Cannot check directly for mesh equality since parent meshes are not
+        # the same since the ref's parent mesh is 3D
+        self.assertEqual(dp_mesh["dp_replicate"].mesh, ref_mesh["dp_replicate"].mesh)
+        self.assertEqual(
+            dp_mesh["dp_replicate"]._dim_group_names,
+            ref_mesh["dp_replicate"]._dim_group_names,
+        )
+        self.assertEqual(dp_mesh["dp_shard"].mesh, ref_mesh["dp_shard"].mesh)
+        self.assertEqual(
+            dp_mesh["dp_shard"]._dim_group_names,
+            ref_mesh["dp_shard"]._dim_group_names,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms()
     def test_from_group_with_mesh_shape_2d(self):
@@ -442,8 +568,14 @@ class DeviceMeshTestNDim(DTensorTestBase):
 
         # Create shard groups (e.g. (0, 1, 2, 3), (4, 5, 6, 7))
         # and assign the correct shard group to each rank
+<<<<<<< HEAD
         shard_rank_lists = list(range(0, self.world_size // 2)), list(
             range(self.world_size // 2, self.world_size)
+=======
+        shard_rank_lists = (
+            list(range(0, self.world_size // 2)),
+            list(range(self.world_size // 2, self.world_size)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         shard_groups = (
             new_group(shard_rank_lists[0]),
@@ -470,12 +602,22 @@ class DeviceMeshTestNDim(DTensorTestBase):
             mesh_dim_names=("dp_replicate", "dp_shard"),
         )
 
+<<<<<<< HEAD
         ref_mesh_dp_dim_group_infos = ref_mesh._dim_group_infos[:2]
         for (_, ref_ranks, _), (_, ranks, _) in zip(
             ref_mesh_dp_dim_group_infos, dp_mesh._dim_group_infos
         ):
             self.assertEqual(ref_ranks, ranks)
 
+=======
+        # self.assertEqual(ref_mesh._dim_group_names, dp_mesh._dim_group_names)
+        for mesh_dim_group, ref_mesh_dim_group in zip(
+            dp_mesh.get_all_groups(), ref_mesh.get_all_groups()
+        ):
+            mesh_dim_group_ranks = dist.get_process_group_ranks(mesh_dim_group)
+            ref_mesh_dim_group_ranks = dist.get_process_group_ranks(ref_mesh_dim_group)
+            self.assertEqual(mesh_dim_group_ranks, ref_mesh_dim_group_ranks)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # check both the 2d mesh and the submeshes are exactly the same.
         self.assertEqual(dp_mesh, ref_mesh)
         self.assertEqual(dp_mesh["dp_replicate"], ref_mesh["dp_replicate"])

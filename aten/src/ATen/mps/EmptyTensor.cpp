@@ -1,5 +1,9 @@
 //  Copyright © 2022 Apple Inc.
+<<<<<<< HEAD
 
+=======
+#include <c10/metal/common.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ATen.h>
 #include <ATen/Tensor.h>
 #include <ATen/Utils.h>
@@ -35,7 +39,11 @@ TensorBase empty_mps(
         layout_or_default(layout_opt) == Layout::Strided,
         "only strided tensors are supported on MPS");
 
+<<<<<<< HEAD
     TORCH_CHECK(size.size() <= 16, "MPS supports tensors with dimensions <= 16, but got ", size.size(), ".");
+=======
+    TORCH_CHECK(size.size() <= c10::metal::max_ndim, "MPS supports tensors with dimensions <= ", c10::metal::max_ndim, ", but got ", size.size(), ".");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     check_size_nonnegative(size);
 

@@ -7,6 +7,10 @@ from collections.abc import Iterator
 import logging
 import contextlib
 import itertools
+<<<<<<< HEAD
+=======
+from torch.utils._dtype_abbrs import dtype_abbrs as _dtype_abbrs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import TorchDispatchMode
 from torch.utils.weak import WeakTensorKeyDictionary
 import functools
@@ -14,6 +18,7 @@ from torch._C._profiler import gather_traceback, symbolize_tracebacks
 
 logger = logging.getLogger("LoggingTensor")
 
+<<<<<<< HEAD
 _dtype_abbrs = {
     torch.bfloat16: "bf16",
     torch.float64: "f64",
@@ -34,6 +39,8 @@ _dtype_abbrs = {
     torch.float8_e5m2fnuz: "f8e5m2fnuz",
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # How the chain of calls works for LoggingTensor:
 # 1. Call torch.sin
 # 2. Attempt __torch_function__. In LoggingTensor torch function is disabled so we bypass it entirely
@@ -61,7 +68,11 @@ class LoggingTensor(torch.Tensor):
         # The wrapping tensor (LoggingTensor) shouldn't hold any
         # memory for the class in question, but it should still
         # advertise the same device as before
+<<<<<<< HEAD
         r = torch.Tensor._make_wrapper_subclass(  # type: ignore[attr-defined]
+=======
+        r = torch.Tensor._make_wrapper_subclass(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cls, elem.size(),
             strides=elem.stride(), storage_offset=elem.storage_offset(),
             # TODO: clone storage aliasing

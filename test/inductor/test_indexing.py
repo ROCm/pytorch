@@ -95,7 +95,11 @@ class TestIndexingSimplification(InductorTestCase):
             ModularIndexing(i0 + i1 * i2 * r3, i2, r3), ModularIndexing(i0, i2, r3)
         )
 
+<<<<<<< HEAD
         # if there are negative terms, we cannot optimize away zero terms due to https://github.com/openai/triton/issues/619
+=======
+        # if there are negative terms, we cannot optimize away zero terms due to https://github.com/triton-lang/triton/issues/619
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             ModularIndexing(-i0 + i1 * 20, 2, 10), ModularIndexing(-i0 + i1 * 20, 2, 10)
         )
@@ -205,6 +209,16 @@ class TestIndexingSimplification(InductorTestCase):
         self.assertEqual(expr2, actual)
         self.assertNotEqual(ModularIndexing(x, 1, b), actual)
 
+<<<<<<< HEAD
+=======
+    def test_modular_indexing_positive(self):
+        x = sympy.Symbol("x", integer=True, positive=True)
+        expr = ModularIndexing(x, 1, 1024) - 1
+        expr2 = abs(expr)
+
+        self.assertNotEqual(expr2, expr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_expand_floor_div_skipped(self):
         sizevars = SizeVarAllocator()
         x = sympy.Symbol("x", integer=True, positive=True)
@@ -320,6 +334,21 @@ class ExprPrinterTests(InductorTestCase):
             texpr(expr), """libdevice.llrint((1/2)*x).to(tl.int64)"""
         )
 
+<<<<<<< HEAD
+=======
+    def test_print_integer(self):
+        expr = sympy.S((-1) << 63)
+        self.assertExpectedInline(cexpr(expr), f"""(-1{LONG_SUFFIX} << 63)""")
+
+        expr = sympy.S(((-1) << 63) - 1)
+        with self.assertRaises(OverflowError):
+            cexpr(expr)
+
+        expr = sympy.S(1 << 63)
+        with self.assertRaises(OverflowError):
+            cexpr(expr)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_print_mod(self):
         x = sympy.Symbol("x", integer=True)
         expr = Mod(x - 1, 2)
@@ -420,9 +449,15 @@ class ExprPrinterTests(InductorTestCase):
             )
             self.assertEqual(
                 cexpr(expr),
+<<<<<<< HEAD
                 f"std::{s}({{x, 2LL*x, 3LL*x}})"
                 if sys.platform in ["darwin", "win32"]
                 else f"std::{s}({{x, 2L*x, 3L*x}})",
+=======
+                f"std::{s}<int64_t>({{x, 2LL*x, 3LL*x}})"
+                if sys.platform in ["darwin", "win32"]
+                else f"std::{s}<int64_t>({{x, 2L*x, 3L*x}})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 

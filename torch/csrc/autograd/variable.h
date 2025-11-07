@@ -45,7 +45,11 @@ namespace torch::autograd {
 /// If you change this, update the doc at the top of the
 /// torch/autograd/__init__.py file and
 /// "test_set_requires_grad_only_for_continuous_types" in test/test_autograd.py
+<<<<<<< HEAD
 static inline bool isDifferentiableType(at::ScalarType t) {
+=======
+inline bool isDifferentiableType(at::ScalarType t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return isFloatingType(t) || isComplexType(t);
 }
 

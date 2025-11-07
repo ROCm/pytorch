@@ -5,7 +5,11 @@
  * https://github.com/python/cpython/blob/2.7/Objects/structseq.c
  *
  * The purpose of this file is to overwrite the default behavior
+<<<<<<< HEAD
  * of repr of structseq to provide better printting for returned
+=======
+ * of repr of structseq to provide better printing for returned
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * structseq objects from operators, aka torch.return_types.*
  *
  * For more information on copyright of CPython, see:

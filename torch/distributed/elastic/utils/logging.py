@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
@@ -16,7 +19,11 @@ from typing import Optional
 from torch.distributed.elastic.utils.log_level import get_log_level
 
 
+<<<<<<< HEAD
 def get_logger(name: Optional[str] = None):
+=======
+def get_logger(name: Optional[str] = None) -> logging.Logger:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Util function to set up a simple logger that writes
     into stderr. The loglevel is fetched from the LOGLEVEL
@@ -33,7 +40,11 @@ def get_logger(name: Optional[str] = None):
     return _setup_logger(name or _derive_module_name(depth=2))
 
 
+<<<<<<< HEAD
 def _setup_logger(name: Optional[str] = None):
+=======
+def _setup_logger(name: Optional[str] = None) -> logging.Logger:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     logger = logging.getLogger(name)
     logger.setLevel(os.environ.get("LOGLEVEL", get_log_level()))
     return logger

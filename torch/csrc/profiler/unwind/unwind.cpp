@@ -1,5 +1,9 @@
 #include <c10/macros/Macros.h>
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/profiler/unwind/unwind.h>
 #include <torch/csrc/utils/cpp_stacktraces.h>
 
@@ -321,10 +325,17 @@ static std::string dladdr_lookup(void* addr) {
 
 struct Symbolizer {
   Symbolizer() {
+<<<<<<< HEAD
     auto envar = std::getenv("TORCH_ADDR2LINE_BINARY");
     if (envar != nullptr) {
       // currently we take user's input as is without checking
       addr2line_binary_ = envar;
+=======
+    auto envar = c10::utils::get_env("TORCH_ADDR2LINE_BINARY");
+    if (envar.has_value()) {
+      // currently we take user's input as is without checking
+      addr2line_binary_ = std::move(envar.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_WARN("Use custom addr2line binary: ", addr2line_binary_);
     } else {
       addr2line_binary_ = "addr2line"; // default
@@ -379,7 +390,11 @@ struct Symbolizer {
 
  private:
   static constexpr int BLOCK = 1024;
+<<<<<<< HEAD
   const char* addr2line_binary_;
+=======
+  std::string addr2line_binary_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct Entry {
     std::unique_ptr<Communicate> comm;
     std::vector<void*> queried;
@@ -394,12 +409,21 @@ struct Symbolizer {
     if (it == entries_.end()) {
       // NOLINTNEXTLINE(*-c-arrays*)
       const char* args[] = {
+<<<<<<< HEAD
           addr2line_binary_, "-C", "-f", "-e", name.c_str(), nullptr};
+=======
+          addr2line_binary_.c_str(), "-C", "-f", "-e", name.c_str(), nullptr};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       it = entries_
                .insert_or_assign(
                    name,
                    Entry{
+<<<<<<< HEAD
                        std::make_unique<Communicate>(addr2line_binary_, args),
+=======
+                       std::make_unique<Communicate>(
+                           addr2line_binary_.c_str(), args),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                        {}})
                .first;
     }

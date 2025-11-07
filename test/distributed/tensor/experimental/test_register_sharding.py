@@ -3,9 +3,15 @@
 import itertools
 
 import torch
+<<<<<<< HEAD
 from torch.distributed._tensor import distribute_tensor, DTensor, Replicate, Shard
 from torch.distributed._tensor.experimental import register_sharding
 from torch.distributed._tensor.placement_types import DTensorSpec
+=======
+from torch.distributed.tensor import distribute_tensor, DTensor, Replicate, Shard
+from torch.distributed.tensor._dtensor_spec import DTensorSpec
+from torch.distributed.tensor.experimental import register_sharding
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,

@@ -43,7 +43,11 @@ Python scripts in this folder are used to generate lite interpreter models for A
 
 The generated models are located at
 https://github.com/pytorch/pytorch/tree/master/android/pytorch_android/src/androidTest/assets (Android)
+<<<<<<< HEAD
 https://github.com/pytorch/pytorch/tree/master/ios/TestApp/models/ (iOS)
+=======
+https://github.com/pytorch/pytorch/tree/master/ios/TestApp/models/ (iOS) <!-- @lint-ignore -->
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 These test models will be executed in Android and iOS simulator tests. Note that we only check if there's error in model execution, but don't check the correctness of model output.
 

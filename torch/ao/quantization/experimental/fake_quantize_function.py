@@ -27,6 +27,13 @@ class fake_quantize_function(torch.autograd.Function):
         return result
 
     @staticmethod
+<<<<<<< HEAD
     def backward(ctx: torch.autograd.function.FunctionCtx, grad_output: Tensor) -> Tensor:  # type: ignore[override]
+=======
+    def backward(  # type: ignore[override]
+        ctx: torch.autograd.function.FunctionCtx,
+        grad_output: Tensor,
+    ) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mask = ctx.saved_tensors  # type: ignore[attr-defined]
         return grad_output * mask

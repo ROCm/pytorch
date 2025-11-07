@@ -1,5 +1,8 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 # flake8: noqa C101
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import itertools
 from collections.abc import Iterable, Iterator
 from typing import Union

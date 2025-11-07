@@ -73,7 +73,10 @@ class TORCH_API Unpickler {
       TypeParserT type_parser = defaultTypeParser,
       std::shared_ptr<DeserializationStorageContext> storage_context = nullptr)
       : reader_(std::move(reader)),
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         type_resolver_(std::move(type_resolver)),
         obj_loader_(std::move(obj_loader)),
         read_record_(std::move(read_record)),
@@ -83,6 +86,13 @@ class TORCH_API Unpickler {
         storage_context_(std::move(storage_context)),
         version_(caffe2::serialize::kProducedFileFormatVersion) {}
 
+<<<<<<< HEAD
+=======
+  Unpickler(Unpickler&&) = delete;
+  Unpickler& operator=(Unpickler&&) = delete;
+  ~Unpickler() = default;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // consume the pickle stream, producing an IValue from the contents.
   // Type Tags: the pickler will restore the type tags on
   // List and Dict objects when possible IValue is an Object.

@@ -9,8 +9,15 @@ Original copyright notice:
 """
 
 import math
+<<<<<<< HEAD
 
 import torch
+=======
+from typing import Optional, Union
+
+import torch
+from torch import Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributions import Beta, constraints
 from torch.distributions.distribution import Distribution
 from torch.distributions.utils import broadcast_all
@@ -61,7 +68,16 @@ class LKJCholesky(Distribution):
     arg_constraints = {"concentration": constraints.positive}
     support = constraints.corr_cholesky
 
+<<<<<<< HEAD
     def __init__(self, dim, concentration=1.0, validate_args=None):
+=======
+    def __init__(
+        self,
+        dim: int,
+        concentration: Union[Tensor, float] = 1.0,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if dim < 2:
             raise ValueError(
                 f"Expected dim to be an integer greater than or equal to 2. Found dim={dim}."

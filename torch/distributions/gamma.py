@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions import constraints
@@ -52,7 +57,16 @@ class Gamma(ExponentialFamily):
     def variance(self) -> Tensor:
         return self.concentration / self.rate.pow(2)
 
+<<<<<<< HEAD
     def __init__(self, concentration, rate, validate_args=None):
+=======
+    def __init__(
+        self,
+        concentration: Union[Tensor, float],
+        rate: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.concentration, self.rate = broadcast_all(concentration, rate)
         if isinstance(concentration, _Number) and isinstance(rate, _Number):
             batch_shape = torch.Size()

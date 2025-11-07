@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 """Tool to fix the nvcc's dependecy file output
+=======
+"""Tool to fix the nvcc's dependency file output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Usage: python nvcc_fix_deps.py nvcc [nvcc args]...
 

@@ -6,7 +6,11 @@ from typing import Any, Dict, List, NamedTuple, Optional, Tuple  # noqa: F401
 
 import torch
 from torch.jit._monkeytype_config import _IS_MONKEYTYPE_INSTALLED
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import NoTest
+=======
+from torch.testing._internal.common_utils import NoTest, raise_on_run_directly
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.jit_utils import JitTestCase, make_global
 
 
@@ -21,6 +25,7 @@ if not _IS_MONKEYTYPE_INSTALLED:
     )
     JitTestCase = NoTest  # type: ignore[misc, assignment] # noqa: F811
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     raise RuntimeError(
         "This test file is not meant to be run directly, use:\n\n"
@@ -28,6 +33,8 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestPDT(JitTestCase):
     """
@@ -896,3 +903,10 @@ class TestPDT(JitTestCase):
                 torch.ones(1),
             ),
         )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

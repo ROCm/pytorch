@@ -19,6 +19,7 @@ from collections.abc import Iterable
 from typing import Any, Callable, Optional, overload, TypeVar, Union
 from typing_extensions import deprecated, TypeIs
 
+<<<<<<< HEAD
 import optree
 
 from torch._vendor.packaging.version import Version
@@ -39,6 +40,34 @@ from optree import PyTreeSpec as TreeSpec  # direct import for type annotations
 import torch.utils._pytree as python_pytree
 from torch.utils._pytree import KeyEntry as KeyEntry
 
+=======
+import torch.utils._pytree as python_pytree
+from torch.torch_version import TorchVersion as _TorchVersion
+from torch.utils._pytree import (
+    is_namedtuple as is_namedtuple,
+    is_namedtuple_class as is_namedtuple_class,
+    is_namedtuple_instance as is_namedtuple_instance,
+    is_structseq as is_structseq,
+    is_structseq_class as is_structseq_class,
+    is_structseq_instance as is_structseq_instance,
+    KeyEntry as KeyEntry,
+)
+
+
+# Do not try to import `optree` package if the static version check already fails.
+if not python_pytree._cxx_pytree_dynamo_traceable:
+    raise ImportError(
+        f"{__name__} depends on `optree>={python_pytree._optree_minimum_version}`, "
+        "which is an optional dependency of PyTorch. "
+        "To use it, please upgrade your optree package via "
+        "`python3 -m pip install --upgrade optree`"
+    )
+
+
+import optree
+from optree import PyTreeSpec as TreeSpec  # direct import for type annotations
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = [
     "PyTree",
@@ -53,6 +82,10 @@ __all__ = [
     "keystr",
     "key_get",
     "register_pytree_node",
+<<<<<<< HEAD
+=======
+    "tree_is_leaf",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "tree_flatten",
     "tree_flatten_with_path",
     "tree_unflatten",
@@ -72,9 +105,24 @@ __all__ = [
     "treespec_dumps",
     "treespec_loads",
     "treespec_pprint",
+<<<<<<< HEAD
 ]
 
 
+=======
+    "is_namedtuple",
+    "is_namedtuple_class",
+    "is_namedtuple_instance",
+    "is_structseq",
+    "is_structseq_class",
+    "is_structseq_instance",
+]
+
+
+# In-tree installation may have VCS-based versioning. Update the previous static version.
+python_pytree._optree_version = _TorchVersion(optree.__version__)  # type: ignore[attr-defined]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __TORCH_DICT_SESSION = optree.dict_insertion_ordered(True, namespace="torch")
 __TORCH_DICT_SESSION.__enter__()  # enable globally and permanently
 

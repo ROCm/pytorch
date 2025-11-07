@@ -58,7 +58,11 @@ TensorLike = (_Tensor, torch.Tensor)
 
 
 class Dim(_C.Dim, _Tensor):
+<<<<<<< HEAD
     # note that _C.Dim comes before tensor because we want the Dim API for things like size to take precendence.
+=======
+    # note that _C.Dim comes before tensor because we want the Dim API for things like size to take precedence.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Tensor defines format, but we want to print Dims with special formatting
     __format__ = object.__format__
 

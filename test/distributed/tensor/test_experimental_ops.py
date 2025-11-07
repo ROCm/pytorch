@@ -4,7 +4,11 @@
 
 import torch
 import torch.distributed as dist
+<<<<<<< HEAD
 from torch.distributed._tensor import DeviceMesh, distribute_tensor, Replicate
+=======
+from torch.distributed.tensor import DeviceMesh, distribute_tensor, Replicate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,

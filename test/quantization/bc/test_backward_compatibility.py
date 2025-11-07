@@ -20,7 +20,15 @@ from torch.testing._internal.common_quantized import (
 )
 
 # Testing utils
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_AVX512_VNNI_SUPPORTED, TestCase
+=======
+from torch.testing._internal.common_utils import (
+    IS_AVX512_VNNI_SUPPORTED,
+    raise_on_run_directly,
+    TestCase,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.quantization_torch_package_models import (
     LinearReluFunctional,
 )
@@ -565,3 +573,10 @@ class TestSerialization(TestCase):
     def test_linear_relu_package_quantization_transforms(self):
         m = LinearReluFunctional(4).eval()
         self._test_package(m, input_size=(1, 1, 4, 4), generate=False)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -339,7 +339,11 @@ struct type_caster<c10::complex<T>> {
   bool load(handle src, bool) {
     PyObject* obj = src.ptr();
 
+<<<<<<< HEAD
     // Refered from `THPUtils_unpackComplexDouble`
+=======
+    // Referred from `THPUtils_unpackComplexDouble`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Py_complex py_complex = PyComplex_AsCComplex(obj);
     if (py_complex.real == -1.0 && PyErr_Occurred()) {
       return false;

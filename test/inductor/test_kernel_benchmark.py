@@ -4,6 +4,10 @@ import contextlib
 import os
 import subprocess
 import sys
+<<<<<<< HEAD
+=======
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import torch
@@ -12,10 +16,17 @@ from torch._dynamo.testing import rand_strided
 from torch._inductor import config
 from torch._inductor.codecache import PyCodeCache
 from torch._inductor.test_case import run_tests, TestCase
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
 from torch.testing import FileCheck
 from torch.testing._internal.common_cuda import xfailIfSM89
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
+=======
+from torch._inductor.utils import fresh_cache
+from torch.testing import FileCheck
+from torch.testing._internal.common_cuda import xfailIfSM89
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU, IS_BIG_GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestKernelBenchmark(TestCase):
@@ -148,7 +159,14 @@ class TestKernelBenchmark(TestCase):
     @config.patch(
         max_autotune=True, max_autotune_gemm_backends="TRITON", force_shape_pad=True
     )
+<<<<<<< HEAD
     @fresh_inductor_cache()
+=======
+    @unittest.skipIf(
+        not IS_BIG_GPU, "Skipping triton backend only since not big GPU (not enough SM)"
+    )
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_matmul_triton_kernel_benchmark(self):
         M = 12544
         N = 256
@@ -166,7 +184,11 @@ class TestKernelBenchmark(TestCase):
     @config.patch(
         max_autotune=True, max_autotune_gemm_backends="TRITON", shape_padding=False
     )
+<<<<<<< HEAD
     @fresh_inductor_cache()
+=======
+    @fresh_cache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mm_triton_kernel_benchmark(self):
         M = 2048
         N = 2432
@@ -463,6 +485,12 @@ class TestKernelBenchmark(TestCase):
         compiled_module = self.get_compiled_module()
         self.verify_remove_inductor_deps(compiled_module)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        not IS_BIG_GPU, "Skipping triton backend only since not big GPU (not enough SM)"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch("triton.unique_kernel_names", True)
     @config.patch("triton.unique_kernel_names", True)
     @config.patch(benchmark_kernel=False)

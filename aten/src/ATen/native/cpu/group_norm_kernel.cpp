@@ -570,10 +570,15 @@ ComputeInternalGradients(
   at::parallel_for(0, N * C, 1, [=](int64_t start, int64_t end) {
     constexpr int64_t K = Vec::size();
     const int64_t inner_size = HxW / K * K;
+<<<<<<< HEAD
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
     std::array<opmath_t, K / 2> ds_arr;
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
     std::array<opmath_t, K / 2> db_arr;
+=======
+    std::array<opmath_t, K / 2> ds_arr{};
+    std::array<opmath_t, K / 2> db_arr{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (const auto i : c10::irange(start, end)) {
       const T* dY_ptr = dY + i * HxW;
       const T* X_ptr = X + i * HxW;

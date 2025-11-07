@@ -2,8 +2,13 @@
 import collections
 import itertools
 import logging
+<<<<<<< HEAD
 from collections.abc import Iterable, Sequence
 from copy import copy
+=======
+import operator
+from collections.abc import Iterable, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional
 
 from torch.fx.graph_module import GraphModule
@@ -38,6 +43,7 @@ class Partition:
 
 class _DependencyViewer:
     def __init__(self, graph_module: GraphModule):
+<<<<<<< HEAD
         self.upstreams = collections.defaultdict(set)
         self.downstreams = collections.defaultdict(set)
 
@@ -47,6 +53,10 @@ class _DependencyViewer:
                 self.upstreams[node].add(input_node)
                 self.upstreams[node].update(self.upstreams[input_node])
 
+=======
+        self.downstreams = collections.defaultdict(set)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in reversed(graph_module.graph.nodes):
             for output_node in node.users:
                 # add output_node and output_node's downstream dependency
@@ -56,9 +66,12 @@ class _DependencyViewer:
     def downstreams_of(self, node: Node) -> set[Node]:
         return self.downstreams[node]
 
+<<<<<<< HEAD
     def upstreams_of(self, node: Node) -> set[Node]:
         return self.upstreams[node]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class CapabilityBasedPartitioner:
     def __init__(
@@ -80,7 +93,11 @@ class CapabilityBasedPartitioner:
         )
         self.dependency_viewer = _DependencyViewer(graph_module)
 
+<<<<<<< HEAD
     def __is_node_supported(self, node: Node) -> bool:
+=======
+    def _is_node_supported(self, node: Node) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.operator_support.is_node_supported(
             dict(self.graph_module.named_modules()), node
         )
@@ -102,6 +119,12 @@ class CapabilityBasedPartitioner:
         partitions_order: dict[
             int, int
         ] = {}  # mapping from partition_id to minimum topo order of nodes in partition
+<<<<<<< HEAD
+=======
+        partition_users: dict[
+            int, set
+        ] = {}  # mapping from partition_id to partition users
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_partition_id = itertools.count()
 
         # try to merge partition other_id into partition self_id
@@ -109,8 +132,13 @@ class CapabilityBasedPartitioner:
         # returns `True` when merge happens, `False` otherwise.
         def maybe_merge_partition(self_id: int, other_id: int):
             # merged_nodes is the union of nodes in two partition to-be-merged
+<<<<<<< HEAD
             merged_nodes = copy(partitions_by_id[self_id].nodes)
             merged_nodes.update(partitions_by_id[other_id].nodes)
+=======
+            self_nodes = partitions_by_id[self_id].nodes
+            other_nodes = partitions_by_id[other_id].nodes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def dfs_iter_find_cycle(all_user_nodes: set[Node]):
                 for user_node in all_user_nodes:
@@ -119,7 +147,11 @@ class CapabilityBasedPartitioner:
                     for path_node in self.dependency_viewer.downstreams_of(user_node):
                         # If any of the nodes in the dfs path of this node are in the merged_nodes
                         # list then there is a cycle in the graph.
+<<<<<<< HEAD
                         if path_node in merged_nodes:
+=======
+                        if path_node in self_nodes or path_node in other_nodes:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             return True
 
                         # If any of the nodes in the dfs path of this node are in the assignment
@@ -141,6 +173,7 @@ class CapabilityBasedPartitioner:
 
                 return False
 
+<<<<<<< HEAD
             # check if merge would create cyclic dependency.
             all_user_nodes = set()
             for node in merged_nodes:
@@ -173,6 +206,45 @@ class CapabilityBasedPartitioner:
             del partition_map[other_id]
 
             return True
+=======
+            # find new partition users if merge.
+            all_user_nodes = partition_users[self_id] | partition_users[other_id]
+            all_user_nodes.difference_update(other_nodes, self_nodes)
+
+            # check if merge would create cyclic dependency.
+            if dfs_iter_find_cycle(all_user_nodes):
+                # return false indicating cyclic dependency found and
+                # merge is aborted
+                return self_id, False
+
+            # merge the smaller partition into the larger.
+            merge_id, removed_id = self_id, other_id
+            if len(self_nodes) < len(other_nodes):
+                merge_id, removed_id = removed_id, merge_id
+            # no cyclic dependency found, move forward with the merge
+            # updating partition nodes
+            partitions_by_id[merge_id].nodes.update(partitions_by_id[removed_id].nodes)
+            # updating assignment map
+            for node in partitions_by_id[removed_id].nodes:
+                assignment[node] = merge_id
+            # delete other partition
+            del partitions_by_id[removed_id]
+
+            partitions_order[merge_id] = min(
+                partitions_order[merge_id], partitions_order[removed_id]
+            )
+            del partitions_order[removed_id]
+
+            partition_map[merge_id] = partition_map[merge_id].union(
+                partition_map[removed_id]
+            )
+            del partition_map[removed_id]
+
+            partition_users[merge_id] = all_user_nodes
+            del partition_users[removed_id]
+
+            return merge_id, True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def merge_single_node(node: Node, id: Optional[int]):
             def _update_partition_map(node: Node, id: int):
@@ -184,6 +256,7 @@ class CapabilityBasedPartitioner:
                         partition_map[id].add(target_id)
                         partition_map[id].update(partition_map[target_id])
 
+<<<<<<< HEAD
                 # Iterate through all the upstream nodes of this node and update the partition map
                 # to indicate that there is a path from the partition id of the upstream node to the
                 # current node's partition id.
@@ -193,6 +266,8 @@ class CapabilityBasedPartitioner:
                     if source_id is not None:
                         partition_map[source_id].add(id)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if node in assignment:
                 partitions_by_id[assignment[node]].remove_node(node)
 
@@ -201,11 +276,18 @@ class CapabilityBasedPartitioner:
             elif id not in partitions_by_id:
                 assignment[node] = id
                 partitions_by_id[id] = Partition(id=id, nodes=[node])
+<<<<<<< HEAD
+=======
+                partition_users[id] = set(node.users)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _update_partition_map(node, id)
             else:
                 assignment[node] = id
                 partitions_by_id[id].add_node(node)
+<<<<<<< HEAD
                 _update_partition_map(node, id)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         logger.debug("Proposing partitions...")
 
@@ -218,7 +300,11 @@ class CapabilityBasedPartitioner:
             #
             # I don't see a need to add a knob to disable horizontal fusion yet, we can short-cut
             # the fusion by adding an `else` block here to skip horizontal fusion.
+<<<<<<< HEAD
             if self.__is_node_supported(node) and node not in assignment:
+=======
+            if self._is_node_supported(node) and node not in assignment:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 partition_id = next(new_partition_id)
                 nodes_order[node] = partition_id
                 partitions_order[partition_id] = partition_id
@@ -227,7 +313,11 @@ class CapabilityBasedPartitioner:
 
             # merge all possible partitions
             for partition_id, _ in sorted(
+<<<<<<< HEAD
                 partitions_order.items(), key=lambda item: item[1]
+=======
+                partitions_order.items(), key=operator.itemgetter(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 merge_candidates[partition_id] = None
 
@@ -235,10 +325,16 @@ class CapabilityBasedPartitioner:
             if len(merge_candidates_list) > 1:
                 self_id = merge_candidates_list[0]
                 for other_id in merge_candidates_list[1:]:
+<<<<<<< HEAD
                     # note: merge partition `other_id` into partition `self_id` if
                     # it doesn't create cyclic dependency in the graph, otherwise,
                     # this is a no-op
                     maybe_merge_partition(self_id, other_id)
+=======
+                    # note: merge partitions if it doesn't create cyclic dependency
+                    # in the graph, otherwise, this is a no-op
+                    self_id, _ = maybe_merge_partition(self_id, other_id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # post processing to re-assign "getitem" nodes into upstream partition
         logger.debug("Reassigning getitem nodes to its producer node's partition...")

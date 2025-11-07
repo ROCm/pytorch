@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import warnings
 from collections.abc import Collection, Mapping
@@ -67,8 +70,13 @@ class _NamedOptimizer(optim.Optimizer):
         optimizer_class: optim.Optimizer,
         param_groups: Optional[Collection[Mapping[str, Any]]] = None,
         module: Optional[nn.Module] = None,
+<<<<<<< HEAD
         *args,
         **kwargs,
+=======
+        *args: tuple[Any, ...],
+        **kwargs: dict[str, Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         torch._C._log_api_usage_once("torch.distributed.optim._NamedOptimizer")
         self.param_groups: Collection[Mapping[str, Any]] = param_groups  # type: ignore[assignment]
@@ -103,7 +111,11 @@ class _NamedOptimizer(optim.Optimizer):
         # Update param_groups from optimizer.
         self.param_groups = self._optimizer.param_groups
 
+<<<<<<< HEAD
     def _param_groups_check(self):
+=======
+    def _param_groups_check(self) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.param_groups is not None:
             for param_group in self.param_groups:
                 assert isinstance(param_group, dict), "param group must be a dict"
@@ -147,7 +159,11 @@ class _NamedOptimizer(optim.Optimizer):
         return self._post_state_dict({"state": ret_state, "param_groups": ret_groups})
 
     @overload
+<<<<<<< HEAD
     def step(self, closure: None = ...) -> None: ...
+=======
+    def step(self, closure: None = None) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def step(self, closure: Callable[[], float]) -> float: ...
@@ -165,7 +181,11 @@ class _NamedOptimizer(optim.Optimizer):
     def state(self) -> Mapping[torch.Tensor, Any]:  # type: ignore[override]
         return self._optimizer.state
 
+<<<<<<< HEAD
     def load_state_dict(self, state_dict: Mapping[str, Any]) -> None:
+=======
+    def load_state_dict(self, state_dict: dict[str, Any]) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Define the default behavior to load a state_dict for ``_NamedOptimizer``.
 
@@ -183,7 +203,11 @@ class _NamedOptimizer(optim.Optimizer):
             ...
         ```
         Args:
+<<<<<<< HEAD
             state_dict (Dict[str, Any]) : A ``state_dict`` to load into the optimizer.
+=======
+            state_dict (dict[str, Any]) : A ``state_dict`` to load into the optimizer.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Note that this state dict update is performed in place.
 
         .. note:: PyTorch is using lazy init to initialize the optim states.
@@ -306,7 +330,11 @@ class _NamedOptimizer(optim.Optimizer):
         # Calling ``step`` will load the initial state for optimizer states.
         self.step(closure=None)
 
+<<<<<<< HEAD
     def _pre_load_state_dict(self, state_dict) -> dict[str, Any]:
+=======
+    def _pre_load_state_dict(self, state_dict: dict[str, Any]) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO(chienchin): This API should be FSDP agnostic and should support
         # general user hooks.
         if isinstance(self.module, FSDP):
@@ -315,7 +343,11 @@ class _NamedOptimizer(optim.Optimizer):
             )
         return state_dict
 
+<<<<<<< HEAD
     def _post_state_dict(self, state_dict) -> dict[str, Any]:
+=======
+    def _post_state_dict(self, state_dict: dict[str, Any]) -> dict[str, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO(chienchin): This API should be FSDP agnostic and should support
         # general user hooks.
         if isinstance(self.module, FSDP):
@@ -324,5 +356,9 @@ class _NamedOptimizer(optim.Optimizer):
 
 
 def _gen_param_group_key(param_keys: list[str]) -> str:
+<<<<<<< HEAD
     """Concatenate all param keys as a unique indentifier for one param group."""
+=======
+    """Concatenate all param keys as a unique identifier for one param group."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return "/".join(sorted(param_keys))

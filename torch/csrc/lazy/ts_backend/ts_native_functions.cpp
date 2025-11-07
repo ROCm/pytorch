@@ -398,7 +398,11 @@ at::Tensor LazyNativeFunctions::lift_fresh(const at::Tensor& tensor) {
 
 // All of the below ops correspond to CompositeExplicitAutograd kernels from
 // core that call into view operators internally. These are all composite ops
+<<<<<<< HEAD
 // that LTC can technically re-use / get for free, but we need to
+=======
+// that LTC can technically reuse / get for free, but we need to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // "functionalize" them to remove the view ops before we can use them.
 at::Tensor LazyNativeFunctions::block_diag(at::TensorList tensors) {
   return at::functionalization::functionalize_aten_op<ATEN_OP(
@@ -529,7 +533,11 @@ at::Tensor LazyNativeFunctions::slice_backward_symint(
           std::move(step));
 }
 
+<<<<<<< HEAD
 // re-use the composite kernel from core, that way we don't need to provide a
+=======
+// reuse the composite kernel from core, that way we don't need to provide a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // backwards formula for native_group_norm
 std::tuple<Tensor, Tensor, Tensor> LazyNativeFunctions::native_group_norm(
     const at::Tensor& input,

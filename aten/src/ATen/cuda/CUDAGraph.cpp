@@ -38,9 +38,16 @@ MempoolId_t graph_pool_handle() {
  * describes memory management for captures.
  */
 
+<<<<<<< HEAD
 CUDAGraph::CUDAGraph()
   // CUDAStreams may not be default-constructed.
   : capture_stream_(at::cuda::getCurrentCUDAStream()) {
+=======
+CUDAGraph::CUDAGraph(bool keep_graph)
+  // CUDAStreams may not be default-constructed.
+  : capture_stream_(at::cuda::getCurrentCUDAStream()),
+    keep_graph_(keep_graph) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void CUDAGraph::register_generator_state(
@@ -126,8 +133,42 @@ void CUDAGraph::capture_end() {
   c10::cuda::CUDACachingAllocator::endAllocateToPool(capture_dev_, mempool_id_);
 
   TORCH_CHECK(graph_ != nullptr, "Invalid capture.");
+<<<<<<< HEAD
   has_graph_ = true;
 
+=======
+
+  for (auto& [generator_state, wholegraph_increments] :
+       captured_generator_states_) {
+    wholegraph_increments = generator_state->capture_epilogue();
+  }
+
+  size_t numCUDAGraphNodes = 0;
+  AT_CUDA_CHECK(cudaGraphGetNodes(graph_, nullptr, &numCUDAGraphNodes));
+  if (numCUDAGraphNodes == 0) {
+      TORCH_WARN("The CUDA Graph is empty. This usually means that the graph was ",
+                 "attempted to be captured on wrong device or stream.");
+  }
+
+  capture_ended_ = true;
+  has_graph_ = true;
+  if (!keep_graph_) {
+    instantiate();
+    if (!_cuda_graphs_debug) {
+      AT_CUDA_CHECK(cudaGraphDestroy(graph_));
+    }
+    has_graph_ = false;
+  }
+}
+
+void CUDAGraph::instantiate() {
+  TORCH_CHECK(capture_ended_, "capture_end() must have been called before calling instantiate");
+
+  if (has_graph_exec_) {
+    TORCH_CHECK(keep_graph_, "instantiate() is intended to be called by the user only when keep_graph=true");
+    AT_CUDA_CHECK(cudaGraphExecDestroy(graph_exec_));
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // In typical graph usage some tensors (e.g. the tensors used for graph IO) are not freed
   // between replays.
   // If Pytorch compiles and runs with a CUDA 11.4+ toolkit, there's a chance the allocator backend
@@ -139,7 +180,11 @@ void CUDAGraph::capture_end() {
   // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__GRAPH.html#group__CUDART__GRAPH_1g1accfe1da0c605a577c22d9751a09597
   // cudaGraphInstantiateWithFlags
   // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__GRAPH.html#group__CUDART__GRAPH_1ga2c652a24ba93e52b99a47bec0888233
+<<<<<<< HEAD
 #if ((defined(CUDA_VERSION) && CUDA_VERSION >= 11040) || (defined(USE_ROCM) && ROCM_VERSION >= 60200))
+=======
+#if !defined(USE_ROCM) || ROCM_VERSION >= 60200
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int version = 0;
   AT_CUDA_CHECK(cudaDriverGetVersion(&version));
   if (version < 11040) {
@@ -154,13 +199,18 @@ void CUDAGraph::capture_end() {
 #endif
 //Since ROCm 6.2, we want to go down this path as hipGraphExecDestroy in the destructor will not immediately free the memory.
 //It will wait for the next sync operation. cudaGraphInstantiateFlagAutoFreeOnLaunch will add async frees after graph launch.
+<<<<<<< HEAD
 #if ((defined(CUDA_VERSION) && CUDA_VERSION >= 11040) || (defined(USE_ROCM) && ROCM_VERSION >= 60200))
+=======
+#if !defined(USE_ROCM) || ROCM_VERSION >= 60200
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     AT_CUDA_CHECK(cudaGraphInstantiateWithFlags(&graph_exec_,
                                                 graph_,
                                                 cudaGraphInstantiateFlagAutoFreeOnLaunch));
   }
 #endif
+<<<<<<< HEAD
 
   has_graph_exec_ = true;
 
@@ -191,6 +241,20 @@ void CUDAGraph::replay() {
   TORCH_CHECK(has_graph_exec_,
               "Called CUDAGraph::replay without a preceding successful capture.");
 
+=======
+  has_graph_exec_ = true;
+}
+
+void CUDAGraph::replay() {
+  TORCH_CHECK(capture_ended_,
+              "Called CUDAGraph::replay without a preceding successful capture.");
+
+  if (!has_graph_exec_) {
+    TORCH_INTERNAL_ASSERT(keep_graph_);
+    instantiate();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::OptionalDeviceGuard device_guard{capture_stream_.device()};
 
   for (auto& [generator_state, wholegraph_increments] :
@@ -216,14 +280,26 @@ void CUDAGraph::enable_debug_mode() {
 }
 
 void CUDAGraph::debug_dump(const std::string& debug_path) {
+<<<<<<< HEAD
 #if (defined(CUDA_VERSION) && CUDA_VERSION >= 11030)|| defined(USE_ROCM)
   if (_cuda_graphs_debug) {
+=======
+#if defined(CUDA_VERSION) || defined(USE_ROCM)
+  if (_cuda_graphs_debug || keep_graph_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_WARN("DEBUG: calling debug_dump()");
     if (has_graph_) {
       TORCH_WARN("DEBUG: calling cudaGraphDebugDotPrint() with ", debug_path);
       C10_CUDA_CHECK_WARN(cudaGraphDebugDotPrint(graph_, debug_path.c_str(), cudaGraphDebugDotFlagsVerbose)); // most verbose output
+<<<<<<< HEAD
       AT_CUDA_CHECK(cudaGraphDestroy(graph_));
       has_graph_ = false;
+=======
+      if (!keep_graph_) {
+        AT_CUDA_CHECK(cudaGraphDestroy(graph_));
+        has_graph_ = false;
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   } else {
     TORCH_WARN("CUDA Graphs debug not enabled, set with [graph].enable_debug_mode()");
@@ -233,6 +309,15 @@ void CUDAGraph::debug_dump(const std::string& debug_path) {
 #endif
 }
 
+<<<<<<< HEAD
+=======
+cudaGraph_t CUDAGraph::raw_cuda_graph() {
+  TORCH_CHECK(keep_graph_, "You cannot access the raw cudaGraph_t instance unless CUDAGraph was initialized with keep_graph=true");
+  TORCH_CHECK(has_graph_, "You cannot access the raw cudaGraph_t instance until capture_end() has been called");
+  return graph_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void CUDAGraph::reset() {
   // I'd prefer these checks throw exceptions, not print warnings,
   // but the destructor calls reset(), and at least one CI build
@@ -253,9 +338,16 @@ void CUDAGraph::reset() {
   // and the allocator could end up in all kinds of weird states depending where failure occurred.
   // If the user catches the failure exception in a script, or is running in REPL or (god forbid)
   // a Jupyter notebook, I don't see an easy way for reset() to gracefully fix all such possible error states.
+<<<<<<< HEAD
   if (has_graph_ || has_graph_exec_) {
     // notifyCaptureDestroy may throw. How should we handle this?
     c10::cuda::CUDACachingAllocator::releasePool(capture_dev_, mempool_id_);
+=======
+  if (capture_ended_) {
+    // notifyCaptureDestroy may throw. How should we handle this?
+    c10::cuda::CUDACachingAllocator::releasePool(capture_dev_, mempool_id_);
+    capture_ended_ = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (has_graph_) {
     C10_CUDA_CHECK_WARN(cudaGraphDestroy(graph_));
@@ -269,7 +361,11 @@ void CUDAGraph::reset() {
 
 // Returns an id another graph's capture_begin can use to share the same memory pool as this graph.
 MempoolId_t CUDAGraph::pool() {
+<<<<<<< HEAD
 TORCH_CHECK(has_graph_exec_,
+=======
+TORCH_CHECK(capture_ended_,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               "Called CUDAGraph::pool() without a preceding successful capture.");
   return mempool_id_;
 }

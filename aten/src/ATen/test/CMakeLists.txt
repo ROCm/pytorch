@@ -17,7 +17,10 @@ list(APPEND ATen_CPU_TEST_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/cpu_generator_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cpu_profiling_allocator_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cpu_rng_test.cpp
+<<<<<<< HEAD
   ${CMAKE_CURRENT_SOURCE_DIR}/dispatch_key_set_test.cpp
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ${CMAKE_CURRENT_SOURCE_DIR}/dlconvertor_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/extension_backend_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/half_test.cpp
@@ -65,6 +68,10 @@ list(APPEND ATen_CUDA_TEST_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda_device_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda_distributions_test.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda_dlconvertor_test.cpp
+<<<<<<< HEAD
+=======
+  ${CMAKE_CURRENT_SOURCE_DIR}/cuda_exchange_device_test.cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda_generator_test.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda_half_test.cu
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda_integer_divider_test.cu
@@ -122,6 +129,10 @@ list(APPEND ATen_XPU_TEST_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/xpu_device_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/xpu_event_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/xpu_generator_test.cpp
+<<<<<<< HEAD
+=======
+  ${CMAKE_CURRENT_SOURCE_DIR}/xpu_reportMemoryUsage_test.cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   )
 
 # ---[ Send the lists to the parent scope.

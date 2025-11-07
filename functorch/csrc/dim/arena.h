@@ -8,7 +8,11 @@
 #include <ATen/ATen.h>
 #include "minpybind.h"
 
+<<<<<<< HEAD
 #ifdef _WIN32
+=======
+#if defined(_MSC_VER) && !defined(__clang__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <intrin.h>
 // https://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
 inline unsigned int __builtin_clz(unsigned int x) {

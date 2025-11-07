@@ -97,6 +97,10 @@ def make_test_case(
     slow=False,
     func_inputs=None,
     code_string_count=None,
+<<<<<<< HEAD
+=======
+    test_build_separate=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     test_name = f"{name}_{device}" if device else name
     if code_string_count is None:
@@ -105,8 +109,18 @@ def make_test_case(
     func = getattr(tests, test_name)
     assert callable(func), "not a callable"
     func = slowTest(func) if slow else func
+<<<<<<< HEAD
 
     @config.patch(cpp_wrapper=True, search_autotune_cache=False)
+=======
+    new_test_name = f"{test_name}_separate" if test_build_separate else test_name
+
+    @config.patch(
+        cpp_wrapper=True,
+        search_autotune_cache=False,
+        cpp_wrapper_build_separate=test_build_separate,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def fn(self):
         tests.setUpClass()
         tests.setUp()
@@ -123,6 +137,11 @@ def make_test_case(
                 # happen for tests validating build-dependent features (e.g. datatypes
                 # that are available on some platforms and not others).
                 if code:
+<<<<<<< HEAD
+=======
+                    if test_build_separate:
+                        self.assertIn("kernel_src", code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertIn("CppWrapperCodeCache", code)
                     self.assertTrue(
                         all(
@@ -134,14 +153,22 @@ def make_test_case(
             tests.tearDown()
             tests.tearDownClass()
 
+<<<<<<< HEAD
     fn.__name__ = test_name
+=======
+    fn.__name__ = new_test_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import copy
 
     fn.__dict__ = copy.deepcopy(func.__dict__)
     if condition:
         setattr(
             CppWrapperTemplate,
+<<<<<<< HEAD
             test_name,
+=======
+            new_test_name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn,
         )
 
@@ -156,14 +183,28 @@ if RUN_CPU:
         slow: bool = False
         func_inputs: list = None
         code_string_count: dict = {}
+<<<<<<< HEAD
 
     for item in [
         BaseTest("test_add_complex"),
         BaseTest("test_add_complex4"),
+=======
+        test_build_separate: bool = False
+
+    for item in [
+        BaseTest("test_add_complex"),
+        BaseTest("test_add_complex", test_build_separate=True),
+        BaseTest("test_add_complex4"),
+        BaseTest("test_add_complex4", test_build_separate=True),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         BaseTest("test_as_strided"),  # buffer reuse
         BaseTest("test_bernoulli1"),
         BaseTest("test_bitwise"),  # int32
         BaseTest("test_bmm1"),
+<<<<<<< HEAD
+=======
+        BaseTest("test_bmm1", test_build_separate=True),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         BaseTest("test_bmm2"),
         BaseTest("test_cat"),  # alias
         BaseTest(
@@ -189,7 +230,11 @@ if RUN_CPU:
         BaseTest(
             "test_conv2d_unary",
             "cpu",
+<<<<<<< HEAD
             test_mkldnn_pattern_matcher.TestPatternMatcher(),
+=======
+            test_mkldnn_pattern_matcher.TestPatternMatcherGenericCPU(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             condition=torch.backends.mkldnn.is_available(),
             slow=True,
         ),
@@ -246,7 +291,12 @@ if RUN_CPU:
             for func in dir(test_cpu_repro.CPUReproTests())
             if func.startswith("test_lstm_packed_change_input_sizes")
         ],
+<<<<<<< HEAD
         BaseTest("test_max_pool2d6"),
+=======
+        BaseTest("test_max_pool2d6_dilation_1"),
+        BaseTest("test_max_pool2d6_dilation_2"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         BaseTest(
             "test_mkl_linear", "", test_cpu_repro.CPUReproTests(), condition=TEST_MKL
         ),
@@ -296,7 +346,11 @@ if RUN_CPU:
             condition=torch.backends.mkldnn.is_available() and not IS_WINDOWS,
             func_inputs=[
                 [
+<<<<<<< HEAD
                     "aoti_torch_cpu__qconv2d_pointwise_tensor",
+=======
+                    "aoti_torch_cpu__qconv_pointwise_tensor",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "torch.ops.quantized.max_pool2d",
                     "aoti_torch_cpu__qlinear_pointwise_tensor",
                 ]
@@ -358,7 +412,13 @@ if RUN_CPU:
         BaseTest("test_view_as_complex"),
         BaseTest("test_view_as_real"),
         BaseTest(
+<<<<<<< HEAD
             "test_woq_int4", "cpu", test_mkldnn_pattern_matcher.TestPatternMatcher()
+=======
+            "test_woq_int4",
+            "cpu",
+            test_mkldnn_pattern_matcher.TestPatternMatcher(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
     ]:
         make_test_case(
@@ -369,6 +429,10 @@ if RUN_CPU:
             item.slow,
             item.func_inputs,
             item.code_string_count,
+<<<<<<< HEAD
+=======
+            item.test_build_separate,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     test_torchinductor.copy_tests(

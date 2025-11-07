@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint.metadata import ChunkStorageMetadata
 
 
@@ -8,7 +11,11 @@ __all__: list[str] = []
 
 def _check_shard_metadata_pair_overlap(
     shard1: ChunkStorageMetadata, shard2: ChunkStorageMetadata
+<<<<<<< HEAD
 ):
+=======
+) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Check if two shards overlap."""
     # For each dim of each shard, check if one shard resides on the other
     # end of second shard with respect to that dim. As an example for a 2D

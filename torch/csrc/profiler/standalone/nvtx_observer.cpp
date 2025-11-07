@@ -124,7 +124,12 @@ static void updateOutputTensorTracker(const at::RecordFunction& fn) {
 }
 
 template <bool report_input_shapes>
+<<<<<<< HEAD
 std::unique_ptr<at::ObserverContext> enterNVTX(const at::RecordFunction& fn) {
+=======
+static std::unique_ptr<at::ObserverContext> enterNVTX(
+    const at::RecordFunction& fn) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (NVTXThreadLocalState::getTLS() != nullptr) {
     auto input_op_ids = getInputTensorOpIds(fn);
     torch::profiler::impl::cudaStubs()->rangePush(

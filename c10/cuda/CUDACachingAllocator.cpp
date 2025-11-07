@@ -6,6 +6,10 @@
 #include <c10/cuda/CUDAFunctions.h>
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/util/Gauge.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/Logging.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/ScopeExit.h>
 #include <c10/util/UniqueVoidPtr.h>
 #include <c10/util/env.h>
@@ -33,14 +37,37 @@
 #include <new>
 #include <regex>
 #include <set>
+<<<<<<< HEAD
+=======
+#include <stack>
+#include <thread>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <utility>
 #include <vector>
 
 TORCH_SDT_DEFINE_SEMAPHORE(malloc)
 TORCH_SDT_DEFINE_SEMAPHORE(free)
 
+<<<<<<< HEAD
 namespace c10 {
 
+=======
+// add these definitions so that we can compile with CUDA < 12.3
+// borrowed from
+// https://github.com/NVIDIA/nccl/blob/3ea7eedf3b9b94f1d9f99f4e55536dfcbd23c1ca/src/include/p2p.h#L20
+#if CUDA_VERSION < 12030
+#define CU_MEM_HANDLE_TYPE_FABRIC ((CUmemAllocationHandleType)0x8ULL)
+#define CU_IPC_HANDLE_SIZE 64
+typedef struct CUmemFabricHandle_st {
+  unsigned char data[CU_IPC_HANDLE_SIZE];
+} CUmemFabricHandle_v1;
+typedef CUmemFabricHandle_v1 CUmemFabricHandle;
+#endif
+
+namespace c10 {
+
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_DEFINE_REGISTRY(FreeCudaMemoryCallbacksRegistry, FreeMemoryCallback)
 
 namespace cuda::CUDACachingAllocator {
@@ -128,7 +155,11 @@ constexpr size_t kMinLargeAlloc =
     10485760; // allocations between 1 and 10 MiB may use kLargeBuffer
 constexpr size_t kRoundLarge = 2097152; // round up large allocations to 2 MiB
 
+<<<<<<< HEAD
 static char SHAREABLE_HANDLE_VERSION = 1;
+=======
+static char SHAREABLE_HANDLE_VERSION = 2;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enum ShareableHandleType : char {
   SHAREABLE_CUDA_MALLOC = 'c',
   SHAREABLE_CUDA_EXPANDABLE_SEGMENT = 'e'
@@ -173,6 +204,11 @@ struct BlockPool {
   // Add a Block into blocks set with updating gc counter.
   std::pair<std::set<Block*, Comparison>::iterator, bool> insert_into_blocks(
       Block* block);
+<<<<<<< HEAD
+=======
+
+  MempoolId_t owner_MempoolId() const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct ExpandableSegment;
@@ -382,6 +418,10 @@ struct ExpandableSegment {
   // returns the actual range mapped, which may be
   // greater than requested if size is not aligned to segment_size_.
   // return size of 0 indicates OOM
+<<<<<<< HEAD
+=======
+  // return nullptr indicates the handle type is not supported.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SegmentRange map(SegmentRange range) {
     auto begin = segmentLeft(range.ptr);
     auto end = segmentRight(range.ptr + range.size);
@@ -389,6 +429,26 @@ struct ExpandableSegment {
     if (begin == end) {
       return rangeFromHandles(begin, end);
     }
+<<<<<<< HEAD
+=======
+
+    // if the handle type is not specified, try to use fabric handle first.
+    // if it fails, use posix file handle
+    if (CUDAAllocatorConfig::expandable_segments_handle_type() ==
+        Expandable_Segments_Handle_Type::UNSPECIFIED) {
+      CUDAAllocatorConfig::set_expandable_segments_handle_type(
+          Expandable_Segments_Handle_Type::FABRIC_HANDLE);
+      auto output = map(range);
+      if (output.ptr != nullptr) {
+        return output;
+      }
+      // if fabric handle is not supported, use posix file handle.
+      CUDAAllocatorConfig::set_expandable_segments_handle_type(
+          Expandable_Segments_Handle_Type::POSIX_FD);
+      return map(range);
+    }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     while (end > handles_.size()) {
       handles_.emplace_back(std::nullopt);
     }
@@ -398,13 +458,31 @@ struct ExpandableSegment {
       CUmemAllocationProp prop = {};
       prop.type = CU_MEM_ALLOCATION_TYPE_PINNED;
 #ifndef FBCODE_CAFFE2
+<<<<<<< HEAD
       prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR;
 #endif
+=======
+      if (CUDAAllocatorConfig::expandable_segments_handle_type() !=
+          Expandable_Segments_Handle_Type::FABRIC_HANDLE) {
+        prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR;
+      } else {
+        prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_FABRIC;
+      }
+#endif
+      int flag = 0;
+      C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuDeviceGetAttribute_(
+          &flag,
+          CU_DEVICE_ATTRIBUTE_GPU_DIRECT_RDMA_WITH_CUDA_VMM_SUPPORTED,
+          device_));
+      if (flag)
+        prop.allocFlags.gpuDirectRDMACapable = 1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       prop.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
       // NOLINTNEXTLINE(bugprone-signed-char-misuse)
       prop.location.id = static_cast<int>(device_);
       auto status =
           DriverAPI::get()->cuMemCreate_(&handle, segment_size_, &prop, 0);
+<<<<<<< HEAD
       if (status == CUDA_ERROR_OUT_OF_MEMORY) {
         for (auto j : c10::irange(begin, i)) {
           // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
@@ -416,6 +494,34 @@ struct ExpandableSegment {
         return rangeFromHandles(begin, begin);
       }
       C10_CUDA_DRIVER_CHECK(status);
+=======
+      if (status != CUDA_SUCCESS) {
+        if (status == CUDA_ERROR_OUT_OF_MEMORY) {
+          for (auto j : c10::irange(begin, i)) {
+            // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
+            auto h = handles_.at(j).value();
+            handles_.at(j) = std::nullopt;
+            C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemRelease_(h.handle));
+          }
+          trimHandles();
+          return rangeFromHandles(begin, begin);
+        } else if (
+            CUDAAllocatorConfig::expandable_segments_handle_type() ==
+            Expandable_Segments_Handle_Type::FABRIC_HANDLE) {
+          // we are testing if we can use fabric handle.
+          // if we can, we will use it.
+          // if we can't, we will use posix file handle.
+          // so we should not return an error here.
+          // in practice, we can get CUDA_ERROR_NOT_SUPPORTED or
+          // CUDA_ERROR_NOT_PERMITTED to be safe, any non out-of-memory error is
+          // considered as the handle type is not supported. if the handle type
+          // is not supported, return a null range to indicate it.
+          return SegmentRange(nullptr, 0);
+        } else {
+          C10_CUDA_DRIVER_CHECK(status);
+        }
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       handles_.at(i) = Handle{handle, std::nullopt};
     }
     mapAndSetAccess(begin, end);
@@ -448,6 +554,7 @@ struct ExpandableSegment {
     for (auto i : c10::irange(begin, end)) {
       // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
       auto& handle = handles_.at(i).value();
+<<<<<<< HEAD
       if (!handle.fd) {
         int fd = 0;
         C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemExportToShareableHandle_(
@@ -456,6 +563,35 @@ struct ExpandableSegment {
       }
       int fd = *handle.fd;
       buf.write((const char*)&fd, sizeof(int));
+=======
+      if (CUDAAllocatorConfig::expandable_segments_handle_type() !=
+          Expandable_Segments_Handle_Type::FABRIC_HANDLE) {
+        if (!handle.shareable_handle) {
+          int fd = 0;
+          C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemExportToShareableHandle_(
+              &fd, handle.handle, CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR, 0));
+          handle.shareable_handle = fd;
+          LOG(INFO) << "use posix fd to share expandable segments.";
+        }
+        TORCH_CHECK(
+            handle.shareable_handle != std::nullopt,
+            "shareable_handle is null");
+        buf.write((const char*)&*handle.shareable_handle, sizeof(int));
+      } else {
+        if (!handle.shareable_handle) {
+          CUmemFabricHandle fabric_handle;
+          C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemExportToShareableHandle_(
+              &fabric_handle, handle.handle, CU_MEM_HANDLE_TYPE_FABRIC, 0));
+          handle.shareable_handle = fabric_handle;
+          LOG(INFO) << "use fabric handle to share expandable segments.";
+        }
+        TORCH_CHECK(
+            handle.shareable_handle != std::nullopt,
+            "shareable_handle is null");
+        buf.write(
+            (const char*)&*handle.shareable_handle, sizeof(CUmemFabricHandle));
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return rangeFromHandles(begin, end);
   }
@@ -480,6 +616,7 @@ struct ExpandableSegment {
 #ifndef SYS_pidfd_getfd
 #define SYS_pidfd_getfd 438
 #endif
+<<<<<<< HEAD
     auto pidfd = syscall(SYS_pidfd_open, header.pid, 0);
     TORCH_CHECK(
         pidfd != -1 || errno != ENOSYS,
@@ -516,6 +653,62 @@ struct ExpandableSegment {
       segment->handles_.emplace_back(Handle{handle, std::nullopt});
     }
     close((int)pidfd);
+=======
+    if (CUDAAllocatorConfig::expandable_segments_handle_type() !=
+        Expandable_Segments_Handle_Type::FABRIC_HANDLE) {
+      auto pidfd = syscall(SYS_pidfd_open, header.pid, 0);
+      TORCH_CHECK(
+          pidfd != -1 || errno != ENOSYS,
+          "The kernel on this machine does not support the pidfd_open syscall needed to use IPC for CUDA tensors when expandable_segments:True is set. "
+          "Consider using expandable_segments:False via torch.cuda.memory._set_allocator_settings('expandable_segments:False') for this allocation.");
+      TORCH_CHECK(pidfd != -1, "pidfd_open:", c10::utils::str_error(errno));
+      for (auto i : c10::irange(header.num_handles)) {
+        (void)i;
+        int fd = 0;
+        buf.read((char*)&fd, sizeof(int));
+        auto myfd = syscall(SYS_pidfd_getfd, pidfd, fd, 0);
+        if (myfd == -1) {
+          auto err = errno;
+          close((int)pidfd);
+          for (auto& h : segment->handles_) {
+            C10_CUDA_DRIVER_CHECK(
+                // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
+                DriverAPI::get()->cuMemRelease_(h.value().handle));
+            h = std::nullopt;
+          }
+          TORCH_CHECK(
+              err != ENOSYS,
+              "The kernel on this machine does not support the pidfd_getfd syscall needed to use IPC for CUDA tensors when expandable_segments:True is set. "
+              "Consider using expandable_segments:False via torch.cuda.memory._set_allocator_settings('expandable_segments:False') for this allocation.");
+          TORCH_CHECK(false, "pidfd_getfd: ", c10::utils::str_error(err));
+        }
+        CUmemGenericAllocationHandle handle = 0;
+        C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemImportFromShareableHandle_(
+            &handle,
+            // NOLINTNEXTLINE(performance-no-int-to-ptr)
+            (void*)(uintptr_t)myfd,
+            CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR));
+        LOG(INFO) << "use posix fd to import expandable segments.";
+        close((int)myfd);
+        segment->handles_.emplace_back(Handle{handle, std::nullopt});
+      }
+      close((int)pidfd);
+    } else {
+      for (auto i : c10::irange(header.num_handles)) {
+        (void)i;
+        CUmemFabricHandle fabric_handle;
+        buf.read((char*)&fabric_handle, sizeof(CUmemFabricHandle));
+        CUmemGenericAllocationHandle handle = 0;
+        C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemImportFromShareableHandle_(
+            &handle,
+            // NOLINTNEXTLINE(performance-no-int-to-ptr)
+            (void*)&fabric_handle,
+            CU_MEM_HANDLE_TYPE_FABRIC));
+        LOG(INFO) << "use fabric handle to import expandable segments.";
+        segment->handles_.emplace_back(Handle{handle, std::nullopt});
+      }
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     segment->mapAndSetAccess(0, header.num_handles);
     return segment;
   }
@@ -589,8 +782,13 @@ struct ExpandableSegment {
       handles_.at(i) = std::nullopt;
       C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemUnmap_(
           ptr_ + segment_size_ * i, segment_size_));
+<<<<<<< HEAD
       if (h.fd) {
         close(*h.fd);
+=======
+      if (h.shareable_handle) {
+        close(std::get<int>(*h.shareable_handle));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemRelease_(h.handle));
     }
@@ -634,7 +832,11 @@ struct ExpandableSegment {
   size_t max_handles_;
   struct Handle {
     CUmemGenericAllocationHandle handle;
+<<<<<<< HEAD
     std::optional<int> fd;
+=======
+    std::optional<std::variant<int, CUmemFabricHandle>> shareable_handle;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
   struct ShareHeader {
     pid_t pid;
@@ -821,8 +1023,15 @@ class EventPool {
 
 // CUDA graphs helper
 struct PrivatePool {
+<<<<<<< HEAD
   PrivatePool()
       : large_blocks(/*small=*/false, this),
+=======
+  PrivatePool(MempoolId_t id, CUDAAllocator* allocator = nullptr)
+      : id(std::move(id)),
+        allocator_(allocator),
+        large_blocks(/*small=*/false, this),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         small_blocks(/*small=*/true, this) {}
   PrivatePool(const PrivatePool&) = delete;
   PrivatePool(PrivatePool&&) = delete;
@@ -830,6 +1039,10 @@ struct PrivatePool {
   PrivatePool& operator=(PrivatePool&&) = delete;
   ~PrivatePool() = default;
 
+<<<<<<< HEAD
+=======
+  MempoolId_t id{0, 0};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Number of live graphs using this pool
   int use_count{1};
   // Number of unfreed cudaMallocs made for this pool. When use_count and
@@ -841,10 +1054,31 @@ struct PrivatePool {
   // distinguish private blocks by adding a "pool id" check above the stream
   // check in BlockComparator. BlockComparator is performance- critical though,
   // I'd rather not add more logic to it.
+<<<<<<< HEAD
   BlockPool large_blocks;
   BlockPool small_blocks;
 };
 
+=======
+  CUDAAllocator* allocator_;
+  BlockPool large_blocks;
+  BlockPool small_blocks;
+
+ public:
+  CUDAAllocator* allocator() {
+    return allocator_;
+  }
+};
+
+MempoolId_t BlockPool::owner_MempoolId() const {
+  if (owner_PrivatePool) {
+    return owner_PrivatePool->id;
+  } else {
+    return {0, 0};
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BlockState::BlockState(Block* block)
     : device(block->device),
       stream(block->stream),
@@ -883,9 +1117,14 @@ struct MempoolIdHash {
 };
 
 cudaError_t allocPrimitive(void** ptr, size_t size, AllocParams& p) {
+<<<<<<< HEAD
   auto active_pool = MemPoolContext::getActiveMemPool();
   if (active_pool && active_pool->allocator() && p.pool->owner_PrivatePool) {
     *ptr = active_pool->allocator()->raw_alloc(size);
+=======
+  if (p.pool->owner_PrivatePool && p.pool->owner_PrivatePool->allocator()) {
+    *ptr = p.pool->owner_PrivatePool->allocator()->raw_alloc(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return *ptr ? cudaSuccess : cudaErrorMemoryAllocation;
   } else {
     return C10_CUDA_ERROR_HANDLED(cudaMalloc(ptr, size));
@@ -969,7 +1208,10 @@ class RingBuffer {
                    // deallocation it can hold references to Python state which
                    // will already be destroyed when we are in exit handlers
 };
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // anonymous namespace
 } // namespace Native
 
@@ -1057,6 +1299,12 @@ class DeviceCachingAllocator {
   std::vector<std::pair<MempoolId_t, std::function<bool(cudaStream_t)>>>
       captures_underway;
 
+<<<<<<< HEAD
+=======
+  // tracks which pools we can use as a last resort before ooming
+  ska::flat_hash_set<MempoolId_t, MempoolIdHash> use_on_oom_pools;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // See free() for this thing's purpose
   std::vector<Block*> needs_events_deferred_until_no_capture;
   // outstanding cuda events
@@ -1105,6 +1353,12 @@ class DeviceCachingAllocator {
   // was used while cudagraph capturing
   std::unordered_map<Block*, stream_set> block_to_cudagraph_stream_uses;
 
+<<<<<<< HEAD
+=======
+  // thread local compile context for each device
+  static thread_local std::stack<std::string> compile_context;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  public:
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
   DeviceCachingAllocator()
@@ -1118,14 +1372,23 @@ class DeviceCachingAllocator {
       bool enabled,
       CreateContextFn context_recorder,
       size_t alloc_buffer_max_entries,
+<<<<<<< HEAD
       RecordContext when) {
+=======
+      RecordContext when,
+      bool clearHistory) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::unique_lock<std::recursive_mutex> lock(mutex);
     TORCH_CHECK(when == RecordContext::NEVER || context_recorder);
     record_history = enabled;
     context_recorder_.store(record_history ? context_recorder : nullptr);
     alloc_buffer.setMaxEntries(alloc_buffer_max_entries);
     record_context_ = enabled ? when : RecordContext::NEVER;
+<<<<<<< HEAD
     if (!enabled) {
+=======
+    if (!enabled || clearHistory) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       alloc_buffer.clear();
     }
   }
@@ -1134,6 +1397,19 @@ class DeviceCachingAllocator {
     return record_history;
   }
 
+<<<<<<< HEAD
+=======
+  void pushCompileContext(std::string& md) {
+    compile_context.push(md);
+  }
+
+  void popCompileContext() {
+    if (!compile_context.empty()) {
+      compile_context.pop();
+    }
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool checkPoolLiveAllocations(
       MempoolId_t mempool_id,
       const std::unordered_set<void*>& expected_live_allocations) {
@@ -1239,10 +1515,43 @@ class DeviceCachingAllocator {
               alloc_block(params, false, context, lock))
           // Free all non-split cached blocks and retry alloc.
           || (C10_LIKELY(captures_underway.empty()) &&
+<<<<<<< HEAD
               release_cached_blocks(context) &&
               alloc_block(params, true, context, lock));
     }
 
+=======
+              release_cached_blocks(context, {0, 0}) &&
+              alloc_block(params, true, context, lock));
+    }
+
+    // we are about to oom, try to use existing mempools as a last resort
+    if (!block_found && params.err == cudaErrorMemoryAllocation) {
+      // if already trying to use a mempool, then just oom
+      bool active_pool = params.pool->owner_PrivatePool;
+      if (!active_pool) {
+        for (MempoolId_t mempool_id : use_on_oom_pools) {
+          auto tid = std::this_thread::get_id();
+          auto filter = [tid](cudaStream_t) {
+            return std::this_thread::get_id() == tid;
+          };
+          beginAllocateToPool(mempool_id, filter);
+          auto& mempool = get_pool(size, stream);
+          AllocParams mempool_params(
+              device, size, stream, &mempool, alloc_size, stats);
+          mempool_params.stat_types = get_stat_types_for_pool(mempool);
+          block_found = get_free_block(mempool_params);
+          endAllocateToPool(mempool_id);
+          releasePool(mempool_id);
+          if (block_found) {
+            params = mempool_params;
+            break;
+          }
+        }
+      }
+    }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!block_found) {
       // For any error code other than cudaErrorMemoryAllocation,
       // alloc_block should have thrown an exception already.
@@ -1265,6 +1574,10 @@ class DeviceCachingAllocator {
           params.size(),
           params.stream(),
           params.device(),
+<<<<<<< HEAD
+=======
+          params.pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           std::move(context));
       stats.num_ooms += 1;
 
@@ -1435,6 +1748,10 @@ class DeviceCachingAllocator {
         orig_size,
         block->stream,
         block->device,
+<<<<<<< HEAD
+=======
+        block->pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         block->context_when_allocated);
 
     // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
@@ -1474,7 +1791,11 @@ class DeviceCachingAllocator {
 
     block->allocated = false;
 
+<<<<<<< HEAD
     // following logic might modifying underlaying Block, causing the size
+=======
+    // following logic might modifying underlying Block, causing the size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // changed. We store ahead for reporting
     auto orig_block_ptr = block->ptr;
     auto orig_block_size = block->size;
@@ -1496,6 +1817,10 @@ class DeviceCachingAllocator {
         block->requested_size,
         block->stream,
         block->device,
+<<<<<<< HEAD
+=======
+        block->pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         context ? context : block->context_when_allocated);
 
     if (block->size >= CUDAAllocatorConfig::max_split_size())
@@ -1604,10 +1929,17 @@ class DeviceCachingAllocator {
   }
 
   /** returns cached blocks to the system allocator **/
+<<<<<<< HEAD
   void emptyCache() {
     auto context = maybeGatherContext(RecordContext::ALL);
     std::lock_guard<std::recursive_mutex> lock(mutex);
     release_cached_blocks(context);
+=======
+  void emptyCache(MempoolId_t mempool_id) {
+    auto context = maybeGatherContext(RecordContext::ALL);
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    release_cached_blocks(context, mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   /** Retrieves size of largest unused block held by the memory cache **/
@@ -1925,6 +2257,7 @@ class DeviceCachingAllocator {
 
   /** Dump a complete snapshot of the memory held by the allocator. Potentially
    * VERY expensive. **/
+<<<<<<< HEAD
   std::vector<SegmentInfo> snapshot() {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
@@ -1937,12 +2270,19 @@ class DeviceCachingAllocator {
     if (active_mempool) {
       mempool_id = active_mempool->id();
     }
+=======
+  std::vector<SegmentInfo> snapshot(MempoolId_t mempool_id) {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    std::vector<Block*> all_blocks;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (mempool_id.first != 0 || mempool_id.second != 0) {
       // If there is an active mempool, we find the corresponding PrivatePool
       // in graph_pools and only return the blocks from it.
       auto pool = graph_pools.find(mempool_id);
       if (pool != graph_pools.end()) {
+<<<<<<< HEAD
         pool_to_id[pool->second.get()] = pool->first;
         all_blocks = get_private_pool_head_blocks(pool->second.get());
       }
@@ -1960,6 +2300,14 @@ class DeviceCachingAllocator {
       for (const auto& pair : graph_pools_freeable) {
         pool_to_id[pair.second] = pair.first;
       }
+=======
+        all_blocks = get_private_pool_head_blocks(pool->second.get());
+      }
+    } else {
+      // When snapshot is called with non-default mempool_id, we return
+      // all the blocks in the CUDACachingAllocator (as returned by
+      // get_all_blocks).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       all_blocks = get_all_blocks();
     }
 
@@ -1981,9 +2329,16 @@ class DeviceCachingAllocator {
       segment_info.is_expandable = head_block->expandable_segment_;
       segment_info.context_when_allocated =
           head_block->context_when_segment_allocated;
+<<<<<<< HEAD
       auto id = pool_to_id.find(head_block->pool->owner_PrivatePool);
       if (id != pool_to_id.end()) {
         segment_info.owner_private_pool_id = id->second;
+=======
+      MempoolId_t id = head_block->pool->owner_MempoolId();
+      if ((mempool_id.first == 0 && mempool_id.second == 0) ||
+          id == mempool_id) {
+        segment_info.owner_private_pool_id = id;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
 
       const Block* block = head_block;
@@ -2018,7 +2373,12 @@ class DeviceCachingAllocator {
           return a.address < b.address;
         });
 
+<<<<<<< HEAD
     record_trace(TraceEntry::SNAPSHOT, 0, total_active, nullptr, 0, nullptr);
+=======
+    record_trace(
+        TraceEntry::SNAPSHOT, 0, total_active, nullptr, 0, mempool_id, nullptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return result;
   }
 
@@ -2040,7 +2400,11 @@ class DeviceCachingAllocator {
   // For example, if we need to round-up 1200 and number of divisions is 4,
   // the size 1200 lies between 1024 and 2048 and if we do 4 divisions between
   // them, the values are 1024, 1280, 1536, and 1792. So the function will
+<<<<<<< HEAD
   // return 1280 as the nearest ceiling of power-2 divison.
+=======
+  // return 1280 as the nearest ceiling of power-2 division.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static size_t roundup_power2_next_division(size_t size, size_t divisions) {
     if (llvm::isPowerOf2_64(size)) {
       return size;
@@ -2074,11 +2438,25 @@ class DeviceCachingAllocator {
     }
   }
 
+<<<<<<< HEAD
   void ensureExistsAndIncrefPool(MempoolId_t mempool_id) {
     // Create a PrivatePool object if it does not exist yet
     // and increment its use_count
     std::lock_guard<std::recursive_mutex> lock(mutex);
     ensure_exists_and_incref_pool(mempool_id);
+=======
+  void createOrIncrefPool(MempoolId_t mempool_id, CUDAAllocator* allocator) {
+    // Create a PrivatePool object if it does not exist yet
+    // and increment its use_count
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    create_or_incref_pool(mempool_id, allocator);
+  }
+
+  void setUseOnOOM(MempoolId_t mempool_id) {
+    // Choose if this pool should be used as a last resort before ooming
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    use_on_oom_pools.insert(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // See Note [Interaction with CUDA graph capture]
@@ -2088,7 +2466,11 @@ class DeviceCachingAllocator {
       MempoolId_t mempool_id,
       std::function<bool(cudaStream_t)> filter) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
+<<<<<<< HEAD
     ensure_exists_and_incref_pool(mempool_id);
+=======
+    create_or_incref_pool(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto it2 = captures_underway.begin(); it2 != captures_underway.end();
          ++it2) {
       TORCH_CHECK(
@@ -2210,20 +2592,36 @@ class DeviceCachingAllocator {
     return blocks;
   }
 
+<<<<<<< HEAD
   void ensure_exists_and_incref_pool(MempoolId_t mempool_id) {
+=======
+  void create_or_incref_pool(
+      MempoolId_t mempool_id,
+      CUDAAllocator* allocator = nullptr) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto it = graph_pools.find(mempool_id);
     if (it == graph_pools.end()) {
       // mempool_id does not reference an existing pool.
       // Make a new pool for CUDAGraph capture or torch.cuda.use_mem_pool
       // usage. use_count is initially 1, which means the pool is
+<<<<<<< HEAD
       // being used since somebody called ensureExistsAndIncrefPool.
       graph_pools.emplace(mempool_id, std::make_unique<PrivatePool>());
+=======
+      // being used since somebody called createOrIncrefPool.
+      graph_pools.emplace(
+          mempool_id, std::make_unique<PrivatePool>(mempool_id, allocator));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       // mempool_id references an existing pool, which the current CUDAGraph
       // capture or torch.cuda.use_mem_pool will
       // share. Check this pool is live (at least one other capture already
       // references it). Increment it to establish the usage.
       TORCH_INTERNAL_ASSERT(it->second->use_count > 0);
+<<<<<<< HEAD
+=======
+      TORCH_INTERNAL_ASSERT(allocator == nullptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       it->second->use_count++;
     }
   }
@@ -2353,6 +2751,10 @@ class DeviceCachingAllocator {
         mapped_range.size,
         to_map->stream,
         to_map->device,
+<<<<<<< HEAD
+=======
+        to_map->pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ctx);
     if (!to_map->prev && !to_map->context_when_segment_allocated) {
       to_map->context_when_segment_allocated = ctx;
@@ -2408,6 +2810,10 @@ class DeviceCachingAllocator {
         block->requested_size,
         block->stream,
         block->device,
+<<<<<<< HEAD
+=======
+        block->pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         context ? context : block->context_when_allocated);
 
     block->context_when_allocated = nullptr;
@@ -2686,7 +3092,11 @@ class DeviceCachingAllocator {
     }
   }
 
+<<<<<<< HEAD
   // This function assumes that global lock has been taken whle calling into
+=======
+  // This function assumes that global lock has been taken while calling into
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // this function. We do cudaMalloc sync call in this function which
   // can be expensive while holding the lock. Hence, we pass-in the lock to the
   // function to temporarily release the lock before cudaMalloc call and acquire
@@ -2711,7 +3121,12 @@ class DeviceCachingAllocator {
     bool in_fbcode = false;
 #endif
 
+<<<<<<< HEAD
     auto active_pool = MemPoolContext::getActiveMemPool();
+=======
+    bool active_pool =
+        p.pool->owner_PrivatePool && p.pool->owner_PrivatePool->allocator();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (set_fraction &&
         total_allocated_memory + size > allowed_memory_maximum) {
       p.err = cudaErrorMemoryAllocation;
@@ -2736,12 +3151,15 @@ class DeviceCachingAllocator {
       }
       return bool(p.block);
     } else {
+<<<<<<< HEAD
       if (active_pool && active_pool->allocator() &&
           p.pool->owner_PrivatePool) {
         // Ensure that active_pool and p.pool are the same
         auto pp = get_private_pool(active_pool->id());
         TORCH_INTERNAL_ASSERT(pp == p.pool->owner_PrivatePool);
       }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (CUDAAllocatorConfig::release_lock_on_cudamalloc()) {
         // At scope exit, acquire the lock again. This provides safety against
         // any potential exceptions in the cudaMallocMaybeCapturing function.
@@ -2804,6 +3222,10 @@ class DeviceCachingAllocator {
         p.block->size,
         p.stream(),
         p.device(),
+<<<<<<< HEAD
+=======
+        p.pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ctx);
     p.block->context_when_segment_allocated = ctx;
     return true;
@@ -2860,6 +3282,7 @@ class DeviceCachingAllocator {
     return true;
   }
 
+<<<<<<< HEAD
   bool release_cached_blocks(const std::shared_ptr<GatheredContext>& context) {
     MempoolId_t mempool_id = {0, 0};
     auto active_mempool = MemPoolContext::getActiveMemPool();
@@ -2868,6 +3291,13 @@ class DeviceCachingAllocator {
     }
 
     if (mempool_id.first == 0 && mempool_id.second == 0) {
+=======
+  bool release_cached_blocks(
+      const std::shared_ptr<GatheredContext>& context,
+      MempoolId_t mempool_id) {
+    if (mempool_id.first == 0 && mempool_id.second == 0 &&
+        captures_underway.empty()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // If there is no active mempool, we work on releasing *all* blocks.
 
       // First ensure that all blocks that can't currently be allocated due to
@@ -2935,6 +3365,7 @@ class DeviceCachingAllocator {
         block->size,
         block->stream,
         block->device,
+<<<<<<< HEAD
         context ? context : block->context_when_segment_allocated);
 
     auto* pool = block->pool;
@@ -2947,6 +3378,16 @@ class DeviceCachingAllocator {
       // If there is an active mempool with a given allocator,
       // we use the given allocator's delete function.
       active_pool->allocator()->raw_delete((void*)block->ptr);
+=======
+        block->pool->owner_MempoolId(),
+        context ? context : block->context_when_segment_allocated);
+
+    auto* pool = block->pool;
+    if (pool->owner_PrivatePool && pool->owner_PrivatePool->allocator()) {
+      // If there is an active mempool with a given allocator,
+      // we use the given allocator's delete function.
+      pool->owner_PrivatePool->allocator()->raw_delete((void*)block->ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       C10_CUDA_CHECK(cudaFree((void*)block->ptr));
     }
@@ -3044,6 +3485,10 @@ class DeviceCachingAllocator {
         unmapped.size,
         block->stream,
         block->device,
+<<<<<<< HEAD
+=======
+        block->pool->owner_MempoolId(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         context ? context : block->context_when_segment_allocated);
   }
   void release_blocks(
@@ -3237,18 +3682,36 @@ class DeviceCachingAllocator {
       size_t size,
       cudaStream_t stream,
       c10::DeviceIndex device,
+<<<<<<< HEAD
       std::shared_ptr<GatheredContext> context) {
     if (!record_history && trace_trackers_.empty())
       return;
 
+=======
+      MempoolId_t mempool_id,
+      std::shared_ptr<GatheredContext> context) {
+    if (!record_history && trace_trackers_.empty())
+      return;
+    std::string compile_string = "N/A";
+    if (!compile_context.empty()) {
+      compile_string = compile_context.top();
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto te = TraceEntry(
         action,
         device,
         addr,
         size,
         stream,
+<<<<<<< HEAD
         getApproximateTime(),
         record_context_ >= RecordContext::ALLOC ? std::move(context) : nullptr);
+=======
+        mempool_id,
+        getApproximateTime(),
+        record_context_ >= RecordContext::ALLOC ? std::move(context) : nullptr,
+        compile_string);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Callbacks should not include any Pytorch call
     for (const auto& cb : trace_trackers_) {
@@ -3261,6 +3724,7 @@ class DeviceCachingAllocator {
   }
 };
 
+<<<<<<< HEAD
 static bool zeroAllocations() {
   static auto has_cuda_env =
       c10::utils::check_env("PYTORCH_CUDA_MEMORY_CACHING_MEMSET_ZEROS") == true;
@@ -3270,6 +3734,8 @@ static bool zeroAllocations() {
   return zeros;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Returns whether to force all allocations to bypass the caching allocator and
 // go straight to cudaMalloc.  This setting is useful when debugging GPU memory
 // errors, since the caching allocator foils cuda-memcheck.
@@ -3311,7 +3777,11 @@ static void uncached_delete(void* ptr) {
 }
 
 static void local_raw_delete(void* ptr);
+<<<<<<< HEAD
 
+=======
+thread_local std::stack<std::string> DeviceCachingAllocator::compile_context;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef __cpp_lib_hardware_interference_size
 using std::hardware_destructive_interference_size;
 #else
@@ -3431,16 +3901,28 @@ class NativeCachingAllocator : public CUDAAllocator {
   }
 
   void setMemoryFraction(double fraction, c10::DeviceIndex device) override {
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(
+=======
+    TORCH_CHECK(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         0 <= device && static_cast<size_t>(device) < device_allocator.size(),
         "Allocator not initialized for device ",
         device,
         ": did you call init?");
+<<<<<<< HEAD
     TORCH_INTERNAL_ASSERT(
         0 <= fraction && fraction <= 1,
         "invalid fraction:",
         fraction,
         ". Please set within (0, 1).");
+=======
+    TORCH_CHECK(
+        0 <= fraction && fraction <= 1,
+        "invalid fraction:",
+        fraction,
+        ". Please set within [0, 1].");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     C10_CUDA_CHECK(c10::cuda::SetDevice(device));
     device_allocator[device]->setMemoryFraction(fraction);
   }
@@ -3449,13 +3931,26 @@ class NativeCachingAllocator : public CUDAAllocator {
       bool enabled,
       CreateContextFn context_recorder,
       size_t alloc_buffer_max_entries,
+<<<<<<< HEAD
       RecordContext when) override {
+=======
+      RecordContext when,
+      bool clearHistory) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     record_history = enabled;
     annotation_buffer.setMaxEntries(alloc_buffer_max_entries);
     annotation_buffer.clear();
     for (auto& allocator : device_allocator) {
       allocator->recordHistory(
+<<<<<<< HEAD
           enabled, context_recorder, alloc_buffer_max_entries, when);
+=======
+          enabled,
+          context_recorder,
+          alloc_buffer_max_entries,
+          when,
+          clearHistory);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -3475,6 +3970,27 @@ class NativeCachingAllocator : public CUDAAllocator {
     annotation_buffer.insertEntries(ae);
   }
 
+<<<<<<< HEAD
+=======
+  void pushCompileContext(std::string& md) override {
+    if (!record_history) {
+      return;
+    }
+    c10::DeviceIndex device = 0;
+    C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
+    device_allocator[device]->pushCompileContext(md);
+  }
+
+  void popCompileContext() override {
+    if (!record_history) {
+      return;
+    }
+    c10::DeviceIndex device = 0;
+    C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
+    device_allocator[device]->popCompileContext();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isHistoryEnabled() override {
     c10::DeviceIndex device = 0;
     C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
@@ -3501,9 +4017,15 @@ class NativeCachingAllocator : public CUDAAllocator {
     }
   }
 
+<<<<<<< HEAD
   void emptyCache() override {
     for (auto& da : device_allocator)
       da->emptyCache();
+=======
+  void emptyCache(MempoolId_t mempool_id) override {
+    for (auto& da : device_allocator)
+      da->emptyCache(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void enable(bool value) override {
@@ -3551,7 +4073,11 @@ class NativeCachingAllocator : public CUDAAllocator {
     device_allocator[block->device]->recordStream(block, stream);
   }
 
+<<<<<<< HEAD
   SnapshotInfo snapshot() override {
+=======
+  SnapshotInfo snapshot(MempoolId_t mempool_id) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Set-up converter to convert timestamps from tsc to microseconds.
     auto tsc_to_ns = clock_converter.makeConverter();
     auto tsc_to_us = [=](approx_time_t t_approx) {
@@ -3569,7 +4095,11 @@ class NativeCachingAllocator : public CUDAAllocator {
     // Get the device_traces' TraceEntry lists.
     for (auto& da : device_allocator) {
       result.device_traces.emplace_back(da->trace(tsc_to_us));
+<<<<<<< HEAD
       auto snap = da->snapshot();
+=======
+      auto snap = da->snapshot(mempool_id);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       result.segments.insert(result.segments.end(), snap.begin(), snap.end());
     }
 
@@ -3661,10 +4191,13 @@ class NativeCachingAllocator : public CUDAAllocator {
       TORCH_SDT_WITH_SEMAPHORE(malloc, devPtr, device, size, stream.id());
     }
 
+<<<<<<< HEAD
     if (zeroAllocations()) {
       C10_CUDA_CHECK(cudaMemsetAsync(devPtr, 0, size, stream));
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return {devPtr, devPtr, deleteFunc, Device(DeviceType::CUDA, device)};
   }
   DeleterFnPtr raw_deleter() const override {
@@ -3701,11 +4234,26 @@ class NativeCachingAllocator : public CUDAAllocator {
     device_allocator[device]->resetPeakStats();
   }
 
+<<<<<<< HEAD
   void ensureExistsAndIncrefPool(
       c10::DeviceIndex device,
       MempoolId_t mempool_id) override {
     assertValidDevice(device);
     device_allocator[device]->ensureExistsAndIncrefPool(std::move(mempool_id));
+=======
+  void createOrIncrefPool(
+      c10::DeviceIndex device,
+      MempoolId_t mempool_id,
+      CUDAAllocator* allocator) override {
+    assertValidDevice(device);
+    device_allocator[device]->createOrIncrefPool(
+        std::move(mempool_id), allocator);
+  }
+
+  void setUseOnOOM(c10::DeviceIndex device, MempoolId_t mempool_id) override {
+    assertValidDevice(device);
+    device_allocator[device]->setUseOnOOM(std::move(mempool_id));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // CUDAGraph interactions
@@ -3747,12 +4295,15 @@ class NativeCachingAllocator : public CUDAAllocator {
       C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
       malloc(&r, device, nbytes, cuda::getCurrentCUDAStream(device));
     }
+<<<<<<< HEAD
     if (zeroAllocations()) {
       c10::DeviceIndex device = 0;
       C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
       C10_CUDA_CHECK(
           cudaMemsetAsync(r, 0, nbytes, cuda::getCurrentCUDAStream(device)));
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return r;
   }
 
@@ -3768,9 +4319,12 @@ class NativeCachingAllocator : public CUDAAllocator {
       C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
       malloc(&r, device, nbytes, stream);
     }
+<<<<<<< HEAD
     if (zeroAllocations()) {
       C10_CUDA_CHECK(cudaMemsetAsync(r, 0, nbytes, stream));
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return r;
   }
 
@@ -3964,6 +4518,10 @@ void local_raw_delete(void* ptr) {
 
 namespace CudaMallocAsync {
 // If this is put in its own header file, it gets incorrectly renamed in HIPify.
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDAAllocator* allocator();
 
 } // namespace CudaMallocAsync
@@ -3975,7 +4533,17 @@ struct BackendStaticInitializer {
   // version checks, to CUDAAllocatorConfig's runtime doublecheck. If this
   // works, maybe we should move all of CUDAAllocatorConfig here?
   CUDAAllocator* parseEnvForBackend() {
+<<<<<<< HEAD
     const auto val = c10::utils::get_env("PYTORCH_CUDA_ALLOC_CONF");
+=======
+    auto val = c10::utils::get_env("PYTORCH_CUDA_ALLOC_CONF");
+#ifdef USE_ROCM
+    // convenience for ROCm users to allow either CUDA or HIP env var
+    if (!val.has_value()) {
+      val = c10::utils::get_env("PYTORCH_HIP_ALLOC_CONF");
+    }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (val.has_value()) {
       const std::string& config = val.value();
 
@@ -3991,7 +4559,19 @@ struct BackendStaticInitializer {
         std::vector<std::string> kv(it2, end2);
         if (kv.size() >= 2) {
           if (kv[0] == "backend") {
+<<<<<<< HEAD
             if (kv[1] == "cudaMallocAsync")
+=======
+#ifdef USE_ROCM
+            // convenience for ROCm users to allow either CUDA or HIP env var
+            if (kv[1] ==
+                    "cud"
+                    "aMallocAsync" ||
+                kv[1] == "hipMallocAsync")
+#else
+            if (kv[1] == "cudaMallocAsync")
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               return CudaMallocAsync::allocator();
             if (kv[1] == "native")
               return &Native::allocator;
@@ -4030,28 +4610,55 @@ std::atomic<CaptureId_t> MemPool::uuid_{1};
 
 MemPool::MemPool(
     CUDACachingAllocator::CUDAAllocator* allocator,
+<<<<<<< HEAD
     bool is_user_created)
     : allocator_(allocator), is_user_created_(is_user_created) {
+=======
+    bool is_user_created,
+    bool use_on_oom,
+    bool symmetric)
+    : allocator_(allocator),
+      is_user_created_(is_user_created),
+      symmetric_(symmetric) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_user_created_) {
     id_ = {0, uid_++};
   } else {
     id_ = {uuid_++, 0};
   }
   device_ = c10::cuda::current_device();
+<<<<<<< HEAD
   CUDACachingAllocator::ensureExistsAndIncrefPool(device_, id_);
+=======
+  CUDACachingAllocator::createOrIncrefPool(device_, id_, allocator);
+  if (use_on_oom) {
+    CUDACachingAllocator::setUseOnOOM(device_, id_);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 MemPool::~MemPool() {
   TORCH_INTERNAL_ASSERT(use_count() == 1);
   CUDACachingAllocator::releasePool(device_, id_);
+<<<<<<< HEAD
   auto ctx = MemPoolContext(this);
   c10::cuda::CUDACachingAllocator::emptyCache();
+=======
+  c10::cuda::CUDACachingAllocator::emptyCache(id_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 MempoolId_t MemPool::id() {
   return id_;
 }
 
+<<<<<<< HEAD
+=======
+bool MemPool::is_symmetric() {
+  return symmetric_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDACachingAllocator::CUDAAllocator* MemPool::allocator() {
   return allocator_;
 }
@@ -4071,6 +4678,7 @@ MempoolId_t MemPool::graph_pool_handle(bool is_user_created) {
   return {uuid_++, 0};
 }
 
+<<<<<<< HEAD
 // Note that active_mempool_ is a global variable here
 // and not inside MemPoolContext class, because in windows we
 // can't use __declspec(dllexport) and __declspec(thread)
@@ -4090,4 +4698,6 @@ MemPool* MemPoolContext::getActiveMemPool() {
   return active_mempool_;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10::cuda

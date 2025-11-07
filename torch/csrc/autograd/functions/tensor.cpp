@@ -69,8 +69,12 @@ variable_list CopyBackwards::apply_with_saved(
     SwapSavedVariables& saved) {
   saved.before(src_options);
 
+<<<<<<< HEAD
   static c10::once_flag flag;
   c10::call_once(flag, [&]() {
+=======
+  static bool flag [[maybe_unused]] = [&]() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<at::TypePtr> schema = {
         IValuePacker<std::array<bool, 2>>::packed_type(),
         IValuePacker<c10::TensorOptions>::packed_type()};
@@ -80,7 +84,12 @@ variable_list CopyBackwards::apply_with_saved(
         name(),
         CopyBackwards_apply_functional_ivalue,
         schema);
+<<<<<<< HEAD
   });
+=======
+    return true;
+  }();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   PackedArgs packed_args;
   packed_args.pack<std::array<bool, 2>>(
@@ -270,9 +279,15 @@ variable_list CopySlices::apply_with_saved(
     TORCH_INTERNAL_ASSERT(stuff.size() == 3);
     // These variables are named the same as in CopySlices::apply_impl.
     // Follow along there.
+<<<<<<< HEAD
     auto result = stuff[0];
     auto grad_slice = stuff[1];
     auto grad_slice_clone = stuff[2];
+=======
+    const auto& result = stuff[0];
+    const auto& grad_slice = stuff[1];
+    const auto& grad_slice_clone = stuff[2];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto res = fn->apply_with_saved({grad_slice_clone}, saved);
     results = interface->call_copy_slices_epilogue(
         saved.get_py_compiler(), needs_input_grad, result, res, grad_slice);

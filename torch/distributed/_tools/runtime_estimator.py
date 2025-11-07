@@ -83,7 +83,11 @@ class RuntimeEstimator(TorchDispatchMode):
     This class provides a ``TorchDispatchMode`` based context manager that can be used to estimate the eager
     runtime of PyTorch functions. It supports two estimation modes, benchmarking (`operator-level-benchmark`) and
     roofline cost modeling (`operator-level-cost-model`).
+<<<<<<< HEAD
     For modules executed under this context manager, it agggregates the forward and backward operation runtimes
+=======
+    For modules executed under this context manager, it aggregates the forward and backward operation runtimes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     and also records their execution orders.
 
     Attributes:

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 
 __all__ = [
+<<<<<<< HEAD
     "DiagnosticOptions",
     "ExportOptions",
     "ONNXRuntimeOptions",
@@ -10,6 +11,11 @@ __all__ = [
     "OnnxRegistry",
     "UnsatisfiedDependencyError",
     "dynamo_export",
+=======
+    "ExportOptions",
+    "ONNXRuntimeOptions",
+    "OnnxRegistry",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "enable_fake_mode",
 ]
 
@@ -20,17 +26,27 @@ import dataclasses
 import logging
 import warnings
 from collections import defaultdict
+<<<<<<< HEAD
 from typing import Any, Callable, TYPE_CHECKING, TypeVar
+=======
+from typing import Any, Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
 import torch._ops
+<<<<<<< HEAD
 import torch.utils._pytree as pytree
 from torch.onnx import errors
 from torch.onnx._internal import io_adapter
 from torch.onnx._internal._lazy_import import onnxscript_apis, onnxscript_ir as ir
 from torch.onnx._internal.diagnostics import infra
 from torch.onnx._internal.exporter import _constants, _onnx_program
+=======
+from torch.onnx._internal import io_adapter
+from torch.onnx._internal._lazy_import import onnxscript_apis
+from torch.onnx._internal.exporter import _constants
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.onnx._internal.fx import (
     decomposition_table,
     patcher as patcher,
@@ -49,6 +65,7 @@ if TYPE_CHECKING:
     import onnxscript
 
     from torch._subclasses import fake_tensor
+<<<<<<< HEAD
     from torch.onnx._internal.fx import diagnostics
 
 _PYTORCH_GITHUB_ISSUES_URL = "https://github.com/pytorch/pytorch/issues"
@@ -57,13 +74,18 @@ _PYTORCH_GITHUB_ISSUES_URL = "https://github.com/pytorch/pytorch/issues"
 _DEFAULT_FAILED_EXPORT_SARIF_LOG_PATH = "report_dynamo_export.sarif"
 """The default path to write the SARIF log to if the export fails."""
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 DiagnosticOptions = infra.DiagnosticOptions
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class ONNXFakeContext:
     """A dataclass used to store context for model export using FakeTensor.
@@ -245,11 +267,15 @@ class ExportOptions:
             When ``None``, the exporter determines the most compatible setting.
             When ``True``, all input shapes are considered dynamic.
             When ``False``, all input shapes are considered static.
+<<<<<<< HEAD
         diagnostic_options: The diagnostic options for the exporter.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fake_context: The fake context used for symbolic tracing.
         onnx_registry: The ONNX registry used to register ATen operators to ONNX functions.
     """
 
+<<<<<<< HEAD
     dynamic_shapes: bool | None = None
     """Shape information hint for input/output tensors.
 
@@ -274,11 +300,22 @@ class ExportOptions:
         fake_context: ONNXFakeContext | None = None,
         onnx_registry: OnnxRegistry | None = None,
         diagnostic_options: DiagnosticOptions | None = None,
+=======
+    def __init__(
+        self,
+        *,
+        dynamic_shapes: bool | None = True,
+        fake_context: ONNXFakeContext | None = None,
+        onnx_registry: OnnxRegistry | None = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         self.dynamic_shapes = dynamic_shapes
         self.fake_context = fake_context
         self.onnx_registry = onnx_registry
+<<<<<<< HEAD
         self.diagnostic_options = diagnostic_options or DiagnosticOptions()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @deprecated(
@@ -291,6 +328,7 @@ class ResolvedExportOptions(ExportOptions):
     This is an internal class and its API may be changed at any time without notice.
     """
 
+<<<<<<< HEAD
     # Public attributes MUST be redefined below without ``Optional[]`` from ``ExportOptions``
     dynamic_shapes: bool
     diagnostic_options: DiagnosticOptions
@@ -376,6 +414,28 @@ class ResolvedExportOptions(ExportOptions):
             for key in dir(options):
                 if not key.startswith("_"):  # skip private attributes
                     assert hasattr(self, key), f"Unresolved option '{key}'"
+=======
+    def __init__(self):
+        from torch.onnx._internal.fx import (
+            dynamo_graph_extractor,
+            onnxfunction_dispatcher,
+        )
+
+        self.dynamic_shapes: bool = True
+        self.fx_tracer: dynamo_graph_extractor.DynamoExport = (
+            dynamo_graph_extractor.DynamoExport()
+        )
+        self.fake_context = None
+        self.onnx_registry: OnnxRegistry = OnnxRegistry()
+        self.decomposition_table = (
+            decomposition_table.create_onnx_friendly_decomposition_table(  # type: ignore[assignment]
+                self.onnx_registry
+            )
+        )
+        self.onnxfunction_dispatcher = onnxfunction_dispatcher.OnnxFunctionDispatcher(
+            self.onnx_registry,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @contextlib.contextmanager
@@ -536,6 +596,7 @@ class FXGraphExtractor(abc.ABC):
         ...
 
 
+<<<<<<< HEAD
 class Exporter:
     def __init__(
         self,
@@ -826,6 +887,8 @@ def dynamo_export(
         raise errors.OnnxExporterError(message) from e
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def common_pre_export_passes(
     options: ResolvedExportOptions,
     original_model: torch.nn.Module | Callable,
@@ -833,6 +896,7 @@ def common_pre_export_passes(
     fx_module_args: Sequence[Any],
 ):
     # TODO: Import here to prevent circular dependency
+<<<<<<< HEAD
     from torch.onnx._internal.fx import analysis, passes
 
     diagnostic_context = options.diagnostic_context
@@ -842,6 +906,14 @@ def common_pre_export_passes(
         diagnostic_context,
         fx_module,
         options.decomposition_table,
+=======
+    from torch.onnx._internal.fx import passes
+
+    # Apply decomposition table to the input graph.
+    module = passes.Decompose(
+        fx_module,
+        options.decomposition_table,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         enable_dynamic_axes=options.dynamic_shapes,
         allow_fake_constant=options.fake_context is not None,
     ).run(*fx_module_args)
@@ -849,7 +921,10 @@ def common_pre_export_passes(
     # ONNX does not support views and mutations.
     # Functionalize to get a semantically equivalent graph without mutations.
     module = passes.Functionalize(
+<<<<<<< HEAD
         diagnostic_context,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module,
         enable_dynamic_axes=options.dynamic_shapes,
         allow_fake_constant=options.fake_context is not None,
@@ -857,6 +932,7 @@ def common_pre_export_passes(
 
     # Input mutations are detected and distilled after `Functionalize` pass.
     # Remove them since ONNX inference does not need them.
+<<<<<<< HEAD
     module = passes.RemoveInputMutation(diagnostic_context, module).run(*fx_module_args)
 
     # ONNX does not support concept of (implicit) type promotion.
@@ -875,6 +951,16 @@ def common_pre_export_passes(
     # This operation should be invoked as the last pre export pass.
     # See [NOTE: Modularize pass ordering]
     module = passes.Modularize(diagnostic_context, module).run()
+=======
+    module = passes.RemoveInputMutation(module).run(*fx_module_args)
+
+    # ONNX does not support concept of (implicit) type promotion.
+    # Insert type casts explicitly where needed.
+    module = passes.InsertTypePromotion(module).run()
+
+    if isinstance(original_model, torch.nn.Module):
+        module = passes.RestoreParameterAndBufferNames(module, original_model).run()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # ONNX does not support None inputs. During graph building, all None inputs
     # are removed. Here we register this step to input adapter.

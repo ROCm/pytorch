@@ -71,7 +71,11 @@ inline void FunctionSchema::checkAndNormalizeInputs(
     for(const auto& k : kwargs) {
       names.emplace_back(k.first);
     }
+<<<<<<< HEAD
     throw std::runtime_error(findErrorInKwargs(names));
+=======
+    TORCH_CHECK(false, findErrorInKwargs(names));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

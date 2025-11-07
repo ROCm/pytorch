@@ -78,15 +78,23 @@ DynamicType::~DynamicType() {
   arguments_.~Arguments();
 }
 
+<<<<<<< HEAD
 std::shared_ptr<const DynamicType> DynamicType::create(const Type& other) {
+=======
+SingletonOrSharedTypePtr<const DynamicType> DynamicType::create(const Type& other) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (auto dynRaw = other.castRaw<DynamicType>()) {
     TORCH_INTERNAL_ASSERT(
         !dynRaw->weak_from_this().expired(),
         "Error creating dynamic type instance not managed by shared_ptr: ",
         other.str());
+<<<<<<< HEAD
   }
   if (auto dyn = other.cast<DynamicType>()) {
     return dyn;
+=======
+    return SingletonTypePtr<const DynamicType>(dynRaw);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return std::shared_ptr<const DynamicType>(new DynamicType{other});
 }

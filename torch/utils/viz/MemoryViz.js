@@ -980,6 +980,11 @@ function process_alloc_data(snapshot, device, plot_segments, max_entries) {
       text = `${text}, Total memory used after allocation: ${formatSize(
         elem.max_allocated_mem,
       )}`;
+<<<<<<< HEAD
+=======
+      const context = elem?.compile_context ?? 'None';
+      text = `${text}, Compile context: ${context}`;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (elem.stream !== null) {
         text = `${text}, stream ${elem.stream}`;
       }
@@ -1226,6 +1231,10 @@ function create_trace_view(
   dst.selectAll('svg').remove();
   dst.selectAll('div').remove();
 
+<<<<<<< HEAD
+=======
+  max_entries = Math.min(max_entries, data.elements_length);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const d = dst.append('div');
   d.append('input')
     .attr('type', 'range')
@@ -1235,7 +1244,13 @@ function create_trace_view(
     .on('change', function () {
       create_trace_view(dst, snapshot, device, plot_segments, this.value);
     });
+<<<<<<< HEAD
   d.append('label').text('Detail');
+=======
+  d.append('label').text(
+    `Detail: ${max_entries} of ${data.elements_length} entries`,
+  );
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const grid_container = dst
     .append('div')
@@ -1292,6 +1307,22 @@ function create_settings_view(dst, snapshot, device) {
 }
 
 function unpickle(buffer) {
+<<<<<<< HEAD
+=======
+  try {
+    const decoder = new TextDecoder();
+    const jsonString = decoder.decode(new Uint8Array(buffer));
+    const data = JSON.parse(jsonString);
+
+    return data;
+  } catch (e) {
+    console.log('Failed to decode the data as JSON, fall back to pickle', e);
+  }
+  return unpickleData(buffer);
+}
+
+function unpickleData(buffer) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const bytebuffer = new Uint8Array(buffer);
   const decoder = new TextDecoder();
 
@@ -1620,6 +1651,10 @@ function unpickle_and_annotate(data) {
 
 function snapshot_change(f) {
   const view_value = view.node().value;
+<<<<<<< HEAD
+=======
+  let no_starting_gpu = gpu.node().value == '';
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   let device = Number(gpu.node().value);
   const snapshot = snapshot_cache[f];
   gpu.selectAll('option').remove();
@@ -1628,9 +1663,21 @@ function snapshot_change(f) {
     has_segments[s.device] = true;
   }
   let device_valid = false;
+<<<<<<< HEAD
   for (const [i, trace] of snapshot.device_traces.entries()) {
     if (trace.length > 0 || i in has_segments) {
       gpu.append('option').text(i);
+=======
+  let maxTraceLength = -1;
+  let defaultDevice = null;
+  for (const [i, trace] of snapshot.device_traces.entries()) {
+    if (trace.length > 0 || i in has_segments) {
+      gpu.append('option').text(i);
+      if (trace.length > maxTraceLength) {
+        maxTraceLength = trace.length;
+        defaultDevice = i;
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (i === device) {
         device_valid = true;
         gpu.node().selectedIndex = gpu.node().children.length - 1;
@@ -1640,6 +1687,15 @@ function snapshot_change(f) {
   if (!device_valid) {
     device = Number(gpu.node().value);
   }
+<<<<<<< HEAD
+=======
+
+  if (no_starting_gpu) {
+    device = defaultDevice;
+    gpu.node().value = device;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const key = [f, view_value, device];
   if (!(key in selection_to_div)) {
     selection_to_div[key] = d3.select('body').append('div');

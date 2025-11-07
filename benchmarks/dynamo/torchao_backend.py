@@ -43,7 +43,11 @@ def torchao_optimize_ctx(quantization: str):
                     from torchao.quantization.autoquant import AUTOQUANT_CACHE
 
                     if len(AUTOQUANT_CACHE) == 0:
+<<<<<<< HEAD
                         raise Exception(  # noqa: TRY002`
+=======
+                        raise Exception(  # noqa: TRY002
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             "NotAutoquantizable"
                             f"Found no autoquantizable layers in model {type(module)}, stopping autoquantized run"
                         )

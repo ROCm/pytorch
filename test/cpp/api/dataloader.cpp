@@ -87,7 +87,11 @@ struct DummyChunkDataReader : public datasets::ChunkDataReader<int> {
     return chunk_count_;
   };
 
+<<<<<<< HEAD
   void reset() override{};
+=======
+  void reset() override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const static size_t chunk_count_ = 3;
   // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers,cppcoreguidelines-avoid-c-arrays)
@@ -1479,7 +1483,11 @@ TEST(DataLoaderTest, StatefulDatasetWithNoWorkers) {
     void reset() override {
       counter = 0;
     }
+<<<<<<< HEAD
     void save(torch::serialize::OutputArchive& archive) const override{};
+=======
+    void save(torch::serialize::OutputArchive& archive) const override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void load(torch::serialize::InputArchive& archive) override {}
     int counter = 0;
   };
@@ -1517,7 +1525,11 @@ TEST(DataLoaderTest, StatefulDatasetWithManyWorkers) {
     void reset() override {
       counter = 0;
     }
+<<<<<<< HEAD
     void save(torch::serialize::OutputArchive& archive) const override{};
+=======
+    void save(torch::serialize::OutputArchive& archive) const override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void load(torch::serialize::InputArchive& archive) override {}
     int counter = 0;
     std::mutex mutex;
@@ -1556,7 +1568,11 @@ TEST(DataLoaderTest, StatefulDatasetWithMap) {
     void reset() override {
       counter = 0;
     }
+<<<<<<< HEAD
     void save(torch::serialize::OutputArchive& archive) const override{};
+=======
+    void save(torch::serialize::OutputArchive& archive) const override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void load(torch::serialize::InputArchive& archive) override {}
     int counter = 0;
   };
@@ -1605,7 +1621,11 @@ TEST(DataLoaderTest, StatefulDatasetWithCollate) {
     void reset() override {
       counter = 0;
     }
+<<<<<<< HEAD
     void save(torch::serialize::OutputArchive& archive) const override{};
+=======
+    void save(torch::serialize::OutputArchive& archive) const override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void load(torch::serialize::InputArchive& archive) override {}
     int counter = 0;
   };
@@ -1747,7 +1767,11 @@ TEST(DataLoaderTest, ChunkDataSetWithEmptyBatch) {
       return 1;
     };
 
+<<<<<<< HEAD
     void reset() override{};
+=======
+    void reset() override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   const size_t prefetch_count = 1;
@@ -1791,7 +1815,11 @@ TEST(DataLoaderTest, ChunkDataSetGetBatchWithUnevenBatchSize) {
       return 2;
     };
 
+<<<<<<< HEAD
     void reset() override{};
+=======
+    void reset() override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
@@ -1936,7 +1964,11 @@ TEST(DataLoaderTest, ChunkDatasetSave) {
       return chunk_count_;
     };
 
+<<<<<<< HEAD
     void reset() override{};
+=======
+    void reset() override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     BatchType batch_data_ = BatchType(chunk_size, 0);
   };
 
@@ -2115,7 +2147,11 @@ TEST(DataLoaderTest, ChunkDatasetCrossChunkShuffle) {
 
   class S : public samplers::Sampler<> {
    public:
+<<<<<<< HEAD
     explicit S(size_t size) : size_(size), index_(0){};
+=======
+    explicit S(size_t size) : size_(size), index_(0) {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     void reset(std::optional<size_t> new_size = std::nullopt) override {
       if (new_size.has_value()) {
@@ -2170,7 +2206,11 @@ TEST(DataLoaderTest, ChunkDatasetCrossChunkShuffle) {
       return chunk_count_;
     };
 
+<<<<<<< HEAD
     void reset() override{};
+=======
+    void reset() override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size_t chunk_count_;
   };
 
@@ -2258,7 +2298,11 @@ TEST(DataLoaderTest, CustomPreprocessPolicy) {
       return chunk_count_;
     };
 
+<<<<<<< HEAD
     void reset() override{};
+=======
+    void reset() override {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size_t chunk_count_;
   };
 

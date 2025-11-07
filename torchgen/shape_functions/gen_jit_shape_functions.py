@@ -102,7 +102,11 @@ def gen_serialized_decompisitions() -> str:
     output_strs.append(curr_str)
 
     final_output = ""
+<<<<<<< HEAD
     # Windows compiler doesnt correctly handle adjacent
+=======
+    # Windows compiler doesn't correctly handle adjacent
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # string literals
     for output_str in output_strs:
         start = '+ std::string(R"=====('

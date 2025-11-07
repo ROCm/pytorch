@@ -10,7 +10,12 @@ import os
 import warnings
 from itertools import chain
 from types import CodeType, FunctionType, ModuleType
+<<<<<<< HEAD
 from typing import Any, Callable, NamedTuple, Optional, Union
+=======
+from typing import Any, Callable, get_args, NamedTuple, Optional, Union
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -35,6 +40,15 @@ _proxyable_classes: dict[type, None] = {}
 
 _is_fx_tracing_flag = False
 
+<<<<<<< HEAD
+=======
+_ConstantAttributeType: TypeAlias = Union[
+    torch.Tensor, torch.ScriptObject, FakeScriptObject, pytree.TreeSpec
+]
+
+_constant_attribute_types = get_args(_ConstantAttributeType)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def is_fx_tracing():
     return _is_fx_tracing_flag
@@ -395,17 +409,34 @@ class Tracer(TracerBase):
         # a get_attr to retrieve that tensor. Otherwise, we'll store away the
         # tensor value into a special attribute on the Module s.t. we can
         # retrieve it with a get_attr.
+<<<<<<< HEAD
         if isinstance(a, (torch.Tensor, ScriptObject, FakeScriptObject)):
+=======
+        if isinstance(a, _constant_attribute_types):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             qualname: Optional[str] = self.tensor_attrs.get(a)
 
             # Tensor was not found in the Module hierarchy, stow it away in a
             # special attribute and set the qualname to refer to that
             if not qualname:
+<<<<<<< HEAD
                 base_name = (
                     "_tensor_constant"
                     if isinstance(a, torch.Tensor)
                     else "_torchbind_obj"
                 )
+=======
+                if isinstance(a, torch.Tensor):
+                    base_name = "_tensor_constant"
+                elif isinstance(a, (FakeScriptObject, ScriptObject)):
+                    base_name = "_torchbind_obj"
+                elif isinstance(a, pytree.TreeSpec):
+                    base_name = "_tree_spec_constant"
+                else:
+                    raise RuntimeError(
+                        f"cannot create constant arg for {a} of type {type(a)}."
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 qualname = self.get_fresh_qualname(base_name)
                 assert isinstance(qualname, str)
                 self.tensor_attrs[a] = qualname
@@ -743,9 +774,15 @@ class Tracer(TracerBase):
 
                 self.root = root
 
+<<<<<<< HEAD
                 assert hasattr(
                     type(root), self.traced_func_name
                 ), f"traced_func_name={self.traced_func_name} doesn't exist in {type(root).__name__}"
+=======
+                assert hasattr(type(root), self.traced_func_name), (
+                    f"traced_func_name={self.traced_func_name} doesn't exist in {type(root).__name__}"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 fn = getattr(type(root), self.traced_func_name)
                 self.root_module_name = root._get_name()
@@ -769,12 +806,21 @@ class Tracer(TracerBase):
             # values to the qualified name here for efficiency. This is used downstream
             # in create_arg
             self.tensor_attrs: dict[
+<<<<<<< HEAD
                 Union[torch.Tensor, ScriptObject, FakeScriptObject], str
+=======
+                _ConstantAttributeType,
+                str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ] = {}
 
             def collect_tensor_attrs(m: torch.nn.Module, prefix_atoms: list[str]):
                 for k, v in m.__dict__.items():
+<<<<<<< HEAD
                     if isinstance(v, (torch.Tensor, ScriptObject, FakeScriptObject)):
+=======
+                    if isinstance(v, _constant_attribute_types):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.tensor_attrs[v] = ".".join(prefix_atoms + [k])
                 for k, v in m.named_children():
                     collect_tensor_attrs(v, prefix_atoms + [k])
@@ -1151,9 +1197,15 @@ def _maybe_revert_all_patches():
     finally:
         if current_patcher is not None:
             patches_made = current_patcher.reapply_all_patches()
+<<<<<<< HEAD
         assert (
             patches_made == patches_removed
         ), "CURRENT_PATCHER was changed during a revert_all_patches"
+=======
+        assert patches_made == patches_removed, (
+            "CURRENT_PATCHER was changed during a revert_all_patches"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _patch_wrapped_functions(patcher: _Patcher):
@@ -1235,9 +1287,15 @@ def wrap(fn_or_name: Union[str, Callable]):
         assert not isinstance(fn_or_name, str)  # to make mypy happy
         fn_name = fn_or_name.__name__
     else:
+<<<<<<< HEAD
         assert isinstance(
             fn_or_name, str
         ), "fn_or_name must be a global function or string name"
+=======
+        assert isinstance(fn_or_name, str), (
+            "fn_or_name must be a global function or string name"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fn_name = fn_or_name
 
     currentframe = inspect.currentframe()
@@ -1295,7 +1353,13 @@ def symbolic_trace(
             return out
 
 
+<<<<<<< HEAD
         f = fx.symbolic_trace(f, concrete_args={"x": {"a": fx.PH, "b": fx.PH, "c": fx.PH}})
+=======
+        f = fx.symbolic_trace(
+            f, concrete_args={"x": {"a": fx.PH, "b": fx.PH, "c": fx.PH}}
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert f({"a": 1, "b": 2, "c": 4}) == 7
 
 

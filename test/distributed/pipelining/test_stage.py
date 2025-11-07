@@ -1,8 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 # Owner(s): ["oncall: distributed"]
+<<<<<<< HEAD
 import os
 import sys
 import tempfile
+=======
+
+import os
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from model_registry import ExampleCode, ModelWithKwargs, MultiMLP
 
@@ -18,11 +23,20 @@ from torch.distributed.pipelining._utils import PipeliningShapeError
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_distributed import (
     MultiProcContinousTest,
+<<<<<<< HEAD
+=======
+    MultiProcessTestCase,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     requires_nccl,
 )
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
+=======
+    run_tests,
+    skip_but_pass_in_sandcastle,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skip_but_pass_in_sandcastle_if,
 )
 from torch.utils._pytree import tree_map_only
@@ -32,6 +46,11 @@ d_hid = 512
 batch_size = 256
 chunks = 4
 
+<<<<<<< HEAD
+=======
+device_type = "cuda"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch.manual_seed(0)
 
 
@@ -66,6 +85,7 @@ class StageTest(MultiProcContinousTest):
         return "nccl"
 
     @classmethod
+<<<<<<< HEAD
     def setUpClass(cls):
         """
         Class-scope test fixture. Run once for entire test class, before any test starts.
@@ -74,12 +94,24 @@ class StageTest(MultiProcContinousTest):
         super().setUpClass()
         dev_id = cls.rank % torch.cuda.device_count()
         cls.device = torch.device(f"cuda:{dev_id}")
+=======
+    def device_type(cls) -> str:
+        return device_type
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device(device_type, self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     @parametrize("ModelClass", [ExampleCode, MultiMLP])
     def test_tracer(self, ModelClass):
+<<<<<<< HEAD
         mod = ModelClass(d_hid)
+=======
+        mod = ModelClass(d_hid, self.world_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mod.to(self.device)
 
         x = torch.randn(batch_size, d_hid, device=self.device)
@@ -119,6 +151,7 @@ class StageTest(MultiProcContinousTest):
         old_keys = mod.state_dict().keys()
         assert all(k in old_keys for k in submod_keys)
 
+<<<<<<< HEAD
         if self.rank == 0:
             # intended to run this code on all ranks, but the problem is if rank0 throws,
             # it won't perform the send that unblocks rank 1.
@@ -140,11 +173,17 @@ class StageTest(MultiProcContinousTest):
             with self.assertRaisesRegex(PipeliningShapeError, "dtype mismatch"):
                 _run_step(x)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     @parametrize("ModelClass", [ModelWithKwargs])
     def test_tracer_kwargs(self, ModelClass):
+<<<<<<< HEAD
         mod = ModelClass(d_hid)
+=======
+        mod = ModelClass(d_hid, self.world_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mod.to(self.device)
 
         x = torch.randn(batch_size, d_hid, device=self.device)
@@ -221,6 +260,7 @@ class StageTest(MultiProcContinousTest):
             ref_out = full_mod(x)
             torch.testing.assert_close(out, ref_out)
 
+<<<<<<< HEAD
         if self.rank == 0:
             with self.assertRaisesRegex(PipeliningShapeError, "shape mismatch"):
                 _run_step(torch.randn(batch_size + 1, d_hid, device=self.device))
@@ -238,6 +278,8 @@ class StageTest(MultiProcContinousTest):
             with self.assertRaisesRegex(PipeliningShapeError, "dtype mismatch"):
                 _run_step(x)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     def test_custom_dw_with_fb_schedule(self):
@@ -298,14 +340,161 @@ class StageTest(MultiProcContinousTest):
             ref_out = full_mod(x)
             torch.testing.assert_close(out, ref_out)
 
+<<<<<<< HEAD
+=======
+    @requires_nccl()
+    @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+    def test_output_chunks_memory_usage(self):
+        """Test that output_chunks doesn't store memory for non-first stages."""
+        full_mod = MultiMLP(d_hid, n_layers=self.world_size)
+        full_mod.to(self.device)
+        stage_mod = full_mod.get_submodule(f"layers.{self.rank}")
+        x = torch.randn(batch_size, d_hid, device=self.device)
+        target = torch.randn(batch_size, d_hid, device=self.device)
+        stage = PipelineStage(
+            stage_mod,
+            self.rank,
+            self.world_size,
+            self.device,
+        )
+        self.assertEqual(
+            len(stage.output_chunks), 0, "output_chunks should be empty initially"
+        )
+
+        schedule = ScheduleGPipe(
+            stage, chunks, loss_fn=torch.nn.MSELoss(reduction="sum")
+        )
+
+        def _run_step(x):
+            if self.rank == 0:
+                return schedule.step(x)
+            elif self.rank == self.world_size - 1:
+                return schedule.step(target=target)
+            else:
+                return schedule.step()
+
+        _run_step(x)
+
+        # Verify fwd_cache is empty
+        self.assertEqual(len(stage.fwd_cache), 0, "fwd_cache should be cleared")
+
+        # Check output_chunks state after step
+        if self.rank == self.world_size - 1:
+            self.assertEqual(
+                len(stage.output_chunks),
+                chunks,
+                "Last stage should store output chunks",
+            )
+        else:
+            self.assertEqual(
+                len(stage.output_chunks),
+                0,
+                f"Non-last stage (rank {self.rank}) should not store output chunks",
+            )
+
+        # Clear the schedule and stage caches
+        stage.clear_runtime_states()
+        if self.rank == self.world_size - 1:
+            # Last stage should have output_chunks populated
+            self.assertEqual(
+                len(stage.output_chunks), 0, "Last stage should store output chunks"
+            )
+
+
+instantiate_parametrized_tests(StageTest)
+
+
+class StageNegativeTest(MultiProcessTestCase):
+    @property
+    def world_size(self) -> int:
+        return torch.get_device_module(device_type).device_count()
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device(device_type, self.rank)
+
+    def setUp(self):
+        super().setUp()
+        self._spawn_processes()
+
+    def tearDown(self):
+        super().tearDown()
+        try:
+            os.remove(self.file_name)
+        except OSError:
+            pass
+
+    def init_pg(self):
+        store = dist.FileStore(self.file_name, self.world_size)
+        dist.init_process_group(
+            backend="nccl",
+            store=store,
+            rank=self.rank,
+            world_size=self.world_size,
+            device_id=self.device,
+        )
+
+    @requires_nccl()
+    @skip_but_pass_in_sandcastle("Flaky in CI")
+    def test_shape_prop_mismatch(self):
+        """Tests shape prop errors are raised"""
+        self.init_pg()
+
+        full_mod = MultiMLP(d_hid, n_layers=self.world_size)
+        full_mod.to(self.device)
+        stage_mod = full_mod.get_submodule(f"layers.{self.rank}")
+
+        x = torch.randn(batch_size, d_hid, device=self.device)
+
+        stage = PipelineStage(
+            stage_mod,
+            self.rank,
+            self.world_size,
+            self.device,
+        )
+
+        # Attach to a schedule
+        schedule = ScheduleGPipe(stage, chunks)
+
+        # Run
+        def _run_step(x):
+            if self.rank == 0:
+                return schedule.step(x)
+            else:
+                return schedule.step()
+
+        _run_step(x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.rank == 0:
             with self.assertRaisesRegex(PipeliningShapeError, "shape mismatch"):
                 _run_step(torch.randn(batch_size + 1, d_hid, device=self.device))
 
+<<<<<<< HEAD
+=======
+            with self.assertRaisesRegex(PipeliningShapeError, "dtype mismatch"):
+                _run_step(x.to(torch.int32))
+
+            # output of stage's mlp layer will be flattened by this hook, the stage should err
+            handle = stage_mod.register_forward_hook(get_flatten_hook())
+            with self.assertRaisesRegex(PipeliningShapeError, "shape mismatch"):
+                _run_step(x)
+            handle.remove()
+
+            stage_mod.register_forward_hook(get_dtype_change_hook(torch.bfloat16))
+            with self.assertRaisesRegex(PipeliningShapeError, "dtype mismatch"):
+                _run_step(x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     def test_custom_dw_errors(self):
         """Tests expected errors are raised"""
+<<<<<<< HEAD
+=======
+        self.init_pg()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         full_mod = MultiMLP(d_hid, n_layers=self.world_size)
         full_mod.to(self.device)
         stage_mod = full_mod.get_submodule(f"layers.{self.rank}")
@@ -321,6 +510,7 @@ class StageTest(MultiProcContinousTest):
             stage_with_dw_builder.backward_weight_one_chunk(bwd_chunk_id=0)
 
 
+<<<<<<< HEAD
 instantiate_parametrized_tests(StageTest)
 
 if __name__ == "__main__":
@@ -351,3 +541,7 @@ if __name__ == "__main__":
             nprocs=world_size,
             args=(world_size, rdvz_file),
         )
+=======
+if __name__ == "__main__":
+    run_tests()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

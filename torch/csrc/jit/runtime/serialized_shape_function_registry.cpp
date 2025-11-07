@@ -16,7 +16,11 @@
 namespace torch::jit {
 
 
+<<<<<<< HEAD
 std::string shape_funcs = ""
+=======
+static std::string shape_funcs = ""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 + std::string(R"=====(
 def unary(self: List[int]) -> List[int]:
   out = annotate(List[int], [])

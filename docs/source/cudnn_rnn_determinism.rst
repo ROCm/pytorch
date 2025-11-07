@@ -13,4 +13,8 @@
 
     See the `cuDNN 8 Release Notes`_ for more information.
 
+<<<<<<< HEAD
 .. _cuDNN 8 Release Notes: https://docs.nvidia.com/deeplearning/sdk/cudnn-release-notes/rel_8.html
+=======
+.. _cuDNN 8 Release Notes: https://docs.nvidia.com/deeplearning/cudnn/archives/cudnn-880/release-notes/rel_8.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

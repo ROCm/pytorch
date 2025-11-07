@@ -7,6 +7,10 @@
 #include <ATen/core/custom_class.h>
 #include <ATen/native/quantized/cpu/EmbeddingPackedParams.h>
 #include <ATen/native/quantized/cpu/fbgemm_utils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/quantized/library.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/ScalarType.h>
 #include <torch/library.h>
 
@@ -23,8 +27,11 @@
 
 #include <utility>
 
+<<<<<<< HEAD
 int register_embedding_params();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /*
  * Prepack function for embedding_bag weights.
  * This function expects a per-row quantized weight tensor

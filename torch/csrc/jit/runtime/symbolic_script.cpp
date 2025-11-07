@@ -936,8 +936,13 @@ const std::vector<std::string> functions = {
         def hardswish(self):
             result = torch.hardswish(self)
             def backward(grad_output):
+<<<<<<< HEAD
                 m = (self > 3.).type_as(result)
                 m = torch.where((self >= -3.) & (self <= 3.),  self / 3. + .5, m)
+=======
+                m = (self >= 3.).type_as(result)
+                m = torch.where((self > -3.) & (self < 3.),  self / 3. + .5, m)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return grad_output * m
             return result, backward
 

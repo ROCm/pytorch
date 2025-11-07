@@ -9,7 +9,11 @@ from torch.fx.passes.infra.pass_manager import (
     PassManager,
     this_before_that_pass_constraint,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Pass that uses PassBase and returns a PassResult (best scenario)
@@ -228,3 +232,10 @@ class TestPassManager(TestCase):
         error_msg = "pass_fail.*ReplaceAddWithMulPass.*replace_mul_with_div_pass.*ReplaceDivWithSubPass.*replace_sub_with_add_pass"
         with self.assertRaisesRegex(Exception, error_msg):
             pm(traced_m)
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_fx.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

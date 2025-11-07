@@ -130,7 +130,11 @@ class ModuleDictImpl : public Cloneable<ModuleDictImpl> {
     return modules_.is_empty();
   }
 
+<<<<<<< HEAD
   /// Check if the centain parameter with the key in the `ModuleDict`.
+=======
+  /// Check if the certain parameter with the key in the `ModuleDict`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool contains(const std::string& key) const noexcept {
     return modules_.contains(key);
   }

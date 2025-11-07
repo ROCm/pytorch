@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions import constraints
@@ -42,7 +47,17 @@ class ExpRelaxedCategorical(Distribution):
     )  # The true support is actually a submanifold of this.
     has_rsample = True
 
+<<<<<<< HEAD
     def __init__(self, temperature, probs=None, logits=None, validate_args=None):
+=======
+    def __init__(
+        self,
+        temperature: Tensor,
+        probs: Optional[Tensor] = None,
+        logits: Optional[Tensor] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._categorical = Categorical(probs, logits)
         self.temperature = temperature
         batch_shape = self._categorical.batch_shape
@@ -121,8 +136,20 @@ class RelaxedOneHotCategorical(TransformedDistribution):
     arg_constraints = {"probs": constraints.simplex, "logits": constraints.real_vector}
     support = constraints.simplex
     has_rsample = True
+<<<<<<< HEAD
 
     def __init__(self, temperature, probs=None, logits=None, validate_args=None):
+=======
+    base_dist: ExpRelaxedCategorical
+
+    def __init__(
+        self,
+        temperature: Tensor,
+        probs: Optional[Tensor] = None,
+        logits: Optional[Tensor] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         base_dist = ExpRelaxedCategorical(
             temperature, probs, logits, validate_args=validate_args
         )

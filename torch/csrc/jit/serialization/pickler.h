@@ -2,6 +2,10 @@
 
 #include <ATen/core/qualified_name.h>
 #include <string>
+<<<<<<< HEAD
+=======
+#include <string_view>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <utility>
 #include <vector>
 
@@ -11,7 +15,10 @@
 #include <c10/util/ArrayRef.h>
 #include <c10/util/FbcodeMaps.h>
 #include <c10/util/intrusive_ptr.h>
+<<<<<<< HEAD
 #include <c10/util/string_view.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/Export.h>
 
 namespace torch::jit {
@@ -115,9 +122,12 @@ struct WriteableTensorData {
   uint64_t size_;
 };
 
+<<<<<<< HEAD
 void setTypeTags(bool state);
 bool getTypeTags();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TORCH_API Pickler {
   AT_DISALLOW_COPY_AND_ASSIGN(Pickler);
 
@@ -286,9 +296,12 @@ class TORCH_API Pickler {
 TORCH_API WriteableTensorData
 getWriteableTensorData(const at::Tensor& tensor, bool to_cpu = true);
 
+<<<<<<< HEAD
 // return the value of the tensor's storage pointer
 uint64_t getStorageKey(const at::Tensor& tensor);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // if the cls has __getstate__/__setstate__
 // assert they have the right schema and return true,
 // otherwise return false

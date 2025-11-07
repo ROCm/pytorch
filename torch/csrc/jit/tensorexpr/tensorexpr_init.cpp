@@ -15,6 +15,10 @@
 #include <torch/csrc/jit/tensorexpr/loopnest.h>
 #include <torch/csrc/jit/tensorexpr/lowerings.h>
 #include <torch/csrc/jit/tensorexpr/reduction.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/tensorexpr/tensorexpr_init.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <utility>
 
@@ -25,7 +29,11 @@ struct pybind11::detail::type_caster<torch::jit::tensorexpr::ArgValue>
 namespace torch::jit {
 using namespace torch::jit::tensorexpr;
 
+<<<<<<< HEAD
 ArgValue convertPyToArgValue(py::handle inp) {
+=======
+static ArgValue convertPyToArgValue(py::handle inp) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (py::isinstance<BufHandle>(inp)) {
     return py::cast<BufHandle>(inp);
   } else if (py::isinstance<VarHandle>(inp)) {
@@ -54,7 +62,11 @@ ArgValue convertPyToArgValue(py::handle inp) {
   }
 }
 
+<<<<<<< HEAD
 Dtype parsePythonDtype(py::handle obj) {
+=======
+static Dtype parsePythonDtype(py::handle obj) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (THPDtype_Check(obj.ptr())) {
     return Dtype(reinterpret_cast<THPDtype*>(obj.ptr())->scalar_type);
   } else {

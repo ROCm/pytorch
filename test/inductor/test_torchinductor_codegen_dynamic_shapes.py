@@ -44,20 +44,32 @@ def check_codegen(
     example_inputs,
     kwargs=None,
     *,
+<<<<<<< HEAD
+=======
+    device: torch.types.Device,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_cpp_code: bool,
 ):
     kwargs = kwargs or {}
 
     if is_cpp_code is False:
         if hasattr(model, "to"):
+<<<<<<< HEAD
             model = model.to(device=GPU_TYPE)
+=======
+            model = model.to(device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def copy_fn(x):
             # preserve strides of the input on the device
             if not isinstance(x, torch.Tensor):
                 return x
             return torch.empty_strided(
+<<<<<<< HEAD
                 x.size(), x.stride(), device=GPU_TYPE, dtype=x.dtype
+=======
+                x.size(), x.stride(), device=device, dtype=x.dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).copy_(x)
 
         example_inputs = tuple(copy_fn(x) for x in example_inputs)
@@ -136,13 +148,20 @@ test_failures = {
     "test_mul_index_expr_dynamic_shapes": TestFailure(("cpu",)),
     "test_flip_cat_dynamic_shapes": TestFailure(("cpu",)),
     "test_pad_single_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
+=======
+    "test_embedding_sparse_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #
     # Failed to find for loop/triton kernel:
     #
     "test_complex_fallback_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_adaptive_avg_pool2d2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_adaptive_max_pool2d2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+<<<<<<< HEAD
     "test_fractional_max_pool2d2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_argmax_to_float_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_avg_pool2d7_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_avg_pool2d_backward4_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
@@ -157,6 +176,10 @@ test_failures = {
     "test_conv_functional_bn_fuse_dynamic_shapes": TestFailure(("cpu",), is_skip=True),
     "test_convolution2_dynamic_shapes": TestFailure(("cpu",)),
     "test_cumprod_zero_dim_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
+=======
+    "test_cummin_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_cumsum_dynamic_shapes": TestFailure(("cpu",)),
     "test_cumsum_no_mask_dynamic_shapes": TestFailure(("cpu",)),
     "test_cumsum_zero_dim_dynamic_shapes": TestFailure(("cpu",)),
@@ -168,7 +191,15 @@ test_failures = {
     "test_bucketize_nd_tiling_False_dynamic_shapes": TestFailure(("cpu",)),
     "test_bucketize_nd_tiling_True_dynamic_shapes": TestFailure(("cpu",)),
     "test_bucketize_default_kwargs_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
     "test_bucketize_int_dynamic_shapes": TestFailure(("cpu",)),
+=======
+    "test_bucketize_int_uint8_uint8_dynamic_shapes": TestFailure(("cpu",)),
+    "test_bucketize_int_int8_int8_dynamic_shapes": TestFailure(("cpu",)),
+    "test_bucketize_int_int16_int16_dynamic_shapes": TestFailure(("cpu",)),
+    "test_bucketize_int_int32_int32_dynamic_shapes": TestFailure(("cpu",)),
+    "test_bucketize_int_int64_int64_dynamic_shapes": TestFailure(("cpu",)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_searchsorted_dynamic_shapes": TestFailure(("cpu",)),
     "test_like_rands_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_linspace2_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
@@ -176,7 +207,10 @@ test_failures = {
     "test_linspace4_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_logcumsumexp_dynamic_shapes": TestFailure(("cpu",)),
     "test_logcumsumexp_zero_dim_dynamic_shapes": TestFailure(("cpu",)),
+<<<<<<< HEAD
     "test_max_pool2d8_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_max_pool2d_with_indices_backward5_dynamic_shapes": TestFailure(
         ("cpu", "cuda")
     ),
@@ -237,7 +271,10 @@ test_failures = {
     "test_pointwise_laguerre_polynomial_l_dynamic_shapes": TestFailure(("cuda", "xpu")),
     "test_pointwise_legendre_polynomial_p_dynamic_shapes": TestFailure(("cuda", "xpu")),
     "test_polar_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu"), is_skip=True),
+<<<<<<< HEAD
     "test_randint_distribution_dynamic_shapes": TestFailure(("cuda", "xpu")),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_randn_generator_dynamic_shapes": TestFailure(("cpu",)),
     "test_randn_like_empty_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_single_elem_dynamic_shapes": TestFailure(("cpu",)),
@@ -261,9 +298,12 @@ test_failures = {
     ),
     "test_zero_element_mutation_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
     "test_custom_op_3_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
+<<<<<<< HEAD
     "test_custom_op_fixed_layout_sequential_dynamic_shapes": TestFailure(
         ("cuda", "xpu") if IS_LINUX else ("cpu", "cuda", "xpu")
     ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_cat_uint8_dynamic_shapes": TestFailure(
         ("cpu",)
     ),  # cat on uint8 input is using aten fallback on cpu
@@ -383,11 +423,20 @@ test_failures = {
     **dynamic_shapes_test_failures,
 }
 
+<<<<<<< HEAD
 if TEST_WITH_ROCM:
     test_failures.update(
         {
             "test_split_cumsum_low_prec_dynamic_shapes": TestFailure(("cpu", "cuda")),
             "test_split_cumprod_low_prec_dynamic_shapes": TestFailure(("cpu", "cuda")),
+=======
+if not TEST_WITH_ROCM:
+    test_failures.update(
+        {
+            "test_custom_op_fixed_layout_sequential_dynamic_shapes": TestFailure(
+                ("cuda") if IS_LINUX else ("cpu", "cuda", "xpu")
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
     )
 
@@ -407,8 +456,14 @@ if HAS_CPU:
                 self=self,
                 model=model,
                 example_inputs=example_inputs,
+<<<<<<< HEAD
                 kwargs=kwargs,
                 is_cpp_code=True,
+=======
+                device=self.device,
+                kwargs=kwargs,
+                is_cpp_code=torch._inductor.config.cpu_backend == "cpp",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     copy_tests(
@@ -430,6 +485,10 @@ if HAS_GPU and not TEST_WITH_ASAN:
                 self=self,
                 model=model,
                 example_inputs=example_inputs,
+<<<<<<< HEAD
+=======
+                device=self.device,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kwargs=kwargs,
                 is_cpp_code=False,
             )

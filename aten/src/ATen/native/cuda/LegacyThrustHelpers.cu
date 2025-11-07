@@ -19,6 +19,7 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 void index_put_with_sort_kernel_thrust_helper(Tensor &linearIndex, Tensor &orig_indices, Tensor &sorted_indices, int64_t num_indices) {
   sorted_indices.copy_(linearIndex);
   const cudaStream_t stream = at::cuda::getCurrentCUDAStream();
@@ -41,6 +42,8 @@ void index_put_with_sort_kernel_thrust_helper(Tensor &linearIndex, Tensor &orig_
   thrust::sort_by_key(policy, sorted_data, sorted_data + num_indices, orig_data, LTOp<int64_t>());
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if !CUB_SUPPORTS_SCAN_BY_KEY()
 
 template<typename index_t>

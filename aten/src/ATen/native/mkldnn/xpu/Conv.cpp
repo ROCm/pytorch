@@ -3,6 +3,11 @@
 #include <ATen/core/ATen_fwd.h>
 #include <ATen/core/interned_strings.h>
 #include <ATen/native/ConvUtils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/mkldnn/xpu/Conv.h>
+#include <ATen/native/mkldnn/xpu/FusionUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mkldnn/xpu/detail/oneDNN.h>
 #include <ATen/native/utils/ParamUtils.h>
 #include <ATen/ops/full.h>
@@ -309,6 +314,7 @@ static at::Tensor view3d(const at::Tensor& tensor) {
   return tensor.squeeze(2);
 }
 
+<<<<<<< HEAD
 Attr get_onednn_conv_sum_attr(
     const Tensor& input_r,
     const Tensor& weight_r,
@@ -384,6 +390,8 @@ Attr get_onednn_conv_sum_attr(
   return attr;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace impl
 
 using namespace impl;
@@ -476,6 +484,11 @@ Tensor _convolution_out(
           params.output_padding,
           params.groups);
       output = at::empty(dst_tz, input.options(), mfmt);
+<<<<<<< HEAD
+=======
+    } else {
+      output = output_r;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     onednn::deconvolution(
@@ -518,6 +531,11 @@ Tensor _convolution_out(
           params.stride,
           params.dilation);
       output = at::empty(dst_tz, input.options(), mfmt);
+<<<<<<< HEAD
+=======
+    } else {
+      output = output_r;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     onednn::convolution(
         output,
@@ -751,6 +769,122 @@ std::tuple<Tensor, Tensor, Tensor> convolution_backward_overrideable(
   return std::tuple<Tensor, Tensor, Tensor>{grad_input, grad_weight, grad_bias};
 }
 
+<<<<<<< HEAD
+=======
+Tensor convolution_pointwise(
+    const Tensor& input_t,
+    const Tensor& weight_t,
+    const std::optional<Tensor>& bias_opt,
+    IntArrayRef padding,
+    IntArrayRef stride,
+    IntArrayRef dilation,
+    int64_t groups,
+    std::string_view attr,
+    torch::List<std::optional<at::Scalar>> scalars,
+    std::optional<std::string_view> algorithm) {
+  c10::DeviceGuard device_guard(input_t.device());
+  Attr att;
+  att = construct_unary_attr(att, attr, scalars, algorithm);
+  const Tensor bias = bias_opt.has_value() ? bias_opt.value() : at::Tensor();
+
+  return _convolution(
+      input_t,
+      weight_t,
+      bias,
+      stride,
+      padding,
+      dilation,
+      /*transposed*/ false,
+      /*output_padding*/ {0},
+      groups,
+      att);
+}
+
+Tensor convolution_pointwise_binary(
+    const Tensor& input_t,
+    const Tensor& other_t,
+    const Tensor& weight_t,
+    const std::optional<Tensor>& bias_opt,
+    IntArrayRef padding,
+    IntArrayRef stride,
+    IntArrayRef dilation,
+    int64_t groups,
+    std::string_view binary_attr,
+    std::optional<at::Scalar> alpha,
+    std::optional<std::string_view> unary_attr,
+    torch::List<std::optional<at::Scalar>> unary_scalars,
+    std::optional<std::string_view> unary_algorithm) {
+  c10::DeviceGuard device_guard(input_t.device());
+  Tensor output;
+  Tensor bias = bias_opt.has_value() ? bias_opt.value() : at::Tensor();
+  // Step1: Construct binary attr
+  Attr attr;
+  attr = construct_binary_attr(attr, binary_attr, other_t);
+  // Step2: Append unary attr
+  if (unary_attr.has_value())
+    attr = construct_unary_attr(
+        attr, unary_attr.value(), unary_scalars, unary_algorithm);
+
+  Tensor res = _convolution_out(
+      output,
+      input_t,
+      weight_t,
+      bias,
+      stride,
+      padding,
+      dilation,
+      /*transposed*/ false,
+      /*output_padding*/ {0},
+      groups,
+      attr);
+
+  // Step3: Run conv
+  return res;
+}
+
+Tensor& convolution_pointwise_binary_(
+    Tensor& other_t,
+    const Tensor& input_t,
+    const Tensor& weight_t,
+    const std::optional<Tensor>& bias_opt,
+    IntArrayRef padding,
+    IntArrayRef stride,
+    IntArrayRef dilation,
+    int64_t groups,
+    std::string_view binary_attr,
+    std::optional<at::Scalar> alpha,
+    std::optional<std::string_view> unary_attr,
+    torch::List<std::optional<at::Scalar>> unary_scalars,
+    std::optional<std::string_view> unary_algorithm) {
+  c10::DeviceGuard device_guard(input_t.device());
+  Tensor bias = bias_opt.has_value() ? bias_opt.value() : at::Tensor();
+  // Step1: Construct binary attr
+  Attr attr;
+  attr = construct_binary_attr(attr, binary_attr, other_t);
+
+  // Step2: Append unary attr
+  if (unary_attr.has_value())
+    attr = construct_unary_attr(
+        attr, unary_attr.value(), unary_scalars, unary_algorithm);
+
+  _convolution_out(
+      other_t,
+      input_t,
+      weight_t,
+      bias,
+      stride,
+      padding,
+      dilation,
+      /*transposed*/ false,
+      /*output_padding*/ {0},
+      groups,
+      attr);
+
+  // Step3: Run conv
+  return other_t;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_LIBRARY_IMPL(aten, XPU, m) {
   m.impl("convolution_overrideable", TORCH_FN(convolution_overrideable));
   m.impl(
@@ -758,4 +892,19 @@ TORCH_LIBRARY_IMPL(aten, XPU, m) {
       TORCH_FN(convolution_backward_overrideable));
 }
 
+<<<<<<< HEAD
+=======
+TORCH_LIBRARY_IMPL(mkldnn, XPU, m) {
+  m.impl(
+      TORCH_SELECTIVE_NAME("mkldnn::_convolution_pointwise"),
+      TORCH_FN(convolution_pointwise));
+  m.impl(
+      TORCH_SELECTIVE_NAME("mkldnn::_convolution_pointwise.binary"),
+      TORCH_FN(convolution_pointwise_binary));
+  m.impl(
+      TORCH_SELECTIVE_NAME("mkldnn::_convolution_pointwise_.binary"),
+      TORCH_FN(convolution_pointwise_binary_));
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native::xpu

@@ -13,6 +13,11 @@ class TORCH_API FileStore : public Store {
  public:
   explicit FileStore(std::string path, int numWorkers);
 
+<<<<<<< HEAD
+=======
+  c10::intrusive_ptr<Store> clone() override;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ~FileStore() override;
 
   void set(const std::string& key, const std::vector<uint8_t>& value) override;

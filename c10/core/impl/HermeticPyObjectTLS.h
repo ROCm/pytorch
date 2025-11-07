@@ -13,7 +13,12 @@ namespace c10::impl {
 struct C10_API HermeticPyObjectTLS {
   static void set_state(bool state);
   static bool get_state() {
+<<<<<<< HEAD
     // Hypothetical fastpath if torchdeploy/multipy isn't used.  Per
+=======
+    // Hypothetical fastpath if torchdeploy/multipy // codespell:ignore multipy
+    // isn't used. Per
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2055r0.pdf
     // this qualifies relaxed access because it is a single-location data
     // structure (only the boolean here).
@@ -46,12 +51,23 @@ struct C10_API HermeticPyObjectTLS {
       return false;
     return get_tls_state();
   }
+<<<<<<< HEAD
   // Call this from the multipy/torchdeploy top level
   static void init_state();
 
  private:
   // This only flipped once from false to true during torchdeploy/multipy
   // initialization, and never again.
+=======
+  // Call this from the multipy/torchdeploy // codespell:ignore multipy
+  // top level
+  static void init_state();
+
+ private:
+  // This only flipped once from false to true during
+  // torchdeploy/multipy initialization, // codespell:ignore multipy
+  // and never again.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static std::atomic<bool> haveState_;
   static bool get_tls_state();
 };

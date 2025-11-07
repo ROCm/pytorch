@@ -1,6 +1,11 @@
 //  Copyright © 2022 Apple Inc.
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/ExpandUtils.h>
+<<<<<<< HEAD
+=======
+#include <ATen/mps/MPSProfiler.h>
+#include <ATen/native/mps/MPSGraphSequoiaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/ops/linear_backward_native.h>
 #include <ATen/ops/linear_native.h>
@@ -9,16 +14,84 @@ namespace at::native {
 
 using namespace mps;
 
+<<<<<<< HEAD
+=======
+static void _mps_linear_nograph(const Tensor& input, const Tensor& weight, const Tensor& bias, Tensor& output) {
+  bool is_bias_defined = bias.defined();
+
+  MPSStream* mpsStream = getCurrentMPSStream();
+  id<MTLDevice> device = MPSDevice::getInstance()->device();
+
+  const std::string key = "mps_linear" + getTensorsStringKey({input, weight, bias}, true, true);
+  dispatch_sync_with_rethrow(mpsStream->queue(), ^() {
+    @autoreleasepool {
+      mpsStream->endKernelCoalescing();
+
+      id<MTLComputeCommandEncoder> computeEncoder = mpsStream->commandEncoder();
+      id<MTLCommandBuffer> commandBuffer = mpsStream->commandBuffer();
+
+      MPSDataType mpsDataType = getMPSDataType(weight.scalar_type());
+
+      auto inputNDArray = getMPSNDArray(input, input.sizes(), input.strides());
+      auto outNDArray = getMPSNDArray(output, output.sizes(), output.strides());
+
+      id<MTLBuffer> weightBuf = getMTLBufferStorage(weight);
+      MPSNDArrayDescriptor* weightDesc = [MPSNDArrayDescriptor descriptorWithDataType:mpsDataType
+                                                                                shape:getMPSShape(weight.sizes())];
+      weightDesc.preferPackedRows = YES;
+      [weightDesc transposeDimension:0 withDimension:1];
+      MPSNDArray* weightNDArray = [[[MPSNDArray alloc] initWithBuffer:weightBuf
+                                                               offset:weight.storage_offset() * weight.element_size()
+                                                           descriptor:weightDesc] autorelease];
+
+      if (is_bias_defined) {
+        auto biasNDArray = getMPSNDArray(bias, bias.sizes(), bias.strides());
+        auto cachedKernel = LookUpOrCreateCachedKernel<MPSCachedKernel>(key, [&]() {
+          return [[[MPSNDArrayMatrixMultiplication alloc] initWithDevice:device sourceCount:3] autorelease];
+        });
+        auto kernel = cachedKernel->kernel<MPSNDArrayMatrixMultiplication>();
+
+        getMPSProfiler().beginProfileKernel(kernel, "mps_linear", {input, weight, bias});
+        [kernel encodeToCommandEncoder:computeEncoder
+                         commandBuffer:commandBuffer
+                          sourceArrays:@[ inputNDArray, weightNDArray, biasNDArray ]
+                      destinationArray:outNDArray];
+        getMPSProfiler().endProfileKernel(kernel);
+      } else {
+        auto cachedKernel = LookUpOrCreateCachedKernel<MPSCachedKernel>(key, [&]() {
+          return [[[MPSNDArrayMatrixMultiplication alloc] initWithDevice:device sourceCount:2] autorelease];
+        });
+        auto kernel = cachedKernel->kernel<MPSNDArrayMatrixMultiplication>();
+        getMPSProfiler().beginProfileKernel(kernel, "mps_linear", {input, weight, bias});
+        [kernel encodeToCommandEncoder:computeEncoder
+                         commandBuffer:commandBuffer
+                          sourceArrays:@[ inputNDArray, weightNDArray ]
+                      destinationArray:outNDArray];
+        getMPSProfiler().endProfileKernel(kernel);
+      }
+    }
+  });
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor _mps_linear(const Tensor& input, const Tensor& weight_arg, const std::optional<Tensor>& bias_opt) {
   // wT = transpose(weight);
   // y=x*wT+b
 
+<<<<<<< HEAD
   auto weight = (weight_arg.dim() == 1) ? weight_arg.view({1, weight_arg.size(0)}) : weight_arg;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(supportedFloatingOrComplexType(input), "MPS device does not support linear for non-float inputs");
   TORCH_CHECK(input.is_mps(), "Tensor for argument input is on ", input.device(), " but expected on mps");
   TORCH_CHECK(supportedFloatingOrComplexType(weight_arg), "MPS device does not support linear for non-float weights");
   TORCH_CHECK(weight_arg.is_mps(), "Tensor for argument weight is on ", weight_arg.device(), " but expected on mps");
+<<<<<<< HEAD
+=======
+  TORCH_CHECK((input.scalar_type() != kComplexFloat && input.scalar_type() != kComplexHalf),
+              "mps linear does not support complex types");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const Tensor& bias = *(at::borrow_from_optional_tensor(bias_opt));
   const bool is_bias_defined = bias.defined();
@@ -27,6 +100,11 @@ Tensor _mps_linear(const Tensor& input, const Tensor& weight_arg, const std::opt
     TORCH_CHECK(supportedFloatingOrComplexType(bias), "MPS device does not support linear for non-float bias");
   }
 
+<<<<<<< HEAD
+=======
+  auto weight = (weight_arg.dim() == 1) ? weight_arg.unsqueeze(0) : weight_arg;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto input_size = input.sizes();
   std::vector<int64_t> output_size(input_size.begin(), input_size.end() - 1);
   output_size.push_back(weight.size(0));
@@ -54,8 +132,17 @@ Tensor _mps_linear(const Tensor& input, const Tensor& weight_arg, const std::opt
     return output;
   }
 
+<<<<<<< HEAD
   MPSStream* stream = getCurrentMPSStream();
 
+=======
+  if (is_macos_13_or_newer(MacOSVersion::MACOS_VER_15_0_PLUS)) {
+    _mps_linear_nograph(input, weight, bias, output);
+    // Squeeze last dim of 1D linear
+    return weight_arg.dim() != 1 ? output : output.squeeze(-1);
+  }
+  MPSStream* stream = getCurrentMPSStream();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct CachedGraph : public MPSCachedGraph {
     CachedGraph(MPSGraph* graph) : MPSCachedGraph(graph) {}
     MPSGraphTensor* inputTensor_ = nil;
@@ -65,7 +152,11 @@ Tensor _mps_linear(const Tensor& input, const Tensor& weight_arg, const std::opt
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "mps_linear" + getTensorsStringKey({input, weight, bias});
+=======
+    std::string key = "mps_linear" + getTensorsStringKey({input, weight, bias});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto* mpsGraph, auto* newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, input);
       MPSGraphTensor* weightTensor = mpsGraphRankedPlaceHolder(mpsGraph, weight);
@@ -116,6 +207,7 @@ Tensor _mps_linear(const Tensor& input, const Tensor& weight_arg, const std::opt
     runMPSGraph(stream, cachedGraph->graph(), feeds, outputPlaceholder);
   }
 
+<<<<<<< HEAD
   // Shave off '1' present at the end of the shape
   if (weight_arg.dim() == 1) {
     // Number of elements in new output shape
@@ -124,6 +216,10 @@ Tensor _mps_linear(const Tensor& input, const Tensor& weight_arg, const std::opt
     return output.view(IntArrayRef(out_shape));
   }
   return output;
+=======
+  // Squeeze last dim of 1D linear
+  return weight_arg.dim() != 1 ? output : output.squeeze(-1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static Tensor _mps_linear_backward_input(IntArrayRef input_size, const Tensor& grad_output, const Tensor& weight) {
@@ -154,7 +250,11 @@ static Tensor _mps_linear_backward_input(IntArrayRef input_size, const Tensor& g
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "mps_linear_backward_input" + getTensorsStringKey({grad_output, weight_reshaped});
+=======
+    std::string key = "mps_linear_backward_input" + getTensorsStringKey({grad_output, weight_reshaped});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto* mpsGraph, auto* newCachedGraph) {
       newCachedGraph->weightTensor_ = mpsGraphRankedPlaceHolder(mpsGraph, weight_reshaped);
       newCachedGraph->gradOutputTensor_ = mpsGraphRankedPlaceHolder(mpsGraph, grad_output);
@@ -236,7 +336,11 @@ static std::tuple<Tensor, Tensor> _mps_linear_backward_weights(const Tensor& gra
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "mps_linear_backward_weights:" + std::to_string(bias_defined) + ":" +
+=======
+    std::string key = "mps_linear_backward_weights:" + std::to_string(bias_defined) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         getTensorsStringKey({input_reshaped, weight, grad_output_reshaped});
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, input_reshaped);

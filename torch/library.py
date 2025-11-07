@@ -87,11 +87,20 @@ class Library:
 
     Args:
         ns: library name
+<<<<<<< HEAD
         kind: "DEF", "IMPL" (default: "IMPL"), "FRAGMENT"
+=======
+        kind: "DEF", "IMPL", "FRAGMENT"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dispatch_key: PyTorch dispatch key (default: "")
     """
 
     def __init__(self, ns, kind, dispatch_key=""):
+<<<<<<< HEAD
+=======
+        from torch.fx.operator_schemas import _SCHEMA_TO_SIGNATURE_CACHE
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if kind not in ("IMPL", "DEF", "FRAGMENT"):
             raise ValueError("Unsupported kind: ", kind)
 
@@ -127,6 +136,11 @@ class Library:
             _defs,
             self._op_defs,
             self._registration_handles,
+<<<<<<< HEAD
+=======
+            self.m,
+            _SCHEMA_TO_SIGNATURE_CACHE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def __repr__(self):
@@ -148,6 +162,10 @@ class Library:
             name of the operator as inferred from the schema.
 
         Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> my_lib = Library("mylib", "DEF")
             >>> my_lib.define("sum(Tensor self) -> Tensor")
         """
@@ -184,7 +202,11 @@ class Library:
         _defs.add(qualname)
         return result
 
+<<<<<<< HEAD
     def _register_fake(self, op_name, fn, _stacklevel=1):
+=======
+    def _register_fake(self, op_name, fn, _stacklevel=1, *, allow_override=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Registers the fake impl for an operator defined in the library."""
         if torch._running_with_deploy():
             _library.utils.warn_deploy()
@@ -211,7 +233,13 @@ class Library:
         else:
             func_to_register = fn
 
+<<<<<<< HEAD
         handle = entry.fake_impl.register(func_to_register, source)
+=======
+        handle = entry.fake_impl.register(
+            func_to_register, source, lib=self, allow_override=allow_override
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._registration_handles.append(handle)
 
     def _register_torch_dispatch_rule(self, op_name, torch_dispatch_class, fn):
@@ -248,6 +276,10 @@ class Library:
                           the dispatch key that the library was created with.
 
         Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> my_lib = Library("aten", "IMPL")
             >>> my_lib._impl_with_aoti_compile("div.Tensor", "CPU")
         """
@@ -290,7 +322,13 @@ class Library:
         _impls.add(key)
         self._op_impls.add(key)
 
+<<<<<<< HEAD
     def impl(self, op_name, fn, dispatch_key="", *, with_keyset=False):
+=======
+    def impl(
+        self, op_name, fn, dispatch_key="", *, with_keyset=False, allow_override=False
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Registers the function implementation for an operator defined in the library.
 
         Args:
@@ -301,8 +339,19 @@ class Library:
                           the dispatch key that the library was created with.
             with_keyset: flag controlling if the current dispatcher call keyset should be passed as the first argument
                          to :attr:`fn` when calling. This should be used to create the appropriate keyset for redispatch calls.
+<<<<<<< HEAD
 
         Example::
+=======
+            allow_override: Flag controlling if we want to override an
+                         existing registered kernel implementation. This is by
+                         default off, and will error you're trying to register a
+                         kernel to a dispatch key with a kernel already
+                         registered.
+
+        Example::
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> my_lib = Library("aten", "IMPL")
             >>> def div_cpu(self, other):
             >>>     return self * (1 / other)
@@ -332,7 +381,11 @@ class Library:
             )
 
         key = self.ns + "/" + name.split("::")[-1] + "/" + dispatch_key
+<<<<<<< HEAD
         if key in _impls:
+=======
+        if (not allow_override) and key in _impls:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # TODO: in future, add more info about where the existing function is registered (this info is
             # today already returned by the C++ warning when impl is called but we error out before that)
             raise RuntimeError(
@@ -386,6 +439,10 @@ class Library:
                          to :attr:`fn` when calling. This should be used to create the appropriate keyset for redispatch calls.
 
         Example::
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> my_lib = Library("_", "IMPL")
             >>> def fallback_kernel(op, *args, **kwargs):
             >>>     # Handle all autocast ops generically
@@ -442,12 +499,35 @@ def _del_library(
     captured_defs,
     op_defs,
     registration_handles,
+<<<<<<< HEAD
 ):
+=======
+    m,
+    schema_to_signature_cache,
+):
+    for op_def in op_defs:
+        name = op_def
+        overload_name = ""
+        if "." in op_def:
+            name, overload_name = op_def.split(".")
+        if (
+            name,
+            overload_name,
+        ) in schema_to_signature_cache:
+            del schema_to_signature_cache[(name, overload_name)]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     captured_impls -= op_impls
     captured_defs -= op_defs
     for handle in registration_handles:
         handle.destroy()
 
+<<<<<<< HEAD
+=======
+    if m is not None:
+        m.reset()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @contextlib.contextmanager
 def _scoped_library(*args, **kwargs):
@@ -916,6 +996,10 @@ def register_fake(
     *,
     lib: Optional[Library] = None,
     _stacklevel: int = 1,
+<<<<<<< HEAD
+=======
+    allow_override: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     r"""Register a FakeTensor implementation ("fake impl") for this operator.
 
@@ -940,6 +1024,21 @@ def register_fake(
     For a detailed guide on custom ops, please see
     https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html
 
+<<<<<<< HEAD
+=======
+    Args:
+        op_name: Operator name (along with the overload) or OpOverload object.
+        func: Fake tensor implementation.
+        lib (Optional[Library]): Library to register the fake tensor to.
+        allow_override: Flag controlling if we want to override an
+                        existing registered fake impl. This is by default off,
+                        and will error you're trying to register a fake impl to
+                        an operator that already has a fake impl. This also only
+                        applies if the custom operator was not created via
+                        torch.library.custom_op, as overriding and existing fake
+                        impl is already allowed.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Examples:
         >>> import torch
         >>> import numpy as np
@@ -1020,7 +1119,13 @@ def register_fake(
             _keep_alive.append(use_lib)
         else:
             use_lib = lib
+<<<<<<< HEAD
         use_lib._register_fake(op_name, func, _stacklevel=stacklevel + 1)
+=======
+        use_lib._register_fake(
+            op_name, func, _stacklevel=stacklevel + 1, allow_override=allow_override
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return func
 
     if func is None:

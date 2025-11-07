@@ -6,6 +6,10 @@
 
 #include <ATen/FunctionalTensorWrapper.h>
 #include <ATen/WrapDimUtils.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/functorch/init.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/utils/python_raii.h>
 #include <torch/python.h>
 
@@ -35,17 +39,32 @@ static bool has_level(const Tensor& self, int64_t level) {
   return batched->level() >= level;
 }
 
+<<<<<<< HEAD
 Tensor _add_batch_dim(const Tensor& self, int64_t batch_dim, int64_t level) {
   return addBatchDim(self, batch_dim, level);
 }
 
 Tensor _wrap_functional_tensor(const Tensor& self, int64_t level) {
+=======
+static Tensor _add_batch_dim(
+    const Tensor& self,
+    int64_t batch_dim,
+    int64_t level) {
+  return addBatchDim(self, batch_dim, level);
+}
+
+static Tensor _wrap_functional_tensor(const Tensor& self, int64_t level) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto t = at::functionalization::impl::to_functional_tensor(self);
   at::functionalization::impl::unsafeGetFunctionalWrapper(t)->set_level(level);
   return t;
 }
 
+<<<<<<< HEAD
 void _assert_wrapped_functional(
+=======
+static void _assert_wrapped_functional(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& unwrapped,
     const Tensor& wrapped) {
   TORCH_INTERNAL_ASSERT(
@@ -59,7 +78,11 @@ void _assert_wrapped_functional(
       unwrapped.unsafeGetTensorImpl() == wrapped_inner.unsafeGetTensorImpl())
 }
 
+<<<<<<< HEAD
 void _propagate_functional_input_mutation(
+=======
+static void _propagate_functional_input_mutation(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& unwrapped,
     const Tensor& wrapped) {
   TORCH_INTERNAL_ASSERT(
@@ -139,7 +162,11 @@ static Tensor _movedim(const Tensor& self, int64_t src, int64_t dst) {
 //
 // `out_dim` controls where we should put the batch dimension in the output
 // tensor.
+<<<<<<< HEAD
 Tensor _remove_batch_dim(
+=======
+static Tensor _remove_batch_dim(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     int64_t level,
     const c10::SymInt& batch_size,
@@ -166,7 +193,13 @@ Tensor _remove_batch_dim(
   return result;
 }
 
+<<<<<<< HEAD
 Tensor _unwrap_functional_tensor(const Tensor& self, bool add_back_views) {
+=======
+static Tensor _unwrap_functional_tensor(
+    const Tensor& self,
+    bool add_back_views) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We only ever call that after popping out of a functionalize() call, in
   // which case the current tensors should always be wrapped in a
   // FunctionalTensorWrapper.
@@ -187,7 +220,11 @@ Tensor _unwrap_functional_tensor(const Tensor& self, bool add_back_views) {
   return functional->value();
 }
 
+<<<<<<< HEAD
 Tensor _wrap_for_grad(const Tensor& self, int64_t level) {
+=======
+static Tensor _wrap_for_grad(const Tensor& self, int64_t level) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NB: different behavior inside??
   // return self;
   // TORCH_INTERNAL_ASSERT(!maybeGetTensorWrapper(self));
@@ -195,7 +232,11 @@ Tensor _wrap_for_grad(const Tensor& self, int64_t level) {
   return makeTensorWrapper(self, level);
 }
 
+<<<<<<< HEAD
 Tensor _unwrap_for_grad(const Tensor& self, int64_t level) {
+=======
+static Tensor _unwrap_for_grad(const Tensor& self, int64_t level) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto* result = maybeGetTensorWrapper(self);
   if (!result) {
     return self;
@@ -207,7 +248,11 @@ Tensor _unwrap_for_grad(const Tensor& self, int64_t level) {
   return self;
 }
 
+<<<<<<< HEAD
 int64_t dlevel(const Tensor& tensor) {
+=======
+static int64_t dlevel(const Tensor& tensor) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto* wrapped = maybeGetTensorWrapper(tensor);
   if (!wrapped) {
     return 0;
@@ -219,12 +264,20 @@ int64_t dlevel(const Tensor& tensor) {
   return wrapped->level().value();
 }
 
+<<<<<<< HEAD
 bool dump_tensor(const Tensor& self) {
+=======
+static bool dump_tensor(const Tensor& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   dumpTensorCout(self);
   return true;
 }
 
+<<<<<<< HEAD
 RandomnessType get_randomness_enum(const std::string& randomness) {
+=======
+static RandomnessType get_randomness_enum(const std::string& randomness) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (randomness == "error") {
     return RandomnessType::Error;
   } else if (randomness == "same") {
@@ -237,20 +290,32 @@ RandomnessType get_randomness_enum(const std::string& randomness) {
   }
 }
 
+<<<<<<< HEAD
 int64_t _grad_increment_nesting() {
+=======
+static int64_t _grad_increment_nesting() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // See NOTE [grad and vjp interaction with no_grad]
   bool prev_grad_mode = c10::GradMode::is_enabled();
   return initAndPushDynamicLayer(
       TransformType::Grad, std::nullopt, std::nullopt, prev_grad_mode);
 }
 
+<<<<<<< HEAD
 int64_t _grad_decrement_nesting() {
+=======
+static int64_t _grad_decrement_nesting() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto layer = popDynamicLayerAndDeleteMetadata();
   TORCH_INTERNAL_ASSERT(layer.key() == TransformType::Grad);
   return layer.layerId();
 }
 
+<<<<<<< HEAD
 int64_t _jvp_increment_nesting() {
+=======
+static int64_t _jvp_increment_nesting() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // See NOTE [grad and vjp interaction with no_grad]
   bool prev_fwd_grad_mode =
       c10::AutogradState::get_tls_state().get_fw_grad_mode();
@@ -262,13 +327,21 @@ int64_t _jvp_increment_nesting() {
       prev_fwd_grad_mode);
 }
 
+<<<<<<< HEAD
 int64_t _jvp_decrement_nesting() {
+=======
+static int64_t _jvp_decrement_nesting() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto layer = popDynamicLayerAndDeleteMetadata();
   TORCH_INTERNAL_ASSERT(layer.key() == TransformType::Jvp);
   return layer.layerId();
 }
 
+<<<<<<< HEAD
 int64_t _vmap_increment_nesting(
+=======
+static int64_t _vmap_increment_nesting(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     c10::SymInt batch_size,
     const std::string& randomness) {
   return initAndPushDynamicLayer(
@@ -277,13 +350,21 @@ int64_t _vmap_increment_nesting(
       get_randomness_enum(randomness));
 }
 
+<<<<<<< HEAD
 int64_t _vmap_decrement_nesting() {
+=======
+static int64_t _vmap_decrement_nesting() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto layer = popDynamicLayerAndDeleteMetadata();
   TORCH_INTERNAL_ASSERT(layer.key() == TransformType::Vmap);
   return layer.layerId();
 }
 
+<<<<<<< HEAD
 int64_t _func_increment_nesting(bool reapply_views) {
+=======
+static int64_t _func_increment_nesting(bool reapply_views) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return initAndPushDynamicLayer(
       TransformType::Functionalize,
       std::nullopt,
@@ -293,7 +374,11 @@ int64_t _func_increment_nesting(bool reapply_views) {
       /*functionalize_add_back_views=*/reapply_views);
 }
 
+<<<<<<< HEAD
 int64_t _func_decrement_nesting() {
+=======
+static int64_t _func_decrement_nesting() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto layer = popDynamicLayerAndDeleteMetadata();
   TORCH_INTERNAL_ASSERT(layer.key() == TransformType::Functionalize);
   return layer.layerId();
@@ -569,7 +654,13 @@ void initFuncTorchBindings(PyObject* module) {
       .value("Different", RandomnessType::Different);
   py::class_<Interpreter>(m, "CInterpreter")
       .def("key", &Interpreter::key)
+<<<<<<< HEAD
       .def("level", &Interpreter::level);
+=======
+      .def("level", &Interpreter::level)
+      .def("serialize", &Interpreter::serialize)
+      .def_static("deserialize", &Interpreter::deserialize);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::class_<GradInterpreterPtr>(m, "CGradInterpreterPtr")
       .def(py::init<const Interpreter*>())
       .def("key", &GradInterpreterPtr::key)

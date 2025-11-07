@@ -11,13 +11,21 @@ from torch.testing._internal.common_utils import (
     enable_profiling_mode_for_profiling_tests,
     GRAPH_EXECUTOR,
     ProfilingMode,
+<<<<<<< HEAD
     set_default_dtype,
+=======
+    raise_on_run_directly,
+    set_default_dtype,
+    slowTest,
+    suppress_warnings,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
 # Make the helper files in test/ importable
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import slowTest, suppress_warnings
 from torch.testing._internal.jit_utils import JitTestCase, RUN_CUDA
 
@@ -29,6 +37,11 @@ if __name__ == "__main__":
         "instead."
     )
 
+=======
+from torch.testing._internal.jit_utils import JitTestCase, RUN_CUDA
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 try:
     import torchvision
 
@@ -84,7 +97,11 @@ class TestModels(JitTestCase):
                     nn.ReLU(True),
                     # state size. (ngf) x 32 x 32
                     nn.ConvTranspose2d(ngf, nc, 4, 2, 1, bias=False),
+<<<<<<< HEAD
                     nn.Tanh()
+=======
+                    nn.Tanh(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # state size. (nc) x 64 x 64
                 )
 
@@ -754,3 +771,10 @@ class TestModels(JitTestCase):
         m = self.createFunctionFromGraph(g)
         with torch.random.fork_rng(devices=[]):
             self.assertEqual(outputs, m(*inputs))
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

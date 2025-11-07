@@ -24,6 +24,10 @@ from torch.testing._internal import opinfo
 from torch.testing._internal.common_utils import \
     (gradcheck, gradgradcheck, parametrize, run_tests, TestCase, download_file, MACOS_VERSION, IS_CI,
      NoTest, skipIfSlowGradcheckEnv, suppress_warnings, serialTest, instantiate_parametrized_tests)
+<<<<<<< HEAD
+=======
+from torch.testing._internal.common_mps import mps_ops_modifier, mps_ops_grad_modifier, mps_ops_error_inputs_modifier
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing import make_tensor
 from torch.testing._internal.common_dtype import get_all_dtypes, integral_types
 import torch.backends.mps
@@ -32,7 +36,10 @@ from functools import partial
 
 from torch.testing._internal.common_methods_invocations import (
     op_db,
+<<<<<<< HEAD
     DecorateInfo,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     UnaryUfuncInfo,
     ReductionOpInfo,
     SpectralFuncInfo,
@@ -50,6 +57,19 @@ import operator
 test_consistency_op_db = copy.deepcopy(op_db)
 test_error_inputs_op_db = copy.deepcopy(op_db)
 
+<<<<<<< HEAD
+=======
+# Add bicubic2d_aa to test_consistency_op_db
+for op in op_db:
+    if op.name != "_upsample_bilinear2d_aa":
+        continue
+    op = copy.deepcopy(op)
+    op.name = "_upsample_bicubic2d_aa"
+    op.op = torch.ops.aten._upsample_bicubic2d_aa
+    test_consistency_op_db.append(op)
+    break
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Copied from `test_ops.py` for the purposes of duplicating `test_numpy_ref`
 _ref_test_ops = tuple(
     filter(
@@ -69,6 +89,7 @@ def xfailIf(condition):
             return func
     return wrapper
 
+<<<<<<< HEAD
 def mps_ops_grad_modifier(ops):
     XFAILLIST_GRAD = {
 
@@ -961,6 +982,8 @@ def mps_ops_error_inputs_modifier(ops):
             addDecorator(op, DecorateInfo(unittest.expectedFailure))
         yield op
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Same logic as test_cuda.py
 if not torch.backends.mps.is_available():
     print('MPS not available, skipping tests', file=sys.stderr)
@@ -995,9 +1018,15 @@ class MpsMemoryLeakCheck:
         self.caching_allocator_before = torch.mps.current_allocated_memory()
         self.driver_before = torch.mps.driver_allocated_memory()
 
+<<<<<<< HEAD
     def __exit__(self, exec_type, exec_value, traceback):
         # Don't check for leaks if an exception was thrown
         if exec_type is not None:
+=======
+    def __exit__(self, exc_type, exc_value, traceback):
+        # Don't check for leaks if an exception was thrown
+        if exc_type is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
         # Compares caching allocator before/after statistics
         # An increase in allocated memory is a discrepancy indicating a possible memory leak
@@ -1074,6 +1103,7 @@ class TestAutocastMPS(TestCase):
                          f"Autocast & non-autocast tensors did not match, \
                          got:\n{autocast_output_tensor} \n{output_tensor.to(torch.float16)}")
 
+<<<<<<< HEAD
     # Regression test for https://github.com/pytorch/pytorch/issues/141774
     def test_scaled_dot_product_attention_autocast(self):
         # TODO(hvaara): Parameterize the dtypes for cleaner code and better failure debugability
@@ -1090,6 +1120,143 @@ class TestAutocastMPS(TestCase):
             y = F.scaled_dot_product_attention(query, key, value.to(torch.float32))
             self.assertEqual(y.to(y_autocast.dtype), y_autocast)
 
+=======
+    @parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
+    def test_scaled_dot_product_attention_autocast(self, dtype):
+        # Regression test for https://github.com/pytorch/pytorch/issues/141774
+        if dtype == torch.bfloat16 and MACOS_VERSION < 14.0:
+            raise unittest.SkipTest("bfloat16 needs MacOS14+")
+
+        query = torch.rand(4, 1, 16, 8, dtype=torch.float32, device="mps")
+        key = torch.rand(4, 1, 16, 8, dtype=torch.float32, device="mps")
+        value = torch.rand(4, 1, 16, 8, dtype=dtype, device="mps")
+
+        with torch.amp.autocast(device_type="mps"):
+            y_autocast = F.scaled_dot_product_attention(query, key, value)
+
+        y = F.scaled_dot_product_attention(query, key, value.to(torch.float32))
+        self.assertEqual(y.to(y_autocast.dtype), y_autocast)
+
+    def test_gradscaler_mps(self):
+        # big model to force chunking/depth in the gradscaler dispatch
+        class Model(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.fc1 = nn.Linear(10, 2048)
+                self.fc2 = nn.Linear(2048, 2048)
+                self.fc3 = nn.Linear(2048, 2048)
+                self.fc4 = nn.Linear(2048, 2048)
+                self.fc5 = nn.Linear(2048, 5)
+                self.relu = nn.ReLU()
+
+            def forward(self, x):
+                x = self.relu(self.fc1(x))
+                x = self.relu(self.fc2(x))
+                x = self.relu(self.fc3(x))
+                x = self.relu(self.fc4(x))
+                return self.fc5(x)
+        torch.manual_seed(42)
+
+        def helper(model_cpu, model_mps, dtype, iterations, batch_size, atol=3e-4, rtol=1e-5):
+            if dtype == torch.bfloat16 and MACOS_VERSION < 14.0:
+                raise unittest.SkipTest("bfloat16 needs MacOS14+")
+            optimizer_cpu = torch.optim.SGD(model_cpu.parameters(), lr=0.01)
+            optimizer_mps = torch.optim.SGD(model_mps.parameters(), lr=0.01)
+            loss_fn = nn.MSELoss()
+
+            input_cpu = torch.randn(batch_size, 10)
+            target_cpu = torch.randn(batch_size, 5)
+            input_mps = input_cpu.to('mps')
+            target_mps = target_cpu.to('mps')
+
+            scaler_cpu = torch.amp.GradScaler(device="cpu")
+            scaler_mps = torch.amp.GradScaler(device="mps")
+            for _ in range(iterations):
+                optimizer_cpu.zero_grad()
+                optimizer_mps.zero_grad()
+
+                with torch.amp.autocast(device_type="cpu", dtype=dtype):
+                    output_cpu = model_cpu(input_cpu)
+                    loss_cpu = loss_fn(output_cpu, target_cpu)
+                scaler_cpu.scale(loss_cpu).backward()
+                scaler_cpu.step(optimizer_cpu)
+                scaler_cpu.update()
+
+                with torch.autocast(device_type="mps", dtype=dtype):
+                    output_mps = model_mps(input_mps)
+                    loss_mps = loss_fn(output_mps, target_mps)
+                scaler_mps.scale(loss_mps).backward()
+                scaler_mps.step(optimizer_mps)
+                scaler_mps.update()
+
+            for p_cpu, p_mps in zip(model_cpu.parameters(), model_mps.parameters()):
+                self.assertEqual(p_mps.cpu(), p_cpu, rtol=rtol, atol=atol)
+
+        model_cpu = Model().to('cpu')
+        model_mps = Model().to('mps')
+        model_mps.load_state_dict(model_cpu.state_dict())
+
+        helper(model_cpu, model_mps, torch.float16, iterations=5, batch_size=4)
+        helper(model_cpu, model_mps, torch.bfloat16, iterations=5, batch_size=4)
+
+    def test_non_fast_path_amp_unscale(self):
+        torch.manual_seed(42)
+
+        class Model(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.linear1 = nn.Linear(10, 10)
+                self.linear2 = nn.Linear(10, 10)
+
+            def forward(self, x):
+                x = self.linear1(x)
+                x = F.relu(x)
+                x = self.linear2(x)
+                x = x.mean(dim=1)
+                return x
+
+        cpu_model = Model().to("cpu")
+        mps_model = copy.deepcopy(cpu_model).to("mps")
+
+        cpu_optimizer = torch.optim.SGD(cpu_model.parameters(), lr=0.01)
+        mps_optimizer = torch.optim.SGD(mps_model.parameters(), lr=0.01)
+        cpu_scaler = torch.amp.GradScaler(device="cpu")
+        mps_scaler = torch.amp.GradScaler(device="mps")
+
+        def helper(model, optimizer, scaler, device, input, target, apply_grad_transform=False):
+            optimizer.zero_grad()
+            with torch.autocast(device_type=device, dtype=torch.bfloat16):
+                output = model(input)
+                loss = nn.MSELoss()(output, target)
+            scaler.scale(loss).backward()
+
+            if apply_grad_transform:
+                for p in model.parameters():
+                    if p.grad is not None and p.grad.dim() >= 2:
+                        p.grad = p.grad.as_strided(p.grad.size(), (1,) * p.grad.dim())
+
+            scaler.unscale_(optimizer)
+            scaler.step(optimizer)
+            scaler.update()
+
+        # CPU forward/backward pass
+        input_cpu = torch.randn(32, 10, device="cpu")
+        target_cpu = torch.randn(32, device="cpu")
+        helper(cpu_model, cpu_optimizer, cpu_scaler, "cpu", input_cpu, target_cpu)
+
+        # MPS forward/backward pass
+        input_mps = input_cpu.to("mps")
+        target_mps = target_cpu.to("mps")
+        helper(mps_model, mps_optimizer, mps_scaler, "mps", input_mps, target_mps, apply_grad_transform=True)
+
+        updated_linear1_weight_cpu = cpu_model.linear1.weight.detach()
+        updated_linear2_weight_cpu = cpu_model.linear2.weight.detach()
+        updated_linear1_weight_mps = mps_model.linear1.weight.detach().cpu()
+        updated_linear2_weight_mps = mps_model.linear2.weight.detach().cpu()
+
+        self.assertEqual(updated_linear1_weight_cpu, updated_linear1_weight_mps, atol=6e-4, rtol=1e-6)
+        self.assertEqual(updated_linear2_weight_cpu, updated_linear2_weight_mps, atol=6e-4, rtol=1e-6)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Expand TestCase class with Memory Leak Detection on MPS device
 class TestCaseMPS(TestCase):
@@ -1828,6 +1995,7 @@ class TestMPS(TestCaseMPS):
     @xfailIf(MACOS_VERSION < 15.0)
     @parametrize("dtype", [torch.float16, torch.bfloat16])
     def test_large_bmm(self, dtype):
+<<<<<<< HEAD
         batch1 = torch.randn(11, 20064, 128, dtype=dtype, device='mps')
         batch2 = torch.randn(11, 128, 20064, dtype=dtype, device='mps')
         output_cpu = torch.bmm(batch1.cpu(), batch2.cpu())
@@ -1837,6 +2005,20 @@ class TestMPS(TestCaseMPS):
         tol = 1e-2 if dtype == torch.float16 else None
         self.assertEqual(output_cpu, output_mps, atol=tol, rtol=tol)
         self.assertEqual(output_cpu.size(), output_mps.size())
+=======
+        B, M, N = 11, 20064, 128
+        batch1 = torch.randn(B, M, N, dtype=dtype, device='mps')
+        batch2 = torch.randn(B, N, M, dtype=dtype, device='mps')
+        output_mps = torch.bmm(batch1, batch2)
+
+        # For performance reasons, check only one(non-first) batch for correctness
+        # TODO: Check two when https://github.com/pytorch/pytorch/issues/153560 is fixed
+        batch_idx = torch.randint(1, B, size=()).item()
+        output_cpu = torch.mm(batch1[batch_idx].cpu(), batch2[batch_idx].cpu())
+        # Using the low precision comparison for FP16
+        tol = 1e-2 if dtype == torch.float16 else None
+        self.assertEqual(output_cpu, output_mps[batch_idx], atol=tol, rtol=tol)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
     def test_take_along_dim(self, dtype):
@@ -2495,8 +2677,13 @@ class TestMPS(TestCaseMPS):
         # This used to crash, see https://github.com/pytorch/pytorch/issues/98602
         outputs.sum().backward()
 
+<<<<<<< HEAD
     # Regression test for https://github.com/pytorch/pytorch/issues/133520
     def test_batch_norm_slices(self):
+=======
+    def test_batch_norm_slices(self):
+        # Regression test for https://github.com/pytorch/pytorch/issues/133520
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         bn_cpu = nn.BatchNorm2d(100, affine=False, device='cpu')
         bn_mps = nn.BatchNorm2d(100, affine=False, device='mps')
 
@@ -2736,10 +2923,20 @@ class TestMPS(TestCaseMPS):
         run_det_test(32, 2, 2, 10, 10)
 
     def test_layer_norm(self):
+<<<<<<< HEAD
         # TODO: Test non-contiguous
         def helper(input_shape, normalized_shape, eps=1e-05, elementwise_affine=True, dtype=torch.float32):
             cpu_x = torch.randn(input_shape, device='cpu', dtype=dtype, requires_grad=True)
             x = cpu_x.detach().clone().to('mps').requires_grad_()
+=======
+        def helper(input_shape, normalized_shape, eps=1e-05, elementwise_affine=True, dtype=torch.float32, non_contiguous=False):
+            cpu_x = torch.randn(input_shape, device='cpu', dtype=dtype, requires_grad=True)
+            x = cpu_x.detach().clone().to('mps').requires_grad_()
+            if non_contiguous:
+                x = x.mT
+                cpu_x = cpu_x.mT
+                normalized_shape[-1], normalized_shape[-2] = normalized_shape[-2], normalized_shape[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             cpu_op = torch.nn.LayerNorm(normalized_shape, eps=eps, elementwise_affine=elementwise_affine, device='cpu', dtype=dtype)
             mps_op = torch.nn.LayerNorm(normalized_shape, eps=eps, elementwise_affine=elementwise_affine, device='mps', dtype=dtype)
@@ -2769,10 +2966,17 @@ class TestMPS(TestCaseMPS):
                 self.assertEqual(mps_op.weight.grad, cpu_op.weight.grad)
                 self.assertEqual(mps_op.bias.grad, cpu_op.bias.grad)
 
+<<<<<<< HEAD
         for elementwise_affine in [True, False]:
             helper((2, 2, 2, 2), (2, 2), elementwise_affine=elementwise_affine)
             helper((2, 3, 4, 5), (4, 5), elementwise_affine=elementwise_affine)
             helper((2, 3, 4, 5, 6), (4, 5, 6), elementwise_affine=elementwise_affine)
+=======
+        for (elementwise_affine, non_contiguous) in itertools.product([True, False], [True, False]):
+            helper((2, 2, 2, 2), [2, 2], elementwise_affine=elementwise_affine, non_contiguous=non_contiguous)
+            helper((2, 3, 4, 5), [4, 5], elementwise_affine=elementwise_affine, non_contiguous=non_contiguous)
+            helper((2, 3, 4, 5, 6), [4, 5, 6], elementwise_affine=elementwise_affine, non_contiguous=non_contiguous)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Regression test for https://github.com/pytorch/pytorch/issues/96113
         torch.nn.LayerNorm((16,), elementwise_affine=True).to("mps")(torch.randn(1, 2, 16).to("mps", dtype=torch.float16))
@@ -2790,8 +2994,13 @@ class TestMPS(TestCaseMPS):
         # Expecting the inverted to yield the original signal
         self.assertEqual(ifft_result, signal)
 
+<<<<<<< HEAD
     # Regression test for https://github.com/pytorch/pytorch/issues/135223
     def test_fftfreq(self):
+=======
+    def test_fftfreq(self):
+        # Regression test for https://github.com/pytorch/pytorch/issues/135223
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         freq_cpu = torch.fft.fftfreq(10**4, device='cpu')
         freq_mps = torch.fft.fftfreq(10**4, device='mps')
         self.assertEqual(freq_cpu, freq_mps)
@@ -4131,6 +4340,7 @@ class TestMPS(TestCaseMPS):
         y_cpu = torch.full((2, 2), 247, device='cpu', dtype=torch.uint8)
         self.assertEqual(y_mps, y_cpu)
 
+<<<<<<< HEAD
     @unittest.skipIf(MACOS_VERSION < 13.0, "Skipped on macOS 12")
     # See https://github.com/pytorch/pytorch/issues/84995
     def test_div_bugs(self):
@@ -4139,6 +4349,13 @@ class TestMPS(TestCaseMPS):
                 x = torch.tensor(list(range(1, 11)), device='mps', dtype=dtype)
                 y = torch.div(x, 101, rounding_mode=mode)
                 self.assertEqual(y.sum(), 0)
+=======
+    def test_div_bugs(self):
+        for (dtype, mode) in itertools.product(integral_types(), ['trunc', 'floor']):
+            x = torch.tensor(list(range(1, 11)), device='mps', dtype=dtype)
+            y = torch.div(x, 101, rounding_mode=mode)
+            self.assertEqual(y.sum(), 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # See https://github.com/pytorch/pytorch/issues/82663
     def test_bool_expand(self):
@@ -4400,7 +4617,12 @@ class TestMPS(TestCaseMPS):
 
     # See https://github.com/pytorch/pytorch/pull/84742
     # and https://github.com/pytorch/pytorch/pull/78319
+<<<<<<< HEAD
     def test_binops_dtype_precedence(self):
+=======
+    @parametrize("binop", ['add', 'sub', 'mul', 'div'])
+    def test_binops_dtype_precedence(self, binop):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test dtype precedence (casting order) in binary operations by comparing to CPU result
         # Example values for all dtypes supported on the MPS backend
         sample_vals = {
@@ -4412,8 +4634,12 @@ class TestMPS(TestCaseMPS):
             torch.float32: [-1.0, 0.0, 0.1, 111.99],
         }
         # Test all combinations of dtypes, operations, dimensionality
+<<<<<<< HEAD
         for dtype1, dtype2, binop in itertools.product(
                 sample_vals.keys(), sample_vals.keys(), ['add', 'sub', 'mul', 'div']):
+=======
+        for dtype1, dtype2 in itertools.product(sample_vals, repeat=2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # bool minus bool is generally unsupported, so skip
             if binop == 'sub' and (dtype1 == torch.bool or dtype2 == torch.bool):
                 continue
@@ -5135,7 +5361,10 @@ class TestMPS(TestCaseMPS):
 
         self.assertEqual(result_cpu, result_mps.to('cpu'))
 
+<<<<<<< HEAD
     @unittest.skipIf(MACOS_VERSION < 13.0, "Skipped on macOS 12")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_signed_vs_unsigned_comparison(self):
         cpu_x = torch.tensor((-1, 2, 3), device='cpu', dtype=torch.uint8)
         mps_x = torch.tensor((-1, 2, 3), device='mps', dtype=torch.uint8)
@@ -6348,6 +6577,13 @@ class TestMPS(TestCaseMPS):
             torch.tensor([1, 2, 3, 4, 5], dtype=torch.int32, device="mps"), -1.5)
         self.assertEqual(res_cpu, res_mps)
 
+<<<<<<< HEAD
+=======
+        # Regression test for https://github.com/pytorch/pytorch/issues/154171
+        # Essentially remained over integral types should rely on integers ops
+        self.assertEqual(torch.tensor(42309891, device='mps') % torch.tensor(31, device='mps'), torch.tensor(6, device='mps'))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_expand(self):
         def helper(n, c):
             values = [[1.0], [4.0], [7.0]]
@@ -6368,6 +6604,55 @@ class TestMPS(TestCaseMPS):
         x = x_cpu.detach().clone().to('mps')
         self.assertEqual(helper(x_cpu), helper(x))
 
+<<<<<<< HEAD
+=======
+    def test_col2im(self):
+        def helper(shapes, output_size, kernel_size, padding, stride, contiguous, dtype=torch.float32, test_bool=False):
+            atol = 1e-5 if dtype == torch.float else 1e-2
+            rtol = 1e-3 if dtype == torch.float else 1e-2
+            x_cpu = torch.rand(*shapes, dtype=dtype)
+            if test_bool:
+                x_cpu = x_cpu > 0.5
+            x_mps = x_cpu.clone().to('mps')
+            if not contiguous:
+                x_cpu = x_cpu.mT
+                x_mps = x_mps.mT
+            out_cpu = torch.nn.functional.fold(
+                x_cpu,
+                output_size=output_size,
+                kernel_size=kernel_size,
+                padding=padding,
+                stride=stride
+            )
+            out_mps = torch.nn.functional.fold(
+                x_mps,
+                output_size=output_size,
+                kernel_size=kernel_size,
+                padding=padding,
+                stride=stride
+            )
+            self.assertEqual(out_cpu, out_mps, atol=atol, rtol=rtol)
+
+        helper((4, 27, 1600), (40, 40), 3, 1, 1, True)
+        helper((1, 27, 1600), (40, 40), 3, 1, 1, True)
+        helper((27, 1600), (40, 40), 3, 1, 1, True)
+        helper((27, 320), (80, 4), 3, 1, 1, True)
+        helper((27, 320), (4, 80), 3, 1, 1, True)
+        helper((320, 27), (4, 80), 3, 1, 1, False)
+        helper((4, 75, 1600), (40, 40), 5, 2, 1, True)
+        helper((4, 75, 441), (41, 41), 5, 2, 2, True)
+        helper((4, 12, 100), (20, 20), 2, 0, 2, True)
+        helper((4, 48, 225), (30, 30), 4, 1, 2, True)
+        helper((100, 75), (20, 20), 5, 2, 2, False)
+        helper((4, 15, 1600), (40, 40), (3, 5), (1, 2), (1, 1), True)
+        helper((4, 45, 187), (35, 33), (3, 5), (0, 1), (2, 3), True)
+        helper((1600, 15), (40, 40), (3, 5), (1, 2), (1, 1), False)
+        if MACOS_VERSION >= 14.0:
+            helper((20, 15), (2, 10), (3, 5), (1, 2), (1, 1), False, torch.bfloat16)
+        helper((20, 15), (2, 10), (3, 5), (1, 2), (1, 1), False, torch.float16)
+        helper((20, 15), (2, 10), (3, 5), (1, 2), (1, 1), False, test_bool=True)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_select(self):
         def helper(n, c):
             cpu_x = torch.randn(n, c, device='cpu', dtype=torch.float, requires_grad=True)
@@ -6705,6 +6990,7 @@ class TestMPS(TestCaseMPS):
 
         helper((2, 8, 4, 5))
 
+<<<<<<< HEAD
     def test_log1p(self):
         def helper(shape):
             cpu_x = torch.randn(shape, device='cpu', dtype=torch.float, requires_grad=False)
@@ -6716,6 +7002,27 @@ class TestMPS(TestCaseMPS):
             self.assertEqual(log_result, log_result_cpu)
 
         helper((2, 8, 4, 5))
+=======
+    @parametrize("dtype", {torch.float, torch.half} if MACOS_VERSION < 14 else {torch.float, torch.half, torch.bfloat16})
+    def test_log1p(self, dtype):
+        eps = torch.finfo(dtype).eps
+        # Small values
+        cpu_x = torch.arange(-10.0 * eps, 10.0 * eps, 1e-2 * eps, dtype=dtype, requires_grad=False)
+        x = cpu_x.detach().clone().to('mps')
+
+        log_result = torch.log1p(x)
+        log_result_cpu = torch.log1p(cpu_x)
+        self.assertEqual(log_result, log_result_cpu, atol=0, rtol=2e-7)
+
+        # Fallback to log
+        cpu_x = torch.arange(-1.0, 2.0, 1e-4, dtype=dtype, requires_grad=False)
+        x = cpu_x.detach().clone().to('mps')
+
+        log_result = torch.log1p(x)
+        log_result_cpu = torch.log1p(cpu_x)
+
+        self.assertEqual(log_result, log_result_cpu, atol=0, rtol=2e-7)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_logaddexp(self):
         def helper(shape):
@@ -7536,6 +7843,42 @@ class TestMPS(TestCaseMPS):
         helper((), 0, [0])
         helper((5), 0, [])
 
+<<<<<<< HEAD
+=======
+    def test_index_copy_non_contiguous(self):
+        def helper(shape, dim, index):
+            dest_cpu = torch.randn(shape)
+            dest = dest_cpu.clone().to('mps')
+
+            dest_cpu = dest_cpu.transpose(0, 1)
+            dest = dest.transpose(0, 1)
+            dim = 1 if dim == 0 else 0 if dim == 1 else dim
+
+            src_shape = list(dest_cpu.shape)
+            src_shape[dim] = len(index)
+            src_cpu = torch.randn(src_shape)
+            src = src_cpu.clone().to('mps')
+
+            idx_cpu = torch.tensor(index, dtype=torch.long)
+            idx_mps = idx_cpu.clone().to('mps')
+
+            dest_cpu.index_copy_(dim, idx_cpu, src_cpu)
+            dest.index_copy_(dim, idx_mps, src)
+            self.assertEqual(dest, dest_cpu)
+
+        test_cases = [
+            ((2, 8, 4, 5), 0, [1]),
+            ((8, 8, 4, 5), 0, [0, 3, 2, 7, 6]),
+            ((2, 8, 4, 5), 1, [0, 3, 2, 7, 6]),
+            ((2, 8, 4, 5), 2, [3, 0, 1]),
+            ((2, 8, 4, 5), 3, [2, 3, 0]),
+            ((2, 3, 3), -1, [1, 2])
+        ]
+
+        for args in test_cases:
+            helper(*args)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_select_scalar(self):
         def helper(value, dim, index, idx_dtype=torch.int32):
             cpu_x = torch.tensor(value, device='cpu', dtype=torch.float, requires_grad=False)
@@ -7816,21 +8159,41 @@ class TestMPS(TestCaseMPS):
         helper((2, 8, 4, 5), diag=-1)
         helper((2, 8, 4, 5), diag=-2)
         helper((2, 8, 4, 5), diag=-3)
+<<<<<<< HEAD
 
     # Test inverse
     def test_inverse(self):
         def helper(n):
+=======
+        # Test inplace
+        x_mps = torch.arange(9.0, device='mps').reshape(3, 3).t().triu()
+        x_cpu = torch.arange(9.0, device='cpu').reshape(3, 3).t().triu()
+        self.assertEqual(x_cpu, x_mps)
+        self.assertEqual(x_cpu.stride(), x_mps.stride())
+
+    # Test inverse
+    def test_inverse(self):
+        def helper(n, atol=1e-5, rtol=1e-6):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cpu_input = torch.randn(n, n, device='cpu')
             mps_input = cpu_input.to('mps')
 
             cpu_result = torch.linalg.inv(cpu_input)
             mps_result = torch.linalg.inv(mps_input)
+<<<<<<< HEAD
             self.assertEqual(cpu_result, mps_result)
+=======
+            self.assertEqual(cpu_result, mps_result, atol=atol, rtol=rtol)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         helper(2)
         helper(6)
         helper(3)
         helper(8)
+<<<<<<< HEAD
+=======
+        helper(1025, atol=1e-4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Test tril
     def test_tril(self):
@@ -8616,6 +8979,48 @@ class TestMPS(TestCaseMPS):
             torch.mps.synchronize()
         self.assertLess(x.sum().item(), x.numel())
 
+<<<<<<< HEAD
+=======
+    @parametrize("dtype", [torch.int32, torch.int64, torch.int16, torch.int8, torch.uint8])
+    def test_inplace_bitwise_not(self, dtype):
+        # Start with bitwise not here (reported by @qqaatw)
+        x_mps, x_cpu = [torch.arange(64, device=device, dtype=dtype) for device in ["cpu", "mps"]]
+        for x in [x_mps, x_cpu]:
+            x[::2].bitwise_not_()
+        self.assertEqual(x_mps.cpu(), x_cpu)
+
+
+class TestLargeTensors(TestCaseMPS):
+    def test_64bit_binops(self):
+        if torch.mps.recommended_max_memory() < 16_000_000_000:
+            raise unittest.SkipTest("Needs at least 16Gb of RAM")
+        a = torch.rand(1, 1024, 1024, dtype=torch.float16, device='mps')
+        b = torch.rand(5000, 1, 1, dtype=torch.float16, device='mps')
+        rc = (a + b).sin()
+        slice_idx = -2
+        rc_slice = rc[slice_idx:]
+        rc_slice_cpu = (a.cpu() + b.cpu()[slice_idx:]).sin()
+        self.assertEqual(rc_slice, rc_slice_cpu)
+
+    @serialTest()
+    def test_64bit_index_select(self):
+        if torch.mps.recommended_max_memory() < 16_000_000_000:
+            raise unittest.SkipTest("Needs at least 16Gb of RAM")
+        B, N = 11, 20000
+        x = torch.empty(B, N, N, dtype=torch.float16, device='mps')
+        for i in range(B):
+            x[i] = 1.0 * i
+        batch_idx = torch.tensor([9], device='mps')
+        y = x[batch_idx]
+        self.assertEqual(y[0, 1, 2].item(), 9.0)
+        # Reclaim memory after running the tests
+        del y
+        del x
+        gc.collect()
+        torch.mps.empty_cache()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestLogical(TestCaseMPS):
     def _wrap_tensor(self, x, device="cpu", dtype=None, requires_grad=False):
         return torch.tensor(x, device=device, dtype=dtype, requires_grad=requires_grad)
@@ -8779,6 +9184,7 @@ class TestLogical(TestCaseMPS):
 
         [helper(dtype) for dtype in dtypes]
 
+<<<<<<< HEAD
     def test_isin_asserts(self):
         A = torch.randn(size=[1, 4], device='mps', dtype=torch.float32)
         B = torch.randn(size=[1, 4], device='mps', dtype=torch.float16)
@@ -8786,6 +9192,23 @@ class TestLogical(TestCaseMPS):
             out = torch.isin(A, B)
 
 
+=======
+        # Mixed dtypes (see https://github.com/pytorch/pytorch/issues/151443 )
+        # torch.isin is broken in MacOS-13.2 even for the same dtype
+        if MACOS_VERSION >= 14.0:
+            x = torch.arange(4.0, device="mps")
+            y = torch.tensor([1, 3], device="mps", dtype=torch.float16)
+            self.assertEqual(torch.isin(x, y), torch.tensor([False, True, False, True], device="mps"))
+
+            # Tensor.Scalar variant (aliases to eq), not covered by OpInfo
+            self.assertEqual(torch.isin(x, 2.0), torch.tensor([False, False, True, False], device="mps"))
+            self.assertEqual(torch.isin(x, 1.0, invert=True), torch.tensor([True, False, True, True], device="mps"))
+            self.assertEqual(torch.isin(x, 8.0), torch.tensor([False, False, False, False], device="mps"))
+            # Scalar.Tensor varaiant(alaises to Scalar.Scalar), not covered by OpInfo
+            self.assertEqual(torch.isin(2.0, x), torch.tensor(True, device="mps"))
+
+    def test_isin_asserts(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         C = torch.randn(size=[1, 4], device='mps', dtype=torch.float32)
         D = torch.randn(size=[1, 4], device='cpu', dtype=torch.float32)
         with self.assertRaisesRegex(RuntimeError, 'Expected elements.is_mps()*'):
@@ -9054,6 +9477,17 @@ class TestTopK(TestCase):
                 with self.subTest(shape=shape, largest_val=largest_val):
                     self._test_topk(shape, largest_val)
 
+<<<<<<< HEAD
+=======
+    def test_topk_gt_4d(self):
+        a = torch.ones(5, 4, 3, 2, 1, dtype=torch.float).to('mps')
+        try:
+            t_mps = torch.ops.aten.topk(a, k=5, dim=0)
+        except Exception as e:
+            e_string = str(e)
+            self.assertEqual(e_string, "On-going issue on MPSGraph topk when ndims() - axis > 4, see issue #154890")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestNNMPS(NNTestCase):
 
     def _create_basic_net(self):
@@ -9277,7 +9711,10 @@ class TestNNMPS(NNTestCase):
         # This used to crash with MPSNDArrayConvolutionA14.mm:4352: failed assertion
         y2.sum().backward()
 
+<<<<<<< HEAD
     @unittest.skipIf(MACOS_VERSION < 13.2, "Skipped on macOS 12")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv3d_backward_collision(self):
         # Conv3D is only available from MacOS 13.2 onwards
         x = torch.rand(1, 1, 10, 10, 20, device="mps", requires_grad=True)
@@ -9942,6 +10379,117 @@ class TestSDPA(TestCaseMPS):
             )
         self._compare_tensors(y.cpu(), y_ref)
 
+<<<<<<< HEAD
+=======
+    @serialTest
+    def test_sdpa_fp32_no_memory_leak(self):
+        def get_mps_memory_usage():
+            return (torch.mps.current_allocated_memory() / (1024 * 1024),
+                    torch.mps.driver_allocated_memory() / (1024 * 1024))
+
+        batch_size, seq_len, num_heads, head_dim = 4, 128, 8, 64
+        query = torch.randn(batch_size, num_heads, seq_len, head_dim, device="mps", dtype=torch.float32)
+        key = torch.randn(batch_size, num_heads, seq_len, head_dim, device="mps", dtype=torch.float32)
+        value = torch.randn(batch_size, num_heads, seq_len, head_dim, device="mps", dtype=torch.float32)
+        memory_footprints = []
+        for i in range(100):
+            output = F.scaled_dot_product_attention(query, key, value)
+            current_mem, driver_mem = get_mps_memory_usage()
+            memory_footprints.append((current_mem, driver_mem))
+        # 5 MB different maximum allowed value(could be decreased even more)
+        torch.testing.assert_close(memory_footprints[-1], memory_footprints[0], atol=5, rtol=1)
+
+    def generate_qkv(self, batch, NH, q_len, s_len, head_dim, contiguous, dtype):
+        if contiguous:
+            q = torch.randn(batch, NH, q_len, head_dim, dtype=dtype, device="mps")
+            k = torch.randn(batch, NH, s_len, head_dim, dtype=dtype, device="mps")
+        else:
+            q = torch.randn(batch, NH, head_dim, q_len, dtype=dtype, device="mps").mT
+            k = torch.randn(batch, NH, head_dim, s_len, dtype=dtype, device="mps").mT
+        v = torch.randn(batch, NH, s_len, head_dim, dtype=dtype, device="mps")
+        return q, k, v
+
+    def run_fast_attention_test(self, q, k, v, with_mask, dropout_p=0.0, is_causal=False):
+        q_len = q.shape[2]
+        s_len = k.shape[2]
+
+        if with_mask:
+            attn_mask = torch.zeros(q.shape[0], q.shape[1], q_len, s_len,
+                                    dtype=torch.bool, device=q.device)
+            attn_mask[..., s_len // 2:] = True
+
+            with torch.nn.attention.sdpa_kernel([torch.nn.attention.SDPBackend.MATH]):
+                y = F.scaled_dot_product_attention(
+                    q, k, v,
+                    attn_mask=attn_mask,
+                    dropout_p=dropout_p,
+                    is_causal=is_causal,
+                )
+            y_ref = F.scaled_dot_product_attention(
+                q.cpu(),
+                k.cpu(),
+                v.cpu(),
+                attn_mask=attn_mask.cpu(),
+                dropout_p=dropout_p,
+                is_causal=is_causal,
+            )
+        else:
+            with torch.nn.attention.sdpa_kernel([torch.nn.attention.SDPBackend.MATH]):
+                y = F.scaled_dot_product_attention(
+                    q, k, v,
+                    dropout_p=dropout_p,
+                    is_causal=is_causal,
+                )
+            y_ref = F.scaled_dot_product_attention(
+                q.cpu(),
+                k.cpu(),
+                v.cpu(),
+                dropout_p=dropout_p,
+                is_causal=is_causal,
+            )
+        self._compare_tensors(y.cpu(), y_ref)
+
+    @parametrize("dtype", [torch.float16, torch.float32])
+    @parametrize("contiguous", [True, False])
+    @parametrize("head_dim", [64, 96, 128])  # 64, 96, 128 are for the fast kernel
+    @parametrize("with_mask", [True, False])
+    def test_fast_vector_attention(self, dtype, contiguous, head_dim, with_mask):
+        torch.manual_seed(1729)
+        batch = 1
+        NH = 2
+        q_len = 4  # <8 so that vector fast is eligible
+        s_len = 16  # smaller than 1024 so that we use the one–pass variant
+        q, k, v = self.generate_qkv(batch, NH, q_len, s_len, head_dim, contiguous, dtype)
+        self.run_fast_attention_test(q, k, v, with_mask)
+
+    @parametrize("dtype", [torch.float32])  # float16 underflows sometimes, which leads to flaky tests
+    @parametrize("contiguous", [True, False])
+    @parametrize("with_mask", [True, False])
+    def test_fast_vector_attention_2pass(self, dtype, contiguous, with_mask):
+        torch.manual_seed(1729)
+        batch = 1
+        NH = 32
+        q_len = 8
+        s_len = 1024  # large enough to trigger the two–pass path
+        head_dim = 64  # supported head dimension for vector attention
+        q, k, v = self.generate_qkv(batch, NH, q_len, s_len, head_dim, contiguous, dtype)
+        self.run_fast_attention_test(q, k, v, with_mask)
+
+    @unittest.skip("Full attention fast kernel not implemented yet")
+    @parametrize("dtype", [torch.float16, torch.float32])
+    @parametrize("contiguous", [True, False])
+    @parametrize("head_dim", [64, 80, 128])  # 64, 80, 128 are for the fast kernel
+    @parametrize("with_mask", [True, False])
+    def test_fast_full_attention(self, dtype, contiguous, head_dim, with_mask):
+        torch.manual_seed(1729)
+        batch = 1
+        NH = 2
+        q_len = 32  # threshold to trigger full fast attention path
+        s_len = 16
+        q, k, v = self.generate_qkv(batch, NH, q_len, s_len, head_dim, contiguous, dtype)
+        self.run_fast_attention_test(q, k, v, with_mask)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestGatherScatter(TestCaseMPS):
     def test_slicing_with_step(self):
@@ -11041,7 +11589,10 @@ class TestConvolutionMPS(TestCaseMPS):
             x_gpu = conv_gpu(y_gpu)
             self.assertEqual(x_cpu, x_gpu.cpu(), rtol=1e-03, atol=1e-05)
 
+<<<<<<< HEAD
     @unittest.skipIf(MACOS_VERSION < 13.2, "Skipped on macOS 12")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv3d_single_stride(self):
         # Conv3d is only available from MacOS 13.2 onwards
         y_cpu = torch.randn(2, 2, 3, 6)
@@ -11487,9 +12038,12 @@ class TestAdvancedIndexing(TestCaseMPS):
 
             self.assertEqual(res_cpu, res_mps, str(dtype))
         for dtype in self.supported_dtypes:
+<<<<<<< HEAD
             # MPS support binary op with uint8 natively starting from macOS 13.0
             if MACOS_VERSION < 13.0 and dtype == torch.uint8:
                 continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             helper(dtype)
 
     def test_advanced_indexing_3D_get(self):
@@ -11648,7 +12202,10 @@ class TestAdvancedIndexing(TestCaseMPS):
             self.assertEqual(v[boolIndices], torch.tensor([True], dtype=torch.bool, device=device))
             self.assertEqual(len(w), 2)
 
+<<<<<<< HEAD
     @unittest.skipIf(MACOS_VERSION < 13.0, "Skipped on macOS 12")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_bool_indices_accumulate(self, device="mps"):
         mask = torch.zeros(size=(10, ), dtype=torch.uint8, device=device)
         mask = mask > 0
@@ -11866,7 +12423,10 @@ class TestAdvancedIndexing(TestCaseMPS):
             self.assertEqual(res.shape, src.shape)
         [helper(device="mps", dtype=dtype) for dtype in [torch.float, torch.int32]]
 
+<<<<<<< HEAD
     @unittest.skipIf(MACOS_VERSION < 13.0, "Skipped on macOS 12")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_src_datatype(self):
         def helper(device, dtype):
             orig_dtype = dtype
@@ -12466,14 +13026,20 @@ MPS_DTYPES = [t for t in get_all_dtypes() if t not in MPS_UNSUPPORTED_TYPES]
 MPS_GRAD_DTYPES = [torch.float32, torch.float16]
 
 
+<<<<<<< HEAD
 def transform_opinfo_sample_to_mps(sample):
     """Transforms opinfo.core.SampleInput from CPU to MPS"""
+=======
+def transform_opinfo_sample_to_cpu(sample):
+    """Transforms opinfo.core.SampleInput from MPS to CPU"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def transform_sample(x):
         if not isinstance(x, torch.Tensor):
             return x
         requires_grad = x.requires_grad
         conjugated = x.is_conj()
         rc = x.detach()
+<<<<<<< HEAD
         rc = rc.to("mps") if not conjugated else x.conj().to("mps").conj()
         return rc.requires_grad_(x.requires_grad)
 
@@ -12483,6 +13049,18 @@ def transform_opinfo_sample_to_mps(sample):
     if mps_sample.kwargs.get("device", "") == "cpu":
         mps_sample.kwargs["device"] = "mps"
     return mps_sample
+=======
+        rc = rc.cpu() if not conjugated else x.conj().cpu().conj()
+        return rc.requires_grad_(x.requires_grad)
+
+    cpu_sample = sample.transform(transform_sample)
+
+    # Transform kwargs `device="mps:0"` to `device="cpu"`
+    if cpu_sample.kwargs.get("device", "") == "mps:0":
+        cpu_sample.kwargs["device"] = "cpu"
+
+    return cpu_sample
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestConsistency(TestCaseMPS):
     # TODO: This is only used while some ops are being added.
@@ -12544,6 +13122,7 @@ class TestConsistency(TestCaseMPS):
         'norm', 'masked.normalize',
         'arange', 'linspace',
         'special.xlog1py',
+<<<<<<< HEAD
     }
 
     FP32_LOW_PRECISION_LIST = {
@@ -12551,6 +13130,19 @@ class TestConsistency(TestCaseMPS):
         # difference compared to CPU/CUDA, so we use lower precision on FP32
         'nn.functional.conv2d',
         'nn.functional.conv_transpose2d',
+=======
+
+        # CPU accumulates sequantially, but GPU does in in parallel
+        '_unsafe_masked_index_put_accumulate',
+    }
+
+    FP32_LOW_PRECISION_LIST = {
+        # conv2d, conv_transpose2d and conv_transpose3d results have a very small
+        # difference compared to CPU/CUDA, so we use lower precision on FP32
+        'nn.functional.conv2d',
+        'nn.functional.conv_transpose2d',
+        'nn.functional.conv_transpose3d',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         'matmul', '__rmatmul__',
         'linalg.multi_dot',
         'addbmm',
@@ -12561,7 +13153,11 @@ class TestConsistency(TestCaseMPS):
             return (1e-4, 3e-5)
 
         if op.name in self.FP16_LOW_PRECISION_LIST and dtype in [torch.float16, torch.bfloat16]:
+<<<<<<< HEAD
             return (1e-2, 1e-2) if dtype == torch.float16 else (5e-2, 5e-2)
+=======
+            return (2e-2, 1e-2) if dtype == torch.float16 else (5e-2, 5e-2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if op.name in self.BF16_LOW_PRECISION_LIST and dtype == torch.bfloat16:
             return (5e-2, 5e-2)
@@ -12595,8 +13191,15 @@ class TestConsistency(TestCaseMPS):
 
     @ops(mps_ops_modifier(test_consistency_op_db), allowed_dtypes=MPS_DTYPES)
     def test_output_match(self, device, dtype, op):
+<<<<<<< HEAD
         self.assertEqual(device, "cpu")
         include_conjugated_inputs = dtype.is_complex and op.test_conjugated_samples
+=======
+        self.assertEqual(device, "mps:0")
+        include_conjugated_inputs = dtype.is_complex and op.test_conjugated_samples
+        if op.name.endswith("svd") and MACOS_VERSION < 14.0 and dtype == torch.complex64:
+            raise unittest.SkipTest("Can't even generate complex samples on MacOS-13")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def get_samples():
             return op.sample_inputs(
@@ -12604,6 +13207,7 @@ class TestConsistency(TestCaseMPS):
                 dtype,
                 requires_grad=(dtype.is_floating_point or dtype.is_complex),
                 include_conjugated_inputs=include_conjugated_inputs,
+<<<<<<< HEAD
                 # TODO: Enable per-sample seed setting and tweak tolerances / fix xfails
                 set_seed=False,
             )
@@ -12614,6 +13218,16 @@ class TestConsistency(TestCaseMPS):
             # Forward check
             #
             mps_sample = transform_opinfo_sample_to_mps(cpu_sample)
+=======
+                set_seed=True,
+            )
+
+        for mps_sample in get_samples():
+            #
+            # Forward check
+            #
+            cpu_sample = transform_opinfo_sample_to_cpu(mps_sample)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             cpu_args = [cpu_sample.input] + list(cpu_sample.args)
             cpu_kwargs = cpu_sample.kwargs
@@ -12624,8 +13238,21 @@ class TestConsistency(TestCaseMPS):
             if op.name == "tensor_split" and isinstance(mps_args[1], torch.Tensor):
                 mps_args[1] = cpu_args[1]
 
+<<<<<<< HEAD
             cpu_out = op(*cpu_args, **cpu_kwargs)
             mps_out = op(*mps_args, **mps_kwargs)
+=======
+            # Order of ops in index_put is not guaranteed, which can lead to large errors if inputs are
+            # not normalized
+            if op.name == "_unsafe_masked_index_put_accumulate" and dtype in [torch.bfloat16, torch.float16]:
+                mps_args[3] = F.normalize(mps_args[3])
+                cpu_args[3] = F.normalize(cpu_args[3])
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=UserWarning)
+                cpu_out = op(*cpu_args, **cpu_kwargs)
+                mps_out = op(*mps_args, **mps_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             atol, rtol = self._compute_tolerances(op, dtype)
             if (op.name == "nn.functional.interpolate" and dtype == torch.uint8 and
@@ -12637,6 +13264,7 @@ class TestConsistency(TestCaseMPS):
                 # in slight numerical differences
                 atol, rtol = 1, 0
 
+<<<<<<< HEAD
             if op.name == "_upsample_bilinear2d_aa" and cpu_kwargs.get("scale_factors") == [1.7, 0.9]:
                 # Similar to the above, float vs double precision aresults in slight error
                 atol, rtol = 2e-5, 2e-6
@@ -12646,6 +13274,17 @@ class TestConsistency(TestCaseMPS):
     @ops(mps_ops_grad_modifier(copy.deepcopy(test_consistency_op_db)), allowed_dtypes=MPS_GRAD_DTYPES)
     def test_output_grad_match(self, device, dtype, op):
         self.assertEqual(device, "cpu")
+=======
+            if op.name in ["_upsample_bilinear2d_aa", "_upsample_bicubic2d_aa"] and cpu_kwargs.get("scale_factors") == [1.7, 0.9]:
+                # Similar to the above, float vs double precision aresults in slight error
+                atol, rtol = 2e-5, 2e-6
+
+            self.assertEqual(cpu_out, mps_out, atol=atol, rtol=rtol)
+
+    @ops(mps_ops_grad_modifier(copy.deepcopy(test_consistency_op_db)), allowed_dtypes=MPS_GRAD_DTYPES)
+    def test_output_grad_match(self, device, dtype, op):
+        self.assertEqual(device, "mps:0")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def get_samples():
             return op.sample_inputs(
@@ -12655,6 +13294,7 @@ class TestConsistency(TestCaseMPS):
                 # TODO: Enable per-sample seed setting and tweak tolerances / fix xfails
                 set_seed=False,
             )
+<<<<<<< HEAD
         cpu_samples = get_samples()
 
         for cpu_sample in cpu_samples:
@@ -12663,6 +13303,14 @@ class TestConsistency(TestCaseMPS):
             #
             forward_failed = False
             mps_sample = transform_opinfo_sample_to_mps(cpu_sample)
+=======
+
+        for mps_sample in get_samples():
+            #
+            # Forward check
+            #
+            cpu_sample = transform_opinfo_sample_to_cpu(mps_sample)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             cpu_args = [cpu_sample.input] + list(cpu_sample.args)
             cpu_kwargs = cpu_sample.kwargs
@@ -12673,8 +13321,21 @@ class TestConsistency(TestCaseMPS):
             if op.name == "tensor_split" and isinstance(mps_args[1], torch.Tensor):
                 mps_args[1] = cpu_args[1]
 
+<<<<<<< HEAD
             cpu_out = op(*cpu_args, **cpu_kwargs)
             mps_out = op(*mps_args, **mps_kwargs)
+=======
+            # Order of ops in index_put is not guaranteed, which can lead to large errors if inputs are
+            # not normalized
+            if op.name == "_unsafe_masked_index_put_accumulate" and dtype in [torch.bfloat16, torch.float16]:
+                mps_args[3] = F.normalize(mps_args[3])
+                cpu_args[3] = F.normalize(cpu_args[3])
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=UserWarning)
+                cpu_out = op(*cpu_args, **cpu_kwargs)
+                mps_out = op(*mps_args, **mps_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if op.name == "unique" and cpu_kwargs["sorted"] is False:
                 continue
@@ -12689,11 +13350,14 @@ class TestConsistency(TestCaseMPS):
             #
             # Backward check
             #
+<<<<<<< HEAD
             if forward_failed:
                 # We would've failed immediately anyway, but this error is clearer
                 # We error instead of continuing so that all_backward_pass would not be True
                 raise RuntimeError("Forward pass already failed")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cpu_out = (cpu_out,) if isinstance(cpu_out, torch.Tensor) else tuple(cpu_out)
             mps_out = (mps_out,) if isinstance(mps_out, torch.Tensor) else tuple(mps_out)
 
@@ -12726,13 +13390,49 @@ class TestConsistency(TestCaseMPS):
             ):
                 atol = 1e-5
                 rtol = 1.5e-3
+<<<<<<< HEAD
             self.assertEqual(cpu_grad_inputs, mps_grad_inputs, atol=atol, rtol=rtol)
 
+=======
+            if op.name == "nn.functional.unfold" and dtype == torch.float16:
+                atol, rtol = 1e-3, 1e-3
+            # Order of ops in unsafe_masked_index backward is not guaranteed
+            # which leads to larger errors
+            if op.name == "_unsafe_masked_index" and dtype == torch.float16:
+                atol, rtol = 3e-3, 3e-3
+            self.assertEqual(cpu_grad_inputs, mps_grad_inputs, atol=atol, rtol=rtol)
+
+    def test_fmax_mixed_dtypes(self, device):
+        # Regression tesing for https://github.com/pytorch/pytorch/issues/149951
+        # fmax and fmin are implemented as binary metal shaders and they were implemented
+        # with the assumption that both args have the same dtype
+        x = torch.rand((3, 3), device=device, dtype=torch.float32)
+        x_int = torch.randint(-10, 10, (3, 3), device=device, dtype=torch.int8)
+        y = torch.rand((3, 3), device=device, dtype=torch.float16)
+        for op in [torch.fmax, torch.fmin]:
+            self.assertEqual(op(x, y), op(x.to("mps"), y.to("mps")).cpu())
+            self.assertEqual(op(x_int, y), op(x_int.to("mps"), y.to("mps")).cpu())
+            # Stride
+            self.assertEqual(op(x.t(), y), op(x.to("mps").t(), y.to("mps")).cpu())
+            # Broadcast
+            self.assertEqual(op(x, y[0]), op(x.to("mps"), y.to("mps")[0]).cpu())
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestErrorInputs(TestCase):
     _ignore_not_implemented_error = True
 
+<<<<<<< HEAD
     @ops(mps_ops_error_inputs_modifier(test_error_inputs_op_db), dtypes=OpDTypes.none)
+=======
+    @ops(
+        mps_ops_error_inputs_modifier(
+            [op for op in test_error_inputs_op_db if op.error_inputs_func is not None]
+        ),
+        dtypes=OpDTypes.none
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_error_inputs(self, device, op):
         self.assertEqual(device, "mps:0")
 
@@ -12809,6 +13509,7 @@ class TestCommon(TestCase):
     def test_numpy_ref_mps(self, device, dtype, op):
         # Unlike `test_numpy_ref`, this test compares in `float32` since at the time of this test's creation MPS
         # does not support float64 Tensors.
+<<<<<<< HEAD
         # A few ops are currently broken on their reference inputs, but not their sample inputs. These should
         # get patched up and this workaround removed.
         broken_on_ref_inputs = op.name in ('where',)
@@ -12818,6 +13519,11 @@ class TestCommon(TestCase):
             op.reference_inputs(device, dtype, set_seed=False) if not broken_on_ref_inputs
             else op.sample_inputs(device, dtype, set_seed=False)
         )
+=======
+
+        # TODO: Enable per-sample seed setting and tweak tolerances / fix xfails
+        inputs = op.reference_inputs(device, dtype, set_seed=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for sample_input in inputs:
             self.compare_with_reference(op, op.ref, sample_input)
 
@@ -12887,6 +13593,12 @@ class TestMetalLibrary(TestCaseMPS):
     def test_metal_arange_with_arg_and_scalar_tensor(self):
         self.test_metal_arange_with_arg(step=torch.tensor(.5))
 
+<<<<<<< HEAD
+=======
+    def test_metal_arange_with_arg_and_scalar_tensor_float64(self):
+        self.test_metal_arange_with_arg(step=torch.tensor(.5, dtype=torch.float64))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_metal_arange_with_arg_and_cast(self):
         x = torch.zeros(12, device="mps", dtype=torch.half)
         y = torch.zeros(12, device="mps", dtype=torch.half)
@@ -12929,6 +13641,75 @@ class TestMetalLibrary(TestCaseMPS):
         lib = torch.mps.compile_shader("#include <c10/metal/special_math.h>")
         self.assertIsNotNone(lib)
 
+<<<<<<< HEAD
+=======
+    @parametrize("dtype", [torch.float32, torch.float16, torch.int32, torch.int64])
+    def test_reduction_utils(self, dtype):
+        if dtype == torch.int64 and MACOS_VERSION < 13.3:
+            raise unittest.SkipTest("Using simd_shuffle_down_and_fill results in ICE on MacOS-13")
+        from torch._inductor.codegen.mps import DTYPE_TO_METAL
+        lib = torch.mps.compile_shader(f"""
+            #include <c10/metal/reduction_utils.h>
+            kernel void do_sum(device {DTYPE_TO_METAL[dtype]}* out,
+                               constant {DTYPE_TO_METAL[dtype]}* inp,
+                               uint idx [[thread_position_in_grid]]) {{
+                out[idx] = c10::metal::simd_sum(inp[idx]);
+            }}
+        """)
+        x = torch.testing.make_tensor(28, device="mps", dtype=dtype)
+        y = torch.empty_like(x)
+        lib.do_sum(y, x)
+        x_sum = x.sum()
+        max_err = (y - x_sum).abs().max().item()
+        self.assertLess(max_err, 1e-2 if dtype == torch.float16 else 1e-5,
+                        f"results are {y}, but all elements should have been {x_sum.item()}")
+
+    @parametrize("dtype", [torch.float32, torch.float16, torch.int32, torch.bfloat16])
+    def test_atomic_add(self, dtype):
+        if dtype == torch.bfloat16 and MACOS_VERSION < 14.0:
+            raise unittest.SkipTest("bfloat requires MacOS-14+")
+        from torch._inductor.codegen.mps import DTYPE_TO_METAL
+        mdtype = DTYPE_TO_METAL[dtype]
+        lib = torch.mps.compile_shader(f"""
+            #include <c10/metal/atomic.h>
+            using namespace c10::metal;
+            kernel void atomic_add(device AtomicType<{mdtype}>::type* out,
+                                  constant {mdtype}* inc,
+                                  uint idx [[thread_position_in_grid]]) {{
+                AtomicType<{mdtype}>::atomic_add(out, idx & 1 ? 3 : 4, inc[idx]);
+            }}
+
+        """)
+        x = torch.arange(16, device="mps", dtype=dtype)
+        y = torch.arange(16, device="mps", dtype=dtype)
+        lib.atomic_add(x, y)
+        self.assertEqual(x[3], 67)
+        self.assertEqual(x[4], 60)
+
+    def test_argument_buffers(self):
+        lib = torch.mps.compile_shader("""
+        constant constexpr auto nbuffers = 64;
+        struct Inputs {
+          metal::array<device float *, nbuffers> args;
+        };
+
+        kernel void sum_all(device float* output, constant Inputs& inputs, uint idx [[thread_position_in_grid]]) {
+          auto rc = inputs.args[0][idx];
+          for(auto i = 1; i < nbuffers; ++i) {
+            rc += inputs.args[i][idx];
+          }
+          output[idx] = rc;
+        }
+        """)
+        inputs = torch.rand(64, 32, device="mps").unbind(0)
+        output = torch.empty_like(inputs[0])
+        lib.sum_all(output, inputs)
+        correct = torch.zeros_like(inputs[0])
+        for inp in inputs:
+            correct += inp
+        self.assertEqual(correct, output)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not torch.mps.profiler.is_metal_capture_enabled(), "Set MTL_CAPTURE_ENABLED and try again")
     def test_metal_capture(self):
         lib = torch.mps.compile_shader("kernel void full(device float* x, uint idx [[thread_position_in_grid]]) { x[idx] = 1.0; }")
@@ -12952,14 +13733,26 @@ class TestMetalLibrary(TestCaseMPS):
 # This requires mps to be properly registered in the device generic test framework which is not the
 # case right now. We can probably use `allow_mps` introduced in https://github.com/pytorch/pytorch/pull/87342
 # to achieve this.
+<<<<<<< HEAD
 instantiate_device_type_tests(TestConsistency, globals(), only_for="cpu")
 instantiate_device_type_tests(TestErrorInputs, globals(), allow_mps=True, only_for="mps")
 instantiate_device_type_tests(TestCommon, globals(), allow_mps=True, only_for="mps")
 instantiate_device_type_tests(TestLinalgMPS, globals(), allow_mps=True, only_for="mps")
+=======
+instantiate_device_type_tests(TestConsistency, globals(), allow_mps=True, only_for="mps")
+instantiate_device_type_tests(TestErrorInputs, globals(), allow_mps=True, only_for="mps")
+instantiate_device_type_tests(TestCommon, globals(), allow_mps=True, only_for="mps")
+instantiate_device_type_tests(TestLinalgMPS, globals(), allow_mps=True, only_for="mps")
+instantiate_parametrized_tests(TestAutocastMPS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_parametrized_tests(TestLogical)
 instantiate_parametrized_tests(TestMPS)
 instantiate_parametrized_tests(TestSDPA)
 instantiate_parametrized_tests(TestSmoothL1Loss)
+<<<<<<< HEAD
+=======
+instantiate_parametrized_tests(TestMetalLibrary)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

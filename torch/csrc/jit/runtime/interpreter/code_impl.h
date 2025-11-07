@@ -16,10 +16,16 @@
 #include <torch/csrc/jit/runtime/interpreter/preprocess_graph.h>
 
 TORCH_DECLARE_bool(torch_jit_enable_expanded_stacks);
+<<<<<<< HEAD
 
 namespace torch::jit {
 
 namespace interpreter {
+=======
+TORCH_DECLARE_bool(torch_jit_expanded_stacks_mangled);
+
+namespace torch::jit::interpreter {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <class Ttarget, class Tsource>
 Ttarget safe_narrow_cast(Tsource v) {
@@ -63,7 +69,11 @@ struct NodeSourceInfo {
   const char* func_name_{nullptr};
   const char* file_name_{nullptr};
   size_t line_{0};
+<<<<<<< HEAD
   NodeSourceInfo() {}
+=======
+  NodeSourceInfo() = default;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct CodeImpl {
@@ -227,7 +237,11 @@ struct CodeImpl {
   NodeSourceInfo getSourceInfoFromSourceRange(const SourceRange& range) {
     NodeSourceInfo nodeSource;
     SourceRange r = range;
+<<<<<<< HEAD
     if (range.source()) {
+=======
+    if (!FLAGS_torch_jit_expanded_stacks_mangled && range.source()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (auto orig = range.source()->findSourceRangeThatGenerated(r)) {
         r = *orig;
       }
@@ -1059,5 +1073,9 @@ struct MobileCodeImpl : CodeImpl {
   bool emit_promoted_ops_;
 };
 
+<<<<<<< HEAD
 } // namespace interpreter
 } // namespace torch::jit
+=======
+} // namespace torch::jit::interpreter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

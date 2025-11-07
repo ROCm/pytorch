@@ -1,22 +1,36 @@
 # mypy: allow-untyped-defs
 import logging
+<<<<<<< HEAD
+=======
+from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 
 import sympy
 
 import torch
 from torch._inductor.select_algorithm import realize_inputs, SymbolicGridFn
+<<<<<<< HEAD
+=======
+from torch._inductor.utils import sympy_product
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.virtualized import V
 
 from .. import config as inductor_config
 from ..codegen.wrapper import PythonWrapperCodegen
+<<<<<<< HEAD
 from ..ir import ChoiceCaller, Layout
 from ..utils import get_num_sms, TMA_DESCRIPTOR_SIZE, use_aten_gemm_kernels
+=======
+from ..ir import _IntLike, Layout, TensorBox
+from ..utils import get_num_sms, TMA_DESCRIPTOR_SIZE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 def should_fallback_to_aten(choices: list[ChoiceCaller]) -> bool:
     if len(choices) == 0 and not use_aten_gemm_kernels():
         if inductor_config.autotune_fallback_to_aten:
@@ -36,6 +50,8 @@ def should_fallback_to_aten(choices: list[ChoiceCaller]) -> bool:
     return False
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @SymbolicGridFn
 def mm_grid(m, n, meta, *, cdiv):
     """
@@ -54,6 +70,15 @@ def persistent_mm_grid(M: int, N: int, meta: dict[str, Any], *, cdiv, min):
     )
 
 
+<<<<<<< HEAD
+=======
+@SymbolicGridFn
+def persistent_grouped_mm_grid(*args):
+    meta = args[-1]
+    return (meta["NUM_SMS"], 1, 1)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def acc_type(dtype):
     if dtype in (torch.float16, torch.bfloat16):
         return "tl.float32"
@@ -90,13 +115,29 @@ def mm_options(config, sym_m, sym_n, sym_k, layout):
     return options_dict
 
 
+<<<<<<< HEAD
 def persistent_mm_options(mat1, mat2):
     return dict(
+=======
+def tma_options() -> dict[str, Any]:
+    from torch.utils._triton import has_triton_stable_tma_api
+
+    return {"TMA_EXPERIMENTAL_API": not has_triton_stable_tma_api()}
+
+
+def persistent_mm_options(mat1, mat2):
+    res = dict(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         A_ROW_MAJOR=not mat1.layout.is_transposed(),
         B_ROW_MAJOR=not mat2.layout.is_transposed(),
         NUM_SMS=get_num_sms(),
         TMA_SIZE=TMA_DESCRIPTOR_SIZE,
     )
+<<<<<<< HEAD
+=======
+    res.update(tma_options())
+    return res
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def scaled_mm_options(  # type: ignore[no-untyped-def]
@@ -111,7 +152,11 @@ def scaled_mm_options(  # type: ignore[no-untyped-def]
     device_tma: bool = False,
 ) -> dict[str, Any]:
     def are_compatible_scales(size_a, size_b) -> bool:
+<<<<<<< HEAD
         # Same sized scales are compatable
+=======
+        # Same sized scales are compatible
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(size_a) == len(size_b):
             return True
 
@@ -137,6 +182,11 @@ def scaled_mm_options(  # type: ignore[no-untyped-def]
         mm_template_options["TMA_SIZE"] = TMA_DESCRIPTOR_SIZE
         mm_template_options["NUM_SMS"] = get_num_sms()
 
+<<<<<<< HEAD
+=======
+    mm_template_options.update(tma_options())
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return mm_template_options
 
 
@@ -182,12 +232,24 @@ def mm_args(
     return [m, n, k, layout, mat1, mat2, *others]
 
 
+<<<<<<< HEAD
 def mm_config_kwargs(device, exclude_condition):
+=======
+def mm_config_kwargs(device, exclude_condition, dtype_size=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if device == "cpu":
         return {
             "scale": 0.5,
             "exclude": exclude_condition,
         }
+<<<<<<< HEAD
+=======
+
+    if dtype_size and inductor_config.max_autotune_gemm_search_space == "EXHAUSTIVE":
+        return {
+            "dtype_size": dtype_size,
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return {}
 
 
@@ -259,3 +321,43 @@ def _is_static_problem(layout: Layout) -> tuple[bool, bool]:
         numel *= dim
     nonzero = numel > 0
     return static_shape, nonzero
+<<<<<<< HEAD
+=======
+
+
+def check_supported_striding(mat_a: TensorBox, mat_b: TensorBox) -> None:
+    def is_row_major(stride: Sequence[_IntLike]) -> bool:
+        return stride[-1] == 1
+
+    def is_col_major(stride: Sequence[_IntLike]) -> bool:
+        return stride[-2] == 1
+
+    def has_zero_dim(size: Sequence[_IntLike]) -> bool:
+        return bool(size[0] == 0 or size[1] == 0)
+
+    # Check mat_a (self) stride requirements
+    torch._check(
+        is_row_major(mat_a.get_stride()) or has_zero_dim(mat_a.get_size()),
+        lambda: f"mat_a must be row_major, got stride {mat_a.get_stride()}",
+    )
+
+    # Check mat_b stride requirements
+    torch._check(
+        is_col_major(mat_b.get_stride()) or has_zero_dim(mat_b.get_size()),
+        lambda: f"mat_b must be col_major, got stride {mat_b.get_stride()}",
+    )
+
+
+def is_batch_stride_largest(mat1, mat2, layout) -> bool:
+    """
+    Checking if the batch stride is the largest in the stride.
+    """
+    sizes = [mat1.get_size(), mat2.get_size(), layout.size]
+    strides = [mat1.get_stride(), mat2.get_stride(), layout.stride]
+    for size, stride in zip(sizes, strides):
+        assert len(size) == len(stride) == 3, "Expect 3D tensors"
+        if stride[0] != sympy_product(size[1:]):
+            return False
+
+    return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

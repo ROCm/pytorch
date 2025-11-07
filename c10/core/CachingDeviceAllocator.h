@@ -18,7 +18,11 @@ struct DeviceStats {
   // released via device memory deallocation)
   StatArray inactive_split;
 
+<<<<<<< HEAD
   // SUM: bytes allocated by this memory alocator
+=======
+  // SUM: bytes allocated by this memory allocator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   StatArray allocated_bytes;
   // SUM: bytes reserved by this memory allocator (both free and used)
   StatArray reserved_bytes;
@@ -58,6 +62,7 @@ struct DeviceStats {
   int64_t max_split_size = 0;
 };
 
+<<<<<<< HEAD
 // Size pretty-printer
 inline std::string format_size(uint64_t size) {
   std::ostringstream os;
@@ -78,4 +83,6 @@ inline std::string format_size(uint64_t size) {
   return os.str();
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10::CachingDeviceAllocator

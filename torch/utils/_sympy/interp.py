@@ -51,7 +51,11 @@ log = logging.getLogger(__name__)
 # TODO: Dedupe this with SYMPY_INTERP
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def handlers():
     # TODO add CeilDiv (it doesn't appear in the index_expr)
 

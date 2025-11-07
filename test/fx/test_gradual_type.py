@@ -17,7 +17,11 @@ from torch.fx.experimental.rewriter import RewritingTracer
 from torch.fx.experimental.unify_refinements import infer_symbolic_types
 from torch.fx.passes.shape_prop import ShapeProp
 from torch.fx.tensor_type import Dyn, is_consistent, is_more_precise, TensorType
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -1168,4 +1172,8 @@ class TypeCheckerTest(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     unittest.main()
+=======
+    raise_on_run_directly("test/test_fx.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -16,6 +16,10 @@ help:
 figures:
 	@$(PYCMD) source/scripts/build_activation_images.py
 	@$(PYCMD) source/scripts/build_quantization_configs.py
+<<<<<<< HEAD
+=======
+	@$(PYCMD) source/scripts/build_lr_scheduler_images.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 onnx:
 	@$(PYCMD) source/scripts/onnx/build_onnx_torchscript_supported_aten_op_csv_table.py

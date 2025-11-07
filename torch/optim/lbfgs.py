@@ -4,7 +4,11 @@ from typing import Optional, Union
 import torch
 from torch import Tensor
 
+<<<<<<< HEAD
 from .optimizer import Optimizer, ParamsT
+=======
+from .optimizer import _to_scalar, Optimizer, ParamsT
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["LBFGS"]
@@ -299,7 +303,11 @@ class LBFGS(Optimizer):
         return loss, flat_grad
 
     @torch.no_grad()
+<<<<<<< HEAD
     def step(self, closure):
+=======
+    def step(self, closure):  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Perform a single optimization step.
 
         Args:
@@ -312,7 +320,11 @@ class LBFGS(Optimizer):
         closure = torch.enable_grad()(closure)
 
         group = self.param_groups[0]
+<<<<<<< HEAD
         lr = group["lr"]
+=======
+        lr = _to_scalar(group["lr"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         max_iter = group["max_iter"]
         max_eval = group["max_eval"]
         tolerance_grad = group["tolerance_grad"]

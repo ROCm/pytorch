@@ -3,6 +3,10 @@
 #include <ATen/AccumulateType.h>
 #include <ATen/Dispatch.h>
 #include <ATen/detail/FunctionTraits.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/RangeUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/ops/arange_native.h>
 #include <ATen/ops/linspace_native.h>
@@ -65,6 +69,7 @@ Tensor& arange_mps_out(const Scalar& start, const Scalar& end, const Scalar& ste
       size_d = std::ceil(static_cast<double>(end.to<double>() - start.to<double>()) / step.to<double>());
     }
 
+<<<<<<< HEAD
     TORCH_CHECK(xstep > 0 || xstep < 0, "step must be nonzero");
     TORCH_CHECK(std::isfinite(static_cast<double>(xstart)) && std::isfinite(static_cast<double>(xend)),
                 "unsupported range: ",
@@ -73,6 +78,9 @@ Tensor& arange_mps_out(const Scalar& start, const Scalar& end, const Scalar& ste
                 xend);
     TORCH_CHECK(((xstep > 0) && (xend >= xstart)) || ((xstep < 0) && (xend <= xstart)),
                 "upper bound and larger bound inconsistent with step sign");
+=======
+    arange_check_bounds(start, end, step);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     TORCH_CHECK(size_d >= 0 && size_d <= static_cast<double>(std::numeric_limits<int64_t>::max()),
                 "invalid size, possible overflow?");
@@ -106,7 +114,11 @@ Tensor& arange_mps_out(const Scalar& start, const Scalar& end, const Scalar& ste
     auto stream = getCurrentMPSStream();
     auto mpsDataType = getMPSDataType(result);
     @autoreleasepool {
+<<<<<<< HEAD
       string key = "arange_mps_out" + getTensorsStringKey({result}) + ":" + std::to_string(size);
+=======
+      std::string key = "arange_mps_out" + getTensorsStringKey({result}) + ":" + std::to_string(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto cachedGraph = cache_->LookUpAs<RangeCachedGraph>(key);
       if (!cachedGraph) {
         cachedGraph = cache_->CreateCachedGraphAs<RangeCachedGraph>(key, ^MPSCachedGraph*() {
@@ -147,6 +159,7 @@ Tensor& range_mps_out(const Scalar& start, const Scalar& end, const Scalar& step
       size_d = static_cast<double>(end.to<double>() - start.to<double>()) / step.to<double>() + 1;
     }
 
+<<<<<<< HEAD
     TORCH_CHECK(xstep > 0 || xstep < 0, "step must be nonzero");
     TORCH_CHECK(std::isfinite(static_cast<double>(xstart)) && std::isfinite(static_cast<double>(xend)),
                 "unsupported range: ",
@@ -155,6 +168,9 @@ Tensor& range_mps_out(const Scalar& start, const Scalar& end, const Scalar& step
                 xend);
     TORCH_CHECK(((xstep > 0) && (xend >= xstart)) || ((xstep < 0) && (xend <= xstart)),
                 "upper bound and larger bound inconsistent with step sign");
+=======
+    arange_check_bounds(start, end, step);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     TORCH_CHECK(size_d >= 0 && size_d <= static_cast<double>(std::numeric_limits<int64_t>::max()),
                 "invalid size, possible overflow?");
@@ -173,7 +189,11 @@ Tensor& range_mps_out(const Scalar& start, const Scalar& end, const Scalar& step
     auto stream = getCurrentMPSStream();
     auto mpsDataType = getMPSDataType(result);
     @autoreleasepool {
+<<<<<<< HEAD
       string key = "arange_mps_out" + getTensorsStringKey({result}) + ":" + std::to_string(size);
+=======
+      std::string key = "arange_mps_out" + getTensorsStringKey({result}) + ":" + std::to_string(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto cachedGraph = cache_->LookUpAs<RangeCachedGraph>(key);
       if (!cachedGraph) {
         cachedGraph = cache_->CreateCachedGraphAs<RangeCachedGraph>(key, ^MPSCachedGraph*() {
@@ -221,7 +241,11 @@ Tensor& linspace_out_mps(const Scalar& start, const Scalar& end, int64_t steps, 
     bool start_less_end = (start.to<double>() <= end.to<double>());
 
     @autoreleasepool {
+<<<<<<< HEAD
       string key = "linspace_out_mps:" + getTensorsStringKey({result}) + ":" + std::to_string(steps) +
+=======
+      std::string key = "linspace_out_mps:" + getTensorsStringKey({result}) + ":" + std::to_string(steps) +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           std::to_string(start_less_end);
       auto cachedGraph = cache_->LookUpAs<RangeCachedGraph>(key);
 

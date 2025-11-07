@@ -66,9 +66,16 @@ def generate_callgrind_artifacts() -> None:
         json.dump(artifacts, f, indent=4)
 
 
+<<<<<<< HEAD
 def load_callgrind_artifacts() -> (
     tuple[benchmark_utils.CallgrindStats, benchmark_utils.CallgrindStats]
 ):
+=======
+def load_callgrind_artifacts() -> tuple[
+    benchmark_utils.CallgrindStats,
+    benchmark_utils.CallgrindStats,
+]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Hermetic artifact to unit test Callgrind wrapper.
 
     In addition to collecting counts, this wrapper provides some facilities for

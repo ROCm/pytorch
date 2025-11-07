@@ -76,7 +76,11 @@ inline Backend dispatchKeyToBackend(DispatchKey t) {
     return Backend::VE;
   } else if (t == DispatchKey::FPGA) {
     return Backend::FPGA;
+<<<<<<< HEAD
   } else if (t == DispatchKey::MAIA) {
+=======
+  } else if (t == DispatchKey::MAIA || t == DispatchKey::AutogradMAIA) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return Backend::MAIA;
   } else if (t == DispatchKey::XLA || t == DispatchKey::AutogradXLA) {
     return Backend::XLA;

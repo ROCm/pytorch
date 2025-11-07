@@ -10,7 +10,11 @@ import numpy as np
 
 import torch
 from torch import nn
+<<<<<<< HEAD
 from torch.distributed._tensor import (
+=======
+from torch.distributed.tensor import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DeviceMesh,
     distribute_module,
     distribute_tensor,
@@ -26,7 +30,13 @@ def with_xla(func: Callable) -> Callable:
 
     @wraps(func)  # pyre-ignore[6]
     def wrapper(
+<<<<<<< HEAD
         self, *args: tuple[object], **kwargs: dict[str, Any]  # type: ignore[misc]
+=======
+        self,
+        *args: tuple[object],
+        **kwargs: dict[str, Any],  # type: ignore[misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         # TODO(yeounoh) replace this with xr.use_spmd() when we deprecate the flag.
         os.environ["XLA_USE_SPMD"] = "1"

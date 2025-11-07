@@ -156,8 +156,12 @@ void FilterDescriptor::set(const at::Tensor &t, const at::MemoryFormat memory_fo
     default:
       TORCH_INTERNAL_ASSERT(false, "unsupported memory_format for cuDNN filters");
   }
+<<<<<<< HEAD
   // NOLINTNEXTLINE(*narrowing-conversions)
   set(getDataType(t), static_cast<int64_t>(dim), size, filter_format);
+=======
+  set(getDataType(t), static_cast<int>(dim), size, filter_format);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::string cudnnMemoryFormatToString(cudnnTensorFormat_t tformat) {

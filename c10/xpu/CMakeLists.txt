@@ -31,6 +31,10 @@ set(C10_XPU_HEADERS
 )
 if(NOT BUILD_LIBTORCHLESS)
   add_library(c10_xpu ${C10_XPU_SRCS} ${C10_XPU_HEADERS})
+<<<<<<< HEAD
+=======
+  torch_compile_options(c10_xpu)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   target_compile_options(c10_xpu PRIVATE "-DC10_XPU_BUILD_MAIN_LIB")
   # Enable hidden visibility if compiler supports it.
   if(${COMPILER_SUPPORTS_HIDDEN_VISIBILITY})

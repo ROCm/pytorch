@@ -134,7 +134,11 @@ c10::intrusive_ptr<JitFuture> RequestCallbackImpl::runPythonFunction(
   try {
     return result.cast<jit::PythonFutureWrapper&>().fut;
   } catch (const py::cast_error& e) {
+<<<<<<< HEAD
     auto type = result.get_type();
+=======
+    auto type = py::type::handle_of(result);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto errMsg = c10::str(
         e.what(),
         ". Functions decorated with @rpc.async_function must return a "

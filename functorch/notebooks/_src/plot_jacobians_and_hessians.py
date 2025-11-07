@@ -100,7 +100,11 @@ ft_jac_weight, ft_jac_bias = jacrev(predict, argnums=(0, 1))(weight, bias, x)
 #   vjp and vmap transforms.
 # - jacfwd uses forward-mode AD. It is implemented as a composition of our
 #   jvp and vmap transforms.
+<<<<<<< HEAD
 # jacfwd and jacrev can be subsituted for each other and have different
+=======
+# jacfwd and jacrev can be substituted for each other and have different
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # performance characteristics.
 #
 # As a general rule of thumb, if you're computing the jacobian of an R^N -> R^M

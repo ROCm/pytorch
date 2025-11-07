@@ -22,7 +22,11 @@ using namespace ::c10::onnx;
 //   ...
 //   %weight = prim::GetAttr[name="scale"](%B)
 //   ...
+<<<<<<< HEAD
 std::deque<std::string> findSubModuleAttr(
+=======
+static std::deque<std::string> findSubModuleAttr(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Value* input,
     std::string& name,
     Module& attrModule,
@@ -48,7 +52,14 @@ std::deque<std::string> findSubModuleAttr(
   return moduleNames;
 }
 
+<<<<<<< HEAD
 Value* addParamAsArgument(Function* function, std::string& name, IValue& attr) {
+=======
+static Value* addParamAsArgument(
+    Function* function,
+    std::string& name,
+    IValue& attr) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto schema = function->getSchema();
   auto args = schema.arguments();
   args.emplace_back(name, nullptr, std::nullopt, attr);
@@ -64,7 +75,11 @@ Value* addParamAsArgument(Function* function, std::string& name, IValue& attr) {
       attr.type());
 }
 
+<<<<<<< HEAD
 std::vector<IValue> getParamAttributes(
+=======
+static std::vector<IValue> getParamAttributes(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Block* block,
     std::shared_ptr<Graph>& graph,
     const Module& module_,
@@ -163,7 +178,11 @@ std::vector<IValue> getParamAttributes(
   return parameterIValues;
 }
 
+<<<<<<< HEAD
 void insertMainModuleAsConstant(const std::shared_ptr<Graph>& graph) {
+=======
+static void insertMainModuleAsConstant(const std::shared_ptr<Graph>& graph) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto* constNode = graph->create(prim::CreateObject);
   constNode->output()->setType(graph->inputs().at(0)->type());
   auto it = graph->nodes().begin();

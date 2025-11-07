@@ -98,6 +98,7 @@ void cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack, bool 
   const auto arguments_begin = stack->size() - num_arguments;
 
   std::vector<at::Tensor> tensor_args;
+<<<<<<< HEAD
   std::vector<int> tensor_args_indices;
 
   std::vector<c10::List<at::Tensor>> tensorlist_args;
@@ -105,6 +106,15 @@ void cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack, bool 
 
   std::vector<c10::List<std::optional<at::Tensor>>> optional_tensorlist_args;
   std::vector<int> optional_tensorlist_args_indices;
+=======
+  std::vector<size_t> tensor_args_indices;
+
+  std::vector<c10::List<at::Tensor>> tensorlist_args;
+  std::vector<size_t> tensorlist_args_indices;
+
+  std::vector<c10::List<std::optional<at::Tensor>>> optional_tensorlist_args;
+  std::vector<size_t> optional_tensorlist_args_indices;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::optional<c10::Device> tgt_device = std::nullopt;
   // save converted cpu tensor for TensorList and optional TensorList

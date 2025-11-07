@@ -41,10 +41,18 @@ struct TORCH_API JitDecompInterface {
 TORCH_API void setJitDecompImpl(JitDecompInterface* impl);
 TORCH_API JitDecompInterface* getJitDecompImpl();
 
+<<<<<<< HEAD
 struct TORCH_API JitDecompRegisterer {
   explicit JitDecompRegisterer(JitDecompInterface* impl) {
     setJitDecompImpl(impl);
   }
 };
+=======
+struct TORCH_API JitDecompRegisterer{explicit JitDecompRegisterer(
+    JitDecompInterface * impl){setJitDecompImpl(impl);
+} // namespace torch::autograd::impl
+}
+;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::autograd::impl

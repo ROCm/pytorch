@@ -57,9 +57,15 @@ struct SgdMomentumArguments {
 };
 
 struct MetadataArguments {
+<<<<<<< HEAD
   uint32_t numels[kmaxTensors];
   uint32_t threadgroup_to_tensor[kmaxThreadGroups];
   uint32_t threadgroup_to_chunk[kmaxThreadGroups];
+=======
+  ulong numels[kmaxTensors];
+  ulong threadgroup_to_tensor[kmaxThreadGroups];
+  ulong threadgroup_to_chunk[kmaxThreadGroups];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 enum ADAM_MODE : uint8_t { ORIGINAL = 0, ADAMW = 1 };

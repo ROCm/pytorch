@@ -67,13 +67,21 @@ function pip_install_whl() {
     # Loop through each path and install individually
     for path in "${paths[@]}"; do
       echo "Installing $path"
+<<<<<<< HEAD
       python3 -mpip install "$path"
+=======
+      python3 -mpip install --no-index --no-deps "$path"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     done
   else
     # Loop through each argument and install individually
     for path in "${args[@]}"; do
       echo "Installing $path"
+<<<<<<< HEAD
       python3 -mpip install "$path"
+=======
+      python3 -mpip install --no-index --no-deps "$path"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     done
   fi
 }
@@ -159,7 +167,10 @@ function install_torchvision() {
   fi
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 function install_torchrec_and_fbgemm() {
   local torchrec_commit
   torchrec_commit=$(get_pinned_commit torchrec)
@@ -198,7 +209,11 @@ function install_torchrec_and_fbgemm() {
 
 function clone_pytorch_xla() {
   if [[ ! -d ./xla ]]; then
+<<<<<<< HEAD
     git clone --recursive -b r2.7 https://github.com/pytorch/xla.git
+=======
+    git clone --recursive -b r2.8 https://github.com/pytorch/xla.git
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pushd xla
     # pin the xla hash so that we don't get broken by changes to xla
     git checkout "$(cat ../.github/ci_commit_pins/xla.txt)"

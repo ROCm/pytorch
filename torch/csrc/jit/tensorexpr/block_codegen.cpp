@@ -363,6 +363,10 @@ void BlockCodeGen::call_raw(const std::vector<void*>& args) {
 }
 
 BlockCodeGen::~BlockCodeGen() = default;
+<<<<<<< HEAD
 RegisterCodeGen<BlockCodeGen> block_codegen_reg("block_codegen");
+=======
+static RegisterCodeGen<BlockCodeGen> block_codegen_reg("block_codegen");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::jit::tensorexpr

@@ -19,8 +19,12 @@ float halfbits2float(unsigned short h) {
     exponent = 0xff;
   } else if (!exponent) { /* Denorm or Zero */
     if (mantissa) {
+<<<<<<< HEAD
       // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
       unsigned int msb;
+=======
+      unsigned int msb = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       exponent = 0x71;
       do {
         msb = (mantissa & 0x400000);

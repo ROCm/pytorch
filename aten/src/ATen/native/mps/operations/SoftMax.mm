@@ -63,7 +63,11 @@ TORCH_IMPL_FUNC(softmax_mps_out)
   MPSStream* stream = getCurrentMPSStream();
 
   @autoreleasepool {
+<<<<<<< HEAD
     string mem_format_key = get_mem_format_string(memory_format);
+=======
+    std::string mem_format_key = get_mem_format_string(memory_format);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPSShape* input_shape_readonly = mps::getMPSShape(input);
     int num_input_dims = [input_shape_readonly count];
     // Check - Channels last implies 4d
@@ -93,8 +97,13 @@ TORCH_IMPL_FUNC(softmax_mps_out)
 
     NSString* ns_shape_key = [[input_shape valueForKey:@"description"] componentsJoinedByString:@","];
 
+<<<<<<< HEAD
     string key = "softmax_mps_out" + getTensorsStringKey(input, true, /*exclude_shape*/ true) + ":" + mem_format_key +
         ":" + std::to_string(dim_);
+=======
+    std::string key = "softmax_mps_out" + getTensorsStringKey(input, true, /*exclude_shape*/ true) + ":" +
+        mem_format_key + ":" + std::to_string(dim_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphUnrankedPlaceHolder(mpsGraph, getMPSDataType(input.scalar_type()));
@@ -159,7 +168,11 @@ TORCH_IMPL_FUNC(softmax_backward_mps_out)
     MPSShape* grad_shape = mps::getMPSShape(grad);
     NSString* ns_shape_key = [[grad_shape valueForKey:@"description"] componentsJoinedByString:@","];
 
+<<<<<<< HEAD
     string key = "softmax_backward_mps_out:" + getMPSTypeString(output) + ":" + [ns_shape_key UTF8String] + ":" +
+=======
+    std::string key = "softmax_backward_mps_out:" + getMPSTypeString(output) + ":" + [ns_shape_key UTF8String] + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(dim_);
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* softmaxTensor = mpsGraphRankedPlaceHolder(mpsGraph, getMPSDataType(output), grad_shape);

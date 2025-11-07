@@ -10,7 +10,11 @@ set PATH=C:\Program Files\CMake\bin;C:\Program Files\7-Zip;C:\ProgramData\chocol
 :: able to see what our cl.exe commands are (since you can actually
 :: just copy-paste them into a local Windows setup to just rebuild a
 :: single file.)
+<<<<<<< HEAD
 :: log sizes are too long, but leaving this here incase someone wants to use it locally
+=======
+:: log sizes are too long, but leaving this here in case someone wants to use it locally
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 :: set CMAKE_VERBOSE_MAKEFILE=1
 
 
@@ -37,6 +41,14 @@ call %INSTALLER_DIR%\activate_miniconda3.bat
 if errorlevel 1 goto fail
 if not errorlevel 0 goto fail
 
+<<<<<<< HEAD
+=======
+:: Update CMake
+call choco upgrade -y cmake --no-progress --installargs 'ADD_CMAKE_TO_PATH=System' --apply-install-arguments-to-dependencies --version=3.27.9
+if errorlevel 1 goto fail
+if not errorlevel 0 goto fail
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 call pip install mkl-include==2021.4.0 mkl-devel==2021.4.0
 if errorlevel 1 goto fail
 if not errorlevel 0 goto fail
@@ -88,7 +100,11 @@ set PATH=%CUDA_PATH%\bin;%CUDA_PATH%\libnvvp;%PATH%
 :cuda_build_end
 
 set DISTUTILS_USE_SDK=1
+<<<<<<< HEAD
 set PATH=%TMP_DIR_WIN%\bin;%PATH%
+=======
+set PATH=%TMP_DIR_WIN%\bin;C:\Program Files\CMake\bin;%PATH%
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 :: The latest Windows CUDA test is running on AWS G5 runner with A10G GPU
 if "%TORCH_CUDA_ARCH_LIST%" == "" set TORCH_CUDA_ARCH_LIST=8.6

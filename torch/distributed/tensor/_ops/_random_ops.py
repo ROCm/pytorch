@@ -2,8 +2,13 @@
 import torch
 from torch.distributed.tensor._op_schema import (
     OpSchema,
+<<<<<<< HEAD
     OpStrategy,
     PlacementStrategy,
+=======
+    OpSpec,
+    OpStrategy,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     StrategyType,
 )
 from torch.distributed.tensor._ops.utils import is_tensor_partial, register_op_strategy
@@ -31,6 +36,10 @@ def random_op_strategy(op_schema: OpSchema) -> StrategyType:
         if is_tensor_partial(arg_spec):
             # TODO: figure out how inplace random op should behave when it's partial
             raise RuntimeError(f"{op_schema.op} with Partial is not supported yet!")
+<<<<<<< HEAD
         random_strategy.strategies.append(PlacementStrategy(output_specs=arg_spec))
+=======
+        random_strategy.strategies.append(OpSpec(output_specs=arg_spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return random_strategy

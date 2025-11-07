@@ -169,6 +169,7 @@ else()
         CUDA::cudart)
 endif()
 
+<<<<<<< HEAD
 # nvToolsExt
 if(USE_SYSTEM_NVTX)
   find_path(nvtx3_dir NAMES nvtx3 PATHS ${CUDA_INCLUDE_DIRS})
@@ -186,6 +187,8 @@ else()
   set_property(TARGET torch::nvtoolsext PROPERTY INTERFACE_LINK_LIBRARIES CUDA::nvToolsExt)
 endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # cublas
 add_library(caffe2::cublas INTERFACE IMPORTED)
@@ -314,7 +317,11 @@ set_property(
     TARGET caffe2::nvrtc PROPERTY INTERFACE_LINK_LIBRARIES
     CUDA::nvrtc caffe2::cuda)
 
+<<<<<<< HEAD
 # Add onnx namepsace definition to nvcc
+=======
+# Add onnx namespace definition to nvcc
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if(ONNX_NAMESPACE)
   list(APPEND CUDA_NVCC_FLAGS "-DONNX_NAMESPACE=${ONNX_NAMESPACE}")
 else()

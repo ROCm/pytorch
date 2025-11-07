@@ -46,6 +46,10 @@ def cached():
     .. code-block:: python
 
         import torch.nn.utils.parametrize as P
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...
         with P.cached():
             output = model(inputs)
@@ -519,13 +523,18 @@ def register_parametrization(
         >>> print(torch.allclose(m.weight, m.weight.T))  # m.weight is now symmetric
         True
         >>> A = torch.rand(5, 5)
+<<<<<<< HEAD
         >>> A = A + A.T   # A is now symmetric
+=======
+        >>> A = A + A.T  # A is now symmetric
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> m.weight = A  # Initialize the weight to be the symmetric matrix A
         >>> print(torch.allclose(m.weight, A))
         True
 
         >>> class RankOne(nn.Module):
         >>>     def forward(self, x, y):
+<<<<<<< HEAD
         >>>         # Form a rank 1 matrix multiplying two vectors
         >>>         return x.unsqueeze(-1) @ y.unsqueeze(-2)
         >>>
@@ -537,6 +546,21 @@ def register_parametrization(
         >>>         return U[..., :, 0] * s0_sqrt, Vh[..., 0, :] * s0_sqrt
         >>>
         >>> linear_rank_one = P.register_parametrization(nn.Linear(4, 4), "weight", RankOne())
+=======
+        >>> # Form a rank 1 matrix multiplying two vectors
+        >>>         return x.unsqueeze(-1) @ y.unsqueeze(-2)
+        >>>
+        >>>     def right_inverse(self, Z):
+        >>> # Project Z onto the rank 1 matrices
+        >>>         U, S, Vh = torch.linalg.svd(Z, full_matrices=False)
+        >>> # Return rescaled singular vectors
+        >>>         s0_sqrt = S[0].sqrt().unsqueeze(-1)
+        >>>         return U[..., :, 0] * s0_sqrt, Vh[..., 0, :] * s0_sqrt
+        >>>
+        >>> linear_rank_one = P.register_parametrization(
+        ...     nn.Linear(4, 4), "weight", RankOne()
+        ... )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> print(torch.linalg.matrix_rank(linear_rank_one.weight).item())
         1
 
@@ -594,9 +618,15 @@ def register_parametrization(
 
         # add the new parametrization to the parametrization list
         assert isinstance(module.parametrizations, ModuleDict)  # Make mypy happy
+<<<<<<< HEAD
         module.parametrizations[tensor_name].append(parametrization)
         # If unsafe was True in previous parametrization, keep it enabled
         module.parametrizations[tensor_name].unsafe |= unsafe  # type: ignore[index, union-attr]
+=======
+        module.parametrizations[tensor_name].append(parametrization)  # type: ignore[operator]
+        # If unsafe was True in previous parametrization, keep it enabled
+        module.parametrizations[tensor_name].unsafe |= unsafe  # type: ignore[index, union-attr, operator]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif tensor_name in module._buffers or tensor_name in module._parameters:
         # Set the parametrization mechanism
         # Fetch the original buffer or parameter
@@ -686,6 +716,10 @@ def remove_parametrizations(
     parametrizations = module.parametrizations[tensor_name]
     if parametrizations.is_tensor:
         original = parametrizations.original
+<<<<<<< HEAD
+=======
+        assert isinstance(original, torch.Tensor), "is_tensor promised us a Tensor"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if leave_parametrized:
             with torch.no_grad():
                 t = getattr(module, tensor_name)
@@ -792,7 +826,13 @@ def transfer_parametrizations_and_params(
                 )
 
             # apply the params's parametrizations to to_module
+<<<<<<< HEAD
             for param_func in from_module.parametrizations[parameter_name]:
+=======
+            for param_func in from_module.parametrizations[  # type: ignore[attr-defined]
+                parameter_name
+            ]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 register_parametrization(to_module, parameter_name, param_func)
             assert isinstance(to_module.parametrizations, ModuleDict)  # for mypy
 

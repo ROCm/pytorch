@@ -74,7 +74,11 @@ def load(
     For each ``Stateful`` object (having both a ``state_dict`` and a ``load_state_dict``),
     load will first call ``state_dict`` before attempting deserialization, followed by
     ``load_state_dict`` once the deserialization is complete.
+<<<<<<< HEAD
     For each non-``Stateful`` object, load will deserailize the object, and then replace
+=======
+    For each non-``Stateful`` object, load will deserialize the object, and then replace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     it in the ``state_dict`` with the deserialized object.
 
     .. warning::
@@ -110,7 +114,11 @@ def load(
             checkpoint_id. If checkpoint_id is also None, an exception will
             be raised. (Default: ``None``)
         planner (Optional[LoadPlanner]):
+<<<<<<< HEAD
             Instance of LoadPlanner. If this is not specificed, the default
+=======
+            Instance of LoadPlanner. If this is not specified, the default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             planner will be used. (Default: ``None``)
         process_group (Optional[ProcessGroup]):
             ProcessGroup to be used for cross-rank synchronization.
@@ -322,7 +330,11 @@ def _load_state_dict_from_keys(
         storage_reader=storage_reader,
         process_group=process_group,
         no_dist=no_dist,
+<<<<<<< HEAD
         planner=_EmptyStateDictLoadPlanner(keys=keys or set()),
+=======
+        planner=_EmptyStateDictLoadPlanner(keys=keys),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     return sd

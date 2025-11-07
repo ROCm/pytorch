@@ -19,7 +19,10 @@ from torch._dynamo.testing import CompileCounterWithBackend
 from torch._higher_order_ops.wrap import tag_activation_checkpoint
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_CUDNN_ATTENTION,
+<<<<<<< HEAD
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SM90OrLater,
 )
 from torch.testing._internal.common_device_type import instantiate_device_type_tests
@@ -82,9 +85,15 @@ def count_ops(
             for node in gm.graph.nodes:
                 if match_rng_op(node, op) or node.target == op:
                     actual_count += 1
+<<<<<<< HEAD
             assert (
                 actual_count >= freq_ge
             ), f"In graph {gm}, expected {op} to have occurred at least {freq_ge} times in the graph, but got {actual_count}."
+=======
+            assert actual_count >= freq_ge, (
+                f"In graph {gm}, expected {op} to have occurred at least {freq_ge} times in the graph, but got {actual_count}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return gm
 
 
@@ -968,6 +977,52 @@ Non-primal fwd outputs from model w/o backward hook: {mod_no_hook_fwd_outputs_no
         self._validate(fn, backend, x, y)
         self._compare_orig_and_checkpointed_fns(gn, fn, x, y)
 
+<<<<<<< HEAD
+=======
+    @requires_cuda
+    @unittest.skipIf(IS_WINDOWS, "torch.compile doesn't work with windows")
+    def test_compile_selective_checkpoint_list_ops(self, device):
+        def selective_checkpointing_context_fn():
+            # recompute everything
+            no_recompute_list = []
+            return create_selective_checkpoint_contexts(
+                _get_custom_policy(no_recompute_list=no_recompute_list)
+            )
+
+        def gn(x, y):
+            return torch.cat([x, y]).sin()
+
+        def fn(x, y):
+            return torch.utils.checkpoint.checkpoint(
+                gn,
+                x,
+                y,
+                use_reentrant=False,
+                context_fn=selective_checkpointing_context_fn,
+            )
+
+        x = torch.randn(4, 4, requires_grad=True, device=device)
+        y = torch.randn(4, 4, requires_grad=True, device=device)
+
+        fw_compiler = functools.partial(
+            count_ops,
+            freqs=[1],
+            ops=[torch.ops.aten.cat.default],
+        )
+        bw_compiler = functools.partial(
+            count_ops,
+            freqs=[1],
+            ops=[torch.ops.aten.cat.default],
+        )
+        backend = aot_autograd(
+            fw_compiler=fw_compiler,
+            bw_compiler=bw_compiler,
+            partition_fn=min_cut_rematerialization_partition,
+        )
+        self._validate(fn, backend, x, y)
+        self._compare_orig_and_checkpointed_fns(gn, fn, x, y)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(IS_WINDOWS, "torch.compile doesn't work with windows")
     @unittest.skip(
         "In-place op support in selective checkpointing + torch.compile "
@@ -1285,10 +1340,13 @@ Non-primal fwd outputs from model w/o backward hook: {mod_no_hook_fwd_outputs_no
         self.assertEqual(ref, res)
 
     @requires_cuda
+<<<<<<< HEAD
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION and not PLATFORM_SUPPORTS_CUDNN_ATTENTION,
         "Flash and CuDNN attention not support on GPU arch."
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pattern_matcher(self, device):
         # Check that the sdpa op is recomputed in the backward graph
         # tests percolate_tags

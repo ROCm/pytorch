@@ -31,6 +31,7 @@ def build_ArmComputeLibrary() -> None:
         "build=native",
     ]
     acl_install_dir = "/acl"
+<<<<<<< HEAD
     acl_checkout_dir = "ComputeLibrary"
     os.makedirs(acl_install_dir)
     check_call(
@@ -52,6 +53,30 @@ def build_ArmComputeLibrary() -> None:
         cwd=acl_checkout_dir,
     )
     for d in ["arm_compute", "include", "utils", "support", "src"]:
+=======
+    acl_checkout_dir = os.getenv("ACL_SOURCE_DIR", "ComputeLibrary")
+    if os.path.isdir(acl_install_dir):
+        shutil.rmtree(acl_install_dir)
+    if not os.path.isdir(acl_checkout_dir) or not len(os.listdir(acl_checkout_dir)):
+        check_call(
+            [
+                "git",
+                "clone",
+                "https://github.com/ARM-software/ComputeLibrary.git",
+                "-b",
+                "v25.02",
+                "--depth",
+                "1",
+                "--shallow-submodules",
+            ]
+        )
+
+    check_call(
+        ["scons", "Werror=1", f"-j{os.cpu_count()}"] + acl_build_flags,
+        cwd=acl_checkout_dir,
+    )
+    for d in ["arm_compute", "include", "utils", "support", "src", "build"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shutil.copytree(f"{acl_checkout_dir}/{d}", f"{acl_install_dir}/{d}")
 
 
@@ -87,7 +112,11 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
         "/usr/local/cuda/lib64/libcusparseLt.so.0",
         "/usr/local/cuda/lib64/libcusolver.so.11",
         "/usr/local/cuda/lib64/libcurand.so.10",
+<<<<<<< HEAD
         "/usr/local/cuda/lib64/libnvToolsExt.so.1",
+=======
+        "/usr/local/cuda/lib64/libnccl.so.2",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "/usr/local/cuda/lib64/libnvJitLink.so.12",
         "/usr/local/cuda/lib64/libnvrtc.so.12",
         "/usr/local/cuda/lib64/libcudnn_adv.so.9",
@@ -107,9 +136,15 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
         "/usr/local/lib/libnvpl_blas_core.so.0",
     ]
 
+<<<<<<< HEAD
     if "128" in desired_cuda:
         libs_to_copy += [
             "/usr/local/cuda/lib64/libnvrtc-builtins.so.12.8",
+=======
+    if "129" in desired_cuda:
+        libs_to_copy += [
+            "/usr/local/cuda/lib64/libnvrtc-builtins.so.12.9",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "/usr/local/cuda/lib64/libcufile.so.0",
             "/usr/local/cuda/lib64/libcufile_rdma.so.1",
         ]
@@ -203,8 +238,15 @@ if __name__ == "__main__":
     ).decode()
 
     print("Building PyTorch wheel")
+<<<<<<< HEAD
     build_vars = "MAX_JOBS=5 CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000 "
     os.system("cd /pytorch; python setup.py clean")
+=======
+    build_vars = "CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000 "
+    # MAX_JOB=5 is not required for CPU backend (see commit 465d98b)
+    if enable_cuda:
+        build_vars = "MAX_JOBS=5 " + build_vars
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     override_package_version = os.getenv("OVERRIDE_PACKAGE_VERSION")
     desired_cuda = os.getenv("DESIRED_CUDA")

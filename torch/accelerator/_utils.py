@@ -16,7 +16,11 @@ def _get_device_index(device: _device_t, optional: bool = False) -> int:
             raise RuntimeError("Accelerator expected")
         if acc.type != device.type:
             raise ValueError(
+<<<<<<< HEAD
                 f"{device.type} doesn't match the current accelerator {torch.accelerator.current_accelerator()}."
+=======
+                f"{device.type} doesn't match the current accelerator {acc}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         device_index = device.index
     if device_index is None:

@@ -21,7 +21,11 @@ from torchgen.model import (
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Sequence
+=======
+    from collections.abc import Iterable, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -201,6 +205,33 @@ if TYPE_CHECKING:
 # For examples, only pyi signatures include return types.
 
 
+<<<<<<< HEAD
+=======
+def format_function_signature(
+    name: str, arguments: Iterable[str] = (), return_type: str | None = None
+) -> str:
+    if not isinstance(arguments, (list, tuple)):
+        arguments = tuple(arguments)
+    return_type = f" -> {return_type}" if return_type is not None else ""
+
+    sig = f"def {name}({', '.join(arguments)}){return_type}: ..."
+    if len(sig) <= 80 or len(arguments) == 0 or tuple(arguments) == ("self",):
+        return sig
+
+    lines = [
+        f"def {name}(",
+        *(f"    {arg}," for arg in arguments),
+        f"){return_type}: ...",
+    ]
+    sig = "\n".join(lines)
+    if all(len(line) <= 80 for line in lines):
+        return sig
+    # ruff format bug for compound statements: https://github.com/astral-sh/ruff/issues/18658
+    # use `skip` instead of `on` + `off`
+    return sig.removesuffix(" ...") + "  # fmt: skip\n    ..."
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass(frozen=True)
 class PythonReturns:
     returns: tuple[Return, ...]
@@ -265,7 +296,11 @@ class PythonArgument:
 
         # pyi merges the _out and functional variants into the same signature, with an optional out arg
         if name == "out" and type_str == "Tensor" and not deprecated:
+<<<<<<< HEAD
             type_str = "Optional[" + type_str + "]"
+=======
+            type_str = f"{type_str} | None".replace(" | None | None", " | None")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # pyi deprecated signatures don't get defaults for their out arg
         treat_as_no_default = (
@@ -421,7 +456,11 @@ class PythonSignature:
         # pyi also includes self (with no typing/defaults) for methods
         if self.method:
             schema_formals.insert(0, "self")
+<<<<<<< HEAD
         return f"def {self.name}({', '.join(schema_formals)}) -> {returns_str}: ..."
+=======
+        return format_function_signature(self.name, schema_formals, returns_str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def signature_str_pyi_vararg(self, *, skip_outputs: bool = False) -> str | None:
         # only pyi uses vararg signatures
@@ -431,6 +470,7 @@ class PythonSignature:
         ]
         # vararg only applies to pyi signatures. vararg variants are not generated for all signatures
         num_args = self.arguments_count()
+<<<<<<< HEAD
         num_positionalargs = len(self.input_args)
 
         have_vararg_version = False
@@ -444,6 +484,19 @@ class PythonSignature:
                 have_vararg_version = True
 
         if not have_vararg_version:
+=======
+        if num_args == 0:
+            return None
+
+        num_positionalargs = len(self.input_args)
+
+        vararg_type = args[0].type
+        if not (
+            isinstance(vararg_type, ListType)
+            and str(vararg_type.elem) in ["int", "SymInt"]
+            and num_positionalargs == 1
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
 
         # Below are the major changes in vararg vs. regular pyi signatures
@@ -457,7 +510,11 @@ class PythonSignature:
         # pyi also includes self (with no typing/defaults) for methods
         if self.method:
             schema_formals.insert(0, "self")
+<<<<<<< HEAD
         return f"def {self.name}({', '.join(schema_formals)}) -> {returns_str}: ..."
+=======
+        return format_function_signature(self.name, schema_formals, returns_str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # The deprecated python signature involves some special logic, so create a
@@ -498,7 +555,11 @@ class PythonSignatureDeprecated(PythonSignature):
             schema_formals.insert(positional_argc, "*")
 
         returns_str = returns_str_pyi(self)
+<<<<<<< HEAD
         return f"def {self.name}({', '.join(schema_formals)}) -> {returns_str}: ..."
+=======
+        return format_function_signature(self.name, schema_formals, returns_str)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def signature_str_pyi_vararg(self, *, skip_outputs: bool = False) -> str | None:
         # the codegen doesn't include vararg variants for deprecated signatures
@@ -915,17 +976,29 @@ def argument_type_str_pyi(t: Type) -> str:
         t = t.elem
         add_optional = True
 
+<<<<<<< HEAD
+=======
+    ret = ""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(t, BaseType):
         if t.name in [BaseTy.int, BaseTy.DeviceIndex]:
             ret = "_int"
         if t.name == BaseTy.SymInt:
+<<<<<<< HEAD
             ret = "Union[_int, SymInt]"
+=======
+            ret = "_int | SymInt"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif t.name == BaseTy.float:
             ret = "_float"
         elif t.name == BaseTy.str:
             ret = "str"
         elif t.name == BaseTy.Scalar:
+<<<<<<< HEAD
             ret = "Union[Number, _complex]"
+=======
+            ret = "Number | _complex"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif t.name == BaseTy.ScalarType:
             ret = "_dtype"
         elif t.name == BaseTy.bool:
@@ -935,6 +1008,7 @@ def argument_type_str_pyi(t: Type) -> str:
         elif t.name == BaseTy.Layout:
             ret = "_layout"
         elif t.name == BaseTy.Device:
+<<<<<<< HEAD
             ret = "Optional[DeviceLikeType]"
         elif t.name == BaseTy.MemoryFormat:
             ret = "memory_format"
@@ -942,12 +1016,22 @@ def argument_type_str_pyi(t: Type) -> str:
             ret = "Union[str, ellipsis, None]"
         elif t.name == BaseTy.Storage:
             ret = "Union[Storage, UntypedStorage]"
+=======
+            ret = "DeviceLikeType | None"
+        elif t.name == BaseTy.MemoryFormat:
+            ret = "memory_format"
+        elif t.name == BaseTy.Dimname:
+            ret = "str | EllipsisType | None"
+        elif t.name == BaseTy.Storage:
+            ret = "Storage | UntypedStorage"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif t.name in [BaseTy.Tensor, BaseTy.Generator, BaseTy.Stream]:
             # These python schema type names line up with their function schema names
             ret = t.name.name
 
     elif isinstance(t, ListType):
         if str(t.elem) == "int":
+<<<<<<< HEAD
             ret = "Union[_int, _size]" if t.size is not None else "_size"
         elif t.is_tensor_like():
             # TODO: this doesn't seem right...
@@ -958,12 +1042,28 @@ def argument_type_str_pyi(t: Type) -> str:
                 "Union[Tensor, tuple[Tensor, ...], list[Tensor]]"
                 if t.size is not None
                 else "Union[tuple[Tensor, ...], list[Tensor]]"
+=======
+            ret = "_int | _size" if t.size is not None else "_size"
+        elif t.is_tensor_like():
+            # TODO: this doesn't seem right...
+            # Tensor?[] currently translates to tuple[Tensor, ...] | list[Tensor] | None
+            # It should probably translate to   tuple[Tensor | None, ...] | list[Tensor | None]
+            add_optional = True
+            ret = (
+                "Tensor | tuple[Tensor, ...] | list[Tensor]"
+                if t.size is not None
+                else "tuple[Tensor, ...] | list[Tensor]"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         elif str(t.elem) == "float":
             ret = "Sequence[_float]"
         elif str(t.elem) == "SymInt" and t.size is not None:
             elem = argument_type_str_pyi(t.elem)
+<<<<<<< HEAD
             ret = f"Union[{elem}, Sequence[{elem}]]"
+=======
+            ret = f"{elem} | Sequence[{elem}]"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             elem = argument_type_str_pyi(t.elem)
             ret = f"Sequence[{elem}]"
@@ -972,7 +1072,11 @@ def argument_type_str_pyi(t: Type) -> str:
         raise RuntimeError(f"unrecognized type {repr(t)}")
 
     if add_optional:
+<<<<<<< HEAD
         ret = "Optional[" + ret + "]"
+=======
+        ret = f"{ret} | None".replace(" | None | None", " | None")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return ret
 
@@ -983,13 +1087,21 @@ def return_type_str_pyi(t: Type) -> str:
 
     if isinstance(t, OptionalType):
         inner = return_type_str_pyi(t.elem)
+<<<<<<< HEAD
         return f"Optional[{inner}]"
+=======
+        return f"{inner} | None".replace(" | None | None", " | None")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if isinstance(t, BaseType):
         if t.name == BaseTy.Device:
             return "_device"
         elif t.name == BaseTy.Dimname:
+<<<<<<< HEAD
             return "Optional[str]"
+=======
+            return "str | None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return argument_type_str_pyi(t)
 
@@ -1010,6 +1122,7 @@ def returns_structseq_pyi(signature: PythonSignature) -> tuple[str, str] | None:
         # does not allow us to override __init__.
         seq_type = f"tuple[{', '.join(python_returns)}]"
         structseq_def_lines = [
+<<<<<<< HEAD
             f"class {structseq_name}({seq_type}):",
         ]
         for name, typ in zip(field_names, python_returns):
@@ -1017,14 +1130,34 @@ def returns_structseq_pyi(signature: PythonSignature) -> tuple[str, str] | None:
                 [
                     "    @property",
                     f"    def {name}(self) -> {typ}: ...",
+=======
+            f"class {structseq_name}({seq_type}):  # fmt: skip",
+        ]
+        for name, ret_type in zip(field_names, python_returns):
+            structseq_def_lines.extend(
+                [
+                    "    @property",
+                    f"    def {name}(self) -> {ret_type}: ...",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             )
         structseq_def_lines.extend(
             [
+<<<<<<< HEAD
                 f"    def __new__(cls, sequence: {seq_type}): ...",
                 f"    n_fields: _int = {len(field_names)}",
                 f"    n_sequeunce_fields: _int = {len(field_names)}",
                 "    n_unnamed_fields: _int = 0",
+=======
+                "    def __new__(",
+                "        cls,",
+                f"        sequence: {seq_type},",
+                "    ) -> Self:  # fmt: skip",
+                "        ...",
+                f"    n_fields: Final[_int] = {len(field_names)}",
+                f"    n_sequence_fields: Final[_int] = {len(field_names)}",
+                "    n_unnamed_fields: Final[_int] = 0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "    def __init_subclass__(cls) -> NoReturn: ...  # prohibit subclassing",
                 "",  # add an extra newline
             ]
@@ -1032,15 +1165,30 @@ def returns_structseq_pyi(signature: PythonSignature) -> tuple[str, str] | None:
         structseq_def = "\n".join(structseq_def_lines)
         # Example:
         # structseq_def = (
+<<<<<<< HEAD
         #     "class max(tuple[Tensor, Tensor]):\n"
+=======
+        #     "class max(tuple[Tensor, Tensor]):  # fmt: skip\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #     "    @property\n"
         #     "    def values(self) -> Tensor: ...\n"
         #     "    @property\n"
         #     "    def indices(self) -> Tensor: ...\n"
+<<<<<<< HEAD
         #     "    def __new__(cls, sequence: tuple[Tensor, Tensor]): ...\n"
         #     "    n_fields: _int = 2",
         #     "    n_sequeunce_fields: _int = 2",
         #     "    n_unnamed_fields: _int = 0",
+=======
+        #     "    def __new__(\n"
+        #     "        cls,\n"
+        #     "        sequence: tuple[Tensor, Tensor],\n"
+        #     "    ) -> Self:  # fmt: skip\n"
+        #     "        ...\n"
+        #     "    n_fields: Final[_int] = 2",
+        #     "    n_sequence_fields: Final[_int] = 2",
+        #     "    n_unnamed_fields: Final[_int] = 0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #     "    def __init_subclass__(cls) -> NoReturn: ...  # prohibit subclassing",
         # )
         return structseq_name, structseq_def

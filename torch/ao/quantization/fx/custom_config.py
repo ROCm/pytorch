@@ -355,9 +355,15 @@ class PrepareCustomConfig:
         ) in self.float_to_observed_mapping.items():
             if FLOAT_TO_OBSERVED_DICT_KEY not in d:
                 d[FLOAT_TO_OBSERVED_DICT_KEY] = {}
+<<<<<<< HEAD
             d[FLOAT_TO_OBSERVED_DICT_KEY][
                 _get_quant_type_to_str(quant_type)
             ] = float_to_observed_mapping
+=======
+            d[FLOAT_TO_OBSERVED_DICT_KEY][_get_quant_type_to_str(quant_type)] = (
+                float_to_observed_mapping
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(self.non_traceable_module_names) > 0:
             d[NON_TRACEABLE_MODULE_NAME_DICT_KEY] = self.non_traceable_module_names
         if len(self.non_traceable_module_classes) > 0:
@@ -460,9 +466,15 @@ class ConvertCustomConfig:
         ) in self.observed_to_quantized_mapping.items():
             if OBSERVED_TO_QUANTIZED_DICT_KEY not in d:
                 d[OBSERVED_TO_QUANTIZED_DICT_KEY] = {}
+<<<<<<< HEAD
             d[OBSERVED_TO_QUANTIZED_DICT_KEY][
                 _get_quant_type_to_str(quant_type)
             ] = observed_to_quantized_mapping
+=======
+            d[OBSERVED_TO_QUANTIZED_DICT_KEY][_get_quant_type_to_str(quant_type)] = (
+                observed_to_quantized_mapping
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(self.preserved_attributes) > 0:
             d[PRESERVED_ATTRIBUTES_DICT_KEY] = self.preserved_attributes
         return d
@@ -474,7 +486,13 @@ class FuseCustomConfig:
 
     Example usage::
 
+<<<<<<< HEAD
         fuse_custom_config = FuseCustomConfig().set_preserved_attributes(["attr1", "attr2"])
+=======
+        fuse_custom_config = FuseCustomConfig().set_preserved_attributes(
+            ["attr1", "attr2"]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def __init__(self) -> None:

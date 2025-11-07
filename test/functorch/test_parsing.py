@@ -24,6 +24,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 from unittest import mock
 
@@ -107,7 +111,11 @@ class TestParsedExpression(TestCase):
             ParsedExpression("(a) ((b c) (d ...))")
 
         # invalid identifiers
+<<<<<<< HEAD
         ParsedExpression("camelCase under_scored cApiTaLs \u00DF ...")
+=======
+        ParsedExpression("camelCase under_scored cApiTaLs \u00df ...")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaises(ValueError):
             ParsedExpression("1a")
         with self.assertRaises(ValueError):

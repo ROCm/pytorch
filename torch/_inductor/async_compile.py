@@ -3,11 +3,19 @@ from __future__ import annotations
 
 import atexit
 import functools
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import multiprocessing
 import os
 import sys
+<<<<<<< HEAD
 from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
+=======
+from concurrent.futures import Future, ThreadPoolExecutor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from concurrent.futures.process import BrokenProcessPool
 from functools import partial
 from time import time, time_ns
@@ -32,15 +40,31 @@ from torch._inductor.codecache import (
     HalideCodeCache,
     LambdaFuture,
     ROCmCodeCache,
+<<<<<<< HEAD
     torch_key,
 )
 from torch._inductor.compile_worker.subproc_pool import AnyPool, SubprocPool
 from torch._inductor.compile_worker.watchdog import _async_compile_initializer
+=======
+    StaticAutotunerFuture,
+    torch_key,
+)
+from torch._inductor.compile_worker.subproc_pool import AnyPool, SubprocPool
+from torch._inductor.compile_worker.tracked_process_pool import (
+    TrackedProcessPoolExecutor,
+)
+from torch._inductor.compile_worker.utils import _async_compile_initializer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.runtime.compile_tasks import (
     _set_triton_ptxas_path,
     _worker_compile_triton,
 )
+<<<<<<< HEAD
 from torch._inductor.utils import clear_on_fresh_inductor_cache
+=======
+from torch._inductor.utils import clear_on_fresh_cache
+from torch._inductor.virtualized import V
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.hub import _Faketqdm, tqdm
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._triton import has_triton_package
@@ -58,6 +82,11 @@ kernel_code_log = torch._logging.getArtifactLogger(__name__, "kernel_code")
 
 log = logging.getLogger(__name__)
 
+<<<<<<< HEAD
+=======
+_triton_kernel_metrics: Optional[dict[str, dict[str, Any]]] = None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def pre_fork_setup():
     """
@@ -85,6 +114,7 @@ def caching_device_properties():
 
 
 def _compile_start() -> None:
+<<<<<<< HEAD
     global _t0
     if _t0 is None:
         _t0 = time()
@@ -92,11 +122,44 @@ def _compile_start() -> None:
 
 def _compile_end() -> None:
     global _cumulative_compile_time, _t0
+=======
+    global _t0, _triton_kernel_metrics
+    if _t0 is None:
+        _t0 = time()
+    if _triton_kernel_metrics is None:
+        _triton_kernel_metrics = {}
+
+
+def _compile_end() -> None:
+    global _cumulative_compile_time, _t0, _triton_kernel_metrics
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _t0 is not None:
         t1 = time()
         _cumulative_compile_time += t1 - _t0
         _t0 = None
         # print("CUMULATIVE COMPILE TIME", _cumulative_compile_time)
+<<<<<<< HEAD
+=======
+    if _triton_kernel_metrics:
+        # Log triton kernel info
+        sorted_info = dict(sorted(_triton_kernel_metrics.items()))
+        torch._logging.trace_structured(
+            "artifact",
+            metadata_fn=lambda: {
+                "name": "triton_kernel_info",
+                "encoding": "json",
+            },
+            payload_fn=lambda: json.dumps(sorted_info),
+        )
+        _triton_kernel_metrics = None
+
+
+def _add_triton_kernel_info(kernel_name: str, info: dict[str, Any]):
+    global _triton_kernel_metrics
+    # Must be called between _compile_start and _compile_end
+    if _triton_kernel_metrics is not None:
+        _triton_kernel_metrics[kernel_name] = info
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _IS_WINDOWS = sys.platform == "win32"
@@ -136,7 +199,11 @@ def get_compile_threads() -> int:
     return config.compile_threads
 
 
+<<<<<<< HEAD
 @clear_on_fresh_inductor_cache
+=======
+@clear_on_fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CompiledTritonKernels:
     """
     In memory cache for storing compiled triton kernels.
@@ -147,7 +214,11 @@ class CompiledTritonKernels:
     Currently, the cache stores Future objects, but it should be generalizable for any kernels.
     """
 
+<<<<<<< HEAD
     _cache: dict[str, LambdaFuture] = {}
+=======
+    _cache: dict[str, CodeCacheFuture] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def key(kernel_src: str):
@@ -160,7 +231,11 @@ class CompiledTritonKernels:
         return code_hash(kernel_src, extra=torch_key())
 
     @staticmethod
+<<<<<<< HEAD
     def save(kernel_src: str, future: LambdaFuture):
+=======
+    def save(kernel_src: str, future: CodeCacheFuture):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Saves a compiled triton kernel to the cache.
         TODO: We store a LambdaFuture as that's the callable returned by async_compile.triton,
@@ -173,9 +248,15 @@ class CompiledTritonKernels:
         CompiledTritonKernels._cache[key] = future
 
     @staticmethod
+<<<<<<< HEAD
     def get(kernel_src: str, default: Any) -> LambdaFuture:
         key = CompiledTritonKernels.key(kernel_src)
         return CompiledTritonKernels._cache.get(key, default)
+=======
+    def get(kernel_src: str) -> Optional[CodeCacheFuture]:
+        key = CompiledTritonKernels.key(kernel_src)
+        return CompiledTritonKernels._cache.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def cache_clear():
@@ -184,6 +265,11 @@ class CompiledTritonKernels:
     @staticmethod
     def remove_future(kernel_src: str) -> None:
         key = CompiledTritonKernels.key(kernel_src)
+<<<<<<< HEAD
+=======
+
+        # Delete the LambdaFuture if there is one
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if key in CompiledTritonKernels._cache:
             del CompiledTritonKernels._cache[key]
 
@@ -223,7 +309,11 @@ class AsyncCompile:
                 os.environ["TORCH_WARM_POOL"] = "0"
             pre_fork_setup()
             ctx = multiprocessing.get_context(config.worker_start_method)
+<<<<<<< HEAD
             pool = ProcessPoolExecutor(
+=======
+            pool = TrackedProcessPoolExecutor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 get_compile_threads(),
                 mp_context=ctx,
                 initializer=partial(_async_compile_initializer, os.getpid()),
@@ -281,9 +371,20 @@ class AsyncCompile:
         - The AutotuneCache, if enabled, is constructed on each worker per triton config
           and pickled by to us via `CachingAutotuner.save_cache_hook`.
         """
+<<<<<<< HEAD
         if future := CompiledTritonKernels.get(source_code, None):
             counters["inductor"]["async_compile_cache_hit"] += 1
             return future
+=======
+        load_kernel = functools.partial(
+            _load_triton_kernel_from_source, kernel_name, source_code
+        )
+
+        def reload_kernel_in_parent():
+            # Benchmark how often this happens
+            with dynamo_timed("reload_kernel_in_parent"):
+                return load_kernel()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         counters["inductor"]["async_compile_cache_miss"] += 1
 
@@ -295,21 +396,50 @@ class AsyncCompile:
                 torch._inductor.codecache.PyCodeCache.load(source_code), kernel_name
             )
 
+<<<<<<< HEAD
         load_kernel = functools.partial(
             _load_triton_kernel_from_source, kernel_name, source_code
         )
         is_parallel = self.use_process_pool()
         set_feature_use("parallel_compile_post_warmup", is_parallel)
+=======
+        is_parallel = self.use_process_pool()
+        set_feature_use("parallel_compile_post_warmup", is_parallel)
+
+        compile_id = torch._guards.CompileContext.current_compile_id()
+        is_backward = getattr(V.graph, "is_backward", False)
+
+        if (future := CompiledTritonKernels.get(source_code)) is not None:
+            counters["inductor"]["async_compile_cache_hit"] += 1
+            # Set reload_kernel_from_src properly based on source_code
+            if isinstance(future, StaticAutotunerFuture):
+                # Remove the future now that we've cache hit
+                CompiledTritonKernels.remove_future(source_code)
+                future.reload_kernel_from_src = reload_kernel_in_parent
+            if is_parallel:
+                return future
+            else:
+                return future.result()
+
+        # Cache miss
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_parallel:
             # We want to support changing these env vars after (and while) the
             # process pool is running, so pass them to the subprocess to reset.
             env_vars = ["TORCHINDUCTOR_CACHE_DIR", "TRITON_CACHE_DIR"]
             extra_env = {v: os.environ[v] for v in env_vars if v in os.environ}
+<<<<<<< HEAD
+=======
+            extra_config = {
+                "use_static_cuda_launcher": torch._inductor.config.use_static_cuda_launcher
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             task = self.process_pool().submit(
                 _worker_compile_triton,
                 load_kernel,
                 extra_env,
+<<<<<<< HEAD
             )
 
             def reload_kernel_in_parent():
@@ -325,6 +455,26 @@ class AsyncCompile:
                 kernel.precompile(
                     warm_cache_only=False, reload_kernel=reload_kernel_in_parent
                 )
+=======
+                extra_config,
+            )
+
+            def get_result() -> CachingAutotuner:
+                kernel, elapsed_us = task.result()
+                # Now that we've compiled, we should clear the future
+                # so it can't be used again
+                kernel.set_compile_info(compile_id, is_backward)
+                CompiledTritonKernels.remove_future(source_code)
+
+                kernel.precompile(
+                    warm_cache_only=False,
+                    reload_kernel=reload_kernel_in_parent,
+                    static_triton_bundle_key=CompiledTritonKernels.key(source_code),
+                )
+                info = kernel.autotune_cache_info or {}
+                info["compile_time_us"] = elapsed_us
+                _add_triton_kernel_info(kernel_name, info)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 get_metrics_context().add_top_n(
                     "triton_kernel_compile_times_us", kernel_name, elapsed_us
                 )
@@ -339,15 +489,33 @@ class AsyncCompile:
                 log_pt2_compile_event=True,
                 dynamo_compile_column_us="triton_compile_time_us",
                 log_waitcounter=True,
+<<<<<<< HEAD
+=======
+                waitcounter_name_override="compile_triton",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 start_ns = time_ns()
                 _set_triton_ptxas_path()
                 kernel = load_kernel()
+<<<<<<< HEAD
                 kernel.precompile(warm_cache_only=False)
+=======
+                kernel.set_compile_info(compile_id, is_backward)
+                kernel.precompile(
+                    warm_cache_only=False,
+                    static_triton_bundle_key=CompiledTritonKernels.key(source_code),
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 elapsed_us = (time_ns() - start_ns) // 1000
                 get_metrics_context().add_top_n(
                     "triton_kernel_compile_times_us", kernel_name, elapsed_us
                 )
+<<<<<<< HEAD
+=======
+                info = kernel.autotune_cache_info or {}
+                info["compile_time_us"] = elapsed_us
+                _add_triton_kernel_info(kernel_name, info)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return kernel
 
     def multi_kernel(self, *args, **kwargs) -> Any:
@@ -381,7 +549,12 @@ class AsyncCompile:
             if aot_compile:
                 # We rely on JITInductor to compile the CUDA code,
                 # so that we can load it into AOTInductor.
+<<<<<<< HEAD
                 CUDACodeCache.compile(source_code, "o")
+=======
+                output_path, *_ = CUDACodeCache.compile(source_code, "o")
+                CUDACodeCache.aot_kernels_o.append(output_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return CUDACodeCache.load(source_code, dst_file_ext)[0]
 
         return self.submit(task)
@@ -396,7 +569,12 @@ class AsyncCompile:
 
         def task():
             if aot_compile:
+<<<<<<< HEAD
                 _ = ROCmCodeCache.compile(source_code, dst_file_ext="o")
+=======
+                output_path, *_ = ROCmCodeCache.compile(source_code, dst_file_ext="o")
+                ROCmCodeCache.aot_kernels_o.append(output_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if config.rocm.generate_test_runner:
                 _ = ROCmCodeCache.compile(source_code, dst_file_ext="exe")
             return ROCmCodeCache.load(source_code, dst_file_ext)[0]
@@ -420,6 +598,10 @@ class AsyncCompile:
                 log_pt2_compile_event=True,
                 dynamo_compile_column_us="triton_compile_time_us",
                 log_waitcounter=True,
+<<<<<<< HEAD
+=======
+                waitcounter_name_override="compile_triton",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 self._wait_futures(scope)
 
@@ -437,12 +619,20 @@ class AsyncCompile:
             disable=config.disable_progress,
             delay=0,
         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for key, result in kernels.items():
             if config.verbose_progress and not isinstance(pbar, _Faketqdm):
                 pbar.set_postfix_str(key)
             try:
+<<<<<<< HEAD
                 scope[key] = result.result()
+=======
+                kernel = result.result()
+                scope[key] = kernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             except BrokenProcessPool as e:
                 raise RuntimeError(
                     "A compilation subprocess exited unexpectedly. This "

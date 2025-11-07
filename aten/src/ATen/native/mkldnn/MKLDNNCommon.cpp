@@ -57,6 +57,13 @@ ideep::tensor::data_type get_mkldnn_dtype(ScalarType type) {
       return ideep::tensor::data_type::bf16;
     case ScalarType::Half:
       return ideep::tensor::data_type::f16;
+<<<<<<< HEAD
+=======
+    case ScalarType::Float8_e4m3fn:
+      return ideep::tensor::data_type::f8_e4m3;
+    case ScalarType::Float8_e5m2:
+      return ideep::tensor::data_type::f8_e5m2;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       TORCH_CHECK(false, "get_mkldnn_dtype: unsupported data type");
   }
@@ -161,8 +168,29 @@ ideep::tensor itensor_view_from_dense(const Tensor& tensor, bool from_const_data
               const_cast<void*>(tensor.const_data_ptr()) :
               tensor.data_ptr()};
   }
+<<<<<<< HEAD
   else {
     TORCH_CHECK(false, "itensor_view_from_dense expects float/bfloat16/half/int8 tensor input");
+=======
+  else if (tensor.scalar_type() == ScalarType::Float8_e4m3fn) {
+    return {{tensor.sizes().vec(),
+            ideep::tensor::data_type::f8_e4m3,
+            tensor.strides().vec()},
+            from_const_data_ptr ?
+              const_cast<void*>(tensor.const_data_ptr()) :
+              tensor.data_ptr()};
+  }
+  else if (tensor.scalar_type() == ScalarType::Float8_e5m2) {
+    return {{tensor.sizes().vec(),
+            ideep::tensor::data_type::f8_e5m2,
+            tensor.strides().vec()},
+            from_const_data_ptr ?
+              const_cast<void*>(tensor.const_data_ptr()) :
+              tensor.data_ptr()};
+  }
+  else {
+    TORCH_CHECK(false, "itensor_view_from_dense expects float/bfloat16/half/int8/fp8 tensor input", tensor.scalar_type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

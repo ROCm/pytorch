@@ -18,12 +18,19 @@ retry () {
     $*  || (sleep 1 && $*) || (sleep 2 && $*) || (sleep 4 && $*) || (sleep 8 && $*)
 }
 
+<<<<<<< HEAD
 PLATFORM="manylinux2014_x86_64"
 # TODO move this into the Docker images
 OS_NAME=$(awk -F= '/^NAME/{print $2}' /etc/os-release)
 if [[ "$OS_NAME" == *"CentOS Linux"* ]]; then
     retry yum install -q -y zip openssl
 elif [[ "$OS_NAME" == *"AlmaLinux"* ]]; then
+=======
+PLATFORM=""
+# TODO move this into the Docker images
+OS_NAME=$(awk -F= '/^NAME/{print $2}' /etc/os-release)
+if [[ "$OS_NAME" == *"AlmaLinux"* ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     retry yum install -q -y zip openssl
     PLATFORM="manylinux_2_28_x86_64"
 elif [[ "$OS_NAME" == *"Red Hat Enterprise Linux"* ]]; then
@@ -33,9 +40,17 @@ elif [[ "$OS_NAME" == *"Ubuntu"* ]]; then
     # Comment out nvidia repositories to prevent them from getting apt-get updated, see https://github.com/pytorch/pytorch/issues/74968
     # shellcheck disable=SC2046
     sed -i 's/.*nvidia.*/# &/' $(find /etc/apt/ -type f -name "*.list")
+<<<<<<< HEAD
 
     retry apt-get update
     retry apt-get -y install zip openssl
+=======
+    retry apt-get update
+    retry apt-get -y install zip openssl
+else
+    echo "Unknown OS: '$OS_NAME'"
+    exit 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 # We use the package name to test the package by passing this to 'pip install'
@@ -79,8 +94,11 @@ if [[ -e /opt/openssl ]]; then
     export CMAKE_INCLUDE_PATH="/opt/openssl/include":$CMAKE_INCLUDE_PATH
 fi
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 mkdir -p /tmp/$WHEELHOUSE_DIR
 
 export PATCHELF_BIN=/usr/local/bin/patchelf
@@ -99,6 +117,10 @@ if [[ -z "$PYTORCH_ROOT" ]]; then
     exit 1
 fi
 pushd "$PYTORCH_ROOT"
+<<<<<<< HEAD
+=======
+retry pip install -q cmake
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 python setup.py clean
 retry pip install -qr requirements.txt
 case ${DESIRED_PYTHON} in
@@ -111,12 +133,15 @@ case ${DESIRED_PYTHON} in
     ;;
 esac
 
+<<<<<<< HEAD
 if [[ "$DESIRED_DEVTOOLSET" == *"cxx11-abi"* ]]; then
     export _GLIBCXX_USE_CXX11_ABI=1
 else
     export _GLIBCXX_USE_CXX11_ABI=0
 fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if [[ "$DESIRED_CUDA" == *"rocm"* ]]; then
     echo "Calling build_amd.py at $(date)"
     python tools/amd_build/build_amd.py
@@ -158,7 +183,11 @@ if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
     BUILD_LIBTORCH_WHL=0 BUILD_PYTHON_ONLY=1 \
     BUILD_LIBTORCH_CPU_WITH_DEBUG=$BUILD_DEBUG_INFO \
     USE_NCCL=${USE_NCCL} USE_RCCL=${USE_RCCL} USE_KINETO=${USE_KINETO} \
+<<<<<<< HEAD
     python setup.py bdist_wheel -d /tmp/$WHEELHOUSE_DIR --cmake
+=======
+    CMAKE_FRESH=1 python setup.py bdist_wheel -d /tmp/$WHEELHOUSE_DIR
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     echo "Finished setup.py bdist_wheel for split build (BUILD_PYTHON_ONLY)"
 else
     time CMAKE_ARGS=${CMAKE_ARGS[@]} \
@@ -209,12 +238,15 @@ if [[ -n "$BUILD_PYTHONLESS" ]]; then
 
     mkdir -p /tmp/$LIBTORCH_HOUSE_DIR
 
+<<<<<<< HEAD
     if [[ "$DESIRED_DEVTOOLSET" == *"cxx11-abi"* ]]; then
         LIBTORCH_ABI="cxx11-abi-"
     else
         LIBTORCH_ABI=
     fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     zip -rq /tmp/$LIBTORCH_HOUSE_DIR/libtorch-$LIBTORCH_ABI$LIBTORCH_VARIANT-$PYTORCH_BUILD_VERSION.zip libtorch
     cp /tmp/$LIBTORCH_HOUSE_DIR/libtorch-$LIBTORCH_ABI$LIBTORCH_VARIANT-$PYTORCH_BUILD_VERSION.zip \
        /tmp/$LIBTORCH_HOUSE_DIR/libtorch-$LIBTORCH_ABI$LIBTORCH_VARIANT-latest.zip

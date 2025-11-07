@@ -19,7 +19,11 @@ c10::AliasAnalysisKind aliasAnalysisIsSpecialCase() {
 
 // Registers fused operators so that fused graphs can properly generate fallback
 // code.
+<<<<<<< HEAD
 RegisterOperators reg_fused_operators({Operator(
+=======
+static RegisterOperators reg_fused_operators({Operator(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     prim::FusedConcat,
     [](const Node* node) -> Operation {
       int64_t dim = node->i(attr::dim);

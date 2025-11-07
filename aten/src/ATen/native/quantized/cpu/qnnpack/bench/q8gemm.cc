@@ -374,7 +374,11 @@ class GEMMLOWP : public benchmark::Fixture {
  public:
    void SetUp(const benchmark::State& state) override {
     const uint_fast32_t seed =
+<<<<<<< HEAD
         std::chrono::system_clock::now().time_since_epoch().count();
+=======
+        std::chrono::steady_clock::now().time_since_epoch().count();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto rng =
         std::bind(std::uniform_int_distribution<uint8_t>(), std::mt19937(seed));
 

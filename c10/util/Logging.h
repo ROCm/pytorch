@@ -57,7 +57,13 @@ C10_DECLARE_bool(caffe2_use_fatal_for_enforce);
 
 namespace c10 {
 
+<<<<<<< HEAD
 using std::string;
+=======
+#if !defined(C10_NODEPRECATED)
+using std::string;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Functions that we use for initialization.
 C10_API bool InitCaffeLogging(int* argc, char** argv);

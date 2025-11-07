@@ -1460,8 +1460,18 @@ def cdist(x1, x2, p=2.0, compute_mode="use_mm_for_euclid_dist_if_necessary"):
     r"""Computes batched the p-norm distance between each pair of the two collections of row vectors.
 
     Args:
+<<<<<<< HEAD
         x1 (Tensor): input tensor of shape :math:`B \times P \times M`.
         x2 (Tensor): input tensor of shape :math:`B \times R \times M`.
+=======
+        x1 (Tensor): input tensor where the last two dimensions represent the points and the feature dimension respectively.
+            The shape can be :math:`D_1 \times D_2 \times \cdots \times D_n \times P \times M`,
+            where :math:`P` is the number of points and :math:`M` is the feature dimension.
+        x2 (Tensor): input tensor where the last two dimensions also represent the points and the feature dimension respectively.
+            The shape can be :math:`D_1' \times D_2' \times \cdots \times D_m' \times R \times M`,
+            where :math:`R` is the number of points and :math:`M` is the feature dimension,
+            which should match the feature dimension of `x1`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         p: p value for the p-norm distance to calculate between each vector pair
             :math:`\in [0, \infty]`.
         compute_mode:
@@ -1808,6 +1818,10 @@ def norm(  # noqa: F811
     if input.layout == torch.strided and input.device.type in (
         "cpu",
         "cuda",
+<<<<<<< HEAD
+=======
+        "xpu",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "meta",
         torch.utils.backend_registration._privateuse1_backend_name,
     ):

@@ -12,7 +12,11 @@ def torch_api_key_word_prefix(bankend_index: BackendIndex) -> str:
     if bankend_index.external:
         return ""
 
+<<<<<<< HEAD
     # Although Intel GPU ATen library is out-of-tree, it still utilizes torchgen to produce structrued
+=======
+    # Although Intel GPU ATen library is out-of-tree, it still utilizes torchgen to produce structured
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # kernels. Regarding these produced structured kernels, they should be visible for the Intel GPU ATen
     # library. Therefore, we need to add "TORCH_XPU_API" prefix to these structured kernels,
     # rather than "TORCH_API". Because the semantic of "TORCH_API" is "hidden" for out-of-tree backends.

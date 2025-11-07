@@ -54,7 +54,10 @@ class BinaryBuildWorkflow:
 
     # Optional fields
     build_environment: str = ""
+<<<<<<< HEAD
     abi_version: str = ""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ciflow_config: CIFlowConfig = field(default_factory=CIFlowConfig)
     is_scheduled: str = ""
     branches: str = "nightly"
@@ -62,6 +65,7 @@ class BinaryBuildWorkflow:
     cross_compile_arm64: bool = False
     macos_runner: str = "macos-14-xlarge"
     use_split_build: bool = False
+<<<<<<< HEAD
 
     def __post_init__(self) -> None:
         if self.abi_version:
@@ -70,6 +74,18 @@ class BinaryBuildWorkflow:
             )
         else:
             self.build_environment = f"{self.os}-binary-{self.package_type}"
+=======
+    # Mainly used for libtorch builds
+    build_variant: str = ""
+
+    def __post_init__(self) -> None:
+        if self.build_environment == "":
+            self.build_environment = "-".join(
+                item
+                for item in [self.os, "binary", self.package_type, self.build_variant]
+                if item != ""
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.use_split_build:
             # added to distinguish concurrency groups
             self.build_environment += "-split"
@@ -133,10 +149,16 @@ LINUX_BINARY_BUILD_WORFKLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.LINUX,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.CXX11_ABI,
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.LINUX,
             generate_binary_build_matrix.CXX11_ABI,
+=======
+        build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
+            OperatingSystem.LINUX,
+            generate_binary_build_matrix.RELEASE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             libtorch_variants=["shared-with-deps"],
         ),
         ciflow_config=CIFlowConfig(
@@ -152,7 +174,11 @@ LINUX_BINARY_SMOKE_WORKFLOWS = [
         package_type="manywheel",
         build_configs=generate_binary_build_matrix.generate_wheels_matrix(
             OperatingSystem.LINUX,
+<<<<<<< HEAD
             arches=["11.8", "12.6", "12.8"],
+=======
+            arches=["12.6", "12.8", "12.9", "6.4"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             python_versions=["3.9"],
         ),
         branches="main",
@@ -176,10 +202,17 @@ LINUX_BINARY_SMOKE_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.LINUX,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.CXX11_ABI,
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.LINUX,
             generate_binary_build_matrix.CXX11_ABI,
+=======
+        build_variant=generate_binary_build_matrix.RELEASE,
+        build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
+            OperatingSystem.LINUX,
+            generate_binary_build_matrix.RELEASE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arches=["cpu"],
             libtorch_variants=["shared-with-deps"],
         ),
@@ -202,7 +235,11 @@ WINDOWS_BINARY_BUILD_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.WINDOWS,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.RELEASE,
+=======
+        build_variant=generate_binary_build_matrix.RELEASE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.WINDOWS,
             generate_binary_build_matrix.RELEASE,
@@ -216,7 +253,11 @@ WINDOWS_BINARY_BUILD_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.WINDOWS,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.DEBUG,
+=======
+        build_variant=generate_binary_build_matrix.DEBUG,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.WINDOWS,
             generate_binary_build_matrix.DEBUG,
@@ -227,13 +268,63 @@ WINDOWS_BINARY_BUILD_WORKFLOWS = [
             isolated_workflow=True,
         ),
     ),
+<<<<<<< HEAD
+=======
+    BinaryBuildWorkflow(
+        os=OperatingSystem.WINDOWS_ARM64,
+        package_type="wheel",
+        build_configs=generate_binary_build_matrix.generate_wheels_matrix(
+            OperatingSystem.WINDOWS_ARM64,
+            arches=["cpu"],
+            python_versions=["3.11", "3.12", "3.13"],
+        ),
+        ciflow_config=CIFlowConfig(
+            labels={LABEL_CIFLOW_BINARIES, LABEL_CIFLOW_BINARIES_WHEEL},
+            isolated_workflow=True,
+        ),
+    ),
+    BinaryBuildWorkflow(
+        os=OperatingSystem.WINDOWS_ARM64,
+        package_type="libtorch",
+        build_variant=generate_binary_build_matrix.RELEASE,
+        build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
+            OperatingSystem.WINDOWS_ARM64,
+            generate_binary_build_matrix.RELEASE,
+            arches=["cpu"],
+            libtorch_variants=["shared-with-deps"],
+        ),
+        ciflow_config=CIFlowConfig(
+            labels={LABEL_CIFLOW_BINARIES, LABEL_CIFLOW_BINARIES_LIBTORCH},
+            isolated_workflow=True,
+        ),
+    ),
+    BinaryBuildWorkflow(
+        os=OperatingSystem.WINDOWS_ARM64,
+        package_type="libtorch",
+        build_variant=generate_binary_build_matrix.DEBUG,
+        build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
+            OperatingSystem.WINDOWS_ARM64,
+            generate_binary_build_matrix.DEBUG,
+            arches=["cpu"],
+            libtorch_variants=["shared-with-deps"],
+        ),
+        ciflow_config=CIFlowConfig(
+            labels={LABEL_CIFLOW_BINARIES, LABEL_CIFLOW_BINARIES_LIBTORCH},
+            isolated_workflow=True,
+        ),
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 WINDOWS_BINARY_SMOKE_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.WINDOWS,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.RELEASE,
+=======
+        build_variant=generate_binary_build_matrix.RELEASE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.WINDOWS,
             generate_binary_build_matrix.RELEASE,
@@ -248,7 +339,11 @@ WINDOWS_BINARY_SMOKE_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.WINDOWS,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.DEBUG,
+=======
+        build_variant=generate_binary_build_matrix.DEBUG,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.WINDOWS,
             generate_binary_build_matrix.DEBUG,
@@ -262,6 +357,7 @@ WINDOWS_BINARY_SMOKE_WORKFLOWS = [
     ),
 ]
 
+<<<<<<< HEAD
 WINDOWS_ARM64_BINARY_BUILD_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.WINDOWS_ARM64,
@@ -308,14 +404,23 @@ WINDOWS_ARM64_BINARY_BUILD_WORKFLOWS = [
     ),
 ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MACOS_BINARY_BUILD_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.MACOS_ARM64,
         package_type="libtorch",
+<<<<<<< HEAD
         abi_version=generate_binary_build_matrix.CXX11_ABI,
         build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
             OperatingSystem.MACOS,
             generate_binary_build_matrix.CXX11_ABI,
+=======
+        build_variant=generate_binary_build_matrix.RELEASE,
+        build_configs=generate_binary_build_matrix.generate_libtorch_matrix(
+            OperatingSystem.MACOS,
+            generate_binary_build_matrix.RELEASE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             libtorch_variants=["shared-with-deps"],
         ),
         cross_compile_arm64=False,
@@ -403,10 +508,13 @@ def main() -> None:
             WINDOWS_BINARY_SMOKE_WORKFLOWS,
         ),
         (
+<<<<<<< HEAD
             jinja_env.get_template("windows_arm64_binary_build_workflow.yml.j2"),
             WINDOWS_ARM64_BINARY_BUILD_WORKFLOWS,
         ),
         (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             jinja_env.get_template("macos_binary_build_workflow.yml.j2"),
             MACOS_BINARY_BUILD_WORKFLOWS,
         ),

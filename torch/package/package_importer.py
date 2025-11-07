@@ -40,7 +40,11 @@ __all__ = ["PackageImporter"]
 # This is a list of imports that are implicitly allowed even if they haven't
 # been marked as extern. This is to work around the fact that Torch implicitly
 # depends on numpy and package can't track it.
+<<<<<<< HEAD
 # https://github.com/pytorch/MultiPy/issues/46
+=======
+# https://github.com/pytorch/multipy/issues/46  # codespell:ignore multipy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 IMPLICIT_IMPORT_ALLOWLIST: Iterable[str] = [
     "numpy",
     "numpy.core",
@@ -386,13 +390,21 @@ class PackageImporter(Importer):
         assert module.__name__ not in _package_imported_modules
         _package_imported_modules[module.__name__] = module
 
+<<<<<<< HEAD
         # pre-emptively install on the parent to prevent IMPORT_FROM from trying to
+=======
+        # preemptively install on the parent to prevent IMPORT_FROM from trying to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # access sys.modules
         self._install_on_parent(parent, name, module)
 
         if filename is not None:
             assert mangled_filename is not None
+<<<<<<< HEAD
             # pre-emptively install the source in `linecache` so that stack traces,
+=======
+            # preemptively install the source in `linecache` so that stack traces,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # `inspect`, etc. work.
             assert filename not in linecache.cache  # type: ignore[attr-defined]
             linecache.lazycache(mangled_filename, ns)

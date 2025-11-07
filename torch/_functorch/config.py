@@ -9,7 +9,11 @@ Global flags for aot autograd
 """
 import os
 import sys
+<<<<<<< HEAD
 from typing import Optional, TYPE_CHECKING
+=======
+from typing import Literal, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils._config_module import Config, install_config_module
 
@@ -34,10 +38,21 @@ decompose_custom_triton_ops = True
 
 static_weight_shapes = True
 
+<<<<<<< HEAD
 # Applies CSE to the graph before partitioning
 cse = True
 
 from torch._inductor.config import is_fbcode
+=======
+# See https://github.com/pytorch/pytorch/issues/141881
+# Tells partitioner that parameters are free to save for backward.
+treat_parameters_as_free_to_save = True
+
+# Applies CSE to the graph before partitioning
+cse = True
+
+from torch._environment import is_fbcode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 enable_autograd_cache: bool = Config(
@@ -46,6 +61,19 @@ enable_autograd_cache: bool = Config(
     default=True,
 )
 
+<<<<<<< HEAD
+=======
+autograd_cache_allow_custom_autograd_functions: bool = Config(
+    env_name_force="TORCHINDUCTOR_AUTOGRAD_CACHE_ALLOW_CUSTOM_AUTOGRAD", default=False
+)
+
+# For now, this is just for enabling unit testing in test_aot_autograd_cache.py
+# We will either make this the default with AOTAutogradCache, or
+# we'll just use it in the precompile flow. So there's no
+# need to add env vars or make it configurable
+bundled_autograd_cache: bool = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def remote_autograd_cache_default() -> Optional[bool]:
     if os.environ.get("TORCHINDUCTOR_AUTOGRAD_REMOTE_CACHE") == "1":
@@ -166,6 +194,23 @@ fake_tensor_allow_unsafe_data_ptr_access = True
 # tokens.
 unlift_effect_tokens = False
 
+<<<<<<< HEAD
+=======
+# NOTE: [The default layout constraint for custom operators.]
+# This must be the name of one of the layout constraint tags
+# (that is, one of {"needs_fixed_stride_order", "flexible_layout"}),
+# If the custom op does not have a layout constraint tag already
+# then we assume the following applies.
+#
+# This config is respected by Inductor and we recommend other backends also
+# respect it.
+# This config is in torch._functorch and not torch._inductor because it affects
+# ProxyTensor tracing.
+custom_op_default_layout_constraint: Literal[
+    "needs_exact_strides", "needs_fixed_stride_order", "flexible_layout"
+] = "needs_exact_strides"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Run aot eager decomp partition with CrossRefFakeMode
 # options = False, "all", "custom_ops"
@@ -223,10 +268,64 @@ graphsafe_rng_functionalization = True
 # Used for tests
 strict_autograd_cache = False
 
+<<<<<<< HEAD
+=======
+# Note [Recomputing collectives in the partitioner]
+# The purpose of this config is as follows:
+# - We have many passes in the compiler (min-cut partitioning, DCE, etc)
+#   which can reorder or ,delete duplicate nodes in the graph
+# - If any of these passes reorder/delete/duplicate a collective
+#   in a setting where the compiler is being run independently on multiple
+#   ranks, we run the risk that the compiler will make a different decison on
+#   different ranks, resulting in a NCCL hang when using torch.compile
+# To handle this, we will (by default) ensure that collectives are not modified
+# by the compiler.
+#
+# A few examples:
+# - don't dead-code-eliminate collectives
+#   (in case they are dead on rank i but not rank j)
+# - don't recompute collectives in partitioning
+#   (in case we recompute on rank i but not rank j)
+#
+# Today this flag **must** be set to false, but eventually
+# we want the option to set it to true.
+# In order to potentially optimize collectives, we'll need the compiler
+# to broadcast information across ranks at compile time to ensure
+# that any decisions on collectives are made consistently.
+unsafe_allow_optimization_of_collectives = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # See Note [AOTAutograd Tangent Subclassness for mutated inputs]
 # TODO(ivankobzarev): Remove this config, being able to deduce it compile time.
 disable_guess_zero_tangent_for_mutated_input_subclass = False
 
+<<<<<<< HEAD
+=======
+# See Note [Tangents memory format]
+# By default tangents strideness is guessed to be contiguous,
+# At runtime non contiguous tangents will be coerced to be contiguous.
+# This config changes this guess for tangents strides to be the same as outputs.
+# TODO(ivankobzarev): Remove this config once extra memory usage is investigated.
+guess_tangent_strides_as_outputs = False
+
+# This is a temporary config to ensure all ranks take the same decision in the partitioner
+# it will untimately be removed once we share size_hints across ranks through compiler collectives
+_broadcast_rank0_decision = False
+
+# By default apply inlined saved_tensors_hooks only for "donated" buffers.
+# "donated" buffers are invisible to the user, they are intermediates of the forward graph.
+# Applying saved tensors hooks for memory optimizations only for intermediates
+# guarantees that original saved tensors could be deallocated.
+# This config enables saved_tensors_hooks are applied for **all** saved tensors,
+# that could include inputs, parameters, outputs.
+# "donated" - applied only to saved intermediates of the graph
+# "no_static" - applied to all saved but not "static"
+# (this includes parameters and user marked as static)
+# "all" - no filtering, everything saved for backward.
+saved_tensors_hooks_filtering_mode = "donated"
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TYPE_CHECKING:
     from torch.utils._config_typing import *  # noqa: F401, F403
 

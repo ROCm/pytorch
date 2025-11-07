@@ -58,7 +58,12 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from functools import wraps
 from string import Template
+<<<<<<< HEAD
 from typing import Any, Callable, Optional, TypeVar
+=======
+from typing import Any, Callable, Optional, TypeVar, Union
+from typing_extensions import ParamSpec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed.elastic.utils.logging import get_logger
 
@@ -82,7 +87,12 @@ JSON = dict
 _EMPTY_ERROR_DATA = {"message": "<NONE>"}
 _NOT_AVAILABLE = "<N/A>"
 
+<<<<<<< HEAD
 T = TypeVar("T")
+=======
+_R = TypeVar("_R")
+_P = ParamSpec("_P")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -305,8 +315,13 @@ class ChildFailedError(Exception):
 
 
 def record(
+<<<<<<< HEAD
     fn: Callable[..., T], error_handler: Optional[ErrorHandler] = None
 ) -> Callable[..., T]:
+=======
+    fn: Callable[_P, _R], error_handler: Optional[ErrorHandler] = None
+) -> Callable[_P, Union[_R, None]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Syntactic sugar to record errors/exceptions that happened in the decorated
     function using the provided ``error_handler``.
@@ -346,9 +361,15 @@ def record(
     if not error_handler:
         error_handler = get_error_handler()
 
+<<<<<<< HEAD
     def wrap(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+=======
+    def wrap(f: Callable[_P, _R]) -> Callable[_P, Union[_R, None]]:
+        @wraps(f)
+        def wrapper(*args: _P.args, **kwargs: _P.kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert error_handler is not None  # assertion for mypy type checker
             error_handler.initialize()
             try:

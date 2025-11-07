@@ -146,10 +146,17 @@ void removeCurrentName(
   store.set(allWorkerInfosKey, newAllWorkerInfosVector);
 }
 
+<<<<<<< HEAD
 const string storeKeyBarrierId = "_ID_";
 const string storeKeyProcessCount = "PROCESS_COUNT";
 const string storeKeyActiveCallCount = "ACTIVE_CALLS";
 const string storeKeyReady = "READY";
+=======
+constexpr const auto storeKeyBarrierId = "_ID_";
+constexpr const auto storeKeyProcessCount = "PROCESS_COUNT";
+constexpr const auto storeKeyActiveCallCount = "ACTIVE_CALLS";
+constexpr const auto storeKeyReady = "READY";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::atomic<int> barrierId(0);
 
 static std::tuple<std::string, std::string, std::string> getNextKeyIds() {

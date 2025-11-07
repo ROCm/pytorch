@@ -10,6 +10,7 @@ import torch
 # Make the helper files in test/ importable
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
+<<<<<<< HEAD
 from torch.testing._internal.jit_utils import JitTestCase
 
 
@@ -21,6 +22,12 @@ if __name__ == "__main__":
     )
 
 
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly
+from torch.testing._internal.jit_utils import JitTestCase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestHash(JitTestCase):
     def test_hash_tuple(self):
         def fn(t1: Tuple[int, int], t2: Tuple[int, int]) -> bool:
@@ -115,3 +122,10 @@ class TestHash(JitTestCase):
         self.checkScript(fn, (gpu0, gpu1))
         self.checkScript(fn, (gpu0, cpu))
         self.checkScript(fn, (cpu, cpu))
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_jit.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

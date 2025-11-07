@@ -980,6 +980,10 @@ class AttributePropagator {
   std::unordered_map<ClassTypePtr, IValue::HashAliasedIValues>
       SharedTypeSubModules_;
 
+<<<<<<< HEAD
+=======
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Module& module_;
 
   // Allow to freeze modules containing interfaces.

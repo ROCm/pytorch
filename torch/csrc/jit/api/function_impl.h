@@ -176,5 +176,10 @@ struct TORCH_API GraphFunction : public Function {
 TORCH_API GraphFunction* tryToGraphFunction(Function&) noexcept;
 TORCH_API GraphFunction& toGraphFunction(Function&);
 TORCH_API const GraphFunction& toGraphFunction(const Function&);
+<<<<<<< HEAD
 
 } // namespace torch::jit
+=======
+} // namespace torch::jit
+C10_DECLARE_bool(torch_jit_do_not_store_optimized_graph);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

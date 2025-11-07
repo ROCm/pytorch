@@ -52,8 +52,14 @@ SavedVariable::SavedVariable(
       TORCH_INTERNAL_ASSERT(!is_leaf_ && is_output);
       weak_grad_fn_ = variable.grad_fn();
     }
+<<<<<<< HEAD
 
     auto maybe_hooks = get_default_hooks();
+=======
+    std::unique_ptr<SavedVariableHooks> maybe_hooks =
+        at::SavedTensorDefaultHooks::is_enabled() ? get_default_hooks()
+                                                  : nullptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Avoid wrapped numbers from being leaked to the user
     if (maybe_hooks && !variable.unsafeGetTensorImpl()->is_wrapped_number()) {

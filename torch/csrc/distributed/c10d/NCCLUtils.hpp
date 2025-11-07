@@ -13,6 +13,10 @@
 #include <ATen/cuda/CUDAEvent.h>
 #include <c10/util/Exception.h>
 #include <nccl.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/cuda/nccl.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/distributed/c10d/TraceUtils.h>
 #include <optional>
 
@@ -62,10 +66,40 @@ static_assert(
 #define NCCL_HAS_COMM_REGISTER
 #endif
 
+<<<<<<< HEAD
+=======
+#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 27, 0)
+#define NCCL_HAS_COMM_WINDOW_REGISTER
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if NCCL_VERSION_CODE >= NCCL_VERSION(2, 19, 0)
 #define NCCL_HAS_MEM_ALLOC
 #endif
 
+<<<<<<< HEAD
+=======
+#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 26, 0)
+#define NCCL_HAS_QOS
+#endif
+
+#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 24, 0)
+#define NCCL_SUPPORTS_FP8
+#endif
+
+#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 27, 0)
+#define NCCL_HAS_COLLNET
+#endif
+
+#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 27, 0)
+#define NCCL_HAS_CTA_POLICY
+#endif
+
+#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 27, 0)
+#define NCCL_HAS_NVLS_CTAS
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Macro to throw on a non-successful NCCL return value.
 #define C10D_NCCL_CHECK(cmd, failureReason)                                   \
   do {                                                                        \
@@ -180,8 +214,41 @@ static_assert(
 
 namespace c10d {
 
+<<<<<<< HEAD
 TORCH_API size_t hashTensors(const std::vector<at::Tensor>& tensors);
 TORCH_API std::string getNcclVersion();
+=======
+// NCCL type typing
+static std::map<at::ScalarType, ncclDataType_t> ncclDataType = {
+    {at::kChar, ncclInt8},
+    {at::kByte, ncclUint8},
+    {at::kFloat, ncclFloat},
+    {at::kDouble, ncclDouble},
+    {at::kInt, ncclInt32},
+    {at::kLong, ncclInt64},
+    {at::kHalf, ncclHalf},
+    {at::kBool, ncclUint8},
+#ifdef NCCL_SUPPORTS_FP8
+    {at::kFloat8_e5m2, ncclFloat8e5m2},
+    {at::kFloat8_e4m3fn, ncclFloat8e4m3},
+#else
+    {at::kFloat8_e5m2, ncclUint8},
+    {at::kFloat8_e4m3fn, ncclUint8},
+#endif
+    // NVIDIA GPUs does not support the UZ version standing for "no negative
+    // zero".  See https://onnx.ai/onnx/technical/float8.html
+    {at::kFloat8_e4m3fnuz, ncclUint8},
+    {at::kFloat8_e5m2fnuz, ncclUint8},
+#if HAS_NCCL_BF16_DATATYPE
+    {at::kBFloat16, ncclBfloat16},
+#endif // HAS_NCCL_BF16_DATATYPE
+};
+
+TORCH_API size_t hashTensors(const std::vector<at::Tensor>& tensors);
+TORCH_API std::string getNcclVersion();
+TORCH_API std::tuple<int, int, int> getNcclVersionTuple();
+TORCH_API int getNcclVersionNumber();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API std::string ncclGetErrorWithVersion(ncclResult_t error);
 int nccl_nonblocking_timeout();
 
@@ -191,6 +258,12 @@ TORCH_API std::string getNcclErrorDetailStr(
     ncclResult_t error,
     std::optional<std::string> processGroupFailureReason = std::nullopt);
 
+<<<<<<< HEAD
+=======
+// Helper function that gets the data type and issues error if not supported
+ncclDataType_t getNcclDataType(at::ScalarType type);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // RAII wrapper for NCCL communicator
 class NCCLComm {
   using MutexType = std::recursive_mutex;
@@ -221,6 +294,10 @@ class NCCLComm {
       int numRanks,
       int rank,
       std::vector<ncclUniqueId>& commIds,
+<<<<<<< HEAD
+=======
+      at::DeviceIndex deviceIndex,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ncclConfig_t& config);
 #endif // NCCL_HAS_INIT_RANK_SCALABLE
 #endif // NCCL_HAS_CONFIG
@@ -239,6 +316,10 @@ class NCCLComm {
 #endif
 
   ncclUniqueId getNcclId();
+<<<<<<< HEAD
+=======
+  at::DeviceIndex getDeviceIndex();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Must not be copyable
   NCCLComm(const NCCLComm&) = delete;
@@ -287,9 +368,16 @@ class NCCLComm {
   ncclResult_t registerSegment(
       void* ptr,
       size_t size,
+<<<<<<< HEAD
       bool errorOnRereg = true);
 
   ncclResult_t deregisterSegment(void* ptr);
+=======
+      bool errorOnRereg = true,
+      bool window = false);
+
+  ncclResult_t deregisterSegment(void* ptr, bool window = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::string repr() const;
 

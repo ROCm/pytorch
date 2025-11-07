@@ -129,6 +129,10 @@ _constant_types = (
     torch.device,
     torch.layout,
     torch.dtype,
+<<<<<<< HEAD
+=======
+    torch.qscheme,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -587,9 +591,15 @@ def create_script_module_impl(nn_module, concrete_type, stubs_fn):
         #    recursively scripting them.
         for name, sub_concrete_type in concrete_type.get_modules():
             orig_value = getattr(nn_module, name)
+<<<<<<< HEAD
             assert isinstance(
                 orig_value, Module
             ), f"Expected Module but got {type(orig_value)}"
+=======
+            assert isinstance(orig_value, Module), (
+                f"Expected Module but got {type(orig_value)}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             module_type = sub_concrete_type.jit_type
             if isinstance(module_type, torch._C.InterfaceType):
                 # use the interface inference rule to compile the module

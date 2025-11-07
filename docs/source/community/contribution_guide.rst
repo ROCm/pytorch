@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+:orphan:
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. note::
 
    This page has been deprecated. Please refer to the `Contribution Guide <https://github.com/pytorch/pytorch/wiki/The-Ultimate-Guide-to-PyTorch-Contributions>`_ on the PyTorch Wiki.
@@ -323,13 +328,21 @@ Python Docs
 PyTorch documentation is generated from python source using
 `Sphinx <https://www.sphinx-doc.org/en/master/>`__. Generated HTML is
 copied to the docs folder in the main branch of
+<<<<<<< HEAD
 `pytorch.github.io <https://github.com/pytorch/pytorch.github.io/tree/master/docs>`__,
+=======
+`pytorch.org/docs <https://pytorch.org/docs/main>`__,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 and is served via GitHub pages.
 
 -  Site: https://pytorch.org/docs
 -  GitHub: https://github.com/pytorch/pytorch/tree/main/docs
 -  Served from:
+<<<<<<< HEAD
    `https://github.com/pytorch/pytorch.github.io/tree/master/docs <https://github.com/pytorch/pytorch.github.io/tree/master/docs>`__
+=======
+   `https://pytorch.org/docs/main <https://pytorch.org/docs/main>`__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 C++ Docs
 ~~~~~~~~

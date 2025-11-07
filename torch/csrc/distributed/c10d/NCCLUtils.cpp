@@ -92,7 +92,13 @@ std::shared_ptr<NCCLComm> NCCLComm::create_scalable(
     int numRanks,
     int rank,
     std::vector<ncclUniqueId>& commIds,
+<<<<<<< HEAD
     ncclConfig_t& config) {
+=======
+    at::DeviceIndex deviceIndex,
+    ncclConfig_t& config) {
+  at::cuda::OptionalCUDAGuard gpuGuard(deviceIndex);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto comm = std::make_shared<NCCLComm>();
   comm->nonBlocking_ = config.blocking == 0;
   LOG(INFO) << "Rank " << rank << ": creating NCCL communicator with mode: "
@@ -112,6 +118,10 @@ std::shared_ptr<NCCLComm> NCCLComm::create_scalable(
   // in the log file and in the replay tool.
   comm->ncclId_ = commIds[0];
   comm->rank_ = rank;
+<<<<<<< HEAD
+=======
+  comm->deviceIndex_ = deviceIndex;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   comm->initialized_ = !comm->nonBlocking_;
   return comm;
 }
@@ -150,6 +160,13 @@ ncclComm_t NCCLComm::getNcclComm() {
   return ncclComm_;
 }
 
+<<<<<<< HEAD
+=======
+at::DeviceIndex NCCLComm::getDeviceIndex() {
+  return deviceIndex_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Wait for the communicator to be ready. This is a blocking function.
 // Arguments:
 //   longInterval: if true, wait with sleep of an interval; otherwise, wait
@@ -343,7 +360,12 @@ ncclResult_t NCCLComm::checkForNcclError() {
 ncclResult_t NCCLComm::registerSegment(
     void* ptr,
     size_t size,
+<<<<<<< HEAD
     bool errorOnRereg /*=true*/) {
+=======
+    bool errorOnRereg, /*=true*/
+    bool window /*=false*/) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   LockType lock(mutex_);
 #ifdef NCCL_HAS_COMM_REGISTER
   // We register only segments from cache allocator
@@ -364,6 +386,33 @@ ncclResult_t NCCLComm::registerSegment(
   void* handle = nullptr;
   // Use getNcclComm to make sure comm is ready before calling nccl APIs
   auto comm = getNcclComm();
+<<<<<<< HEAD
+=======
+#ifdef NCCL_HAS_COMM_WINDOW_REGISTER
+  if (window) {
+    C10D_NCCL_CHECK(
+        ncclCommWindowRegister(
+            comm, ptr, size, (ncclWindow_t*)&handle, NCCL_WIN_COLL_SYMMETRIC),
+        c10::str(
+            "Failed to window register segment with ptr ",
+            ptr,
+            ", size ",
+            size,
+            " on ncclComm_ ",
+            comm));
+  } else {
+    C10D_NCCL_CHECK(
+        ncclCommRegister(comm, ptr, size, &handle),
+        c10::str(
+            "Failed to register segment with ptr ",
+            ptr,
+            ", size ",
+            size,
+            " on ncclComm_ ",
+            comm));
+  }
+#else
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10D_NCCL_CHECK(
       ncclCommRegister(comm, ptr, size, &handle),
       c10::str(
@@ -373,6 +422,10 @@ ncclResult_t NCCLComm::registerSegment(
           size,
           " on ncclComm_ ",
           comm));
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   registeredSegmentHandles_[ptr] = handle;
   return ncclSuccess;
 #else
@@ -380,7 +433,11 @@ ncclResult_t NCCLComm::registerSegment(
 #endif
 }
 
+<<<<<<< HEAD
 ncclResult_t NCCLComm::deregisterSegment(void* ptr) {
+=======
+ncclResult_t NCCLComm::deregisterSegment(void* ptr, bool window /*false*/) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   LockType lock(mutex_);
 #ifdef NCCL_HAS_COMM_REGISTER
   TORCH_CHECK(
@@ -393,6 +450,32 @@ ncclResult_t NCCLComm::deregisterSegment(void* ptr) {
   void* handle = registeredSegmentHandles_[ptr];
   // Use getNcclComm to make sure comm is ready before calling nccl APIs
   auto comm = getNcclComm();
+<<<<<<< HEAD
+=======
+#ifdef NCCL_HAS_COMM_WINDOW_REGISTER
+  if (window) {
+    C10D_NCCL_CHECK(
+        ncclCommWindowDeregister(comm, (ncclWindow_t)handle),
+        c10::str(
+            "Failed to window deregister segment handle ",
+            handle,
+            ", with ptr ",
+            ptr,
+            " on ncclComm_ ",
+            comm));
+  } else {
+    C10D_NCCL_CHECK(
+        ncclCommDeregister(comm, handle),
+        c10::str(
+            "Failed to deregister segment handle ",
+            handle,
+            ", with ptr ",
+            ptr,
+            " on ncclComm_ ",
+            comm));
+  }
+#else
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10D_NCCL_CHECK(
       ncclCommDeregister(comm, handle),
       c10::str(
@@ -402,6 +485,10 @@ ncclResult_t NCCLComm::deregisterSegment(void* ptr) {
           ptr,
           " on ncclComm_ ",
           comm));
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   registeredSegmentHandles_.erase(ptr);
   return ncclSuccess;
 #else
@@ -427,6 +514,7 @@ std::unordered_map<std::string, std::string> NCCLComm::ncclCommDump() {
 
 std::string getNcclVersion() {
   static std::string versionString = []() {
+<<<<<<< HEAD
     int version = 0;
     std::string versionString;
     ncclResult_t status = ncclGetVersion(&version);
@@ -442,6 +530,13 @@ std::string getNcclVersion() {
       auto ncclMinor = (version % majorBase) / minorBase;
       auto ncclPatch =
           version % (ncclMajor * majorBase + ncclMinor * minorBase);
+=======
+    auto [ncclMajor, ncclMinor, ncclPatch] = getNcclVersionTuple();
+    std::string versionString;
+    if (ncclMajor == 0 && ncclMinor == 0 && ncclPatch == 0) {
+      versionString = "Unknown NCCL version";
+    } else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       versionString = std::to_string(ncclMajor) + "." +
           std::to_string(ncclMinor) + "." + std::to_string(ncclPatch);
 #ifdef NCCL_SUFFIX
@@ -457,6 +552,40 @@ std::string getNcclVersion() {
   return versionString;
 }
 
+<<<<<<< HEAD
+=======
+std::tuple<int, int, int> getNcclVersionTuple() {
+  static std::tuple<int, int, int> versionTuple = []() {
+    int version = getNcclVersionNumber();
+    // can't compute the version if call did not return successfully or version
+    // code < 100 (corresponding to 0.1.0)
+    if (version < 100) {
+      return std::make_tuple(0, 0, 0);
+    }
+    // NCCL changed version coding starting 2.9
+    const int majorBase = version < 2900 ? 1000 : 10000;
+    const int minorBase = 100;
+    auto ncclMajor = version / majorBase;
+    auto ncclMinor = (version % majorBase) / minorBase;
+    auto ncclPatch = version % minorBase;
+    return std::make_tuple(ncclMajor, ncclMinor, ncclPatch);
+  }();
+  return versionTuple;
+}
+
+int getNcclVersionNumber() {
+  static int version = []() {
+    int version = 0;
+    ncclResult_t status = ncclGetVersion(&version);
+    if (status != ncclSuccess) {
+      return 0; // Error.
+    }
+    return version;
+  }();
+  return version;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 size_t hashTensors(const std::vector<at::Tensor>& tensors) {
   size_t hash = 0;
   for (auto& tensor : tensors) {
@@ -555,6 +684,20 @@ std::string getNcclErrorDetailStr(
   return interpret + err;
 }
 
+<<<<<<< HEAD
+=======
+// Helper function that gets the data type and issues error if not supported
+ncclDataType_t getNcclDataType(at::ScalarType type) {
+  auto it = ncclDataType.find(type);
+  TORCH_CHECK_WITH(
+      TypeError,
+      it != ncclDataType.end(),
+      "Input tensor data type is not supported for NCCL process group: ",
+      type);
+  return it->second;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Dump proxyTrace log to stdout
 void printNcclCommProxyTrace(
     const std::string& dumpReason,

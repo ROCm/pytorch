@@ -107,9 +107,13 @@ class TestLRScheduler(TestCase):
                     [0]
                     + [i + 1 for i, m in enumerate(self.milestones) if global_step >= m]
                 )[-1]
+<<<<<<< HEAD
                 return [
                     init_lr * (self.gamma**gamma_power) for init_lr in self.init_lr
                 ]
+=======
+                return [init_lr * (self.gamma**gamma_power) for init_lr in self.init_lr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         optimizer = SGD([torch.rand(1)], lr=1)
 
@@ -1837,6 +1841,18 @@ class TestLRScheduler(TestCase):
         )
         self._test(scheduler, targets, epochs)
 
+<<<<<<< HEAD
+=======
+    def test_multiplicative_lr_with_lr_lambda(self):
+        lr_lambda = 0.95
+        with self.assertRaisesRegex(TypeError, "lr_lambda should be a function"):
+            MultiplicativeLR(self.opt, lr_lambda)
+
+        lr_lambda2 = 0.95
+        with self.assertRaisesRegex(TypeError, "lr_lambda should be a function"):
+            MultiplicativeLR(self.opt, [lr_lambda, lr_lambda2])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("T_mult", [1, 2, 4])
     def test_CosineAnnealingWarmRestarts_lr1(self, T_mult):
         iters = 100
@@ -1924,6 +1940,17 @@ class TestLRScheduler(TestCase):
                 scheduler, targets, epochs
             )
 
+<<<<<<< HEAD
+=======
+    def test_CosineAnnealingWarmRestarts_T_cur_reset(self):
+        sch = CosineAnnealingWarmRestarts(self.opt, T_0=4)
+        for epoch in [7, 8, 9]:
+            sch.T_cur = epoch
+            sch.step()
+            expect_T_cur = (epoch + 1) % sch.T_0
+            self.assertEqual(sch.T_cur, expect_T_cur)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_swalr_no_anneal(self):
         epochs, swa_start, swa_lr = 10, 5, 0.01
         initial_lrs = [group["lr"] for group in self.opt.param_groups]
@@ -2558,6 +2585,59 @@ class TestLRScheduler(TestCase):
                 self.assertEqual(group["swa_lr"], 0.05)
                 self.assertEqual(sch.base_lrs, [0.1])
 
+<<<<<<< HEAD
+=======
+    @parametrize(
+        "LRClass",
+        [
+            partial(ExponentialLR, gamma=0.999),
+            partial(LambdaLR, lr_lambda=lambda epoch: epoch // 30),
+            partial(MultiplicativeLR, lr_lambda=lambda epoch: 0.95),
+            partial(StepLR, step_size=30),
+            partial(MultiStepLR, milestones=[30, 80]),
+            ConstantLR,
+            LinearLR,
+            PolynomialLR,
+            partial(CosineAnnealingLR, T_max=10),
+            partial(CosineAnnealingWarmRestarts, T_0=20),
+            partial(CyclicLR, base_lr=0.01, max_lr=0.1),
+            partial(OneCycleLR, max_lr=0.01, total_steps=10),
+            partial(SWALR, swa_lr=0.01),
+        ],
+    )
+    def test_lr_scheduler_checkpoint(self, LRClass):
+        model = torch.nn.Linear(3, 3)
+        optim = torch.optim.AdamW(model.parameters())
+        sch = LRClass(optim)
+        optim.step()
+        sch.step()
+        optim2 = torch.optim.AdamW(model.parameters())
+        optim2.load_state_dict(optim.state_dict())
+        sch2 = LRClass(optim2, last_epoch=0)
+        self.assertEqual(
+            sch2._get_closed_form_lr()[0]
+            if hasattr(self, "_get_closed_form_lr")
+            else sch2.get_last_lr()[0],
+            optim.param_groups[0]["lr"],
+        )
+
+    def test_lr_scheduler_checkpoint_on_plateau(self):
+        model = torch.nn.Linear(3, 3)
+        optim = torch.optim.AdamW(model.parameters())
+        sch = ReduceLROnPlateau(optim, mode="min")
+        optim.step()
+        sch.step(1)
+        optim2 = torch.optim.AdamW(model.parameters())
+        optim2.load_state_dict(optim.state_dict())
+        sch2 = ReduceLROnPlateau(optim2, mode="min")
+        self.assertEqual(
+            sch2._get_closed_form_lr()[0]
+            if hasattr(self, "_get_closed_form_lr")
+            else sch2.get_last_lr()[0],
+            optim.param_groups[0]["lr"],
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestLRScheduler)
 

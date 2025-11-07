@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import nan, Tensor
 from torch.distributions import constraints
@@ -10,7 +15,11 @@ from torch.distributions.utils import (
     probs_to_logits,
 )
 from torch.nn.functional import binary_cross_entropy_with_logits
+<<<<<<< HEAD
 from torch.types import _Number
+=======
+from torch.types import _Number, Number
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = ["Bernoulli"]
@@ -34,6 +43,10 @@ class Bernoulli(ExponentialFamily):
     Args:
         probs (Number, Tensor): the probability of sampling `1`
         logits (Number, Tensor): the log-odds of sampling `1`
+<<<<<<< HEAD
+=======
+        validate_args (bool, optional): whether to validate arguments, None by default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
@@ -41,7 +54,16 @@ class Bernoulli(ExponentialFamily):
     has_enumerate_support = True
     _mean_carrier_measure = 0
 
+<<<<<<< HEAD
     def __init__(self, probs=None, logits=None, validate_args=None):
+=======
+    def __init__(
+        self,
+        probs: Optional[Union[Tensor, Number]] = None,
+        logits: Optional[Union[Tensor, Number]] = None,
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (probs is None) == (logits is None):
             raise ValueError(
                 "Either `probs` or `logits` must be specified, but not both."
@@ -50,6 +72,10 @@ class Bernoulli(ExponentialFamily):
             is_scalar = isinstance(probs, _Number)
             (self.probs,) = broadcast_all(probs)
         else:
+<<<<<<< HEAD
+=======
+            assert logits is not None  # helps mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             is_scalar = isinstance(logits, _Number)
             (self.logits,) = broadcast_all(logits)
         self._param = self.probs if probs is not None else self.logits

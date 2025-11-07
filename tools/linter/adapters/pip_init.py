@@ -52,7 +52,14 @@ if __name__ == "__main__":
         stream=sys.stderr,
     )
 
+<<<<<<< HEAD
     uv_available = shutil.which("uv") is not None
+=======
+    uv_available = (
+        any(prefix in sys.base_prefix for prefix in ["uv/python", "uv\\python"])
+        and shutil.which("uv") is not None
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if uv_available:
         pip_args = ["uv", "pip", "install"]

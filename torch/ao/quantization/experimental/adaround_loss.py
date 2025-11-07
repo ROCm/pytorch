@@ -37,9 +37,15 @@ class AdaptiveRoundingLoss(torch.nn.Module):
         Major logics copied from official Adaround Implementation.
         Apply rounding regularization to the input tensor V.
         """
+<<<<<<< HEAD
         assert (
             curr_iter < self.max_iter
         ), "Current iteration strictly les sthan max iteration"
+=======
+        assert curr_iter < self.max_iter, (
+            "Current iteration strictly les sthan max iteration"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if curr_iter < self.warm_start * self.max_iter:
             return torch.tensor(0.0)
         else:

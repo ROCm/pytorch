@@ -94,6 +94,12 @@ class MkldnnModule(PropModule):
     def __init__(self, m, name):
         super().__init__(m, name)
 
+<<<<<<< HEAD
+=======
+    def is_available(self):
+        return is_available()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     enabled = ContextProp(torch._C._get_mkldnn_enabled, torch._C._set_mkldnn_enabled)
     deterministic = ContextProp(
         torch._C._get_mkldnn_deterministic, torch._C._set_mkldnn_deterministic

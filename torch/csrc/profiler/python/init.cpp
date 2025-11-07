@@ -37,7 +37,11 @@ static void THPCapturedTraceback_dealloc(PyObject* self_) {
   PyObject_GC_Del(self);
 }
 
+<<<<<<< HEAD
 PyTypeObject THPCapturedTracebackType = {
+=======
+static PyTypeObject THPCapturedTracebackType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C._profiler.CapturedTraceback", /* tp_name */
     sizeof(THPCapturedTraceback), /* tp_basicsize */
@@ -394,7 +398,11 @@ void initPythonBindings(PyObject* module) {
           },
           [](const py::tuple& t) { // __setstate__
             if (t.size() >= 5) {
+<<<<<<< HEAD
               throw std::runtime_error("Expected atleast 5 values in state");
+=======
+              throw std::runtime_error("Expected at least 5 values in state");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
 
             py::list py_metrics = t[0].cast<py::list>();
@@ -673,8 +681,13 @@ void initPythonBindings(PyObject* module) {
       {nullptr},
   };
 
+<<<<<<< HEAD
   static PyTypeObject RecordFunctionFast_Type = { PyVarObject_HEAD_INIT(nullptr,
                                                                         0)
+=======
+  static PyTypeObject RecordFunctionFast_Type = {
+      PyVarObject_HEAD_INIT(nullptr, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   RecordFunctionFast_Type.tp_name = "torch._C._profiler.RecordFunctionFast",

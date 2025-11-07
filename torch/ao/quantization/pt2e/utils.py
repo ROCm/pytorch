@@ -85,10 +85,18 @@ def _find_q_dq_node_for_user(
 
     q_node = None
     if (
+<<<<<<< HEAD
         dq_node.args[0].op == "call_function"  # type: ignore[union-attr]
         and dq_node.args[0].target in _QUANTIZE_OPS  # type: ignore[union-attr]
     ):
         q_node = dq_node.args[0]
+=======
+        isinstance(arg := dq_node.args[0], torch.fx.Node)
+        and arg.op == "call_function"
+        and arg.target in _QUANTIZE_OPS
+    ):
+        q_node = arg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (q_node, dq_node)
 
 
@@ -167,7 +175,15 @@ def _is_conv_node(n: Node):
     """
     return n.op == "call_function" and n.target in [
         torch.ops.aten.conv1d.default,
+<<<<<<< HEAD
         torch.ops.aten.conv2d.default,
+=======
+        torch.ops.aten.conv1d.padding,
+        torch.ops.aten.conv2d.default,
+        torch.ops.aten.conv2d.padding,
+        torch.ops.aten.conv3d.default,
+        torch.ops.aten.conv3d.padding,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 
 
@@ -355,6 +371,10 @@ def _get_aten_graph_module_for_pattern(
         pattern,  # type: ignore[arg-type]
         example_inputs,
         kwargs,
+<<<<<<< HEAD
+=======
+        strict=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ).module()
 
     aten_pattern.graph.eliminate_dead_code()  # type: ignore[operator, union-attr]

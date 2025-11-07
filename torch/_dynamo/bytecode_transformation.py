@@ -22,6 +22,10 @@ import functools
 import itertools
 import sys
 import types
+<<<<<<< HEAD
+=======
+import uuid
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Iterator, Sequence
 from typing import Any, Callable, cast, Optional, Union
 
@@ -1372,6 +1376,10 @@ def clear_instruction_args(instructions):
             inst.arg = None
 
 
+<<<<<<< HEAD
+=======
+@functools.lru_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_code_keys() -> list[str]:
     # Python 3.11 changes to code keys are not fully documented.
     # See https://github.com/python/cpython/blob/3.11/Objects/clinic/codeobject.c.h#L24
@@ -1546,8 +1554,16 @@ def _cached_cleaned_instructions(code, safe=False) -> Sequence[Instruction]:
 _unique_id_counter = itertools.count()
 
 
+<<<<<<< HEAD
 def unique_id(name) -> str:
     return f"{name}_{next(_unique_id_counter)}"
+=======
+def unique_id(name, with_uuid=False) -> str:
+    ret = f"{name}_{next(_unique_id_counter)}"
+    if with_uuid:
+        ret += f"_{uuid.uuid4()}".replace("-", "_")
+    return ret
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_generator(code: types.CodeType) -> bool:
@@ -1602,6 +1618,10 @@ def bytecode_from_template(fn, varname_map=None, noreturn=True, noprefix=True):
         # If we don't reset starts_line, then the generated
         # bytecode's line number will be based on fn's.
         inst.starts_line = None
+<<<<<<< HEAD
+=======
+        inst.positions = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if varname_map and inst.argval in varname_map:
             inst.argval = varname_map[inst.argval]
 
@@ -1643,7 +1663,11 @@ def bytecode_from_template(fn, varname_map=None, noreturn=True, noprefix=True):
             # replace returns with jumps
             for inst in returns:
                 # don't replace inst with new instruction
+<<<<<<< HEAD
                 # due to targetting/exn table/etc.
+=======
+                # due to targeting/exn table/etc.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 jump_inst = create_jump_absolute(insts[-1])
                 inst.opname = jump_inst.opname
                 inst.opcode = jump_inst.opcode

@@ -108,7 +108,11 @@ static PyObject* THPVariable_pynew(
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 PyTypeObject THPLegacyVariableType = {
+=======
+static PyTypeObject THPLegacyVariableType = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C._LegacyVariableBase", /* tp_name */
     0, /* tp_basicsize */

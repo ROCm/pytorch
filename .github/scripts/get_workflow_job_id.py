@@ -64,7 +64,11 @@ def fetch_url(
             )
         exception_message = (
             "Is github alright?",
+<<<<<<< HEAD
             f"Recieved status code '{err.code}' when attempting to retrieve {url}:\n",
+=======
+            f"Received status code '{err.code}' when attempting to retrieve {url}:\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"{err.reason}\n\nheaders={err.headers}",
         )
         raise RuntimeError(exception_message) from err

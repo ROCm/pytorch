@@ -37,7 +37,11 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.7
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -45,6 +49,7 @@ jobs:
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
 
+<<<<<<< HEAD
   libtorch-linux-focal-cuda12_6-py3_10-gcc11-debug-build:
     name: libtorch-linux-focal-cuda12.6-py3.10-gcc11-debug
     uses: ./.github/workflows/_linux-build.yml
@@ -52,6 +57,15 @@ jobs:
     with:
       build-environment: libtorch-linux-focal-cuda12.6-py3.10-gcc11
       docker-image-name: pytorch-linux-focal-cuda12.6-cudnn9-py3-gcc11
+=======
+  libtorch-linux-jammy-cuda12_8-py3_10-gcc11-debug-build:
+    name: libtorch-linux-jammy-cuda12.8-py3.10-gcc11-debug
+    uses: ./.github/workflows/_linux-build.yml
+    needs: get-label-type
+    with:
+      build-environment: libtorch-linux-jammy-cuda12.8-py3.10-gcc11
+      docker-image-name: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       build-generates-artifacts: false
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       runner: "linux.4xlarge"
@@ -62,14 +76,24 @@ jobs:
     secrets: inherit
 
   # no-ops builds test USE_PER_OPERATOR_HEADERS=0 where ATen/ops is not generated
+<<<<<<< HEAD
   linux-focal-cuda12_6-py3_10-gcc11-no-ops-build:
     name: linux-focal-cuda12.6-py3.10-gcc11-no-ops
+=======
+  linux-jammy-cuda12_8-py3_10-gcc11-no-ops-build:
+    name: linux-jammy-cuda12.8-py3.10-gcc11-no-ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-focal-cuda12.6-py3.10-gcc11-no-ops
       docker-image-name: pytorch-linux-focal-cuda12.6-cudnn9-py3-gcc11
+=======
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc11-no-ops
+      docker-image-name: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "default", shard: 1, num_shards: 1 },
@@ -86,12 +110,17 @@ jobs:
       runner-type: macos-m1-stable
       build-generates-artifacts: true
       # To match the one pre-installed in the m1 runners
+<<<<<<< HEAD
       python-version: 3.9.12
+=======
+      python-version: 3.12.7
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "default", shard: 1, num_shards: 3, runner: "macos-m1-stable" },
           { config: "default", shard: 2, num_shards: 3, runner: "macos-m1-stable" },
           { config: "default", shard: 3, num_shards: 3, runner: "macos-m1-stable" },
+<<<<<<< HEAD
         ]}
     secrets: inherit
 
@@ -109,6 +138,11 @@ jobs:
         { include: [
           { config: "mps", shard: 1, num_shards: 1, runner: "macos-m1-13" },
           { config: "mps", shard: 1, num_shards: 1, runner: "macos-m1-14" },
+=======
+          { config: "mps", shard: 1, num_shards: 1, runner: "macos-m1-13" },
+          { config: "mps", shard: 1, num_shards: 1, runner: "macos-m1-14" },
+          { config: "mps", shard: 1, num_shards: 1, runner: "macos-m2-15" },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]}
     secrets: inherit
 
@@ -121,8 +155,14 @@ jobs:
     with:
       build-environment: macos-py3-arm64
       # Same as the build job
+<<<<<<< HEAD
       python-version: 3.9.12
       test-matrix: ${{ needs.macos-py3-arm64-build.outputs.test-matrix }}
+=======
+      python-version: 3.12.7
+      test-matrix: ${{ needs.macos-py3-arm64-build.outputs.test-matrix }}
+      disable-monitor: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit
 
   win-vs2022-cpu-py3-build:
@@ -132,7 +172,10 @@ jobs:
     with:
       build-environment: win-vs2022-cpu-py3
       cuda-version: cpu
+<<<<<<< HEAD
       sync-tag: win-cpu-build
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       runner: "${{ needs.get-label-type.outputs.label-type }}windows.4xlarge.nonephemeral"
       test-matrix: |
         { include: [
@@ -152,6 +195,10 @@ jobs:
       build-environment: win-vs2022-cpu-py3
       cuda-version: cpu
       test-matrix: ${{ needs.win-vs2022-cpu-py3-build.outputs.test-matrix }}
+<<<<<<< HEAD
+=======
+      disable-monitor: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit
 
   win-vs2022-cuda12_6-py3-build:
@@ -164,15 +211,26 @@ jobs:
       runner: "${{ needs.get-label-type.outputs.label-type }}windows.4xlarge.nonephemeral"
     secrets: inherit
 
+<<<<<<< HEAD
   linux-focal-rocm6_3-py3_10-build:
     if: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/trunk') }}
     name: linux-focal-rocm6.3-py3.10
+=======
+  linux-jammy-rocm-py3_10-build:
+    if: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/trunk') }}
+    name: linux-jammy-rocm-py3.10
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-focal-rocm6.3-py3.10
       docker-image-name: pytorch-linux-focal-rocm-n-py3
+=======
+      build-environment: linux-jammy-rocm-py3.10
+      docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       sync-tag: rocm-build
       test-matrix: |
         { include: [
@@ -182,11 +240,16 @@ jobs:
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-focal-rocm6_3-py3_10-test:
+=======
+  linux-jammy-rocm-py3_10-test:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/trunk') }}
     permissions:
       id-token: write
       contents: read
+<<<<<<< HEAD
     name: linux-focal-rocm6.3-py3.10
     uses: ./.github/workflows/_rocm-test.yml
     needs:
@@ -196,10 +259,22 @@ jobs:
       build-environment: linux-focal-rocm6.3-py3.10
       docker-image: ${{ needs.linux-focal-rocm6_3-py3_10-build.outputs.docker-image }}
       test-matrix: ${{ needs.linux-focal-rocm6_3-py3_10-build.outputs.test-matrix }}
+=======
+    name: linux-jammy-rocm-py3.10
+    uses: ./.github/workflows/_rocm-test.yml
+    needs:
+      - linux-jammy-rocm-py3_10-build
+      - target-determination
+    with:
+      build-environment: linux-jammy-rocm-py3.10
+      docker-image: ${{ needs.linux-jammy-rocm-py3_10-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-rocm-py3_10-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       tests-to-include: "test_nn test_torch test_cuda test_ops test_unary_ufuncs test_binary_ufuncs test_autograd inductor/test_torchinductor distributed/test_c10d_common distributed/test_c10d_nccl"
     secrets: inherit
 
   # NB: Keep this in sync with inductor-perf-test-nightly.yml
+<<<<<<< HEAD
   linux-focal-cuda12_4-py3_10-gcc9-inductor-build:
     name: cuda12.4-py3.10-gcc9-sm80
     uses: ./.github/workflows/_linux-build.yml
@@ -207,6 +282,15 @@ jobs:
     with:
       build-environment: linux-focal-cuda12.4-py3.10-gcc9-sm80
       docker-image-name: pytorch-linux-focal-cuda12.4-cudnn9-py3-gcc9-inductor-benchmarks
+=======
+  linux-jammy-cuda12_8-py3_10-gcc9-inductor-build:
+    name: cuda12.8-py3.10-gcc9-sm80
+    uses: ./.github/workflows/_linux-build.yml
+    needs: get-label-type
+    with:
+      build-environment: linux-jammy-cuda12.8-py3.10-gcc9-sm80
+      docker-image-name: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3-gcc9-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       cuda-arch-list: '8.0'
     secrets: inherit
 
@@ -217,7 +301,11 @@ jobs:
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       build-environment: linux-jammy-py3.9-gcc11
+<<<<<<< HEAD
       docker-image-name: pytorch-linux-jammy-py3.9-gcc11
+=======
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "verify_cachebench", shard: 1, num_shards: 1, runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge" },

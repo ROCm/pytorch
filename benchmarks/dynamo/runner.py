@@ -269,7 +269,11 @@ def parse_args():
         "--no-graphs",
         action="store_true",
         default=False,
+<<<<<<< HEAD
         help="Do not genenerate and upload metric graphs",
+=======
+        help="Do not generate and upload metric graphs",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     parser.add_argument(
         "--no-update-archive",
@@ -368,7 +372,11 @@ def get_mode(args):
 
 def get_skip_tests(suite, device, is_training: bool):
     """
+<<<<<<< HEAD
     Generate -x seperated string to skip the unusual setup training tests
+=======
+    Generate -x separated string to skip the unusual setup training tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     skip_tests = set()
     original_dir = abspath(os.getcwd())
@@ -550,7 +558,11 @@ def build_summary(args):
         gh_fh.write(comment)
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def archive_data(archive_name):
     if archive_name is not None:
         prefix_match = re.search(r"\w+(?=_performance)", archive_name)
@@ -570,7 +582,11 @@ def archive_data(archive_name):
     return day, prefix
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def default_archive_name(dtype):
     _, prefix = archive_data(None)
     return f"{prefix}_performance_{dtype}_{randint(100, 999)}"
@@ -1359,7 +1375,11 @@ class DashboardUpdater:
         dtype = self.args.dtypes[0]
         day, _ = archive_data(self.args.archive_name)
         target_dir = get_archive_name(self.args, dtype)
+<<<<<<< HEAD
         # Update lookup csv the folder to arhived logs
+=======
+        # Update lookup csv the folder to archived logs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         subprocess.check_call(
             f'echo "{day},performance,{dtype},{target_dir}" >> {self.lookup_file}',
             shell=True,
@@ -1418,7 +1438,11 @@ class DashboardUpdater:
 
     def comment_on_gh(self, comment):
         """
+<<<<<<< HEAD
         Send a commment to dashboard
+=======
+        Send a comment to dashboard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
             f.write(comment)
@@ -1450,7 +1474,11 @@ class DashboardUpdater:
             try:
                 RegressionTracker(self.args).diff()
             except Exception:
+<<<<<<< HEAD
                 logging.exception("")
+=======
+                log.exception("")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 with open(f"{self.args.output_dir}/gh_regression.txt", "w") as gh_fh:
                     gh_fh.write("")
 

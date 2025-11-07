@@ -89,9 +89,15 @@ class PipeTests(TestCase):
             mb_args=(x, y),
         )
 
+<<<<<<< HEAD
         assert (
             pipe.num_stages == EXPECTED_N_STAGES[ModelClass]
         ), f"nstages = {pipe.num_stages}, expect {EXPECTED_N_STAGES[ModelClass]}"
+=======
+        assert pipe.num_stages == EXPECTED_N_STAGES[ModelClass], (
+            f"nstages = {pipe.num_stages}, expect {EXPECTED_N_STAGES[ModelClass]}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ref_out = mod(x, y)
         out = pipe(x, y)[0]
@@ -109,9 +115,13 @@ class PipeTests(TestCase):
             new_names.update(stage_fqns)
 
         if CHECK_FQN_SET_EQUALITY:
+<<<<<<< HEAD
             assert (
                 old_names == new_names
             ), f"""
+=======
+            assert old_names == new_names, f"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             old names {old_names}
             new names {new_names}
             """

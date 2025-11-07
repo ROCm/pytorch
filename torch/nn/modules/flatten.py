@@ -96,8 +96,13 @@ class Unflatten(Module):
         >>> output.size()
         torch.Size([2, 2, 5, 5])
         >>> # With namedshape (tuple of tuples)
+<<<<<<< HEAD
         >>> input = torch.randn(2, 50, names=('N', 'features'))
         >>> unflatten = nn.Unflatten('features', (('C', 2), ('H', 5), ('W', 5)))
+=======
+        >>> input = torch.randn(2, 50, names=("N", "features"))
+        >>> unflatten = nn.Unflatten("features", (("C", 2), ("H", 5), ("W", 5)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> output = unflatten(input)
         >>> output.size()
         torch.Size([2, 2, 5, 5])

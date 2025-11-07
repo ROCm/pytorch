@@ -135,9 +135,15 @@ def fuse_linear_bn_eval(
     2. the number of features in bn is 1
     Otherwise, skip the folding path
     """
+<<<<<<< HEAD
     assert (
         linear.out_features == bn.num_features or bn.num_features == 1
     ), "To fuse, linear.out_features == bn.num_features or bn.num_features == 1"
+=======
+    assert linear.out_features == bn.num_features or bn.num_features == 1, (
+        "To fuse, linear.out_features == bn.num_features or bn.num_features == 1"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     assert bn.running_mean is not None and bn.running_var is not None
     fused_linear.weight, fused_linear.bias = fuse_linear_bn_weights(

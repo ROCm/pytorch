@@ -69,7 +69,11 @@ Tensor& eye_out_mps(int64_t n, int64_t m, Tensor& result) {
   @autoreleasepool {
     // A key is used to identify the MPSGraph which was created once, and can be reused if the parameters, data types
     // etc match the earlier created MPSGraph
+<<<<<<< HEAD
     string key = "eye_out_mps:" + getTensorsStringKey({result});
+=======
+    std::string key = "eye_out_mps:" + getTensorsStringKey({result});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto* mpsGraph, auto* newCachedGraph) {
       MPSGraphTensor* onesTensor = [mpsGraph constantWithScalar:1.0f
                                                           shape:getMPSShape(result)

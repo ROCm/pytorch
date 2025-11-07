@@ -2,7 +2,10 @@
 
 import copy
 import itertools
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import math
 
 import torch
@@ -15,12 +18,16 @@ from torch.ao.pruning._experimental.data_sparsifier.quantization_utils import (
     post_training_sparse_quantize,
 )
 from torch.nn.utils.parametrize import is_parametrized
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TestCase
 
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
+=======
+from torch.testing._internal.common_utils import raise_on_run_directly, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ImplementedSparsifier(BaseDataSparsifier):
@@ -500,9 +507,13 @@ class TestBaseDataSparsifier(_BaseDataSparsiferTestCase):
         (
             emb1,
             emb2,
+<<<<<<< HEAD
         ) = nn.Embedding(
             10, 3
         ), nn.Embedding(20, 3)
+=======
+        ) = nn.Embedding(10, 3), nn.Embedding(20, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         emb1_bag, emb2_bag = nn.EmbeddingBag(10, 3), nn.EmbeddingBag(20, 3)
 
         emb3, emb3_bag = nn.Embedding(15, 3), nn.EmbeddingBag(20, 3)
@@ -633,9 +644,13 @@ class TestNormDataSparsifiers(_NormDataSparsifierTestCase):
         (
             emb1,
             emb2,
+<<<<<<< HEAD
         ) = nn.Embedding(
             10, 3
         ), nn.Embedding(20, 3)
+=======
+        ) = nn.Embedding(10, 3), nn.Embedding(20, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         emb1_bag, emb2_bag = nn.EmbeddingBag(10, 3), nn.EmbeddingBag(20, 3)
 
         emb3, emb3_bag = nn.Embedding(15, 3), nn.EmbeddingBag(20, 3)
@@ -792,3 +807,10 @@ class TestQuantizationUtils(TestCase):
         assert abs(sl_embbag1 - 0.80) <= 0.05  # +- 5% leeway
         assert abs(sl_emb_seq_0 - 0.80) <= 0.05  # +- 5% leeway
         assert abs(sl_emb_seq_1 - 0.80) <= 0.05  # +- 5% leeway
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_ao_sparsity.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

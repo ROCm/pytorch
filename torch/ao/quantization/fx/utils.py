@@ -114,7 +114,11 @@ def node_arg_is_bias(node: Node, arg: Any) -> bool:
 
 
 def get_custom_module_class_keys(
+<<<<<<< HEAD
     custom_module_mapping: dict[QuantType, dict[type, type]]
+=======
+    custom_module_mapping: dict[QuantType, dict[type, type]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[Any]:
     r"""Get all the unique custom module keys in the custom config dict
     e.g.
@@ -495,7 +499,13 @@ def _is_custom_module_lstm(
     """
     mod = _get_module(node, named_modules)
     if qconfig is not None and qhandler is not None:
+<<<<<<< HEAD
         assert isinstance(qhandler, torch.ao.quantization.fx.quantize_handler.QuantizeHandler)  # type: ignore[attr-defined]
+=======
+        assert isinstance(
+            qhandler, torch.ao.quantization.fx.quantize_handler.QuantizeHandler
+        )  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             isinstance(mod, torch.nn.LSTM)
             and activation_is_statically_quantized(qconfig)
@@ -517,7 +527,13 @@ def _is_custom_module_mha(
     """
     mod = _get_module(node, named_modules)
     if qconfig is not None and qhandler is not None:
+<<<<<<< HEAD
         assert isinstance(qhandler, torch.ao.quantization.fx.quantize_handler.QuantizeHandler)  # type: ignore[attr-defined]
+=======
+        assert isinstance(
+            qhandler, torch.ao.quantization.fx.quantize_handler.QuantizeHandler
+        )  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             isinstance(mod, torch.nn.MultiheadAttention)
             and activation_is_statically_quantized(qconfig)

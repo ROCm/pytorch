@@ -26,7 +26,11 @@ DEFINE_DISPATCH(qmean_inner_dim_stub);
 DEFINE_DISPATCH(qstd_inner_dim_stub);
 
 // If mean/std is taken in the innermost dims, the fast path can be used.
+<<<<<<< HEAD
 inline bool is_innnermost_dim(
+=======
+static inline bool is_innnermost_dim(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     OptionalIntArrayRef opt_dim) {
   if (!opt_dim.has_value()) {
@@ -43,7 +47,11 @@ inline bool is_innnermost_dim(
   return is_innermost;
 }
 
+<<<<<<< HEAD
 inline bool is_mean_inner_dim_fast_path(
+=======
+static inline bool is_mean_inner_dim_fast_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     OptionalIntArrayRef opt_dim,
     std::optional<ScalarType> opt_dtype) {
@@ -172,7 +180,11 @@ Tensor mean_quantized_cpu(
 }
 
 // qstd
+<<<<<<< HEAD
 inline bool is_std_inner_dim_fast_path(
+=======
+static inline bool is_std_inner_dim_fast_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self,
     OptionalIntArrayRef dim,
     const std::optional<Scalar>& correction) {

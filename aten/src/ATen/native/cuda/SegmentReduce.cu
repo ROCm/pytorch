@@ -1,5 +1,9 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/native/SegmentReduce.h>
+<<<<<<< HEAD
+=======
+#include <cuda_runtime.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/core/Tensor.h>
 #include <ATen/Dispatch.h>
@@ -17,6 +21,13 @@
 #include <ATen/ops/cumsum.h>
 #endif
 
+<<<<<<< HEAD
+=======
+// SegmentReduce compilation with CUDA-12.9 causes  NVCC crash on Windows
+// See https://github.com/pytorch/pytorch/issues/156181
+#if !defined(_WIN32) || CUDART_VERSION < 12090
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at::native {
 
 namespace {
@@ -600,3 +611,8 @@ REGISTER_DISPATCH(
   &_segment_reduce_offsets_backward_cuda_kernel);
 
 } // namespace at::native
+<<<<<<< HEAD
+=======
+
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

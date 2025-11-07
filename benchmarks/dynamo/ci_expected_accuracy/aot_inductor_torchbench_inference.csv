@@ -342,7 +342,11 @@ torch_multimodal_clip,pass,0
 
 
 
+<<<<<<< HEAD
 tts_angular,pass,0
+=======
+tts_angular,fail_to_run,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

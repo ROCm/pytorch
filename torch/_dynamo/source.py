@@ -21,7 +21,12 @@ the code needed to recreate values.
 
 import dataclasses
 import enum
+<<<<<<< HEAD
 from typing import Any, Optional, Union
+=======
+import functools
+from typing import Any, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._guards import ChainedSource, GuardSource, Source
 
@@ -29,6 +34,12 @@ from . import utils
 from .bytecode_transformation import create_call_function, create_instruction
 
 
+<<<<<<< HEAD
+=======
+if TYPE_CHECKING:
+    from .codegen import PyCodegen
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # It shouldn't be supported to construct an NNModuleVariable inside an FSDP module,
 # so those cases are omitted intentionally
 
@@ -120,7 +131,11 @@ class LocalSource(Source):
     # or `co_freevars`.
     is_derefed_cell_contents: bool = False
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.is_derefed_cell_contents:
             codegen.load_deref(self.local_name)
         else:
@@ -137,7 +152,11 @@ class LocalSource(Source):
 class SyntheticLocalSource(Source):
     local_name: str
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.append_output(codegen.create_load(self.local_name))
 
     def guard_source(self):
@@ -154,7 +173,11 @@ class RandomValueSource(Source):
     def guard_source(self):
         return GuardSource.RANDOM_VALUE
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.append_output(codegen.create_load(codegen.tx.output.random_values_var))
         codegen.append_output(codegen.create_load_const(self.random_call_index))
         codegen.append_output(create_instruction("BINARY_SUBSCR"))
@@ -167,7 +190,11 @@ class RandomValueSource(Source):
 class GlobalSource(Source):
     global_name: str
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.append_output(codegen.create_load_global(self.global_name, add=True))
 
     def guard_source(self):
@@ -181,7 +208,11 @@ class GlobalSource(Source):
 class GlobalWeakRefSource(Source):
     global_name: str
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.append_output(
                 codegen.create_load_global(self.global_name, add=True)
@@ -198,7 +229,11 @@ class GlobalWeakRefSource(Source):
 
 @dataclasses.dataclass(frozen=True)
 class WeakRefCallSource(ChainedSource):
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(lambda: codegen(self.base))
         codegen.extend_output(create_call_function(0, False))
 
@@ -227,7 +262,11 @@ class AttrSource(ChainedSource):
             )
             object.__setattr__(self, "member", member_parts[-1])
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
         codegen.extend_output(codegen.create_load_attrs(self.member))
 
@@ -253,7 +292,11 @@ class GenericAttrSource(ChainedSource):
             )
             object.__setattr__(self, "member", member_parts[-1])
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
         codegen.extend_output(codegen.create_load_attrs(self.member))
 
@@ -273,7 +316,11 @@ class LocalCellSource(Source):
 
     local_name: str
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Although `LOAD_FAST` and `LOAD_CLOSURE` have the same semantics,
         # Dynamo's bytecode transformation differentiates them slightly, so we
         # always emit `LOAD_CLOSURE` here.
@@ -291,7 +338,11 @@ class LocalCellSource(Source):
 class GradSource(ChainedSource):
     member: str = "grad"
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
         codegen.extend_output(codegen.create_load_attrs(self.member))
 
@@ -366,7 +417,11 @@ class TensorPropertySource(ChainedSource):
         else:
             assert self.idx is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.load_import_from(
                 utils.__name__, f"call_{self.prop.method_name()}"
@@ -402,7 +457,11 @@ class IndexedSource(ChainedSource):
     def __post_init__(self):
         assert self.base is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     def guard_source(self):
@@ -417,7 +476,11 @@ class NegateSource(ChainedSource):
     def __post_init__(self):
         assert self.base is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     def guard_source(self):
@@ -433,7 +496,11 @@ class ConvertIntSource(ChainedSource):
     def __post_init__(self):
         assert self.base is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
 
     def guard_source(self):
@@ -448,7 +515,11 @@ class FlattenScriptObjectSource(ChainedSource):
     def __post_init__(self):
         assert self.base is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
 
     def guard_source(self):
@@ -463,7 +534,11 @@ class ScriptObjectQualifiedNameSource(ChainedSource):
     def __post_init__(self):
         assert self.base is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
 
     def guard_source(self):
@@ -474,7 +549,11 @@ class ScriptObjectQualifiedNameSource(ChainedSource):
 
 
 class AttrProxySource(ChainedSource):
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
 
     def guard_source(self):
@@ -508,7 +587,11 @@ class DefaultsSource(ChainedSource):
                 self, "_name", f"{self.base.name()}.{self.field}[{self.idx_key}]"
             )
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
         codegen.extend_output(codegen.create_load_attrs(self.field))
         codegen.append_output(codegen.create_load_const(self.idx_key))
@@ -533,7 +616,11 @@ class GetItemSource(ChainedSource):
             super().__setattr__("index", self.index.__reduce__())
             super().__setattr__("index_is_slice", True)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
         if self.index_is_slice:
             codegen.append_output(codegen.create_load_const(self.unpack_slice()))
@@ -567,7 +654,11 @@ class ConstDictKeySource(ChainedSource):
     def guard_source(self):
         return self.base.guard_source()
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.load_import_from(utils.__name__, "dict_keys_getitem")
         )
@@ -670,7 +761,11 @@ class ListGetItemSource(GetItemSource):
     Same as GetItemSource with reconstruct and name overridden to be list specific.
     """
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Reconstruct list.__getitem__(lst, index) to avoid any side effects
         # from possibly overridden __getitem__.
 
@@ -707,7 +802,11 @@ class ListGetItemSource(GetItemSource):
 
 @dataclasses.dataclass(frozen=True)
 class TupleIteratorGetItemSource(GetItemSource):
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.load_import_from(utils.__name__, "tuple_iterator_getitem")
         )
@@ -720,11 +819,34 @@ class TupleIteratorGetItemSource(GetItemSource):
 
 
 @dataclasses.dataclass(frozen=True)
+<<<<<<< HEAD
+=======
+class DataclassFieldsSource(ChainedSource):
+    def reconstruct(self, codegen: "PyCodegen"):
+        codegen.add_push_null(
+            lambda: codegen.load_import_from(utils.__name__, "dataclass_fields")
+        )
+        codegen(self.base)
+        codegen.extend_output(create_call_function(1, False))
+
+    def guard_source(self):
+        return self.base.guard_source()
+
+    def name(self):
+        return f"___dataclass_fields({self.base.name()})"
+
+
+@dataclasses.dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TypeSource(ChainedSource):
     def __post_init__(self):
         assert self.base is not None
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(lambda: codegen.load_import_from("builtins", "type"))
         codegen(self.base)
         codegen.extend_output(create_call_function(1, False))
@@ -738,7 +860,11 @@ class TypeSource(ChainedSource):
 
 @dataclasses.dataclass(frozen=True)
 class OptimizerSource(ChainedSource):
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
 
     def guard_source(self):
@@ -750,7 +876,11 @@ class OptimizerSource(ChainedSource):
 
 @dataclasses.dataclass(frozen=True)
 class NNModuleSource(ChainedSource):
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen(self.base)
 
     def guard_source(self):
@@ -799,7 +929,11 @@ class TorchFunctionModeStackSource(Source):
 
         return TorchFunctionModeStackVariable.get_mode_index(self.ind)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(
             lambda: codegen.load_import_from(
                 utils.__name__, "get_torch_function_mode_stack_at"
@@ -816,7 +950,11 @@ class TorchFunctionModeStackSource(Source):
 class ConstantSource(Source):
     source_name: str
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.append_output(codegen.create_load_global(self.source_name, add=False))
 
     def guard_source(self):
@@ -837,7 +975,11 @@ class NumpyTensorSource(ChainedSource):
     def guard_source(self):
         return self.base.guard_source()
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         codegen.add_push_null(lambda: codegen.load_import_from("torch", "as_tensor"))
         codegen(self.base)
         codegen.extend_output(create_call_function(1, False))
@@ -893,6 +1035,7 @@ class BackwardStateSource(Source):
         return GuardSource.BACKWARD_STATE
 
 
+<<<<<<< HEAD
 def is_from_local_source(source: Source, *, only_allow_input=False):
     if isinstance(source, ChainedSource):
         return is_from_local_source(source.base, only_allow_input=only_allow_input)
@@ -903,6 +1046,69 @@ def is_from_local_source(source: Source, *, only_allow_input=False):
     return True
 
 
+=======
+def get_local_source_name(source: Source, *, only_allow_input=False) -> Optional[str]:
+    if isinstance(source, ChainedSource):
+        return get_local_source_name(source.base, only_allow_input=only_allow_input)
+    if not isinstance(source, LocalSource):
+        return None
+    if only_allow_input and not source.is_input:
+        return None
+    return source.local_name
+
+
+def is_from_local_source(source: Source, *, only_allow_input=False):
+    return get_local_source_name(source, only_allow_input=only_allow_input) is not None
+
+
+def is_from_global_source(source: Source) -> bool:
+    return get_global_source_name(source) is not None
+
+
+def get_global_source_name(source: Source) -> Optional[str]:
+    if isinstance(source, ChainedSource):
+        return get_global_source_name(source.base)
+    if not isinstance(source, GlobalSource):
+        return None
+    return source.global_name
+
+
+def is_from_nonlocal_source(source: Source):
+    if isinstance(source, ChainedSource):
+        return is_from_nonlocal_source(source.base)
+    return (
+        isinstance(source, LocalSource)
+        and source.is_derefed_cell_contents
+        and not source.is_input
+    )
+
+
+def is_from_source(source: Source, target: Source):
+    if isinstance(source, ChainedSource):
+        return is_from_source(source.base, target)
+    return source == target
+
+
+@functools.lru_cache
+def is_from_unspecialized_nn_module_source(source: Source):
+    if isinstance(source, UnspecializedNNModuleSource):
+        return True
+    if isinstance(source, ChainedSource):
+        return is_from_unspecialized_nn_module_source(source.base)
+    return False
+
+
+@functools.lru_cache
+def is_from_unspecialized_builtin_nn_module_source(source: Source):
+    if isinstance(source, UnspecializedBuiltinNNModuleSource):
+        return True
+    if isinstance(source, ChainedSource):
+        return is_from_unspecialized_builtin_nn_module_source(source.base)
+    return False
+
+
+@functools.lru_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_from_unspecialized_param_buffer_source(source: Source):
     if isinstance(source, UnspecializedParamBufferSource):
         return True
@@ -911,6 +1117,10 @@ def is_from_unspecialized_param_buffer_source(source: Source):
     return False
 
 
+<<<<<<< HEAD
+=======
+@functools.lru_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_from_flatten_script_object_source(source: Source):
     if isinstance(source, FlattenScriptObjectSource):
         return True
@@ -919,6 +1129,10 @@ def is_from_flatten_script_object_source(source: Source):
     return False
 
 
+<<<<<<< HEAD
+=======
+@functools.lru_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_from_optimizer_source(source: Source):
     if isinstance(source, OptimizerSource):
         return True
@@ -929,6 +1143,10 @@ def is_from_optimizer_source(source: Source):
 
 # TODO: can probably write a generic "test this on everything in the chain"
 # helper
+<<<<<<< HEAD
+=======
+@functools.lru_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_from_defaults(source: Source):
     if isinstance(source, DefaultsSource):
         return True

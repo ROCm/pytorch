@@ -2,6 +2,7 @@
 
 set -ex
 
+<<<<<<< HEAD
 # Skip pytorch-nightly installation in docker images
 # Installation of pytorch-nightly is needed to prefetch mobilenet_v2 avd v3 models for some tests.
 # Came from https://github.com/ROCm/pytorch/commit/85bd6bc0105162293fa0bbfb7b661f85ec67f85a
@@ -16,6 +17,8 @@ set -ex
 echo "Skip torch-nightly installation"
 exit 0
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 source "$(dirname "${BASH_SOURCE[0]}")/common_utils.sh"
 
 # Cache the test models at ~/.cache/torch/hub/

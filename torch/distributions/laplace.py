@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions import constraints
@@ -46,7 +51,16 @@ class Laplace(Distribution):
     def stddev(self) -> Tensor:
         return (2**0.5) * self.scale
 
+<<<<<<< HEAD
     def __init__(self, loc, scale, validate_args=None):
+=======
+    def __init__(
+        self,
+        loc: Union[Tensor, float],
+        scale: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.loc, self.scale = broadcast_all(loc, scale)
         if isinstance(loc, _Number) and isinstance(scale, _Number):
             batch_shape = torch.Size()

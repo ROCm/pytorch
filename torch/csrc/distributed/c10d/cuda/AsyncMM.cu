@@ -5,7 +5,11 @@
 #include <ATen/cuda/nvrtc_stub/ATenNVRTC.h>
 #include <c10/cuda/CUDAGuard.h>
 
+<<<<<<< HEAD
 // Two warninngs in Cutlass included header files
+=======
+// Two warnings in Cutlass included header files
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wset-but-not-used")
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wunused-but-set-parameter")
 
@@ -157,13 +161,21 @@ at::Tensor async_input_mm_impl(
   };
 
   TORCH_CHECK(
+<<<<<<< HEAD
       a_chunk_signals.sizes().size() == 1,
+=======
+      a_chunk_signals.dim() == 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "async_input_mm: `a_chunk_signals` must be a 1D tensor.");
   size_t num_chunks_M = a_chunk_signals.numel();
 
   TORCH_CHECK(
       M % num_chunks_M == 0,
+<<<<<<< HEAD
       "async_input_mm: `a.shape(0)` must be an interger multiple of `a_chunk_signals.numel()`");
+=======
+      "async_input_mm: `a.shape(0)` must be an integer multiple of `a_chunk_signals.numel()`");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t chunk_size_M = M / num_chunks_M;
   size_t tile_size_M = cute::get<0>(TileShape_MNK{});
 
@@ -248,7 +260,11 @@ at::Tensor async_input_mm_out(
   });
 #else
   TORCH_CHECK(
+<<<<<<< HEAD
       false, "async_input_mm is not currenlty supported on your device");
+=======
+      false, "async_input_mm is not currently supported on your device");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
   return out;
 }

@@ -342,9 +342,15 @@ class ModularIndexing(sympy.Function):
                         and isinstance(term.args[0], sympy.Integer)
                         and term.args[0] < 0
                     ):
+<<<<<<< HEAD
                         # workaround for https://github.com/openai/triton/issues/619,
                         # if there are negative terms, // produces wrong result
                         # TODO if https://github.com/openai/triton/issues/619 is fixed
+=======
+                        # workaround for https://github.com/triton-lang/triton/issues/619,
+                        # if there are negative terms, // produces wrong result
+                        # TODO if https://github.com/triton-lang/triton/issues/619 is fixed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         # this optimization would become valid
                         all_positive = False
                         break
@@ -363,10 +369,13 @@ class ModularIndexing(sympy.Function):
         p, q = self.args[:2]
         return fuzzy_eq(p.is_nonnegative, q.is_nonnegative)  # type: ignore[attr-defined]
 
+<<<<<<< HEAD
     def _eval_is_positive(self) -> Optional[bool]:
         p, q = self.args[:2]
         return fuzzy_eq(p.is_positive, q.is_positive)  # type: ignore[attr-defined]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class Where(sympy.Function):
     """
@@ -535,6 +544,13 @@ class CeilToInt(sympy.Function):
         if isinstance(number, sympy.Number):
             return sympy.Integer(math.ceil(float(number)))
 
+<<<<<<< HEAD
+=======
+    def _ccode(self, printer):
+        number = printer.parenthesize(self.args[0], self.args[0].precedence - 0.5)
+        return f"ceil({number})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class FloorToInt(sympy.Function):
     is_integer = True
@@ -1127,6 +1143,14 @@ class IntTrueDiv(sympy.Function):
         if isinstance(base, sympy.Integer) and isinstance(divisor, sympy.Integer):
             return sympy.Float(int(base) / int(divisor))
 
+<<<<<<< HEAD
+=======
+    def _ccode(self, printer):
+        base = printer.parenthesize(self.args[0], PRECEDENCE["Atom"] - 0.5)
+        divisor = printer.parenthesize(self.args[1], PRECEDENCE["Atom"] - 0.5)
+        return f"((int){base}/(int){divisor})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: As an indicator, this != 0 implies == 1 (and vice versa).
 # Because we do not have the ability to guard on the stride permutation
@@ -1295,6 +1319,15 @@ class Identity(sympy.Function):
         # Removes the identity op.
         return self.args[0]
 
+<<<<<<< HEAD
+=======
+    def __int__(self) -> int:
+        return int(self.args[0])
+
+    def __float__(self) -> float:
+        return float(self.args[0])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def make_opaque_unary_fn(name):
     class OpaqueUnaryFn(sympy.Function):
@@ -1309,6 +1342,10 @@ def make_opaque_unary_fn(name):
         """
 
         _torch_handler_name = name
+<<<<<<< HEAD
+=======
+        _torch_unpickler = make_opaque_unary_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @classmethod
         def eval(cls, a):
@@ -1369,6 +1406,12 @@ def make_opaque_bitwise_fn(name, real_op_name):
     class BitwiseFn(sympy.Function):
         _torch_handler_name = name
         precedence: int = prec
+<<<<<<< HEAD
+=======
+        _torch_unpickler = functools.partial(
+            make_opaque_bitwise_fn, real_op_name=real_op_name
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @classmethod
         def eval(cls, a, b):

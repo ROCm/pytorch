@@ -28,9 +28,15 @@ import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncComp
 from torch._dynamo.utils import counters, dynamo_timed
 from torch._inductor.codecache import LambdaFuture, PyCodeCache
 from torch._inductor.metrics import get_metric_table, is_metric_table_enabled
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import free_unbacked_symbols
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.symbol import free_symbol_is_type, SymT
+=======
+from torch.fx.experimental.symbolic_shapes import free_symbols
+from torch.utils._ordered_set import OrderedSet
+from torch.utils._sympy.symbol import free_symbol_is_type, symbol_is_type, SymT
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._triton import has_triton
 
 from . import comms, config, dependencies, ir, metrics
@@ -39,12 +45,21 @@ from .codegen.common import BackendFeature, get_scheduling_for_device, Kernel
 from .comm_analysis import estimate_nccl_collective_runtime
 from .dependencies import Dep, MemoryDep, StarDep, WeakDep
 from .exc import GPUTooOldForTriton, TritonMissing
+<<<<<<< HEAD
 from .ir import (
     ComputedBuffer,
+=======
+from .fx_utils import count_flops_fx, countable_fx
+from .ir import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_device_type,
     GraphPartitionSignature,
     MultiOutput,
     MultiOutputLayout,
+<<<<<<< HEAD
+=======
+    NoneLayout,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from .loop_body import LoopBody
 from .memory import MemoryPlanningInfoForBuffer, MemoryPlanningInfoForNode
@@ -57,8 +72,15 @@ from .utils import (
     get_device_tflops,
     get_dtype_size,
     get_gpu_dram_gbps,
+<<<<<<< HEAD
     IndentedBuffer,
     is_collective,
+=======
+    GraphPartitionMap,
+    IndentedBuffer,
+    is_collective,
+    is_cudagraph_unsafe_op,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_gpu,
     is_multi_outputs_template,
     is_output_of_multi_outputs_template,
@@ -71,6 +93,12 @@ from .virtualized import V
 log = logging.getLogger(__name__)
 fusion_log = torch._logging.getArtifactLogger(__name__, "fusion")
 loop_ordering_log = torch._logging.getArtifactLogger(__name__, "loop_ordering")
+<<<<<<< HEAD
+=======
+compute_dependencies_log = torch._logging.getArtifactLogger(
+    __name__, "compute_dependencies"
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 PartitionType = list["BaseSchedulerNode"]
 
@@ -179,6 +207,12 @@ class SchedulerBuffer:
         assert self.node is not None
         return self.node.get_mutation_names()
 
+<<<<<<< HEAD
+=======
+    def get_device(self) -> Optional[torch.device]:
+        return self.node.get_output_spec().get_device()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclasses.dataclass
 class SchedulerDonatedBuffer(SchedulerBuffer):
@@ -206,7 +240,11 @@ class BaseSchedulerNode:
 
     def _init_from_node(self, node: ir.Operation) -> None:
         self.node: Optional[ir.Operation] = node
+<<<<<<< HEAD
         self.ancestors = OrderedSet[str]()
+=======
+        self.ancestors: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.last_usage = OrderedSet[
             str
         ]()  # buffers that won't be used after this kernel
@@ -319,7 +357,11 @@ class BaseSchedulerNode:
         )
 
     def used_or_aliased_buffer_names(self) -> OrderedSet[str]:
+<<<<<<< HEAD
         used_names = OrderedSet[str]()
+=======
+        used_names: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         deps = [
             dep.name
@@ -471,7 +513,11 @@ class BaseSchedulerNode:
             buf_name = buf_to_be_inplaced.get_name()
             # Dedup read/writes with equivalent indices
             # TODO - would be nice if we could just cache accesses on ReadWrites,
+<<<<<<< HEAD
             # and inforce variant that this class & members are functional..
+=======
+            # and enforce variant that this class & members are functional..
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             deps: OrderedSet[Dep] = OrderedSet()
             for user in buf_to_be_inplaced.users:
                 user_node = user.node
@@ -479,7 +525,13 @@ class BaseSchedulerNode:
                     continue
 
                 if (
+<<<<<<< HEAD
                     buf_to_be_inplaced.scheduler.get_fused_node(user_node)
+=======
+                    user_node.get_first_name()
+                    not in buf_to_be_inplaced.scheduler.name_to_fused_node
+                    or buf_to_be_inplaced.scheduler.get_fused_node(user_node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     is not fused_node
                 ):
                     continue
@@ -669,6 +721,16 @@ class BaseSchedulerNode:
         ):
             # todo: Calculate this - it's kinda annoying.
             return {}
+<<<<<<< HEAD
+=======
+        if (
+            isinstance(self, ExternKernelSchedulerNode)
+            and isinstance(self.node, ir.FallbackKernel)
+            and self.node.op_overload
+            is torch._prims.rng_prims.graphsafe_run_with_rng_state
+        ):
+            return {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def try_size_hint(s: sympy.Expr) -> int:
             return V.graph.sizevars.size_hint(s, fallback=0)
@@ -769,6 +831,25 @@ class BaseSchedulerNode:
         return buf_byte_accesses
 
     @cache_on_self
+<<<<<<< HEAD
+=======
+    def estimate_flops(self) -> int | None:
+        if self.node is None:
+            return None
+        fx_node = self.node.get_origin_node()
+        if fx_node is None:
+            return None
+        if not countable_fx(fx_node):
+            return None
+
+        flops = count_flops_fx(fx_node)
+
+        resolved_flops = V.graph.sizevars.size_hints((flops,), fallback=0)[0]
+        counters["inductor"]["flop_count"] += resolved_flops
+        return resolved_flops
+
+    @cache_on_self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_estimated_runtime(self) -> float:
         """
         Returns estimated op runtime in nanoseconds (ns)
@@ -805,6 +886,7 @@ class BaseSchedulerNode:
         try:
             gpu_memory_bandwidth = get_gpu_dram_gbps()
             gpu_flops = get_device_tflops(dtype) * 10**12
+<<<<<<< HEAD
         except Exception:
             return 0
 
@@ -859,6 +941,35 @@ class BaseSchedulerNode:
             return self.get_read_write_buffers_sizes() / gpu_memory_bandwidth
 
         return 0
+=======
+            # If cudaGetDeviceProperties returns 0 for gpu_memory_bandwidth or gpu_flops
+            # there is a chance to continue execution successfully. Otherwise, it would fail with
+            # ZeroDivisionError below.
+            if gpu_memory_bandwidth <= 0:
+                raise AssertionError(
+                    f"gpu_memory_bandwidth cannot be <= 0, but got {gpu_memory_bandwidth}"
+                )
+            if gpu_flops <= 0:
+                raise AssertionError(f"gpu_flops cannot be <= 0, but got {gpu_flops}")
+        except Exception:
+            return 0
+
+        flops_est = self.estimate_flops()
+
+        if flops_est == 0 or flops_est is None:
+            # no flops estimate, so fall back to memory estimate
+            return self.get_read_write_buffers_sizes() / gpu_memory_bandwidth
+
+        # TODO(xmfan): find a better heuristic to model FLOPS/latency relationship
+        factor = 1.0
+        counted_bytes = self.get_read_write_buffers_sizes()
+        counted_bytes = 0 if counted_bytes is None else counted_bytes
+        compute_time = (factor * flops_est / gpu_flops) * 1e9
+        transfer_time = counted_bytes / gpu_memory_bandwidth
+
+        # Return estimated runtime in nanoseconds
+        return max(compute_time, transfer_time)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_template_node(self) -> Optional[ir.TemplateBuffer]:
         return None
@@ -886,13 +997,22 @@ class BaseSchedulerNode:
 class WhyNoFuse:
     # TODO when we drop support for Python < 3.10, we can use
     # @dataclass(slots=True) instead of manually specifying __slots__.
+<<<<<<< HEAD
     __slots__ = ["node1", "node2", "reason", "args"]
+=======
+    __slots__ = ["name1", "name2", "reason", "args"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reason: str
     args: tuple[Any, ...]
 
     def __init__(self, node1: BaseSchedulerNode, node2: BaseSchedulerNode) -> None:
+<<<<<<< HEAD
         self.node1 = node1
         self.node2 = node2
+=======
+        self.name1 = node1.get_name()
+        self.name2 = node2.get_name()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __call__(self, reason: str, *args: Any) -> None:
         self.reason = reason
@@ -900,7 +1020,11 @@ class WhyNoFuse:
         fusion_log.debug(self)
 
     def __str__(self) -> str:
+<<<<<<< HEAD
         return f"cannot fuse {self.node1.get_name()} with {self.node2.get_name()}: " + (
+=======
+        return f"cannot fuse {self.name1} with {self.name2}: " + (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.reason % self.args
         )
 
@@ -972,6 +1096,7 @@ def _prune_redundant_deps(
         node.set_read_writes(node.read_writes.remove_reads(deps_to_prune))
 
 
+<<<<<<< HEAD
 # TODO(xmfan): reuse: an existing mapping for this if it exists, or formalize this into ir.py:ExternKernel
 kernel_name_to_op = {
     "extern_kernels.convolution": torch.ops.aten.convolution,
@@ -982,6 +1107,8 @@ kernel_name_to_op = {
 }
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ExternKernelSchedulerNode(BaseSchedulerNode):
     def __init__(self, scheduler: Scheduler, node: ir.Operation) -> None:
         super().__init__(scheduler)
@@ -1085,7 +1212,11 @@ class SchedulerNode(BaseSchedulerNode):
 
             # TODO(shunting) if this cause compilation time increase when
             # enabling LOAF by default, try just clearing the specific cache
+<<<<<<< HEAD
             # entry by using a customized cache implemetation rather than
+=======
+            # entry by using a customized cache implementation rather than
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # lru_cache.
             SIMDScheduling.candidate_tilings.cache_clear()
 
@@ -1244,7 +1375,11 @@ class SchedulerNode(BaseSchedulerNode):
 
     @cache_on_self
     def _get_atomic_add_buffers(self) -> OrderedSet[str]:
+<<<<<<< HEAD
         buffers_store_as_atomic_add = OrderedSet[str]()
+=======
+        buffers_store_as_atomic_add: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(self._body, LoopBody):
             for node in self._body.get_nodes():
                 if (
@@ -1346,6 +1481,27 @@ class FusedSchedulerNode(BaseSchedulerNode):
         nodes = list(itertools.chain(node1.get_nodes(), node2.get_nodes()))
         return cls(node1.scheduler, nodes)
 
+<<<<<<< HEAD
+=======
+    @cache_on_self
+    def estimate_flops(self) -> int | None:
+        # don't increment counters in fused methods so we don't double count
+        fps = list(
+            filter(
+                None,
+                (
+                    node.estimate_flops()
+                    for node in self.get_nodes()
+                    if node.is_template() or node.is_extern()
+                ),
+            )
+        )
+        if len(fps) == 0:
+            return None
+        ret = sum(fps)
+        return ret
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reorder_loops_by_dep_pair(
         self, self_dep: MemoryDep, other_dep: MemoryDep
     ) -> None:
@@ -1429,7 +1585,11 @@ class FusedSchedulerNode(BaseSchedulerNode):
         super().set_last_usage(future_used_buffers, mutation_real_name)
         # Set self.last_usage on the snodes
         # This will be used for optimisations within the kernel
+<<<<<<< HEAD
         future_used_buffers = OrderedSet[str]()
+=======
+        future_used_buffers: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in reversed(self.snodes):
             node.set_last_usage(future_used_buffers, mutation_real_name)
             future_used_buffers.update(node.last_usage)
@@ -1721,6 +1881,13 @@ class ForeachKernelSchedulerNode(FusedSchedulerNode):
             for name in other_node.get_operation_names():
                 self.name_to_node[name] = other_node
 
+<<<<<<< HEAD
+=======
+            self.outputs_by_name: dict[str, SchedulerBuffer] = {
+                k: v for snode in self.snodes for k, v in snode.outputs_by_name.items()
+            }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.use_custom_partition_algo = use_custom_partition_algo
         device = snodes[0].get_device()
         assert device
@@ -1755,8 +1922,14 @@ class ForeachKernelSchedulerNode(FusedSchedulerNode):
         template_nodes = [x for x in filtered_nodes if x.is_template()]
         if template_nodes:
             log.debug(
+<<<<<<< HEAD
                 "ComboKernels: %d template nodes are filtered",
                 OrderedSet([len(template_nodes)]),
+=======
+                "ComboKernels: %d template nodes are filtered: %s",
+                len(template_nodes),
+                template_nodes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         filtered_nodes = [x for x in filtered_nodes if x not in template_nodes]
         return filtered_nodes
@@ -1887,6 +2060,27 @@ class GroupedSchedulerNode(BaseSchedulerNode):
             result.extend(node.get_outputs())
         return result
 
+<<<<<<< HEAD
+=======
+    @cache_on_self
+    def estimate_flops(self) -> int | None:
+        # don't increment counters in fused methods so we don't double count
+        fps = list(
+            filter(
+                None,
+                (
+                    node.estimate_flops()
+                    for node in self.get_nodes()
+                    if node.is_template() or node.is_extern()
+                ),
+            )
+        )
+        if len(fps) == 0:
+            return None
+        ret = sum(fps)
+        return ret
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_nodes(self) -> Sequence[BaseSchedulerNode]:
         return self.snodes
 
@@ -1978,6 +2172,14 @@ _post_grad_graph_counter = itertools.count()
 
 
 class Scheduler:
+<<<<<<< HEAD
+=======
+    """
+    A Scheduler is a graph of BaseSchedulerNodes. It is responsible for
+    optimizations such as fusion, reorder, and graph partition.
+    """
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __dep_size_hint_cache: dict[Dep, int]
 
     def __init__(self, nodes: list[ir.Operation]) -> None:
@@ -1992,7 +2194,11 @@ class Scheduler:
         self.post_grad_graph_id = next(_post_grad_graph_counter)
         self._graph_partition_counter = itertools.count()
 
+<<<<<<< HEAD
         self.completed_operations = OrderedSet[str]()
+=======
+        self.completed_operations: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.available_buffer_names = OrderedSet(
             [
                 *V.graph.graph_inputs.keys(),
@@ -2061,6 +2267,11 @@ class Scheduler:
         if config._pre_fusion_custom_pass is not None:
             self.nodes = config._pre_fusion_custom_pass(self.nodes)
         self.nodes = self.fuse_nodes(self.nodes)
+<<<<<<< HEAD
+=======
+        if config._post_fusion_custom_pass is not None:
+            self.nodes = config._post_fusion_custom_pass(self.nodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.merge_loops()
         self.finalize_multi_template_buffers()
         if config.combo_kernels:
@@ -2081,13 +2292,25 @@ class Scheduler:
         if config.reorder_for_compute_comm_overlap:
             self.nodes = comms.reorder_compute_and_comm_for_overlap(self.nodes)
         self.process_grouped_nodes()
+<<<<<<< HEAD
+=======
+
+        if torch._inductor.config.graph_partition:
+            self.nodes = self.maybe_reorder_for_minimizing_partition(self.nodes)
+            self.nodes = self.reorder_for_partition_with_simple_dependency(self.nodes)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.compute_last_usage()
         log_ir_post_fusion(self.nodes)
         V.debug.graph_diagram(self.nodes)
         self.debug_draw_graph()
 
         # used during codegen:
+<<<<<<< HEAD
         self.buffer_names_to_free = OrderedSet[str]()
+=======
+        self.buffer_names_to_free: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # fx graph node to the position it appears in the graph
         # for debug attribution
@@ -2147,7 +2370,11 @@ class Scheduler:
             raise NotImplementedError(node)
 
     def create_foreach_nodes(self) -> None:
+<<<<<<< HEAD
         removed_node_names = OrderedSet[str]()
+=======
+        removed_node_names: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fe_nodes = []
         kept_node_names = self.name_to_fused_node.keys()
 
@@ -2231,6 +2458,18 @@ class Scheduler:
         for node in self.nodes:
             for buf1 in node.get_outputs():
                 buf1_name = buf1.get_name()
+<<<<<<< HEAD
+=======
+                # This is for handling auto functionized ops which return None
+                # and mutate more than 1 inputs, we shouldn't let them all
+                # point to the same user list since buffers in the aliases
+                # list might not be alias to each other.
+                if (
+                    isinstance(buf1.node.layout, ir.NoneLayout)
+                    and len(buf1.get_aliases()) > 1
+                ):
+                    continue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for buf2_name in buf1.get_aliases():
                     if buf1_name in name_to_users and buf2_name in name_to_users:
                         # merge the two
@@ -2272,6 +2511,16 @@ class Scheduler:
             if isinstance(val, sympy.Expr):
                 for fs in val.free_symbols:
                     unbacked_symbol_to_origin_node[fs] = None
+<<<<<<< HEAD
+=======
+            elif isinstance(val, ir.TensorBox):
+                # We also need to add symbols from input size as well because
+                # AOTI doesn't lift the unbacked symints to inputs
+                sym_size = [s for s in val.get_size() if isinstance(s, sympy.Expr)]
+                for s in sym_size:
+                    for fs in s.free_symbols:
+                        unbacked_symbol_to_origin_node[fs] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for node in self.nodes:
             log.debug("scheduling %s", node.node)
@@ -2291,7 +2540,11 @@ class Scheduler:
                     unbacked_symbol_to_origin_node[s] = node.get_name()
 
             unbacked_symbol_uses = sorted(
+<<<<<<< HEAD
                 node.node.get_unbacked_symbol_uses(), key=lambda x: x.name
+=======
+                node.node.get_free_symbol_uses(unbacked_only=True), key=lambda x: x.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             # if a kernel takes unbacked symints, register dependencies
             for s in unbacked_symbol_uses:
@@ -2356,7 +2609,11 @@ class Scheduler:
 
         # make sure unbacked symints aren't dead-code-eliminated
         for out in V.graph.graph_outputs:
+<<<<<<< HEAD
             for s in out.get_unbacked_symbol_uses():
+=======
+            for s in out.get_free_symbol_uses(unbacked_only=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert s in unbacked_symbol_to_origin_node, (
                     f"{s} not in {unbacked_symbol_to_origin_node.keys()}"
                 )
@@ -2391,6 +2648,21 @@ class Scheduler:
         for name in self.name_to_donated_buffer:
             self.name_to_donated_buffer[name].set_users(name_to_users[name].items)
 
+<<<<<<< HEAD
+=======
+        # For debug logging
+        logbuf = IndentedBuffer()
+        logbuf.splice("{")
+        for key, value in name_to_users.items():
+            with logbuf.indent():
+                users = [v.get_name() for v in value.items]
+                logbuf.splice(f"'{key}': {users},")
+        logbuf.splice("}")
+        str = logbuf.getrawvalue().rstrip()
+        compute_dependencies_log.debug("BUFFER USER LIST\n")
+        compute_dependencies_log.debug("===== AFTER SCHEDULING =====\n%s", str)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def dead_node_elimination(self) -> None:
         """
         Remove any nodes without users
@@ -2461,7 +2733,11 @@ class Scheduler:
         return result
 
     def _get_unmet_dep_nodes(self, snode: BaseSchedulerNode) -> list[BaseSchedulerNode]:
+<<<<<<< HEAD
         unmet_deps = OrderedSet[str]()
+=======
+        unmet_deps: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(
             snode,
             (
@@ -2513,7 +2789,11 @@ class Scheduler:
         # note self.nodes is topologically sorted
         name_to_ancestors: dict[str, OrderedSet[str]] = {}
         for node in self.nodes:
+<<<<<<< HEAD
             ancestors = OrderedSet[str]()
+=======
+            ancestors: OrderedSet[str] = OrderedSet()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for dep in node.unmet_dependencies:
                 dep_node_name = self.name_to_buf[dep.name].defining_op_name()
                 ancestors.add(dep_node_name)
@@ -2556,7 +2836,13 @@ class Scheduler:
         """
         Combine eligible nodes into FusedSchedulerNodes.
         """
+<<<<<<< HEAD
         with dynamo_timed("Scheduler.fused_nodes"):
+=======
+        with dynamo_timed(
+            "Scheduler.fused_nodes", log_pt2_compile_event=True, log_waitcounter=True
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(10):
                 old_len = len(nodes)
                 fusion_log.debug(
@@ -2640,7 +2926,11 @@ class Scheduler:
         choice finalized through fusion. In the case of an extern choice, this will result
         in replacing the SchedulerNode.
 
+<<<<<<< HEAD
         If a MultiTemplateBuffer did not have any fusion opportunities, finalizing a choie
+=======
+        If a MultiTemplateBuffer did not have any fusion opportunities, finalizing a choice
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         will force completion of compilation and benchmarking.
         """
 
@@ -2831,9 +3121,12 @@ class Scheduler:
 
             return (fut, mod)
 
+<<<<<<< HEAD
         # After the succesful fusion with Template, we finalize its config.
         # Subsequently we benchmark but dont update. Checking for SchedulerNode, instead of FusedSchedulerNode
         # accomplishes this.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_multi_template and any(
             n.get_template_node() is not None for n in (node1, node2)
         ):
@@ -2844,10 +3137,16 @@ class Scheduler:
                 else node2.get_template_node()
             )
             assert isinstance(multi_node, ir.MultiTemplateBuffer)
+<<<<<<< HEAD
             choice_timings = multi_node.choice_timings
             _, ms1 = multi_node.get_min_choice()
 
             # Eagerly compile and benchmark non-template nodes
+=======
+
+            # Eagerly compile and benchmark non-template nodes
+            choice_timings = multi_node.choice_timings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _, ms1 = multi_node.get_min_choice()
             ms2, path2 = (
                 self.benchmark_fused_nodes(node_list_2)
@@ -2859,7 +3158,11 @@ class Scheduler:
             future_choices: list[tuple[Any, Optional[LambdaFuture], ModuleType]] = []
             triton_choices = 0
             for choice, unfused_time in sorted(
+<<<<<<< HEAD
                 choice_timings.items(), key=lambda x: x[1]
+=======
+                choice_timings.items(), key=operator.itemgetter(1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 if not isinstance(choice, torch._inductor.ir.TritonTemplateCallerBase):
                     continue
@@ -3022,7 +3325,11 @@ class Scheduler:
         if fusion_log.isEnabledFor(logging.DEBUG):
             fusion_log.debug("fuse_nodes_once, candidates:")
             for node in fused_nodes:
+<<<<<<< HEAD
                 fusion_log.debug("  " + node.debug_str_short())  # noqa: G003
+=======
+                fusion_log.debug("  %s", node.debug_str_short())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # These are potential fusions which we are async compiling,
         # and which we will benchmark profitability of.
@@ -3121,7 +3428,11 @@ class Scheduler:
         fused_nodes = OrderedSet(self.nodes)
         count = 0
         num_nodes_orig = len(self.nodes)
+<<<<<<< HEAD
         log.debug("ComboKernels: Generating with num_ck_nodes = %d...", num_ck_nodes)
+=======
+        log.debug("ComboKernels: Generating with num_ck_nodes = %s...", num_ck_nodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for num, node_list in enumerate(
             ForeachKernelSchedulerNode.group_nodes_for_combo_kernels(self)
         ):
@@ -3155,7 +3466,11 @@ class Scheduler:
         self.nodes = sorted(fused_nodes, key=lambda x: x.min_order)
         self.nodes = self.topological_sort_schedule(self.nodes)
         log.info(
+<<<<<<< HEAD
             "Generated ComboKernel nodes: %d ComboKernels, totally %d -> %d nodels",
+=======
+            "Generated ComboKernel nodes: %d ComboKernels, totally %d -> %d nodes",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             count,
             num_nodes_orig,
             len(self.nodes),
@@ -3177,7 +3492,15 @@ class Scheduler:
 
         def check_all_pairs(nodes: list[BaseSchedulerNode]) -> None:
             for node1_index, node1 in enumerate(nodes):
+<<<<<<< HEAD
                 for node2 in nodes[node1_index + 1 :]:
+=======
+                for node2 in nodes[
+                    node1_index + 1 : node1_index
+                    + 1
+                    + config.max_fusion_buffer_group_pairwise_attempts
+                ]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     key = (node1, node2)
                     if key in seen:
                         continue
@@ -3269,7 +3592,11 @@ class Scheduler:
         Return true if fusing the two nodes can potentially increasing peak memory.
 
         The implementation is more like a heuristic since we don't really know if we are at peak
+<<<<<<< HEAD
         or not when trying to fuse these two ndoes. The order of nodes may change later which makes the
+=======
+        or not when trying to fuse these two nodes. The order of nodes may change later which makes the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         peak memory estimation hard.
 
         Here is how we decide the LOWER BOUND of extra memory allocation if we fuse these 2 nodes:
@@ -3309,7 +3636,11 @@ class Scheduler:
             try:
                 memory_overhead += int(key[2])
             except ValueError:
+<<<<<<< HEAD
                 # not an interger. Fallback is to fuse
+=======
+                # not an integer. Fallback is to fuse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return False
 
         bw_saving = self.score_fusion_memory(node1, node2)
@@ -3414,7 +3745,11 @@ class Scheduler:
         """
         Right now just greedily reorder the loop of node1 to be compatible with node2,
         but ideally we should have some heuristics to reorder the loop for node2
+<<<<<<< HEAD
         to be compatibile with node1 if that's more efficient.
+=======
+        to be compatible with node1 if that's more efficient.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         # TODO Don't do loop reordering for CPU for now.
@@ -3455,7 +3790,11 @@ class Scheduler:
             return 0
 
         # Pick the largest buffer to guide the loop reordering
+<<<<<<< HEAD
         _numel, lhs_dep, rhs_dep = max(candidates, key=lambda x: x[0])
+=======
+        _numel, lhs_dep, rhs_dep = max(candidates, key=operator.itemgetter(0))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not isinstance(lhs_dep, MemoryDep) or not isinstance(rhs_dep, MemoryDep):
             return 0
@@ -3513,7 +3852,11 @@ class Scheduler:
         # potential bad cache behavior and shared memory use.
         # we also want to avoid benchmarking reliably unprofitable fusions like downcasts from fp32 -> fp16 inside kernel.
         # allowing gathers by allowing increasing write_bytes by small factor
+<<<<<<< HEAD
         # TODO - make configurable per input, for insance, bias can fuse fp32 -> fp16 profitably
+=======
+        # TODO - make configurable per input, for instance, bias can fuse fp32 -> fp16 profitably
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         BYTES_THRESHOLD_MULTIPLIER = 1.1
         if read_bytes > (write_bytes * BYTES_THRESHOLD_MULTIPLIER):
@@ -3935,6 +4278,11 @@ class Scheduler:
                 inp = V.graph.graph_inputs[name]
                 if isinstance(inp, ir.TorchBindObject):
                     V.graph.wrapper_code.codegen_free(inp)
+<<<<<<< HEAD
+=======
+                elif isinstance(inp, ir.GeneratorState):
+                    continue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     storage = inp.data
                     assert (
@@ -4024,6 +4372,12 @@ class Scheduler:
 
     def should_partition(self, node: BaseSchedulerNode) -> bool:
         """Return True if we should partition the inductor graph on this node"""
+<<<<<<< HEAD
+=======
+        if isinstance(node, FusedSchedulerNode):
+            return any(self.should_partition(snode) for snode in node.snodes)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not node.is_gpu():
             return True
 
@@ -4039,10 +4393,14 @@ class Scheduler:
         if getattr(node.node, "unbacked_bindings", None):
             return True
 
+<<<<<<< HEAD
         if hasattr(node.node, "layout") and any(
             isinstance(expr, sympy.Expr) and expr.free_symbols
             for expr in node.node.layout.size
         ):
+=======
+        if is_cudagraph_unsafe_op(node.node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return True
 
         return False
@@ -4063,6 +4421,153 @@ class Scheduler:
 
         return name_to_node
 
+<<<<<<< HEAD
+=======
+    def compute_graph_partition_maps(
+        self,
+        signatures: list[GraphPartitionSignature],
+    ) -> None:
+        """
+        computes a mapping from partition input/output indices to graph input/output
+        indices for each partition.
+        """
+        name_to_graph_input_index = {
+            name: idx for idx, name in enumerate(V.graph.graph_inputs)
+        }
+        name_to_graph_output_index = {
+            name: idx for idx, name in enumerate(V.graph.get_output_names())
+        }
+
+        V.graph.partition_maps = []
+        for partition_id, signature in enumerate(signatures):
+            if signature.skip_cudagraph:
+                # Note: [Graph Partition Map for CUDAGraph]
+                # number of partition map should be the same as the number of generated
+                # partition functions. This assumption will be used when cudagraphify
+                # each partition function.
+                continue
+
+            input_mapping = []
+            for name in signature.input_nodes:
+                input_mapping.append(name_to_graph_input_index.get(name))
+
+            output_mapping = []
+            for node in signature.output_nodes:
+                output_mapping.append(name_to_graph_output_index.get(node.get_name()))
+
+            V.graph.partition_maps.append(
+                GraphPartitionMap(
+                    partition_id,
+                    input_mapping,
+                    output_mapping,
+                    signature.constant_names,
+                )
+            )
+
+    def get_graph_partition_symbol_inputs(
+        self,
+        partition: PartitionType,
+        input_nodes: dict[str, Union[ir.IRNode, ir.TorchBindObject, sympy.Expr]],
+    ) -> OrderedSet[sympy.Symbol]:
+        """
+        Returns all symbol inputs which are required to be in scope to successfully
+        perform codegen for this graph partition, including:
+        - free symbols used in partition nodes
+        - free symbols in partition input/node shapes, strides, and offsets. This is needed
+          for recording cudagraphs for tensors with dynamic shapes.
+        """
+
+        def get_layout_symints(node: ir.IRNode) -> OrderedSet[sympy.Symbol]:
+            free_symbol_uses: OrderedSet[sympy.Symbol] = OrderedSet()
+            layout = node.maybe_get_layout()
+            if isinstance(layout, ir.Layout):
+                free_symbol_uses.update(
+                    free_symbols(layout.size)
+                    | free_symbols(layout.stride)
+                    | free_symbols(layout.offset)
+                )
+                if isinstance(layout, ir.MutationLayoutSHOULDREMOVE):
+                    # symint may be used as index in layout.target
+                    free_symbol_uses.update(get_layout_symints(layout.target))
+            else:
+                assert layout is None, (
+                    f"Expect layout to be None but found layout={layout}"
+                )
+            return free_symbol_uses
+
+        def get_scheduler_node_symbol_uses(
+            node: BaseSchedulerNode,
+        ) -> OrderedSet[sympy.Symbol]:
+            """
+            Gets symbols used in node.
+            """
+            if isinstance(node, FusedSchedulerNode):
+                return OrderedSet().union(
+                    *(get_scheduler_node_symbol_uses(snode) for snode in node.snodes)
+                )
+            assert node.node is not None
+            free_symbol_uses = node.node.get_free_symbol_uses()
+            free_symbol_uses.update(
+                *(get_layout_symints(ir_node) for ir_node in node.node.get_outputs())
+            )
+            return free_symbol_uses
+
+        def get_input_node_symbols(
+            node: Union[ir.IRNode, sympy.Expr, ir.TorchBindObject],
+        ) -> OrderedSet[sympy.Symbol]:
+            """
+            Gets symbols used in input node shapes, strides, and offsets.
+            """
+            if isinstance(node, ir.TorchBindObject):
+                # TorchBindObject does not involve dynamic shapes yet
+                return OrderedSet()
+            elif isinstance(node, ir.IRNode):
+                return get_layout_symints(node)
+            else:
+                # node cannot be sympy.Expr since node comes from read_writes and
+                # read_writes does not contain sympy.Expr
+                raise NotImplementedError(f"Unsupported input node type: {type(node)}")
+
+        def filter_symbols(
+            symbols: OrderedSet[sympy.Symbol],
+        ) -> OrderedSet[sympy.Symbol]:
+            """
+            Filters a set of symbols that are required for codegen. Skip symbols
+            that are always internal to kernels, such as SymT.TMP, SymT.INDEX,
+            and SymT.R0_INDEX.
+            """
+            return OrderedSet(
+                s
+                for s in symbols
+                if symbol_is_type(
+                    s,
+                    (
+                        SymT.SIZE,
+                        SymT.FLOAT,
+                        SymT.UNBACKED_INT,
+                        SymT.UNBACKED_FLOAT,
+                    ),
+                )
+            )
+
+        candidate_symbols: OrderedSet[sympy.Symbol] = OrderedSet().union(
+            *(get_scheduler_node_symbol_uses(node) for node in partition)
+        )
+        candidate_symbols.union(
+            *(get_input_node_symbols(node) for _, node in input_nodes.items())
+        )
+
+        candidate_symbols = filter_symbols(candidate_symbols)
+
+        res: OrderedSet[sympy.Symbol] = OrderedSet()
+        for s in candidate_symbols:
+            symplified_s = V.graph.sizevars.simplify(s)
+            # use free_symbols only when s is simplified to an Integer or expr
+            res.update(symplified_s.free_symbols)
+
+        return OrderedSet(sorted(res, key=operator.attrgetter("name")))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_graph_partition_signature(
         self, partitions: list[PartitionType], skip_cudagraphs: list[bool]
     ) -> list[GraphPartitionSignature]:
@@ -4075,6 +4580,29 @@ class Scheduler:
         unmet_output_names = OrderedSet(V.graph.get_output_names())
         name_to_node = self.get_name_to_nodes()
 
+<<<<<<< HEAD
+=======
+        def is_none_layout(buf_name: str) -> bool:
+            """
+            Checks if buf_name is NoneLayout. Buffers with NoneLayout is not allocated
+            so graph partition should not take it as inputs or outputs.
+            """
+            buf = self.name_to_buf.get(buf_name, None)
+
+            if buf is None:
+                return False
+
+            if isinstance(buf.node.layout, NoneLayout):
+                if isinstance(buf.node, ir.MutationOutput) and (
+                    real_name := self.mutation_real_name.get(buf_name, None)
+                ):
+                    return is_none_layout(real_name)
+
+                return True
+
+            return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for partition, skip_cudagraph in zip(
             reversed(partitions), reversed(skip_cudagraphs)
         ):
@@ -4086,6 +4614,7 @@ class Scheduler:
             returned_output_names = output_names.intersection(unmet_output_names)
 
             # all reads/writes are partition inputs except those generated
+<<<<<<< HEAD
             # within the partition
             read_writes = dependencies.ReadWrites.merge_list(
                 [node.read_writes for node in partition]
@@ -4095,6 +4624,31 @@ class Scheduler:
                 - output_names
             )
 
+=======
+            # within the partition and tensor constants
+            read_writes = dependencies.ReadWrites.merge_list(
+                [node.read_writes for node in partition]
+            )
+
+            # WeakDep is fake dependency on unused buffer. It should not appear
+            # in partition_input_names for inputs that are actually read or written.
+            partition_input_names = (
+                OrderedSet(
+                    [
+                        x.name
+                        for x in read_writes.reads | read_writes.writes
+                        if not is_none_layout(x.name)
+                    ]
+                )
+                - output_names
+            )
+
+            partition_input_names = OrderedSet(
+                self.mutation_real_name.get(name, name)
+                for name in partition_input_names
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             buffer_names_to_free: OrderedSet[str] = OrderedSet()
             for node in partition:
                 buffer_names_to_free.update(node.last_usage)
@@ -4109,6 +4663,7 @@ class Scheduler:
                 for name in partition_input_names
                 if name in name_to_node
             }
+<<<<<<< HEAD
             output_nodes = [name_to_node[name] for name in returned_output_names]
             signatures.append(
                 GraphPartitionSignature(
@@ -4118,12 +4673,224 @@ class Scheduler:
                     skip_cudagraph,
                 )
             )
+=======
+
+            # if an input tensor is not freed in the partition function, it should
+            # also be returned as an output. This brings benefits to cudagraph
+            # since the returned output tensor is a cudagraph managed tensor with
+            # a static tensor address.
+            extra_output_names = [
+                name
+                for name in partition_input_names
+                if name in name_to_node and name not in buffer_names_to_free
+            ]
+
+            returned_output_names.update(extra_output_names)
+
+            returned_output_names = OrderedSet(
+                self.mutation_real_name.get(name, name)
+                for name in returned_output_names
+            )
+
+            output_nodes = [
+                name_to_node[name]
+                for name in returned_output_names
+                if not is_none_layout(name)
+            ]
+
+            constant_names = [
+                name for name in partition_input_names if name in V.graph.constants
+            ]
+
+            symbol_inputs = self.get_graph_partition_symbol_inputs(
+                partition, input_nodes
+            )
+
+            partition_signature = GraphPartitionSignature(
+                symbol_inputs,
+                input_nodes,
+                output_nodes,
+                input_deallocation,
+                skip_cudagraph,
+                constant_names,
+            )
+
+            signatures.append(partition_signature)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unmet_output_names = partition_input_names.union(
                 unmet_output_names - returned_output_names
             )
 
         return signatures[::-1]
 
+<<<<<<< HEAD
+=======
+    def clean_removed_buffer_from_partition_signatures(
+        self, signature: GraphPartitionSignature
+    ) -> GraphPartitionSignature:
+        """
+        Updates the partition signature by removing buffers specified in
+        V.graph.removed_buffers. See [Note: Removed Graph Partition Arguments]
+        """
+        input_nodes = {
+            name: buffer
+            for name, buffer in signature.input_nodes.items()
+            if name not in V.graph.removed_buffers
+        }
+        input_deallocation = {
+            name: val
+            for name, val in signature.input_deallocation.items()
+            if name not in V.graph.removed_buffers
+        }
+        output_nodes = [
+            node
+            for node in signature.output_nodes
+            if node.maybe_get_name() not in V.graph.removed_buffers
+        ]
+        constant_names = [
+            name
+            for name in signature.constant_names
+            if name not in V.graph.removed_buffers
+        ]
+        return GraphPartitionSignature(
+            signature.symbol_inputs,
+            input_nodes,
+            output_nodes,
+            input_deallocation,
+            signature.skip_cudagraph,
+            constant_names,
+        )
+
+    def reorder_for_minimizing_partition(
+        self,
+        nodes: list[BaseSchedulerNode],
+    ) -> list[BaseSchedulerNode]:
+        """
+        Reorder nodes to minimize the number of partitions via a bfs
+        topological sort. This is the optimal reordering such that the
+        number of partitions cannot be reduced further. This may be
+        sub-optimal for other metrics such as peak memory. This does not
+        change relative orders of two cudagraphable nodes, nor the
+        relative order of two non_cudagraphable nodes.
+        """
+        import heapq
+
+        node_to_indegree: dict[BaseSchedulerNode, int] = dict()
+        cudagraphable_nodes: list[tuple[int, BaseSchedulerNode]] = []
+        non_cudagraphable_nodes: list[tuple[int, BaseSchedulerNode]] = []
+        node_to_index = {node: idx for idx, node in enumerate(nodes)}
+
+        def insert_pending_nodes(node: BaseSchedulerNode) -> None:
+            node_with_index = (node_to_index[node], node)
+            if self.should_partition(node):
+                heapq.heappush(non_cudagraphable_nodes, node_with_index)
+            else:
+                heapq.heappush(cudagraphable_nodes, node_with_index)
+
+        def update_indegree(node: BaseSchedulerNode) -> None:
+            for succ_node in node.mpi_node.succ_nodes:
+                assert node_to_indegree[succ_node] > 0
+                node_to_indegree[succ_node] -= 1
+                if node_to_indegree[succ_node] == 0:
+                    insert_pending_nodes(succ_node)
+
+        for node in nodes:
+            node_to_indegree[node] = len(node.mpi_node.pred_nodes)
+            if node_to_indegree[node] == 0:
+                insert_pending_nodes(node)
+
+        schedule: list[BaseSchedulerNode] = []
+        num_iters: int = 0
+        while num_iters < len(nodes) and (
+            non_cudagraphable_nodes or cudagraphable_nodes
+        ):
+            while non_cudagraphable_nodes:
+                _, node = heapq.heappop(non_cudagraphable_nodes)
+                schedule.append(node)
+                update_indegree(node)
+
+            while cudagraphable_nodes:
+                _, node = heapq.heappop(cudagraphable_nodes)
+                schedule.append(node)
+                update_indegree(node)
+
+            num_iters += 1
+
+        if num_iters > len(nodes):
+            raise RuntimeError(
+                """
+                Failed to schedule, while loop ran too long when
+                reordering for minimizing the num of partitions
+                """
+            )
+
+        return schedule
+
+    def maybe_reorder_for_minimizing_partition(
+        self,
+        nodes: list[BaseSchedulerNode],
+    ) -> list[BaseSchedulerNode]:
+        """
+        Reorder nodes to minimize the number of partitions if this only slightly
+        increase peak memory.
+        """
+        from .memory import estimate_peak_memory, prepare_planning_info
+
+        graph_outputs = OrderedSet(V.graph.get_output_names())
+
+        default_peak_memory, name_to_freeable_input_buf = prepare_planning_info(
+            nodes,
+            self.name_to_buf,
+            self.name_to_fused_node,
+            OrderedSet(V.graph.graph_inputs.keys()),
+            graph_outputs,
+        )
+
+        reordered_nodes = self.reorder_for_minimizing_partition(nodes)
+        reorder_peak_memory, _ = estimate_peak_memory(
+            reordered_nodes, name_to_freeable_input_buf, graph_outputs
+        )
+
+        # 1.1 here means 10% extra peak memory budget which is quite arbitrary
+        if reorder_peak_memory < default_peak_memory * 1.1:
+            return reordered_nodes
+
+        return nodes
+
+    def reorder_for_partition_with_simple_dependency(
+        self, nodes: list[BaseSchedulerNode]
+    ) -> list[BaseSchedulerNode]:
+        """
+        Reorder a node if it should be partitioned and has simple dependency:
+        1. move a partitioned node to the front if it has no dependency
+        2. move a partitioned node to the back if it is only used by OutputNode
+        3. otherwise do not reorder
+        """
+
+        front: list[BaseSchedulerNode] = []
+        middle: list[BaseSchedulerNode] = []
+        back: list[BaseSchedulerNode] = []
+
+        def only_output_user(node: BaseSchedulerNode) -> bool:
+            for buf in node.get_outputs():
+                for use in buf.users:
+                    if not isinstance(use.node, OutputNode):
+                        return False
+            return True
+
+        for node in nodes:
+            should_partition = self.should_partition(node)
+            if should_partition and len(node.unmet_dependencies) == 0:
+                front.append(node)
+            elif should_partition and only_output_user(node):
+                back.append(node)
+            else:
+                middle.append(node)
+
+        return front + middle + back
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def graph_partition(
         self,
     ) -> tuple[list[PartitionType], list[GraphPartitionSignature]]:
@@ -4132,7 +4899,10 @@ class Scheduler:
         graph partitions and compute partition input/output signatures.
         """
         partitions: list[PartitionType] = []
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         skip_cudagraph = True
         cur_partition: PartitionType = []
         skip_cudagraphs = []
@@ -4150,9 +4920,18 @@ class Scheduler:
             partitions.append(cur_partition)
             skip_cudagraphs.append(skip_cudagraph)
 
+<<<<<<< HEAD
         return partitions, self.get_graph_partition_signature(
             partitions=partitions, skip_cudagraphs=skip_cudagraphs
         )
+=======
+        signatures = self.get_graph_partition_signature(
+            partitions=partitions, skip_cudagraphs=skip_cudagraphs
+        )
+        self.compute_graph_partition_maps(signatures)
+
+        return partitions, signatures
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen(self) -> None:
         with dynamo_timed("Scheduler.codegen"):
@@ -4168,6 +4947,11 @@ class Scheduler:
         signature: GraphPartitionSignature,
     ) -> None:
         """Codegen a partition given its inputs/outputs"""
+<<<<<<< HEAD
+=======
+        from .codegen.wrapper import SubgraphPythonWrapperCodegen
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         parent_wrapper_code = V.graph.wrapper_code
         graph_partition_id = next(self._graph_partition_counter)
 
@@ -4179,6 +4963,23 @@ class Scheduler:
                 partition_signatures=signature,
             )
             self._codegen(partition)
+<<<<<<< HEAD
+=======
+
+            # Note: [Removed Graph Partition Arguments]
+            # Graph partition relies on node.read_writes to analyze the partition
+            # inputs and outputs. However, during codegen, we may decide some buffers
+            # are internal to a kernel (e.g., triton kernel) such that these buffers
+            # are never actually defined. This information is collected during codegen
+            # and recorded in V.graph.removed_buffers. So we cleanup signature and write
+            # prefix (i.e., generating call function and return outputs) after we have
+            # codegen the partition.
+            assert isinstance(V.graph.wrapper_code, SubgraphPythonWrapperCodegen)
+            signature = self.clean_removed_buffer_from_partition_signatures(signature)
+            V.graph.wrapper_code.partition_signatures = signature
+            V.graph.wrapper_code.write_prefix()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             partition_code, _ = V.graph.wrapper_code.generate(V.graph.is_inference)
 
         V.graph.wrapper_code.define_subgraph_launcher_fn(partition_code.value)
@@ -4209,6 +5010,16 @@ class Scheduler:
         num_partitions = next(self._graph_partition_counter)
         V.graph.wrapper_code.set_all_partition_names(num_partitions)
 
+<<<<<<< HEAD
+=======
+        # See [Note: Graph Partition Map for CUDAGraph]
+        if num_partitions > 0:
+            assert V.graph.partition_maps is not None
+            assert num_partitions == len(V.graph.partition_maps), (
+                f"Expect {num_partitions} partition maps but got {len(V.graph.partition_maps)}"
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _codegen(self, nodes: list[BaseSchedulerNode]) -> None:
         if config.check_stack_no_cycles_TESTING_ONLY:
             import torch._dynamo.convert_frame
@@ -4301,7 +5112,15 @@ class Scheduler:
 
             if not isinstance(node, NopKernelSchedulerNode):
                 device = node.get_device()
+<<<<<<< HEAD
                 if device is not None and self.get_backend(device).ready_to_flush():
+=======
+                if (
+                    device is not None
+                    and device.type != "meta"
+                    and self.get_backend(device).ready_to_flush()
+                ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.flush()
 
         if self.current_device and device_need_guard(self.current_device.type):
@@ -4361,7 +5180,11 @@ class Scheduler:
                     )
                     return False
             except CompilationError as e:
+<<<<<<< HEAD
                 # workaround triton issue: https://github.com/openai/triton/issues/2151
+=======
+                # workaround triton issue: https://github.com/triton-lang/triton/issues/2151
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if "Loop-carried variable" in str(e):
                     fusion_log.debug(
                         "ComboKernel benchmark: return True because of loop-carried variable"
@@ -4375,7 +5198,11 @@ class Scheduler:
         try:
             ms2, ms2_clone, _path2_list = self.benchmark_combo_kernel(subkernel_nodes)
         except CompilationError as e:
+<<<<<<< HEAD
             # workaround triton issue: https://github.com/openai/triton/issues/2151
+=======
+            # workaround triton issue: https://github.com/triton-lang/triton/issues/2151
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if "Loop-carried variable" in str(e):
                 fusion_log.debug(
                     "ComboKernel benchmark: return True because of loop-carried variable"
@@ -4413,7 +5240,13 @@ class Scheduler:
                     if (
                         buffer
                         and get_device_type(buffer) == "cpu"
+<<<<<<< HEAD
                         and not isinstance(buffer.layout, MultiOutputLayout)
+=======
+                        and not isinstance(
+                            buffer.layout, (NoneLayout, MultiOutputLayout)
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         and buffer.get_size() == []
                     ):
                         V.graph.zero_dim_cpu_tensor_list.add(read.name)

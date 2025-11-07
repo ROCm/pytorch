@@ -5,8 +5,13 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 template <typename Dtype>
 inline void bgemm_internal_ck(CUDABLAS_BGEMM_ARGTYPES(Dtype)) {
+=======
+template <typename Dtype, typename C_Dtype = Dtype>
+inline void bgemm_internal_ck(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(Dtype, C_Dtype)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static_assert(false&&sizeof(Dtype),"at::cuda::blas_bgemm_internal_ck: not implemented");
 }
 

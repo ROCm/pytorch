@@ -518,7 +518,11 @@ def _root_pre_forward(
         _p_assert(state._is_root is not None, "Expects a root FSDP to have been set")
         if not state._is_root:
             # Always cast forward inputs in the root of this local FSDP unit for mixed
+<<<<<<< HEAD
             # precision, as this is where mixed precision could be configed.
+=======
+            # precision, as this is where mixed precision could be configured.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # This is more useful for auto wrapping that is recommended in composable path.
             # For manual wrapping, cast forward inputs on each local FSDP unit root will
             # increase some overhead, so not turned on for model wrapper path right now where

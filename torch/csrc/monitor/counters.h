@@ -36,12 +36,20 @@ enum class C10_API_ENUM Aggregation {
   MIN = 6,
 };
 
+<<<<<<< HEAD
 struct TORCH_API AggregationHash {
   template <typename T>
   std::size_t operator()(T t) const {
     return static_cast<std::size_t>(t);
   }
 };
+=======
+struct TORCH_API AggregationHash{template <typename T> std::size_t operator()(
+    T t) const {return static_cast<std::size_t>(t);
+} // namespace torch::monitor
+}
+;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // aggregationName returns the human readable name corresponding to the
 // aggregation.

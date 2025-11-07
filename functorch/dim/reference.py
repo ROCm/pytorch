@@ -507,7 +507,11 @@ def t__getitem__(self, input):
     for i in reversed(dim_packs):
         input[i : i + 1] = input[i]
 
+<<<<<<< HEAD
     # currenty:
+=======
+    # currently:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # input is flat, containing either Dim, or Tensor, or something valid for standard indexing
     # self may have first-class dims as well.
 
@@ -515,7 +519,11 @@ def t__getitem__(self, input):
     # drop the first class dims from self, they just become direct indices of their positions
 
     # figure out the dimensions of the indexing tensors: union of all the dims in the tensors in the index.
+<<<<<<< HEAD
     # these dimensions will appear and need to be bound at the first place tensor occures
+=======
+    # these dimensions will appear and need to be bound at the first place tensor occurs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if isinstance(self, _Tensor):
         ptensor_self, levels = self._tensor, list(self._levels)

@@ -95,6 +95,10 @@ ROCM_SO_FILES=(
     "libroctracer64.so"
     "libroctx64.so"
     "libhipblaslt.so"
+<<<<<<< HEAD
+=======
+    "libhipsparselt.so"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "libhiprtc.so"
 )
 
@@ -186,6 +190,7 @@ do
     OS_SO_FILES[${#OS_SO_FILES[@]}]=$file_name # Append lib to array
 done
 
+<<<<<<< HEAD
 # rocBLAS library files
 ROCBLAS_LIB_SRC=$ROCM_HOME/lib/rocblas/library
 ROCBLAS_LIB_DST=lib/rocblas/library
@@ -193,13 +198,36 @@ ARCH=$(echo $PYTORCH_ROCM_ARCH | sed 's/;/|/g') # Replace ; seperated arch list 
 ARCH_SPECIFIC_FILES=$(ls $ROCBLAS_LIB_SRC | grep -E $ARCH)
 OTHER_FILES=$(ls $ROCBLAS_LIB_SRC | grep -v gfx)
 ROCBLAS_LIB_FILES=($ARCH_SPECIFIC_FILES $OTHER_FILES)
+=======
+ARCH=$(echo $PYTORCH_ROCM_ARCH | sed 's/;/|/g') # Replace ; separated arch list to bar for grep
+
+# rocBLAS library files
+ROCBLAS_LIB_SRC=$ROCM_HOME/lib/rocblas/library
+ROCBLAS_LIB_DST=lib/rocblas/library
+ROCBLAS_ARCH_SPECIFIC_FILES=$(ls $ROCBLAS_LIB_SRC | grep -E $ARCH)
+ROCBLAS_OTHER_FILES=$(ls $ROCBLAS_LIB_SRC | grep -v gfx)
+ROCBLAS_LIB_FILES=($ROCBLAS_ARCH_SPECIFIC_FILES $OTHER_FILES)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # hipblaslt library files
 HIPBLASLT_LIB_SRC=$ROCM_HOME/lib/hipblaslt/library
 HIPBLASLT_LIB_DST=lib/hipblaslt/library
+<<<<<<< HEAD
 ARCH_SPECIFIC_FILES=$(ls $HIPBLASLT_LIB_SRC | grep -E $ARCH)
 OTHER_FILES=$(ls $HIPBLASLT_LIB_SRC | grep -v gfx)
 HIPBLASLT_LIB_FILES=($ARCH_SPECIFIC_FILES $OTHER_FILES)
+=======
+HIPBLASLT_ARCH_SPECIFIC_FILES=$(ls $HIPBLASLT_LIB_SRC | grep -E $ARCH)
+HIPBLASLT_OTHER_FILES=$(ls $HIPBLASLT_LIB_SRC | grep -v gfx)
+HIPBLASLT_LIB_FILES=($HIPBLASLT_ARCH_SPECIFIC_FILES $HIPBLASLT_OTHER_FILES)
+
+# hipsparselt library files
+HIPSPARSELT_LIB_SRC=$ROCM_HOME/lib/hipsparselt/library
+HIPSPARSELT_LIB_DST=lib/hipsparselt/library
+HIPSPARSELT_ARCH_SPECIFIC_FILES=$(ls $HIPSPARSELT_LIB_SRC | grep -E $ARCH)
+#HIPSPARSELT_OTHER_FILES=$(ls $HIPSPARSELT_LIB_SRC | grep -v gfx)
+HIPSPARSELT_LIB_FILES=($HIPSPARSELT_ARCH_SPECIFIC_FILES $HIPSPARSELT_OTHER_FILES)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # ROCm library files
 ROCM_SO_PATHS=()
@@ -234,12 +262,20 @@ DEPS_SONAME=(
 DEPS_AUX_SRCLIST=(
     "${ROCBLAS_LIB_FILES[@]/#/$ROCBLAS_LIB_SRC/}"
     "${HIPBLASLT_LIB_FILES[@]/#/$HIPBLASLT_LIB_SRC/}"
+<<<<<<< HEAD
+=======
+    "${HIPSPARSELT_LIB_FILES[@]/#/$HIPSPARSELT_LIB_SRC/}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "/opt/amdgpu/share/libdrm/amdgpu.ids"
 )
 
 DEPS_AUX_DSTLIST=(
     "${ROCBLAS_LIB_FILES[@]/#/$ROCBLAS_LIB_DST/}"
     "${HIPBLASLT_LIB_FILES[@]/#/$HIPBLASLT_LIB_DST/}"
+<<<<<<< HEAD
+=======
+    "${HIPSPARSELT_LIB_FILES[@]/#/$HIPSPARSELT_LIB_DST/}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "share/libdrm/amdgpu.ids"
 )
 

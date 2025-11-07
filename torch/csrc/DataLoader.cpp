@@ -37,7 +37,11 @@ using namespace torch;
     auto _w =                                                              \
         write(STDERR_FILENO, ERROR_MSG, sizeof(ERROR_MSG) / sizeof(char)); \
     (void)_w;                                                              \
+<<<<<<< HEAD
     struct sigaction sa {};                                                \
+=======
+    struct sigaction sa{};                                                 \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sa.sa_handler = SIG_DFL;                                               \
     sa.sa_flags = 0;                                                       \
     if (sigemptyset(&sa.sa_mask) != 0 ||                                   \
@@ -54,7 +58,11 @@ static void setSignalHandler(
     int signal,
     void (*handler)(int, siginfo_t*, void*),
     struct sigaction* old_sa_ptr) {
+<<<<<<< HEAD
   struct sigaction sa {};
+=======
+  struct sigaction sa{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   sa.sa_sigaction = handler;
   sa.sa_flags = SA_RESTART | SA_SIGINFO | SA_NOCLDSTOP | SA_NODEFER;
   if (sigemptyset(&sa.sa_mask) != 0 ||
@@ -92,7 +100,11 @@ static void handler_SIGTERM(int sig, siginfo_t* info, void* ctx) {
   if (info->si_pid == getppid()) {
     _exit(EXIT_SUCCESS);
   }
+<<<<<<< HEAD
   struct sigaction sa {};
+=======
+  struct sigaction sa{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   sa.sa_handler = SIG_DFL;
   sa.sa_flags = 0;
   if (sigemptyset(&sa.sa_mask) != 0 || sigaction(SIGTERM, &sa, nullptr) != 0) {
@@ -102,6 +114,10 @@ static void handler_SIGTERM(int sig, siginfo_t* info, void* ctx) {
   }
 }
 
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __attribute__((weak)) void setDataLoaderSignalHandlers() {}
 
 static PyObject* THPModule_setWorkerSignalHandlers(

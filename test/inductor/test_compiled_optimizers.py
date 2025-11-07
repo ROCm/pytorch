@@ -568,7 +568,11 @@ def make_recompile_test(optim_cls, closure=None, kernel_count=2, **kwargs):
 
 
 class CompiledOptimizerParityTests(TestCase):
+<<<<<<< HEAD
     @skipCUDAIf(True, "failing Adam and RMSprop")
+=======
+    @skipCUDAIf(not has_triton(), "torch.compile with cuda requires triton")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipXPUIf(not has_triton(), "torch.compile with xpu requires triton")
     @optims(optim_db, dtypes=[torch.float32])
     @parametrize("use_closure", [True, False])
@@ -919,9 +923,15 @@ class CompiledOptimizerTests(TestCase):
         import torch._dynamo
         import torch._inductor
         from torch._dynamo.debug_utils import aot_graph_input_parser
+<<<<<<< HEAD
         from torch._inductor.utils import fresh_inductor_cache
 
         with fresh_inductor_cache():
+=======
+        from torch._inductor.utils import fresh_cache
+
+        with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             kwargs = aot_graph_input_parser(forward)
             torch.compile(forward)(**kwargs)
 

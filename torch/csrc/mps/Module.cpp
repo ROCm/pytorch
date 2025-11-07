@@ -4,17 +4,26 @@
 #include <pybind11/pytypes.h>
 #include <torch/csrc/Generator.h>
 #include <torch/csrc/THP.h>
+<<<<<<< HEAD
 #include <torch/csrc/python_headers.h>
+=======
+#include <torch/csrc/mps/Module.h>
+#include <torch/csrc/python_headers.h>
+#include <torch/csrc/utils/device_lazy_init.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/utils/pybind.h>
 #include <torch/csrc/utils/python_numbers.h>
 #include <torch/csrc/utils/python_strings.h>
 #include <memory>
 
+<<<<<<< HEAD
 // pthread.h is included for tracking bad forks
 #ifndef WIN32
 #include <pthread.h>
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_MPS
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/mps/MetalShaderLibrary.h>
@@ -22,6 +31,7 @@
 
 namespace torch::mps {
 
+<<<<<<< HEAD
 namespace {
 // True for children forked after mps init
 static bool in_bad_fork = false;
@@ -43,6 +53,11 @@ static void track_bad_mps_fork() {
 static PyObject* MPSModule_isInBadFork(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
   return PyBool_FromLong(in_bad_fork);
+=======
+static PyObject* MPSModule_isInBadFork(PyObject* self, PyObject* noargs) {
+  HANDLE_TH_ERRORS
+  return PyBool_FromLong(torch::utils::is_device_in_bad_fork(at::kMPS));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -50,7 +65,11 @@ static PyObject* MPSModule_getDefaultMPSGenerator(
     PyObject* _unused,
     PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   track_bad_mps_fork();
+=======
+  torch::utils::register_fork_handler_for_device_init(at::kMPS);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPGenerator_initDefaultGenerator(
       at::detail::getMPSHooks().getDefaultGenerator());
   END_HANDLE_TH_ERRORS
@@ -58,8 +77,13 @@ static PyObject* MPSModule_getDefaultMPSGenerator(
 
 static PyObject* MPSModule_isAvailable(PyObject* _unused, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   track_bad_mps_fork();
   if (at::detail::getMPSHooks().hasMPS()) {
+=======
+  if (at::detail::getMPSHooks().hasMPS()) {
+    torch::utils::register_fork_handler_for_device_init(at::kMPS);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Py_RETURN_TRUE;
   } else {
     Py_RETURN_FALSE;
@@ -393,6 +417,18 @@ struct OptionalArgCaster {
       } else if (py::isinstance<py::float_>(element)) {
         auto values = arg.cast<std::vector<float>>();
         setValue(f, idx, values);
+<<<<<<< HEAD
+=======
+      } else if (THPVariable_Check(element.ptr())) {
+        /* List of tensors, most often to overcome the limits of 32-args per
+         * kernel */
+        auto tensorlist = py::cast<std::vector<at::Tensor>>(arg);
+        std::vector<void*> tl_ptrs;
+        for (auto& t : tensorlist) {
+          tl_ptrs.push_back(at::native::mps::get_tensor_gpu_address(t));
+        }
+        f.setArg(idx, tl_ptrs);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } else {
         TORCH_CHECK(false, "Unexpected argument types");
       }
@@ -455,7 +491,11 @@ void initModule(PyObject* module) {
               }
               TORCH_CHECK(
                   threads.has_value() && threads->size() < 4,
+<<<<<<< HEAD
                   "Number of threads is undefined or has wrong dimention");
+=======
+                  "Number of threads is undefined or has wrong dimension");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               TORCH_CHECK(
                   !group_size.has_value() ||
                   threads->size() == group_size->size());

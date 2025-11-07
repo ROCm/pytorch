@@ -20,7 +20,11 @@ from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 
 
+<<<<<<< HEAD
 CHECKPOINT_DIR = f"~/{os.environ['LOGNAME']}/checkpoint"
+=======
+CHECKPOINT_DIR = f"~/{os.environ.get('LOGNAME', '')}/checkpoint"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Model(torch.nn.Module):

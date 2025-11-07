@@ -433,13 +433,18 @@ inline InferredType tryToInferType(py::handle input) {
   }
 
   py::bool_ isClass =
+<<<<<<< HEAD
       py::module::import("inspect").attr("isclass")(input.get_type());
+=======
+      py::module::import("inspect").attr("isclass")(py::type::handle_of(input));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (py::cast<bool>(isClass)) {
     // Assume that the class is compiled already or will compile. Invalidate
     // this later if needed.
     bool class_compiled = true;
 
     // Check if the type is already compiled.
+<<<<<<< HEAD
     py::object existing_ty = py::module::import("torch.jit._state")
                                  .attr("_get_script_class")(input.get_type());
 
@@ -447,6 +452,17 @@ inline InferredType tryToInferType(py::handle input) {
       // If not, try to compile it.
       py::bool_ can_compile = py::module::import("torch._jit_internal")
                                   .attr("can_compile_class")(input.get_type());
+=======
+    py::object existing_ty =
+        py::module::import("torch.jit._state")
+            .attr("_get_script_class")(py::type::handle_of(input));
+
+    if (existing_ty.is_none()) {
+      // If not, try to compile it.
+      py::bool_ can_compile =
+          py::module::import("torch._jit_internal")
+              .attr("can_compile_class")(py::type::handle_of(input));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       if (py::cast<bool>(can_compile)) {
         // Try to compile the class. This is wrapped in a try-catch because
@@ -456,7 +472,11 @@ inline InferredType tryToInferType(py::handle input) {
         try {
           py::module::import("torch.jit._script")
               .attr("_recursive_compile_class")(
+<<<<<<< HEAD
                   input.get_type(), SourceRange());
+=======
+                  py::type::handle_of(input), SourceRange());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         } catch (...) {
           // Invalidate the assumption that the class compiled so that we don't
           // look up and return its JIT type as the type for the input.
@@ -468,8 +488,14 @@ inline InferredType tryToInferType(py::handle input) {
     // If the class compiled successfully, look up the existing JIT type by
     // qualified name and return it.
     if (class_compiled) {
+<<<<<<< HEAD
       auto script_class = py::module::import("torch.jit._state")
                               .attr("_get_script_class")(input.get_type());
+=======
+      auto script_class =
+          py::module::import("torch.jit._state")
+              .attr("_get_script_class")(py::type::handle_of(input));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       if (!script_class.is_none()) {
         auto class_type = py::cast<ClassTypePtr>(script_class);
@@ -642,7 +668,11 @@ inline InferredType tryToInferContainerType(
           "are supported ",
           "as inputs or outputs of traced functions",
           ", but instead got value of type ",
+<<<<<<< HEAD
           py::str(input.get_type().attr("__name__")),
+=======
+          py::str(py::type::handle_of(input).attr("__name__")),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "."));
     } else {
       // TODO: this message is not correct anymore, since this InferredType is
@@ -653,7 +683,11 @@ inline InferredType tryToInferContainerType(
           "are supported ",
           "as inputs or outputs of traced functions",
           ", but instead got value of type ",
+<<<<<<< HEAD
           py::str(input.get_type().attr("__name__")),
+=======
+          py::str(py::type::handle_of(input).attr("__name__")),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "."));
     }
   }
@@ -780,7 +814,11 @@ inline std::string friendlyTypeName(py::handle obj) {
     auto field_names =
         py::cast<std::vector<std::string>>(py::getattr(obj, "_fields"));
     std::stringstream ss;
+<<<<<<< HEAD
     ss << py::str(obj.get_type().attr("__name__"));
+=======
+    ss << py::str(py::type::handle_of(obj).attr("__name__"));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ss << " (aka NamedTuple(";
     bool first = true;
     for (auto& field_name : field_names) {
@@ -793,7 +831,11 @@ inline std::string friendlyTypeName(py::handle obj) {
     ss << "))";
     return ss.str();
   } else {
+<<<<<<< HEAD
     return py::str(obj.get_type().attr("__name__"));
+=======
+    return py::str(py::type::handle_of(obj).attr("__name__"));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -841,7 +883,11 @@ inline IValue returnToIValue(const TypePtr& type, py::handle object) {
         " expected value of type ",
         type->str(),
         " for return value but instead got value of type ",
+<<<<<<< HEAD
         py::str(object.get_type().attr("__name__")),
+=======
+        py::str(py::type::handle_of(object).attr("__name__")),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ".",
         "\nValue: ",
         py::repr(object),

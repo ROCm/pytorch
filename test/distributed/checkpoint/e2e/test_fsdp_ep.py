@@ -2,10 +2,17 @@
 
 import torch
 import torch.nn as nn
+<<<<<<< HEAD
 from torch.distributed._tensor import DTensor
 from torch.distributed.checkpoint.state_dict import get_state_dict
 from torch.distributed.device_mesh import _mesh_resources, init_device_mesh
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+=======
+from torch.distributed.checkpoint.state_dict import get_state_dict
+from torch.distributed.device_mesh import _mesh_resources, init_device_mesh
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.tensor import DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,

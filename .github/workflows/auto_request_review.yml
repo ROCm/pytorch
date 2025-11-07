@@ -15,7 +15,11 @@ jobs:
     steps:
       - name: Request review based on files changes and/or groups the author belongs to
         # v0.7.0
+<<<<<<< HEAD
         uses: necojackarc/auto-request-review@e08cdffa277d50854744de3f76230260e61c67f4
+=======
+        uses: necojackarc/auto-request-review@e08cdffa277d50854744de3f76230260e61c67f4 # v0.7.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 

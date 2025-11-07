@@ -9,7 +9,11 @@ inputs:
   arch-for-build-env:
     description: |
       arch to pass to build environment.
+<<<<<<< HEAD
       This is currently different than the arch name we use elswhere, which
+=======
+      This is currently different than the arch name we use elsewhere, which
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       should be fixed.
     required: true
   github-secret:

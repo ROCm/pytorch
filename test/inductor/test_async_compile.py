@@ -3,7 +3,11 @@ import torch
 from torch._inductor import config
 from torch._inductor.async_compile import AsyncCompile, shutdown_compile_workers
 from torch._inductor.test_case import run_tests, TestCase
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
@@ -32,7 +36,11 @@ class TestAsyncCompile(TestCase):
             pool = AsyncCompile.process_pool()
             pool.ready_future.result(timeout=120)
 
+<<<<<<< HEAD
             with fresh_inductor_cache():
+=======
+            with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 compiled_fn = torch.compile(fn)
                 self.assertEqual(fn(x, y), compiled_fn(x, y))
 

@@ -4,6 +4,10 @@
 
 #include <c10/util/Flags.h>
 
+<<<<<<< HEAD
+=======
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_DEFINE_bool(c10_flags_test_only_flag, true, "Only used in test.");
 
 namespace c10_test {

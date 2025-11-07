@@ -610,8 +610,12 @@ inline uint64_t GreatestCommonDivisor64(uint64_t A, uint64_t B) {
 
 /// This function takes a 64-bit integer and returns the bit equivalent double.
 inline double BitsToDouble(uint64_t Bits) {
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
   double D;
+=======
+  double D = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static_assert(sizeof(uint64_t) == sizeof(double), "Unexpected type sizes");
   memcpy(&D, &Bits, sizeof(Bits));
   return D;

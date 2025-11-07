@@ -10,7 +10,11 @@
 namespace torch::jit {
 
 // Get all types that are shared in the module hierarchy rooted at \p mod.
+<<<<<<< HEAD
 std::unordered_set<TypePtr> getSharedModuleTypes(Module& mod) {
+=======
+static std::unordered_set<TypePtr> getSharedModuleTypes(Module& mod) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Maintain a set of all TypePtrs.
   std::unordered_set<TypePtr> types;
   // Maintain another set of TypePtrs that have been encountered more than once.
@@ -32,7 +36,11 @@ std::unordered_set<TypePtr> getSharedModuleTypes(Module& mod) {
 // Selectively lower \p mod to a backend. \p to_backend
 // is called to lower modules. \p modules_to_lower contains
 // qualified names of submodules of \p mod that should be lowered.
+<<<<<<< HEAD
 void toBackendSelectiveImpl(
+=======
+static void toBackendSelectiveImpl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Module& mod,
     const py::function& to_backend,
     const std::vector<std::string>& modules_to_lower,
@@ -118,7 +126,11 @@ void toBackendSelectiveImpl(
   }
 }
 
+<<<<<<< HEAD
 Module codegen_func(
+=======
+static Module codegen_func(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::string& backend_name,
     const Module& orig_module,
     const py::dict& method_compile_spec) {

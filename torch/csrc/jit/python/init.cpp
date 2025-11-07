@@ -77,6 +77,10 @@
 #include <torch/csrc/jit/passes/utils/check_alias_annotation.h>
 #include <torch/csrc/jit/passes/vulkan_rewrite.h>
 #include <torch/csrc/jit/passes/xnnpack_rewrite.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/python/init.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/python/pybind_utils.h>
 #include <torch/csrc/jit/python/python_arg_flatten.h>
 #include <torch/csrc/jit/python/python_custom_class.h>
@@ -162,7 +166,12 @@ std::optional<IValue> toTypeInferredIValueOptional(py::handle input) {
 }
 } // anonymous namespace
 
+<<<<<<< HEAD
 #if !defined(USE_ROCM)
+=======
+#if defined(BUILDING_TESTS) && !defined(USE_ROCM)
+// NOLINTNEXTLINE(misc-use-internal-linkage)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API void runJITCPPTests();
 #endif
 
@@ -292,6 +301,12 @@ void initJITBindings(PyObject* module) {
             return EliminateDeadCode(g->block()); // overload resolution
           })
       .def(
+<<<<<<< HEAD
+=======
+          "_jit_pass_dce_graph",
+          [](std::shared_ptr<Graph>& g) { return EliminateDeadCode(g); })
+      .def(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "_jit_pass_dce_allow_deleting_nodes_with_side_effects",
           [](std::shared_ptr<Graph>& g) {
             return EliminateDeadCode(
@@ -1259,6 +1274,19 @@ void initJITBindings(PyObject* module) {
             return a->guard_size_oblivious(file, line);
           })
       .def(
+<<<<<<< HEAD
+=======
+            "guard_or_false",
+            [](const c10::SymNode& a, const char* file, int64_t line) {
+              return a->guard_or_false(file, line);
+            })
+      .def(
+              "guard_or_true",
+              [](const c10::SymNode& a, const char* file, int64_t line) {
+                return a->guard_or_true(file, line);
+              })
+      .def(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "has_hint",
           [](const c10::SymNode& a) {
             return a->has_hint();
@@ -1637,7 +1665,11 @@ void initJITBindings(PyObject* module) {
           "get_record_offset_no_read",
           [](PyTorchStreamReader& self,
              size_t zipfile_header_offset,
+<<<<<<< HEAD
              const std::string filename,
+=======
+             const std::string& filename,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
              size_t size,
              uint64_t storage_alignment) {
             return self.getRecordOffsetNoRead(
@@ -1747,7 +1779,11 @@ void initJITBindings(PyObject* module) {
 
   m.def(
       "_jit_resolve_packet",
+<<<<<<< HEAD
       [](const char* op_name, py::args args, const py::kwargs& kwargs) {
+=======
+      [](const char* op_name, const py::args& args, const py::kwargs& kwargs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try {
           auto symbol = Symbol::fromQualString(op_name);
           bool allow_numbers_as_tensors = opAllowsNumbersAsTensors(symbol);
@@ -1936,6 +1972,16 @@ void initJITBindings(PyObject* module) {
         self.addArgumentValues(value_map);
       });
   py::class_<FunctionSchema>(m, "FunctionSchema")
+<<<<<<< HEAD
+=======
+      .def(py::init<
+           std::string,
+           std::string,
+           std::vector<Argument>,
+           std::vector<Argument>,
+           bool,
+           bool>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def_property_readonly(
           "name", [](FunctionSchema& self) { return self.name(); })
       .def_property_readonly(
@@ -1993,6 +2039,16 @@ void initJITBindings(PyObject* module) {
       .def_property_readonly(
           "is_mutable", [](FunctionSchema& self) { return self.is_mutable(); });
   py::class_<Argument>(m, "Argument")
+<<<<<<< HEAD
+=======
+      .def(py::init<
+           std::string,
+           const TypePtr&,
+           std::optional<int32_t>,
+           std::optional<IValue>,
+           bool,
+           std::optional<AliasInfo>>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def_property_readonly("name", [](Argument& self) { return self.name(); })
       .def_property_readonly("type", [](Argument& self) { return self.type(); })
       .def_property_readonly(
@@ -2032,6 +2088,10 @@ void initJITBindings(PyObject* module) {
         return self.kwarg_only();
       });
   py::class_<AliasInfo>(m, "_AliasInfo")
+<<<<<<< HEAD
+=======
+      .def(py::init<bool, std::set<std::string>, std::set<std::string>>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def_property_readonly(
           "is_write", [](AliasInfo& self) { return self.isWrite(); })
       .def_property_readonly(
@@ -2124,7 +2184,11 @@ void initJITBindings(PyObject* module) {
                 return py::make_tuple();
               },
               /* __setstate__ */
+<<<<<<< HEAD
               [](const py::tuple& /* unused */) { // NOLINT
+=======
+              [](const py::tuple& /* unused */) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 TORCH_CHECK(false, "Can not unpickle torch.futures.Future");
                 // Note that this return has no meaning since we always
                 // throw, it's only here to satisfy PyBind's API
@@ -2161,7 +2225,11 @@ void initJITBindings(PyObject* module) {
                 return py::make_tuple();
               },
               /* __setstate__ */
+<<<<<<< HEAD
               [](const py::tuple& /* unused */) { // NOLINT
+=======
+              [](const py::tuple& /* unused */) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 TORCH_CHECK(false, "Can not unpickle torch.jit._Await");
                 // Note that this return has no meaning since we always
                 // throw, it's only here to satisfy PyBind's API

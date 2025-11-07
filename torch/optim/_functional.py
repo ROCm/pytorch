@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 r"""Functional interface."""
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import math
 
 from torch import Tensor

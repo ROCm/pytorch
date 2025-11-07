@@ -7,10 +7,22 @@ import torch
 from torch._inductor.codegen.triton import TritonScheduling
 from torch._inductor.test_case import TestCase as InductorTestCase
 from torch._inductor.test_operators import realize
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache, is_big_gpu, run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import slowTest
 from torch.testing._internal.inductor_utils import HAS_CPU, HAS_CUDA
+=======
+from torch._inductor.utils import fresh_cache, is_big_gpu, run_and_get_code
+from torch.testing import FileCheck
+from torch.testing._internal.common_utils import slowTest
+from torch.testing._internal.inductor_utils import (
+    get_func_call,
+    HAS_CPU,
+    HAS_CUDA,
+    IS_BIG_GPU,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Make the helper files in test/ importable
@@ -24,6 +36,10 @@ from inductor.test_torchinductor import (  # @manual=fbcode//caffe2/test/inducto
     check_model,
     check_model_cuda,
     copy_tests,
+<<<<<<< HEAD
+=======
+    skip_if_cpp_wrapper,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch._inductor import config
 from torch._inductor.scheduler import Scheduler
@@ -58,7 +74,14 @@ class BenchmarkFusionTestTemplate:
 
     @slowTest
     def test_resnet18(self):
+<<<<<<< HEAD
         import torchvision
+=======
+        try:
+            import torchvision
+        except ImportError:
+            self.skipTest("TorchVision not available")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         model = torchvision.models.resnet18()
         model.eval()
@@ -87,9 +110,18 @@ class BenchmarkFusionTestTemplate:
 
         # Disable dynamic_scale_rblock to make it easier to trigger register
         # spilling.
+<<<<<<< HEAD
         with unittest.mock.patch.object(
             Scheduler, "benchmark_fused_nodes", new_benchmark_fn
         ), config.patch("dynamic_scale_rblock", False):
+=======
+        with (
+            unittest.mock.patch.object(
+                Scheduler, "benchmark_fused_nodes", new_benchmark_fn
+            ),
+            config.patch("dynamic_scale_rblock", False),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             S = 512
 
             def f(*inputs):
@@ -123,7 +155,14 @@ class BenchmarkFusionTestTemplate:
 
         self.common(f, (a, b))
 
+<<<<<<< HEAD
     @torch._inductor.config.patch(max_autotune_gemm_backends="TRITON")
+=======
+    @unittest.skipIf(
+        not IS_BIG_GPU, "Skipping triton backend only since not big GPU (not enough SM)"
+    )
+    @config.patch(max_autotune_gemm_backends="TRITON")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_avoid_register_spilling(self):
         if self.device != "cuda":
             raise unittest.SkipTest("CUDA only")
@@ -158,9 +197,16 @@ class BenchmarkFusionTestTemplate:
                 ".run", 2, exactly=True
             ).run(out_code[0])
 
+<<<<<<< HEAD
         with config.patch(
             {"benchmark_fusion": False, "epilogue_fusion": False}
         ), torch.no_grad():
+=======
+        with (
+            config.patch({"benchmark_fusion": False, "epilogue_fusion": False}),
+            torch.no_grad(),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._dynamo.reset()
 
             foo_c = torch.compile(mode="max-autotune-no-cudagraphs")(foo)
@@ -193,6 +239,10 @@ if HAS_CUDA:
         @unittest.skipIf(
             torch.cuda.device_count() < 2, "The test need at least 2 devices"
         )
+<<<<<<< HEAD
+=======
+        @skip_if_cpp_wrapper("This tests triton scheduling directly")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_benchmark_on_non_zero_device(self):
             hit_count = 0
             with torch.cuda.device("cuda:0"):
@@ -262,9 +312,13 @@ if HAS_CUDA:
                 res, code = run_and_get_code(foo_c, m, inp)
 
             torch._dynamo.reset()
+<<<<<<< HEAD
             with unittest.mock.patch.object(
                 torch._inductor.config, "benchmark_epilogue_fusion", False
             ):
+=======
+            with config.patch(benchmark_epilogue_fusion=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 foo_c = torch.compile(mode="max-autotune-no-cudagraphs")(foo)
                 with torch.no_grad():
                     res2, code2 = run_and_get_code(foo_c, m, inp)
@@ -272,6 +326,7 @@ if HAS_CUDA:
             self.assertEqual(res, res2, atol=1e-4, rtol=1.1)
             return code, code2
 
+<<<<<<< HEAD
         @fresh_inductor_cache()
         @torch._inductor.config.patch(max_autotune_gemm_backends="TRITON")
         def test_equivalent_template_code(self):
@@ -289,12 +344,28 @@ if HAS_CUDA:
 
         @fresh_inductor_cache()
         @torch._inductor.config.patch(max_autotune_gemm_backends="ATEN")
+=======
+        @fresh_cache()
+        @config.patch(max_autotune_gemm_backends="TRITON")
+        def test_equivalent_template_code(self):
+            code, code2 = self._equivalent_output_code_impl(256)
+            for out_code in [code, code2]:
+                FileCheck().check(get_func_call()).check_count(
+                    "empty_strided", 1, exactly=True
+                ).check("triton_tem_fused_addmm_relu_0").check_count(
+                    ".reset()" if config.cpp_wrapper else "del", 3, exactly=True
+                ).check("" if config.cpp_wrapper else "return").run(out_code[0])
+
+        @fresh_cache()
+        @config.patch(max_autotune_gemm_backends="ATEN")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_equivalent_extern_code(self):
             torch._dynamo.reset()
 
             code, code2 = self._equivalent_output_code_impl(512, 1, False)
 
             for out_code in [code, code2]:
+<<<<<<< HEAD
                 FileCheck().check("def call").check_count(
                     "empty_strided_cuda", 1, exactly=True
                 ).check("extern_kernels.").check_count("del", 3, exactly=True).check(
@@ -302,6 +373,13 @@ if HAS_CUDA:
                 ).run(
                     out_code[0]
                 )
+=======
+                FileCheck().check(get_func_call()).check_count(
+                    "empty_strided", 1, exactly=True
+                ).check("" if config.cpp_wrapper else "extern_kernels.").check_count(
+                    ".reset()" if config.cpp_wrapper else "del", 3, exactly=True
+                ).check("" if config.cpp_wrapper else "return").run(out_code[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def test_changed_layout(self):
             # cat addmm planning will change layout - make sure propagated

@@ -29,6 +29,21 @@ using gemm_fn = void(*)(
 
 DECLARE_DISPATCH(gemm_fn, gemm_stub)
 
+<<<<<<< HEAD
+=======
+using gemm_no_downcast_fn = void(*)(
+    at::ScalarType type,
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    const Scalar& alpha,
+    const void *a, int64_t lda,
+    const void *b, int64_t ldb,
+    const Scalar& beta,
+    void *c, int64_t ldc);
+
+DECLARE_DISPATCH(gemm_no_downcast_fn, gemm_no_downcast_stub)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename scalar_t>
 void gemm(
     TransposeType transa, TransposeType transb,
@@ -259,6 +274,22 @@ TORCH_API void brgemm(
     int32_t* C,
     bool is_vnni = true);
 
+<<<<<<< HEAD
+=======
+TORCH_API void brgemm(
+    int64_t M,
+    int64_t N,
+    int64_t K,
+    int64_t ld_a,
+    int64_t ld_b,
+    int64_t ld_c,
+    const bool add_C,
+    const signed char* A,
+    const signed char* B,
+    int32_t* C,
+    bool is_vnni = true);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Release brgemm hardware context
 TORCH_API void brgemm_release(bool is_vnni = true);
 

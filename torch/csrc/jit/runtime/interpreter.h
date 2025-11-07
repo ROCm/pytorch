@@ -111,7 +111,10 @@ struct Suspend : public std::exception {
     return "Suspend";
   }
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   explicit Suspend(c10::intrusive_ptr<Future> future_)
       : future(std::move(future_)) {}
 

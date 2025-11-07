@@ -32,6 +32,11 @@ const char* toString(BackendComponent t) {
       return "VEBit";
     case BackendComponent::MTIABit:
       return "MTIA";
+<<<<<<< HEAD
+=======
+    case BackendComponent::MAIABit:
+      return "MAIA";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case BackendComponent::PrivateUse1Bit:
       return "PrivateUse1Bit";
     case BackendComponent::PrivateUse2Bit:
@@ -142,6 +147,11 @@ const char* toString(DispatchKey t) {
       return "AutocastCPU";
     case DispatchKey::AutocastMTIA:
       return "AutocastMTIA";
+<<<<<<< HEAD
+=======
+    case DispatchKey::AutocastMAIA:
+      return "AutocastMAIA";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case DispatchKey::AutocastXPU:
       return "AutocastXPU";
     case DispatchKey::AutocastIPU:
@@ -299,6 +309,10 @@ c10::DispatchKey parseDispatchKey(const std::string& k) {
       {"Tracer", c10::DispatchKey::Tracer},
       {"AutocastCPU", c10::DispatchKey::AutocastCPU},
       {"AutocastMTIA", c10::DispatchKey::AutocastMTIA},
+<<<<<<< HEAD
+=======
+      {"AutocastMAIA", c10::DispatchKey::AutocastMAIA},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {"AutocastXPU", c10::DispatchKey::AutocastXPU},
       {"AutocastIPU", c10::DispatchKey::AutocastIPU},
       {"AutocastHPU", c10::DispatchKey::AutocastHPU},
@@ -335,6 +349,10 @@ c10::DispatchKey parseDispatchKey(const std::string& k) {
       {"NestedTensorCPU", c10::DispatchKey::NestedTensorCPU},
       {"NestedTensorCUDA", c10::DispatchKey::NestedTensorCUDA},
       {"NestedTensorXPU", c10::DispatchKey::NestedTensorXPU},
+<<<<<<< HEAD
+=======
+      {"NestedTensorHPU", c10::DispatchKey::NestedTensorHPU},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {"NestedTensorMeta", c10::DispatchKey::NestedTensorMeta},
       {"NestedTensorPrivateUse1", c10::DispatchKey::NestedTensorPrivateUse1},
       {"PrivateUse1", c10::DispatchKey::PrivateUse1},

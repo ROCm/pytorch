@@ -12,7 +12,11 @@ BASE=${BASE:-HEAD~1}
 HEAD=${HEAD:-HEAD}
 
 ancestor=$(git merge-base "${BASE}" "${HEAD}")
+<<<<<<< HEAD
 echo "INFO: Checking aginst the following stats"
+=======
+echo "INFO: Checking against the following stats"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 (
     set -x
     git diff --stat=10000 "$ancestor" "${HEAD}" | sed '$d' > "${TMPFILE}"

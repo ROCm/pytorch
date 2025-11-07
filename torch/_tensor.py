@@ -621,6 +621,7 @@ class Tensor(torch._C.TensorBase):
         Args:
             gradient (Tensor, optional): The gradient of the function
                 being differentiated w.r.t. ``self``.
+<<<<<<< HEAD
                 This argument can be omitted if ``self`` is a scalar.
             retain_graph (bool, optional): If ``False``, the graph used to compute
                 the grads will be freed. Note that in nearly all cases setting
@@ -634,6 +635,20 @@ class Tensor(torch._C.TensorBase):
                 accumulated into ``.grad``. All other tensors will be ignored. If not
                 provided, the gradient is accumulated into all the leaf Tensors that were
                 used to compute the :attr:`tensors`.
+=======
+                This argument can be omitted if ``self`` is a scalar. Defaults to ``None``.
+            retain_graph (bool, optional): If ``False``, the graph used to compute the grads will be freed;
+                If ``True``, it will be retained. The default is ``None``, in which case the value is inferred from ``create_graph``
+                (i.e., the graph is retained only when higher-order derivative tracking is requested). Note that in nearly all cases
+                setting this option to True is not needed and often can be worked around in a much more efficient way.
+            create_graph (bool, optional): If ``True``, graph of the derivative will
+                be constructed, allowing to compute higher order derivative
+                products. Defaults to ``False``.
+            inputs (Sequence[Tensor], optional): Inputs w.r.t. which the gradient will be
+                accumulated into ``.grad``. All other tensors will be ignored. If not
+                provided, the gradient is accumulated into all the leaf Tensors that were
+                used to compute the :attr:`tensors`. Defaults to ``None``.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         if has_torch_function_unary(self):
             return handle_torch_function(
@@ -1125,7 +1140,13 @@ class Tensor(torch._C.TensorBase):
         if has_torch_function_unary(self):
             return handle_torch_function(Tensor.__format__, (self,), self, format_spec)
         if self.dim() == 0 and not self.is_meta and type(self) is Tensor:
+<<<<<<< HEAD
             return self.item().__format__(format_spec)
+=======
+            # Use detach() here to avoid the warning when converting a scalar Tensor that
+            # requires gradients to a python number. It is ok for formatting.
+            return self.detach().item().__format__(format_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return object.__format__(self, format_spec)
 
     @_handle_torch_function_and_wrap_type_error_to_not_implemented
@@ -1262,7 +1283,11 @@ class Tensor(torch._C.TensorBase):
         """Array view description for cuda tensors.
 
         See:
+<<<<<<< HEAD
         https://numba.pydata.org/numba-doc/latest/cuda/cuda_array_interface.html
+=======
+        https://numba.pydata.org/numba-doc/dev/cuda/cuda_array_interface.html
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         if has_torch_function_unary(self):
             # TODO mypy doesn't support @property, see: https://github.com/python/mypy/issues/6185

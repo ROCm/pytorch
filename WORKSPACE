@@ -144,8 +144,13 @@ new_local_repository(
 
 new_local_repository(
     name = "asmjit",
+<<<<<<< HEAD
     build_file = "//third_party:fbgemm/third_party/asmjit.BUILD",
     path = "third_party/fbgemm/third_party/asmjit",
+=======
+    build_file = "//third_party:fbgemm/external/asmjit.BUILD",
+    path = "third_party/fbgemm/external/asmjit",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 new_local_repository(
@@ -185,6 +190,15 @@ new_local_repository(
 )
 
 new_local_repository(
+<<<<<<< HEAD
+=======
+    name = "moodycamel",
+    build_file = "//third_party:moodycamel.BUILD",
+    path = "third_party/concurrentqueue",
+)
+
+new_local_repository(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     name = "tensorpipe",
     build_file = "//third_party:tensorpipe.BUILD",
     path = "third_party/tensorpipe",

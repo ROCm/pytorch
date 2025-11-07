@@ -34,7 +34,11 @@ import logging
 import math
 import re
 from collections.abc import Sequence
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._C
 import torch._refs
@@ -44,7 +48,11 @@ from torch._guards import TracingContext
 from torch._logging import warning_once
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass_type
 
+<<<<<<< HEAD
 from .. import config, polyfills, variables
+=======
+from .. import config, graph_break_hints, polyfills, variables
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..codegen import PyCodegen
 from ..create_parameter_op import (
     can_convert_to_tracable_parameter,
@@ -52,7 +60,11 @@ from ..create_parameter_op import (
     tracable_create_parameter,
 )
 from ..device_interface import get_registered_device_interfaces
+<<<<<<< HEAD
 from ..exc import unimplemented
+=======
+from ..exc import unimplemented, unimplemented_v2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..guards import GuardBuilder, install_guard
 from ..source import CallFunctionNoArgsSource, SyntheticLocalSource
 from ..utils import (
@@ -64,7 +76,11 @@ from ..utils import (
     proxy_args_kwargs,
     unwrap_if_wrapper,
 )
+<<<<<<< HEAD
 from .base import VariableTracker
+=======
+from .base import typestr, VariableTracker
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .ctx_manager import (
     AutocastModeVariable,
     ProfilerContextVariable,
@@ -76,6 +92,10 @@ from .lists import ListVariable, TupleVariable
 from .torch_function import (
     can_dispatch_torch_function,
     dispatch_torch_function,
+<<<<<<< HEAD
+=======
+    TensorWithTFOverrideVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TorchFunctionModeStackVariable,
 )
 
@@ -105,6 +125,10 @@ supported_ctx_manager_classes = dict.fromkeys(
         torch.autograd.profiler.profile,
         torch.autograd.profiler.record_function,
         torch._C.DisableTorchFunctionSubclass,
+<<<<<<< HEAD
+=======
+        torch._C.DisableTorchFunction,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._functorch.vmap.vmap_increment_nesting,
         torch._functorch.eager_transforms.grad_increment_nesting,
         torch._functorch.eager_transforms.jvp_increment_nesting,
@@ -130,7 +154,15 @@ REWRITE_OPS_TO_TENSOR_SIZE_METHOD = dict.fromkeys(
 )
 
 constant_fold_functions_need_guards = [
+<<<<<<< HEAD
     torch.cuda.current_device,
+=======
+    torch.accelerator.current_device_index,
+    torch.cuda.current_device,
+    torch.cuda.is_initialized,
+    torch.xpu.current_device,
+    torch.xpu.is_initialized,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 constant_fold_functions = [
@@ -138,6 +170,10 @@ constant_fold_functions = [
     torch._utils._get_device_index,
     torch._C._get_cublas_allow_tf32,
     torch._C._is_any_autocast_enabled,
+<<<<<<< HEAD
+=======
+    torch.accelerator.is_available,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.cuda.get_device_properties,
     torch.cuda.is_available,
     torch.distributed.is_available,
@@ -153,6 +189,11 @@ constant_fold_functions = [
     torch.promote_types,
     torch._C._get_privateuse1_backend_name,
     torch.autograd._is_checkpoint_valid,
+<<<<<<< HEAD
+=======
+    torch.xpu.get_device_properties,
+    torch.xpu.is_available,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ] + constant_fold_functions_need_guards
 if torch.distributed.is_available():
     constant_fold_functions.extend(
@@ -167,6 +208,7 @@ constant_fold_functions_need_guards = dict.fromkeys(constant_fold_functions_need
 constant_fold_functions = dict.fromkeys(constant_fold_functions)
 
 
+<<<<<<< HEAD
 tracing_state_functions = {
     torch.jit.is_scripting: False,
     torch.jit.is_tracing: False,
@@ -180,6 +222,25 @@ tracing_state_functions = {
     torch.compiler.is_exporting: True,
     torch.nn.modules.activation._is_make_fx_tracing: False,
 }
+=======
+@functools.cache
+def tracing_state_functions() -> dict[Callable[[], Any], Optional[bool]]:
+    # Defined as a function to avoid circular import like torch.onnx
+    return {
+        torch.jit.is_scripting: False,
+        torch.jit.is_tracing: False,
+        torch._C._get_tracing_state: None,
+        torch.fx._symbolic_trace.is_fx_tracing: False,
+        torch.onnx.is_in_onnx_export: False,
+        torch._dynamo.external_utils.is_compiling: True,
+        torch._utils.is_compiling: True,
+        torch.compiler.is_compiling: True,
+        torch.compiler.is_dynamo_compiling: True,
+        torch.compiler.is_exporting: True,
+        torch.nn.modules.activation._is_make_fx_tracing: False,
+    }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bin_ops = dict.fromkeys(["add", "sub", "mul", "div", "sqrt"])
 
@@ -190,14 +251,22 @@ dispatch_key_set_functions = {
 }
 
 
+<<<<<<< HEAD
 @functools.lru_cache(None)
+=======
+@functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_overridable_functions():
     from itertools import chain
 
     from torch.overrides import get_overridable_functions as get_overridable_functions_
 
     funcs = set(chain.from_iterable(get_overridable_functions_().values()))
+<<<<<<< HEAD
     more = {
+=======
+    more: set[Callable[..., Any]] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.ones,
         torch.ones_like,
         torch.zeros,
@@ -221,7 +290,11 @@ class BaseTorchVariable(VariableTracker):
         super().__init__(**kwargs)
         self.value = value
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
+=======
+    def reconstruct(self, codegen: "PyCodegen"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             name = f"{self.value.__module__}.{self.value.__name__}"
         except Exception:
@@ -342,9 +415,20 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
         ):
             warning_once(log, "Profiler function %s will be ignored", self.value)
             return ProfilerContextVariable()
+<<<<<<< HEAD
         elif self.value is torch._C.DisableTorchFunctionSubclass:
             assert not (args or kwargs)
             return TorchFunctionDisableVariable.create(tx)
+=======
+        elif (
+            self.value is torch._C.DisableTorchFunctionSubclass
+            or self.value is torch._C.DisableTorchFunction
+        ):
+            assert not (args or kwargs)
+            return TorchFunctionDisableVariable.create(
+                tx, only_subclass=self.value is torch._C.DisableTorchFunctionSubclass
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif self.value is torch._functorch.vmap.vmap_increment_nesting:
             assert len(args) == 2
             return VmapIncrementNestingCtxManagerVariable.create(
@@ -390,7 +474,14 @@ class TorchCtxManagerClassVariable(BaseTorchVariable):
         elif self.value is torch.nn.attention.sdpa_kernel:
             assert len(args) == 1 or (len(kwargs) == 1 and "backends" in kwargs)
             backends = args[0] if len(args) == 1 else kwargs["backends"]
+<<<<<<< HEAD
             return SDPAKernelVariable.create(tx, backends.as_python_constant())
+=======
+            set_priority = kwargs["set_priority"] if "set_priority" in kwargs else False
+            return SDPAKernelVariable.create(
+                tx, backends.as_python_constant(), set_priority
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif self.value is torch.nn.attention._sdpa_kernel_variadic:
             return SDPAKernelVariable.create(
                 tx, [arg.as_python_constant() for arg in args]
@@ -417,7 +508,11 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         return self.value
 
     @staticmethod
+<<<<<<< HEAD
     @functools.lru_cache(None)
+=======
+    @functools.cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _get_handlers():
         """Build a dict from function -> method to handle it so that we are O(1)
         in terms of the number of function with special handling."""
@@ -446,7 +541,11 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         )
         from .builder import wrap_fx_proxy, wrap_fx_proxy_cls
 
+<<<<<<< HEAD
         @register(*tracing_state_functions)
+=======
+        @register(*tracing_state_functions())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def handle_tracing_state_functions(
             self, tx: "InstructionTranslator", *args, **kwargs
         ):
@@ -460,7 +559,11 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                 torch.compiler.is_exporting,
             ):
                 tx.mark_inconsistent_side_effects()
+<<<<<<< HEAD
             return ConstantVariable.create(tracing_state_functions[self.value])
+=======
+            return ConstantVariable.create(tracing_state_functions()[self.value])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @register(*dispatch_key_set_functions)
         def handle_dispatch_key_set_functions(
@@ -516,6 +619,21 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
                     VariableTracker.build(tx, polyfills.radians), args, kwargs
                 )
 
+<<<<<<< HEAD
+=======
+        @register(torch.is_inference_mode_enabled)
+        def handle_is_inference_mode_enabled(self, tx: "InstructionTranslator"):
+            unimplemented_v2(
+                gb_type="Encountered torch.is_inference_mode_enabled during tracing",
+                context="",
+                explanation="torch.is_inference_mode_enabled() is not supported",
+                hints=[
+                    *graph_break_hints.FUNDAMENTAL,
+                    *graph_break_hints.INFERENCE_MODE,
+                ],
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @register(torch.is_tensor, torch.overrides.is_tensor_like)
         def handle_is_tensor(self, tx: "InstructionTranslator", arg):
             if isinstance(arg, TensorVariable) or (
@@ -593,7 +711,22 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
         @register(torch._C._is_torch_function_enabled)
         def handle_is_torch_function_enabled(self, tx):
             install_guard(TorchFunctionDisableVariable._guards_singleton)
+<<<<<<< HEAD
             return ConstantVariable.create(tx.output.torch_function_enabled)
+=======
+            # see comment on SymbolicTorchFunctionState class as to why
+            # this is not a bug
+            return ConstantVariable.create(
+                tx.symbolic_torch_function_state.torch_function_subclass_enabled
+            )
+
+        @register(torch._C._is_torch_function_all_disabled)
+        def handle_is_torch_function_all_disabled(self, tx):
+            install_guard(TorchFunctionDisableVariable._guards_singleton)
+            return ConstantVariable.create(
+                not tx.symbolic_torch_function_state.torch_function_mode_enabled
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @register(
             torch.overrides.has_torch_function,
@@ -864,6 +997,100 @@ class TorchInGraphFunctionVariable(BaseTorchVariable):
             elif isinstance(expr, ConstantVariable):
                 return expr
 
+<<<<<<< HEAD
+=======
+        @register(torch.fx.experimental.symbolic_shapes.guard_or_true)
+        def handle_guard_or_true(self, tx: "InstructionTranslator", expr):
+            if isinstance(expr, SymNodeVariable):
+                # TODO: this probably should be folded somewhere else but I'm not sure where
+                # TODO: some of the other symbolic_shapes special tools can also get this treatment too
+                return variables.ConstantVariable.create(
+                    torch.fx.experimental.symbolic_shapes.guard_or_true(expr.sym_num)
+                )
+            elif isinstance(expr, ConstantVariable):
+                return expr
+
+        @register(torch.fx.experimental.symbolic_shapes.guard_or_false)
+        def handle_guard_or_false(self, tx: "InstructionTranslator", expr):
+            if isinstance(expr, SymNodeVariable):
+                # TODO: this probably should be folded somewhere else but I'm not sure where
+                # TODO: some of the other symbolic_shapes special tools can also get this treatment too
+                return variables.ConstantVariable.create(
+                    torch.fx.experimental.symbolic_shapes.guard_or_false(expr.sym_num)
+                )
+            elif isinstance(expr, ConstantVariable):
+                return expr
+
+        @register(torch.fx.experimental.symbolic_shapes.statically_known_false)
+        def handle_statically_known_false(self, tx: "InstructionTranslator", expr):
+            if isinstance(expr, SymNodeVariable):
+                return variables.ConstantVariable.create(
+                    torch.fx.experimental.symbolic_shapes.statically_known_false(
+                        expr.sym_num
+                    )
+                )
+            elif isinstance(expr, ConstantVariable):
+                return expr
+
+        @register(torch.fx.experimental.symbolic_shapes.guard_scalar)
+        def guard_scalar(self, tx: "InstructionTranslator", expr):
+            if isinstance(expr, SymNodeVariable):
+                val = expr.sym_num
+            elif isinstance(expr, ConstantVariable):
+                val = expr.value
+            else:
+                raise torch._dynamo.exc.Unsupported("branch not supported")
+            return variables.ConstantVariable.create(
+                torch.fx.experimental.symbolic_shapes.guard_scalar(val)
+            )
+
+        @register(torch.fx.experimental.symbolic_shapes.statically_known_true)
+        def handle_statically_known_true(self, tx: "InstructionTranslator", expr):
+            if isinstance(expr, SymNodeVariable):
+                return variables.ConstantVariable.create(
+                    torch.fx.experimental.symbolic_shapes.statically_known_true(
+                        expr.sym_num
+                    )
+                )
+            elif isinstance(expr, ConstantVariable):
+                return expr
+
+        @register(torch.fx.experimental.symbolic_shapes.sym_and)
+        def handle_sym_and(self, tx: "InstructionTranslator", *terms):
+            if all(isinstance(x, SymNodeVariable) for x in terms):
+                return SymNodeVariable.create(
+                    tx,
+                    torch.fx.experimental.symbolic_shapes.sym_and(
+                        *(x.as_proxy() for x in terms)
+                    ),
+                    sym_num=None,
+                )
+
+        @register(torch.fx.experimental.symbolic_shapes.sym_or)
+        def handle_sym_or(self, tx: "InstructionTranslator", *terms):
+            if all(isinstance(x, SymNodeVariable) for x in terms):
+                return SymNodeVariable.create(
+                    tx,
+                    torch.fx.experimental.symbolic_shapes.sym_or(
+                        *(x.as_proxy() for x in terms)
+                    ),
+                    sym_num=None,
+                )
+
+        @register(torch.fx.experimental.symbolic_shapes.has_static_value)
+        def handle_has_static_value(self, tx: "InstructionTranslator", expr):
+            if isinstance(expr, SymNodeVariable):
+                val = expr.sym_num
+            elif isinstance(expr, ConstantVariable):
+                val = expr.value
+            else:
+                return
+
+            return variables.ConstantVariable.create(
+                torch.fx.experimental.symbolic_shapes.has_static_value(val)
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @register(torch._C._autograd._unsafe_set_version_counter)
         def handle_unsafe_set_version_counter(
             self, tx: "InstructionTranslator", *args, **kwargs
@@ -1125,6 +1352,31 @@ If the above doesn't work, please subtmit an issue to GitHub.
             )
 
         if self.is_tensor_method():
+<<<<<<< HEAD
+=======
+            name = self.value.__name__
+            # Guard against inplace view op on input tensor (not supported)
+            if args and isinstance(args[0], variables.TensorVariable):
+                tensor_var = args[0]
+                # Check if input tensor and inplace_view op specifically
+                if tensor_var.source is not None and hasattr(torch.ops.aten, name):
+                    fn = getattr(torch.ops.aten, name)
+                    if (
+                        hasattr(fn, "overloads")
+                        and hasattr(fn, fn.overloads()[0])
+                        and torch.Tag.inplace_view
+                        in getattr(fn, fn.overloads()[0]).tags
+                    ):
+                        unimplemented_v2(
+                            gb_type="Inplace op on input tensor",
+                            context="",
+                            explanation=f"Attempted to trace an inplace view op on input tensor {typestr(self.value)}.",
+                            hints=[
+                                *graph_break_hints.SUPPORTABLE,
+                                "Ensure you do not modify input tensor in place.",
+                            ],
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.call_tensor_method(tx, args, kwargs)
 
         special_handler = self._get_handlers().get(self.value)
@@ -1318,7 +1570,13 @@ Either create the tensor outside the compiled region, or do not set the tensor t
         if data.source:
             return cls._nn_param_via_prefix_insert(tx, data, requires_grad)
 
+<<<<<<< HEAD
         if is_traceable_wrapper_subclass_type(data.class_type):
+=======
+        if isinstance(
+            data, TensorWithTFOverrideVariable
+        ) or is_traceable_wrapper_subclass_type(data.class_type):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unimplemented("Parameter constructor with tensor subclass NYI")
 
         if not can_convert_to_tracable_parameter():
@@ -1369,7 +1627,11 @@ Either create the tensor outside the compiled region, or do not set the tensor t
         # Alternate version if we have a .source
         varname = tx.output.new_var()
 
+<<<<<<< HEAD
         # construct the nn.Parmeter before the graph save it to varname
+=======
+        # construct the nn.Parameter before the graph save it to varname
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cg = PyCodegen(tx)
         cg.add_push_null(lambda: cg.load_import_from("torch.nn", "Parameter"))
         cg(data.source)
@@ -1390,6 +1652,11 @@ Either create the tensor outside the compiled region, or do not set the tensor t
             tx.output.example_value_from_input_node(data.as_proxy().node)
         )
         result = VariableTracker.build(tx, example_value, source)
+<<<<<<< HEAD
+=======
+        # Realize the VT because we will delete the guards on it in the next line.
+        result = result.realize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # No need to guard on this since we already guarded on `data`.
         # These guards would fail since varname doesn't exist until after the function starts
         TracingContext.get().guards_context.dynamo_guards.remove_guards_with_source(

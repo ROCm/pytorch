@@ -10,7 +10,11 @@ import torch.func
 import torch.fx
 from torch._subclasses import fake_tensor
 from torch.fx.experimental import proxy_tensor
+<<<<<<< HEAD
 from torch.onnx._internal.fx import _pass, diagnostics
+=======
+from torch.onnx._internal.fx import _pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.onnx._internal.fx.passes import _utils
 from torch.utils import _pytree as pytree
 
@@ -62,12 +66,19 @@ class Functionalize(_pass.Transform):
 
     def __init__(
         self,
+<<<<<<< HEAD
         diagnostic_context: diagnostics.DiagnosticContext,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module: torch.fx.GraphModule,
         enable_dynamic_axes: bool,
         allow_fake_constant: bool | None = False,
     ):
+<<<<<<< HEAD
         super().__init__(diagnostic_context, module)
+=======
+        super().__init__(module)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.enable_dynamic_axes = enable_dynamic_axes
         self.allow_fake_constant = allow_fake_constant
 

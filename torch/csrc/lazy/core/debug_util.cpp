@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 #include <torch/csrc/lazy/core/debug_util.h>
 
@@ -17,8 +21,13 @@ namespace torch::lazy {
 namespace {
 
 std::string GetEnvString(const char* name, const std::string& defval) {
+<<<<<<< HEAD
   const char* env = std::getenv(name);
   return env != nullptr ? env : defval;
+=======
+  const auto env = c10::utils::get_env(name);
+  return env.value_or(defval);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 DebugUtil::GraphFormat DefaultGraphFormat() {

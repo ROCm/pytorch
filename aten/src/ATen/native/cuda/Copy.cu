@@ -441,8 +441,12 @@ static void copy_kernel_cuda(TensorIterator& iter, bool non_blocking) {
     auto* ptr = (dst_device == kCPU ? dst : src);
     auto* ctx = host_tensor.storage().data_ptr().get_context();
     // TODO: warn on the return value.
+<<<<<<< HEAD
     CachingHostAllocator_recordEvent(ptr, ctx, stream);
 
+=======
+    at::getHostAllocator(at::kCUDA)->record_event(ptr, ctx, stream.unwrap());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     at::cuda::memcpy_and_sync(dst, src, nbytes, kind, stream);
   }

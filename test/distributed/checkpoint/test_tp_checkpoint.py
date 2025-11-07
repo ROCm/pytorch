@@ -4,11 +4,18 @@ from copy import deepcopy
 
 import torch
 import torch.distributed.checkpoint as dcp
+<<<<<<< HEAD
 from torch.distributed._tensor import init_device_mesh
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint.default_planner import (
     DefaultLoadPlanner,
     DefaultSavePlanner,
 )
+<<<<<<< HEAD
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.parallel import (
     ColwiseParallel,
     parallelize_module,

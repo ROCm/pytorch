@@ -3,6 +3,10 @@
 #include <ATen/native/quantized/cpu/EmbeddingPackedParams.h>
 #include <ATen/native/quantized/cpu/fbgemm_utils.h>
 #include <ATen/native/quantized/cpu/qembeddingbag.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/quantized/library.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/library.h>
 #ifdef USE_FBGEMM
 #include <fbgemm/Fbgemm.h>
@@ -28,8 +32,11 @@
 #include <arm_neon.h>
 #endif
 
+<<<<<<< HEAD
 int register_embedding_params();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace {
 
 // Fallback implementation when FBGEMM is not available.

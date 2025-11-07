@@ -12,7 +12,12 @@ from torch import _dynamo as torchdynamo
 from torch._inductor import config
 from torch.profiler import ProfilerActivity
 from torch.testing._internal.common_utils import TemporaryFileName
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA, IS_BIG_GPU
+from torch.torch_version import TorchVersion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._triton import has_triton
 
 
@@ -107,7 +112,13 @@ class DynamoProfilerTests(torch._inductor.test_case.TestCase):
                 self.assertEqual(event.input_shapes[:4], [[4, 4], [4, 4], [4, 4], []])
         self.assertTrue(event_found)
 
+<<<<<<< HEAD
     @unittest.skipIf(not HAS_TRITON, "requires cuda & triton")
+=======
+    @unittest.skipIf(
+        not IS_BIG_GPU, "Skipping triton backend only since not big GPU (not enough SM)"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_inductor_profiling_kernel_names_template(self):
         with config.patch(
             {"max_autotune": True, "max_autotune_gemm_backends": "TRITON"}
@@ -176,9 +187,20 @@ class DynamoProfilerTests(torch._inductor.test_case.TestCase):
             self.assertTrue(event_found)
 
     @unittest.skipIf(not HAS_TRITON, "requires cuda & triton")
+<<<<<<< HEAD
     def test_inductor_profiling_triton_hooks(self):
         from triton.compiler import CompiledKernel  # @manual
 
+=======
+    @config.patch(
+        "compile_threads", 1
+    )  # This test monkey patches global variables, which workers don't see
+    def test_inductor_profiling_triton_hooks(self):
+        from triton.compiler import CompiledKernel  # @manual
+
+        from torch._inductor.runtime.triton_compat import knobs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         hooks_called = {"enter": False, "exit": False}
 
         def launch_enter_hook(lazy_dict):
@@ -187,8 +209,17 @@ class DynamoProfilerTests(torch._inductor.test_case.TestCase):
         def launch_exit_hook(lazy_dict):
             hooks_called["exit"] = True
 
+<<<<<<< HEAD
         CompiledKernel.launch_enter_hook = launch_enter_hook
         CompiledKernel.launch_exit_hook = launch_exit_hook
+=======
+        if knobs:
+            knobs.runtime.launch_enter_hook = launch_enter_hook
+            knobs.runtime.launch_exit_hook = launch_exit_hook
+        else:
+            CompiledKernel.launch_enter_hook = launch_enter_hook
+            CompiledKernel.launch_exit_hook = launch_exit_hook
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(x, y):
             return torch._foreach_add(x, y)
@@ -280,6 +311,26 @@ class DynamoProfilerTests(torch._inductor.test_case.TestCase):
         for e in triton_events:
             check_triton_event(e)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not HAS_TRITON, "requires cuda & triton")
+    def test_cupti_lazy_reinit(self):
+        x, y = (torch.randn(4, 4, device="cuda") for _ in range(2))
+
+        def fn(x, y):
+            return (x + y).sin()
+
+        fn_c = torch.compile(fn, mode="reduce-overhead")
+
+        with torch.profiler.profile():
+            fn_c(x, y)
+
+        if TorchVersion(torch.version.cuda) >= "12.6":
+            self.assertEqual("0", os.environ.get("DISABLE_CUPTI_LAZY_REINIT", "0"))
+        else:
+            self.assertEqual("1", os.environ.get("DISABLE_CUPTI_LAZY_REINIT", "0"))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

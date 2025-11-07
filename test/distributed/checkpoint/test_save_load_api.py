@@ -5,7 +5,11 @@ from unittest.mock import patch
 import torch
 import torch.distributed.checkpoint as dcp
 import torch.nn as nn
+<<<<<<< HEAD
 from torch.distributed._tensor.device_mesh import init_device_mesh
+=======
+from torch.distributed.device_mesh import init_device_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (

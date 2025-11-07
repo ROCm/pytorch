@@ -33,7 +33,11 @@ if TYPE_CHECKING:
 
 
 # All currently running heuristics.
+<<<<<<< HEAD
 # To add a heurstic in trial mode, specify the keywork argument `trial_mode=True`.
+=======
+# To add a heurstic in trial mode, specify the keyword argument `trial_mode=True`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 HEURISTICS: list[HeuristicInterface] = [
     PreviouslyFailedInPR(),
     EditedByPR(),

@@ -74,6 +74,10 @@ def define_c10_ovrsource(name, is_mobile):
             ],
         }),
         exported_deps = [
+<<<<<<< HEAD
+=======
+            "//xplat/caffe2/torch/headeronly:torch_headeronly",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ":ovrsource_c10_cmake_macros.h",
             "//arvr/third-party/gflags:gflags",
             "//third-party/cpuinfo:cpuinfo",

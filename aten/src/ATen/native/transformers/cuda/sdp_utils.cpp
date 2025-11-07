@@ -16,6 +16,10 @@
 #include <c10/util/irange.h>
 #include <c10/util/Array.h>
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
+=======
+#include <c10/util/string_view.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if AT_CUDNN_ENABLED()
 #include <ATen/cudnn/cudnn-wrapper.h>
@@ -25,9 +29,18 @@
 
 #if USE_ROCM
 #if defined(USE_FLASH_ATTENTION) || defined(USE_MEM_EFF_ATTENTION)
+<<<<<<< HEAD
 #include <aotriton/flash.h>
 #define USE_ROCM_ATTENTION 1
 #endif
+=======
+#include <ATen/native/transformers/hip/aotriton_versions.h>
+#include <aotriton/flash.h>
+#define USE_ROCM_ATTENTION 1
+#endif
+#else
+#define USE_ROCM_ATTENTION 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 // Avoid potential compiler -Wall -Werror complains undefined macro
@@ -112,9 +125,30 @@ int64_t minimum_gemm_alignment(sdp_params const& params) {
 // caller_is_meff is added to make the TORCH_WARN message showing the correct result
 template<bool caller_is_meff = false>
 bool check_head_dim_size_flash(sdp_params const& params, bool debug) {
+<<<<<<< HEAD
 #if USE_ROCM_ATTENTION && AOTRITON_VERSION_MINOR >= 9
   // AOTriton 0.9+ supports head_dim up to 512
   const auto max_size = c10::SymInt(512);
+=======
+#if USE_ROCM_ATTENTION
+  // AOTriton 0.9+ supports head_dim up to 512
+  const static auto max_hdim = []() {
+#if AOTRITON_VERSION_CURRENT == AOTRITON_VERSION_INT(0, 11)
+    // gfx11xx only support hdim <= 256 on AOTriton 0.11
+    auto dprops = at::cuda::getCurrentDeviceProperties();
+    const c10::basic_string_view<char> arch(dprops->gcnArchName);
+    if (arch.starts_with("gfx11")) {
+      return 256;
+    }
+#endif // AOTriton 0.11
+#if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 9)
+    return 512;
+#else
+    return 256;
+#endif
+  }();
+  const auto max_size = c10::SymInt(max_hdim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   // All head_dim sizes must be equal and less than 256
   const auto max_size = c10::SymInt(256);
@@ -139,6 +173,31 @@ bool check_head_dim_size_flash(sdp_params const& params, bool debug) {
     }
     return false;
   }
+<<<<<<< HEAD
+=======
+  if constexpr(caller_is_meff) {
+    bool is_half = (params.query.dtype() == at::kHalf) ||
+      (params.query.dtype() == at::kBFloat16);
+    const int64_t alignment = is_half ? 8 : 4;
+    if (!(query_size_last % alignment == 0 && query_size_last > 0 &&
+          value_size_last % alignment == 0 && value_size_last > 0)) {
+      if (debug) {
+        TORCH_WARN(
+            "Mem efficient attention requires last dimension of inputs to be divisible by ",
+            alignment,
+            ". ",
+            "Got Query.size(-1): ",
+            query_size_last,
+            ", Key.size(-1): ",
+            params.key.sym_size(-1),
+            ", Value.size(-1): ",
+            params.value.sym_size(-1),
+            " instead.");
+      }
+      return false;
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return true;
 }
 
@@ -225,7 +284,11 @@ bool check_sm_version(cudaDeviceProp * dprops) {
 bool check_flash_attention_hardware_support(sdp_params const& params, bool debug) {
   // Check that the gpu is capable of running flash attention
   using sm80 = SMVersion<8, 0>;
+<<<<<<< HEAD
   using sm120 = SMVersion<12, 0>;
+=======
+  using sm121 = SMVersion<12, 1>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if USE_ROCM
 #if USE_ROCM_ATTENTION
   if(at::globalContext().getROCmFAPreferredBackend() == at::ROCmFABackend::Ck) {
@@ -258,10 +321,17 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
 #endif
 #else
   auto dprops = at::cuda::getCurrentDeviceProperties();
+<<<<<<< HEAD
   if (!check_sm_version<sm80, sm120>(dprops)) {
     if (debug) {
       TORCH_WARN(
           "Flash attention only supports gpu architectures in the range [sm80, sm120]. Attempting to run on a sm ",
+=======
+  if (!check_sm_version<sm80, sm121>(dprops)) {
+    if (debug) {
+      TORCH_WARN(
+          "Flash attention only supports gpu architectures in the range [sm80, sm121]. Attempting to run on a sm ",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           dprops->major,
           ".",
           dprops->minor,
@@ -276,6 +346,7 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
 bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) {
   // Mem Efficient attention supports hardware in the range [sm_50, sm_90]
   using sm50 = SMVersion<5, 0>;
+<<<<<<< HEAD
   using sm120 = SMVersion<12, 0>;
 #if USE_ROCM
 #if USE_ROCM_ATTENTION
@@ -298,15 +369,52 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
     }
   }
 #endif
+=======
+  using sm121 = SMVersion<12, 1>;
+#if USE_ROCM
+#if USE_ROCM_ATTENTION
+  if(at::globalContext().getROCmFAPreferredBackend() == at::ROCmFABackend::Ck) {
+    // User explicitly set CK as the flash attention backend. Return true for now
+    // TODO: Flesh out sanity checks
+    return true;
+  } else {
+    auto stream = at::cuda::getCurrentCUDAStream().stream();
+    if (hipSuccess != aotriton::v2::flash::check_gpu(stream)) {
+        auto dprops = at::cuda::getCurrentDeviceProperties();
+        if (debug) {
+            TORCH_WARN(
+                    "Mem Efficient attention was not compiled for current AMD GPU architecture. Attempting to run on architecture ", dprops->gcnArchName);
+        }
+        return false;
+    }
+#if AOTRITON_VERSION_MINOR >= 9
+    if (aotriton::isArchExperimentallySupported(stream)) {
+      static const bool enable_experimental = c10::utils::check_env("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL") == true;
+      if (!enable_experimental) {
+        TORCH_WARN_ONCE("Mem Efficient attention on Current AMD GPU is still experimental."
+            " Enable it with TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1.");
+        return false;
+      }
+    }
+#endif
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   return false;
 #endif
 #else
   auto dprops = at::cuda::getCurrentDeviceProperties();
+<<<<<<< HEAD
   if (!check_sm_version<sm50, sm120>(dprops)) {
     if (debug) {
       TORCH_WARN(
           "Mem Efficient Attention only supports gpu architectures in the range [sm50, sm120]. Attempting to run on a sm ",
+=======
+  if (!check_sm_version<sm50, sm121>(dprops)) {
+    if (debug) {
+      TORCH_WARN(
+          "Mem Efficient Attention only supports gpu architectures in the range [sm50, sm121]. Attempting to run on a sm ",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           dprops->major,
           ".",
           dprops->minor,
@@ -326,9 +434,16 @@ bool check_requires_grad_and_head_dim_gt192_constraints_on_sm86_89_or_120(
   using sm86 = SMVersion<8, 6>;
   using sm89 = SMVersion<8, 9>;
   using sm120 = SMVersion<12, 0>;
+<<<<<<< HEAD
   auto dprops = at::cuda::getCurrentDeviceProperties();
   bool is_sm86_or_sm89 = check_sm_version<sm86, sm89>(dprops);
   bool is_sm120 = check_sm_version<sm120, sm120>(dprops);
+=======
+  using sm121 = SMVersion<12, 1>;
+  auto dprops = at::cuda::getCurrentDeviceProperties();
+  bool is_sm86_or_sm89 = check_sm_version<sm86, sm89>(dprops);
+  bool is_sm120_or_sm121 = check_sm_version<sm120, sm121>(dprops);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_head_dim_gt192 = params.query.sym_size(-1) > 192;
   bool is_head_dim_lte224 = params.query.sym_size(-1) <= 224;
   bool is_dropout = params.dropout > 0.0;
@@ -336,7 +451,11 @@ bool check_requires_grad_and_head_dim_gt192_constraints_on_sm86_89_or_120(
   bool cond1 = is_head_dim_gt192 && is_head_dim_lte224;
   // head_dim size > 224 and is_dropout is not supported on sm86 and sm89
   bool cond2 = params.query.sym_size(-1) > 224 && is_dropout;
+<<<<<<< HEAD
   if (input_requires_grad(params) && (is_sm86_or_sm89 || is_sm120) && (cond1 || cond2)) {
+=======
+  if (input_requires_grad(params) && (is_sm86_or_sm89 || is_sm120_or_sm121) && (cond1 || cond2)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (debug) {
       TORCH_WARN(
           "Flash attention currently doesn't support training with head_dim ∈ (192, 224] or "
@@ -406,7 +525,17 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
     }
     return false;
   }
+<<<<<<< HEAD
   constexpr auto head_dim_limit = 128;
+=======
+  auto head_dim_limit = 128;
+  if (cudnn_version >= 90501) {
+    auto dprops = at::cuda::getCurrentDeviceProperties();
+    if (dprops->major == 9  && !dprops->minor) {
+      head_dim_limit = 256;
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (d_qk > head_dim_limit || d_v > head_dim_limit) {
     if (debug) {
       TORCH_WARN("head_dim should be no more than ", head_dim_limit);
@@ -518,12 +647,21 @@ bool check_cudnn_layout(sdp_params const& params, bool debug) {
 
 bool check_cudnn_hardware_support(sdp_params const& params, bool debug) {
   using sm80 = SMVersion<8, 0>;
+<<<<<<< HEAD
   using sm120 = SMVersion<12, 0>;
   auto dprops = at::cuda::getCurrentDeviceProperties();
   if (!check_sm_version<sm80, sm120>(dprops)) {
     if (debug) {
       TORCH_WARN(
           "cuDNN MHA only supports gpu architectures in the range [sm80, sm120]. Attempting to run on a sm ",
+=======
+  using sm121 = SMVersion<12, 1>;
+  auto dprops = at::cuda::getCurrentDeviceProperties();
+  if (!check_sm_version<sm80, sm121>(dprops)) {
+    if (debug) {
+      TORCH_WARN(
+          "cuDNN MHA only supports gpu architectures in the range [sm80, sm121]. Attempting to run on a sm ",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           dprops->major,
           ".",
           dprops->minor,
@@ -541,9 +679,16 @@ bool check_for_nested_inputs(sdp_params const& params, bool debug) {
       TORCH_WARN("Experimental cuDNN SDPA nested tensor support is not enabled.");
     }
     return false;
+<<<<<<< HEAD
   } else if (params.query.requires_grad() || params.key.requires_grad() || params.value.requires_grad()) {
     if (debug) {
       TORCH_WARN("Experimental cuDNN SDPA nested tensor support does not support backward.");
+=======
+  } else if (has_for_nested_inputs(params) && (params.query.requires_grad() || params.key.requires_grad() || params.value.requires_grad())) {
+    if (debug) {
+      TORCH_WARN("Experimental cuDNN SDPA nested tensor support does not support backward.");
+      return false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -632,7 +777,12 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
   }
   constexpr auto dense_constraints =
       c10::array_of<bool (*)(sdp_params const&, bool)>(
+<<<<<<< HEAD
       check_last_dim_stride_equals_1_dense<true /*ignore_singleton_dim=*/>
+=======
+      check_last_dim_stride_equals_1_dense<true /*ignore_singleton_dim=*/>,
+      check_batch_size_and_num_heads_dense<true /*enable_gqa*/, false /*requires_same_num_heads*/>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   );
 
   if (has_only_dense_inputs(params)) {
@@ -716,6 +866,11 @@ bool can_use_mem_efficient_attention(sdp_params const& params, bool debug) {
 #ifdef USE_ROCM
   constexpr auto aotriton_mem_efficient_dtypes =
       c10::array_of<at::ScalarType>(at::kHalf, at::kFloat, at::kBFloat16);
+<<<<<<< HEAD
+=======
+  constexpr auto ck_mem_efficient_dtypes =
+      c10::array_of<at::ScalarType>(at::kHalf, at::kBFloat16);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   constexpr auto greater_than_or_equal_sm80_mem_efficient_dtypes =
       c10::array_of<at::ScalarType>(at::kHalf, at::kFloat, at::kBFloat16);
@@ -775,6 +930,12 @@ bool can_use_mem_efficient_attention(sdp_params const& params, bool debug) {
       return false;
     }
   }
+<<<<<<< HEAD
+=======
+  if(at::globalContext().getROCmFAPreferredBackend() == at::ROCmFABackend::Ck) {
+    return check_tensor_dtype(params, ck_mem_efficient_dtypes, debug);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return check_tensor_dtype(params, aotriton_mem_efficient_dtypes, debug);
 #else
   auto dprop = at::cuda::getCurrentDeviceProperties();

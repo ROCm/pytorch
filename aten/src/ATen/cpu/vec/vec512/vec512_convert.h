@@ -159,7 +159,11 @@ template <>
 struct VecConvert<int32_t, 1, float, 1> {
   static inline VectorizedN<int32_t, 1> apply(
       const VectorizedN<float, 1>& src) {
+<<<<<<< HEAD
     return  Vectorized<int32_t>(_mm512_cvttps_epi32(src[0]));
+=======
+    return Vectorized<int32_t>(_mm512_cvttps_epi32(src[0]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -167,7 +171,11 @@ template <>
 struct VecConvert<float, 1, int32_t, 1> {
   static inline VectorizedN<float, 1> apply(
       const VectorizedN<int32_t, 1>& src) {
+<<<<<<< HEAD
     return  Vectorized<float>(_mm512_cvtepi32_ps(src[0]));
+=======
+    return Vectorized<float>(_mm512_cvtepi32_ps(src[0]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -220,13 +228,24 @@ struct VecConvert<
     1,
     float,
     2,
+<<<<<<< HEAD
     typename std::enable_if_t<is_8bit_integer_v<dst_t>,
         void>> {
+=======
+    typename std::enable_if_t<is_8bit_integer_v<dst_t>, void>> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static inline VectorizedN<dst_t, 1> apply(const VectorizedN<float, 2>& src) {
     at::vec::Vectorized<dst_t> vec1 = convert_float_to_int8<dst_t>(src[0]);
     at::vec::Vectorized<dst_t> vec2 = convert_float_to_int8<dst_t>(src[1]);
     __m128 lane2 = _mm512_castps512_ps128(_mm512_castsi512_ps(vec2));
+<<<<<<< HEAD
     __m512 result = _mm512_insertf32x4(_mm512_castsi512_ps(vec1), lane2, 1); // Insert lane2 into the second 128-bit lane
+=======
+    __m512 result = _mm512_insertf32x4(
+        _mm512_castsi512_ps(vec1),
+        lane2,
+        1); // Insert lane2 into the second 128-bit lane
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return at::vec::Vectorized<dst_t>(_mm512_castps_si512(result));
   }
 };
@@ -237,8 +256,12 @@ struct VecConvert<
     1,
     float,
     1,
+<<<<<<< HEAD
     typename std::enable_if_t<is_8bit_integer_v<dst_t>,
         void>> {
+=======
+    typename std::enable_if_t<is_8bit_integer_v<dst_t>, void>> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static inline VectorizedN<dst_t, 1> apply(const VectorizedN<float, 1>& src) {
     return convert_float_to_int8<dst_t>(src[0]);
   }
@@ -250,6 +273,7 @@ struct VecConvert<
     2,
     src_t,
     1,
+<<<<<<< HEAD
     typename std::enable_if_t<is_8bit_integer_v<src_t>,
         void>> {
   static inline VectorizedN<float, 2> apply(const VectorizedN<src_t, 1>& src) {
@@ -259,6 +283,17 @@ struct VecConvert<
       )
     );
     return VectorizedN<float, 2>(convert_int8_to_float<src_t>(src[0]), convert_int8_to_float<src_t>(src2));
+=======
+    typename std::enable_if_t<is_8bit_integer_v<src_t>, void>> {
+  static inline VectorizedN<float, 2> apply(const VectorizedN<src_t, 1>& src) {
+    __m512i src2 =
+        _mm512_castsi128_si512(_mm_castps_si128(_mm512_extractf32x4_ps(
+            _mm512_castsi512_ps(src[0]), 1) // Extract the second 128-bit lane
+                                                ));
+    return VectorizedN<float, 2>(
+        convert_int8_to_float<src_t>(src[0]),
+        convert_int8_to_float<src_t>(src2));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -268,8 +303,12 @@ struct VecConvert<
     1,
     src_t,
     1,
+<<<<<<< HEAD
     typename std::enable_if_t<is_8bit_integer_v<src_t>,
         void>> {
+=======
+    typename std::enable_if_t<is_8bit_integer_v<src_t>, void>> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static inline VectorizedN<float, 1> apply(const VectorizedN<src_t, 1>& src) {
     return convert_int8_to_float<src_t>(src[0]);
   }
@@ -282,8 +321,12 @@ struct VecConvert<
     int64_t,
     2,
     std::enable_if_t<
+<<<<<<< HEAD
         std::is_same_v<dst_t, int8_t> ||
         std::is_same_v<dst_t, uint8_t>>> {
+=======
+        std::is_same_v<dst_t, int8_t> || std::is_same_v<dst_t, uint8_t>>> {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static inline VectorizedN<dst_t, 1> apply(
       const VectorizedN<int64_t, 2>& src) {
     return VecConvert<dst_t, 1, int32_t, 1>::apply(
@@ -291,6 +334,53 @@ struct VecConvert<
   }
 };
 
+<<<<<<< HEAD
+=======
+template <>
+struct VecConvert<Float8_e4m3fn, 1, float, 1> {
+  static inline VectorizedN<Float8_e4m3fn, 1> apply(
+      const VectorizedN<float, 1>& src_n) {
+    at::vec::Vectorized<float> src = src_n[0];
+    __m128i res128 = cvtfp32_fp8e4m3(src);
+    return at::vec::Vectorized<Float8_e4m3fn>(_mm512_castsi128_si512(res128));
+  }
+};
+
+template <>
+struct VecConvert<float, 1, Float8_e4m3fn, 1> {
+  static inline VectorizedN<float, 1> apply(
+      const VectorizedN<Float8_e4m3fn, 1>& src_n) {
+    // cvt first 16x8 bits from Float8_e4m3fn to float
+    at::vec::Vectorized<Float8_e4m3fn> src = src_n[0];
+    __m512 result;
+    cvtfp8e4m3_fp32(_mm512_castsi512_si128(src), result);
+    return at::vec::Vectorized<float>(result);
+  }
+};
+
+template <>
+struct VecConvert<Float8_e5m2, 1, float, 1> {
+  static inline VectorizedN<Float8_e5m2, 1> apply(
+      const VectorizedN<float, 1>& src_n) {
+    at::vec::Vectorized<float> src = src_n[0];
+    __m128i res128 = cvtfp32_fp8e5m2(src);
+    return at::vec::Vectorized<Float8_e5m2>(_mm512_castsi128_si512(res128));
+  }
+};
+
+template <>
+struct VecConvert<float, 1, Float8_e5m2, 1> {
+  static inline VectorizedN<float, 1> apply(
+      const VectorizedN<Float8_e5m2, 1>& src_n) {
+    // cvt first 16x8 bits from Float8_e5m2 to float
+    at::vec::Vectorized<Float8_e5m2> src = src_n[0];
+    __m512 result;
+    cvtfp8e5m2_fp32(_mm512_castsi512_si128(src), result);
+    return at::vec::Vectorized<float>(result);
+  }
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 } // namespace CPU_CAPABILITY

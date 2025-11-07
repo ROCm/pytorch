@@ -12,7 +12,15 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer import (
 from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import OP_TO_ANNOTATOR
 from torch.fx import Node
 from torch.testing._internal.common_quantization import QuantizationTestCase
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_WINDOWS, skipIfCrossRef
+=======
+from torch.testing._internal.common_utils import (
+    IS_WINDOWS,
+    raise_on_run_directly,
+    skipIfCrossRef,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestHelperModules:
@@ -98,10 +106,14 @@ class TestMetaDataPorting(QuantizationTestCase):
 
         # program capture
         m = copy.deepcopy(m_eager)
+<<<<<<< HEAD
         m = torch.export.export_for_training(
             m,
             example_inputs,
         ).module()
+=======
+        m = torch.export.export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         m = prepare_pt2e(m, quantizer)
         # Calibrate
@@ -516,3 +528,10 @@ class TestMetaDataPorting(QuantizationTestCase):
             BackendAQuantizer(),
             node_tags,
         )
+<<<<<<< HEAD
+=======
+
+
+if __name__ == "__main__":
+    raise_on_run_directly("test/test_quantization.py")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

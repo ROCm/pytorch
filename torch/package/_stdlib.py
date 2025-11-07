@@ -20,7 +20,11 @@ def _get_stdlib_modules():
     if sys.version_info.major == 3:
         if sys.version_info.minor == 9:
             return stdlib3_9
+<<<<<<< HEAD
         if sys.version_info.minor >= 10:
+=======
+        if sys.version_info.minor >= 10:  # noqa: YTT204
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return sys.stdlib_module_names  # type: ignore[attr-defined]
     elif sys.version_info.major > 3:
         return sys.stdlib_module_names  # type: ignore[attr-defined]

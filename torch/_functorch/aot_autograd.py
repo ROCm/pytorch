@@ -23,10 +23,21 @@ from torch._dynamo.utils import (
     set_feature_use,
 )
 from torch._guards import detect_fake_mode
+<<<<<<< HEAD
 from torch._inductor.output_code import OutputCode
 from torch._inductor.utils import BoxedBool, InputType
 from torch._subclasses import FakeTensor, FakeTensorMode
 from torch.fx.experimental.proxy_tensor import make_fx
+=======
+from torch._inductor.cudagraph_utils import BoxedDeviceIndex
+from torch._inductor.output_code import OutputCode
+from torch._inductor.utils import BoxedBool, InputType
+from torch._subclasses import FakeTensor, FakeTensorMode
+from torch.fx.experimental.proxy_tensor import (
+    _pytree_subclasses_that_lose_info,
+    make_fx,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import ShapeEnv
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 
@@ -484,11 +495,19 @@ def process_inputs(
     aot_config: AOTConfig,
     fake_mode: FakeTensorMode,
     shape_env: Optional[ShapeEnv],
+<<<<<<< HEAD
+=======
+    ignore_shape_env: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> FakifiedFlatArgs:
     with fake_mode:
 
         def convert(idx, x):
+<<<<<<< HEAD
             if shape_env is not None:
+=======
+            if shape_env is not None and not ignore_shape_env:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 from torch._dynamo.source import ConstantSource
 
                 if isinstance(x, int):
@@ -536,13 +555,23 @@ def process_inputs(
                 # Dynamo
                 return fake_mode.from_tensor(x, static_shapes=True)
 
+<<<<<<< HEAD
             return fake_mode.from_tensor(
                 x,
                 static_shapes=False,
+=======
+            result = fake_mode.from_tensor(
+                x,
+                static_shapes=ignore_shape_env,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 symbolic_context=symbolic_context,
                 source=source,
                 trace=trace,
             )
+<<<<<<< HEAD
+=======
+            return result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return FakifiedFlatArgs([convert(idx, x) for idx, x in enumerate(flat_args)])
 
@@ -667,7 +696,21 @@ def _create_aot_dispatcher_function(
                     ctx = _detect_attribute_assignment(mod)
                 else:
                     ctx = nullcontext()
+<<<<<<< HEAD
                 with ctx:
+=======
+
+                if torch._functorch.config.fake_tensor_propagate_real_tensors:
+                    # Running dynamo_timed causes fake tensor issues when
+                    # propagate real tensor is switched on.
+                    dynamo_timed_ctx = nullcontext()
+                else:
+                    dynamo_timed_ctx = dynamo_timed(
+                        "aot_collect_metadata", log_pt2_compile_event=True
+                    )
+
+                with dynamo_timed_ctx, ctx:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     fw_metadata = run_functionalized_fw_and_collect_metadata(
                         flat_fn,
                         static_input_indices=aot_config.static_input_indices,
@@ -1006,6 +1049,15 @@ def _try_get_metadata_from_dynamo(
         aot_autograd_arg_pos_to_source: used to dedup params and their guards
         static_input_indices: used to identify static inputs for cudagraphs
     """
+<<<<<<< HEAD
+=======
+    # Note [Assumption on Dynamo Metadata]
+    # This function assumes a graph module from dynamo provides `dynamo_compiled_id`,
+    # _param_name_to_source, and every placeholder node has `_dynamo_source` attributes.
+    # When gm is modified (e.g., DDPOptimizer via split_module), metadata needs to
+    # be propagated in order to be recognized as a dynamo graph
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not (isinstance(mod, torch.fx.GraphModule) and "dynamo_compile_id" in mod.meta):
         # graph was not captured by dynamo
         return None, []
@@ -1039,7 +1091,14 @@ def _try_get_metadata_from_dynamo(
     for pos, node in enumerate(mod.graph.find_nodes(op="placeholder")):
         assert hasattr(node, "_dynamo_source")
         source = node._dynamo_source
+<<<<<<< HEAD
         assert source not in seen_sources, source
+=======
+        # `source`` specifies the source from user code. ddp optimizer may have
+        # intermediate values becoming submodule placeholders which does not
+        # have a source
+        assert source is None or source not in seen_sources, source
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         seen_sources.add(source)
         aot_autograd_arg_pos_to_source.append(source)
         source_name = source.name() if source else str(source)
@@ -1076,6 +1135,11 @@ def aot_module_simplified(
     keep_inference_input_mutations=False,
     inference_compiler: Optional[AOTDispatchCompiler] = None,
     cudagraphs: Optional[BoxedBool] = None,
+<<<<<<< HEAD
+=======
+    boxed_forward_device_index: Optional[BoxedDeviceIndex] = None,
+    ignore_shape_env: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> nn.Module:
     """
     This is the simplified or low overhead version of aot_module. For frontends
@@ -1143,9 +1207,19 @@ def aot_module_simplified(
         is_export=False,
         no_tangents=False,
         cache_info=None,
+<<<<<<< HEAD
     )
     fake_mode, shape_env = construct_fake_mode(full_args, aot_config)
     fake_flat_args = process_inputs(full_args, aot_config, fake_mode, shape_env)
+=======
+        ignore_shape_env=ignore_shape_env,
+        precompile_backend_id=getattr(mod, "_backend_id", None),
+    )
+    fake_mode, shape_env = construct_fake_mode(full_args, aot_config)
+    fake_flat_args = process_inputs(
+        full_args, aot_config, fake_mode, shape_env, ignore_shape_env
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def dispatch_and_compile():
         functional_call = create_functional_call(mod, params_spec, params_len)
@@ -1171,6 +1245,10 @@ def aot_module_simplified(
                 fake_flat_args,
                 aot_config,
                 cudagraphs,
+<<<<<<< HEAD
+=======
+                boxed_forward_device_index,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 local,
                 remote,
             )
@@ -1638,6 +1716,7 @@ def _detect_attribute_assignment(mod: torch.nn.Module):
         # return any attributes of a module that are not standard attributes
         return {k: v for k, v in mod.__dict__.items() if k not in STD_ATTRS}
 
+<<<<<<< HEAD
     def is_leaf(x):
         # Ideally is_leaf should not be needed when mapping, but it seems that
         # subclasses of a standard container X may sometimes map to X, which
@@ -1650,6 +1729,14 @@ def _detect_attribute_assignment(mod: torch.nn.Module):
 
     # save state of attributes before enter
     snapshot = pytree.tree_map(lambda x: x, _get_attributes(mod), is_leaf=is_leaf)
+=======
+    # save state of attributes before enter
+    snapshot = pytree.tree_map(
+        lambda x: x,
+        _get_attributes(mod),
+        is_leaf=lambda x: type(x) in _pytree_subclasses_that_lose_info,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         yield
     finally:
@@ -1666,9 +1753,37 @@ def _detect_attribute_assignment(mod: torch.nn.Module):
                     )
                 # TODO(avik): Assigning all other types are allowed right now.
                 # Maybe in the future we want to limit this to primitive types?
+<<<<<<< HEAD
 
         pytree.tree_map_with_path(
             _collect_assigned_tensor_attributes, snapshot, _get_attributes(mod)
+=======
+            return v
+
+        new_attrs = _get_attributes(mod)
+        if len(new_attrs) != len(snapshot):
+            added_attrs = new_attrs.keys() - snapshot.keys()
+            deleted_attrs = snapshot.keys() - new_attrs.keys()
+
+            if len(added_attrs) > 0:
+                raise ValueError(
+                    f"During torch.export, following attrs were created in the model.forward: {added_attrs} "
+                    f"Such attributes must be registered as buffers using the `register_buffer` "
+                    f"API and must be initialized at model.__init__ "
+                    f"(https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.register_buffer)."
+                )
+
+            if len(deleted_attrs) > 0:
+                raise ValueError(
+                    f"During torch.export, following attrs were deleted in the model.forward: {deleted_attrs} "
+                    f"Such attributes must be registered as buffers using the `register_buffer` "
+                    f"API and must be initialized at model.__init__ "
+                    f"(https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.register_buffer)."
+                )
+
+        pytree.tree_map_with_path(
+            _collect_assigned_tensor_attributes, snapshot, new_attrs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # restore state of all attributes (including, e.g., of primitive types)
         mod.__dict__.update(snapshot)

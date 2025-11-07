@@ -101,7 +101,11 @@ PyObject* THPStorage_Wrap(c10::Storage storage) {
   // If the StorageImpl has a PyObject that is managed by a different
   // interpreter than the current one, create a new StorageImpl that points to
   // the same data and then create the Python storage from that.
+<<<<<<< HEAD
   // NOTE: This is only supposed to happen in MultiPy
+=======
+  // NOTE: This is only supposed to happen in MultiPy  // codespell:ignore
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (pyobj_slot->has_pyobj_nonhermetic() &&
       !pyobj_slot->check_interpreter(getPyInterpreter())) {
     return THPStorage_NewWithStorage(

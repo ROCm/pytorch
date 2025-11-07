@@ -57,6 +57,10 @@ from torch.distributions import (
     ExponentialFamily,
     FisherSnedecor,
     Gamma,
+<<<<<<< HEAD
+=======
+    GeneralizedPareto,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Geometric,
     Gumbel,
     HalfCauchy,
@@ -151,7 +155,11 @@ def is_all_nan(tensor):
 Example = namedtuple("Example", ["Dist", "params"])
 
 
+<<<<<<< HEAD
 # Register all distributions for generic tests.
+=======
+# Register all distributions for generic tests by appending to this list.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_examples():
     return [
         Example(
@@ -800,9 +808,26 @@ def _get_examples():
                 },
             ],
         ),
+<<<<<<< HEAD
     ]
 
 
+=======
+        Example(
+            GeneralizedPareto,
+            [
+                {
+                    "loc": torch.randn(5, 5, requires_grad=True).mul(10),
+                    "scale": torch.randn(5, 5).abs().requires_grad_(),
+                    "concentration": torch.randn(5, 5).div(10).requires_grad_(),
+                },
+            ],
+        ),
+    ]
+
+
+# Register all distributions for bad examples by appending to this list.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_bad_examples():
     return [
         Example(
@@ -1199,6 +1224,24 @@ def _get_bad_examples():
                 },
             ],
         ),
+<<<<<<< HEAD
+=======
+        Example(
+            GeneralizedPareto,
+            [
+                {
+                    "loc": torch.tensor([0.0, 0.0], requires_grad=True),
+                    "scale": torch.tensor([-1.0, -100.0], requires_grad=True),
+                    "concentration": torch.tensor([0.0, 0.0], requires_grad=True),
+                },
+                {
+                    "loc": torch.tensor([1.0, 1.0], requires_grad=True),
+                    "scale": torch.tensor([0.0, 0.0], requires_grad=True),
+                    "concentration": torch.tensor([-1.0, -100.0], requires_grad=True),
+                },
+            ],
+        ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 
 
@@ -2531,10 +2574,17 @@ class TestDistributions(DistributionsTestCase):
         )
 
     @unittest.skipIf(not TEST_NUMPY, "Numpy not found")
+<<<<<<< HEAD
     def test_mixture_same_family_log_prob(self):
         probs = torch.rand(5, 5).softmax(dim=-1)
         loc = torch.randn(5, 5)
         scale = torch.rand(5, 5)
+=======
+    def test_mixture_same_family_normal_log_prob(self):
+        probs = torch.rand(10, 5).softmax(dim=-1)
+        loc = torch.randn(10, 5)
+        scale = torch.rand(10, 5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def ref_log_prob(idx, x, log_prob):
             p = probs[idx].numpy()
@@ -2551,6 +2601,30 @@ class TestDistributions(DistributionsTestCase):
         )
 
     @unittest.skipIf(not TEST_NUMPY, "Numpy not found")
+<<<<<<< HEAD
+=======
+    def test_mixture_same_family_binomial_log_prob(self):
+        max_count = 20
+        probs = torch.rand(10, 5).softmax(dim=-1)
+        binom_probs = torch.rand(10, 5)
+
+        def ref_log_prob(idx, x, log_prob):
+            p = probs[idx].numpy()
+            binom_p = binom_probs[idx].numpy()
+            mix = scipy.stats.multinomial(1, p)
+            comp = scipy.stats.binom(max_count, binom_p)
+            expected = scipy.special.logsumexp(comp.logpmf(x) + np.log(mix.p))
+            self.assertEqual(log_prob, expected, atol=1e-3, rtol=0)
+
+        self._check_log_prob(
+            MixtureSameFamily(
+                Categorical(probs=probs), Binomial(max_count, binom_probs)
+            ),
+            ref_log_prob,
+        )
+
+    @unittest.skipIf(not TEST_NUMPY, "Numpy not found")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mixture_same_family_sample(self):
         probs = torch.rand(5).softmax(dim=-1)
         loc = torch.randn(5)
@@ -3498,6 +3572,54 @@ class TestDistributions(DistributionsTestCase):
             )
 
     @unittest.skipIf(not TEST_NUMPY, "NumPy not found")
+<<<<<<< HEAD
+=======
+    def test_generalized_pareto(self):
+        loc = torch.randn(2, 3).requires_grad_()
+        scale = torch.randn(2, 3).abs().requires_grad_()
+        concentration = torch.randn(2, 3).requires_grad_()
+        loc_1d = torch.randn(1).requires_grad_()
+        scale_1d = torch.randn(1).abs().requires_grad_()
+        concentration_1d = torch.randn(1).requires_grad_()
+        self.assertEqual(
+            GeneralizedPareto(loc, scale, concentration).sample().size(), (2, 3)
+        )
+        self.assertEqual(
+            GeneralizedPareto(loc, scale, concentration).sample((5,)).size(), (5, 2, 3)
+        )
+        self.assertEqual(
+            GeneralizedPareto(loc_1d, scale_1d, concentration_1d).sample((1,)).size(),
+            (1, 1),
+        )
+        self.assertEqual(
+            GeneralizedPareto(loc_1d, scale_1d, concentration_1d).sample().size(), (1,)
+        )
+        self.assertEqual(GeneralizedPareto(1.0, 1.0, 1.0).sample().size(), ())
+        self.assertEqual(GeneralizedPareto(1.0, 1.0, 1.0).sample((1,)).size(), (1,))
+
+        def ref_log_prob(idx, x, log_prob):
+            l = loc.view(-1)[idx].detach()
+            s = scale.view(-1)[idx].detach()
+            c = concentration.view(-1)[idx].detach()
+            expected = scipy.stats.genpareto.logpdf(x, c, loc=l, scale=s)
+            self.assertEqual(log_prob, expected, atol=1e-3, rtol=0)
+
+        self._check_log_prob(GeneralizedPareto(loc, scale, concentration), ref_log_prob)
+
+    @unittest.skipIf(not TEST_NUMPY, "NumPy not found")
+    def test_generalized_pareto_sample(self):
+        set_rng_seed(1)  # see note [Randomized statistical tests]
+        for loc, scale, concentration in product(
+            [-1.0, 0.0, 1.0], [0.1, 1.0, 10.0], [-0.5, 0.0, 0.5]
+        ):
+            self._check_sampler_sampler(
+                GeneralizedPareto(loc, scale, concentration),
+                scipy.stats.genpareto(c=concentration, loc=loc, scale=scale),
+                f"GeneralizedPareto(loc={loc}, scale={scale}, concentration={concentration})",
+                failure_rate=7e-4,
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_gumbel(self):
         loc = torch.randn(2, 3, requires_grad=True)
         scale = torch.randn(2, 3).abs().requires_grad_()
@@ -6321,6 +6443,17 @@ class TestAgainstScipy(DistributionsTestCase):
                 Gumbel(random_var, positive_var2),
                 scipy.stats.gumbel_r(random_var, positive_var2),
             ),
+<<<<<<< HEAD
+=======
+            (
+                GeneralizedPareto(
+                    loc=random_var, scale=positive_var, concentration=random_var / 10
+                ),
+                scipy.stats.genpareto(
+                    c=random_var / 10, loc=random_var, scale=positive_var
+                ),
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (HalfCauchy(positive_var), scipy.stats.halfcauchy(scale=positive_var)),
             (HalfNormal(positive_var2), scipy.stats.halfnorm(scale=positive_var2)),
             (
@@ -6724,6 +6857,15 @@ class TestJit(DistributionsTestCase):
     def _perturb_tensor(self, value, constraint):
         if isinstance(constraint, constraints._IntegerGreaterThan):
             return value + 1
+<<<<<<< HEAD
+=======
+        if isinstance(constraint, constraints._LessThan):
+            return value - torch.rand(value.shape)
+        if isinstance(
+            constraint, (constraints._GreaterThan, constraints._GreaterThanEq)
+        ):
+            return value + torch.rand(value.shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(
             constraint,
             (constraints._PositiveDefinite, constraints._PositiveSemidefinite),
@@ -6742,18 +6884,34 @@ class TestJit(DistributionsTestCase):
 
     def _perturb(self, Dist, keys, values, sample):
         with torch.no_grad():
+<<<<<<< HEAD
             if Dist is Uniform:
                 param = dict(zip(keys, values))
                 param["low"] = param["low"] - torch.rand(param["low"].shape)
                 param["high"] = param["high"] + torch.rand(param["high"].shape)
                 values = [param[key] for key in keys]
             else:
+=======
+            if isinstance(Dist.arg_constraints, dict):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 values = [
                     self._perturb_tensor(
                         value, Dist.arg_constraints.get(key, constraints.real)
                     )
                     for key, value in zip(keys, values)
                 ]
+<<<<<<< HEAD
+=======
+            else:
+                # arg_constraints is parameter-dependent
+                dist = Dist(**dict(zip(keys, values)))
+                values = [
+                    self._perturb_tensor(
+                        value, dist.arg_constraints.get(key, constraints.real)
+                    )
+                    for key, value in zip(keys, values)
+                ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             param = dict(zip(keys, values))
             sample = Dist(**param).sample()
             return values, sample

@@ -5,6 +5,10 @@
 #include <ATen/native/LinearAlgebraUtils.h>
 #include <ATen/native/TensorFactories.h>
 #include <ATen/native/mps/OperationUtils.h>
+<<<<<<< HEAD
+=======
+#include <fmt/format.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -26,6 +30,7 @@ static auto& lib = mps::MetalShaderLibrary::getBundledLibrary();
 #include <ATen/native/mps/TriangularOps_metallib.h>
 #endif
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(triu_mps_out)
 (const Tensor& self, int64_t k, const Tensor& output) {
   using namespace mps;
@@ -74,10 +79,55 @@ TORCH_IMPL_FUNC(triu_mps_out)
     auto feeds = dictionaryFromPlaceholders(selfPlaceholder);
     runMPSGraph(stream, cachedGraph->graph(), feeds, outputPlaceholder);
   }
+=======
+template <typename T>
+static std::vector<T> reverse_array(const IntArrayRef& arr) {
+  std::vector<T> rc(arr.size());
+  for (const auto& i : c10::irange(arr.size())) {
+    rc[i] = arr[arr.size() - 1 - i];
+  }
+  return rc;
+}
+
+static void triu_tril_impl(const Tensor& self, int64_t k, const Tensor& out, const std::string& name) {
+  using namespace mps;
+  if (self.numel() == 0) {
+    return;
+  }
+  auto sizes = reverse_array<uint32_t>(self.sizes());
+  auto inp_strides = reverse_array<int32_t>(self.strides());
+  auto out_strides = reverse_array<int32_t>(out.strides());
+  std::array<int, 2> k_ndim = {int(k), int(self.ndimension())};
+  const bool inplace = self.is_same(out);
+  const auto kernel_name =
+      fmt::format("{}{}_{}_{}", name, inplace ? "_inplace" : "", "int", scalarToMetalTypeString(self));
+  auto triuPSO = lib.getPipelineStateForFunc(kernel_name);
+  uint32_t max_threads_per_group = [triuPSO maxTotalThreadsPerThreadgroup];
+  auto stream = getCurrentMPSStream();
+  dispatch_sync_with_rethrow(stream->queue(), ^() {
+    @autoreleasepool {
+      auto computeEncoder = stream->commandEncoder();
+      [computeEncoder setComputePipelineState:triuPSO];
+      if (inplace) {
+        mtl_setArgs(computeEncoder, self, inp_strides, sizes, k_ndim);
+      } else {
+        mtl_setArgs(computeEncoder, out, self, out_strides, inp_strides, sizes, k_ndim);
+      }
+      [computeEncoder dispatchThreads:MTLSizeMake(sizes[0], sizes[1], self.numel() / (sizes[0] * sizes[1]))
+                threadsPerThreadgroup:MTLSizeMake(std::min(max_threads_per_group, sizes[0]), 1, 1)];
+    }
+  });
+}
+
+TORCH_IMPL_FUNC(triu_mps_out)
+(const Tensor& self, int64_t k, const Tensor& output) {
+  triu_tril_impl(self, k, output, "triu");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_IMPL_FUNC(tril_mps_out)
 (const Tensor& self, int64_t k, const Tensor& output) {
+<<<<<<< HEAD
   using namespace mps;
   using CachedGraph = MPSUnaryCachedGraph;
 
@@ -125,6 +175,9 @@ TORCH_IMPL_FUNC(tril_mps_out)
     auto feeds = dictionaryFromPlaceholders(selfPlaceholder);
     runMPSGraph(stream, cachedGraph->graph(), feeds, outputPlaceholder);
   }
+=======
+  triu_tril_impl(self, k, output, "tril");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor tril_indices_mps(int64_t row,

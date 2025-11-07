@@ -5,7 +5,11 @@
 
 #include <c10/cuda/CUDAGuard.h>
 
+<<<<<<< HEAD
 namespace at { namespace native {
+=======
+namespace at::native {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TORCH_CUDA_CPP_API void resize_bytes_cuda(StorageImpl* storage, size_t size_bytes);
 
@@ -50,4 +54,8 @@ inline TensorImpl* resize_impl_cuda_(
   return self;
 }
 
+<<<<<<< HEAD
 }}
+=======
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

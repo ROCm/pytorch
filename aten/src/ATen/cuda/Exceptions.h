@@ -117,15 +117,22 @@ constexpr const char* _cusolver_backend_suggestion =            \
   "linear algebra operators with other supported backends. "    \
   "See https://pytorch.org/docs/stable/backends.html#torch.backends.cuda.preferred_linalg_library";
 
+<<<<<<< HEAD
 // When cuda < 11.5, cusolver raises CUSOLVER_STATUS_EXECUTION_FAILED when input contains nan.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // When cuda >= 11.5, cusolver normally finishes execution and sets info array indicating convergence issue.
 #define TORCH_CUSOLVER_CHECK(EXPR)                                      \
   do {                                                                  \
     cusolverStatus_t __err = EXPR;                                      \
+<<<<<<< HEAD
     if ((CUDA_VERSION < 11500 &&                                        \
          __err == CUSOLVER_STATUS_EXECUTION_FAILED) ||                  \
         (CUDA_VERSION >= 11500 &&                                       \
          __err == CUSOLVER_STATUS_INVALID_VALUE)) {                     \
+=======
+    if (__err == CUSOLVER_STATUS_INVALID_VALUE) {                       \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_CHECK_LINALG(                                               \
           false,                                                        \
           "cusolver error: ",                                           \

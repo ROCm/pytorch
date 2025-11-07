@@ -362,7 +362,11 @@ TORCH_API void THP_encodeBuffer<c10::complex<double>>(
 
 #define DEFINE_ENCODE(TYPE)                       \
   template TORCH_API void THP_encodeBuffer<TYPE>( \
+<<<<<<< HEAD
       uint8_t * dst, const TYPE* src, THPByteOrder order, size_t len);
+=======
+      uint8_t* dst, const TYPE* src, THPByteOrder order, size_t len);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 DEFINE_ENCODE(int16_t)
 DEFINE_ENCODE(int32_t)

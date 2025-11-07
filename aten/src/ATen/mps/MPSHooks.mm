@@ -129,6 +129,13 @@ void MPSHooks::recordEvent(uint32_t event_id) const {
   at::mps::getMPSEventPool()->recordEvent(event_id, /* syncEvent*/ true);
 }
 
+<<<<<<< HEAD
+=======
+Device MPSHooks::getDeviceFromPtr(void* data) const {
+  return at::mps::getDeviceFromPtr(data);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void MPSHooks::waitForEvent(uint32_t event_id) const {
   at::mps::getMPSEventPool()->waitForEvent(event_id, /* syncEvent*/ true);
 }

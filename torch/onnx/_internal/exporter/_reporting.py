@@ -18,12 +18,21 @@ if TYPE_CHECKING:
 
 @dataclasses.dataclass
 class ExportStatus:
+<<<<<<< HEAD
     # Whether torch.export.export.export() succeeds
     torch_export: bool | None = None
     # Whether torch.export.export.export(..., strict=False) succeeds
     torch_export_non_strict: bool | None = None
     # Whether torch.jit.trace succeeds
     torch_jit: bool | None = None
+=======
+    # Whether torch.export.export(..., strict=True) succeeds
+    torch_export_strict: bool | None = None
+    # Whether torch.export.export(..., strict=False) succeeds
+    torch_export_non_strict: bool | None = None
+    # Whether torch.export._draft_export.draft_export() succeeds
+    torch_export_draft_export: bool | None = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Whether decomposition succeeds
     decomposition: bool | None = None
     # Whether ONNX translation succeeds
@@ -46,8 +55,13 @@ def _format_export_status(status: ExportStatus) -> str:
     return (
         f"```\n"
         f"{_status_emoji(status.torch_export_non_strict)} Obtain model graph with `torch.export.export(..., strict=False)`\n"
+<<<<<<< HEAD
         f"{_status_emoji(status.torch_export)} Obtain model graph with `torch.export.export(..., strict=True)`\n"
         f"{_status_emoji(status.torch_jit)} Obtain model graph with `torch.jit.trace`\n"
+=======
+        f"{_status_emoji(status.torch_export_strict)} Obtain model graph with `torch.export.export(..., strict=True)`\n"
+        f"{_status_emoji(status.torch_export_draft_export)} Obtain model graph with `torch.export._draft_export.draft_export`\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f"{_status_emoji(status.decomposition)} Decompose operators for ONNX compatibility\n"
         f"{_status_emoji(status.onnx_translation)} Translate the graph into ONNX\n"
         f"{_status_emoji(status.onnx_checker)} Run `onnx.checker` on the ONNX model\n"
@@ -77,7 +91,15 @@ def _format_exported_program(exported_program: torch.export.ExportedProgram) -> 
 
 def construct_report_file_name(timestamp: str, status: ExportStatus) -> str:
     # Status could be None. So we need to check for False explicitly.
+<<<<<<< HEAD
     if not (status.torch_export or status.torch_export_non_strict or status.torch_jit):
+=======
+    if not (
+        status.torch_export_non_strict
+        or status.torch_export_strict
+        or status.torch_export_draft_export
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # All strategies failed
         postfix = "pt_export"
     elif status.decomposition is False:
@@ -90,7 +112,15 @@ def construct_report_file_name(timestamp: str, status: ExportStatus) -> str:
         postfix = "runtime"
     elif status.output_accuracy is False:
         postfix = "accuracy"
+<<<<<<< HEAD
     elif status.torch_export is False or status.torch_export_non_strict is False:
+=======
+    elif (
+        status.torch_export_strict is False
+        or status.torch_export_non_strict is False
+        or status.torch_export_draft_export is False
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Some strategies failed
         postfix = "strategies"
     else:

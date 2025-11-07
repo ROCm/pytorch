@@ -7,7 +7,15 @@ on:
         required: false
         type: string
         description: |
+<<<<<<< HEAD
           List of experiments for this workfow. If not defined, all default experiments are included.
+=======
+          List of experiments for this workflow. If not defined, all default experiments are included.
+      opt_out_experiments:
+        required: false
+        type: string
+        description: Comma-separated list of experiments this workflow will opt-out of.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       triggering_actor:
         required: true
         type: string
@@ -51,10 +59,18 @@ jobs:
       TRIGGERING_ACTOR: ${{ inputs.triggering_actor }}
       ISSUE_OWNER: ${{ inputs.issue_owner }}
       CHECK_EXPERIMENTS: ${{ inputs.check_experiments }}
+<<<<<<< HEAD
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       # - name: Checkout PyTorch
       #   uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+      OPT_OUT_EXPERIMENTS: ${{ inputs.opt_out_experiments }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      # - name: Checkout PyTorch
+      #   uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       #   with:
       #     fetch-depth: 1
       #     submodules: true
@@ -267,6 +283,19 @@ jobs:
                   help="comma separated list of experiments to check, if omitted all experiments marked with default=True are checked",
               )
               parser.add_argument(
+<<<<<<< HEAD
+=======
+                  "--opt-out-experiments",
+                  type=_str_comma_separated_to_set,
+                  required=False,
+                  default="",
+                  help=(
+                      "comma separated list of experiments to opt-out of. If unset, no opt-outs will occur. "
+                      "If the same experiment is listed both here and in '--eligible-experiments' opt-out will take priority."
+                  ),
+              )
+              parser.add_argument(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   "--pr-number",
                   type=str,
                   required=False,
@@ -490,6 +519,10 @@ jobs:
               workflow_requestors: Iterable[str],
               branch: str,
               eligible_experiments: frozenset[str] = frozenset(),
+<<<<<<< HEAD
+=======
+              opt_out_experiments: frozenset[str] = frozenset(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               is_canary: bool = False,
           ) -> str:
               settings = parse_settings(rollout_state)
@@ -504,6 +537,17 @@ jobs:
                       )
                       continue
 
+<<<<<<< HEAD
+=======
+                  if opt_out_experiments:
+                      if experiment_name in opt_out_experiments:
+                          opt_out_exp_list = ", ".join(opt_out_experiments)
+                          log.info(
+                              f"Skipping experiment '{experiment_name}', as this workflow has opted-out (opted out experiments are: {opt_out_exp_list})"
+                          )
+                          continue
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   if eligible_experiments:
                       if experiment_name not in eligible_experiments:
                           exp_list = ", ".join(eligible_experiments)
@@ -668,6 +712,10 @@ jobs:
                       (args.github_issue_owner, username),
                       args.github_branch,
                       args.eligible_experiments,
+<<<<<<< HEAD
+=======
+                      args.opt_out_experiments,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                       is_canary,
                   )
 
@@ -705,4 +753,8 @@ jobs:
             --github-ref-type "$curr_ref_type" \
             --github-repo "$GITHUB_REPOSITORY" \
             --eligible-experiments "$CHECK_EXPERIMENTS" \
+<<<<<<< HEAD
+=======
+            --opt-out-experiments "$OPT_OUT_EXPERIMENTS" \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             --pr-number "${PR_NUMBER}"

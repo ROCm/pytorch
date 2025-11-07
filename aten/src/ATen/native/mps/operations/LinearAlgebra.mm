@@ -2,6 +2,11 @@
 
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/mps/MPSProfiler.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/BatchLinearAlgebra.h>
+#include <ATen/native/LinearAlgebra.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/LinearAlgebraUtils.h>
 #include <ATen/native/Resize.h>
 // For MTLLanguageVersion_3_1
@@ -21,7 +26,11 @@
 #include <ATen/ops/bmm_native.h>
 #include <ATen/ops/cholesky_native.h>
 #include <ATen/ops/linalg_cholesky_ex_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/linalg_cholesky_native.h>
+=======
+#include <ATen/ops/linalg_inv_ex_native.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/linalg_lu_factor_ex_native.h>
 #include <ATen/ops/linalg_lu_factor_native.h>
 #include <ATen/ops/linalg_solve_triangular_native.h>
@@ -32,6 +41,10 @@
 #include <ATen/ops/triangular_solve_native.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#include <c10/util/env.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <algorithm>
 
 namespace at::native {
@@ -127,7 +140,11 @@ std::tuple<MPSGraphTensor*, MPSGraphTensor*, MPSGraphTensor*> do_mm(MPSGraph* gr
 }
 
 bool use_metal_mm(const Tensor& self, const Tensor& other, const Tensor& output) {
+<<<<<<< HEAD
   static bool always_use_metal = std::getenv("PYTORCH_MPS_PREFER_METAL") != nullptr;
+=======
+  static bool always_use_metal = c10::utils::has_env("PYTORCH_MPS_PREFER_METAL");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   constexpr auto max_stride_size = 32768;
   static bool is_macos_14_4_or_newer = is_macos_13_or_newer(MacOSVersion::MACOS_VER_14_4_PLUS);
   if (always_use_metal || c10::isIntegralType(self.scalar_type(), true)) {
@@ -261,6 +278,7 @@ static void linalg_lu_factor_ex_out_mps_impl(const Tensor& A,
   }
 }
 
+<<<<<<< HEAD
 static void linalg_solve_out_mps_impl(const at::Tensor& A,
                                       const at::Tensor& B,
                                       bool left,
@@ -269,6 +287,16 @@ static void linalg_solve_out_mps_impl(const at::Tensor& A,
                                       const at::Tensor& LU,
                                       const at::Tensor& pivots,
                                       const at::Tensor& info) {
+=======
+static void linalg_solve_out_mps_impl(const Tensor& A,
+                                      const Tensor& B,
+                                      bool left,
+                                      bool check_errors,
+                                      const Tensor& result,
+                                      const Tensor& LU,
+                                      const Tensor& pivots,
+                                      const Tensor& info) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using namespace mps;
 
   TORCH_CHECK(!c10::isComplexType(A.scalar_type()) && !c10::isComplexType(LU.scalar_type()),
@@ -436,6 +464,35 @@ static void linalg_solve_out_mps_impl(const at::Tensor& A,
   }
 }
 
+<<<<<<< HEAD
+=======
+static void linalg_inv_ex_out_mps_impl(const Tensor& A, bool check_errors, const Tensor& result, const Tensor& info) {
+  using namespace mps;
+  TORCH_CHECK(result.is_mps(), "Output tensor is not MPS");
+  TORCH_CHECK(!A.is_complex(), "linalg_inv: not supported for complex types yet!");
+  using CachedGraph = MPSUnaryCachedGraph;
+
+  MPSStream* stream = getCurrentMPSStream();
+  info.zero_();
+
+  if (A.numel() == 0) {
+    return;
+  }
+
+  if (!result.is_contiguous()) {
+    result.unsafeGetTensorImpl()->empty_tensor_restride(MemoryFormat::Contiguous);
+  }
+  auto A_sizes = A.sizes();
+  int ndim = A.dim();
+
+  Tensor LU = empty_like(A);
+  Tensor identity = zeros_like(A);
+  Tensor pivots = empty({A_sizes.begin(), A_sizes.end() - 1}, A.options().dtype(kInt));
+  (ndim == 2 ? identity.diagonal() : identity.diagonal(0, -2, -1)).fill_(1);
+  linalg_solve_out_mps_impl(A, identity, true, check_errors, result, LU, pivots, info);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static Tensor& mm_out_mps_impl(const Tensor& self, const Tensor& other, Tensor& output) {
   using namespace mps;
   static const bool is_macOS_15_0_or_newer = is_macos_13_or_newer(MacOSVersion::MACOS_VER_15_0_PLUS);
@@ -466,7 +523,11 @@ static Tensor& mm_out_mps_impl(const Tensor& self, const Tensor& other, Tensor& 
   }
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "mm_out_mps_impl" + getTensorsStringKey({self, other});
+=======
+    std::string key = "mm_out_mps_impl" + getTensorsStringKey({self, other});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       std::tie(newCachedGraph->inputTensor_, newCachedGraph->otherTensor_, newCachedGraph->outputTensor_) =
@@ -550,7 +611,11 @@ static Tensor& addbmm_or_baddbmm_out_mps_impl(const Tensor& input,
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = (opType == ADDBMM_OP_TYPE) ? ("addbmm_out_mps_impl") : ("baddbmm_out_mps_impl");
+=======
+    std::string key = (opType == ADDBMM_OP_TYPE) ? ("addbmm_out_mps_impl") : ("baddbmm_out_mps_impl");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     key += getTensorsStringKey({batch1, batch2, input}) + ":" + std::to_string(beta.toDouble()) + ":" +
         std::to_string(alpha.toDouble());
 
@@ -653,7 +718,11 @@ static Tensor& addmm_out_mps_impl(const Tensor& bias,
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "addmm_out_mps_impl" + getTensorsStringKey({self, other, *bias_}) + ":" +
+=======
+    std::string key = "addmm_out_mps_impl" + getTensorsStringKey({self, other, *bias_}) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(beta.toDouble()) + ":" + std::to_string(alpha.toDouble());
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* biasTensor = mpsGraphRankedPlaceHolder(mpsGraph, *bias_);
@@ -894,7 +963,11 @@ static Tensor& bmm_out_mps_impl(const Tensor& batch1, const Tensor& batch2, Tens
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "bmm_out_mps_impl" + getTensorsStringKey({batch1, batch2}, true, /*exclude_shape*/ true) +
+=======
+    std::string key = "bmm_out_mps_impl" + getTensorsStringKey({batch1, batch2}, true, /*exclude_shape*/ true) +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(doTranspose);
 
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
@@ -1068,6 +1141,7 @@ static void lu_unpack_mps_impl(const Tensor& LU_data,
   }
 }
 
+<<<<<<< HEAD
 static void linalg_cholesky_mps_impl(const Tensor& input,
                                      bool upper,
                                      bool check_errors,
@@ -1087,6 +1161,10 @@ static void linalg_cholesky_mps_impl(const Tensor& input,
     return;
   }
   out.copy_(input);
+=======
+static void cholesky_stub_impl(const Tensor& out, const Tensor& info, bool upper) {
+  auto input_sizes = out.sizes();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   int64_t ndim = out.dim();
   int64_t N = out.size(-1);
@@ -1095,9 +1173,15 @@ static void linalg_cholesky_mps_impl(const Tensor& input,
   auto stream = getCurrentMPSStream();
   auto device = MPSDevice::getInstance()->device();
 
+<<<<<<< HEAD
   auto factorDiagonalPSO = lib.getPipelineStateForFunc("factorDiagonalBlock");
   auto applyTRSMPSO = lib.getPipelineStateForFunc("applyTRSM");
   auto applySYRKPSO = lib.getPipelineStateForFunc("applySYRK");
+=======
+  auto factorDiagonalPSO = lib.getPipelineStateForFunc(upper ? "factorDiagonalBlockU" : "factorDiagonalBlockL");
+  auto applyTRSMPSO = lib.getPipelineStateForFunc(upper ? "applyTRSMU" : "applyTRSML");
+  auto applySYRKPSO = lib.getPipelineStateForFunc(upper ? "applySYRKU" : "applySYRKL");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   int64_t NB = std::min<int64_t>(32, N);
   int64_t numBlocks = (N + NB - 1) / NB;
@@ -1139,6 +1223,7 @@ static void linalg_cholesky_mps_impl(const Tensor& input,
       }
     });
   }
+<<<<<<< HEAD
   int status;
   if (check_errors) {
     if (info_.dim() > 0) {
@@ -1166,6 +1251,10 @@ static void linalg_cholesky_mps_impl(const Tensor& input,
   out.tril_();
   upper ? out.transpose_(ndim - 2, ndim - 1) : out;
 }
+=======
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace mps
 
 Tensor addr_mps(const Tensor& self, const Tensor& vec1, const Tensor& vec2, const Scalar& beta, const Scalar& alpha) {
@@ -1231,7 +1320,11 @@ Tensor& addr_out_mps(const Tensor& self,
   };
 
   @autoreleasepool {
+<<<<<<< HEAD
     string key = "addr_out_mps_impl" + getTensorsStringKey({vec1, vec2, *self_}) + ":" +
+=======
+    std::string key = "addr_out_mps_impl" + getTensorsStringKey({vec1, vec2, *self_}) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::to_string(beta.toDouble()) + ":" + std::to_string(alpha.toDouble());
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* t1 = mps::mpsGraphRankedPlaceHolder(mpsGraph, getMPSDataType(vec1), inputShape);
@@ -1326,6 +1419,7 @@ Tensor& addbmm_out_mps(const Tensor& self,
   return result;
 }
 
+<<<<<<< HEAD
 Tensor cholesky_mps(const Tensor& self, bool upper) {
   auto out = at::empty_like(self, MemoryFormat::Contiguous);
   cholesky_mps_out(self, upper, out);
@@ -1343,6 +1437,8 @@ TORCH_IMPL_FUNC(linalg_cholesky_ex_out_mps)
   mps::linalg_cholesky_mps_impl(self, upper, check_errors, L, info);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor addbmm_mps(const Tensor& self,
                   const Tensor& batch1,
                   const Tensor& batch2,
@@ -1427,4 +1523,13 @@ TORCH_IMPL_FUNC(linalg_lu_factor_ex_out_mps)
 (const Tensor& A, bool pivot, bool check_errors, const Tensor& LU, const Tensor& pivots, const Tensor& info) {
   mps::linalg_lu_factor_ex_out_mps_impl(A, pivot, LU, pivots, info, check_errors);
 }
+<<<<<<< HEAD
+=======
+
+TORCH_IMPL_FUNC(linalg_inv_ex_out_mps)(const Tensor& A, bool check_errors, const Tensor& result, const Tensor& info) {
+  mps::linalg_inv_ex_out_mps_impl(A, check_errors, result, info);
+}
+
+REGISTER_DISPATCH(cholesky_stub, mps::cholesky_stub_impl)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

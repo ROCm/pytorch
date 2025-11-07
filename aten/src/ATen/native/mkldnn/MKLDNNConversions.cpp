@@ -182,7 +182,11 @@ Tensor mkldnn_reorder_conv2d_weight(
       dilation_expanded,
       groups,
       ideep::algorithm::convolution_direct,
+<<<<<<< HEAD
       ideep::prop_kind::forward,
+=======
+      ideep::prop_kind::forward_inference,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       w.get_data_type(),
       src_dims,
       ideep::attr_t(),
@@ -229,7 +233,11 @@ Tensor mkldnn_reorder_conv3d_weight(
       dilation_expanded,
       groups,
       ideep::algorithm::convolution_direct,
+<<<<<<< HEAD
       ideep::prop_kind::forward,
+=======
+      ideep::prop_kind::forward_inference,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       w.get_data_type(),
       src_dims,
       ideep::attr_t(),
@@ -273,7 +281,12 @@ static Tensor mkldnn_reorder_linear_weight(
       {out_features, in_features},
       input_size,
       /* weight dtype */ dtype,
+<<<<<<< HEAD
       /* src dtype */ dtype);
+=======
+      /* src dtype */ dtype,
+      ideep::prop_kind::forward_inference);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ideep::tensor result;
   result.init(packed_desc);
   result.feed_from(w);

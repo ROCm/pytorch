@@ -2,6 +2,10 @@
 
 #include <c10/util/Exception.h>
 
+<<<<<<< HEAD
+=======
+#include <cstring>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <string>
 #include <unordered_map>
 
@@ -65,9 +69,16 @@ bool SharedParserData::isBinary(int kind, int* prec) {
 C10_EXPORT int stringToKind(const std::string& str) {
   static std::unordered_map<std::string, int> str_to_kind = []() {
     std::unordered_map<std::string, int> ret_str_to_kind;
+<<<<<<< HEAD
     for (char tok : std::string(valid_single_char_tokens))
       // NOLINTNEXTLINE(bugprone-signed-char-misuse)
       ret_str_to_kind[std::string(1, tok)] = tok;
+=======
+    ret_str_to_kind.reserve(std::strlen(valid_single_char_tokens));
+    for (const char* tok = valid_single_char_tokens; *tok; tok++) {
+      ret_str_to_kind[std::string(1, *tok)] = static_cast<unsigned char>(*tok);
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define DEFINE_CASE(tok, _, str) \
   if (std::string(str) != "")    \
     ret_str_to_kind[str] = tok;

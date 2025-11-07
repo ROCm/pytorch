@@ -396,6 +396,17 @@ MemoryLocations AliasDb::getReads(Node* n) const {
   return reads;
 }
 
+<<<<<<< HEAD
+=======
+MemoryLocations AliasDb::getMemoryLocations(Value* v) const {
+  auto it = elementMap_.find(v);
+  if (it != elementMap_.end()) {
+    return memoryDAG_->getMemoryLocations(it->second);
+  }
+  return MemoryLocations();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::string AliasDb::getElementName(const Element* e) const {
   if (e->values.empty()) {
     // Not the most efficient way, but given the fact there are
@@ -2014,4 +2025,30 @@ void Lint(const AliasDb* db) {
   // - All container values have contained elements
 }
 
+<<<<<<< HEAD
+=======
+ValueAndMemoryLocationSet AliasDb::getValueAndMemoryLocationSet() const {
+  return ValueAndMemoryLocationSet(this);
+}
+
+bool AliasDb::writesToAlias(Node* n, const ValueAndMemoryLocationSet& vls)
+    const {
+  const auto writtenTo = getWrites(n);
+  if (writtenTo.empty()) {
+    return false;
+  }
+
+  return writtenTo.intersects(vls.memoryLocations_);
+}
+
+void ValueAndMemoryLocationSet::insert(Value* v) {
+  valueSet_.insert(v);
+  memoryLocations_ |= aliasDb_->getMemoryLocations(v);
+}
+
+ValueSet& ValueAndMemoryLocationSet::getValueSet() {
+  return valueSet_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit

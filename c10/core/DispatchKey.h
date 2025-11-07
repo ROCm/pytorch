@@ -45,6 +45,10 @@ namespace c10 {
   _(VE, extra)                                  \
   _(Lazy, extra)                                \
   _(MTIA, extra)                                \
+<<<<<<< HEAD
+=======
+  _(MAIA, extra)                                \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _(PrivateUse1, extra)                         \
   _(PrivateUse2, extra)                         \
   _(PrivateUse3, extra)                         \
@@ -180,6 +184,7 @@ enum class DispatchKey : uint16_t {
   FPGA, // Xilinx support lives out of tree at
   // https://gitlab.com/pytorch-complex/vitis_kernels
 
+<<<<<<< HEAD
   // TODO: put this in BackendComponents
   // MAIA backend lives out of tree
   // - test/cpp_extensions/maia_extension.cpp
@@ -187,6 +192,8 @@ enum class DispatchKey : uint16_t {
   // - aten/src/ATen/test/extension_backend_test.cpp
   MAIA,
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vulkan, // TODO: put this in BackendComponents
   Metal, // TODO: put this in BackendComponents
 
@@ -354,6 +361,10 @@ enum class DispatchKey : uint16_t {
   // and inputs are saved for backward in the post-autocast type.
   AutocastCPU,
   AutocastMTIA,
+<<<<<<< HEAD
+=======
+  AutocastMAIA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AutocastXPU,
   AutocastIPU,
   AutocastHPU,

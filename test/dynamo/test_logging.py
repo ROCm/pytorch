@@ -23,6 +23,10 @@ from torch.testing._internal.common_utils import (
     find_free_port,
     munge_exc,
     skipIfTorchDynamo,
+<<<<<<< HEAD
+=======
+    xfailIfS390X,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.inductor_utils import HAS_CUDA
 from torch.testing._internal.logging_utils import (
@@ -39,6 +43,7 @@ requires_distributed = functools.partial(
 
 
 def munge_shape_guards(s: str) -> str:
+<<<<<<< HEAD
     SHAPE_GUARD = (
         "SYMBOLIC_SHAPE_GUARD"
         if torch._dynamo.config.enable_cpp_symbolic_shape_guards
@@ -65,6 +70,20 @@ def munge_shape_guards(s: str) -> str:
         lines = list(dict.fromkeys(lines))
 
     return "\n".join(lines)
+=======
+    SHAPE_GUARD_REGEX = (
+        r"[| ]* \+- SYMBOLIC_SHAPE_GUARD:"
+        if torch._dynamo.config.enable_cpp_symbolic_shape_guards
+        else r"^\+- LAMBDA_GUARD:"
+    )
+
+    def munge(s):
+        s = re.sub(r"[^ ]+:\d+ in [^ ]+", "#:# in #", s)
+        return re.subn(SHAPE_GUARD_REGEX, "+- __SHAPE_GUARD__:", s)
+
+    lines = [munge(l) for l in s.splitlines()]
+    return "\n".join([line for line, nsubs in lines if nsubs > 0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def example_fn(a):
@@ -167,6 +186,25 @@ class LoggingTests(LoggingTestCase):
         self.assertEqual(len([r for r in records if ".__bytecode" in r.name]), 0)
         self.assertEqual(len([r for r in records if ".__output_code" in r.name]), 0)
 
+<<<<<<< HEAD
+=======
+    @make_logging_test(hierarchical_compile=True)
+    def test_hierarchical_compile(self, records):
+        from torch._higher_order_ops.invoke_subgraph import mark_compile_region
+
+        @mark_compile_region
+        def gn(x):
+            return x * 2
+
+        def fn(x):
+            return gn(x)
+
+        fn_opt = torch.compile(fn, backend="inductor")
+        fn_opt(torch.ones(1000, 1000))
+        fn_opt(torch.ones(1000, 1000))
+        self.assertGreater(len(records), 0)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_logging_test()
     def test_dynamo_error(self, records):
         try:
@@ -189,8 +227,13 @@ from user code:
         )
 
     test_aot = within_range_record_test(2, 6, aot=logging.INFO)
+<<<<<<< HEAD
     test_inductor_debug = within_range_record_test(3, 25, inductor=logging.DEBUG)
     test_inductor_info = within_range_record_test(2, 9, inductor=logging.INFO)
+=======
+    test_inductor_debug = within_range_record_test(3, 28, inductor=logging.DEBUG)
+    test_inductor_info = within_range_record_test(2, 10, inductor=logging.INFO)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @make_logging_test()
     def test_inductor_error(self, records):
@@ -506,6 +549,31 @@ LoweringException: AssertionError:
         with self.assertRaises(ValueError):
             torch._logging.set_logs(aot_graphs=5)
 
+<<<<<<< HEAD
+=======
+    def test_invalid_artifact_flag_error_msg(self):
+        env = dict(os.environ)
+        env["TORCH_LOGS"] = "not_an_existing_log_artifact_should_error"
+        _, stderr = self.run_process_no_exception(
+            "import torch",
+            env=env,
+        )
+        lines = stderr.decode().split("\n")
+        # This is a sanity assert that our error is not spammy.
+        # As of this test creation this was 18.
+        # See this issue for the purpose o this test:
+        # https://github.com/pytorch/pytorch/issues/151055
+        self.assertTrue(len(lines) < 50)
+        # The other sanity assert - check that the last few lines
+        # map to the actual error message we want to raise
+        # (I could use an expecttest here, although it would break
+        #  whenever someone adds a new logging artifact)
+        self.assertEqual(
+            lines[-5], 'For more info on various settings, try TORCH_LOGS="help"'
+        )
+        self.assertEqual(lines[-4], "Valid settings:")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_distributed()
     def test_distributed_rank_logging(self):
         env = dict(os.environ)
@@ -588,7 +656,11 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         fn_opt = torch.compile(f, backend="eager")
         fn_opt(torch.randn(3, 3))
 
+<<<<<<< HEAD
         self.assertEqual(len(records), 4)
+=======
+        self.assertEqual(len(records), 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         messages = [
             "\n".join(record.getMessage().split("\n")[-2:]) for record in records
         ]
@@ -612,12 +684,15 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         #     return g(g(x))
         #            ~^^^^^^""",
         # )
+<<<<<<< HEAD
         self.assertExpectedInline(
             messages[3],
             """\
             return x * 2
                    ~~^~~""",
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNotPy311
     @make_logging_test(trace_call=True)
@@ -761,7 +836,11 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
     @requires_cuda
     @unittest.skipIf(not SM90OrLater, "requires H100+ GPU")
     def test_autotuning(self, records):
+<<<<<<< HEAD
         with torch._inductor.utils.fresh_inductor_cache():
+=======
+        with torch._inductor.utils.fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def f(a, b):
                 return torch.mm(a, b)
@@ -817,6 +896,11 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
             len([r for r in records if "return a + 1" in r.getMessage()]), 0
         )
 
+<<<<<<< HEAD
+=======
+    # there are some additional deprecation warnings in stderr, probably due to newer dependencies used on s390x
+    @xfailIfS390X
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_logs_out(self):
         import tempfile
 
@@ -905,6 +989,10 @@ exclusions = {
     "aot_graphs_effects",
     "pre_grad_graphs",
     "post_grad_graphs",
+<<<<<<< HEAD
+=======
+    "inductor_metrics",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "ir_pre_fusion",
     "ir_post_fusion",
     "compiled_autograd",
@@ -914,6 +1002,10 @@ exclusions = {
     "graph_breaks",
     "graph",
     "graph_code",
+<<<<<<< HEAD
+=======
+    "graph_code_verbose",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "graph_sizes",
     "ddp_graphs",
     "perf_hints",
@@ -932,8 +1024,16 @@ exclusions = {
     "cudagraph_static_inputs",
     "benchmarking",
     "loop_ordering",
+<<<<<<< HEAD
     "autotuning",
     "graph_region_expansion",
+=======
+    "loop_tiling",
+    "autotuning",
+    "graph_region_expansion",
+    "hierarchical_compile",
+    "compute_dependencies",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 for name in torch._logging._internal.log_registry.artifact_names:
     if name not in exclusions:

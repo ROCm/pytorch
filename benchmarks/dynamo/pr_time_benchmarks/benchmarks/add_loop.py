@@ -3,7 +3,11 @@ import sys
 from benchmark_base import BenchmarkBase
 
 import torch
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Benchmark(BenchmarkBase):
@@ -50,7 +54,11 @@ class Benchmark(BenchmarkBase):
                     result = result.sin()
             return result
 
+<<<<<<< HEAD
         with fresh_inductor_cache():
+=======
+        with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f(self.a, self.b)
 
 

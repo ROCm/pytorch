@@ -14,6 +14,10 @@ from typing import (
     TYPE_CHECKING,
     Union,
 )
+<<<<<<< HEAD
+=======
+from typing_extensions import deprecated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -86,7 +90,11 @@ def fully_shard(
     module,
     *,
     mesh: Optional[DeviceMesh] = None,
+<<<<<<< HEAD
     reshard_after_forward: Union[bool, int] = True,
+=======
+    reshard_after_forward: Optional[Union[bool, int]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shard_placement_fn: Optional[Callable[[nn.Parameter], Optional[Shard]]] = None,
     mp_policy: MixedPrecisionPolicy = MixedPrecisionPolicy(),
     offload_policy: OffloadPolicy = OffloadPolicy(),
@@ -139,25 +147,43 @@ def fully_shard(
             placement. The mesh's device type gives the device type used for
             communication; if a CUDA or CUDA-like device type, then we use the
             current device.
+<<<<<<< HEAD
         reshard_after_forward (Union[bool, int]): This controls the parameter
+=======
+        reshard_after_forward (Optional[Union[bool, int]]): This controls the parameter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             behavior after forward and can trade off memory and communication:
 
             - If ``True``, then this reshards parameters after forward and
               re-all-gathers in backward.
             - If ``False``, then this keeps the unsharded parameters in memory
+<<<<<<< HEAD
               after forward and avoids the all-gather in backward.
+=======
+              after forward and avoids the all-gather in backward. For best performance,
+              we usually set ``False`` for the root module, because the root module
+              is typically required immediately when the backward pass begins.
+            - If ``None``, it is set to ``True`` for non-root modules and ``False``
+              for root modules.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             - If an ``int``, then this represents the world size to reshard to
               after forward. It should be a non-trivial divisor of the ``mesh``
               shard dim size (i.e. excluding 1 and the dim size itself). A
               choice may be the intra-node size (e.g. ``torch.cuda.device_count()``).
               This allows the all-gather in backward to be over a smaller world
               size at the cost of higher memory usage than setting to ``True``.
+<<<<<<< HEAD
             - The root FSDP state has its value specially set to ``False`` as a
               heuristic since its parameters would typically be immediately
               all-gathered for backward.
             - After forward, the parameters registered to the module depend on
               to this: The registered parameters are the sharded parameters if
               ``True``; unsharded parameters if ``False``; and the paramters
+=======
+            - After forward, the parameters registered to the module depend on
+              to this: The registered parameters are the sharded parameters if
+              ``True``; unsharded parameters if ``False``; and the parameters
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               resharded to the smaller mesh otherwise. To modify the parameters
               between forward and backward, the registered parameters must be
               the sharded parameters. For ``False`` or an ``int``, this can be
@@ -176,12 +202,22 @@ def fully_shard(
         offload_policy (OffloadPolicy): This controls the offloading policy,
             which offers parameter/gradient/optimizer state offloading. See
             :class:`OffloadPolicy` and its subclasses for details.
+<<<<<<< HEAD
         ignored_params: Optional(Set[nn.Parameter]): The set of parameters that we
             don't want to shard with FSDP.
+=======
+        ignored_params: Optional(Set[nn.Parameter]): The set of parameters to be
+            ignored by FSDP. They will not be sharded, nor moved to the device
+            during init, nor have their gradients reduced in backward.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         FSDPModule: The module with FSDP applied (in-place).
     """
+<<<<<<< HEAD
+=======
+    torch._C._log_api_usage_once("torch.distributed.fsdp.fully_shard")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(module, (nn.ModuleList, nn.ModuleDict)):
         raise ValueError(
             f"fully_shard does not support containers that do not implement forward: {module}"
@@ -198,8 +234,17 @@ def fully_shard(
             )
         mesh_info = HSDPMeshInfo(mesh, shard_mesh_dim=1, replicate_mesh_dim=0)
     device = _get_device_from_mesh(mesh)
+<<<<<<< HEAD
     post_forward_mesh_info = _get_post_forward_mesh_info(
         reshard_after_forward, mesh_info
+=======
+    auto_reshard_after_forward = reshard_after_forward is None
+    # If the user does not provide ``reshard_after_forward``, we set it to True.
+    # During lazy_init, we identify which module is the root and override its value to False
+    post_forward_mesh_info = _get_post_forward_mesh_info(
+        reshard_after_forward if not auto_reshard_after_forward else True,  # type: ignore[arg-type]
+        mesh_info,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     arg_module = module
@@ -207,7 +252,11 @@ def fully_shard(
         (module,) if isinstance(module, nn.Module) else tuple(_get_root_modules(module))
     )
     state = fully_shard.state(modules[0])  # type: ignore[attr-defined] # see [1]
+<<<<<<< HEAD
     state.init(modules, device, mp_policy)
+=======
+    state.init(modules, device, mp_policy, auto_reshard_after_forward)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     managed_modules = _get_managed_modules(modules, ignored_params)
     params, buffers = _get_managed_states(managed_modules, ignored_params)
@@ -350,6 +399,43 @@ class FSDPModule:
                 if fsdp_param_group := state._fsdp_param_group:
                     fsdp_param_group.all_reduce_grads = requires_all_reduce
 
+<<<<<<< HEAD
+=======
+    def set_reshard_after_forward(
+        self, reshard_after_forward: bool, recurse: bool = True
+    ) -> None:
+        """
+        Sets if the module should reshard parameters after forward. This can be
+        used to change the ``reshard_after_forward`` FSDP arg at runtime. For
+        example, this can be used to set the FSDP root module's value to
+        ``True`` (since it is otherwise specially set to ``False``), or it can
+        set an FSDP module's value to ``False`` for running evals and set back
+        to ``True`` for training.
+
+        Args:
+            reshard_after_forward (bool): Whether to reshard parameters after
+                forward.
+            recurse (bool): Whether to set for all FSDP submodules or just the
+                passed-in module.
+        """
+        if not isinstance(reshard_after_forward, bool):
+            raise ValueError(
+                f"reshard_after_forward should be a bool, got {type(reshard_after_forward)}"
+            )
+        self_module = cast(nn.Module, self)
+        modules = list(self_module.modules()) if recurse else [self_module]
+        for module in modules:
+            if isinstance(module, FSDPModule):
+                state = module._get_fsdp_state()
+                state._auto_reshard_after_forward = False
+                if fsdp_param_group := state._fsdp_param_group:
+                    fsdp_param_group.post_forward_mesh_info = (
+                        _get_post_forward_mesh_info(
+                            reshard_after_forward, fsdp_param_group.mesh_info
+                        )
+                    )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def set_reshard_after_backward(
         self, reshard_after_backward: bool, *, recurse: bool = True
     ) -> None:
@@ -457,10 +543,22 @@ class FSDPModule:
         """
         self._get_fsdp_state()._state_ctx.post_optim_event = event
 
+<<<<<<< HEAD
     def set_reduce_scatter_divide_factor(self, factor: float) -> None:
         """
         Sets a custom divide factor for the reduce-scatter. This becomes a
         custom reduce op using NCCL's PreMulSum, which allows multiplying by
+=======
+    @deprecated("Use `set_gradient_divide_factor` instead")
+    def set_reduce_scatter_divide_factor(self, factor: float) -> None:
+        """Use :py:meth:`set_gradient_divide_factor` instead"""
+        self.set_gradient_divide_factor(factor)
+
+    def set_gradient_divide_factor(self, factor: float) -> None:
+        """
+        Sets a custom divide factor for the gradient reduction. This might use
+        a custom reduce op using NCCL's PreMulSum, which allows multiplying by
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         the factor before reduction.
 
         Args:
@@ -468,9 +566,34 @@ class FSDPModule:
         """
         state = self._get_fsdp_state()
         if (fsdp_param_group := state._fsdp_param_group) is not None:
+<<<<<<< HEAD
             mul_factor = 1.0 / float(factor)
             reduce_op = torch.distributed._make_nccl_premul_sum(mul_factor)
             fsdp_param_group.reduce_scatter_reduce_op = reduce_op
+=======
+            fsdp_param_group.gradient_divide_factor = factor
+
+    def set_force_sum_reduction_for_comms(self, enable: bool) -> None:
+        """
+        Sets whether to require the low-level collective communication
+        primitives to exclusively use "sum"-type reductions, even if it comes
+        at the cost of separate additional pre- or post-scaling operations.
+        This is needed for example because NCCL currently supports zero-copy
+        transfers only for this kind of collectives.
+
+        NB: for MTIA devices, this is always implicitly enabled.
+
+        NB: if `set_all_reduce_hook` is used under FSDP setup, the caller needs
+        to ensure the custom all-reduce across FSDP units follow this strategy
+        as well, as FSDP can no longer automatically handle that.
+
+        Args:
+            enable (bool): Whether to only ever use ReduceOp.SUM for comms.
+        """
+        state = self._get_fsdp_state()
+        if (fsdp_param_group := state._fsdp_param_group) is not None:
+            fsdp_param_group.force_sum_reduction_for_comms = enable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def set_unshard_in_backward(self, unshard_in_backward: bool) -> None:
         """
@@ -483,6 +606,25 @@ class FSDPModule:
         if (fsdp_param_group := state._fsdp_param_group) is not None:
             fsdp_param_group.unshard_in_backward = unshard_in_backward
 
+<<<<<<< HEAD
+=======
+    def set_allocate_memory_from_process_group_for_comm(self, enable: bool) -> None:
+        """
+        Sets whether the temporary staging buffers used to send and receive data
+        over collective communications should be allocated using the custom
+        optimized allocator provided by the ProcessGroup itself (if any). This
+        might allow the ProcessGroup to be more efficient. For example, when
+        using NCCL, this enables it to leverage zero-copy transfers over SHARP
+        (for NVLink and/or InfiniBand).
+
+        Args:
+            enable (bool): Whether to turn on ProcessGroup allocation.
+        """
+        state = self._get_fsdp_state()
+        if (fsdp_param_group := state._fsdp_param_group) is not None:
+            fsdp_param_group.allocate_memory_from_process_group = enable
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _set_unshard_async_op(self, async_op: bool):
         """
         Sets whether to use ``async_op=True`` or ``False`` for the pre-forward

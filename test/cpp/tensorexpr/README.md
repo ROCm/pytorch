@@ -40,8 +40,13 @@ We glob all the test files together in `CMakeLists.txt` so that you don't
 have to edit it every time you add a test. Unfortunately, this means that in
 order to get the build to pick up your new test file, you need to re-run
 cmake:
+<<<<<<< HEAD
 ```
 python setup.py build --cmake
+=======
+```bash
+CMAKE_FRESH=1 python setup.py build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ## How do I run the tests?

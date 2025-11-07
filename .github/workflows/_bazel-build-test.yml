@@ -47,7 +47,11 @@ jobs:
       reenabled-issues: ${{ steps.filter.outputs.reenabled-issues }}
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           fetch-depth: 1
           submodules: false
@@ -69,25 +73,41 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.7
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Setup Linux
         uses: ./.github/actions/setup-linux
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image-name: ${{ inputs.docker-image-name }}
 
       - name: Pull docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -97,7 +117,11 @@ jobs:
         run: echo "IN_CONTAINER_RUNNER=$(if [ -f /.inarc ] || [ -f /.incontainer ]; then echo true ; else echo false; fi)" >> "$GITHUB_OUTPUT"
 
       - name: Install nvidia driver, nvidia-docker runtime, set GPU_FLAG
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ inputs.cuda-version != 'cpu' && steps.check_container_runner.outputs.IN_CONTAINER_RUNNER == 'false' }}
 
       - name: Output disk space left
@@ -209,5 +233,9 @@ jobs:
           file-suffix: bazel-${{ github.job }}_${{ steps.get-job-id.outputs.job-id }}
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.7
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: always()

@@ -46,6 +46,12 @@ def get_gomp_thread():
 
     # use the default gomp path of AlmaLinux OS
     libgomp_path = "/usr/lib64/libgomp.so.1"
+<<<<<<< HEAD
+=======
+    # if it does not exist, try Ubuntu path
+    if not os.path.exists(libgomp_path):
+        libgomp_path = f"/usr/lib/{os.uname().machine}-linux-gnu/libgomp.so.1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     os.environ["GOMP_CPU_AFFINITY"] = "0-3"
 

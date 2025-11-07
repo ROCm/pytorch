@@ -30,7 +30,11 @@ def is_autocast_available(device_type: str) -> bool:
     Return a bool indicating if autocast is available on :attr:`device_type`.
 
     Args:
+<<<<<<< HEAD
         device_type(str):  Device type to use. Possible values are: 'cuda', 'cpu', 'mtia', 'xpu' and so on.
+=======
+        device_type(str):  Device type to use. Possible values are: 'cuda', 'cpu', 'mtia', 'maia', 'xpu', and so on.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             The type is the same as the `type` attribute of a :class:`torch.device`.
             Thus, you may obtain the device type of a tensor using `Tensor.device.type`.
     """
@@ -202,7 +206,11 @@ class autocast:
     (see :ref:`Working with Multiple GPUs<amp-multigpu>`).
 
     Args:
+<<<<<<< HEAD
         device_type(str, required):  Device type to use. Possible values are: 'cuda', 'cpu', 'mtia', 'xpu', and 'hpu'.
+=======
+        device_type(str, required):  Device type to use. Possible values are: 'cuda', 'cpu', 'mtia', 'maia', 'xpu', and 'hpu'.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                      The type is the same as the `type` attribute of a :class:`torch.device`.
                                      Thus, you may obtain the device type of a tensor using `Tensor.device.type`.
         enabled(bool, optional):  Whether autocasting should be enabled in the region.
@@ -260,8 +268,13 @@ class autocast:
         self._cache_enabled = torch.is_autocast_cache_enabled()
         if (
             enabled
+<<<<<<< HEAD
             and torch.cuda.amp.common.amp_definitely_not_available()
             and self.device == "cuda"
+=======
+            and self.device == "cuda"
+            and torch.cuda.amp.common.amp_definitely_not_available()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             warnings.warn(
                 "User provided device_type of 'cuda', but CUDA is not available. Disabling"
@@ -289,6 +302,16 @@ class autocast:
                 error_message += "MTIA Autocast only supports dtypes of torch.bfloat16 and torch.float16 currently."
                 warnings.warn(error_message)
                 enabled = False
+<<<<<<< HEAD
+=======
+        elif self.device == "maia":
+            supported_dtype = [torch.bfloat16, torch.float16]
+            if self.fast_dtype not in supported_dtype:
+                error_message = "In MAIA autocast, but the target dtype is not supported. Disabling autocast.\n"
+                error_message += "MAIA Autocast only supports dtypes of torch.bfloat16 and torch.float16 currently."
+                warnings.warn(error_message)
+                enabled = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif self.device == "xpu":
             supported_dtype = [torch.bfloat16, torch.float16]
             if self.fast_dtype not in supported_dtype:
@@ -480,7 +503,11 @@ def custom_fwd(
     See the :ref:`example page<amp-custom-examples>` for more detail.
 
     Args:
+<<<<<<< HEAD
         device_type(str):  Device type to use. 'cuda', 'cpu', 'mtia', 'xpu' and so on.
+=======
+        device_type(str):  Device type to use. 'cuda', 'cpu', 'mtia', 'maia', 'xpu' and so on.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             The type is the same as the `type` attribute of a :class:`torch.device`.
             Thus, you may obtain the device type of a tensor using `Tensor.device.type`.
         cast_inputs (:class:`torch.dtype` or None, optional, default=None):  If not ``None``,
@@ -534,7 +561,11 @@ def custom_bwd(bwd=None, *, device_type: str):
     See the :ref:`example page<amp-custom-examples>` for more detail.
 
     Args:
+<<<<<<< HEAD
         device_type(str):  Device type to use. 'cuda', 'cpu', 'mtia', 'xpu' and so on.
+=======
+        device_type(str):  Device type to use. 'cuda', 'cpu', 'mtia', 'maia', 'xpu' and so on.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             The type is the same as the `type` attribute of a :class:`torch.device`.
             Thus, you may obtain the device type of a tensor using `Tensor.device.type`.
     """

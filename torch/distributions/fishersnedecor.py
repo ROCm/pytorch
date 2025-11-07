@@ -1,4 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
+=======
+from typing import Optional, Union
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import nan, Tensor
 from torch.distributions import constraints
@@ -31,7 +36,16 @@ class FisherSnedecor(Distribution):
     support = constraints.positive
     has_rsample = True
 
+<<<<<<< HEAD
     def __init__(self, df1, df2, validate_args=None):
+=======
+    def __init__(
+        self,
+        df1: Union[Tensor, float],
+        df2: Union[Tensor, float],
+        validate_args: Optional[bool] = None,
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.df1, self.df2 = broadcast_all(df1, df2)
         self._gamma1 = Gamma(self.df1 * 0.5, self.df1)
         self._gamma2 = Gamma(self.df2 * 0.5, self.df2)

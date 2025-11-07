@@ -3,7 +3,11 @@
 #include <torch/csrc/profiler/stubs/base.h>
 
 namespace torch::profiler {
+<<<<<<< HEAD
 __itt_domain* _itt_domain = __itt_domain_create("PyTorch");
+=======
+static __itt_domain* _itt_domain = __itt_domain_create("PyTorch");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool itt_is_available() {
   return torch::profiler::impl::ittStubs()->enabled();

@@ -1,9 +1,17 @@
 import itertools
+<<<<<<< HEAD
+=======
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional, Union
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+<<<<<<< HEAD
+=======
+from torch._logging import warning_once
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _get_device_handle
 from torch.distributed.tensor import DeviceMesh, DTensor, init_device_mesh
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass
@@ -12,6 +20,12 @@ from ._fsdp_common import _is_composable_with_fsdp, FSDPMeshInfo, HSDPMeshInfo
 from ._fsdp_state import _get_module_fsdp_state
 
 
+<<<<<<< HEAD
+=======
+logger = logging.getLogger("torch.distributed.fsdp.fully_shard")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_post_forward_mesh_info(
     reshard_after_forward: Union[bool, int], mesh_info: FSDPMeshInfo
 ) -> Optional[FSDPMeshInfo]:
@@ -35,6 +49,14 @@ def _get_post_forward_mesh_info(
                 f"factor of {shard_mesh_size}, not {reshard_after_forward}"
             )
         elif reshard_after_forward == 1:
+<<<<<<< HEAD
+=======
+            msg = (
+                "reshard_after_forward=1 (int) means resharding parameters to world size 1, "
+                "instead of reshard_after_forward=True (bool)"
+            )
+            warning_once(logger, msg, stacklevel=2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             reshard_after_forward = False
         elif reshard_after_forward == shard_mesh_size:
             reshard_after_forward = True

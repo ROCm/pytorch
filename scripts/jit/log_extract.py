@@ -95,7 +95,11 @@ def run():
         "--no-nnc-dynamic",
         dest="nnc_dynamic",
         action="store_false",
+<<<<<<< HEAD
         help="DONT't benchmark nnc with dynamic shapes",
+=======
+        help="don't benchmark nnc with dynamic shapes",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     parser.set_defaults(nnc_dynamic=False)
 

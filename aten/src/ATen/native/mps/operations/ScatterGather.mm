@@ -60,7 +60,11 @@ TORCH_IMPL_FUNC(gather_out_mps)
     if (output_type == MPSDataTypeUInt8) {
       output_type = MPSDataTypeInt8;
     }
+<<<<<<< HEAD
     string key = "gather_out_mps" + getTensorsStringKey({self, index, output}) + ":" + std::to_string(dim);
+=======
+    std::string key = "gather_out_mps" + getTensorsStringKey({self, index, output}) + ":" + std::to_string(dim);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, input_type, getMPSShape(self));
       MPSGraphTensor* indexTensor = mpsGraphRankedPlaceHolder(mpsGraph, index);
@@ -132,7 +136,11 @@ static void scatter_mps_general(const Tensor& self_arg,
                                 const Tensor& index,
                                 const Tensor& src,
                                 const Tensor& output,
+<<<<<<< HEAD
                                 string func_name,
+=======
+                                std::string func_name,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 const std::string_view reduce) {
   using namespace mps;
 
@@ -189,7 +197,11 @@ static void scatter_mps_general(const Tensor& self_arg,
       needsCast = true;
     }
 
+<<<<<<< HEAD
     string key = func_name + getTensorsStringKey({self, index, src, output}) + ":" + std::to_string(dim) + ":" +
+=======
+    std::string key = func_name + getTensorsStringKey({self, index, src, output}) + ":" + std::to_string(dim) + ":" +
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::string(reduce);
     auto cachedGraph = LookUpOrCreateCachedGraph<CachedGraph>(key, [&](auto mpsGraph, auto newCachedGraph) {
       MPSGraphTensor* inputTensor = mpsGraphRankedPlaceHolder(mpsGraph, self);

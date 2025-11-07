@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+#include <torch/csrc/autograd/python_nested_functions.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/utils/nested.h>
 #include <torch/csrc/utils/pycfunction_helpers.h>
 #include <torch/csrc/utils/python_arg_parser.h>

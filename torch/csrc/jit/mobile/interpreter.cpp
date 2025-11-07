@@ -12,11 +12,18 @@
 #include <torch/csrc/jit/mobile/function.h>
 #include <torch/csrc/jit/mobile/observer.h>
 #include <torch/csrc/jit/mobile/promoted_prim_ops.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/runtime/instruction.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/runtime/jit_exception.h>
 #include <torch/csrc/jit/runtime/vararg_functions.h>
 
 namespace torch::jit {
+<<<<<<< HEAD
 char const* toString(OpCode op);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::ostream& operator<<(std::ostream& out, Instruction inst);
 namespace mobile {
 InterpreterState::InterpreterState(const Code& code) {

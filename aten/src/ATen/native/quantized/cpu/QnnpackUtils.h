@@ -382,6 +382,7 @@ struct PackedConvWeightsQnnp : public ConvPackedParamsBase<kSpatialDim> {
 
 enum class Activation : uint8_t { NONE = 0, RELU = 1 };
 
+<<<<<<< HEAD
 #if defined(__ANDROID__) && !defined(__NDK_MAJOR__)
 template <class T>
 inline float Round(const float x) {
@@ -397,11 +398,17 @@ inline T Round(const T x) {
 }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template<typename T>
 inline T QuantizeValue(float scale, int32_t zero_point, float value) {
   const int32_t qmin = std::numeric_limits<T>::min();
   const int32_t qmax = std::numeric_limits<T>::max();
+<<<<<<< HEAD
   auto r = zero_point + static_cast<int32_t>(Round(value / scale));
+=======
+  auto r = zero_point + static_cast<int32_t>(std::nearbyint(value / scale));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   r = std::max(r, qmin);
   r = std::min(r, qmax);
   return static_cast<T>(r);

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+<<<<<<< HEAD
+=======
+from typing_extensions import assert_never
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torchgen import local
 from torchgen.api.types import (
@@ -48,7 +52,10 @@ from torchgen.model import (
     TensorOptionsArguments,
     Type,
 )
+<<<<<<< HEAD
 from torchgen.utils import assert_never
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -127,7 +134,11 @@ def valuetype_type(
 
 
 # Translation of types occurring in JIT arguments to a C++ argument type.
+<<<<<<< HEAD
 # If remove_non_owning_ref_types is set, we'll guarantee that the outputed CType is not a non-owning reference type.
+=======
+# If remove_non_owning_ref_types is set, we'll guarantee that the output CType is not a non-owning reference type.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # For example, we'll return std::vector<int> instead of IntArrayRef.
 # See Note [translation from C++ reference to value types]
 def argumenttype_type(
