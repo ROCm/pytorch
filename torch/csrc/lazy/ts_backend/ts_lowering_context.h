@@ -91,7 +91,11 @@ class TORCH_API TSLoweringContext : public LoweringContext {
     for (torch::jit::Value* output : root_tuple_) {
       graph_->block()->registerOutput(output);
     }
+<<<<<<< HEAD
     return std::make_shared<TSComputation>(graph_);
+=======
+    return std::shared_ptr<Computation>(new TSComputation(graph_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Retrieves the lowered operation for an output. If the requested output is

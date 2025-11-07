@@ -2,17 +2,28 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 import contextlib
 import warnings
+<<<<<<< HEAD
 from logging import getLogger
 from typing import Optional, Union
 
 import torch
+=======
+from typing import Optional, Union
+
+import torch
+import torch.distributed as dist
+from torch import Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _get_device_handle, DeviceMesh
 from torch.distributed.tensor._dtensor_spec import DTensorSpec
 from torch.distributed.tensor.placement_types import Shard
 
 
+<<<<<<< HEAD
 logger = getLogger(__name__)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     "is_rng_supported_mesh",
     "manual_seed",
@@ -76,6 +87,7 @@ def manual_seed(seed: int, device_mesh: DeviceMesh) -> None:
         )
         return
 
+<<<<<<< HEAD
     # TODO: deprecate this API, but also need to ensure we disable broadcast for PP case, and that's currently
     # bundled together with this API.  See torchtitan/distributed/utils.py:set_determinism
     # warnings.warn(
@@ -84,19 +96,29 @@ def manual_seed(seed: int, device_mesh: DeviceMesh) -> None:
     # )
     # Note: we still need to ensure setting `run_state_sync=False` to support the the pp case
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # instantiate a RNG tracker if haven't. By default DTensor uses an
     # OffsetBasedRNGTracker to perform random operators.
     global _rng_tracker
     if not _rng_tracker:
         _rng_tracker = OffsetBasedRNGTracker(device_mesh, run_state_sync=False)
 
+<<<<<<< HEAD
     if device_mesh.get_coordinate() is None:
+=======
+    # the current rank is in mesh
+    if device_mesh.get_coordinate() is not None:
+        _rng_tracker._manual_seed(seed)
+    else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise RuntimeError(
             "manual_seed requires the current rank to be a part of the device mesh "
             "otherwise DTensor RNG state on the rank will not be initialized and "
             "the behavior of DTensor random ops is undefined."
         )
 
+<<<<<<< HEAD
     # DTensor no longer maintains a copy of rng state. manual seed on dtensor is the same thing
     # as manual seed on torch.
     torch.manual_seed(seed)
@@ -139,6 +161,8 @@ class _PhiloxState:
         )
         self._state[:8] = seed_tensor
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _RNGStateTracker:
     """
@@ -157,9 +181,21 @@ class _RNGStateTracker:
                 f"{self.__class__.__name__} instantiation requires the presence of "
                 f"{device.type} device but couldn't find."
             )
+<<<<<<< HEAD
         self._use_distribute_region = True
 
     @property
+=======
+
+        self._states: dict[str, Tensor] = {}
+        self._use_distribute_region = True
+
+    @property
+    def rng_states(self) -> dict[str, Tensor]:
+        return self._states
+
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def distribute_region_enabled(self) -> bool:
         return self._use_distribute_region
 
@@ -167,9 +203,34 @@ class _RNGStateTracker:
     def distribute_region_enabled(self, value) -> None:
         self._use_distribute_region = value
 
+<<<<<<< HEAD
     def _distribute_region(
         self, spec: DTensorSpec, generator: Optional[torch.Generator] = None
     ):
+=======
+    def rng_state_is_sync(self, name) -> bool:
+        return name in self.rng_states
+
+    def get_seed(self, name: str) -> int:
+        if name not in self.rng_states:
+            raise RuntimeError(
+                f"{self.__class__.__name__} does not have random state for {name}"
+            )
+
+        seed_tensor = (self.rng_states[name])[0:8].view(dtype=torch.int64)
+        return int(seed_tensor.item())
+
+    def set_seed(self, name: str, seed: int) -> None:
+        seed_tensor = torch.tensor([seed], dtype=torch.uint64, device="cpu").view(
+            torch.uint8
+        )
+        offset_tensor = torch.tensor([0], dtype=torch.uint64, device="cpu").view(
+            torch.uint8
+        )
+        self.rng_states[name] = torch.cat([seed_tensor, offset_tensor])
+
+    def _distribute_region(self, spec: DTensorSpec):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass
 
     def _manual_seed(self, parallel_seed: int) -> None:
@@ -199,6 +260,7 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
                 f"CUDA/CUDA-like/XPU device. Got {self._device.type} instead."
             )
 
+<<<<<<< HEAD
         rng_state = self._get_device_state()
         if run_state_sync:
             # synchronize RNG state using rank 0's current one
@@ -249,15 +311,44 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
                 self._device_handle.set_rng_ctx("philox")
             old_offset = state.offset
             self._set_pre_op_offset(state, spec)
+=======
+        rng_state = self._device_handle.get_rng_state().to(self._device)
+        if run_state_sync:
+            # synchronize RNG state using rank 0's current one
+            dist.broadcast(rng_state, 0)
+
+        self.rng_states["parallel-rng"] = rng_state.to("cpu")
+
+    def _manual_seed(self, parallel_seed: int) -> None:
+        self.set_seed("parallel-rng", parallel_seed)
+
+    @contextlib.contextmanager
+    def _distribute_region(self, spec: DTensorSpec):
+        # check if the parallel rng state has been synchronized or not
+        if not self.rng_state_is_sync("parallel-rng"):
+            raise RuntimeError(
+                "OffsetBasedRNGTracker requires the random state to be synchronized "
+                "before entering into a distribute region!"
+            )
+
+        if self.distribute_region_enabled:
+            old_offset = self.get_offset("parallel-rng")
+            self._set_pre_op_offset(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with torch.random.fork_rng(
                 devices=[self._device], device_type=self._device.type
             ):
                 assert self._device_handle is not None
+<<<<<<< HEAD
                 self._device_handle.set_rng_state(state.state)
+=======
+                self._device_handle.set_rng_state(self.rng_states["parallel-rng"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 try:
                     yield  # execute the region code
                 finally:
                     # update offset to synchronize among ranks
+<<<<<<< HEAD
                     self._set_post_op_offset(state, spec, old_offset)
             if self._device.type == "hpu":
                 self._device_handle.unset_rng_ctx("philox")
@@ -273,6 +364,34 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
             self._set_device_state(state.state)
 
     def _set_pre_op_offset(self, state: _PhiloxState, spec: DTensorSpec) -> None:
+=======
+                    self._set_post_op_offset(spec, old_offset)
+        else:
+            yield
+
+    def get_offset(self, name: str) -> int:
+        if name not in self.rng_states:
+            raise RuntimeError(
+                f"{self.__class__.__name__} does not have random state for {name}"
+            )
+
+        offset_tensor = (self.rng_states[name])[8:].view(dtype=torch.int64)
+        return int(offset_tensor.item())
+
+    def set_offset(self, name: str, offset: int) -> None:
+        if name not in self.rng_states:
+            raise RuntimeError(
+                f"{self.__class__.__name__} does not have random state for {name}"
+            )
+
+        seed_tensor = (self.rng_states[name])[0:8]
+        offset_tensor = torch.tensor([offset], dtype=torch.uint64, device="cpu").view(
+            torch.uint8
+        )
+        self.rng_states[name] = torch.cat([seed_tensor, offset_tensor])
+
+    def _set_pre_op_offset(self, spec: DTensorSpec) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Set the starting RNG offset for current device's local shard before actual
         op execution. The pre_op_offset value should start from the current RNG offset
         and increment by the size of local shard until it reaches the size of the whole
@@ -280,7 +399,10 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
         will be the same.
 
         Args:
+<<<<<<< HEAD
             state (:class:`Tensor`): The generator state to modify
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             spec (:class:`DTensorSpec`): the spec of the DTensor object on which
                 we prepare the offset for running random ops.
 
@@ -383,23 +505,36 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
         local_size = prod(local_size_on_rank_0)
 
         # get current RNG offset
+<<<<<<< HEAD
         current_offset = state.offset
+=======
+        current_offset = self.get_offset("parallel-rng")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # pytorch: offset must be multiple of 4
         # source: aten/src/ATen/cuda/CUDAGeneratorImpl.cpp
         offset_incr = (shard_linear_idx * local_size + 3) // 4 * 4
+<<<<<<< HEAD
         state.offset = current_offset + offset_incr
 
     def _set_post_op_offset(
         self, state: _PhiloxState, spec: DTensorSpec, old_offset: int
     ) -> None:
+=======
+        self.set_offset("parallel-rng", current_offset + offset_incr)
+
+    def _set_post_op_offset(self, spec: DTensorSpec, old_offset: int) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Sets the RNG to a synchronized state after running the local random op. Every
         rank should set its RNG offset to `old_offset + DTensor.numel()` where old_offset is
         the offset before calling `set_pre_op_offset` i.e. the offset before running DTensor
         random ops.
 
         Args:
+<<<<<<< HEAD
             state (:class:`Tensor`): The generator state to modify.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             spec (:class:`DTensorSpec`): the spec of the DTensor object on which
                 we post-process the offset for running random ops.
 
@@ -414,7 +549,11 @@ class OffsetBasedRNGTracker(_RNGStateTracker):
         # pytorch: offset must be multiple of 4
         # source: aten/src/ATen/cuda/CUDAGeneratorImpl.cpp
         numel = (numel + 3) // 4 * 4
+<<<<<<< HEAD
         state.offset = old_offset + numel
+=======
+        self.set_offset("parallel-rng", old_offset + numel)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _calc_shard_linear_idx(
         self, shard_coord: list[int], shard_size: list[int]

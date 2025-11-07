@@ -8,13 +8,21 @@ import sys
 import torch
 from torch.testing._internal.common_cuda import IS_JETSON, IS_WINDOWS
 from torch.testing._internal.common_utils import run_tests
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(pytorch_test_dir)
 
+<<<<<<< HEAD
 if HAS_CUDA_AND_TRITON:
+=======
+if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         from .test_cudagraph_trees import CudaGraphTreeTests
     except ImportError:
@@ -32,12 +40,16 @@ from tools.stats.import_test_stats import get_disabled_tests  # @manual
 sys.path.remove(str(REPO_ROOT))
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     if (
         torch.cuda.is_available()
         and not IS_JETSON
         and not IS_WINDOWS
         and HAS_CUDA_AND_TRITON
     ):
+=======
+    if torch.cuda.is_available() and not IS_JETSON and not IS_WINDOWS and HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         get_disabled_tests(".")
 
         torch.cuda.memory._set_allocator_settings("expandable_segments:True")

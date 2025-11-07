@@ -5,9 +5,14 @@ Python polyfills for itertools
 from __future__ import annotations
 
 import itertools
+<<<<<<< HEAD
 import operator
 import sys
 from typing import Callable, Optional, overload, TYPE_CHECKING, TypeVar
+=======
+import sys
+from typing import Callable, overload, TYPE_CHECKING, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeAlias
 
 from ..decorators import substitute_in_graph
@@ -18,6 +23,7 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+<<<<<<< HEAD
     "accumulate",
     "chain",
     "chain_from_iterable",
@@ -25,6 +31,12 @@ __all__ = [
     "cycle",
     "dropwhile",
     "filterfalse",
+=======
+    "chain",
+    "chain_from_iterable",
+    "compress",
+    "dropwhile",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "islice",
     "tee",
     "zip_longest",
@@ -45,6 +57,7 @@ def chain(*iterables: Iterable[_T]) -> Iterator[_T]:
         yield from iterable
 
 
+<<<<<<< HEAD
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.accumulate
 @substitute_in_graph(itertools.accumulate, is_embedded_type=True)  # type: ignore[arg-type]
 def accumulate(
@@ -81,6 +94,11 @@ def chain_from_iterable(iterable: Iterable[Iterable[_T]], /) -> Iterator[_T]:
     # If iterable is an infinite generator, this will lead to infinite recursion
     for it in iterable:
         yield from it
+=======
+@substitute_in_graph(itertools.chain.from_iterable)  # type: ignore[arg-type]
+def chain_from_iterable(iterable: Iterable[Iterable[_T]], /) -> Iterator[_T]:
+    return itertools.chain(*iterable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 chain.from_iterable = chain_from_iterable  # type: ignore[attr-defined]
@@ -92,6 +110,7 @@ def compress(data: Iterable[_T], selectors: Iterable[_U], /) -> Iterator[_T]:
     return (datum for datum, selector in zip(data, selectors) if selector)
 
 
+<<<<<<< HEAD
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.cycle
 @substitute_in_graph(itertools.cycle, is_embedded_type=True)  # type: ignore[arg-type]
 def cycle(iterable: Iterable[_T]) -> Iterator[_T]:
@@ -110,6 +129,8 @@ def cycle(iterable: Iterable[_T]) -> Iterator[_T]:
     return _cycle(iterator)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.dropwhile
 @substitute_in_graph(itertools.dropwhile, is_embedded_type=True)  # type: ignore[arg-type]
 def dropwhile(predicate: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator[_T]:
@@ -124,6 +145,7 @@ def dropwhile(predicate: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator[
     yield from iterator
 
 
+<<<<<<< HEAD
 @substitute_in_graph(itertools.filterfalse, is_embedded_type=True)  # type: ignore[arg-type]
 def filterfalse(function: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator[_T]:
     it = iter(iterable)
@@ -133,6 +155,8 @@ def filterfalse(function: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator
         return filter(lambda x: not function(x), it)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.islice
 @substitute_in_graph(itertools.islice, is_embedded_type=True)  # type: ignore[arg-type]
 def islice(iterable: Iterable[_T], /, *args: int | None) -> Iterator[_T]:

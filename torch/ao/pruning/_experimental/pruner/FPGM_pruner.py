@@ -11,7 +11,11 @@ __all__ = ["FPGMPruner"]
 
 class FPGMPruner(BaseStructuredSparsifier):
     r"""Filter Pruning via Geometric Median (FPGM) Structured Pruner
+<<<<<<< HEAD
     This sparsifier prune filter (row) in a tensor according to distances among filters according to
+=======
+    This sparsifier prune fliter (row) in a tensor according to distances among filters according to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     `Filter Pruning via Geometric Median for Deep Convolutional Neural Networks Acceleration <https://arxiv.org/abs/1811.00250>`_.
 
     This sparsifier is controlled by three variables:

@@ -211,7 +211,11 @@ NestedTensorImpl::NestedTensorImpl(
 }
 
 // assume contiguous, `nested_strides` and `offsets`
+<<<<<<< HEAD
 // can be inferred from `nested_sizes`
+=======
+// can be infered from `nested_sizes`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 NestedTensorImpl::NestedTensorImpl(
     const at::Tensor& buffer,
     const at::Tensor& nested_sizes)
@@ -273,7 +277,11 @@ c10::SymInt NestedTensorImpl::sym_numel_custom() const {
   return NestedTensorImpl::numel_custom();
 }
 
+<<<<<<< HEAD
 c10::SymBool NestedTensorImpl::sym_is_contiguous_custom(MemoryFormat) const {
+=======
+bool NestedTensorImpl::is_contiguous_custom(MemoryFormat) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return nested_tensor_impl_is_contiguous(this);
 }
 IntArrayRef NestedTensorImpl::sizes_custom() const {

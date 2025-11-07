@@ -7,7 +7,11 @@
 | [**Future Plans**](#future-plans)
 
 **This library is currently under heavy development - if you have suggestions
+<<<<<<< HEAD
 on the API or use-cases you'd like to be covered, please open a GitHub issue
+=======
+on the API or use-cases you'd like to be covered, please open an github issue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 or reach out. We'd love to hear about how you're using the library.**
 
 `functorch` is [JAX-like](https://github.com/google/jax) composable function
@@ -161,7 +165,11 @@ result = vmap(model)(examples)
 
 ### grad
 
+<<<<<<< HEAD
 `grad(func)(*inputs)` assumes `func` returns a single-element Tensor. It computes
+=======
+`grad(func)(*inputs)` assumes `func` returns a single-element Tensor. It compute
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 the gradients of the output of func w.r.t. to `inputs[0]`.
 
 ```py
@@ -192,7 +200,11 @@ def compute_loss(weights, example, target):
 weights = torch.randn(feature_size, requires_grad=True)
 examples = torch.randn(batch_size, feature_size)
 targets = torch.randn(batch_size)
+<<<<<<< HEAD
 inputs = (weights, examples, targets)
+=======
+inputs = (weights,examples, targets)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 grad_weight_per_example = vmap(grad(compute_loss), in_dims=(None, 0, 0))(*inputs)
 ```
 

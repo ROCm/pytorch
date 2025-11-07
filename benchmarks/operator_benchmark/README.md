@@ -20,7 +20,11 @@ Key Features:
 The instruction below installs a cpp\_extension for PyTorch and it is required to run the benchmark suite.
 ```bash
 cd pt_extension
+<<<<<<< HEAD
 python -m pip install .
+=======
+python setup.py install
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ## How to run the benchmarks:

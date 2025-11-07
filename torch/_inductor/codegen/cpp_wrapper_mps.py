@@ -3,6 +3,7 @@ from typing import Any, Optional
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch.utils._ordered_set import OrderedSet
 
 from ..ir import GraphPartitionSignature
@@ -21,6 +22,16 @@ class CppWrapperMps(CppWrapperGpu):
         super().__init__()
         self._used_kernel_names: OrderedSet[str] = OrderedSet()
 
+=======
+
+from ..ir import GraphPartitionSignature
+from ..virtualized import V
+from .cpp_wrapper_gpu import CppWrapperGpu
+from .wrapper import PythonWrapperCodegen
+
+
+class CppWrapperMps(CppWrapperGpu):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @staticmethod
     def create(
         is_subgraph: bool,
@@ -34,6 +45,7 @@ class CppWrapperMps(CppWrapperGpu):
         self,
         kernel_name: str,
         call_args: list[str],
+<<<<<<< HEAD
         *,
         device: Optional[torch.device] = None,
         triton: bool = True,
@@ -43,10 +55,15 @@ class CppWrapperMps(CppWrapperGpu):
         triton_meta: Optional[dict[str, Any]] = None,
         graph_name: str = "",
         original_fxnode_name: Optional[str] = None,
+=======
+        arg_types: Optional[list[type]] = None,
+        **kwargs: dict[str, Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         """
         Generates MPS kernel call code. It should look something like:
         ```
+<<<<<<< HEAD
         get_mps_lib_0()->runCommandBlock([&] {
             get_mps_lib_0()->startEncoding();
             aoti_torch_mps_set_arg(get_mps_lib_0_handle(), 0, buf0);
@@ -73,17 +90,38 @@ class CppWrapperMps(CppWrapperGpu):
 
         assert device.type == "mps"
 
+=======
+        auto mps_lib_0_func = mps_lib_0.getKernelFunction("generated_kernel");
+        auto mps_lib_0_func_handle = AOTIMetalKernelFunctionHandle(mps_lib_0_func.get());
+        mps_lib_0_func->runCommandBlock([&] {
+            mps_lib_0_func->startEncoding();
+            aoti_torch_mps_set_arg(mps_lib_0_func_handle, 0, buf0);
+            aoti_torch_mps_set_arg(mps_lib_0_func_handle, 1, arg0_1);
+            ...
+            mps_lib_0_func->dispatch(9);
+        });
+        ```
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert arg_types is not None
 
         new_args = []
         for idx, (arg, arg_type) in enumerate(zip(call_args[:-2], arg_types[:-2])):
             if isinstance(arg_type, torch.dtype):
                 new_args.append(
+<<<<<<< HEAD
                     f"aoti_torch_mps_set_arg_tensor(get_{kernel_name}_handle(), {idx}, {arg});"
                 )
             elif arg_type in (int, sympy.core.symbol.Symbol):
                 new_args.append(
                     f"aoti_torch_mps_set_arg_int(get_{kernel_name}_handle(), {idx}, {arg});"
+=======
+                    f"aoti_torch_mps_set_arg_tensor({kernel_name}_handle, {idx}, {arg});\n"
+                )
+            elif arg_type in (int, sympy.core.symbol.Symbol):
+                new_args.append(
+                    f"aoti_torch_mps_set_arg_int({kernel_name}_handle, {idx}, {arg});\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 raise NotImplementedError(
@@ -94,11 +132,17 @@ class CppWrapperMps(CppWrapperGpu):
         if threads is None:
             raise NotImplementedError("No threads or group_size provided")
         elif group_size is None:
+<<<<<<< HEAD
             new_args.append(f"get_{kernel_name}()->dispatch({threads});\n")
         else:
             new_args.append(
                 f"get_{kernel_name}()->dispatch({threads}, {group_size});\n"
             )
+=======
+            new_args.append(f"{kernel_name}->dispatch({threads});\n")
+        else:
+            new_args.append(f"{kernel_name}->dispatch({threads}, {group_size});\n")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # debug printer related logic for cpp kernel type.
         debug_printer_manager = V.graph.wrapper_code.debug_printer
@@ -110,6 +154,7 @@ class CppWrapperMps(CppWrapperGpu):
             "cpp",
         )
         with debug_printer_manager:
+<<<<<<< HEAD
             self.write_mps_kernel_call(kernel_name, new_args)
 
     def write_mps_kernel_call(self, name: str, call_args: list[str]) -> None:
@@ -121,6 +166,21 @@ class CppWrapperMps(CppWrapperGpu):
         for call_arg in call_args:
             self.writeline(f"    {call_arg}")
         self.writeline("});")
+=======
+            self.writeline(self.wrap_kernel_call(kernel_name, new_args))
+
+    def wrap_kernel_call(self, name: str, call_args: list[str]) -> str:
+        lib_name = name[: -len("_func")]
+        calling_args = "        ".join(call_args)
+        return f"""
+    auto {name} = {lib_name}.getKernelFunction("generated_kernel");
+    auto {name}_handle = AOTIMetalKernelFunctionHandle({name}.get());
+    {name}->runCommandBlock([&] {{
+        {name}->startEncoding();
+        {calling_args}
+    }});
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def get_device_include_path(device: str) -> str:
@@ -129,6 +189,7 @@ class CppWrapperMps(CppWrapperGpu):
             "#include <torch/csrc/inductor/aoti_include/mps.h>\n"
             "#include <torch/csrc/inductor/aoti_torch/c/shim_mps.h>"
         )
+<<<<<<< HEAD
 
     def codegen_additional_funcs(self) -> None:
         """
@@ -178,3 +239,5 @@ class CppWrapperMps(CppWrapperGpu):
                 )
                 self.prefix.writeline("    return handle;")
                 self.prefix.writeline("}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

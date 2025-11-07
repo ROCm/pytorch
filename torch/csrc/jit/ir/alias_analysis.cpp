@@ -53,7 +53,11 @@ class MutableTypePtrHelper {
   //     Tensor with shape information removed. For example, a Tensor
   //     of dimension 4 would map to the same type as a Tensor of
   //     dimension 1. This allows us to treat all subclasses of Tensor
+<<<<<<< HEAD
   //     as a single, homogeneous "Tensor" type.
+=======
+  //     as a single, homogenous "Tensor" type.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<AliasTypeSet> mapTypeToAliasTypeSet(const TypePtr& type) {
     if (mutable_type_cache_) {
       const AliasTypeSet* result = mapTypeToBorrowedAliasTypeSet(type);

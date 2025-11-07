@@ -170,7 +170,11 @@ class TransformedDistribution(Distribution):
         if self._validate_args:
             self._validate_sample(value)
         event_dim = len(self.event_shape)
+<<<<<<< HEAD
         log_prob: Union[Tensor, float] = 0.0
+=======
+        log_prob = 0.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         y = value
         for transform in reversed(self.transforms):
             x = transform.inv(y)

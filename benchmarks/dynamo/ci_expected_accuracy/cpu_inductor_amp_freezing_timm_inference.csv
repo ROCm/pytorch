@@ -46,7 +46,11 @@ deit_base_distilled_patch16_224,pass,0
 
 
 
+<<<<<<< HEAD
 dla102,timeout,0
+=======
+dla102,pass,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

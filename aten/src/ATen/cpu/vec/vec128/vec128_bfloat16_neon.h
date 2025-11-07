@@ -553,6 +553,7 @@ Vectorized<c10::BFloat16> inline fmadd(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::BFloat16> inline fnmadd(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b,
@@ -562,6 +563,8 @@ Vectorized<c10::BFloat16> inline fnmadd(
 }
 
 template <>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<c10::BFloat16> inline fmsub(
     const Vectorized<c10::BFloat16>& a,
     const Vectorized<c10::BFloat16>& b,
@@ -570,6 +573,7 @@ Vectorized<c10::BFloat16> inline fmsub(
   return a * b - c;
 }
 
+<<<<<<< HEAD
 template <>
 Vectorized<c10::BFloat16> inline fnmsub(
     const Vectorized<c10::BFloat16>& a,
@@ -579,6 +583,8 @@ Vectorized<c10::BFloat16> inline fnmsub(
   return -a * b - c;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // !defined(C10_MOBILE) && defined(__aarch64__)
 
 } // namespace CPU_CAPABILITY

@@ -83,8 +83,15 @@ void CopyICFirst3dTensorToChannelsLast3dTensor(
   for (int64_t i = 0; i < G * OC_G; ++i) {
     for (const auto j : c10::irange(inner_size)) {
       for (const auto ic : c10::irange(IC_G)) {
+<<<<<<< HEAD
         int g = static_cast<int>(i / OC_G);
         int oc = static_cast<int>(i % OC_G);
+=======
+        // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
+        int g = i / OC_G;
+        // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
+        int oc = i % OC_G;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dst[(i * inner_size + j) * IC_G + ic] =
             src[((g * IC_G + ic) * OC_G + oc) * inner_size + j];
       }
@@ -110,6 +117,7 @@ fbgemm::conv_param_t<kSpatialDim> MakeFbgemmConvParam(
   std::array<int, kSpatialDim> image_shape_{};
   std::array<int, kSpatialDim> kernels_{};
   std::array<int, kSpatialDim> strides_{};
+<<<<<<< HEAD
   std::array<int, kSpatialDim * 2ull> pads_{};
   std::array<int, kSpatialDim> dilations_{};
   std::array<int, kSpatialDim> output_padding_{};
@@ -130,6 +138,26 @@ fbgemm::conv_param_t<kSpatialDim> MakeFbgemmConvParam(
   std::copy(pads.begin(), pads.begin() + static_cast<int64_t>(pads.size()), pads_.begin());
   const auto pads_size = static_cast<int64_t>(pads.size());
   std::move(pads.begin(), pads.begin() + pads_size, pads_.begin() + pads_size);
+=======
+  std::array<int, kSpatialDim * 2> pads_{};
+  std::array<int, kSpatialDim> dilations_{};
+  std::array<int, kSpatialDim> output_padding_{};
+  std::move(image_shape.begin(), image_shape.begin() + image_shape.size(), image_shape_.begin());
+  std::move(
+      kernels.begin(), kernels.begin() + kernels.size(), kernels_.begin());
+  std::move(
+      strides.begin(), strides.begin() + strides.size(), strides_.begin());
+  std::move(
+      dilations.begin(),
+      dilations.begin() + dilations.size(),
+      dilations_.begin());
+  std::move(
+      output_padding.begin(),
+      output_padding.begin() + output_padding.size(),
+      output_padding_.begin());
+  std::copy(pads.begin(), pads.begin() + pads.size(), pads_.begin());
+  std::move(pads.begin(), pads.begin() + pads.size(), pads_.begin() + pads.size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return fbgemm::conv_param_t<kSpatialDim>(
       N, // batch size
@@ -158,7 +186,11 @@ Tensor MakeStridedQTensorCPU(
   TORCH_CHECK(
       isQIntType(typeMetaToScalarType(dtype)),
       "ScalarType is not supported in new_qtensor_cpu.");
+<<<<<<< HEAD
   int64_t size_bytes = static_cast<int64_t>(nelements * dtype.itemsize());
+=======
+  int64_t size_bytes = nelements * dtype.itemsize();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto storage = c10::make_intrusive<StorageImpl>(
       StorageImpl::use_byte_size_t(),
       size_bytes,
@@ -366,7 +398,11 @@ Tensor ConvertConvWeightsToChannelLastTensor<3>(
 #endif // USE_FBGEMM
 
 namespace {
+<<<<<<< HEAD
   // This is really terrible, but couldn't figure out a better way to constexpr convert int to
+=======
+  // This is really terrible, but couldnt figure out a better way to constexpr convert int to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // string and then perform string concatenation on/with it
   constexpr const char* _hack_int_to_class_name(int x) {
     switch(x) {
@@ -531,8 +567,13 @@ int register_embedding_params() {
             TORCH_INTERNAL_ASSERT(longs.size() == 1, "EmbeddingPackedParams: Expected bit_rate to be serialized");
             TORCH_CHECK(version == 1, "EmbeddingPackedParams: Currently only version 1 supported.");
 
+<<<<<<< HEAD
             const auto& weight = tensors[0];
             return PackedEmbeddingBagWeight::prepack(weight);
+=======
+            at::Tensor weight = std::move(tensors[0]);
+            return PackedEmbeddingBagWeight::prepack(std::move(weight));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def("bit_rate", &EmbeddingPackedParamsBase::bit_rate)
       .def("unpack", &EmbeddingPackedParamsBase::unpack)

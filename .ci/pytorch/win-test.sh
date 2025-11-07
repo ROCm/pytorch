@@ -38,6 +38,7 @@ if [[ "$BUILD_ENVIRONMENT" == *cuda* ]]; then
 fi
 
 # TODO: Move both of them to Windows AMI
+<<<<<<< HEAD
 python -m pip install tensorboard==2.13.0 protobuf==5.29.4 pytest-subtests==0.13.1
 
 # Copied from https://github.com/pytorch/test-infra/blob/be01a40157c36cd5a48391fdf44a7bc3ebd4c7e3/aws/ami/windows/scripts/Installers/Install-Pip-Dependencies.ps1#L16 with some adjustments
@@ -52,6 +53,15 @@ python -m pip install z3-solver==4.15.1.0
 
 # Install tlparse for test\dynamo\test_structured_trace.py UTs.
 python -m pip install tlparse==0.4.0
+=======
+python -m pip install pytest-rerunfailures==10.3 pytest-cpp==2.3.0 tensorboard==2.13.0 protobuf==5.29.4 pytest-subtests==0.13.1
+
+# Install Z3 optional dependency for Windows builds.
+python -m pip install z3-solver==4.12.2.0
+
+# Install tlparse for test\dynamo\test_structured_trace.py UTs.
+python -m pip install tlparse==0.3.30
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Install parameterized
 python -m pip install parameterized==0.8.1

@@ -83,9 +83,13 @@ class Vectorized<float> {
   static constexpr size_type size() {
     return 4;
   }
+<<<<<<< HEAD
   Vectorized() {
     values = vmovq_n_f32(0);
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(float32x4_t v) : values(v) {}
   Vectorized(float val) : values{vdupq_n_f32(val)} {}
   Vectorized(float val0, float val1, float val2, float val3)
@@ -204,6 +208,7 @@ class Vectorized<float> {
     store(tmp);
     return tmp[idx];
   }
+<<<<<<< HEAD
   int zero_mask() const {
     uint32x4_t is_zero_vec = vceqzq_f32(values);
     const int32x4_t shift = vcombine_s32(
@@ -212,6 +217,20 @@ class Vectorized<float> {
     uint32x4_t bits_vec =
         vshlq_u32(vandq_u32(is_zero_vec, vdupq_n_u32(1)), shift);
     return vaddvq_u32(bits_vec);
+=======
+  // For boolean version where we want to if any 1/all zero
+  // etc. can be done faster in a different way.
+  int zero_mask() const {
+    __at_align__ float tmp[size()];
+    store(tmp);
+    int mask = 0;
+    for (int i = 0; i < size(); ++i) {
+      if (tmp[i] == 0.f) {
+        mask |= (1 << i);
+      }
+    }
+    return mask;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   Vectorized<float> isnan() const {
     return vreinterpretq_f32_u32(vmvnq_u32(vceqq_f32(values, values)));
@@ -310,9 +329,12 @@ class Vectorized<float> {
   Vectorized<float> exp_u20() const {
     return exp();
   }
+<<<<<<< HEAD
   Vectorized<float> fexp_u20() const {
     return exp();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DEFINE_SLEEF_COMPATIBLE_BINARY_ELEMENTWISE_FUNC_WITH_SLEEF_NAME(
       fmod,
       Sleef_fmodf4)
@@ -585,6 +607,7 @@ Vectorized<float> inline fmadd(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<float> inline fnmadd(
     const Vectorized<float>& a,
     const Vectorized<float>& b,
@@ -593,6 +616,8 @@ Vectorized<float> inline fnmadd(
 }
 
 template <>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<float> inline fmsub(
     const Vectorized<float>& a,
     const Vectorized<float>& b,
@@ -600,6 +625,7 @@ Vectorized<float> inline fmsub(
   return Vectorized<float>(vnegq_f32(vfmsq_f32(c, a, b)));
 }
 
+<<<<<<< HEAD
 template <>
 Vectorized<float> inline fnmsub(
     const Vectorized<float>& a,
@@ -608,6 +634,8 @@ Vectorized<float> inline fnmsub(
   return Vectorized<float>(vnegq_f32(vfmaq_f32(c, a, b)));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Vectorized<float> Vectorized<float>::erf() const {
   // constants
   const Vectorized<float> neg_zero_vec(-0.f);

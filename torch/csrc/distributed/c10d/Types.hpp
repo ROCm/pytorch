@@ -110,8 +110,11 @@ ReduceOp makeNCCLPreMulSum(const T& factor) {
   return rop;
 }
 
+<<<<<<< HEAD
 TORCH_API bool isComplexViewAsRealAllowed(const ReduceOp& reduceOp);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 constexpr auto kUnsetTimeout = std::chrono::milliseconds(-1);
 
 struct BroadcastOptions {

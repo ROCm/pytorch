@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import (
+<<<<<<< HEAD
     Hashable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Iterable,
     Iterator,
     MutableSet,
@@ -11,8 +14,13 @@ from collections.abc import (
 from typing import Any, cast, Optional, TypeVar
 
 
+<<<<<<< HEAD
 T = TypeVar("T", bound=Hashable)
 T_co = TypeVar("T_co", bound=Hashable, covariant=True)
+=======
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = ["OrderedSet"]
 

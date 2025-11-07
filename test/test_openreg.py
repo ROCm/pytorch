@@ -1,11 +1,15 @@
 # Owner(s): ["module: PrivateUse1"]
 
+<<<<<<< HEAD
 import _codecs
 import io
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 import tempfile
 import types
 import unittest
+<<<<<<< HEAD
 from unittest.mock import patch
 
 import numpy as np
@@ -21,6 +25,18 @@ from torch.testing._internal.common_utils import (
     skipIfWindows,
     skipIfXpu,
     TemporaryFileName,
+=======
+
+import psutil
+import pytorch_openreg  # noqa: F401
+
+import torch
+from torch.testing._internal.common_utils import (
+    IS_LINUX,
+    run_tests,
+    skipIfTorchDynamo,
+    skipIfXpu,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 
@@ -206,7 +222,11 @@ class TestPrivateUse1(TestCase):
 
 
 class TestOpenReg(TestCase):
+<<<<<<< HEAD
     """Tests of mimic accelerator named OpenReg based on PrivateUse1"""
+=======
+    """Tests of mimick accelerator named OpenReg based on PrivateUse1"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Stream & Event
     def test_stream_synchronize(self):
@@ -286,8 +306,12 @@ class TestOpenReg(TestCase):
         self.assertEqual(torch.openreg.initial_seed(), 2024)  # type: ignore[misc]
 
     # Autograd
+<<<<<<< HEAD
     @skipIfMPS
     @skipIfWindows()
+=======
+    @unittest.skipIf(not IS_LINUX, "Only works on linux")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_autograd_init(self):
         # Make sure autograd is initialized
         torch.ones(2, requires_grad=True, device="openreg").sum().backward()
@@ -341,6 +365,13 @@ class TestOpenReg(TestCase):
         self.assertNotEqual(pinned_a.data_ptr(), rewrapped_a.data_ptr())
 
     # Serialization
+<<<<<<< HEAD
+=======
+    @unittest.skip(
+        "Temporarily disable due to the tiny differences between clang++ and g++ in defining static variable in inline function,"
+        "this pr can fix this, https://github.com/pytorch/pytorch/pull/147095"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialization(self):
         storage = torch.UntypedStorage(4, device=torch.device("openreg"))
         self.assertEqual(torch.serialization.location_tag(storage), "openreg:0")
@@ -372,6 +403,7 @@ class TestOpenReg(TestCase):
             self.assertFalse(tensor_cpu.is_openreg)
             self.assertEqual(torch._utils.get_tensor_metadata(tensor_cpu), {})  # type: ignore[misc]
 
+<<<<<<< HEAD
     @skipIfTorchDynamo()
     @unittest.skipIf(
         np.__version__ < "1.25",
@@ -478,6 +510,9 @@ class TestOpenReg(TestCase):
                         torch.save(sd, f)
 
     # Operators
+=======
+    # Opeartors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_factory(self):
         x = torch.empty(3, device="openreg")
         self.assertEqual(x.device.type, "openreg")
@@ -491,6 +526,7 @@ class TestOpenReg(TestCase):
         self.assertEqual(z.device.type, "openreg")
         self.assertEqual(z.shape, torch.Size([0]))
 
+<<<<<<< HEAD
     def test_fake_tensor(self):
         with torch._subclasses.fake_tensor.FakeTensorMode():
             a = torch.empty(1, device="openreg")
@@ -500,6 +536,8 @@ class TestOpenReg(TestCase):
     def test_named_tensor(self):
         return torch.empty([2, 3, 4, 5], device="openreg", names=["N", "C", "H", "W"])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_printing(self):
         a = torch.ones(20, device="openreg")
         # Does not crash!
@@ -542,6 +580,7 @@ class TestOpenReg(TestCase):
         self.assertEqual(quantized_tensor.device, torch.device("openreg:0"))
         self.assertEqual(quantized_tensor.dtype, torch.qint8)
 
+<<<<<<< HEAD
     # custom autograd
     def test_compile_autograd_function_returns_self(self):
         in_ref = torch.randn(4, device="openreg", requires_grad=True)
@@ -625,6 +664,8 @@ class TestOpenReg(TestCase):
         self.assertEqual(z_cpu, z[0])
         self.assertEqual(z_cpu, z[1])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

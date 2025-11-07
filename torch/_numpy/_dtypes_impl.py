@@ -1,11 +1,18 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 """Dtypes/scalar type implementations with torch dtypes.
+=======
+"""Dtypes/scalar type implementaions with torch dtypes.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Here `dtype` is always a torch.dtype, this module knows nothing about
 scalar types, wrapper dtypes or anything like that. PyTorch only.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections import namedtuple
 
 import torch

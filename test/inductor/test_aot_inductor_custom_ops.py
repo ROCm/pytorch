@@ -1,5 +1,9 @@
 # Owner(s): ["module: inductor"]
+<<<<<<< HEAD
 # This test requires libaoti_custom_ops.so to be built, which happens when BUILD_TEST = 1
+=======
+# This test requires libaoti_custom_ops.so to be built, which happnes when BUILD_TEST = 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import os
 import sys
@@ -24,7 +28,11 @@ from torch.testing._internal.common_utils import (
     skipIfXpu,
 )
 from torch.testing._internal.logging_utils import LoggingTestCase, make_logging_test
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.triton_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import TorchDispatchMode
 
 
@@ -416,7 +424,10 @@ class AOTInductorTestsTemplate:
 
     @skipIfXpu
     @skipIfRocm
+<<<<<<< HEAD
     @unittest.skipIf(IS_FBCODE, "unable to find library -laoti_custom_ops")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_custom_op_square(self) -> None:
         class Model(torch.nn.Module):
             def forward(self, x):
@@ -512,7 +523,10 @@ CUDA_TEST_FAILURES = {
     # quantized unsupported for GPU
     "test_quantized_linear": fail_cuda(),
     "test_quanatized_int8_linear": fail_cuda(),
+<<<<<<< HEAD
     "test_quantized_linear_bias_none": fail_cuda(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -556,5 +570,9 @@ if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 
     # cpp_extension N/A in fbcode
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON or sys.platform == "darwin":
+=======
+    if HAS_CUDA or sys.platform == "darwin":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

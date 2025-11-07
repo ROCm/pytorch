@@ -456,7 +456,11 @@ make_zero_points_and_scales_tensor(
     uint32_t groups = 1) {
   const int out_ch_idx = transpose ? 1 : 0;
   const auto num_output_channels = weight_contig.size(out_ch_idx) * (transpose ? groups : 1);
+<<<<<<< HEAD
   // Add 8 to account for buffering needed by QNNPACK.
+=======
+  // Add 8 to account for bufferring needed by QNNPACK.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto num_output_channels_padded = num_output_channels + kPaddingChannels;
   const auto qtype = weight_contig.qscheme();
   std::vector<uint8_t> weight_zp(num_output_channels_padded, 0);

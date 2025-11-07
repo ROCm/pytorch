@@ -1,9 +1,15 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 """Define analogs of numpy dtypes supported by pytorch.
 Define the scalar types and supported dtypes and numpy <--> torch dtype mappings.
 """
 
+=======
+""" Define analogs of numpy dtypes supported by pytorch.
+Define the scalar types and supported dtypes and numpy <--> torch dtype mappings.
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import builtins
 
 import torch

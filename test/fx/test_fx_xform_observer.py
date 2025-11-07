@@ -55,7 +55,11 @@ class TestGraphTransformObserver(TestCase):
             )
         )
 
+<<<<<<< HEAD
     @torch._inductor.config.patch("trace.provenance_tracking_level", 1)
+=======
+    @torch._inductor.config.patch("trace.enabled", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_graph_transform_observer_node_tracking(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -156,7 +160,11 @@ class TestGraphTransformObserver(TestCase):
             [NodeSourceAction.REPLACE, NodeSourceAction.CREATE],
         )
 
+<<<<<<< HEAD
     @torch._inductor.config.patch("trace.provenance_tracking_level", 1)
+=======
+    @torch._inductor.config.patch("trace.enabled", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_graph_transform_observer_deepcopy(self):
         class SimpleLinearModel(torch.nn.Module):
             def forward(self, x):
@@ -179,6 +187,7 @@ class TestGraphTransformObserver(TestCase):
         self.assertEqual(len(gm2._erase_node_hooks), 0)
         self.assertEqual(len(gm2._deepcopy_hooks), 0)
 
+<<<<<<< HEAD
     @torch._inductor.config.patch("trace.provenance_tracking_level", 1)
     def test_graph_transform_observer_replace(self):
         # the node sohuld should not be duplicated
@@ -205,6 +214,8 @@ class TestGraphTransformObserver(TestCase):
         self.assertEqual(new_node.meta["from_node"][0].name, "add")
         self.assertEqual(new_node.meta["from_node"][0].pass_name, "test")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     raise RuntimeError(

@@ -179,7 +179,11 @@ class UtilTest(DTensorTestBase):
         )
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "Non-sharded dimensions should have identical size across ranks.",
+=======
+            "Non-sharded dimentions should have identical size across ranks.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             _ = compute_global_tensor_shape(
                 local_shape,

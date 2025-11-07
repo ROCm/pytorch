@@ -43,7 +43,11 @@ TORCH_API void logSoftAssert(
     uint32_t line,
     const char* cond,
     const char* args);
+<<<<<<< HEAD
 inline void logSoftAssert(
+=======
+TORCH_API inline void logSoftAssert(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const char* func,
     const char* file,
     uint32_t line,

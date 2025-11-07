@@ -57,7 +57,11 @@ if [ ! -f setup.py ]; then
   cd python
 fi
 
+<<<<<<< HEAD
 pip_install pybind11==3.0.1
+=======
+pip_install pybind11==2.13.6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: remove patch setup.py once we have a proper fix for https://github.com/triton-lang/triton/issues/4527
 as_jenkins sed -i -e 's/https:\/\/tritonlang.blob.core.windows.net\/llvm-builds/https:\/\/oaitriton.blob.core.windows.net\/public\/llvm-builds/g' setup.py
@@ -98,10 +102,15 @@ fi
 if [ -n "${NUMPY_VERSION}" ]; then
   pip_install "numpy==${NUMPY_VERSION}"
 fi
+<<<<<<< HEAD
 
 # IMPORTANT: helion needs to be installed without dependencies.
 # It depends on torch and triton. We don't want to install
 # triton and torch from production on Docker CI images
 if [[ "$ANACONDA_PYTHON_VERSION" != 3.9* ]]; then
   pip_install helion --no-deps
+=======
+if [[ "$ANACONDA_PYTHON_VERSION" != 3.9* ]]; then
+  pip_install helion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi

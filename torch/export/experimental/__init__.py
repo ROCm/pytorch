@@ -1,6 +1,7 @@
 import copy
 import dataclasses
 import functools
+<<<<<<< HEAD
 import os
 import types
 import typing
@@ -22,6 +23,18 @@ __all__ = []  # type: ignore[var-annotated]
 
 def _copy_graph_module_and_signature(
     ep: torch.export.ExportedProgram,
+=======
+import types
+import typing
+import typing_extensions
+
+import torch
+from torch.export.exported_program import _decompose_exported_program
+
+
+def _copy_graph_module_and_signature(
+    ep: torch.fx.GraphModule,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[torch.fx.GraphModule, torch.export.graph_signature.ExportGraphSignature]:
     # copy.deepcopy lets the objects override __deepcopy__ methods with graph_copy() and node_copy(),
     # and this can break placeholder names in some particular cases.
@@ -39,7 +52,11 @@ def _copy_graph_module_and_signature(
         for old_node, new_node in zip(old_phs, new_phs):
             new_node.name = old_node.name
 
+<<<<<<< HEAD
     return gm, new_graph_signature
+=======
+    return gm, new_graph_signature  # type: ignore[return-value]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _remove_detach_pass(
@@ -84,6 +101,7 @@ def _export_forward_backward(
     return ep._update(gm, new_graph_signature)
 
 
+<<<<<<< HEAD
 def _sticky_export(
     forward_func: typing.Callable[_InputT, _RetT],
     dynamic_shapes_callback: typing.Optional[
@@ -95,16 +113,28 @@ def _sticky_export(
         ]
     ] = None,
 ) -> typing.Callable[_InputT, _RetT]:
+=======
+@typing.no_type_check
+def _sticky_export(forward_func, dynamic_shapes_callback=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Lazily export the model on first forward call.
     Usage:
         model.forward = _sticky_export(model.forward, dynamic_shapes_callback=callback)
     """
+<<<<<<< HEAD
     model = forward_func.__self__  # type: ignore[attr-defined]
     original_forward = forward_func.__func__  # type: ignore[attr-defined]
 
     @functools.wraps(forward_func)
     def wrapper(*args: _InputT.args, **kwargs: _InputT.kwargs) -> _RetT:
+=======
+    model = forward_func.__self__
+    original_forward = forward_func.__func__
+
+    @functools.wraps(forward_func)
+    def wrapper(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Unpatch forward to avoid recursion during export
         model.forward = types.MethodType(original_forward, model)
 
@@ -119,7 +149,11 @@ def _sticky_export(
                 kwargs,
                 dynamic_shapes=dynamic_shapes_spec,
             ).module()
+<<<<<<< HEAD
             wrapper._exported_artifact = exported  # type: ignore[attr-defined]
+=======
+            wrapper._exported_artifact = exported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         finally:
             # Restore the wrapper after export
             model.forward = wrapper
@@ -135,6 +169,13 @@ class _ExportMethod:
     fallbacks: list[torch.export.ExportedProgram]
 
 
+<<<<<<< HEAD
+=======
+_InputT = typing_extensions.ParamSpec("_InputT")
+_RetT = typing.TypeVar("_RetT")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _ExportPackage:
     """
     An export package is a collection of torch.export()-ed PyTorch models consisting of
@@ -217,7 +258,11 @@ class _ExportPackage:
             - Returns an optional dynamic shape spec.
 
         Exporter will only export an overload when the spec callable successfully returns
+<<<<<<< HEAD
         a result without raising AssertionError.
+=======
+        a result without rasing AssertionError.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         For example:
         ```
@@ -324,8 +369,12 @@ class _ExportPackage:
 
         if isinstance(fn, torch.nn.Module):
             _exporter_context = torch._dynamo.eval_frame.OptimizedModule(  # type: ignore[assignment] # noqa: F811
+<<<<<<< HEAD
                 fn,
                 lambda _: _exporter_context,  # type: ignore[arg-type]
+=======
+                fn, lambda _: _exporter_context
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         def _define_overload(
@@ -341,6 +390,7 @@ class _ExportPackage:
         _exporter_context._define_overload = _define_overload  # type: ignore[attr-defined]
 
         return _exporter_context
+<<<<<<< HEAD
 
     @property
     def _method_overloads(
@@ -427,3 +477,5 @@ class _ExportPackage:
         )
         with open(Path(base_directory) / "main.cpp", "w") as file:
             file.write(main_file_str)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

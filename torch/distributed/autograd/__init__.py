@@ -1,15 +1,23 @@
+<<<<<<< HEAD
 from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from types import TracebackType
 
 
 def is_available() -> bool:
+=======
+def is_available():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return hasattr(torch._C, "_dist_autograd_init")
 
 
@@ -31,8 +39,11 @@ if is_available():
         get_gradients,
     )
 
+<<<<<<< HEAD
 __all__ = ["context", "is_available"]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class context:
     """
@@ -53,6 +64,7 @@ class context:
         >>>     dist_autograd.backward(context_id, [loss])
     """
 
+<<<<<<< HEAD
     def __enter__(self) -> int:
         self.autograd_context = _new_context()
         return self.autograd_context._context_id()
@@ -63,4 +75,11 @@ class context:
         exc_value: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
+=======
+    def __enter__(self):
+        self.autograd_context = _new_context()
+        return self.autograd_context._context_id()
+
+    def __exit__(self, type, value, traceback):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _release_context(self.autograd_context._context_id())

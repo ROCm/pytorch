@@ -111,7 +111,11 @@ class DerivedQuantizationSpec(QuantizationSpecBase):
 
 @dataclass
 class QuantizationAnnotation:
+<<<<<<< HEAD
     """How are input argument or output should be quantized,
+=======
+    """How are input arguemnt or output should be quantized,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     expressed as QuantizationSpec, this corresponds to how a Tensor in the
     operator Graph is observed (PTQ) or fake quantized (QAT)
     """

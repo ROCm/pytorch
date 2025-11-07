@@ -1,6 +1,9 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/core/Tensor.h>
+<<<<<<< HEAD
 #include <ATen/DTensorState.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -25,6 +28,7 @@ Tensor one_hot(const Tensor &self, int64_t num_classes) {
         if (num_classes == -1) {
           num_classes = self.max().item().toLong() + 1;
         }
+<<<<<<< HEAD
         {
           // If `self` is a DTensor, then allow implicit replication
           // of the `index` Tensor.
@@ -32,6 +36,10 @@ Tensor one_hot(const Tensor &self, int64_t num_classes) {
           at::Tensor index = at::arange(num_classes, self.options());
           return at::eq(self.unsqueeze(-1), index).to(kLong);
         }
+=======
+        at::Tensor index = at::arange(num_classes, self.options());
+        return at::eq(self.unsqueeze(-1), index).to(kLong);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     auto shape = self.sizes().vec();

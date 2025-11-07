@@ -301,7 +301,11 @@ class Transformer(Module):
         """
         return _generate_square_subsequent_mask(sz, dtype=dtype, device=device)
 
+<<<<<<< HEAD
     def _reset_parameters(self) -> None:
+=======
+    def _reset_parameters(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Initiate parameters in the transformer model."""
         for p in self.parameters():
             if p.dim() > 1:

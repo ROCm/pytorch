@@ -373,10 +373,13 @@ class DtypePropagationOpsHandler:
             f"{type(self).__name__}: ops.placeholder should not appear here"
         )
 
+<<<<<<< HEAD
     @staticmethod
     def device_assert_async(cond, msg: str) -> torch.dtype:
         return torch.bool
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING:
 

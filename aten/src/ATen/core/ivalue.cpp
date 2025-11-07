@@ -97,8 +97,11 @@ c10::TypePtr IValue::TagType<c10::Type>::get(const IValue& v) {
         return ComplexType::get();
       case Tag::Int:
         return IntType::get();
+<<<<<<< HEAD
       case Tag::UInt:
         return IntType::get();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       case Tag::SymInt:
         return c10::SymIntType::get();
       case Tag::SymFloat:
@@ -322,8 +325,11 @@ IValue IValue::equals(const IValue& rhs) const {
       return rhs.isComplexDouble() && lhs.toComplexDouble() == rhs.toComplexDouble();
     case Tag::Int:
       return rhs.isInt() && lhs.toInt() == rhs.toInt();
+<<<<<<< HEAD
     case Tag::UInt:
       return rhs.isUnsigned() && lhs.toUInt() == rhs.toUInt();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Tag::SymInt:
       return rhs.isSymInt() && lhs.toSymInt() == rhs.toSymInt();
     case Tag::SymFloat:
@@ -383,8 +389,11 @@ size_t IValue::hash(const IValue& v) {
     case Tag::Int:
       return c10::get_hash(v.payload.u.as_int);
     // NB: these are technically strict aliasing violations
+<<<<<<< HEAD
     case Tag::UInt:
       return c10::get_hash(v.payload.u.as_int);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case Tag::SymInt:
       return c10::get_hash(v.payload.u.as_int);
     case Tag::SymFloat:
@@ -812,8 +821,11 @@ std::ostream& operator<<(std::ostream & out, const IValue & v) {
       return printComplex(out, v);
     } case IValue::Tag::Int:
       return out << v.toInt();
+<<<<<<< HEAD
     case IValue::Tag::UInt:
       return out << v.toUInt();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case IValue::Tag::SymInt:
       return out << v.toSymInt();
     case IValue::Tag::SymFloat:

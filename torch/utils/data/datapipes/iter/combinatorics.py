@@ -38,17 +38,27 @@ class SamplerIterDataPipe(IterDataPipe[_T_co]):
         sampler_args: Optional[tuple] = None,
         sampler_kwargs: Optional[dict] = None,
     ) -> None:
+<<<<<<< HEAD
         assert isinstance(datapipe, Sized), (
             "Sampler class requires input datapipe implemented `__len__`"
         )
+=======
+        assert isinstance(
+            datapipe, Sized
+        ), "Sampler class requires input datapipe implemented `__len__`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.datapipe = datapipe
         self.sampler_args = () if sampler_args is None else sampler_args
         self.sampler_kwargs = {} if sampler_kwargs is None else sampler_kwargs
         # https://github.com/python/mypy/pull/9629 will solve
+<<<<<<< HEAD
         self.sampler = sampler(
             *self.sampler_args, data_source=self.datapipe, **self.sampler_kwargs
         )  # type: ignore[misc]
+=======
+        self.sampler = sampler(*self.sampler_args, data_source=self.datapipe, **self.sampler_kwargs)  # type: ignore[misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __iter__(self) -> Iterator[_T_co]:
         return iter(self.sampler)

@@ -212,6 +212,11 @@ class _SymNodePickleData:
         self.hint = node._hint
 
     def _to_sym_node(self) -> SymNode:
+<<<<<<< HEAD
+=======
+        from torch.fx.experimental.sym_node import SymNode
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.shape_env is not None
         return SymNode(self.expr, self.shape_env, self.pytype, self.hint)
 

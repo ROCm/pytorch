@@ -88,7 +88,11 @@ def get_size_of_node(fx_module: GraphModule, node: Node) -> size_bytes:
     """
     # Total num of elements
     total_num_of_elems = 0
+<<<<<<< HEAD
     # For a module, consider all parameters
+=======
+    # For a module, conside all parameters
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if node.op == "call_module":
         submodule_dict = dict(fx_module.named_modules())
         submodule = submodule_dict[node.target]

@@ -2,6 +2,10 @@
 #include <ATen/cuda/CUDAGraph.h>
 #include <ATen/cuda/Exceptions.h>
 #include <ATen/Functions.h>
+<<<<<<< HEAD
+=======
+#include <c10/cuda/CUDACachingAllocator.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/cuda/CUDAFunctions.h>
 
 #include <cstddef>
@@ -252,6 +256,7 @@ cudaGraph_t CUDAGraph::raw_cuda_graph() {
   return graph_;
 }
 
+<<<<<<< HEAD
 cudaGraphExec_t CUDAGraph::raw_cuda_graph_exec() {
   TORCH_CHECK(
       has_graph_exec_,
@@ -259,6 +264,8 @@ cudaGraphExec_t CUDAGraph::raw_cuda_graph_exec() {
   return graph_exec_;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void CUDAGraph::reset() {
   // I'd prefer these checks throw exceptions, not print warnings,
   // but the destructor calls reset(), and at least one CI build

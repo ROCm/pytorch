@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
 import copy
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from collections import namedtuple
 from typing import Any, Optional, Union
@@ -568,6 +571,7 @@ def _assert_valid_qconfig(qconfig: Optional[QConfig], mod: torch.nn.Module) -> N
         )
 
 
+<<<<<<< HEAD
 if sys.version_info < (3, 12):
     QConfigAny = Optional[QConfig]
     QConfigAny.__module__ = "torch.ao.quantization.qconfig"
@@ -575,6 +579,10 @@ else:
     from typing import TypeAliasType
 
     QConfigAny = TypeAliasType("QConfigAny", Optional[QConfig])
+=======
+QConfigAny = Optional[QConfig]
+QConfigAny.__module__ = "torch.ao.quantization.qconfig"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _add_module_to_qconfig_obs_ctr(

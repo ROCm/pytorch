@@ -7,6 +7,26 @@
 
 namespace torch::cuda::CUDAPluggableAllocator {
 
+<<<<<<< HEAD
+=======
+CUDAPluggableAllocatorDeleterContext::CUDAPluggableAllocatorDeleterContext(
+    std::function<FreeFuncType> free_fn,
+    void* data,
+    size_t size,
+    int device,
+    cudaStream_t stream)
+    : free_fn_(std::move(free_fn)),
+      data_(data),
+      size_(size),
+      device_(device),
+      stream_(stream) {}
+
+void CUDAPluggableAllocatorDeleterContext::free() {
+  free_fn_(data_, size_, device_, stream_);
+  delete this;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 int device_count = 0;
 
 void custom_raw_deleter(void* ptr);
@@ -24,8 +44,13 @@ _AllocationMetadata::_AllocationMetadata(
 // This avoids having to link against libtorch for C++ based custom allocators
 // And also use this from python
 CUDAPluggableAllocator::CUDAPluggableAllocator(
+<<<<<<< HEAD
     std::function<void*(size_t, int, cudaStream_t)> alloc_fn,
     std::function<void(void*, size_t, int, cudaStream_t)> free_fn)
+=======
+    std::function<MallocFuncType> alloc_fn,
+    std::function<FreeFuncType> free_fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     : alloc_fn_(std::move(alloc_fn)), free_fn_(std::move(free_fn)) {}
 
 CUDAPluggableAllocator::CUDAPluggableAllocator(CUDAPluggableAllocator& other)
@@ -97,8 +122,15 @@ c10::DataPtr CUDAPluggableAllocator::allocate(size_t size) {
   C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
   cudaStream_t stream = c10::cuda::getCurrentCUDAStream(device);
   void* r = this->malloc(size, device, stream);
+<<<<<<< HEAD
   c10::DataPtr data_ptr = {
       r, r, raw_deleter(), c10::Device(c10::DeviceType::CUDA, device)};
+=======
+  auto* ctx = new CUDAPluggableAllocatorDeleterContext(
+      free_fn_, r, size, device, stream);
+  c10::DataPtr data_ptr = {
+      r, ctx, raw_deleter(), c10::Device(c10::DeviceType::CUDA, device)};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return data_ptr;
 }
 
@@ -363,8 +395,13 @@ getCurrentAllocator() {
 // TODO: add more functions in the argument
 std::shared_ptr<c10::cuda::CUDACachingAllocator::CUDAAllocator>
 createCustomAllocator(
+<<<<<<< HEAD
     std::function<void*(size_t, int, cudaStream_t)> alloc_fn,
     std::function<void(void*, size_t, int, cudaStream_t)> free_fn) {
+=======
+    std::function<MallocFuncType> alloc_fn,
+    std::function<FreeFuncType> free_fn) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::shared_ptr<CUDAPluggableAllocator> allocator(
       new CUDAPluggableAllocator(std::move(alloc_fn), std::move(free_fn)));
   allocator->init(device_count);
@@ -381,8 +418,13 @@ void changeCurrentAllocator(
   current_custom_allocator = allocator;
 }
 
+<<<<<<< HEAD
 void custom_raw_deleter(void* ptr) {
   current_custom_allocator->raw_delete(ptr);
+=======
+void custom_raw_deleter(void* ctx) {
+  reinterpret_cast<CUDAPluggableAllocatorDeleterContext*>(ctx)->free();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace torch::cuda::CUDAPluggableAllocator

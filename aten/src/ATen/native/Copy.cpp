@@ -36,10 +36,15 @@
 #endif
 
 #ifdef USE_FBGEMM
+<<<<<<< HEAD
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wextra-semi")
 #include <fbgemm/Fbgemm.h>
 #include <fbgemm/FbgemmConvert.h>
 C10_DIAGNOSTIC_POP()
+=======
+#include <fbgemm/Fbgemm.h>
+#include <fbgemm/FbgemmConvert.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 namespace {

@@ -10,6 +10,11 @@ BlenderbotForConditionalGeneration,16
 BlenderbotSmallForCausalLM,256
 BlenderbotSmallForConditionalGeneration,128
 CamemBert,32
+<<<<<<< HEAD
+=======
+DebertaForMaskedLM,32
+DebertaForQuestionAnswering,32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DebertaV2ForMaskedLM,8
 DebertaV2ForQuestionAnswering,8
 DistilBertForMaskedLM,256
@@ -40,6 +45,10 @@ PegasusForCausalLM,128
 PegasusForConditionalGeneration,64
 RobertaForCausalLM,32
 RobertaForQuestionAnswering,32
+<<<<<<< HEAD
+=======
+Speech2Text2ForCausalLM,1024
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T5ForConditionalGeneration,8
 T5Small,8
 TrOCRForCausalLM,64

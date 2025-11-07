@@ -116,7 +116,11 @@ inline py::object PyObject_FastGetAttrString(PyObject* obj, const char* name) {
   }
   /* Attribute referenced by (PyObject *)name */
   else if (tp->tp_getattro != nullptr) {
+<<<<<<< HEAD
     auto w = py::reinterpret_steal<py::object>(PyUnicode_FromString(name));
+=======
+    auto w = py::reinterpret_steal<py::object>(THPUtils_internString(name));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (w.ptr() == nullptr) {
       return py::object();
     }

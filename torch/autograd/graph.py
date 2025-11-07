@@ -194,9 +194,12 @@ class GradientEdge(NamedTuple):
 
     node: Node
     output_nr: int
+<<<<<<< HEAD
     # This token can be used to ensure the graph stays alive when it cannot be
     # done via the node field
     ownership_token: Optional[Node] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_gradient_edge(tensor: torch.Tensor) -> GradientEdge:
@@ -212,6 +215,7 @@ def get_gradient_edge(tensor: torch.Tensor) -> GradientEdge:
         )
     grad_fn = _get_grad_fn_or_grad_acc(tensor)
 
+<<<<<<< HEAD
     # Python-based Node are owned by the C++ side meaning the python grad_fn
     # object we hold here does NOT keep the C++ graph alive.
     # Create an ownership token by creating a new C++ node that own the graph
@@ -224,6 +228,11 @@ def get_gradient_edge(tensor: torch.Tensor) -> GradientEdge:
     # Note that output_nr default to 0 which is the right value
     # for the AccumulateGrad node.
     return GradientEdge(grad_fn, tensor.output_nr, ownership_token=token)
+=======
+    # Note that output_nr default to 0 which is the right value
+    # for the AccumulateGrad node.
+    return GradientEdge(grad_fn, tensor.output_nr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def increment_version(tensor: Union[torch.Tensor, Iterable[torch.Tensor]]) -> None:
@@ -253,7 +262,11 @@ class saved_tensors_hooks:
     Use this context-manager to define how intermediary results of an operation
     should be packed before saving, and unpacked on retrieval.
 
+<<<<<<< HEAD
     In that context, the ``pack_hook`` function will be called every time an
+=======
+    In that context, the ``pack_hook`` function will be called everytime an
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     operation saves a tensor for backward (this includes intermediary results
     saved using
     :func:`~torch.autograd.function._ContextMethodMixin.save_for_backward` but
@@ -521,9 +534,15 @@ def register_multi_grad_hook(
             def inner_hook(grad: torch.Tensor) -> None:
                 nonlocal count, nb_calls, buffer, fn
                 id = torch._C._current_graph_task_id()
+<<<<<<< HEAD
                 assert id != -1, (
                     "expected this hook to be called inside a backward call"
                 )
+=======
+                assert (
+                    id != -1
+                ), "expected this hook to be called inside a backward call"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 count[id] = count.get(id, 0)
                 buffer[id] = buffer.get(id, [None] * len_tensors)
 
@@ -732,9 +751,15 @@ class _AllowMutationOnSavedContext:
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def allow_mutation_on_saved_tensors() -> Generator[
     _AllowMutationOnSavedContext, None, None
 ]:
+=======
+def allow_mutation_on_saved_tensors() -> (
+    Generator[_AllowMutationOnSavedContext, None, None]
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Context manager under which mutating tensors saved for backward is allowed.
 
     Under this context manager, tensors saved for backward are cloned on mutation,

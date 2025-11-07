@@ -228,6 +228,20 @@ std::string processErrorMsg(std::string str) {
   return str;
 }
 
+<<<<<<< HEAD
+=======
+static std::string formatMessage(const char* format, va_list fmt_args) {
+  constexpr size_t ERROR_BUF_SIZE = 1024;
+  std::string error_buf(ERROR_BUF_SIZE, '\0');
+  auto res = vsnprintf(error_buf.data(), ERROR_BUF_SIZE, format, fmt_args);
+  if (res < 0) {
+    res = 0;
+  }
+  error_buf.resize(res);
+  return error_buf;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void translate_exception_to_python(const std::exception_ptr& e_ptr) {
   try {
     TORCH_INTERNAL_ASSERT(
@@ -239,6 +253,16 @@ void translate_exception_to_python(const std::exception_ptr& e_ptr) {
   CATCH_ALL_ERRORS(return)
 }
 
+<<<<<<< HEAD
+=======
+TypeError::TypeError(const char* format, ...) {
+  va_list fmt_args{};
+  va_start(fmt_args, format);
+  msg = formatMessage(format, fmt_args);
+  va_end(fmt_args);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void PyWarningHandler::InternalHandler::process(const c10::Warning& warning) {
   warning_buffer_.push_back(warning);
 }

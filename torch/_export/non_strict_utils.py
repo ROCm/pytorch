@@ -169,10 +169,14 @@ def fakify(
         return t
 
     if isinstance(t, _IntWrapper):
+<<<<<<< HEAD
         if t.dynamism is not None and t.dynamism.type in (  # type: ignore[union-attr]
             _DimHintType.DYNAMIC,
             _DimHintType.AUTO,
         ):
+=======
+        if t.dynamism is not None and t.dynamism.type in (_DimHintType.DYNAMIC, _DimHintType.AUTO):  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             symint = mode.shape_env.create_unspecified_symint_and_symbol(  # type: ignore[union-attr]
                 t.val, source, DimDynamic.DYNAMIC
             )
@@ -330,7 +334,12 @@ def make_fake_inputs(
     args,
     kwargs,
     dynamic_shapes,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards=False,
+=======
+    _is_torch_jit_trace=False,
+    allow_complex_guards_as_runtime_asserts=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Given an nn module, example inputs, and constraints, return a new fake mode,
@@ -365,8 +374,12 @@ def make_fake_inputs(
         # a toplevel TracingContext with a fake mode, so we do not want to
         # create another fake mode.
         fake_mode = context.fake_mode
+<<<<<<< HEAD
         assert fake_mode is not None
     else:
+=======
+    elif not _is_torch_jit_trace:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(nn_module.forward, functools.partial):
             # functools handles nesting by itself, no need to recurse
             code = nn_module.forward.func.__code__
@@ -382,12 +395,31 @@ def make_fake_inputs(
                 shape_env=ShapeEnv(
                     tracked_fakes=[],
                     co_fields=co_fields,
+<<<<<<< HEAD
                     prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+                    prefer_deferred_runtime_asserts_over_guards=True,
+                    allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     trace_asserts=True,
                 ),
                 allow_non_fake_inputs=True,
                 export=True,
             )
+<<<<<<< HEAD
+=======
+    else:
+        with _config.patch(fake_tensor_allow_unsafe_data_ptr_access=False):
+            fake_mode = FakeTensorMode(
+                shape_env=ShapeEnv(
+                    tracked_fakes=[],
+                    prefer_deferred_runtime_asserts_over_guards=True,
+                    allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+                    trace_asserts=True,
+                ),
+                allow_non_fake_inputs=True,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if fake_mode.shape_env is None or fake_mode.shape_env.tracked_fakes is None:
         raise ValueError(
             "Detected fake_mode does not have a shape_env with tracked fakes. "
@@ -396,7 +428,15 @@ def make_fake_inputs(
         )
 
     with fake_mode:
+<<<<<<< HEAD
         original_signature = inspect.signature(nn_module.forward)
+=======
+        # FIXME(ycao) ScriptMethod doesn't have signature, I am using an empty one to unblock
+        if not _is_torch_jit_trace:
+            original_signature = inspect.signature(nn_module.forward)
+        else:
+            original_signature = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sources: dict[tuple[int, int], list[Source]] = defaultdict(list)
         sourced_prefixes = make_sourced_prefixes(nn_module, args, kwargs)
         fake_args, fake_kwargs = tree_map_with_path(
@@ -477,6 +517,10 @@ def produce_guards_and_solve_constraints(
     dynamic_shapes: Union[dict[str, Any], tuple[Any], list[Any], None],
     equalities_inputs: EqualityConstraint,
     original_signature: inspect.Signature,
+<<<<<<< HEAD
+=======
+    _is_torch_jit_trace=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Given a fake mode, sources pairs corresponding to equal dynamic shape dimensions,
@@ -517,6 +561,7 @@ def produce_guards_and_solve_constraints(
         raise constraint_violation_error
     dim_constraints.solve()
     forced_specializations = dim_constraints.forced_specializations()
+<<<<<<< HEAD
 
     msg = dim_constraints.prettify_results(
         original_signature,
@@ -525,6 +570,18 @@ def produce_guards_and_solve_constraints(
         forced_specializations,  # type: ignore[arg-type]
     )
 
+=======
+    if not _is_torch_jit_trace:
+        msg = dim_constraints.prettify_results(
+            original_signature,
+            dynamic_shapes,  # type: ignore[arg-type]
+            constraint_violation_error,
+            forced_specializations,  # type: ignore[arg-type]
+        )
+    else:
+        # FIXME(ycao): This is a hack to get around missing signature from ScriptMethod
+        msg = "dummy constraint violation message"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if constraint_violation_error:
         constraint_violation_error.args = (constraint_violation_error.args[0] + msg,)
     elif forced_specializations:
@@ -852,7 +909,11 @@ def _fakify_script_objects(
     mod: torch.nn.Module,
     args: Sequence[Any],
     kwargs: dict[Any, Any],
+<<<<<<< HEAD
     fake_mode: Optional[torch._subclasses.fake_tensor.FakeTensorMode],
+=======
+    fake_mode: torch._subclasses.fake_tensor.FakeTensorMode,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     # This context manager is used to fakify script objects into FakeScriptObject.
     # Inputs:
@@ -983,12 +1044,16 @@ class _NonStrictTorchFunctionHandler(torch.overrides.TorchFunctionMode):
 
             def rewrite(dim, item):
                 # Redirect to torch.select for indexing.
+<<<<<<< HEAD
                 if item is None:
                     return dim + 1, (torch.unsqueeze, [dim])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(item, (int, torch.SymInt)):
                     return dim, (torch.select, [dim, item])
                 # Redirect to torch.ops.aten.slice for slicing.
                 if isinstance(item, slice):
+<<<<<<< HEAD
                     step = item.step or 1
                     if item.start is None and item.stop is None and step == 1:
                         # no-op
@@ -1042,6 +1107,32 @@ class _NonStrictTorchFunctionHandler(torch.overrides.TorchFunctionMode):
                     return t
 
                 return run, [], {}
+=======
+                    return dim + 1, (
+                        torch.ops.aten.slice,
+                        [dim, item.start, item.stop, item.step or 1],
+                    )
+                # Otherwise do nothing.
+
+            items = args[1] if isinstance(args[1], tuple) else (args[1],)
+            dim = 0
+            # Sequence rewrites.
+            sequence = []
+            for item in items:
+                if (r := rewrite(dim, item)) is None:
+                    return func, args, kwargs
+                dim, call_spec = r
+                sequence.append(call_spec)
+
+            def run():
+                # Run sequence.
+                t = args[0]
+                for _method, _args in sequence:
+                    t = _method(t, *_args)
+                return t
+
+            return run, [], {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return func, args, kwargs
 

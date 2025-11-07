@@ -352,9 +352,12 @@ class Vectorized<float> {
   Vectorized<float> C10_ALWAYS_INLINE exp_u20() const {
     return exp();
   }
+<<<<<<< HEAD
   Vectorized<float> C10_ALWAYS_INLINE fexp_u20() const {
     return exp();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Vectorized<float> C10_ALWAYS_INLINE log() const {
     return {Sleef_logf4_u10(_vec0), Sleef_logf4_u10(_vec1)};

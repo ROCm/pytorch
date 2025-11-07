@@ -1,24 +1,38 @@
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING
 
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch._C import DispatchKey
 from torch._higher_order_ops.utils import autograd_not_implemented
 from torch._ops import HigherOrderOperator
 from torch._subclasses.fake_tensor import FakeTensorMode
+<<<<<<< HEAD
 
 
 if TYPE_CHECKING:
     from torch._subclasses.functional_tensor import BaseFunctionalizeAPI
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.proxy_tensor import ProxyTorchDispatchMode, track_tensor_tree
 from torch.utils import _pytree as pytree
 
 
 class RunConstGraph(HigherOrderOperator):
+<<<<<<< HEAD
     def __init__(self) -> None:
         super().__init__("run_const_graph")
 
     def __call__(self, graph: torch.fx.GraphModule, args: tuple[object, ...]) -> object:
+=======
+    def __init__(self):
+        super().__init__("run_const_graph")
+
+    def __call__(self, graph, args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().__call__(graph, args)
 
 
@@ -26,6 +40,7 @@ run_const_graph = RunConstGraph()
 
 
 @run_const_graph.py_impl(ProxyTorchDispatchMode)
+<<<<<<< HEAD
 def run_const_graph_dispatch_mode(
     mode: ProxyTorchDispatchMode, graph: torch.fx.GraphModule, args: tuple[object, ...]
 ) -> object:
@@ -34,6 +49,14 @@ def run_const_graph_dispatch_mode(
     assert isinstance(const_gm, torch.fx.GraphModule)
     assert not hasattr(mode.tracer.root, "_const_graph")  # type: ignore[union-attr]
     mode.tracer.root.register_module("_const_graph", const_gm)  # type: ignore[union-attr]
+=======
+def run_const_graph_dispatch_mode(mode, graph, args):
+    const_gm, weights = graph, args
+    p_args = pytree.tree_map(mode.tracer.unwrap_proxy, (graph, args))
+    assert isinstance(const_gm, torch.fx.GraphModule)
+    assert not hasattr(mode.tracer.root, "_const_graph")
+    mode.tracer.root.register_module("_const_graph", const_gm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     proxy = mode.tracer.create_proxy("call_function", run_const_graph, p_args, {})
 
@@ -42,6 +65,7 @@ def run_const_graph_dispatch_mode(
 
 
 @run_const_graph.py_functionalize_impl
+<<<<<<< HEAD
 def run_const_graph_functional(
     ctx: "BaseFunctionalizeAPI", graph: torch.fx.GraphModule, args: tuple[Any, ...]
 ) -> Any:
@@ -50,6 +74,14 @@ def run_const_graph_functional(
     with ctx.redispatch_to_next():
         out = run_const_graph(graph, unwrapped_args)
         return ctx.wrap_tensors(out)  # type: ignore[arg-type]
+=======
+def run_const_graph_functional(ctx, graph, args):
+    unwrapped_args = ctx.unwrap_tensors(args)
+
+    with ctx.redispatch_to_next():
+        out = run_const_graph(*unwrapped_args)
+        return ctx.wrap_tensors(out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 run_const_graph.py_autograd_impl(
@@ -58,17 +90,25 @@ run_const_graph.py_autograd_impl(
 
 
 @run_const_graph.py_impl(FakeTensorMode)
+<<<<<<< HEAD
 def run_const_graph_fake_tensor_mode(
     mode: FakeTensorMode, graph: torch.fx.GraphModule, args: tuple[object, ...]
 ) -> object:
+=======
+def run_const_graph_fake_tensor_mode(mode, graph, args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert isinstance(graph, torch.fx.GraphModule)
     with mode:
         return graph(*args)
 
 
 @run_const_graph.py_impl(DispatchKey.CPU)
+<<<<<<< HEAD
 def run_const_graph_cpu(
     graph: torch.fx.GraphModule, args: tuple[object, ...]
 ) -> object:
+=======
+def run_const_graph_cpu(graph, args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert isinstance(graph, torch.fx.GraphModule)
     return graph(*args)

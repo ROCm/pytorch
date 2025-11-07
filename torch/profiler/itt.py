@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
 from contextlib import contextmanager
+<<<<<<< HEAD
 from typing import NoReturn
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -9,13 +12,21 @@ except ImportError:
 
     class _ITTStub:
         @staticmethod
+<<<<<<< HEAD
         def _fail(*args, **kwargs) -> NoReturn:
+=======
+        def _fail(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(
                 "ITT functions not installed. Are you sure you have a ITT build?"
             )
 
         @staticmethod
+<<<<<<< HEAD
         def is_available() -> bool:
+=======
+        def is_available():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         rangePush = _fail

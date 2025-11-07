@@ -22,7 +22,10 @@ fmha_fwd_traits get_ck_fmha_fwd_traits(const mask_info &mask,
                            dtype,
                            false, // is_group_mode
                            true,  // is_v_rowmajor
+<<<<<<< HEAD
                            false, // has_logits_soft_cap
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                            mask.type,
                            enable_bias ? bias_enum::elementwise_bias : bias_enum::no_bias,
                            has_lse,
@@ -86,7 +89,10 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
     ck_tile::index_t stride_attn_bias = 0;
     ck_tile::index_t batch_stride_bias = 0;
     ck_tile::index_t nhead_stride_bias = 0;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (attn_bias_.has_value()) {
         auto a_b = attn_bias_.value();
         CHECK_DEVICE(a_b);
@@ -96,6 +102,10 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
         nhead_stride_bias = a_b.stride(1);
         batch_stride_bias = a_b.stride(0);
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return fmha_fwd_args{q.data_ptr(),
                          k.data_ptr(),
                          v.data_ptr(),
@@ -117,7 +127,10 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
                          softmax_scale,                     // scale_s
                          1,                                 // scale_p
                          1,                                 // scale_o
+<<<<<<< HEAD
                          0.0f,                              // logits_soft_cap
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                          stride_q,
                          stride_k,
                          stride_v,
@@ -141,7 +154,10 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
                          mask.left,
                          mask.right,
                          static_cast<ck_tile::index_t>(mask.type),
+<<<<<<< HEAD
                          -1,                                // min_seqlen_q
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                          p_dropout,
                          has_dropout_randval,
                          drop_seed_offset};

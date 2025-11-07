@@ -182,7 +182,10 @@ class TestEmbeddingNN(NNTestCase):
         self.assertEqual(res_old, res_F)
 
     # https://github.com/pytorch/pytorch/issues/130806
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @largeTensorTest("40GB", device="cuda")
     def test_large_tensors(self):
         input = torch.randint(low=0, high=16032, size=[131072], device="cuda")

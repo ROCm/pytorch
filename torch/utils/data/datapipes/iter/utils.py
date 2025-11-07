@@ -1,17 +1,30 @@
+<<<<<<< HEAD
 import copy
 import warnings
 from collections.abc import Iterable, Iterator, Sized
 from typing import TypeVar
+=======
+# mypy: allow-untyped-defs
+import copy
+import warnings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils.data.datapipes.datapipe import IterDataPipe
 
 
+<<<<<<< HEAD
 _T = TypeVar("_T")
 
 __all__ = ["IterableWrapperIterDataPipe"]
 
 
 class IterableWrapperIterDataPipe(IterDataPipe[_T]):
+=======
+__all__ = ["IterableWrapperIterDataPipe"]
+
+
+class IterableWrapperIterDataPipe(IterDataPipe):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Wraps an iterable object to create an IterDataPipe.
 
@@ -33,11 +46,19 @@ class IterableWrapperIterDataPipe(IterDataPipe[_T]):
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
 
+<<<<<<< HEAD
     def __init__(self, iterable: Iterable[_T], deepcopy: bool = True) -> None:
         self.iterable = iterable
         self.deepcopy = deepcopy
 
     def __iter__(self) -> Iterator[_T]:
+=======
+    def __init__(self, iterable, deepcopy=True):
+        self.iterable = iterable
+        self.deepcopy = deepcopy
+
+    def __iter__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         source_data = self.iterable
         if self.deepcopy:
             try:
@@ -53,7 +74,12 @@ class IterableWrapperIterDataPipe(IterDataPipe[_T]):
                 )
         yield from source_data
 
+<<<<<<< HEAD
     def __len__(self) -> int:
         if isinstance(self.iterable, Sized):
             return len(self.iterable)
         raise TypeError(f"{type(self).__name__} instance doesn't have valid length")
+=======
+    def __len__(self):
+        return len(self.iterable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

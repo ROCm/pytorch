@@ -1,17 +1,27 @@
 diff --git a/test/dynamo/cpython/3_13/test_complex.py b/test/dynamo/cpython/3_13/test_complex.py
+<<<<<<< HEAD
 index 6ff1a8ab29d..1572433c5ae 100644
 --- a/test/dynamo/cpython/3_13/test_complex.py
 +++ b/test/dynamo/cpython/3_13/test_complex.py
 @@ -1,16 +1,147 @@
+=======
+index 6ff1a8ab29d..ab5bd3dab62 100644
+--- a/test/dynamo/cpython/3_13/test_complex.py
++++ b/test/dynamo/cpython/3_13/test_complex.py
+@@ -1,16 +1,143 @@
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +# ======= BEGIN Dynamo patch =======
 +# Owner(s): ["module: dynamo"]
 +
 +# ruff: noqa
 +# flake8: noqa
 +
+<<<<<<< HEAD
 +# Test copied from
 +# https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_complex.py
 +
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +import sys
 +import torch
 +import torch._dynamo.test_case
@@ -19,7 +29,10 @@ index 6ff1a8ab29d..1572433c5ae 100644
 +from torch._dynamo.test_case import CPythonTestCase
 +from torch.testing._internal.common_utils import (
 +    run_tests,
+<<<<<<< HEAD
 +    slowTest,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +    xfailIfTorchDynamo,
 +)
 +
@@ -43,7 +56,11 @@ index 6ff1a8ab29d..1572433c5ae 100644
 +    "test.test_iter",
 +    "test.typinganndata.ann_module",
  )
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +class RedirectImportFinder(importlib.abc.MetaPathFinder):
 +    def find_spec(self, fullname, path, target=None):
 +        # Check if the import is the problematic one
@@ -74,7 +91,11 @@ index 6ff1a8ab29d..1572433c5ae 100644
  from math import isnan, copysign
 +import math
  import operator
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +VALID_UNDERSCORE_LITERALS = [
 +    '0_0_0',
 +    '4_2',
@@ -155,10 +176,17 @@ index 6ff1a8ab29d..1572433c5ae 100644
  INF = float("inf")
  NAN = float("nan")
  DBL_MAX = sys.float_info.max
+<<<<<<< HEAD
 @@ -45,7 +176,40 @@ class WithComplex:
      def __complex__(self):
          return self.value
 
+=======
+@@ -45,7 +172,40 @@ class WithComplex:
+     def __complex__(self):
+         return self.value
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class ComplexTest(ComplexesAreIdenticalMixin, unittest.TestCase):
 +class ComplexTest(__TestCase):
 +
@@ -194,6 +222,7 @@ index 6ff1a8ab29d..1572433c5ae 100644
 +        """
 +        self.assertFloatIdentical(x.real, y.real)
 +        self.assertFloatIdentical(x.imag, y.imag)
+<<<<<<< HEAD
 
      def assertAlmostEqual(self, a, b):
          if isinstance(a, complex):
@@ -201,6 +230,15 @@ index 6ff1a8ab29d..1572433c5ae 100644
          # check that relative difference < eps
          self.assertTrue(abs((x-y)/y) < eps)
 
+=======
+ 
+     def assertAlmostEqual(self, a, b):
+         if isinstance(a, complex):
+@@ -74,6 +234,29 @@ class ComplexTest(ComplexesAreIdenticalMixin, unittest.TestCase):
+         # check that relative difference < eps
+         self.assertTrue(abs((x-y)/y) < eps)
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +    def assertFloatsAreIdentical(self, x, y):
 +        """assert that floats x and y are identical, in the sense that:
 +        (1) both x and y are nans, or
@@ -227,6 +265,7 @@ index 6ff1a8ab29d..1572433c5ae 100644
      def assertClose(self, x, y, eps=1e-9):
          """Return true iff complexes x and y "are close"."""
          self.assertCloseAbs(x.real, y.real, eps)
+<<<<<<< HEAD
 @@ -93,6 +280,7 @@ class ComplexTest(ComplexesAreIdenticalMixin, unittest.TestCase):
              q = z.__truediv__(y)
              self.assertClose(q, x)
@@ -323,6 +362,11 @@ index 6ff1a8ab29d..1572433c5ae 100644
 @@ -855,4 +1049,4 @@ class ComplexTest(ComplexesAreIdenticalMixin, unittest.TestCase):
 
 
+=======
+@@ -855,4 +1038,4 @@ class ComplexTest(ComplexesAreIdenticalMixin, unittest.TestCase):
+ 
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  if __name__ == "__main__":
 -    unittest.main()
 +    run_tests()

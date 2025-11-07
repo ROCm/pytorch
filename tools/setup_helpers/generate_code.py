@@ -189,12 +189,15 @@ def main() -> None:
     )
     options = parser.parse_args()
 
+<<<<<<< HEAD
     # Path: aten/src/ATen
     aten_path = os.path.dirname(os.path.dirname(options.native_functions_path))
     operator_selector = get_selector(
         options.selected_op_list_path, options.operators_yaml_path
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     generate_code(
         options.gen_dir,
         options.native_functions_path,
@@ -204,6 +207,7 @@ def main() -> None:
         options.disable_autograd,
         options.force_schema_registration,
         # options.selected_op_list
+<<<<<<< HEAD
         operator_selector=operator_selector,
     )
 
@@ -235,6 +239,20 @@ def main() -> None:
         ts_native_functions = "torch/csrc/lazy/ts_backend/ts_native_functions.cpp"
         ts_node_base = "torch/csrc/lazy/ts_backend/ts_node.h"
         lazy_install_dir = os.path.join(install_dir, "lazy", "generated")
+=======
+        operator_selector=get_selector(
+            options.selected_op_list_path, options.operators_yaml_path
+        ),
+    )
+
+    if options.gen_lazy_ts_backend:
+        aten_path = os.path.dirname(os.path.dirname(options.native_functions_path))
+        ts_backend_yaml = os.path.join(aten_path, "native/ts_native_functions.yaml")
+        ts_native_functions = "torch/csrc/lazy/ts_backend/ts_native_functions.cpp"
+        ts_node_base = "torch/csrc/lazy/ts_backend/ts_node.h"
+        install_dir = options.install_dir or os.fspath(options.gen_dir / "torch/csrc")
+        lazy_install_dir = os.path.join(install_dir, "lazy/generated")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         os.makedirs(lazy_install_dir, exist_ok=True)
 
         assert os.path.isfile(ts_backend_yaml), (

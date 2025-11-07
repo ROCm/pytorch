@@ -102,8 +102,16 @@ class Library:
                 ns,
                 " is a reserved namespace. Please try creating a library with another name.",
             )
+<<<<<<< HEAD
 
         frame = traceback.extract_stack(limit=2)[0]
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+
+        frame = traceback.extract_stack(limit=3)[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         filename, lineno = frame.filename, frame.lineno
         self.m: Optional[Any] = torch._C._dispatch_library(
             kind, ns, dispatch_key, filename, lineno
@@ -153,6 +161,12 @@ class Library:
             >>> my_lib = Library("mylib", "DEF")
             >>> my_lib.define("sum(Tensor self) -> Tensor")
         """
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # This is added because we also want to disallow PURE_FUNCTION alias analysis which is a valid
         # AliasAnalysis type in C++
@@ -185,6 +199,12 @@ class Library:
 
     def _register_fake(self, op_name, fn, _stacklevel=1, *, allow_override=False):
         r"""Registers the fake impl for an operator defined in the library."""
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         source = torch._library.utils.get_source(_stacklevel + 1)
         frame = sys._getframe(_stacklevel)
@@ -228,6 +248,12 @@ class Library:
         If it is a TorchDispatchMode, we expect fn to have the following signature:
         (mode, func: OpOverload, types: Tuple[type, ...], args, kwargs) -> Any
         """
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         qualname = f"{self.ns}::{op_name}"
         entry = torch._library.simple_registry.singleton.find(qualname)
@@ -247,6 +273,12 @@ class Library:
             >>> my_lib = Library("aten", "IMPL")
             >>> my_lib._impl_with_aoti_compile("div.Tensor", "CPU")
         """
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if dispatch_key == "":
             dispatch_key = self.dispatch_key
@@ -309,6 +341,12 @@ class Library:
             >>>     return self * (1 / other)
             >>> my_lib.impl("div.Tensor", div_cpu, "CPU")
         """
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not callable(fn):
             raise TypeError(
@@ -391,13 +429,23 @@ class Library:
             >>>     # ...
             >>> my_lib.fallback(fallback_kernel, "Autocast")
         """
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            _library.utils.warn_deploy()
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if dispatch_key == "":
             dispatch_key = self.dispatch_key
 
         if self.ns != "_":
             raise RuntimeError(
+<<<<<<< HEAD
                 f"""Fallback can only be registered using library fragment on the global namespace "_" but it is {self.ns}"""
+=======
+                f"""Fallback can only be registered using libary fragment on the global namespace "_" but it is {self.ns}"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         assert dispatch_key != ""
@@ -906,6 +954,7 @@ def register_autocast(
         lib = Library(namespace, "FRAGMENT")
         _keep_alive.append(lib)
 
+<<<<<<< HEAD
     def _maybe_override_py_impl(op: torch._ops.OpOverload, dispatch_key):
         def inner(kernel):
             if op.has_kernel_for_dispatch_key(dispatch_key):
@@ -917,6 +966,9 @@ def register_autocast(
     @_maybe_override_py_impl(_op, torch._C.DispatchKey.AutocastCPU)
     @_maybe_override_py_impl(_op, torch._C.DispatchKey.AutocastCUDA)
     def _autocast_py_impl(*args, **kwargs):
+=======
+    def kernel(_, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(kwargs) == 0, "Custom ops do not support kwargs yet."
         autocast_keyset = torch._C.DispatchKeySet(
             torch._C.DispatchKey.AutocastCPU
@@ -924,10 +976,13 @@ def register_autocast(
         with torch._C._ExcludeDispatchKeyGuard(autocast_keyset):
             return _op(*_cast(args, device_type, cast_inputs))
 
+<<<<<<< HEAD
     def kernel(_, *args, **kwargs):
         assert len(kwargs) == 0, "Custom ops do not support kwargs yet."
         return _autocast_py_impl(*args, **kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if device_type == "cuda":
         return lib.impl(opname, kernel, "AutocastCUDA", with_keyset=True)
     else:

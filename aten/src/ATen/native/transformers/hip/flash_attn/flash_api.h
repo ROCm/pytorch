@@ -147,7 +147,11 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd_aot(
     const at::Tensor& philox_seed,
     const at::Tensor& philox_offset);
 
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // CK implementation
 TORCH_API
 std::tuple<
@@ -333,7 +337,11 @@ mha_varlen_fwd(
     const float softcap,
     const bool return_softmax,
     std::optional<at::Generator> gen_) {
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
     std::optional<at::Tensor> dummy_attn_bias = std::nullopt;
@@ -406,10 +414,16 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
     const bool deterministic,
     const at::Tensor philox_seed,
     const at::Tensor philox_offset) {
+<<<<<<< HEAD
 
 #if defined(USE_ROCM_CK_SDPA)
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
+=======
+  if (at::globalContext().getROCmFAPreferredBackend() ==
+      at::ROCmFABackend::Ck) {
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::optional<at::Tensor> non_null_dbias = std::nullopt;
     const int non_null_window_left = window_size_left.value_or(-1);
     const int non_null_window_right = window_size_right.value_or(-1);
@@ -440,8 +454,15 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
                              philox_offset);
     // for FA return [dQ, dV, dK, dSoftmax]
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue), std::move(dSoftmax));
+<<<<<<< HEAD
   }
 #endif
+=======
+#else
+    TORCH_WARN_ONCE("Warning! You have opted to use CK flash attention backend in a build that was not compiled using USE_CK_FLASH_ATTENTION=1. Please set this variable and try again. Defaulting to use aotriton backend...");
+#endif
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return mha_bwd_aot(
       dout,
       q,
@@ -494,7 +515,11 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
     const bool deterministic,
     const at::Tensor philox_seed,
     const at::Tensor philox_offset) {
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (at::globalContext().getROCmFAPreferredBackend() ==
       at::ROCmFABackend::Ck) {
     std::optional<at::Tensor> non_null_dbias = std::nullopt;

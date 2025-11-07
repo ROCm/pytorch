@@ -30,7 +30,10 @@ from torch.testing._internal.common_device_type import (
     skipCUDAIfMiopen,
     skipCUDAIfNoCudnn,
     skipCUDAIfNoMiopen,
+<<<<<<< HEAD
     skipCUDAIfNotMiopenSuggestNHWC,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipCUDAIfRocm,
     skipMeta,
     skipMPS,
@@ -52,6 +55,7 @@ from torch.testing._internal.common_utils import (
     parametrize as parametrize_test,
     run_tests,
     set_default_dtype,
+<<<<<<< HEAD
     skipIfNotMiopenSuggestNHWC,
     skipIfRocmArch,
     skipIfRocmVersionLessThan,
@@ -59,6 +63,12 @@ from torch.testing._internal.common_utils import (
     TEST_SCIPY,
     TEST_WITH_ROCM,
     xfailIf,
+=======
+    skipIfRocmArch,
+    subtest,
+    TEST_SCIPY,
+    TEST_WITH_ROCM,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -67,6 +77,10 @@ AMPERE_OR_ROCM = TEST_WITH_ROCM or torch.cuda.is_tf32_supported()
 
 if TEST_WITH_ROCM:
     os.environ["PYTORCH_MIOPEN_SUGGEST_NHWC"] = "1"
+<<<<<<< HEAD
+=======
+    os.environ["PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM"] = "1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TEST_SCIPY:
@@ -718,7 +732,10 @@ class TestConvolutionNN(NNTestCase):
     # Almost identical to the above `test_Conv2d_naive_groups`
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
     @tf32_on_and_off(0.001)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_WITH_ROCM, "Skipped on ROCm, since it is failing on ROCm 5.7")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_Conv2d_groups_nobias(self):
         dev_dtypes = [("cpu", torch.float)]
         if TEST_CUDA:
@@ -764,7 +781,10 @@ class TestConvolutionNN(NNTestCase):
     # and https://github.com/pytorch/pytorch/pull/18463#issuecomment-477001024
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
     @tf32_on_and_off(0.001)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_WITH_ROCM, "Skipped on ROCm, since it is failing on ROCm 5.7")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_Conv2d_groups_nobias_v2(self):
         torch.manual_seed(123)
         dev_dtypes = [("cpu", torch.float)]
@@ -899,7 +919,10 @@ class TestConvolutionNN(NNTestCase):
 
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
     @unittest.skipIf(not TEST_CUDNN, "needs cudnn")
+<<<<<<< HEAD
     @skipIfNotMiopenSuggestNHWC
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_grouped_conv_cudnn_nhwc_support(self):
         # in order to catch the hols in grouped convolution in nhwc support for earlier cudnn version
         input = torch.randn((16, 16, 8, 8), dtype=torch.float16, device="cuda").to(
@@ -2850,7 +2873,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @parametrize_test("strided", [False, True])
     # Test with both contiguous and non-contiguous inputs.
     @parametrize_test("contiguous", [False, True])
+<<<<<<< HEAD
     @expectedFailureMPS  # No double support
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv_backend(
         self,
         device,
@@ -3149,7 +3175,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
 
     @onlyCUDA
     @largeTensorTest("12GB")
+<<<<<<< HEAD
     @skipIfRocmVersionLessThan((6, 0))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_conv_transposed_large(self, device):
         dtype = torch.half if self.device_type == "cuda" else torch.float
         conv = nn.ConvTranspose2d(1, 1, 1, 1, bias=False).to(device).to(dtype)
@@ -3193,7 +3222,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
             self.assertEqual(maxdiff3, 0)
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @largeTensorTest("12GB")
     def test_conv_large(self, device):
         dtype = torch.half if self.device_type == "cuda" else torch.float
@@ -3226,7 +3258,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
         self.assertEqual(grad1, grad2, atol=5e-2, rtol=5e-3)
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @largeTensorTest("20GB", "cpu")
     @largeTensorTest("60GB", "cuda")
     def test_conv_large_batch_1(self, device):
@@ -3249,6 +3284,20 @@ class TestConvolutionNNDeviceType(NNTestCase):
         self.assertEqual(output.cpu().float(), output_cpu, atol=1e-3, rtol=1e-3)
 
     @onlyCUDA
+<<<<<<< HEAD
+=======
+    @skipCUDAIfRocm
+    @largeTensorTest("24GB", "cpu")
+    @largeTensorTest("20GB", "cuda")
+    def test_conv3d_large_batch_1(self, device):
+        x = torch.rand(1, 32, 512, 512, 256)
+        m = torch.nn.Conv3d(32, 1, kernel_size=1, padding=0, stride=1, bias=False)
+        yref = m(x)
+        y = m.to(device=device)(x.to(device=device))
+        self.assertEqual(yref, y.cpu())
+
+    @onlyCUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIfNoCudnn
     def test_contig_wrong_stride_cudnn(self, device):
         # x has to have batch_size 1 to test contiguous checks
@@ -3363,7 +3412,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
     @dtypes(torch.float)
     @torch.backends.cudnn.flags(enabled=True, deterministic=True, benchmark=False)
     @tf32_on_and_off(0.001)
+<<<<<<< HEAD
     @unittest.skipIf(TEST_WITH_ROCM, "Skipped on ROCm, since it is failing on ROCm 5.7")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_Conv2d_naive_groups(self, device, dtype):
         # Check that grouped convolutions matches two half convolutions
         m = nn.Conv2d(4, 4, kernel_size=3, groups=2).to(device, dtype)
@@ -3632,6 +3684,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
                 )
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfNotMiopenSuggestNHWC
     @dtypes(torch.half, torch.float, torch.cfloat)
     def test_conv_cudnn_nhwc(self, device, dtype):
@@ -3639,12 +3692,27 @@ class TestConvolutionNNDeviceType(NNTestCase):
             input = torch.randint(-3, 3, (n, c, h, w), dtype=dtype, device=device).to(
                 memory_format=torch.channels_last
             )
+=======
+    @dtypes(torch.half, torch.float, torch.cfloat)
+    def test_conv_cudnn_nhwc(self, device, dtype):
+        def helper(n, c, h, w, out_channels, kernel_size, groups):
+            # randint with dtype=torch.cfloat fails with
+            # RuntimeError: check_random_bounds handles only integral, floating-point and boolean types
+            # must create randint and randint_like using default int64, then cast to desired
+            input = torch.randint(
+                -3, 3, (n, c, h, w), dtype=torch.int64, device=device
+            ).to(dtype, memory_format=torch.channels_last)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input.requires_grad_()
             conv = nn.Conv2d(c, out_channels, kernel_size, groups=groups).to(
                 device="cuda", dtype=dtype, memory_format=torch.channels_last
             )
             for p in conv.parameters():
+<<<<<<< HEAD
                 p.data = torch.randint_like(p, -3, 3)
+=======
+                p.data = torch.randint_like(p, -3, 3, dtype=torch.int64).to(p.dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # use FP64 channels-first conv as reference
             ref_input = input.detach().clone().contiguous().double().requires_grad_()
@@ -3658,7 +3726,11 @@ class TestConvolutionNNDeviceType(NNTestCase):
             out = conv(input)
             ref_out = ref_conv(ref_input)
 
+<<<<<<< HEAD
             grad = torch.randint_like(out, -3, 3)
+=======
+            grad = torch.randint_like(out, -3, 3, dtype=torch.int64).to(out.dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ref_grad = grad.detach().clone().double().contiguous()
 
             out.backward(grad)
@@ -3685,7 +3757,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
         helper(1, 16, 56, 56, out_channels=16, kernel_size=3, groups=16)
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.half, torch.float)
     def test_conv_cudnn_ndhwc(self, device, dtype):
         def helper(n, c, d, h, w, out_channels, kernel_size, groups):
@@ -3815,7 +3890,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
                     )
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfNotMiopenSuggestNHWC
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @tf32_on_and_off(0.05)
     def test_conv_cudnn_mismatch_memory_format(self, device):
         configs = [
@@ -3949,7 +4027,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
                 self.assertEqual(F.relu(conv2d_out + alpha * z), cudnn_out)
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_convert_conv2d_weight_memory_format(self, device):
         input = torch.randint(1, 10, (2, 8, 4, 4), dtype=torch.float32, device=device)
         model = nn.Sequential(nn.Conv2d(8, 4, 3), nn.BatchNorm2d(4)).to(device).float()
@@ -3969,7 +4050,10 @@ class TestConvolutionNNDeviceType(NNTestCase):
             self.assertTrue(out.is_contiguous(memory_format=memory_format))
 
     @onlyCUDA
+<<<<<<< HEAD
     @skipCUDAIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_convert_conv3d_weight_memory_format(self, device):
         input = torch.randint(
             1, 10, (2, 8, 4, 4, 4), dtype=torch.float32, device=device
@@ -4054,6 +4138,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
 
     @skipCUDAIfRocm
     @onlyCUDA
+<<<<<<< HEAD
     @largeTensorTest("40GB", "cuda")
     def test_conv3d_cudnn_broken(self, device):
         for dtype in (torch.half, torch.bfloat16):
@@ -4100,6 +4185,16 @@ class TestConvolutionNNDeviceType(NNTestCase):
         yref = c(x)
         y = c.to(device=device)(x.to(device=device))
         self.assertEqual(yref, y, atol=1e-3, rtol=1e-4)
+=======
+    @largeTensorTest("20GB")
+    @largeTensorTest("80GB", "cpu")
+    def test_depthwise_conv_64bit_indexing(self, device):
+        x = torch.randn(1, 2, 32800, 32800)
+        c = nn.Conv2d(2, 2, kernel_size=3, stride=1, padding=1, groups=2)
+        yref = c(x)
+        y = c.to(device=device)(x.to(device=device))
+        self.assertEqual(yref, y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 instantiate_device_type_tests(TestConvolutionNNDeviceType, globals(), allow_mps=True)

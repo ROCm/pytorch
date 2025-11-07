@@ -22,9 +22,13 @@ TORCH_API bool is_numpy_bool(PyObject* obj);
 TORCH_API bool is_numpy_scalar(PyObject* obj);
 
 void warn_numpy_not_writeable();
+<<<<<<< HEAD
 at::Tensor tensor_from_cuda_array_interface(
     PyObject* obj,
     std::optional<c10::Device> device_opt = std::nullopt);
+=======
+at::Tensor tensor_from_cuda_array_interface(PyObject* obj);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void validate_numpy_for_dlpack_deleter_bug();
 bool is_numpy_dlpack_deleter_bugged();

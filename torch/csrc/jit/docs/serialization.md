@@ -371,7 +371,11 @@ TorchScript class, or a `ScriptModule`. Owns other its attribute types
 **`Object`**: An instance of a particular class. Own the `CompilationUnit`
 that owns its `ClassType`. This is to ensure that if the user passes the
 object around in C++, all its code will stay around and methods will be
+<<<<<<< HEAD
 invocable.
+=======
+invokable.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 **`Module`**: A view over a `ClassType` and the `Object` that holds its state.
 Also responsible for turning unqualified names (e.g. `forward()`) into

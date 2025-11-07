@@ -85,7 +85,11 @@ class OperatorBase:
 
         # This table allows you to override the behavior of a particular
         # dispatch key to call a custom Python function, rather than the
+<<<<<<< HEAD
         # ordinary C++ configured behavior.  This is the raison d'etre of  # codespell:ignore
+=======
+        # ordinary C++ configured behavior.  This is the raison d'etre of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Python dispatcher: to let you program the dispatcher from Python
         # in case you need something unusual, and don't want to clobber
         # the existing registrations using the Python operator registration
@@ -267,7 +271,10 @@ _HIGHER_ORDER_OP_DEFAULT_FALLTHROUGH_DISPATCH_KEYS = [
     DispatchKey.BackendSelect,
     DispatchKey.AutocastCPU,  # type: ignore[attr-defined]
     DispatchKey.AutocastCUDA,  # type: ignore[attr-defined]
+<<<<<<< HEAD
     DispatchKey.AutocastXPU,  # type: ignore[attr-defined]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -298,7 +305,11 @@ class HigherOrderOperator(OperatorBase, abc.ABC):
             self.fallthrough(dispatch_key)
 
         # [NOTE] We have to register pre-dispatch key implementation
+<<<<<<< HEAD
         # because sometimes HOP use aot-dispatch tracing to detect certain
+=======
+        # because sometimes HOP use aot-dispatch tracing to detect certaion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # mutations. This is problematic when we are functionalizing HOP
         # during pre-dispatch because when the inner tracer starts, it will see
         # that PreDispatch key is still active. In that case, we just redispatch
@@ -416,6 +427,7 @@ class HigherOrderOperator(OperatorBase, abc.ABC):
                         # TODO(rzou): we should support torch_dispatch calling convention too.
                         result = handler(mode, *args, **kwargs)
                 else:
+<<<<<<< HEAD
                     if curr_mode.supports_higher_order_operators:
                         with _pop_mode_temporarily() as mode:
                             return curr_mode.__torch_dispatch__(self, [], args, kwargs)
@@ -429,6 +441,12 @@ class HigherOrderOperator(OperatorBase, abc.ABC):
                             f" {curr_mode}.__torch_dispatch__ or"
                             f" returning NotImplemented when not supported."
                         )
+=======
+                    raise NotImplementedError(
+                        f"There was no rule registered for HOP {self._name} and mode {curr_mode}. "
+                        f"We recommend filing an issue."
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if result is not NotImplemented:
                     return result
 
@@ -467,12 +485,19 @@ class HigherOrderOperator(OperatorBase, abc.ABC):
 
             # All handlers returned NotImplemented
             raise TypeError(
+<<<<<<< HEAD
                 f"HigherOrderOperator '{self._name}' is not supported for the given input types. "
                 f"This typically happens when using custom tensor types or dispatch modes that don't "
                 f"have implementations for this operation.\n\n"
                 f"Current mode: {curr_mode}\n"
                 f"Input types: {[type(a).__name__ for a in overloaded_args]}\n\n"
                 f"To fix this, can add support for '{self._name}' in {curr_mode}'s __torch_dispatch__\n"
+=======
+                f"Multiple dispatch failed for {self._name}. There was no registered that "
+                f"did not return NotImplemented. Use HOP.py_impl to register some. "
+                f"Tried mode: {curr_mode}) and subclasses: "
+                f"{[type(a) for a in overloaded_args]}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         functionality_key = torch._C._to_functionality_key(dispatch_key)  # type: ignore[attr-defined]
@@ -1116,7 +1141,11 @@ class TorchBindOpOverload(OpOverload[_P, _T]):
                 f" but no python implementation is found."
                 f" Please file an issue on this when you encounter this error."
                 f" This error can happen when you export or compile the model."
+<<<<<<< HEAD
                 f" It can still happen even if a C++ implementation for {dispatch_key}. "
+=======
+                f" It can still happpen even if a C++ implementation for {dispatch_key}. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f" has been registered. That's because FakeScriptObject purely lives in python and cannot work "
                 f" with a C++ implementation."
             )
@@ -1264,7 +1293,11 @@ class OpOverloadPacket(Generic[_P, _T]):
 def _call_overload_packet_from_python(
     op: OpOverloadPacket[_P, _T], *args: _P.args, **kwargs: _P.kwargs
 ) -> _T:
+<<<<<<< HEAD
     # Reuse the torch function handling logic in cpp
+=======
+    # Re-use the torch function handling logic in cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch_function_called, ret = torch._C._maybe_call_torch_function_for_op_packet(
         op, *args, **kwargs
     )
@@ -1479,15 +1512,25 @@ class _Ops(types.ModuleType):
         Args:
             path (str): A path to a shared library to load.
         """
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            return
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         path = _utils_internal.resolve_library_path(path)
         with dl_open_guard():
             # Import the shared library into the process, thus running its
             # static (global) initialization code in order to register custom
             # operators with the JIT.
+<<<<<<< HEAD
             try:
                 ctypes.CDLL(path)
             except Exception as e:
                 raise OSError(f"Could not load this library: {path}") from e
+=======
+            ctypes.CDLL(path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.loaded_libraries.add(path)
 
 

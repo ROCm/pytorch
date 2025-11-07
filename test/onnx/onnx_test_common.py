@@ -17,8 +17,12 @@ import pytorch_test_common
 
 import torch
 from torch import export as torch_export
+<<<<<<< HEAD
 from torch.onnx import _constants
 from torch.onnx._internal.torchscript_exporter import verification
+=======
+from torch.onnx import _constants, verification
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 from torch.testing._internal.opinfo import core as opinfo_core
 from torch.types import Number
@@ -66,6 +70,39 @@ def run_model_test(test_suite: _TestONNXRuntime, *args, **kwargs):
     return verification.verify(*args, options=options, **kwargs)
 
 
+<<<<<<< HEAD
+=======
+def assert_dynamic_shapes(onnx_program: torch.onnx.ONNXProgram, dynamic_shapes: bool):
+    """Assert whether the exported model has dynamic shapes or not.
+
+    Args:
+        onnx_program (torch.onnx.ONNXProgram): The output of torch.onnx.dynamo_export.
+        dynamic_shapes (bool): Whether the exported model has dynamic shapes or not.
+            When True, raises if graph inputs don't have at least one dynamic dimension
+            When False, raises if graph inputs have at least one dynamic dimension.
+
+    Raises:
+        AssertionError: If the exported model has dynamic shapes and dynamic_shapes is False and vice-versa.
+    """
+
+    if dynamic_shapes is None:
+        return
+
+    model_proto = onnx_program.model_proto
+    # Process graph inputs
+    dynamic_inputs = []
+    for inp in model_proto.graph.input:
+        dynamic_inputs += [
+            dim
+            for dim in inp.type.tensor_type.shape.dim
+            if dim.dim_value == 0 and dim.dim_param != ""
+        ]
+    assert dynamic_shapes == (len(dynamic_inputs) > 0), (
+        "Dynamic shape check failed for graph inputs"
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def parameterize_class_name(cls: type, idx: int, input_dicts: Mapping[Any, Any]):
     """Combine class name with the parameterized arguments.
 

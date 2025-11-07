@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 project-includes = [
+=======
+project_includes = [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch",
     "caffe2",
     "test/test_bundled_images.py",
@@ -7,11 +11,19 @@ project-includes = [
     "test/test_datapipe.py",
     "test/test_futures.py",
     "test/test_numpy_interop.py",
+<<<<<<< HEAD
+=======
+    "test/test_torch.py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test/test_type_hints.py",
     "test/test_type_info.py",
     "test/test_utils.py",
 ]
+<<<<<<< HEAD
 project-excludes = [
+=======
+project_excludes = [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   "torch/include/**",
   "torch/csrc/**",
   "torch/distributed/elastic/agent/server/api.py",
@@ -26,7 +38,11 @@ project-excludes = [
   "*/__pycache__/**",
   "*/.*",
 ]
+<<<<<<< HEAD
 ignore-missing-imports = [
+=======
+replace_imports_with_any = [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch._C._jit_tree_views.*",
     "torch.for_onnx.onnx.*",
     "torch.ao.quantization.experimental.apot_utils.*",
@@ -84,6 +100,7 @@ ignore-missing-imports = [
     "redis.*"
 ]
 
+<<<<<<< HEAD
 untyped_def_behavior = "check-and-infer-return-any"
 
 # Shut off noisy errors
@@ -97,3 +114,6 @@ errors.implicit-import = false
 # [[tool.pyrefly.sub-config]]
 # matches = "test/test_torch.py"
 # untyped-def-behavior = "skip-and-infer-return-any"
+=======
+untyped_def_behavior = "check-and-infer-return-any"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

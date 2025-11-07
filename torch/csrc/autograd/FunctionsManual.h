@@ -35,7 +35,13 @@ TORCH_API Tensor toNonOptFwGrad(const std::optional<Tensor>& t);
 TORCH_API Tensor toNonOptPrimal(const std::optional<Tensor>& t);
 TORCH_API Tensor toNonOptTensor(const std::optional<Tensor>& t);
 
+<<<<<<< HEAD
 inline std::optional<Tensor> wrap_opt_if(const Tensor& t, const bool cond) {
+=======
+TORCH_API inline std::optional<Tensor> wrap_opt_if(
+    const Tensor& t,
+    const bool cond) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using OptTensor = std::optional<Tensor>;
   return cond ? OptTensor(t) : static_cast<OptTensor>(std::nullopt);
 }
@@ -826,6 +832,7 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_double_backward(
     c10::SymIntArrayRef normalized_shape,
     std::array<bool, 3> output_mask);
 
+<<<<<<< HEAD
 std::tuple<Tensor, Tensor> infinitely_differentiable_native_rms_norm_backward(
     const Tensor& dY,
     const Tensor& drstd,
@@ -835,6 +842,8 @@ std::tuple<Tensor, Tensor> infinitely_differentiable_native_rms_norm_backward(
     const std::optional<Tensor>& weight_opt,
     std::array<bool, 2> grad_input_mask);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::tuple<Tensor, Tensor> householder_product_backward(
     const Tensor& grad,
     const Tensor& result,
@@ -974,6 +983,7 @@ Tensor layer_norm_jvp(
     const Tensor& saved_invstd,
     c10::SymIntArrayRef normalized_shape);
 
+<<<<<<< HEAD
 Tensor rms_norm_jvp(
     const Tensor& input_p,
     const Tensor& input_t,
@@ -988,6 +998,8 @@ Tensor rms_norm_rstd_jvp(
     const Tensor& saved_rstd,
     IntArrayRef normalized_shape);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor group_norm_jvp(
     const Tensor& input_p,
     const Tensor& input_t,

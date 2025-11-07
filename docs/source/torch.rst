@@ -122,7 +122,10 @@ Indexing, Slicing, Joining, Mutating Ops
     slice_scatter
     scatter_add
     scatter_reduce
+<<<<<<< HEAD
     segment_reduce
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     split
     squeeze
     stack
@@ -475,7 +478,10 @@ Reduction Ops
     var
     var_mean
     count_nonzero
+<<<<<<< HEAD
     hash_tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Comparison Ops
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -806,6 +812,10 @@ Operator Tags
 .. for tracking purposes
 .. py:module:: torch.utils.model_dump
 .. py:module:: torch.utils.viz
+<<<<<<< HEAD
+=======
+.. py:module:: torch.functional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.quasirandom
 .. py:module:: torch.return_types
 .. py:module:: torch.serialization
@@ -815,6 +825,7 @@ Operator Tags
 .. py:module:: torch.torch_version
 .. py:module:: torch.types
 .. py:module:: torch.version
+<<<<<<< HEAD
 
 .. Hidden aliases (e.g. torch.functional.broadcast_tensors()). We want `torch.broadcast_tensors()` to
    be visible only.
@@ -822,3 +833,5 @@ Operator Tags
     :hidden:
 
     torch.aliases.md
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

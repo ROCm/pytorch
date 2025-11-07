@@ -6,7 +6,11 @@ import sys
 import numpy as np
 
 import torch
+<<<<<<< HEAD
 from torch.testing import FileCheck, make_tensor
+=======
+from torch.testing import make_tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_dtype import get_all_dtypes
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
@@ -85,6 +89,68 @@ class MPSBasicTests(TestCase):
     def test_cast(self, dtype):
         self.common(lambda a: a.to(dtype), (torch.rand(1024),))
 
+<<<<<<< HEAD
+=======
+    pointwise_unary_ops = [
+        "i0",
+        "i0e",
+        "i1",
+        "i1e",
+        "erf",
+        "digamma",
+        "sinc",
+        "spherical_bessel_j0",
+        "bessel_j0",
+        "bessel_j1",
+        "bessel_y0",
+        "bessel_y1",
+        "modified_bessel_i0",
+        "modified_bessel_i1",
+        "modified_bessel_k0",
+        "modified_bessel_k1",
+        "scaled_modified_bessel_k0",
+        "scaled_modified_bessel_k1",
+        "entr",
+    ]
+
+    @parametrize("op_name", pointwise_unary_ops)
+    def test_pointwise_unary_op(self, op_name):
+        self.common(
+            lambda x: getattr(torch.special, op_name)(x),
+            (torch.rand(128, 128),),
+            check_lowp=False,
+        )
+
+    def test_pointwise_polygamma(self):
+        self.common(
+            torch.special.polygamma,
+            (
+                1,
+                torch.rand(128, 128),
+            ),
+            check_lowp=False,
+        )
+
+    @parametrize(
+        "op_name",
+        [
+            "zeta",
+            "xlog1py",
+            "chebyshev_polynomial_t",
+            "chebyshev_polynomial_u",
+            "chebyshev_polynomial_v",
+            "chebyshev_polynomial_w",
+            "hermite_polynomial_he",
+        ],
+    )
+    def test_pointwise_binary_op(self, op_name):
+        self.common(
+            lambda x, y: getattr(torch.special, op_name)(x, y),
+            (torch.rand(128, 128), torch.rand(128, 128)),
+            check_lowp=False,
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_broadcast(self):
         self.common(torch.add, (torch.rand(32, 1024), torch.rand(1024)))
 
@@ -130,10 +196,13 @@ class MPSBasicTests(TestCase):
 
         self.common(fn, (torch.eye(64),), check_lowp=False)
 
+<<<<<<< HEAD
     def test_reduced_max(self):
         # inductor test do not validate that max of say 16K half elements can be computed
         self.common(torch.max, (torch.rand(16384, dtype=torch.half),), check_lowp=False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class MPSBasicTestsAOTI(TestCase):
     def check_model(self, m, inp, dynamic_shapes=None):
@@ -228,6 +297,7 @@ class MPSBasicTestsAOTI(TestCase):
         dynamic_shapes = {"a": {0: dim0_a}, "b": {0: dim0_b}}
         self.check_model(m, inp, dynamic_shapes)
 
+<<<<<<< HEAD
     def test_reuse_kernel(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -260,6 +330,8 @@ class MPSBasicTestsAOTI(TestCase):
                 exactly=True,
             ).run(src_code)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

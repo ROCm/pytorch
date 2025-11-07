@@ -1,11 +1,17 @@
 # Owner(s): ["module: cpp"]
 
+<<<<<<< HEAD
 import math
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from pathlib import Path
 
 import torch
 from torch.testing._internal.common_device_type import (
+<<<<<<< HEAD
     deviceCountAtLeast,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instantiate_device_type_tests,
     onlyCPU,
     onlyCUDA,
@@ -175,6 +181,7 @@ if not IS_WINDOWS:
                     curr_mem = torch.cuda.memory_allocated(device)
                     self.assertEqual(curr_mem, init_mem)
 
+<<<<<<< HEAD
         def test_my_transpose(self, device):
             import libtorch_agnostic
 
@@ -345,6 +352,8 @@ if not IS_WINDOWS:
             ref_out = t.new_zeros((2, 5), dtype=torch.float)
             self.assertEqual(out, ref_out, exact_device=True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instantiate_device_type_tests(TestLibtorchAgnostic, globals(), except_for=None)
 
 if __name__ == "__main__":

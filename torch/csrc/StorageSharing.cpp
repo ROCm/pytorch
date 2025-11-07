@@ -86,7 +86,12 @@ static PyObject* THPStorage_pyNewFilenameStorage(
           THManagedMapAllocator::makeDataPtr(
               "", handle.c_str(), flags, static_cast<size_t>(size)),
           /*allocator=*/nullptr,
+<<<<<<< HEAD
           /*resizable=*/false));
+=======
+          /*resizable=*/false),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -181,7 +186,12 @@ static PyObject* THPStorage_newSharedFilename(
           THManagedMapAllocator::makeDataPtr(
               manager_handle, object_handle, flags, size),
           /*allocator=*/nullptr,
+<<<<<<< HEAD
           /*resizable=*/false));
+=======
+          /*resizable=*/false),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -195,7 +205,13 @@ static PyObject* THPStorage_pyNewFdStorage(PyObject* _unused, PyObject* args) {
     return nullptr;
   }
   return THPStorage_NewWithStorage(
+<<<<<<< HEAD
       THPStorageClass, at::new_shm_fd_storage(size));
+=======
+      THPStorageClass,
+      at::new_shm_fd_storage(size),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -274,7 +290,12 @@ static PyObject* THPStorage_newSharedFd(PyObject* _unused, PyObject* args) {
           at::MapAllocator::makeDataPtr(
               at::WITH_FD, "", fd, flags, size, nullptr),
           /*allocator=*/nullptr,
+<<<<<<< HEAD
           /*resizable=*/false));
+=======
+          /*resizable=*/false),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -555,7 +576,14 @@ static PyObject* THPStorage_newSharedCuda(PyObject* _unused, PyObject* args) {
   base->set_resizable(false);
   base->set_received_cuda(true);
 
+<<<<<<< HEAD
   return THPStorage_NewWithStorage(THPStorageClass, std::move(base));
+=======
+  return THPStorage_NewWithStorage(
+      THPStorageClass,
+      std::move(base),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   TORCH_CHECK(false, "CUDA is not available");
 #endif

@@ -112,6 +112,7 @@ Tensor& do_metal_bmm(const Tensor& batch1, const Tensor& batch2, Tensor& output)
   return output;
 }
 
+<<<<<<< HEAD
 Tensor& do_metal_addmm(const Tensor& self,
                        const Tensor& other,
                        Tensor& output,
@@ -167,6 +168,8 @@ Tensor& do_metal_addmm(const Tensor& self,
   return output;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::tuple<MPSGraphTensor*, MPSGraphTensor*, MPSGraphTensor*> do_mm(MPSGraph* graph,
                                                                     const Tensor& self,
                                                                     const Tensor& other) {
@@ -699,6 +702,10 @@ static Tensor& addmm_out_mps_impl(const Tensor& bias,
 
   TORCH_CHECK(output.is_mps());
   TORCH_CHECK(self.dim() == 2 && other.dim() == 2, "tensors must be 2-D");
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(supportedFloatingOrComplexType(self), "MPS device does not support addmm for non-float input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TensorArg args[]{{output, "out", 0}, {bias, "self", 1}, {self, "mat1", 2}, {other, "mat2", 3}};
   checkAllSameGPU(__func__, args);
@@ -725,10 +732,13 @@ static Tensor& addmm_out_mps_impl(const Tensor& bias,
     return output;
   }
 
+<<<<<<< HEAD
   if (use_metal_mm(self, other, output)) {
     return do_metal_addmm(self, other, output, alpha, beta, *bias_);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_beta_non_zero = beta.toDouble() != 0.0;
 
   struct CachedGraph : public mps::MPSCachedGraph {

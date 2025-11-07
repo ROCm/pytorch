@@ -10,7 +10,10 @@ from typing import Any, Callable, TYPE_CHECKING
 
 _FILE = Path(__file__).absolute()
 _PATH = [Path(p).absolute() for p in sys.path]
+<<<<<<< HEAD
 _OVERRIDES = {"@override", "@typing_extensions.override", "@typing.override"}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING or _FILE.parent not in _PATH:
     from . import _linter
@@ -155,7 +158,11 @@ class DocstringLinter(_linter.FileLinter):
     def _is_bad_block(self, b: _linter.Block, pf: _linter.PythonFile) -> bool:
         max_lines = self._max_lines[b.category]
         return (
+<<<<<<< HEAD
             not (b.is_override or pf.omitted(pf.tokens, b.begin, b.dedent))
+=======
+            not pf.omitted(pf.tokens, b.begin, b.dedent)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and b.line_count > max_lines
             and len(b.docstring) < self.args.min_docstring
             and (self.args.lint_local or not b.is_local)

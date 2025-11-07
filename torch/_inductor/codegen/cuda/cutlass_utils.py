@@ -13,9 +13,13 @@ from typing import Any, Optional
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch._inductor.runtime.runtime_utils import dynamo_timed
 from torch._inductor.utils import clear_on_fresh_cache
 from torch.utils._ordered_set import OrderedSet
+=======
+from torch._inductor.utils import clear_on_fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ... import config
 from ...ir import Layout
@@ -28,15 +32,19 @@ from .cuda_env import get_cuda_arch, get_cuda_version
 log = logging.getLogger(__name__)
 
 CUTLASS_OPERATION_KIND: str = "gemm"
+<<<<<<< HEAD
 ACCUMULATOR_DTYPES: OrderedSet[torch.dtype] = OrderedSet([torch.float, torch.int32])
 XW_DTYPES: OrderedSet[torch.dtype] = OrderedSet(
     [torch.half, torch.bfloat16, torch.float8_e4m3fn, torch.int8]
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @atexit.register
 def move_cutlass_compiled_cache() -> None:
     """Move CUTLASS compiled cache file to the cache directory if it exists."""
+<<<<<<< HEAD
     if not try_import_cutlass.cache_info().currsize > 0:
         return
 
@@ -54,6 +62,19 @@ def move_cutlass_compiled_cache() -> None:
     try:
         filename = os.path.basename(python_cutlass.CACHE_FILE)
         shutil.move(python_cutlass.CACHE_FILE, os.path.join(cache_dir(), filename))
+=======
+    if "cutlass" not in sys.modules:
+        return
+
+    import cutlass  # type: ignore[import-not-found]
+
+    if not os.path.exists(cutlass.CACHE_FILE):
+        return
+
+    try:
+        filename = os.path.basename(cutlass.CACHE_FILE)
+        shutil.move(cutlass.CACHE_FILE, os.path.join(cache_dir(), filename))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.debug("Moved CUTLASS compiled cache file to %s", cache_dir())
     except OSError as e:
         log.warning("Failed to move CUTLASS compiled cache file: %s", str(e))
@@ -73,13 +94,24 @@ def try_import_cutlass() -> bool:
     """
     We want to support three ways of passing in CUTLASS:
     1. fbcode, handled by the internal build system.
+<<<<<<< HEAD
     2. User specifies cutlass_dir. The default is ../third_party/cutlass/,
+=======
+    2. pip install nvidia-cutlass, which provides the cutlass_library package
+       and the header files in the cutlass_library/source directory.
+    3. User specifies cutlass_dir. The default is ../third_party/cutlass/,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        which is the directory when developers build from source.
     """
     if config.is_fbcode():
         try:
+<<<<<<< HEAD
             import cutlass_library  # type: ignore[import-not-found]
             import python_cutlass  # type: ignore[import-not-found]  # noqa: F401
+=======
+            import cutlass  # type: ignore[import-not-found]
+            import cutlass_library  # type: ignore[import-not-found]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except ImportError as e:
             log.warning(
                 "Failed to import CUTLASS packages in fbcode: %s, ignoring the CUTLASS backend.",
@@ -89,6 +121,37 @@ def try_import_cutlass() -> bool:
 
         return True
 
+<<<<<<< HEAD
+=======
+    try:
+        import cutlass  # type: ignore[import-not-found]  # noqa: F811
+        import cutlass_library  # type: ignore[import-not-found]  # noqa: F811
+
+        cutlass_minor_vesion = int(cutlass.__version__.split(".")[1])
+        if cutlass_minor_vesion < 7:
+            log.warning("CUTLASS version < 3.7 is not recommended.")
+
+        log.debug(
+            "Found cutlass_library in python search path, overriding config.cuda.cutlass_dir"
+        )
+        cutlass_library_dir = os.path.dirname(cutlass_library.__file__)
+        assert os.path.isdir(cutlass_library_dir), (
+            f"{cutlass_library_dir} is not a directory"
+        )
+        config.cuda.cutlass_dir = os.path.abspath(
+            os.path.join(
+                cutlass_library_dir,
+                "source",
+            )
+        )
+
+        return True
+    except ModuleNotFoundError:
+        log.debug(
+            "cutlass_library not found in sys.path, trying to import from config.cuda.cutlass_dir"
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Copy CUTLASS python scripts to a temp dir and add the temp dir to Python search path.
     # This is a temporary hack to avoid CUTLASS module naming conflicts.
     # TODO(ipiszy): remove this hack when CUTLASS solves Python scripts packaging structure issues.
@@ -128,7 +191,11 @@ def try_import_cutlass() -> bool:
         if tmp_cutlass_full_path not in sys.path:
 
             def link_and_append(dst_link, src_path, parent_dir):
+<<<<<<< HEAD
                 if os.path.lexists(dst_link):
+=======
+                if os.path.exists(dst_link):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     assert os.path.islink(dst_link), (
                         f"{dst_link} is not a symlink. Try to remove {dst_link} manually and try again."
                     )
@@ -156,7 +223,11 @@ def try_import_cutlass() -> bool:
                 )
 
         try:
+<<<<<<< HEAD
             import cutlass  # noqa: F401, F811
+=======
+            import cutlass  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             import cutlass_library.generator  # noqa: F401
             import cutlass_library.library  # noqa: F401
             import cutlass_library.manifest  # noqa: F401
@@ -287,10 +358,16 @@ def gen_ops() -> dict[Any, Any]:
     """
     Generates all supported CUTLASS operations.
     """
+<<<<<<< HEAD
     with dynamo_timed("cutlass_utils.gen_ops"):
         arch = get_cuda_arch()
         version = get_cuda_version()
         return _gen_ops_cached(arch, version)
+=======
+    arch = get_cuda_arch()
+    version = get_cuda_version()
+    return _gen_ops_cached(arch, version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 DTYPE_TO_CUTLASS_TYPE = {
@@ -356,10 +433,13 @@ def get_accumulator_dtype(
     Given a pair of input torch dtypes, returns the inferred accumulator torch dtype.
     """
 
+<<<<<<< HEAD
     assert OrderedSet(input_torch_dtypes) <= XW_DTYPES, (
         f"{input_torch_dtypes=} is not supported"
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if len(input_torch_dtypes) != 2:
         return None
 
@@ -380,6 +460,7 @@ def get_accumulator_dtype(
             torch_dtype = dtype0
 
     if torch_dtype in (torch.float16, torch.bfloat16, torch.float, torch.float8_e4m3fn):
+<<<<<<< HEAD
         accumulator_dtype = torch.float
     elif torch_dtype == torch.int8:
         accumulator_dtype = torch.int32
@@ -390,6 +471,12 @@ def get_accumulator_dtype(
         f"{accumulator_dtype=} is not supported"
     )
     return accumulator_dtype
+=======
+        return torch.float
+    if torch_dtype == torch.int8:
+        return torch.int32
+    raise NotImplementedError(f"Unsupported data types: {input_torch_dtypes=}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @functools.lru_cache(32)
@@ -464,9 +551,13 @@ class CUDACompileSourceCapturingContext:
 
         _compile_method_orig = torch._inductor.codecache.CUDACodeCache.compile
 
+<<<<<<< HEAD
         def my_compile(
             source_code, dst_file_ext, extra_args: Optional[list[str]] = None
         ):
+=======
+        def my_compile(source_code, dst_file_ext):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.sources.append(source_code)
             return _compile_method_orig(source_code, dst_file_ext)
 

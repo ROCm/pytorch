@@ -4,7 +4,11 @@ import unittest
 from collections import namedtuple
 from functools import partial
 
+<<<<<<< HEAD
 import torch_openreg  # noqa: F401
+=======
+import pytorch_openreg  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.nn.attention import SDPBackend

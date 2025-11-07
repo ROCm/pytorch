@@ -3,8 +3,11 @@
 #include <torch/csrc/inductor/aoti_torch/utils.h>
 #include <ATen/mps/MPSAllocatorInterface.h>
 #include <ATen/mps/MPSDevice.h>
+<<<<<<< HEAD
 #include <ATen/mps/MPSStream.h>
 #include <ATen/mps/MPSProfiler.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 using namespace torch::aot_inductor;
@@ -42,6 +45,7 @@ aoti_torch_mps_memcpy(void* buffer, size_t constant_offset, size_t bytes_read, s
     memcpy(buffer_pointer + constant_offset, constants_start + bytes_read, data_size);
   });
 }
+<<<<<<< HEAD
 
 AOTITorchError
 aoti_torch_mps_copy_buffer(void* src_buffer, void* dst_buffer, size_t data_size, size_t src_offset, size_t dst_offset) {
@@ -55,3 +59,5 @@ aoti_torch_mps_copy_buffer(void* src_buffer, void* dst_buffer, size_t data_size,
     stream->copy_and_sync(src_mtl_buffer, dst_mtl_buffer, data_size, src_offset, dst_offset, true, profile_id);
   });
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -20,7 +20,11 @@
 
 // SegmentReduce compilation with CUDA-12.9 causes  NVCC crash on Windows
 // See https://github.com/pytorch/pytorch/issues/156181
+<<<<<<< HEAD
 #if !(defined(_WIN32) && CUDART_VERSION == 12090)
+=======
+#if !defined(_WIN32) || CUDART_VERSION < 12090
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::native {
 
@@ -606,4 +610,8 @@ REGISTER_DISPATCH(
 
 } // namespace at::native
 
+<<<<<<< HEAD
 #endif
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

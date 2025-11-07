@@ -21,6 +21,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.testing._internal.common_cuda import SM90OrLater
 from torch.testing._internal.common_utils import (
     find_free_port,
+<<<<<<< HEAD
     IS_WINDOWS,
     munge_exc,
     skipIfTorchDynamo,
@@ -32,11 +33,19 @@ from torch.testing._internal.inductor_utils import (
     HAS_CUDA_AND_TRITON,
     HAS_XPU_AND_TRITON,
 )
+=======
+    munge_exc,
+    skipIfTorchDynamo,
+    xfailIfS390X,
+)
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.logging_utils import (
     LoggingTestCase,
     make_logging_test,
     make_settings_test,
 )
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
 
 
@@ -44,14 +53,22 @@ requires_gpu = unittest.skipUnless(
     HAS_CUDA_AND_TRITON or HAS_XPU_AND_TRITON, "requires cuda or xpu with triton"
 )
 
+=======
+
+
+requires_cuda = unittest.skipUnless(HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 requires_distributed = functools.partial(
     unittest.skipIf, not dist.is_available(), "requires distributed"
 )
 
+<<<<<<< HEAD
 device_type = (
     acc.type if (acc := torch.accelerator.current_accelerator(True)) else "cpu"
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def munge_shape_guards(s: str) -> str:
     SHAPE_GUARD_REGEX = (
@@ -86,7 +103,11 @@ def inductor_error_fn(a):
 
 
 def inductor_schedule_fn(a):
+<<<<<<< HEAD
     output = a.add(torch.ones(1000, 1000, device=device_type))
+=======
+    output = a.add(torch.ones(1000, 1000, device="cuda"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return output
 
 
@@ -123,6 +144,7 @@ class LoggingTests(LoggingTestCase):
     test_output_code = multi_record_test(3, output_code=True)
     test_aot_graphs = multi_record_test(3, aot_graphs=True)
 
+<<<<<<< HEAD
     @requires_gpu
     @make_logging_test(schedule=True)
     def test_schedule(self, records):
@@ -144,6 +166,29 @@ class LoggingTests(LoggingTestCase):
     def test_cudagraphs(self, records):
         fn_opt = torch.compile(mode="reduce-overhead")(inductor_schedule_fn)
         fn_opt(torch.ones(1000, 1000, device=device_type))
+=======
+    @requires_cuda
+    @make_logging_test(schedule=True)
+    def test_schedule(self, records):
+        fn_opt = torch.compile(inductor_schedule_fn, backend="inductor")
+        fn_opt(torch.ones(1000, 1000, device="cuda"))
+        self.assertGreater(len(records), 0)
+        self.assertLess(len(records), 5)
+
+    @requires_cuda
+    @make_logging_test(fusion=True)
+    def test_fusion(self, records):
+        fn_opt = torch.compile(inductor_schedule_fn, backend="inductor")
+        fn_opt(torch.ones(1000, 1000, device="cuda"))
+        self.assertGreater(len(records), 0)
+        self.assertLess(len(records), 8)
+
+    @requires_cuda
+    @make_logging_test(cudagraphs=True)
+    def test_cudagraphs(self, records):
+        fn_opt = torch.compile(mode="reduce-overhead")(inductor_schedule_fn)
+        fn_opt(torch.ones(1000, 1000, device="cuda"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertGreater(len(records), 0)
         self.assertLess(len(records), 8)
 
@@ -252,7 +297,11 @@ LoweringException: AssertionError:
         exitstack.close()
 
     @requires_distributed()
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @make_logging_test(ddp_graphs=True)
     def test_ddp_graphs(self, records):
         class ToyModel(torch.nn.Module):
@@ -530,7 +579,11 @@ LoweringException: AssertionError:
             "import torch",
             env=env,
         )
+<<<<<<< HEAD
         lines = stderr.decode().split("\r\n" if IS_WINDOWS else "\n")
+=======
+        lines = stderr.decode().split("\n")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This is a sanity assert that our error is not spammy.
         # As of this test creation this was 18.
         # See this issue for the purpose o this test:
@@ -546,7 +599,10 @@ LoweringException: AssertionError:
         self.assertEqual(lines[-4], "Valid settings:")
 
     @requires_distributed()
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn), Can't reproduce locally")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_distributed_rank_logging(self):
         env = dict(os.environ)
         env["TORCH_LOGS"] = "dynamo"
@@ -726,10 +782,17 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         self.assertExpectedInline(
             munge_shape_guards(record.getMessage()),
             """\
+<<<<<<< HEAD
 +- __SHAPE_GUARD__: L['x'].size()[0] == 2*L['y'].size()[0]  # return x + torch.cat([y, z])  # #:# in # #:# in #
 +- __SHAPE_GUARD__: L['z'].size()[0] == L['y'].size()[0]  # duck sizing added this equality because these variables had the same size 3 (to avoid this specialization, set torch.fx.experimental._config.use_duck_shape = False)
 +- __SHAPE_GUARD__: ((2*L['y'].size()[0]) % 3) == 0  # if x.size(0) % 3 == 0:  # #:# in # #:# in #
 +- __SHAPE_GUARD__: 2 <= L['y'].size()[0]  # return x + torch.cat([y, z])  # #:# in # (user code shown is first use of this value--the guard itself is not due user code but due to 0/1 specialization in the framework; to avoid specialization try torch._dynamo.mark_unbacked(tensor, dim))""",  # noqa: B950
+=======
++- __SHAPE_GUARD__: L['x'].size()[0] == 2*L['z'].size()[0]  # return x + torch.cat([y, z])  # #:# in # #:# in #
++- __SHAPE_GUARD__: L['y'].size()[0] == L['z'].size()[0]  # duck sizing added this equality because these variables had the same size 3 (to avoid this specialization, set torch.fx.experimental._config.use_duck_shape = False)
++- __SHAPE_GUARD__: ((2*L['z'].size()[0]) % 3) == 0  # if x.size(0) % 3 == 0:  # #:# in # #:# in #
++- __SHAPE_GUARD__: 2 <= L['z'].size()[0]  # return x + torch.cat([y, z])  # #:# in # (user code shown is first use of this value--the guard itself is not due user code but due to 0/1 specialization in the framework; to avoid specialization try torch._dynamo.mark_unbacked(tensor, dim))""",  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @make_logging_test(guards=True)
@@ -779,11 +842,18 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         self.assertGreater(len(records), 0)
         self.assertLess(len(records), 4)
 
+<<<<<<< HEAD
     @xfailIf(TEST_XPU)  # https://github.com/pytorch/pytorch/issues/157778
     @make_logging_test(perf_hints=True)
     @requires_gpu
     def test_optimizer_non_static_param(self, records):
         params = [torch.randn(10, 10, device=device_type) for _ in range(2)]
+=======
+    @make_logging_test(perf_hints=True)
+    @requires_cuda
+    def test_optimizer_non_static_param(self, records):
+        params = [torch.randn(10, 10, device="cuda") for _ in range(2)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for param in params:
             param.grad = torch.zeros_like(param)
         opt = torch.optim.Adam(params)
@@ -793,7 +863,11 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         self.assertLess(len(records), 3)
 
     @make_logging_test(autotuning=True)
+<<<<<<< HEAD
     @requires_gpu
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM90OrLater, "requires H100+ GPU")
     def test_autotuning(self, records):
         with torch._inductor.utils.fresh_cache():
@@ -802,10 +876,14 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
                 return torch.mm(a, b)
 
             f = torch.compile(f, mode="max-autotune-no-cudagraphs")
+<<<<<<< HEAD
             f(
                 torch.randn(10, 10, device=device_type),
                 torch.randn(10, 10, device=device_type),
             )
+=======
+            f(torch.randn(10, 10, device="cuda"), torch.randn(10, 10, device="cuda"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertGreater(len(records), 0)
             self.assertLess(len(records), 40)
 
@@ -855,6 +933,11 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
             len([r for r in records if "return a + 1" in r.getMessage()]), 0
         )
 
+<<<<<<< HEAD
+=======
+    # there are some additional deprecation warnings in stderr, probably due to newer dependencies used on s390x
+    @xfailIfS390X
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_logs_out(self):
         import tempfile
 
@@ -942,7 +1025,10 @@ exclusions = {
     "aot_graphs",
     "aot_graphs_effects",
     "pre_grad_graphs",
+<<<<<<< HEAD
     "joint_graph_passes",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "post_grad_graphs",
     "inductor_metrics",
     "ir_pre_fusion",

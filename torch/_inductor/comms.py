@@ -4,14 +4,21 @@ from __future__ import annotations
 
 import heapq
 import importlib
+<<<<<<< HEAD
 import itertools
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 import operator
 import sys
 import time
 from collections import defaultdict
 from dataclasses import dataclass
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from typing import Any, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._logging import trace_structured
@@ -20,6 +27,7 @@ from torch.utils._ordered_set import OrderedSet
 
 from . import config, ir
 from .dependencies import WeakDep
+<<<<<<< HEAD
 
 
 if TYPE_CHECKING:
@@ -33,6 +41,9 @@ from .memory import (
     get_freeable_input_buf,
     SNodeMemory,
 )
+=======
+from .memory import estimate_peak_memory, FreeableInputBuffer, get_freeable_input_buf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .utils import (
     contains_collective,
     contains_wait,
@@ -52,6 +63,7 @@ if TYPE_CHECKING:
     from torch._inductor.scheduler import BaseSchedulerNode
 
 
+<<<<<<< HEAD
 def align_runtime_estimations_across_all_distributed_ranks(
     snodes: list[BaseSchedulerNode],
 ):
@@ -74,6 +86,8 @@ def align_runtime_estimations_across_all_distributed_ranks(
         snodes[i].override_estimated_runtime = median_runtime_estimations[i]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def sink_waits(snodes: list[BaseSchedulerNode]) -> list[BaseSchedulerNode]:
     """
     Greedily schedules waits as late as possible.
@@ -145,6 +159,7 @@ def reorder_communication_preserving_peak_memory(
     reordered_snodes, node_stats = (
         _reorder_communication_preserving_peak_memory_internal(snodes)
     )
+<<<<<<< HEAD
 
     return reordered_snodes
 
@@ -624,6 +639,8 @@ def _reorder_communication_preserving_peak_memory_internal(
         curr = _next[curr]  # type: ignore[assignment]
 
     node_stats = stats
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     improvement = {snode: node_stats[snode].improvement for snode in node_stats}
     total_improvement = sum([improvement[snode] for snode in improvement])
     total_moves = sum([node_stats[snode].moves for snode in node_stats])
@@ -639,12 +656,16 @@ def _reorder_communication_preserving_peak_memory_internal(
         "improvement",
         "limiting factor",
         "moves",
+<<<<<<< HEAD
         "grouped",
         "grouped_info",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
     rows = [
         [
             node_summary(snode),
+<<<<<<< HEAD
             node_info.initial_exposed,
             node_info.final_exposed,
             node_info.improvement,
@@ -654,6 +675,15 @@ def _reorder_communication_preserving_peak_memory_internal(
             node_info.grouped_info,
         ]
         for snode, node_info in node_stats.items()
+=======
+            node_reorder_info.initial_exposed,
+            node_reorder_info.final_exposed,
+            node_reorder_info.improvement,
+            node_reorder_info.limiting_factor,
+            node_reorder_info.moves,
+        ]
+        for snode, node_reorder_info in node_stats.items()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
     if importlib.util.find_spec("tabulate"):
         from tabulate import tabulate
@@ -668,6 +698,7 @@ def _reorder_communication_preserving_peak_memory_internal(
         )
         reorder_log_str += str(headers) + "\n"
         reorder_log_str += "\n".join(map(str, rows))
+<<<<<<< HEAD
 
     new_snodes = _group_nodes(_head, None)
     assert len(new_snodes) == original_snodes_num
@@ -677,6 +708,8 @@ def _reorder_communication_preserving_peak_memory_internal(
     reorder_log_str += f"\n peak_memory_before:{peak_memory}"
     reorder_log_str += f"\n peak_memory_after:{new_peak_memory}"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     overlap_log.info(reorder_log_str)
     trace_structured(
         "artifact",
@@ -687,7 +720,116 @@ def _reorder_communication_preserving_peak_memory_internal(
         payload_fn=lambda: reorder_log_str,
     )
 
+<<<<<<< HEAD
     return new_snodes, stats
+=======
+    return reordered_snodes
+
+
+@dataclass
+class ReorderInfo:
+    """
+    Debug info describing how an individual snode was reordered
+    """
+
+    initial_exposed: float = -1
+    final_exposed: float = -1
+    limiting_factor: str = "None"
+    moves: int = 0
+
+    @property
+    def improvement(self):
+        return self.initial_exposed - self.final_exposed
+
+
+def _reorder_communication_preserving_peak_memory_internal(
+    snodes: list[BaseSchedulerNode],
+) -> tuple[list[BaseSchedulerNode], dict[BaseSchedulerNode, ReorderInfo]]:
+    """
+    Internal testing helper that also returns debug info.
+    Returns:
+        - reordered snodes list
+        - dict {snode: ReorderInfo}
+    """
+    # heuristic to avoid degenerating to quadratic time
+    MOVE_LIMIT = len(snodes) * 100
+    total_moves = 0
+    # TODO - experiment with whether this limit is useful, setting `len(snodes)` disables it
+    PER_COLLECTIVE_PREFETCH_LIMIT = len(snodes)
+    if config.reorder_prefetch_limit is not None:
+        PER_COLLECTIVE_PREFETCH_LIMIT = config.reorder_prefetch_limit
+    graph_inputs: OrderedSet[str] = OrderedSet(V.graph.graph_inputs.keys())
+    graph_outputs: OrderedSet[str] = OrderedSet(V.graph.get_output_names())
+    name_to_freeable_input_buf: dict[str, FreeableInputBuffer] = get_freeable_input_buf(
+        snodes, graph_inputs
+    )
+    peak_memory, curr_memory = estimate_peak_memory(
+        snodes, name_to_freeable_input_buf, graph_outputs
+    )
+    runtimes = {snode: estimate_op_runtime(snode) for snode in snodes}
+
+    # debug stats
+    stats: dict[BaseSchedulerNode, ReorderInfo] = {}
+
+    def exposed_communication_time(collective_snode, remaining_snodes):
+        # assumes a linear schedule and computes the overlap of the collective with the remaining nodes
+        comm_time = estimate_op_runtime(collective_snode)
+        compute_time = 0.0
+        for snode in remaining_snodes:
+            if contains_collective(snode):
+                continue
+            if contains_wait(snode):
+                # TODO - if the wait is for a collective that started before this collective or on another stream,
+                # we can ignore it. Otherwise, it's the end of the road for overlap opportunities
+                break
+
+            compute_time += runtimes[snode]
+        return max(0, comm_time - compute_time)
+
+    for i, snode in enumerate(snodes):
+        if contains_collective(snode):
+            reorder_info = stats[snode] = ReorderInfo()
+            reorder_info.initial_exposed = reorder_info.final_exposed = (
+                exposed_communication_time(snode, snodes[i + 1 :])
+            )
+            if total_moves >= MOVE_LIMIT:
+                reorder_info.limiting_factor = "move limit"
+                continue
+            for j in range(i - 1, -1, -1):
+                prev_snode = snodes[j]
+                if j < max(0, i - PER_COLLECTIVE_PREFETCH_LIMIT):
+                    reorder_info.limiting_factor = "prefetch limit"
+                    break
+                if contains_collective(prev_snode):
+                    reorder_info.limiting_factor = "collective ordering"
+                    break
+                dep_names = OrderedSet([s.name for s in snode.unmet_dependencies])
+                if any(
+                    o.get_name() in dep_names for o in prev_snode.get_outputs()
+                ) and not contains_wait(prev_snode):
+                    reorder_info.limiting_factor = "data dependency"
+                    break
+                if peak_memory - curr_memory[j] < curr_memory[j - 1] - curr_memory[j]:
+                    reorder_info.limiting_factor = "peak memory"
+                    break
+                if reorder_info.final_exposed > runtimes[snode]:
+                    reorder_info.limiting_factor = "sufficient overlapping"
+                    break
+                reorder_info.moves += 1
+                total_moves += 1
+                tmp = snodes[j]
+                snodes[j] = snodes[j + 1]
+                snodes[j + 1] = tmp
+                # swapping nodes j and j+1 affects curr memory at j only
+                j_plus_one_alloc = curr_memory[j + 1] - curr_memory[j]
+                j_alloc = curr_memory[j] - curr_memory[j - 1]
+                curr_memory[j] = curr_memory[j] - j_alloc + j_plus_one_alloc
+                reorder_info.final_exposed = exposed_communication_time(
+                    snode, snodes[j + 1 :]
+                )
+
+    return snodes, stats
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _schedule_for_comm(
@@ -861,13 +1003,18 @@ def decide_global_ordering_of_comms(
         # Enforce ordering by making previous comm a `WeakDep` dependency of the next comm
         mutating_buf = next(iter(comm_nodes[i].get_buffer_names()))
         for buf in comm_nodes[i - 1].get_buffer_names():
+<<<<<<< HEAD
             comm_nodes[i].add_fake_dep(
                 WeakDep(buf, mutating_buf=mutating_buf, is_fake=True)
             )
+=======
+            comm_nodes[i].add_fake_dep(WeakDep(buf, mutating_buf=mutating_buf))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return nodes
 
 
+<<<<<<< HEAD
 @dataclass
 class SinkWaitInfo:
     grouped: int = 0
@@ -1246,6 +1393,8 @@ def sink_waits_iterative(
     return _sink_waits_iterative_internal(snodes)[0]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def estimate_op_runtime(snode: BaseSchedulerNode) -> float:
     """
     Returns estimated op runtime in nanoseconds (ns)
@@ -1263,9 +1412,13 @@ def node_summary(snode):
     if len(snodes) == 1:
         detail = ""
         if isinstance(snode.node, (ir.ExternKernelOut, ir._CollectiveKernel)):
+<<<<<<< HEAD
             outs_str = f"outs:{[o.get_name() for o in snode.get_outputs()]}"
             ins_str = f"ins:{[d.name for d in snode.unmet_dependencies]}"
             detail = f" {snode.get_name()} ({snode.node.python_kernel_name})\n {outs_str}\n ({ins_str})"
+=======
+            detail = f" ({snode.node.python_kernel_name})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         layouts = [child.node.get_output_spec() for child in snode.get_nodes()]
         out_tensor_info = ",".join(
             [
@@ -1622,10 +1775,21 @@ def reinplace_fsdp_all_gather(graph: torch.fx.Graph) -> None:
                 CallFunction(
                     torch.ops.fsdp.all_gather_copy_in.default,
                     KeywordArg("all_gather_inputs"),
+<<<<<<< HEAD
                     KeywordArg("all_gather_output"),
                     KeywordArg("inp_split_sizes"),
                     KeywordArg("all_gather_input_numel"),
                     KeywordArg("rank"),
+=======
+                    KeywordArg("inp_split_sizes"),
+                    KeywordArg("all_gather_input_numel"),
+                    KeywordArg("world_size"),
+                    KeywordArg("rank"),
+                    KeywordArg("dtype"),
+                    KeywordArg("device"),
+                    KeywordArg("group_name_inner"),
+                    KeywordArg("allocate_memory_from_process_group"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
                 KeywordArg("item_idx"),
             ),
@@ -1658,10 +1822,21 @@ def reinplace_fsdp_all_gather(graph: torch.fx.Graph) -> None:
             repl,
             [
                 kwargs["all_gather_inputs"],
+<<<<<<< HEAD
                 kwargs["all_gather_output"],
                 kwargs["inp_split_sizes"],
                 kwargs["all_gather_input_numel"],
                 kwargs["rank"],
+=======
+                kwargs["inp_split_sizes"],
+                kwargs["all_gather_input_numel"],
+                kwargs["world_size"],
+                kwargs["rank"],
+                kwargs["dtype"],
+                kwargs["device"],
+                kwargs["group_name_inner"],
+                kwargs["allocate_memory_from_process_group"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kwargs["group_size"],
                 kwargs["group_name"],
             ],
@@ -1840,7 +2015,11 @@ def enforce_comm_ordering_for_fsdp(
             mutating_buf = next(iter(ag_group_node.get_buffer_names()))
             for o in prev_ag_wait.get_outputs():
                 ag_group_node.add_fake_dep(
+<<<<<<< HEAD
                     WeakDep(o.get_name(), mutating_buf=mutating_buf, is_fake=True)
+=======
+                    WeakDep(o.get_name(), mutating_buf=mutating_buf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         prev_ag_wait = wait_group_node
 
@@ -1852,7 +2031,11 @@ def enforce_comm_ordering_for_fsdp(
             mutating_buf = next(iter(rs_group_node.get_buffer_names()))
             for o in prev_rs_wait.get_outputs():
                 rs_group_node.add_fake_dep(
+<<<<<<< HEAD
                     WeakDep(o.get_name(), mutating_buf=mutating_buf, is_fake=True)
+=======
+                    WeakDep(o.get_name(), mutating_buf=mutating_buf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         prev_rs_wait = wait_group_node
 

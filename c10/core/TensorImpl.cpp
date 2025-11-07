@@ -310,6 +310,7 @@ void TensorImpl::throw_data_ptr_access_error() const {
       false, "Cannot access data pointer of Tensor that doesn't have storage");
 }
 
+<<<<<<< HEAD
 c10::SymBool TensorImpl::sym_is_contiguous_custom(
     at::MemoryFormat memory_format) const {
   if (C10_UNLIKELY(matches_python_custom(SizesStridesPolicy::CustomStrides))) {
@@ -325,6 +326,14 @@ c10::SymBool TensorImpl::sym_is_contiguous_custom(
   }
 
   return sym_is_contiguous_default(memory_format);
+=======
+bool TensorImpl::is_contiguous_custom(at::MemoryFormat memory_format) const {
+  if (C10_UNLIKELY(matches_python_custom(SizesStridesPolicy::CustomStrides))) {
+    return pyobj_slot_.load_pyobj_interpreter()->is_contiguous(
+        this, memory_format);
+  }
+  return is_contiguous_default(memory_format);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool TensorImpl::is_strides_like_custom(at::MemoryFormat memory_format) const {
@@ -335,12 +344,20 @@ bool TensorImpl::is_strides_like_custom(at::MemoryFormat memory_format) const {
   return is_strides_like_default(memory_format);
 }
 
+<<<<<<< HEAD
 c10::SymBool TensorImpl::sym_is_non_overlapping_and_dense_custom() const {
+=======
+bool TensorImpl::is_non_overlapping_and_dense_custom() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (C10_UNLIKELY(matches_python_custom(SizesStridesPolicy::CustomStrides))) {
     return pyobj_slot_.load_pyobj_interpreter()->is_non_overlapping_and_dense(
         this);
   }
+<<<<<<< HEAD
   return sym_is_non_overlapping_and_dense_default();
+=======
+  return is_non_overlapping_and_dense_default();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 IntArrayRef TensorImpl::sizes_custom() const {

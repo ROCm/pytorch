@@ -529,7 +529,11 @@ REGISTER_NATIVE_OPERATOR_FUNCTOR(aten::to, aten_to, [](Node* n) -> SROperator {
       const auto in1_i = p_node->Input(1).toOptional<at::ScalarType>();
       const auto in2_i = p_node->Input(2).toBool();
       const auto in3_i = p_node->Input(3).toBool();
+<<<<<<< HEAD
       // To mimic the behavior of the JIT interpreter, if both dtype
+=======
+      // To mimick the behavior of the JIT interpreter, if both dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // and copy are not set, we return self. Otherwise, we assume
       // that dtype is set.
       if (!in1_i && !in3_i) {

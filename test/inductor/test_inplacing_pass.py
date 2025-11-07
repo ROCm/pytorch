@@ -413,6 +413,7 @@ class TestReinplacingPassCorrectness(InductorTestCase):
             # Both list inputs failed to reinplace. So we should have emitted clones for them.
             self.assertEqual(post_grad_graphs.count("aten.clone"), 2)
 
+<<<<<<< HEAD
     def test_generalized_scatter(self):
         # This is an integration test for the reinplacing pass.
         def fn(x_1):
@@ -438,6 +439,8 @@ class TestReinplacingPassCorrectness(InductorTestCase):
         result = torch.compile(fn, fullgraph=True, backend="inductor")(x)
         self.assertEqual(result, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "factory_op",
         [

@@ -5,7 +5,10 @@ import unittest
 
 import torch
 import torch._dynamo.testing
+<<<<<<< HEAD
 import torch.utils._pytree as pytree
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.associative_scan import associative_scan
 from torch._higher_order_ops.map import _fake_map
 from torch._higher_order_ops.scan import _fake_scan, scan
@@ -38,6 +41,7 @@ def prepend_counters(inputs, num_counters=1, counter_values=(0, 1, 5)):
     return _prepend_product_of_values(inputs, counter_values, num_counters)
 
 
+<<<<<<< HEAD
 # a testing loss_fn
 def loss_fn(result) -> torch.Tensor:
     flat_results, _ = pytree.tree_flatten(result)
@@ -56,6 +60,8 @@ def loss_fn(result) -> torch.Tensor:
     return total_loss
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CondModels:
     class Simple(torch.nn.Module):
         def forward(self, p, a, b):
@@ -232,6 +238,7 @@ class CondModels:
 
             return y.sum() - torch.cond(x.sum() > 0, true_fn, false_fn, (x,))
 
+<<<<<<< HEAD
     class FunctionalCall(torch.nn.Module):
         def __init__(self):
             super().__init__()
@@ -276,6 +283,8 @@ class CondModels:
 
             return torch.cond(x0.sum() > 0, fn, fn)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class CondTests(TestCase):
     def _run_test(
@@ -294,6 +303,7 @@ class CondTests(TestCase):
         if dynamic:
             larger_inputs = []
             for inp in inputs:
+<<<<<<< HEAD
                 # only tile non-scalar tensor inputs
                 if inp.ndim > 0:
                     # tile every first dim 5x
@@ -301,6 +311,11 @@ class CondTests(TestCase):
                     larger_inputs.append(torch.tile(inp, tiling))
                 else:
                     larger_inputs.append(inp)
+=======
+                # tile every first dim 5x
+                tiling = [5] + [1] * (inp.ndim - 1)
+                larger_inputs.append(torch.tile(inp, tiling))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input_sets.append(larger_inputs)
             for inputs in input_sets:
                 for inp in inputs:
@@ -505,9 +520,12 @@ class CondTests(TestCase):
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @torch._inductor.config.patch(size_asserts=False)
+<<<<<<< HEAD
     # TODO: graph partition does not support creating tensor
     # with dynamic shape in conditional subgraph yet
     @torch._inductor.config.patch(graph_partition=False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cond_unbacked_symint_inner(self, device):
         class Model(torch.nn.Module):
             def forward(self, p, a):
@@ -745,6 +763,7 @@ class CondTests(TestCase):
             dynamic=dynamic,
         )
 
+<<<<<<< HEAD
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
@@ -768,6 +787,8 @@ class CondTests(TestCase):
             dynamic=dynamic,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class WhileLoopModels:
     class Simple(torch.nn.Module):
@@ -804,12 +825,17 @@ class WhileLoopModels:
         class InnerModel(torch.nn.Module):
             def __init__(self, device):
                 super().__init__()
+<<<<<<< HEAD
                 self.layer1 = torch.nn.Linear(
                     20, 30, device=device, dtype=torch.float64
                 )
                 self.layer2 = torch.nn.Linear(
                     30, 20, device=device, dtype=torch.float64
                 )
+=======
+                self.layer1 = torch.nn.Linear(20, 30, device=device)
+                self.layer2 = torch.nn.Linear(30, 20, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def forward(self, c, x):
                 return c - 1, self.layer2(self.layer1(x - 2)) * 3.14
@@ -989,6 +1015,7 @@ class WhileLoopModels:
             )
             return out1 + 1, out2 + 2
 
+<<<<<<< HEAD
     class ZeroLoop4(torch.nn.Module):
         def forward(self, c, a):
             a_view = torch.sin(a.view(-1, 1))
@@ -1006,6 +1033,8 @@ class WhileLoopModels:
             )
             return out2.sin_(), a_view.cos_()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     class UnbackedSymIntClosure(torch.nn.Module):
         def forward(self, c, a, b):
             d = a.sum().to(torch.int64).item()
@@ -1029,7 +1058,11 @@ class WhileLoopModels:
             e = torch.nonzero(b).size(0)
 
             def cond_fn(c, a, b):
+<<<<<<< HEAD
                 return c + d + e + a.shape[0] - b.shape[0] < 10
+=======
+                return d + e + a.shape[0] - b.shape[0] < 10
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def body_fn(c, a, b):
                 return c + 1, a + e, b + d
@@ -1092,6 +1125,7 @@ class WhileLoopModels:
                 (c, x),
             )
 
+<<<<<<< HEAD
     class WhileLoopStackOutputSimple(torch.nn.Module):
         def __init__(self, device):
             super().__init__()
@@ -1113,10 +1147,22 @@ class WhileLoopModels:
 class WhileLoopTests(TestCase):
     def _run_test(
         self, model, inputs, device, dynamic=False, num_counters=1, autograd=False
+=======
+
+class WhileLoopTests(TestCase):
+    def _run_test(
+        self,
+        model,
+        inputs,
+        device,
+        dynamic=False,
+        num_counters=1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         import torch.utils._pytree as pytree
 
         cnt = torch._dynamo.testing.CompileCounterWithBackend("inductor")
+<<<<<<< HEAD
         import copy
 
         if not autograd:
@@ -1134,10 +1180,28 @@ class WhileLoopTests(TestCase):
 
         if dynamic:
 
+=======
+        compiled_model = torch.compile(backend=cnt, fullgraph=True)(model)
+
+        inputs = pytree.tree_map(lambda t: t.to(device=device), inputs)
+        input_sets = [inputs]
+        if dynamic:
+
+            def mark_first_dim_dyn(inp):
+                torch._dynamo.mark_dynamic(inp, 0)
+
+            pytree.tree_map(mark_first_dim_dyn, input_sets)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def tile_fn(inp):
                 # tile every first dim 5x
                 tiling = [5] + [1] * (inp.ndim - 1)
                 t = torch.tile(inp, tiling)
+<<<<<<< HEAD
+=======
+                # mark every first dim as dynamic
+                torch._dynamo.mark_dynamic(inp, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return t
 
             larger_inputs = pytree.tree_map(tile_fn, inputs)
@@ -1154,6 +1218,7 @@ class WhileLoopTests(TestCase):
                 )
                 unflat_inputs = pytree.tree_unflatten(flat, inp_spec)
                 inputs_with_counters = counters + unflat_inputs
+<<<<<<< HEAD
 
                 def process_inputs(inp):
                     inp = inp.clone()
@@ -1169,12 +1234,21 @@ class WhileLoopTests(TestCase):
 
                 result = model(*cloned_inputs)
                 result_compiled = compiled_fn(*cloned_inputs2)
+=======
+                cloned_inputs = pytree.tree_map(
+                    lambda t: t.clone(), inputs_with_counters
+                )
+                result = model(*inputs_with_counters)
+                with torch.no_grad():
+                    result_compiled = compiled_model(*inputs_with_counters)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # inputs must not be mutated
                 torch.testing.assert_close(cloned_inputs, inputs_with_counters)
                 torch.testing.assert_close(
                     result, result_compiled, atol=1e-4, rtol=1e-4
                 )
 
+<<<<<<< HEAD
                 if autograd and any(
                     pytree.tree_map_only(
                         torch.Tensor, lambda t: t.requires_grad, cloned_inputs
@@ -1218,14 +1292,20 @@ class WhileLoopTests(TestCase):
                                 rtol=1e-4,
                             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(cnt.frame_count, 1, "only one compilation expected")
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [False, True])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_simple_control_flow(self, device, dynamic, autograd):
+=======
+    def test_while_loop_simple_control_flow(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # while_loop control flow without nesting
         self._run_test(
             model=WhileLoopModels.Simple(),
@@ -1235,15 +1315,22 @@ class WhileLoopTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [False, True])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_nested_control_flow(self, device, dynamic, autograd):
+=======
+    def test_while_loop_nested_control_flow(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # while_loop control flow with nesting
         self._run_test(
             model=WhileLoopModels.Nested(),
@@ -1254,15 +1341,22 @@ class WhileLoopTests(TestCase):
             device=device,
             dynamic=dynamic,
             num_counters=2,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [False, True])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_outer_code(self, device, dynamic, autograd):
+=======
+    def test_while_loop_with_outer_code(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # while_loop control flow with outer code
         self._run_test(
             model=WhileLoopModels.OuterCode(),
@@ -1272,12 +1366,16 @@ class WhileLoopTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [False, True])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_parameters(self, device, dynamic, autograd):
@@ -1288,6 +1386,15 @@ class WhileLoopTests(TestCase):
             device=device,
             dynamic=dynamic,
             autograd=autograd,
+=======
+    def test_while_loop_with_parameters(self, device, dynamic):
+        # while_loop control flow with parameters
+        self._run_test(
+            model=WhileLoopModels.Parameters(device),
+            inputs=(torch.randn(10, 20),),
+            device=device,
+            dynamic=dynamic,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
@@ -1295,9 +1402,13 @@ class WhileLoopTests(TestCase):
     # dynamic=True doesn't work now due to
     # https://github.com/pytorch/pytorch/issues/123596
     @parametrize("dynamic", [False])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_outer_buffers(self, device, dynamic, autograd):
+=======
+    def test_while_loop_with_outer_buffers(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # while_loop control flow with outer code
         self._run_test(
             model=WhileLoopModels.OuterBuffers(),
@@ -1307,15 +1418,24 @@ class WhileLoopTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
+<<<<<<< HEAD
     @parametrize("dynamic", [True, False])
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_pytree_inputs(self, device, dynamic, autograd):
+=======
+    # dynamic=True doesn't work due to we haven't handle lifted symbols
+    @parametrize("dynamic", [True, False])
+    def test_while_loop_with_pytree_inputs(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=WhileLoopModels.PytreeCarry(),
             inputs=(
@@ -1326,15 +1446,22 @@ class WhileLoopTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_data_dependent_ops(self, device, dynamic, autograd):
+=======
+    def test_while_loop_with_data_dependent_ops(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch._dynamo.config.patch(
             {
                 "capture_dynamic_output_shape_ops": True,
@@ -1350,15 +1477,22 @@ class WhileLoopTests(TestCase):
                 ),
                 device=device,
                 dynamic=dynamic,
+<<<<<<< HEAD
                 autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_data_dependent_in_out(self, device, dynamic, autograd):
+=======
+    def test_while_loop_with_data_dependent_in_out(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch._dynamo.config.patch(
             {
                 "capture_dynamic_output_shape_ops": True,
@@ -1375,7 +1509,10 @@ class WhileLoopTests(TestCase):
                 ),
                 device=device,
                 dynamic=dynamic,
+<<<<<<< HEAD
                 autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     @parametrize("dynamic", [True, False])
@@ -1421,7 +1558,10 @@ class WhileLoopTests(TestCase):
             WhileLoopModels.ZeroLoop(),
             WhileLoopModels.ZeroLoop2(),
             WhileLoopModels.ZeroLoop3(),
+<<<<<<< HEAD
             WhileLoopModels.ZeroLoop4(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]:
             self._run_test(
                 model=model,
@@ -1436,8 +1576,12 @@ class WhileLoopTests(TestCase):
     @torch._dynamo.config.patch(
         {"capture_scalar_outputs": True, "capture_dynamic_output_shape_ops": True}
     )
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     def test_while_loop_with_unbacked_symint_closure(self, device, dynamic, autograd):
+=======
+    def test_while_loop_with_unbacked_symint_closure(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=WhileLoopModels.UnbackedSymIntClosure(),
             inputs=(
@@ -1446,7 +1590,10 @@ class WhileLoopTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
@@ -1481,11 +1628,18 @@ class WhileLoopTests(TestCase):
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch(
         {"capture_scalar_outputs": True, "capture_dynamic_output_shape_ops": True}
     )
     def test_while_loop_with_sym_expr_cond(self, device, dynamic, autograd):
+=======
+    @torch._dynamo.config.patch(
+        {"capture_scalar_outputs": True, "capture_dynamic_output_shape_ops": True}
+    )
+    def test_while_loop_with_sym_expr_cond(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=WhileLoopModels.SymExprCond(),
             inputs=(
@@ -1494,20 +1648,28 @@ class WhileLoopTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [False, True])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_while_loop_with_conv(self, device, dynamic, autograd):
+=======
+    def test_while_loop_with_conv(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=WhileLoopModels.Conv(device),
             inputs=(torch.randn(2, 4, 4, 4, dtype=torch.float64),),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
         )
 
@@ -1521,6 +1683,8 @@ class WhileLoopTests(TestCase):
             inputs=(torch.randn(3, 3, dtype=torch.float32),),
             device=device,
             dynamic=dynamic,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -1529,7 +1693,11 @@ class AssociativeScanTests(TestCase):
     @parametrize("combine_mode", ["pointwise", "generic"])
     @parametrize("backend", ["inductor"])
     @parametrize("device", [torch.device("cpu"), GPU_TYPE])
+<<<<<<< HEAD
     # This test will fail as flip in combination with particular input lengths
+=======
+    # This test will fail as flip in combination with particular input lenghts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # produces weird results.
     # This is under investigations in
     # https://github.com/pytorch/pytorch/issues/131805
@@ -1553,7 +1721,11 @@ class AssociativeScanTests(TestCase):
                         fct, x, 0, reverse=False, combine_mode=combine_mode
                     )
 
+<<<<<<< HEAD
                 # Skipping test because combine_mode currently only supports CUDA tensors
+=======
+                # Skipping test because combine_mode currently only suppors CUDA tensors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return
 
             result1 = associative_scan1(
@@ -1743,6 +1915,11 @@ class ScanModels:
 
         def forward(self, scan_op, _input, weight, bias):
             def combine_fn(carry, x):
+<<<<<<< HEAD
+=======
+                from torch.utils import _pytree as pytree
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_carry = {
                     "param": carry["param"] @ x + carry["bias"],
                     "bias": carry["bias"].sin(),
@@ -2152,6 +2329,7 @@ class MapTests(TestCase):
         inputs,
         device,
         dynamic=False,
+<<<<<<< HEAD
         autograd=False,
     ):
         import copy
@@ -2171,11 +2349,25 @@ class MapTests(TestCase):
         cloned_inputs = [inp.clone() for inp in inputs]
         result = model(torch._higher_order_ops.map, *cloned_inputs)
         result_exp = model_eager(_fake_map, *cloned_inputs)
+=======
+    ):
+        cnt = torch._dynamo.testing.CompileCounterWithBackend("inductor")
+        compiled_model = torch.compile(backend=cnt, fullgraph=True, dynamic=dynamic)(
+            model
+        )
+
+        inputs = [inp.to(device=device) for inp in inputs]
+        model = model.to(device=device)
+        cloned_inputs = [inp.clone() for inp in inputs]
+        result = model(torch._higher_order_ops.map, *cloned_inputs)
+        result_exp = model(_fake_map, *cloned_inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result_compiled = compiled_model(torch._higher_order_ops.map, *cloned_inputs)
 
         self.assertEqual(result, result_exp)
         self.assertEqual(result, result_compiled)
 
+<<<<<<< HEAD
         if autograd:
             loss_fn(result).backward()
             loss_fn(result_exp).backward()
@@ -2196,34 +2388,57 @@ class MapTests(TestCase):
     @parametrize("autograd", [True, False])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_map_simple(self, device, dynamic, autograd):
+=======
+    @requires_gpu
+    @parametrize("device", ["cpu", GPU_TYPE])
+    @parametrize("dynamic", [True, False])
+    @torch._dynamo.config.patch("capture_scalar_outputs", True)
+    def test_map_simple(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=MapModels.Simple(),
             inputs=(torch.randn(3, 4),),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [True, False])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_map_simple_linear_with_view(self, device, dynamic, autograd):
+=======
+    @torch._dynamo.config.patch("capture_scalar_outputs", True)
+    def test_map_simple_linear_with_view(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=MapModels.SimpleWithLinearWithView(),
             inputs=(torch.randn(3, 4),),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [True, False])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_map_pytree_in_out(self, device, dynamic, autograd):
+=======
+    @torch._dynamo.config.patch("capture_scalar_outputs", True)
+    def test_map_pytree_in_out(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=MapModels.PytreeInOut(),
             inputs=(
@@ -2233,15 +2448,23 @@ class MapTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @requires_gpu
     @parametrize("device", ["cpu", GPU_TYPE])
     @parametrize("dynamic", [True, False])
+<<<<<<< HEAD
     @parametrize("autograd", [True, False])
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     def test_map_nested_with_cond(self, device, dynamic, autograd):
+=======
+    @torch._dynamo.config.patch("capture_scalar_outputs", True)
+    def test_map_nested_with_cond(self, device, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._run_test(
             model=MapModels.NestedWithCond(),
             inputs=(
@@ -2251,7 +2474,10 @@ class MapTests(TestCase):
             ),
             device=device,
             dynamic=dynamic,
+<<<<<<< HEAD
             autograd=autograd,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 

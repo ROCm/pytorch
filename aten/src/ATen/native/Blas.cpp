@@ -9,7 +9,10 @@
 #include <ATen/native/mkldnn/Matmul.h>
 #include <ATen/native/mkldnn/Linear.h>
 #include <ATen/native/Resize.h>
+<<<<<<< HEAD
 #include <ATen/native/GroupedMMUtils.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if !defined(__s390x__) && !defined(__powerpc__)
 #include <cpuinfo.h>
 #endif
@@ -333,6 +336,7 @@ _scaled_mm_cpu(const Tensor& mat_a, const Tensor& mat_b,
   return _scaled_mm_out_cpu(mat_a, mat_b, scale_a, scale_b, bias, scale_result, out_dtype, use_fast_accum, out);
 }
 
+<<<<<<< HEAD
 // TODO(vasiliy, future PR): figure out why we need to declare this function, when
 // other functions that live in ATen/native/*.cpp without declarations
 // or headers work just fine.
@@ -352,4 +356,6 @@ std::optional<c10::ScalarType> out_dtype) {
   return out;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }  // namespace at::native

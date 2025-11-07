@@ -10,9 +10,13 @@ The key classes are:
   attribute access, and other Python object behaviors.
 - Specialized subclasses for common patterns:
   - UserDefinedDictVariable: For dict subclasses
+<<<<<<< HEAD
   - UserDefinedSetVariable: For set subclasses
   - UserDefinedTupleVariable: For tuple subclasses
   - UserDefinedExceptionObjectVariable: For exception subclasses
+=======
+  - UserDefinedTupleVariable: For tuple subclasses
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   - FrozenDataClassVariable: Special handling of frozen dataclasses
   - MutableMappingVariable: For collections.abc.MutableMapping subclasses
 
@@ -46,53 +50,85 @@ import torch.nn
 from torch._guards import TracingContext
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass_type
 
+<<<<<<< HEAD
 from .. import graph_break_hints, polyfills, variables
+=======
+from .. import polyfills, variables
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..bytecode_transformation import create_call_function
 from ..create_parameter_op import do_not_convert_to_tracable_parameter
 from ..exc import (
     handle_observed_exception,
     ObservedAttributeError,
+<<<<<<< HEAD
     ObservedKeyError,
     ObservedTypeError,
     ObservedUserStopIteration,
     raise_observed_exception,
     unimplemented_v2,
+=======
+    raise_observed_exception,
+    unimplemented,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from ..guards import GuardBuilder, install_guard
 from ..source import (
     AttrSource,
     CallFunctionNoArgsSource,
     DataclassFieldsSource,
+<<<<<<< HEAD
     DictGetItemSource,
     GetItemSource,
     RandomValueSource,
     TypeDictSource,
     TypeMROSource,
+=======
+    GetItemSource,
+    RandomValueSource,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TypeSource,
     UnspecializedParamBufferSource,
 )
 from ..utils import (
+<<<<<<< HEAD
     check_constant_args,
     cmp_name_to_op_mapping,
     dict_methods,
     frozenset_methods,
+=======
+    build_checkpoint_variable,
+    check_constant_args,
+    cmp_name_to_op_mapping,
+    dict_methods,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_custom_getattr,
     has_torch_function,
     is_frozen_dataclass,
     is_lru_cache_wrapped_function,
     is_namedtuple_cls,
+<<<<<<< HEAD
+=======
+    is_utils_checkpoint,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_wrapper_or_member_descriptor,
     istype,
     list_methods,
     namedtuple_fields,
     object_has_getattribute,
     proxy_args_kwargs,
+<<<<<<< HEAD
     set_methods,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tensortype_to_dtype,
     tuple_methods,
     unpatched_nn_module_getattr,
 )
+<<<<<<< HEAD
 from .base import ValueMutationNew, VariableTracker
+=======
+from .base import AttributeMutationExisting, ValueMutationNew, VariableTracker
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .dicts import DefaultDictVariable
 from .lists import SizeVariable
 
@@ -139,6 +175,7 @@ def is_forbidden_context_manager(ctx):
     return ctx in f_ctxs
 
 
+<<<<<<< HEAD
 def is_cython_function(obj):
     return (
         callable(obj)
@@ -147,6 +184,8 @@ def is_cython_function(obj):
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class UserDefinedVariable(VariableTracker):
     value: object
 
@@ -157,10 +196,13 @@ class UserDefinedClassVariable(UserDefinedVariable):
     def __init__(self, value, **kwargs) -> None:
         super().__init__(**kwargs)
         self.value = value
+<<<<<<< HEAD
         # Used when we materialize class.__dict__ to a MappingProxyObject. In
         # this case, we don't want to allow mutation in the class because there
         # is no way to reflect it in the created MappingProxyVariable.
         self.ban_mutation = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def as_python_constant(self):
         return self.value
@@ -224,8 +266,11 @@ class UserDefinedClassVariable(UserDefinedVariable):
         return {
             object.__new__,
             dict.__new__,
+<<<<<<< HEAD
             set.__new__,
             frozenset.__new__,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tuple.__new__,
             list.__new__,
         }.union(exceptions)
@@ -258,9 +303,12 @@ class UserDefinedClassVariable(UserDefinedVariable):
         elif name == "__dict__":
             options = {"source": source}
             return variables.GetAttrVariable(self, name, **options)
+<<<<<<< HEAD
         elif name == "__mro__":
             attr_source = self.source and TypeMROSource(self.source)
             return VariableTracker.build(tx, self.value.__mro__, attr_source)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Special handling of collections.OrderedDict.fromkeys()
         # Wrap it as GetAttrVariable(collections.OrderedDict, "fromkeys") to make it consistent with
@@ -303,15 +351,25 @@ class UserDefinedClassVariable(UserDefinedVariable):
             func = obj.__get__(None, self.value)
             return VariableTracker.build(tx, func, source)
         elif source:
+<<<<<<< HEAD
             if inspect.ismemberdescriptor(obj):
+=======
+            # __mro__ is a member in < 3.12, an attribute in >= 3.12
+            if inspect.ismemberdescriptor(obj) or (
+                sys.version_info >= (3, 12) and name == "__mro__"
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return VariableTracker.build(tx, obj.__get__(self.value), source)
 
         if ConstantVariable.is_literal(obj):
             return ConstantVariable.create(obj)
         elif isinstance(obj, enum.Enum):
             return EnumVariable(obj)
+<<<<<<< HEAD
         elif self.value is collections.OrderedDict:
             return variables.GetAttrVariable(self, name)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif name in getattr(self.value, "__dict__", {}) or (
             self.value.__module__.startswith("torch.")
             or self.value.__module__ == "torch"
@@ -419,18 +477,24 @@ class UserDefinedClassVariable(UserDefinedVariable):
             return BuiltinVariable.call_custom_dict_fromkeys(
                 tx, self.value, *args, **kwargs
             )
+<<<<<<< HEAD
         elif self.value is collections.OrderedDict and name == "move_to_end":
             return args[0].call_method(tx, name, [*args[1:]], kwargs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif name == "__eq__" and len(args) == 1 and hasattr(args[0], "value"):
             return variables.ConstantVariable(self.value == args[0].value)
         elif name == "__ne__" and len(args) == 1 and hasattr(args[0], "value"):
             return variables.ConstantVariable(self.value != args[0].value)
+<<<<<<< HEAD
         elif issubclass(self.value, dict) and name != "__new__":
             # __new__ is handled below
             return variables.BuiltinVariable(dict).call_method(tx, name, args, kwargs)
         elif issubclass(self.value, (set, frozenset)) and name != "__new__":
             # __new__ is handled below
             return variables.BuiltinVariable(set).call_method(tx, name, args, kwargs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif (
             name == "__new__"
             and self.value is collections.OrderedDict
@@ -450,6 +514,7 @@ class UserDefinedClassVariable(UserDefinedVariable):
                 args[0],
                 args[1:],
             )
+<<<<<<< HEAD
         elif name == "__setattr__" and self.ban_mutation:
             unimplemented_v2(
                 gb_type="Class attribute mutation when the __dict__ was already materialized",
@@ -457,6 +522,8 @@ class UserDefinedClassVariable(UserDefinedVariable):
                 explanation="Dyanmo does not support tracing mutations on a class when its __dict__ is materialized",
                 hints=graph_break_hints.SUPPORTABLE,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     def call_function(
@@ -484,7 +551,11 @@ class UserDefinedClassVariable(UserDefinedVariable):
             # import here to avoid circular dependency
             from .ctx_manager import NullContextVariable
 
+<<<<<<< HEAD
             return NullContextVariable(*args, **kwargs)
+=======
+            return NullContextVariable()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif self.value is collections.OrderedDict:
             return tx.inline_user_function_return(
                 VariableTracker.build(tx, polyfills.construct_dict),
@@ -504,6 +575,7 @@ class UserDefinedClassVariable(UserDefinedVariable):
             )
         elif is_typeddict(self.value):
             if self.value.__optional_keys__:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="TypedDict with optional keys",
                     context=str(self.value),
@@ -556,6 +628,32 @@ class UserDefinedClassVariable(UserDefinedVariable):
             if "maxlen" in bound_args.arguments:
                 maxlen = bound_args.arguments["maxlen"]
 
+=======
+                unimplemented("TypedDict with optional keys not supported")
+            return variables.BuiltinVariable(dict).call_dict(tx, *args, **kwargs)
+        elif self.value is collections.deque:
+            maxlen = variables.ConstantVariable.create(None)
+            if not kwargs:
+                if len(args) == 0:
+                    items = []
+                elif len(args) == 1 and args[0].has_force_unpack_var_sequence(tx):
+                    items = args[0].force_unpack_var_sequence(tx)
+                elif len(args) == 2 and args[0].has_force_unpack_var_sequence(tx):
+                    items = args[0].force_unpack_var_sequence(tx)
+                    maxlen = args[1]
+                else:
+                    unimplemented("deque() with more than 2 arg not supported")
+            elif tuple(kwargs) == ("maxlen",):
+                maxlen = kwargs["maxlen"]
+                if len(args) == 0:
+                    items = []
+                if len(args) == 1 and args[0].has_force_unpack_var_sequence(tx):
+                    items = args[0].force_unpack_var_sequence(tx)
+                else:
+                    unimplemented("deque() with more than 1 arg not supported")
+            else:
+                unimplemented("deque() with invalid kwargs not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.lists.DequeVariable(
                 items, maxlen=maxlen, mutation_type=ValueMutationNew()
             )
@@ -567,6 +665,7 @@ class UserDefinedClassVariable(UserDefinedVariable):
             return variables.WeakRefVariable(args[0], callback)
         elif self.value is functools.partial:
             if not args:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="missing args to functools.partial",
                     context="",
@@ -576,6 +675,9 @@ class UserDefinedClassVariable(UserDefinedVariable):
                         *graph_break_hints.USER_ERROR,
                     ],
                 )
+=======
+                unimplemented("functools.partial malformed")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # The first arg, a callable (the ctor below will assert on types)
             fn = args[0]
             rest_args = args[1:]
@@ -602,7 +704,10 @@ class UserDefinedClassVariable(UserDefinedVariable):
             and self.source
             and not is_forbidden_context_manager(self.value)
         ):
+<<<<<<< HEAD
             from . import TorchCtxManagerClassVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from .functions import (
                 BaseUserFunctionVariable,
                 FunctionDecoratedByContextlibContextManagerVariable,
@@ -622,6 +727,7 @@ class UserDefinedClassVariable(UserDefinedVariable):
             ):
                 # We are not changing the behavior of Dynamo as these function were
                 # already ignored on trace_rules.py before #136033 landed
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="unsupported contextlib.* API",
                     context=f"{self.value}",
@@ -668,6 +774,19 @@ class UserDefinedClassVariable(UserDefinedVariable):
                     kwargs_dict = args[2].keys_as_python_constant()
                     return fn_var.call_function(tx, args_list, kwargs_dict)
 
+=======
+                unimplemented(
+                    f"{self.value} not supported. This may be due to its use of "
+                    "context-specific operations that are not supported in "
+                    "Dynamo yet (i.e. Exception handling)"
+                )
+
+            if self.value is contextlib._GeneratorContextManager and isinstance(
+                args[0], BaseUserFunctionVariable
+            ):
+                if not torch._dynamo.config.enable_trace_contextlib:
+                    unimplemented("contextlib.contextmanager")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Wrap UserFunctionVariable in FunctionDecoratedByContextlibContextManagerVariable
                 # if the function is annotated with @contextlib.contextmanager
                 # This shouldn't be necessary once generator functions are fully
@@ -1033,6 +1152,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             if torch._dynamo.config.enable_faithful_generator_behavior and isinstance(
                 self.value, types.GeneratorType
             ):
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="call_method on generator",
                     context=f"object={self.value}, method={name}, args={args}, kwargs={kwargs}",
@@ -1051,14 +1171,31 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 source_fn = None
                 if source:
                     source_fn = self.get_source_by_walking_mro(name)
+=======
+                unimplemented("Generator as graph argument is not supported")
+
+            # check for methods implemented in C++
+            if isinstance(method, types.FunctionType):
+                source = (
+                    None
+                    if self.source is None
+                    else AttrSource(AttrSource(self.source, "__class__"), name)
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # TODO(jansel): add a guard to check for monkey patching?
                 from ..mutation_guard import unpatched_nn_module_init
 
                 if method is torch.nn.Module.__init__:
                     method = unpatched_nn_module_init
+<<<<<<< HEAD
                 return UserMethodVariable(
                     method, self, source_fn=source_fn, source=source
                 ).call_function(tx, args, kwargs)
+=======
+                return UserMethodVariable(method, self, source=source).call_function(
+                    tx, args, kwargs
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if method is list.__len__ and self.source and not (args or kwargs):
                 install_guard(self.source.make_guard(GuardBuilder.SEQUENCE_LENGTH))
@@ -1072,6 +1209,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
         try:
             name = name.as_python_constant()
         except NotImplementedError:
+<<<<<<< HEAD
             unimplemented_v2(
                 gb_type="non-const setattr name on user-defined object",
                 context=f"object={self}, name={name}, value={value}",
@@ -1082,6 +1220,11 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             "Attempted setattr on a user-defined object that does not have "
             "an AttributeMutation mutation_type"
         )
+=======
+            unimplemented(f"non-const setattr name: {name}")
+        if not tx.output.side_effects.is_attribute_mutation(self):
+            unimplemented(f"setattr({self}, {name}, ...)")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if directly_update_dict:
             self.attrs_directly_modifed_on_dict.add(name)
@@ -1130,6 +1273,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             ]
         return super().unpack_var_sequence(tx)
 
+<<<<<<< HEAD
     def has_force_unpack_var_sequence(self, tx: "InstructionTranslator") -> bool:
         try:
             variables.BuiltinVariable(iter).call_function(tx, [self], {})
@@ -1151,6 +1295,8 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 break
         return result
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def next_variable(self, tx):
         return self.call_method(tx, "__next__", [], {})
 
@@ -1198,6 +1344,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 ).call_function(tx, [var], kwargs)
 
             if self.source is None:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="attempted to call sourceless user-defined object as a method",
                     context=f"object={self.value}, function={func}, args={args}, kwargs={kwargs}",
@@ -1205,6 +1352,10 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                     hints=[
                         f"Ensure the user-defined object {self.value} is constructed outside the compiled region.",
                     ],
+=======
+                unimplemented(
+                    "Sourceless UserDefinedObjectVariable method not supported"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             func_src = AttrSource(self.source, "__func__")
             func_var = VariableTracker.build(tx, func, func_src)
@@ -1293,6 +1444,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
 
         for idx, klass in enumerate(type(self.value).__mro__):
             if name in klass.__dict__:
+<<<<<<< HEAD
                 if idx != 0:
                     mro_source = TypeMROSource(self.cls_source)
                     klass_source = GetItemSource(mro_source, idx)
@@ -1339,6 +1491,19 @@ class UserDefinedObjectVariable(UserDefinedVariable):
         )
 
     def var_getattr(self, tx: "InstructionTranslator", name):
+=======
+                mro_source = AttrSource(self.cls_source, "__mro__")
+                klass_source = GetItemSource(mro_source, idx)
+                dict_source = AttrSource(klass_source, "__dict__")
+                # TODO(anijain2305) - This is a mapping proxy object. Ideally we
+                # should use DictGetItemSource here.
+                return GetItemSource(dict_source, name)
+
+        unimplemented(f"Could not find {name} in {type(self.value).__mro__}")
+
+    def var_getattr(self, tx: "InstructionTranslator", name):
+        from .. import trace_rules
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from . import ConstantVariable
 
         source = AttrSource(self.source, name) if self.source else None
@@ -1420,6 +1585,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 return out
 
             elif getattr_fn is not None:
+<<<<<<< HEAD
                 unimplemented_v2(
                     gb_type="User-defined object with non-function __getattr__",
                     context=f"object={self.value}, name={name}, getattr_fn={getattr_fn}",
@@ -1429,12 +1595,16 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                         "Ensure the object's __getattr__ is a function type.",
                     ],
                 )
+=======
+                unimplemented("UserDefined with non-function __getattr__")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         from ..mutation_guard import unpatched_nn_module_init
 
         if subobj is torch.nn.Module.__init__:
             subobj = unpatched_nn_module_init
 
+<<<<<<< HEAD
         subobj_from_class = inspect.getattr_static(
             self.value.__class__, name, NO_SUCH_SUBOBJ
         )
@@ -1459,6 +1629,17 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             return variables.UserFunctionVariable(
                 subobj.fget, source=source
             ).call_function(tx, [self], {})
+=======
+        if isinstance(subobj, property):
+            if self.source:
+                # Read the class attribute to reach the property
+                source = AttrSource(AttrSource(self.source, "__class__"), name)
+                # Get the getter function
+                source = AttrSource(source, "fget")
+            return variables.UserMethodVariable(
+                subobj.fget, self, source=source
+            ).call_function(tx, [], {})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(subobj, _collections._tuplegetter):
             # namedtuple fields are represented by _tuplegetter, and here we
             # emulate its `__get__`, which is implemented in C.
@@ -1471,6 +1652,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             # Safe because `staticmethod.__get__` basically won't trigger user
             # code and just returns the underlying `__func__`:
             # https://github.com/python/cpython/blob/3.11/Objects/funcobject.c#L1088-L1100
+<<<<<<< HEAD
             if is_accessible_from_type_mro:
                 # Accessing from __dict__ does not resolve the descriptor, it
                 # returns a staticmethod object, so access the __func__
@@ -1490,6 +1672,13 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 self.var_getattr(tx, "__class__"),
                 source_fn=source_fn,
                 source=source,
+=======
+            func = subobj.__get__(self.value)
+            return VariableTracker.build(tx, func, source)
+        elif isinstance(subobj, classmethod):
+            return variables.UserMethodVariable(
+                subobj.__func__, self.var_getattr(tx, "__class__"), source=source
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         elif isinstance(subobj, types.ClassMethodDescriptorType):
             # e.g.: inspect.getattr_static({}, "fromkeys")
@@ -1550,6 +1739,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             if isinstance(subobj, types.MethodType):
                 if dynamic_subobj.__self__ is not self.value:
                     if not isinstance(dynamic_subobj.__func__, types.FunctionType):
+<<<<<<< HEAD
                         unimplemented_v2(
                             gb_type="User-defined object method with non-function __func__",
                             context=f"object={self.value}, name={name}, method={dynamic_subobj}, "
@@ -1559,6 +1749,10 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                             hints=[
                                 "Ensure that the method's __func__ is a function type.",
                             ],
+=======
+                        unimplemented(
+                            f"Found a method whose __func__ is not of FunctionType - {dynamic_subobj}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
                     # Use the __self__ attribute of the method to find the
@@ -1579,6 +1773,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 func = subobj
 
             if inspect.ismethod(dynamic_subobj):
+<<<<<<< HEAD
                 source_fn = None
                 if is_accessible_from_type_mro:
                     source_fn = self.get_source_by_walking_mro(name)
@@ -1587,6 +1782,18 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 )
             elif inspect.isfunction(dynamic_subobj):
                 return VariableTracker.build(tx, func, source)
+=======
+                return variables.UserMethodVariable(func, self, source=source)
+            elif inspect.isfunction(dynamic_subobj):
+                if is_utils_checkpoint(func):
+                    return build_checkpoint_variable(source=source)
+                elif source is not None:
+                    return trace_rules.lookup(func).create_with_source(
+                        func, source=source
+                    )
+                else:
+                    return trace_rules.lookup(func)(func)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if (
             # wrap the source only if inline_inbuilt_nn_modules is set or fsdp modules. This is a temporary solution to
@@ -1608,6 +1815,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
             source = self._wrap_source(source)
 
         if subobj is not NO_SUCH_SUBOBJ:
+<<<<<<< HEAD
             if (
                 is_wrapper_or_member_descriptor(subobj)
                 or torch._C._dynamo.utils.is_instancemethod(subobj)
@@ -1619,6 +1827,12 @@ class UserDefinedObjectVariable(UserDefinedVariable):
                 if is_accessible_from_type_mro:
                     source = self.get_source_by_walking_mro(name)
 
+=======
+            if is_wrapper_or_member_descriptor(subobj):
+                options = {"source": source}
+                return variables.GetAttrVariable(self, name, **options)
+            if source:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return variables.LazyVariableTracker.create(subobj, source)
             else:
                 # Check if the subobj is accessible from the class itself. If the class source is known, we can create a
@@ -1657,6 +1871,7 @@ class UserDefinedObjectVariable(UserDefinedVariable):
 
 
 class FrozenDataClassVariable(UserDefinedObjectVariable):
+<<<<<<< HEAD
     class HashWrapper:
         """This class is hashed if a dataclass is used as a key in a dict.
         It's necessary to avoid side effects from calling the __init__ of the dataclass class when hashing"""
@@ -1675,6 +1890,8 @@ class FrozenDataClassVariable(UserDefinedObjectVariable):
         def __hash__(self):
             return hash((self.cls, self.fields))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @staticmethod
     def create(tx, value, source):
         from dataclasses import fields
@@ -1748,6 +1965,7 @@ class FrozenDataClassVariable(UserDefinedObjectVariable):
         ctor = self.python_type()
         return ctor(*args, **kwargs)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen: "PyCodegen") -> None:
         # Handle specific pytree classes
         import torch.utils._pytree as pytree
@@ -1763,6 +1981,8 @@ class FrozenDataClassVariable(UserDefinedObjectVariable):
         # For other frozen dataclasses, fall back to the base class behavior
         super().reconstruct(codegen)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NB: This is called during __init__ for a frozen dataclass
     # use this to accumulate the most up-to-date field values
     def method_setattr_standard(self, tx: "InstructionTranslator", name, value):
@@ -1816,7 +2036,11 @@ class UserDefinedExceptionObjectVariable(UserDefinedObjectVariable):
             self.exc_vt.args = args
             self.value.args = args
             return variables.ConstantVariable(None)
+<<<<<<< HEAD
         elif (
+=======
+        if (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             name == "__setattr__"
             and len(args) == 2
             and isinstance(args[0], variables.ConstantVariable)
@@ -1824,18 +2048,24 @@ class UserDefinedExceptionObjectVariable(UserDefinedObjectVariable):
             in ("__cause__", "__context__", "__suppress_context__", "__traceback__")
         ):
             self.exc_vt.call_setattr(tx, args[0], args[1])
+<<<<<<< HEAD
         elif name == "with_traceback":
             return self.exc_vt.call_method(tx, name, args, kwargs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     @property
     def __context__(self):
         return self.exc_vt.__context__
 
+<<<<<<< HEAD
     @property
     def args(self):
         return self.exc_vt.args
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def set_context(self, context: "variables.ExceptionVariable"):
         return self.exc_vt.set_context(context)
 
@@ -1940,7 +2170,11 @@ class UserDefinedDictVariable(UserDefinedObjectVariable):
                 "dict_vt must be constructed by builder.py when source is present"
             )
             self._dict_vt = variables.ConstDictVariable(
+<<<<<<< HEAD
                 {}, type(value), mutation_type=ValueMutationNew()
+=======
+                {}, mutation_type=ValueMutationNew()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         self._dict_methods = dict_methods
 
@@ -1953,6 +2187,7 @@ class UserDefinedDictVariable(UserDefinedObjectVariable):
     ) -> "VariableTracker":
         method = self._maybe_get_baseclass_method(name)
         if method in self._dict_methods:
+<<<<<<< HEAD
             # Dict subclasses can override __missing__ to provide fallback
             # behavior instead of raising a KeyError. This is used, for example,
             # by collections.Counter.
@@ -1967,6 +2202,9 @@ class UserDefinedDictVariable(UserDefinedObjectVariable):
                     return self.call_method(tx, "__missing__", args, kwargs)
                 else:
                     raise
+=======
+            return self._dict_vt.call_method(tx, name, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     def unpack_var_sequence(self, tx):
@@ -1980,6 +2218,7 @@ class UserDefinedDictVariable(UserDefinedObjectVariable):
     def is_underlying_vt_modified(self, side_effects):
         return side_effects.is_modified(self._dict_vt)
 
+<<<<<<< HEAD
     @property
     def user_cls(self):
         return self._dict_vt.user_cls
@@ -2069,6 +2308,8 @@ class UserDefinedSetVariable(UserDefinedObjectVariable):
     def install_dict_contains_guard(self):
         return self._set_vt.install_dict_contains_guard()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class UserDefinedListVariable(UserDefinedObjectVariable):
     """
@@ -2138,7 +2379,11 @@ class UserDefinedTupleVariable(UserDefinedObjectVariable):
             from torch._dynamo.symbolic_convert import InstructionTranslator
 
             tx = InstructionTranslator.current_tx()
+<<<<<<< HEAD
             elems = init_args[0].force_unpack_var_sequence(tx)
+=======
+            elems = init_args[0].unpack_var_sequence(tx)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._tuple_vt = variables.TupleVariable(
                 elems, mutation_type=ValueMutationNew()
             )
@@ -2169,6 +2414,10 @@ class MutableMappingVariable(UserDefinedObjectVariable):
     def __init__(self, value, **kwargs):
         super().__init__(value, **kwargs)
         self.generic_dict_vt = variables.ConstDictVariable({})
+<<<<<<< HEAD
+=======
+        self.mutation_type = AttributeMutationExisting()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def var_getattr(self, tx: "InstructionTranslator", name: str) -> "VariableTracker":
         # A common pattern in the init code of MutableMapping objects is to

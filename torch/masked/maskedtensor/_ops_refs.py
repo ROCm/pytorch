@@ -285,9 +285,13 @@ def layout(func, *args, **kwargs):
     return _get_data(args[0]).layout
 
 
+<<<<<<< HEAD
 @register_dispatch_func(
     [torch.ops.aten.is_contiguous, torch.ops.aten.sym_is_contiguous]
 )
+=======
+@register_dispatch_func([torch.ops.aten.is_contiguous])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_contiguous(func, *args, **kwargs):
     data = _get_data(args[0])
     if data.is_sparse:
@@ -353,10 +357,14 @@ def _apply_fn_on_data(func, *args, **kwargs):
 @register_dispatch_func([torch.ops.aten._to_copy])
 def _to_copy(func, *args, **kwargs):
     new_data = func(_get_data(args[0]), *args[1:], **kwargs)
+<<<<<<< HEAD
     cloned_kwargs = kwargs.copy()
     cloned_kwargs["dtype"] = torch.bool
     new_mask = func(_maybe_get_mask(args[0]), *args[1:], **cloned_kwargs)
     return MaskedTensor(new_data, new_mask)
+=======
+    return MaskedTensor(new_data, _maybe_get_mask(args[0]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_dispatch_func([torch.ops.aten._softmax])

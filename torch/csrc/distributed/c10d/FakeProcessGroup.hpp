@@ -20,6 +20,7 @@ class FakeWork : public Work {
 
 class FakeProcessGroup : public Backend {
  public:
+<<<<<<< HEAD
   struct Options : Backend::Options {
     explicit Options() : Backend::Options("fake") {}
 
@@ -39,6 +40,9 @@ class FakeProcessGroup : public Backend {
   c10::intrusive_ptr<Backend::Options> getBackendOptions() override {
     return c10::static_intrusive_pointer_cast<Backend::Options>(options_);
   }
+=======
+  FakeProcessGroup(int rank, int size) : Backend(rank, size) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   c10::intrusive_ptr<Work> broadcast(
       std::vector<at::Tensor>& /* tensors */,
@@ -212,9 +216,12 @@ class FakeProcessGroup : public Backend {
       const BarrierOptions& /* opts */ = BarrierOptions()) override {
     return c10::make_intrusive<FakeWork>();
   }
+<<<<<<< HEAD
 
  private:
   c10::intrusive_ptr<Options> options_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace c10d

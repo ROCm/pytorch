@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import typing
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from typing import Any, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -9,6 +13,7 @@ import torch
 
 from . import config
 from .codecache import write_text
+<<<<<<< HEAD
 from .kernel_inputs import KernelInputs  # noqa: TC001
 from .metrics import get_metric_table, is_metric_table_enabled
 from .runtime.hints import DeviceProperties, ReductionHint
@@ -19,6 +24,15 @@ from .template_heuristics.triton import (
     CPUConfigHeuristic,
     CUDAConfigHeuristic,
     MTIAConfigHeuristic,
+=======
+from .metrics import get_metric_table, is_metric_table_enabled
+from .runtime.hints import DeviceProperties, ReductionHint
+from .scheduler import BaseSchedulerNode, Scheduler, WhyNoFuse
+from .template_heuristics import (
+    BaseConfigHeuristic,
+    CPUConfigHeuristic,
+    CUDAConfigHeuristic,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ROCmConfigHeuristic,
     XPUConfigHeuristic,
 )
@@ -33,11 +47,16 @@ if TYPE_CHECKING:
 
     from torch.utils._ordered_set import OrderedSet
 
+<<<<<<< HEAD
     from .codegen.common import KernelTemplate
     from .codegen.simd_kernel_features import SIMDKernelFeatures
     from .codegen.triton import TritonKernel
     from .ir import ChoiceCaller
     from .select_algorithm import ExternKernelChoice
+=======
+    from .codegen.simd_kernel_features import SIMDKernelFeatures
+    from .codegen.triton import TritonKernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Sortable(typing.Protocol):
@@ -71,11 +90,69 @@ class InductorChoices:
             return XPUConfigHeuristic()
         elif device_type == "cpu":
             return CPUConfigHeuristic()
+<<<<<<< HEAD
         elif device_type == "mtia":
             return MTIAConfigHeuristic()
         else:
             return BaseConfigHeuristic()
 
+=======
+        else:
+            return BaseConfigHeuristic()
+
+    # GEMM configs
+    def get_base_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        if config.max_autotune_gemm_search_space != "EXHAUSTIVE":
+            return mm_heuristics.get_mm_configs()
+        else:
+            return mm_heuristics.get_exhaustive_mm_configs()
+
+    def get_extra_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_extra_mm_configs()
+
+    def get_int8_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_int8_mm_configs()
+
+    def get_mixed_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_mixed_mm_configs()
+
+    def get_persistent_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_persistent_mm_configs()
+
+    def get_scaled_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_scaled_mm_configs()
+
+    def get_scaled_persistent_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_scaled_persistent_mm_configs()
+
+    def get_mm_plus_mm_configs(
+        self, device_type: Optional[str] = "cuda"
+    ) -> partial[Generator[TritonConfig, None, None]]:
+        mm_heuristics = self.get_config_heuristics(device_type)
+        return mm_heuristics.get_mm_plus_mm_configs()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Conv configs
     def get_conv_configs(
         self, device_type: Optional[str] = "cuda"
@@ -84,7 +161,10 @@ class InductorChoices:
         return conv_heuristics.get_conv_configs()
 
     # Flex attention configs
+<<<<<<< HEAD
     # TODO(coconutruben): break out flexattention/decode configs into the new retrieval mechanism
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_flex_attention_fwd_configs(
         self, head_dim: int, dtype: torch.dtype, device_type: Optional[str] = "cuda"
     ) -> list[Any]:
@@ -103,6 +183,7 @@ class InductorChoices:
         flex_heuristics = self.get_config_heuristics(device_type)
         return flex_heuristics.get_flex_decode_configs(head_dim, dtype)
 
+<<<<<<< HEAD
     def get_mm_configs(
         self,
         kernel_inputs: KernelInputs,
@@ -167,6 +248,8 @@ class InductorChoices:
                 if choice is not None:
                     yield choice
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def triton_kernel_kwargs(
         self,
         kernel_cls: type[TritonKernel],
@@ -216,9 +299,13 @@ class InductorChoices:
         if cooperative_reduction:
             # The RSPLIT of cooperative reductions means each thread block is operating on fewer elements
             try:
+<<<<<<< HEAD
                 threshold *= 32 // min(
                     V.graph.sizevars.size_hint_or_throw(features.numel), 32
                 )
+=======
+                threshold *= 32 // min(V.graph.sizevars.size_hint(features.numel), 32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             except ValueError:
                 pass  # unbacked symint
 
@@ -386,6 +473,7 @@ class InductorChoices:
             WhyNoFuse(node1, node2)("Fusion will increase peak memory")
             return False
 
+<<<<<<< HEAD
         if (
             config.realize_acc_reads_size_threshold is not None
             and scheduler.fusion_accumulate_large_reads(
@@ -397,6 +485,8 @@ class InductorChoices:
             WhyNoFuse(node1, node2)("Fusion accumulate large amount of reads")
             return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
 
     @staticmethod

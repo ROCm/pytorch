@@ -460,6 +460,9 @@ at::Tensor _qconv_prepack_onednn(
     int64_t groups,
     std::optional<torch::List<int64_t>> input_shape=std::nullopt);
 
+<<<<<<< HEAD
 #define FP8E4M3_MAX 448.0
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // #if AT_MKLDNN_ENABLED()

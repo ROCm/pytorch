@@ -811,10 +811,14 @@ class TestBlock(TestCase):
         assert_raises_regex(ValueError, msg, block, [[1], 2])
         assert_raises_regex(ValueError, msg, block, [[], 2])
         assert_raises_regex(
+<<<<<<< HEAD
             ValueError,
             msg,
             block,
             [[[1], [2]], [[3, 4]], [5]],  # missing brackets
+=======
+            ValueError, msg, block, [[[1], [2]], [[3, 4]], [5]]  # missing brackets
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_empty_lists(self, block):

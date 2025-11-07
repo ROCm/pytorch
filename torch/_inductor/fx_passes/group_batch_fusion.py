@@ -1365,6 +1365,7 @@ def apply_group_batch_fusion(graph: torch.fx.GraphModule, rule: GroupBatchFusion
             print_output=False, include_stride=True, include_device=True
         )
 
+<<<<<<< HEAD
         name = f"optimus_{str(rule.__class__.__name__)}"
         if "MTIA" in name:
             name = f"cff_{str(rule.__class__.__name__)}"
@@ -1372,6 +1373,12 @@ def apply_group_batch_fusion(graph: torch.fx.GraphModule, rule: GroupBatchFusion
             "artifact",
             metadata_fn=lambda: {
                 "name": name,
+=======
+        trace_structured(
+            "artifact",
+            metadata_fn=lambda: {
+                "name": f"optimus_{str(rule.__class__.__name__)}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "encoding": "string",
             },
             payload_fn=lambda: graph_str,

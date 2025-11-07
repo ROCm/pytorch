@@ -1,6 +1,22 @@
 # Owner(s): ["oncall: profiler"]
 # ruff: noqa: F841
 
+<<<<<<< HEAD
+=======
+# if tqdm is not shutdown properly, it will leave the monitor thread alive.
+# This causes an issue in the multithreading test because we check all events
+# in that test with their tids. The events that correspond to these lingering
+# threads all have TID of (uint64_t)(-1) which is invalid.
+# The work around is turnning off monitoring thread when tqdm is loaded.
+# Since these are unit tests, it is safe to turn off monitor thread.
+try:
+    import tqdm
+
+    tqdm.tqdm.monitor_interval = 0
+except ImportError:
+    None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 
 import torch
@@ -16,6 +32,7 @@ from torch.profiler import kineto_available, record_function
 from torch.testing._internal.common_utils import run_tests, TestCase
 
 
+<<<<<<< HEAD
 # if tqdm is not shutdown properly, it will leave the monitor thread alive.
 # This causes an issue in the multithreading test because we check all events
 # in that test with their tids. The events that correspond to these lingering
@@ -29,6 +46,8 @@ try:
 except ImportError:
     pass
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Json = dict[str, Any]
 
 

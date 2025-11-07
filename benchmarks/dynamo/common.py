@@ -9,23 +9,36 @@ import copy
 import csv
 import dataclasses
 import functools
+<<<<<<< HEAD
 import gc
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import importlib
 import itertools
 import json
 import logging
 import os
+<<<<<<< HEAD
 import platform
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import random
 import shutil
 import signal
 import subprocess
 import sys
+<<<<<<< HEAD
 import tempfile
 import time
 import weakref
 from contextlib import contextmanager
 from typing import Any, NamedTuple, Optional, overload, TYPE_CHECKING, TypeVar
+=======
+import time
+import weakref
+from contextlib import contextmanager
+from typing import Any, NamedTuple, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -42,7 +55,10 @@ import torch._export
 import torch.distributed
 import torch.multiprocessing as mp
 from torch._C import _has_cuda as HAS_CUDA, _has_xpu as HAS_XPU
+<<<<<<< HEAD
 from torch._C._nativert import PyModelRunner
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.profiler import fx_insert_profiling, Profiler
 from torch._dynamo.testing import (
     dummy_fx_compile,
@@ -58,7 +74,10 @@ try:
     from torch._inductor.utils import fresh_cache
 except ImportError:
     from _dynamo.utils import clone_inputs, graph_break_reasons
+<<<<<<< HEAD
     from _inductor.utils import fresh_cache
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._functorch.config
 from torch._functorch.aot_autograd import set_model_name
@@ -80,10 +99,14 @@ except ImportError:
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Sequence
 
 _D = TypeVar("_D", bound=dict[str, Any])
 _T = TypeVar("_T")
+=======
+    from collections.abc import Mapping
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
@@ -204,6 +227,10 @@ BENCHMARK_USE_SGD = {
     "PLBartForCausalLM",
     "PLBartForConditionalGeneration",
     "PegasusForCausalLM",
+<<<<<<< HEAD
+=======
+    "Speech2Text2ForCausalLM",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "TrOCRForCausalLM",
     "XGLMForCausalLM",
     # TIMM
@@ -773,6 +800,7 @@ def timed(
     return (time_total, result) if return_result else time_total
 
 
+<<<<<<< HEAD
 @overload
 def _normalize_bench_inputs(example_inputs: _D) -> tuple[tuple[()], _D]: ...
 
@@ -784,6 +812,9 @@ def _normalize_bench_inputs(
 
 
 def _normalize_bench_inputs(example_inputs):
+=======
+def _normalize_bench_inputs(example_inputs) -> tuple[tuple[Any], Mapping[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # NOTE(bowbao): For huggingface benchmark, example_inputs are formatted as dictionary,
     # and consumed like `model(**example_inputs)`.
     # For other benchmarks, example_inputs are formatted as tuple and consumed
@@ -1101,10 +1132,13 @@ def speedup_experiment(args, model_iter_fn, model, example_inputs, **kwargs):
             frozen_model_iter_fn = export_aot_inductor(
                 model, example_inputs, args.inductor_compile_mode
             )
+<<<<<<< HEAD
         elif args.export_nativert:
             frozen_model_iter_fn = export_nativert(model, example_inputs)
         elif args.torchscript_jit_trace:
             frozen_model_iter_fn = torchscript_jit_trace(model, example_inputs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             frozen_model_iter_fn = torch._dynamo.run(model_iter_fn)
 
@@ -1451,6 +1485,7 @@ class AOTInductorModelCache:
         return cls.cache.get(weakref.ref(model), (None, 0.0))[1]
 
 
+<<<<<<< HEAD
 class NativeRTCache:
     cache: dict[weakref.ref, Any] = {}
 
@@ -1505,6 +1540,8 @@ class JitTracedCache:
         return cls.cache[key]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def export(model, example_inputs):
     from torch.export.dynamic_shapes import _combine_args, _tree_map_with_path
 
@@ -1531,6 +1568,7 @@ def export(model, example_inputs):
     return opt_export
 
 
+<<<<<<< HEAD
 def export_nativert(model, example_inputs):
     optimized = NativeRTCache.load(model, example_inputs)
 
@@ -1541,6 +1579,8 @@ def export_nativert(model, example_inputs):
     return opt_nativert
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def export_aot_inductor(model, example_inputs, mode):
     optimized = AOTInductorModelCache.load(model, example_inputs, mode)
 
@@ -1551,6 +1591,7 @@ def export_aot_inductor(model, example_inputs, mode):
     return opt_aot_inductor
 
 
+<<<<<<< HEAD
 def torchscript_jit_trace(model, example_inputs):
     optimized = JitTracedCache.load(model, example_inputs)
 
@@ -1561,6 +1602,8 @@ def torchscript_jit_trace(model, example_inputs):
     return opt_jit_trace
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def download_retry_decorator(download_fn):
     """
     Decorator function for applying retry logic to a download function.
@@ -1766,7 +1809,11 @@ class BenchmarkRunner:
         self.grad_scaler = DummyGradScaler()
         self.autocast = contextlib.nullcontext
         self.autocast_arg = {}
+<<<<<<< HEAD
         self.optimizer: Optional[torch.optim.Optimizer] = None
+=======
+        self.optimizer = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._args = None
 
     def setup_amp(self, current_device=None):
@@ -1845,10 +1892,13 @@ class BenchmarkRunner:
         return set()
 
     @property
+<<<<<<< HEAD
     def skip_models_for_cpu_aarch64(self):
         return set()
 
     @property
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def skip_models_for_freezing_cpu(self):
         return set()
 
@@ -2307,12 +2357,16 @@ class BenchmarkRunner:
             try:
                 model_copy = self.deepcopy_and_maybe_parallelize(model)
                 self.init_optimizer(name, current_device, model_copy.parameters())
+<<<<<<< HEAD
                 if (
                     self.args.export
                     or self.args.export_aot_inductor
                     or self.args.export_nativert
                     or self.args.torchscript_jit_trace
                 ):
+=======
+                if self.args.export or self.args.export_aot_inductor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # apply export on module directly
                     # no need for n iterations
                     # the logic should be the same to self.model_iter_fn (forward_pass)
@@ -2472,7 +2526,10 @@ class BenchmarkRunner:
         )
 
         def warmup(fn, model, example_inputs, mode, niters=10):
+<<<<<<< HEAD
             gc.collect()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             peak_mem = 0
             start_stats = get_dynamo_stats()
             try:
@@ -2511,8 +2568,11 @@ class BenchmarkRunner:
         # Use distributed wrapping as necessary
         model = self.deepcopy_and_maybe_parallelize(model)
 
+<<<<<<< HEAD
         if not hasattr(model, name):
             model.name = name
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.init_optimizer(name, current_device, model.parameters())
 
         # The self.autocast context is needed for the model we export with aot_compile,
@@ -2616,6 +2676,11 @@ class BenchmarkRunner:
             result_summary = latency_experiment_summary(
                 self.suite_name, self.args, model, timings, **experiment_kwargs
             )
+<<<<<<< HEAD
+=======
+            if not hasattr(model, name):
+                model.name = name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             results.append(result_summary)
             return " ".join(map(str, results))
 
@@ -2634,7 +2699,10 @@ class BenchmarkRunner:
                 return experiment(*self.maybe_cast(model, example_inputs))
 
         def warmup(fn, model, example_inputs, mode, niters=5):
+<<<<<<< HEAD
             gc.collect()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             peak_mem = 0
             start_stats = get_dynamo_stats()
             try:
@@ -2673,9 +2741,12 @@ class BenchmarkRunner:
         # Use distributed wrapping as necessary
         model = self.deepcopy_and_maybe_parallelize(model)
 
+<<<<<<< HEAD
         if not hasattr(model, name):
             model.name = name
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.init_optimizer(name, current_device, model.parameters())
 
         # The self.autocast context is needed for the model we export with aot_compile,
@@ -2708,11 +2779,15 @@ class BenchmarkRunner:
                         niters=1,
                     )
 
+<<<<<<< HEAD
             if (
                 self.args.export_aot_inductor
                 or self.args.export_nativert
                 or self.args.torchscript_jit_trace
             ):
+=======
+            if self.args.export_aot_inductor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 optimized_model_iter_fn = optimize_ctx
             else:
                 optimized_model_iter_fn = optimize_ctx(self.model_iter_fn)
@@ -2793,6 +2868,11 @@ class BenchmarkRunner:
                     f"{ok:3}/{total:3} +{frames_third_pass} frames {compilation_time:3.0f}s"
                 )
 
+<<<<<<< HEAD
+=======
+            if not hasattr(model, name):
+                model.name = name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             results.append(experiment(model, example_inputs, **experiment_kwargs))
             return " ".join(map(str, results))
 
@@ -3361,12 +3441,15 @@ def parse_args(args=None):
             instead of deleting it and creating a new one.",
     )
 
+<<<<<<< HEAD
     parser.add_argument(
         "--caching-precompile",
         action="store_true",
         help="Enables caching precompile, serializing artifacts to DynamoCache between runs",
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     group_latency = parser.add_mutually_exclusive_group()
     group_latency.add_argument(
         "--cold-start-latency",
@@ -3466,6 +3549,7 @@ def parse_args(args=None):
         help="Measure pass rate with Export+AOTInductor",
     )
     group.add_argument(
+<<<<<<< HEAD
         "--export-nativert",
         action="store_true",
         help="Measure pass rate with Export+NativeRT",
@@ -3476,6 +3560,8 @@ def parse_args(args=None):
         help="Measure pass rate with TorchScript jit.trace",
     )
     group.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "--xla", action="store_true", help="Compare TorchXLA to eager PyTorch"
     )
     group.add_argument(
@@ -3527,6 +3613,7 @@ def parse_args(args=None):
     return parser.parse_args(args)
 
 
+<<<<<<< HEAD
 def process_caching_precompile():
     """
     After every process_entry, save precompile artifacts to DynamoCache
@@ -3550,6 +3637,8 @@ def process_caching_precompile():
         PrecompileContext.populate_caches(results)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def process_entry(rank, runner, original_dir, args):
     args.rank = rank
     with maybe_init_distributed(
@@ -3558,10 +3647,14 @@ def process_entry(rank, runner, original_dir, args):
         world_size=args.world_size,
         port=args.distributed_master_port,
     ):
+<<<<<<< HEAD
         result = run(runner, args, original_dir)
         if args.caching_precompile:
             process_caching_precompile()
         return result
+=======
+        return run(runner, args, original_dir)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def maybe_fresh_cache(args):
@@ -3597,10 +3690,13 @@ def main(runner, original_dir=None, args=None):
             )
 
     with maybe_fresh_cache(args):
+<<<<<<< HEAD
         if args.caching_precompile:
             os.environ["TORCH_CACHING_PRECOMPILE"] = "1"
             torch._dynamo.config.caching_precompile = True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args.init_distributed = args.only and args.multiprocess
         if args.init_distributed:
             # NB: Do NOT query device count before CUDA initialization; we're
@@ -3858,10 +3954,14 @@ def run(runner, args, original_dir=None):
         runner.skip_models.update(runner.slow_models)
 
     if args.devices == ["cpu"]:
+<<<<<<< HEAD
         arch = platform.machine()
         runner.skip_models.update(runner.skip_models_for_cpu)
         if arch == "aarch64":
             runner.skip_models.update(runner.skip_models_for_cpu_aarch64)
+=======
+        runner.skip_models.update(runner.skip_models_for_cpu)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif args.devices == ["cuda"]:
         runner.skip_models.update(runner.skip_models_for_cuda)
 
@@ -3916,6 +4016,7 @@ def run(runner, args, original_dir=None):
         optimize_ctx = export
         experiment = speedup_experiment
         output_filename = "export.csv"
+<<<<<<< HEAD
     elif args.export_nativert:
         optimize_ctx = export_nativert
         experiment = speedup_experiment
@@ -3924,6 +4025,8 @@ def run(runner, args, original_dir=None):
         optimize_ctx = torchscript_jit_trace
         experiment = speedup_experiment
         output_filename = "torchscript_jit_trace.csv"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif args.xla:
         (dev,) = args.devices
         os.environ["PJRT_DEVICE"] = {"cuda": "GPU", "cpu": "CPU"}[dev]
@@ -4238,7 +4341,11 @@ def run(runner, args, original_dir=None):
                 nonlocal marked
                 for i, s in enumerate(t.size()):
                     if s == batch_size:
+<<<<<<< HEAD
                         torch._dynamo.maybe_mark_dynamic(t, i)
+=======
+                        torch._dynamo.mark_dynamic(t, i)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         marked = True
                         break
 

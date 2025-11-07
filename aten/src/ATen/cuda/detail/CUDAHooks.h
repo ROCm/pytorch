@@ -31,8 +31,11 @@ struct CUDAHooks : public at::CUDAHooksInterface {
   bool hasCuSOLVER() const override;
   bool hasCuBLASLt() const override;
   bool hasROCM() const override;
+<<<<<<< HEAD
   bool hasCKSDPA() const override;
   bool hasCKGEMM() const override;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const at::cuda::NVRTC& nvrtc() const override;
   DeviceIndex current_device() const override;
   bool isBuilt() const override {return true;}

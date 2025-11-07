@@ -60,10 +60,13 @@ struct NoopPyInterpreterVTable final : public PyInterpreterVTable {
   bool is_contiguous(const TensorImpl* self, at::MemoryFormat) const override {
     PANIC(is_contiguous);
   }
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous(const TensorImpl* self, at::MemoryFormat)
       const override {
     PANIC(sym_is_contiguous);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_strides_like(const TensorImpl* self, at::MemoryFormat)
       const override {
     PANIC(is_strides_like);

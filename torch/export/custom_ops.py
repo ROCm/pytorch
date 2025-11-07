@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 # mypy: allow-untyped-defs
 import importlib
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 
 
@@ -27,6 +30,7 @@ def _access_subclass_inner_tensor(
             f"Attribute {attr} is not a tensor or doesn't exist in {src_subclass_tensor}"
         )
     return val
+<<<<<<< HEAD
 
 
 def _call_custom_autograd_function_in_pre_dispatch(function_cls_name, *args, **kwargs):
@@ -47,3 +51,5 @@ def _call_custom_autograd_function_in_pre_dispatch(function_cls_name, *args, **k
     function_cls = getattr(module, class_name)
     assert hasattr(function_cls, "apply")
     return function_cls.apply(*args, **kwargs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -24,7 +24,10 @@ class DummyPartitioner(CapabilityBasedPartitioner):
         )
 
 
+<<<<<<< HEAD
 # original graph node order is: ['x', 'add', 'add_1', 'output']
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AddModule(torch.nn.Module):
     def forward(self, x):
         y = torch.add(x, x)
@@ -33,6 +36,7 @@ class AddModule(torch.nn.Module):
 
 
 class TestPartitionerOrder(TestCase):
+<<<<<<< HEAD
     # partitoner test to check graph node order remains the same with the original graph after partitioning
     def test_partitioner_graph_node_order(self):
         m = AddModule()
@@ -50,6 +54,15 @@ class TestPartitionerOrder(TestCase):
         partitions = DummyPartitioner(traced_m).propose_partitions()
         partition_nodes = [list(partition.nodes) for partition in partitions]
         node_order = [n.name for n in partition_nodes[0]]
+=======
+    # partitoner test to check graph node order
+    def test_partitioner_order(self):
+        m = AddModule()
+        traced_m = torch.fx.symbolic_trace(m)
+        partions = DummyPartitioner(traced_m).propose_partitions()
+        partion_nodes = [list(partition.nodes) for partition in partions]
+        node_order = [n.name for n in partion_nodes[0]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(10):
             traced_m = torch.fx.symbolic_trace(m)
             new_partion = DummyPartitioner(traced_m).propose_partitions()

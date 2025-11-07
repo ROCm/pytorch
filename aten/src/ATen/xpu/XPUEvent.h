@@ -12,7 +12,11 @@ namespace at::xpu {
  * must match the same device.
  *
  * Currently, XPUEvent does NOT support to export an inter-process event from
+<<<<<<< HEAD
  * another process via inter-process communication(IPC). So it means that
+=======
+ * another process via inter-process comunication(IPC). So it means that
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * inter-process communication for event handles between different processes is
  * not available. This could impact some applications that rely on cross-process
  * synchronization and communication.

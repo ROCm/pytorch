@@ -575,8 +575,13 @@ def run_meta_crossref(
         elif func in (torch.ops.aten.repeat_interleave.Tensor, torch.ops.aten.repeat_interleave.Tensor_out):
             if kwargs.get("output_size", None) is None:
                 meta_args = args
+<<<<<<< HEAD
                 if func is torch.ops.aten.repeat_interleave.Tensor_out:
                     meta_kwargs["out"] = kwargs["out"]
+=======
+            if func is torch.ops.aten.repeat_interleave.Tensor_out:
+                meta_kwargs["out"] = kwargs["out"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif func in (torch.ops.aten.index.Tensor, torch.ops.aten.index.Tensor_out):
             # Don't convert boolean tensors to meta as they will have nonzero
             # called on them
@@ -681,10 +686,14 @@ meta_function_expected_failures = {
 }
 
 meta_function_expected_failures_conditional = {
+<<<<<<< HEAD
     torch.repeat_interleave: lambda dtype, *args, **kwargs: (
         not isinstance(kwargs.get("repeats", None), int)
         and (kwargs.get("output_size", None) is None)
     ),
+=======
+    torch.repeat_interleave : (lambda dtype, *args, **kwargs: not isinstance(kwargs.get("repeats", None), int)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 """
@@ -1505,7 +1514,11 @@ class TestMeta(TestCase):
     def test_fill__alias_relationship(self):
         inps = torch.rand(2**52, device='meta')
         r = torch.ops.aten.fill_(inps, 1.0)
+<<<<<<< HEAD
         # aten.fill_ returns an alias
+=======
+        # aten.fill_ returns an aliase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(id(inps), id(r))
 
         # aten.fill returns a new tensor

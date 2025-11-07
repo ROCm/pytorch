@@ -34,7 +34,11 @@ basic_gnn_gin,pass,0
 
 
 
+<<<<<<< HEAD
 basic_gnn_sage,pass,0
+=======
+basic_gnn_sage,fail_to_run,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

@@ -193,7 +193,11 @@ class TestEmbeddingOp(DTensorTestBase):
 
         from torch.distributed.tensor._ops._embedding_ops import _MaskPartial
 
+<<<<<<< HEAD
         # case 1: two embeddings with the same shape, thus sharing the underlying _MaskPartial
+=======
+        # case 1: two embeddings with the same shape, thus sharing the underying _MaskPartial
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # and MaskBuffer, because of cache hit from sharding propagation
 
         emb1 = torch.nn.Embedding(10, 23, device=self.device_type)

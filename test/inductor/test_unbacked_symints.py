@@ -489,6 +489,7 @@ class TestUnbackedSymints(InductorTestCase):
         expected = fn(*example_inputs)
         torch.testing.assert_close(actual, expected)
 
+<<<<<<< HEAD
     @skipGPUIf(not HAS_GPU, "requires gpu and triton")
     @skipIfXpu(msg="_scaled_dot_product_flash_attention is not supported on XPU yet")
     @dynamo_config.patch({"capture_dynamic_output_shape_ops": True})
@@ -564,6 +565,8 @@ class TestUnbackedSymints(InductorTestCase):
         expected = fn(*example_inputs)
         torch.testing.assert_close(actual, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(TestUnbackedSymints, globals(), allow_xpu=True)
 

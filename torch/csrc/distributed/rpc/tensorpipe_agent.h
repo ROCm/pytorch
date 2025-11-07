@@ -74,6 +74,11 @@ struct TORCH_API ChannelRegistration {
 
 TORCH_DECLARE_REGISTRY(TensorPipeChannelRegistry, ChannelRegistration);
 
+<<<<<<< HEAD
+=======
+constexpr auto kDefaultNumWorkerThreads = 16;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct TORCH_API TensorPipeRpcBackendOptions : public RpcBackendOptions {
   TensorPipeRpcBackendOptions(
       int numWorkerThreads,

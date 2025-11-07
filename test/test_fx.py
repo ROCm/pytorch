@@ -908,7 +908,11 @@ class TestFX(JitTestCase):
             wrapper = WrapperModule(interpreter)
 
             # Create a graph that: 1) Takes function arguments 2) Invokes the interpreter
+<<<<<<< HEAD
             # 3) Returns the specified return value
+=======
+            # 3) Returns the speficied return value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # FIXME: The following code could be greatly simplified by symbolic_trace'ing
             # the wrapper with a Tracer that considers the Wrapper instance a root
@@ -954,7 +958,11 @@ class TestFX(JitTestCase):
         script_out = scripted_lowered(x)
         torch.testing.assert_close(script_out, ref_out)
 
+<<<<<<< HEAD
         # Test TorchScript Ser/De
+=======
+        # Test TorchScript ser/de
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import_copy = self.getExportImportCopy(scripted_lowered)
         imported_out = import_copy(x)
         torch.testing.assert_close(imported_out, ref_out)
@@ -2225,8 +2233,13 @@ class TestFX(JitTestCase):
         foo_scripted = torch.jit.script(Foo())
         foo_scripted(Pair(torch.rand(5), torch.rand(5)), torch.rand(5), 3)
 
+<<<<<<< HEAD
         fixed = symbolic_trace(Foo())
         fxed_scripted = torch.jit.script(fixed)
+=======
+        fxed = symbolic_trace(Foo())
+        fxed_scripted = torch.jit.script(fxed)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fxed_scripted(Pair(torch.rand(5), torch.rand(5)), torch.rand(5), 3)
 
     def test_fn_type_annotation_empty(self):
@@ -4660,6 +4673,10 @@ class TestFunctionalTracing(JitTestCase):
         "linear": BUILT_IN_FUNC,
         "logsigmoid": BUILT_IN_FUNC,
         "one_hot": BUILT_IN_FUNC,
+<<<<<<< HEAD
+=======
+        "pad": ARG_TYPE_MISMATCH,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "pairwise_distance": BUILT_IN_FUNC,
         "pdist": BUILT_IN_FUNC,
         "pixel_shuffle": BUILT_IN_FUNC,
@@ -4692,6 +4709,15 @@ class TestFunctionalTracing(JitTestCase):
         "max_unpool3d": PROXY_ITERATED,
         "fold": PROXY_ITERATED,
         "unfold": PROXY_ITERATED,
+<<<<<<< HEAD
+=======
+        "adaptive_max_pool1d_with_indices": ARG_TYPE_MISMATCH,
+        "fractional_max_pool2d_with_indices": ARG_TYPE_MISMATCH,
+        "fractional_max_pool3d_with_indices": ARG_TYPE_MISMATCH,
+        "layer_norm": ARG_TYPE_MISMATCH,
+        "rms_norm": ARG_TYPE_MISMATCH,
+        "lp_pool1d": ARG_TYPE_MISMATCH,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "affine_grid": CONTROL_FLOW,
         "alpha_dropout": CONTROL_FLOW,
         "batch_norm": CONTROL_FLOW,
@@ -4725,6 +4751,12 @@ class TestFunctionalTracing(JitTestCase):
         "leaky_relu": CONTROL_FLOW,
         "local_response_norm": CONTROL_FLOW,
         "margin_ranking_loss": CONTROL_FLOW,
+<<<<<<< HEAD
+=======
+        "max_pool1d_with_indices": ARG_TYPE_MISMATCH,
+        "max_pool2d_with_indices": ARG_TYPE_MISMATCH,
+        "max_pool3d_with_indices": ARG_TYPE_MISMATCH,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "mse_loss": CONTROL_FLOW,
         "multi_head_attention_forward": CONTROL_FLOW,
         "multi_margin_loss": CONTROL_FLOW,

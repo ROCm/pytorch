@@ -99,7 +99,11 @@ struct C10_EXPORT ConcretePyObjectHolder final : PyObjectHolder {
     py_obj_.ptr() = nullptr;
   }
 
+<<<<<<< HEAD
   // explicit construction to avoid erroneous implicit conversion and
+=======
+  // explicit construction to avoid errornous implicit conversion and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // copy-initialization
   explicit ConcretePyObjectHolder(py::object py_obj)
       : py_obj_(std::move(py_obj)) {}

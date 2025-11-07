@@ -4,6 +4,7 @@ import time
 import torch
 
 
+<<<<<<< HEAD
 # Import the C++ extension to register the _consume operator
 try:
     import benchmark_cpp_extension  # noqa: F401
@@ -13,6 +14,8 @@ except ImportError as err:
         "Failed to import C++ extension, please build it using \ncd pt_extension \npython -m pip install ."
     ) from err
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """PyTorch performance microbenchmarks.
 
 This module contains PyTorch-specific functionalities for performance
@@ -80,6 +83,7 @@ class TorchBenchmarkBase(torch.nn.Module):
         for _ in range(iters):
             torch.ops.operator_benchmark._consume(self.forward_impl())
 
+<<<<<<< HEAD
     def forward_impl_eager(self):
         # This is to supply the inputs to the forward function which
         # will be called in both the eager and compile mode of local runs
@@ -90,6 +94,8 @@ class TorchBenchmarkBase(torch.nn.Module):
         for _ in range(iters):
             torch.ops.operator_benchmark._consume(self.forward_impl_eager())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def module_name(self):
         """this is used to label the operator being benchmarked"""
         if self.user_given_name:
@@ -136,13 +142,17 @@ class PyTorchOperatorTestCase:
         self.framework = "PyTorch"
         self.time_series = []
         self._jit_forward_graph = None
+<<<<<<< HEAD
         self._compile_forward_graph = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _generate_jit_forward_graph(self):
         """generate a graph for the forward function via scripting"""
         scripted_op_bench = torch.jit.script(self.op_bench)
         return scripted_op_bench.forward_consume
 
+<<<<<<< HEAD
     def _generate_compile_forward_graph(self):
         """generate a compiled graph for the forward function via torch.compile"""
         compiled_forward_consume = torch.compile(
@@ -150,12 +160,15 @@ class PyTorchOperatorTestCase:
         )
         return compiled_forward_consume
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run_jit_forward(self, num_runs, print_per_iter=False, cuda_sync=False):
         """Run the forward path of an op with JIT mode"""
         if self._jit_forward_graph is None:
             self._jit_forward_graph = self._generate_jit_forward_graph()
         self._jit_forward_graph(num_runs)
 
+<<<<<<< HEAD
     def run_compile_forward(self, num_runs, print_per_iter=False, cuda_sync=False):
         """Run the forward path of an op with compile mode"""
         if self._compile_forward_graph is None:
@@ -164,6 +177,8 @@ class PyTorchOperatorTestCase:
         if cuda_sync:
             torch.cuda.synchronize(torch.cuda.current_device())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _print_per_iter(self):
         # print last 50 values
         length = min(len(self.time_series), 50)
@@ -185,14 +200,22 @@ class PyTorchOperatorTestCase:
         if print_per_iter:
             for _ in range(num_runs):
                 start_time = time.time()
+<<<<<<< HEAD
                 self.output = self.op_bench.forward_impl_eager()
+=======
+                self.output = self.op_bench.forward_impl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if cuda_sync:
                     torch.cuda.synchronize(torch.cuda.current_device())
                 end_time = time.time()
                 self.time_series.append((end_time - start_time) * 1e3)
         else:
             for _ in range(num_runs):
+<<<<<<< HEAD
                 self.output = self.op_bench.forward_impl_eager()
+=======
+                self.output = self.op_bench.forward_impl()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if cuda_sync:
                 torch.cuda.synchronize(torch.cuda.current_device())
 

@@ -651,7 +651,11 @@ from torch.fx.experimental import _config as config
 
 
 def translation_validation_enabled() -> bool:
+<<<<<<< HEAD
     # Checks every time this function is called, in case the Dynamo
+=======
+    # Checks everytime this function is called, in case the Dynamo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # option is set, but Z3 is not installed.
     _assert_z3_installed_if_tv_set()
     return _HAS_Z3 and config.translation_validation

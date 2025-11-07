@@ -225,7 +225,11 @@ void RegisterizerAnalysis::visit(const ForPtr& v) {
       // possible that an access at a higher scope could "unhide" the
       // conditional access, in which case we need to hoist. If there is no
       // access to this element at a higher scope then we cannot safely hoist.
+<<<<<<< HEAD
       // We cannot know at this level whether that will or won't occur.
+=======
+      // We cannot know at this level whether that will or wont occur.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       //
       // The solution we take here is to split the space-time continuum, and
       // keep both versions of the access handy. If the hoisted access is not
@@ -542,7 +546,11 @@ void RegisterizerAnalysis::mergeCurrentScopeIntoParent() {
         closeAccessIntoScope(pCandidate, parent);
         parentAccesses.erase(parentIt);
 
+<<<<<<< HEAD
         // the children access inserted into the parent scope.
+=======
+        // the childs access inserted into the parent scope.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         closeAccessIntoScope(candidate, parent);
         continue;
       }
@@ -567,7 +575,11 @@ void RegisterizerAnalysis::mergeCurrentScopeIntoParent() {
       ++it;
     }
 
+<<<<<<< HEAD
     // Insert the children closed access into the parent scope.
+=======
+    // Insert the childs closed access into the parent scope.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     closeAccessIntoScope(candidate, parent);
   }
 

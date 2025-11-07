@@ -486,9 +486,23 @@ class TestLiteScriptModule(TestCase):
                 "Traceback of TorchScript"
             ).check("self.b.forwardError").check_next(
                 "~~~~~~~~~~~~~~~~~~~ <--- HERE"
+<<<<<<< HEAD
             ).check("return self.call").check_next("~~~~~~~~~ <--- HERE").check(
                 "return torch.ones"
             ).check_next("~~~~~~~~~~ <--- HERE").run(str(exp))
+=======
+            ).check(
+                "return self.call"
+            ).check_next(
+                "~~~~~~~~~ <--- HERE"
+            ).check(
+                "return torch.ones"
+            ).check_next(
+                "~~~~~~~~~~ <--- HERE"
+            ).run(
+                str(exp)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestLiteScriptQuantizedModule(QuantizationLiteTestCase):

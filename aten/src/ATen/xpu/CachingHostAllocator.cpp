@@ -30,12 +30,15 @@ struct XPUCachingHostAllocatorImpl
   bool query_event(XPUEvent& event) override {
     return event.query();
   }
+<<<<<<< HEAD
 
   bool pinned_use_background_threads() override {
     // Using background threads for XPU causes a hang on Windows during program
     // exit. Will be enabled once the issue is resolved.
     return false;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 DECLARE_HOST_ALLOCATOR(

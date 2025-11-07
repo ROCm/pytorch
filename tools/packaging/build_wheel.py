@@ -4,7 +4,10 @@ import argparse
 import contextlib
 import logging
 import os
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import subprocess
 import sys
 import tempfile
@@ -17,12 +20,19 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+<<<<<<< HEAD
 logger.setLevel(logging.INFO)
+=======
+logger.setLevel(logging.DEBUG)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ROOT_PATH = Path(__file__).absolute().parent.parent.parent
 SETUP_PY_PATH = ROOT_PATH / "setup.py"
 REQUIREMENTS_PATH = ROOT_PATH / "requirements.txt"
+<<<<<<< HEAD
 PYPROJECT_TOML_PATH = ROOT_PATH / "pyproject.toml"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def run_cmd(
@@ -47,6 +57,7 @@ def interpreter_version(interpreter: str) -> str:
     return str(version_string.split(" ")[1])
 
 
+<<<<<<< HEAD
 def get_supported_python_versions() -> list[str]:
     """Extract supported Python versions from pyproject.toml classifiers."""
     with open(PYPROJECT_TOML_PATH) as f:
@@ -120,6 +131,8 @@ def _find_manylinux_interpreters() -> list[str]:
     return interpreters
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @contextlib.contextmanager
 def venv(interpreter: str) -> Iterator[str]:
     # Should this use EnvBuilder? Probably, maybe a good todo in the future
@@ -176,6 +189,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+<<<<<<< HEAD
         "--find-python",
         type=str,
         choices=["manylinux"],
@@ -186,6 +200,8 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "-d",
         "--destination",
         default="dist/",
@@ -197,6 +213,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+<<<<<<< HEAD
 
     if args.find_python:
         if args.python:
@@ -217,6 +234,9 @@ def main() -> None:
     else:
         pythons = args.python or [sys.executable]
 
+=======
+    pythons = args.python or [sys.executable]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     build_times: dict[str, float] = dict()
 
     if len(pythons) > 1 and args.destination == "dist/":

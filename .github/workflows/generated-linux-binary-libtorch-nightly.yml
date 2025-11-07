@@ -41,7 +41,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -122,7 +126,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cu126
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "12.6"
+=======
+      GPU_ARCH_VERSION: 12.6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: cuda
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: cuda12.6
@@ -145,7 +153,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cu126
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "12.6"
+=======
+      GPU_ARCH_VERSION: 12.6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: cuda
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: cuda12.6
@@ -154,7 +166,11 @@ jobs:
       build_name: libtorch-cuda12_6-shared-with-deps-release
       build_environment: linux-binary-libtorch
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       runs_on: linux.4xlarge.nvidia.gpu  # 12.6 build can use maxwell (sm_50) runner
+=======
+      runs_on: linux.4xlarge.nvidia.gpu # for other cuda versions, we use 4xlarge runner
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
   libtorch-cuda12_6-shared-with-deps-release-upload:  # Uploading
@@ -169,7 +185,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cu126
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "12.6"
+=======
+      GPU_ARCH_VERSION: 12.6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: cuda
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: cuda12.6
@@ -190,7 +210,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cu128
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "12.8"
+=======
+      GPU_ARCH_VERSION: 12.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: cuda
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: cuda12.8
@@ -213,7 +237,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cu128
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "12.8"
+=======
+      GPU_ARCH_VERSION: 12.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: cuda
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: cuda12.8
@@ -222,7 +250,11 @@ jobs:
       build_name: libtorch-cuda12_8-shared-with-deps-release
       build_environment: linux-binary-libtorch
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       runs_on: linux.g4dn.4xlarge.nvidia.gpu # 12.8+ builds need sm_70+ runner
+=======
+      runs_on: linux.g4dn.4xlarge.nvidia.gpu  # 12.8 and 12.9 build need sm_70+ runner
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
   libtorch-cuda12_8-shared-with-deps-release-upload:  # Uploading
@@ -237,7 +269,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: cu128
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "12.8"
+=======
+      GPU_ARCH_VERSION: 12.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: cuda
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: cuda12.8
@@ -248,7 +284,11 @@ jobs:
       github-token: ${{ secrets.GITHUB_TOKEN }}
     uses: ./.github/workflows/_binary-upload.yml
 
+<<<<<<< HEAD
   libtorch-cuda13_0-shared-with-deps-release-build:
+=======
+  libtorch-cuda12_9-shared-with-deps-release-build:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ github.repository_owner == 'pytorch' }}
     uses: ./.github/workflows/_binary-build-linux.yml
     needs: get-label-type
@@ -257,6 +297,7 @@ jobs:
       PACKAGE_TYPE: libtorch
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
+<<<<<<< HEAD
       DESIRED_CUDA: cu130
       GPU_ARCH_VERSION: "13.0"
       GPU_ARCH_TYPE: cuda
@@ -273,6 +314,24 @@ jobs:
     if: ${{ github.repository_owner == 'pytorch' }}
     needs:
       - libtorch-cuda13_0-shared-with-deps-release-build
+=======
+      DESIRED_CUDA: cu129
+      GPU_ARCH_VERSION: 12.9
+      GPU_ARCH_TYPE: cuda
+      DOCKER_IMAGE: libtorch-cxx11-builder
+      DOCKER_IMAGE_TAG_PREFIX: cuda12.9
+      LIBTORCH_CONFIG: release
+      LIBTORCH_VARIANT: shared-with-deps
+      runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+      build_name: libtorch-cuda12_9-shared-with-deps-release
+      build_environment: linux-binary-libtorch
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+  libtorch-cuda12_9-shared-with-deps-release-test:  # Testing
+    if: ${{ github.repository_owner == 'pytorch' }}
+    needs:
+      - libtorch-cuda12_9-shared-with-deps-release-build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - get-label-type
     uses: ./.github/workflows/_binary-test-linux.yml
     with:
@@ -280,6 +339,7 @@ jobs:
       PACKAGE_TYPE: libtorch
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
+<<<<<<< HEAD
       DESIRED_CUDA: cu130
       GPU_ARCH_VERSION: "13.0"
       GPU_ARCH_TYPE: cuda
@@ -294,16 +354,37 @@ jobs:
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
   libtorch-cuda13_0-shared-with-deps-release-upload:  # Uploading
+=======
+      DESIRED_CUDA: cu129
+      GPU_ARCH_VERSION: 12.9
+      GPU_ARCH_TYPE: cuda
+      DOCKER_IMAGE: libtorch-cxx11-builder
+      DOCKER_IMAGE_TAG_PREFIX: cuda12.9
+      LIBTORCH_CONFIG: release
+      LIBTORCH_VARIANT: shared-with-deps
+      build_name: libtorch-cuda12_9-shared-with-deps-release
+      build_environment: linux-binary-libtorch
+      runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+      runs_on: linux.g4dn.4xlarge.nvidia.gpu  # 12.8 and 12.9 build need sm_70+ runner
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+  libtorch-cuda12_9-shared-with-deps-release-upload:  # Uploading
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ github.repository_owner == 'pytorch' }}
     permissions:
       id-token: write
       contents: read
+<<<<<<< HEAD
     needs: libtorch-cuda13_0-shared-with-deps-release-test
+=======
+    needs: libtorch-cuda12_9-shared-with-deps-release-test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       PYTORCH_ROOT: /pytorch
       PACKAGE_TYPE: libtorch
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
+<<<<<<< HEAD
       DESIRED_CUDA: cu130
       GPU_ARCH_VERSION: "13.0"
       GPU_ARCH_TYPE: cuda
@@ -312,6 +393,16 @@ jobs:
       LIBTORCH_CONFIG: release
       LIBTORCH_VARIANT: shared-with-deps
       build_name: libtorch-cuda13_0-shared-with-deps-release
+=======
+      DESIRED_CUDA: cu129
+      GPU_ARCH_VERSION: 12.9
+      GPU_ARCH_TYPE: cuda
+      DOCKER_IMAGE: libtorch-cxx11-builder
+      DOCKER_IMAGE_TAG_PREFIX: cuda12.9
+      LIBTORCH_CONFIG: release
+      LIBTORCH_VARIANT: shared-with-deps
+      build_name: libtorch-cuda12_9-shared-with-deps-release
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
     uses: ./.github/workflows/_binary-upload.yml
@@ -326,14 +417,21 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: rocm6.3
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "6.3"
+=======
+      GPU_ARCH_VERSION: 6.3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: rocm
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: rocm6.3
       LIBTORCH_CONFIG: release
       LIBTORCH_VARIANT: shared-with-deps
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       timeout-minutes: 300
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       build_name: libtorch-rocm6_3-shared-with-deps-release
       build_environment: linux-binary-libtorch
     secrets:
@@ -351,7 +449,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: rocm6.3
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "6.3"
+=======
+      GPU_ARCH_VERSION: 6.3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: rocm
       SKIP_ALL_TESTS: 1
       DOCKER_IMAGE: libtorch-cxx11-builder
@@ -390,7 +492,11 @@ jobs:
           role-duration-seconds: 18000
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-registry: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/') && '308535385114.dkr.ecr.us-east-1.amazonaws.com' || 'docker.io' }}
           docker-image-name: libtorch-cxx11-builder
@@ -398,7 +504,11 @@ jobs:
           docker-build-dir: .ci/docker
           working-directory: pytorch
       - name: Pull Docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
       - name: Test Pytorch binary
@@ -419,7 +529,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: rocm6.3
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "6.3"
+=======
+      GPU_ARCH_VERSION: 6.3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: rocm
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: rocm6.3
@@ -440,14 +554,21 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: rocm6.4
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "6.4"
+=======
+      GPU_ARCH_VERSION: 6.4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: rocm
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: rocm6.4
       LIBTORCH_CONFIG: release
       LIBTORCH_VARIANT: shared-with-deps
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       timeout-minutes: 300
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       build_name: libtorch-rocm6_4-shared-with-deps-release
       build_environment: linux-binary-libtorch
     secrets:
@@ -465,7 +586,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: rocm6.4
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "6.4"
+=======
+      GPU_ARCH_VERSION: 6.4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: rocm
       SKIP_ALL_TESTS: 1
       DOCKER_IMAGE: libtorch-cxx11-builder
@@ -504,7 +629,11 @@ jobs:
           role-duration-seconds: 18000
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-registry: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/') && '308535385114.dkr.ecr.us-east-1.amazonaws.com' || 'docker.io' }}
           docker-image-name: libtorch-cxx11-builder
@@ -512,7 +641,11 @@ jobs:
           docker-build-dir: .ci/docker
           working-directory: pytorch
       - name: Pull Docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
       - name: Test Pytorch binary
@@ -533,7 +666,11 @@ jobs:
       # TODO: This is a legacy variable that we eventually want to get rid of in
       #       favor of GPU_ARCH_VERSION
       DESIRED_CUDA: rocm6.4
+<<<<<<< HEAD
       GPU_ARCH_VERSION: "6.4"
+=======
+      GPU_ARCH_VERSION: 6.4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GPU_ARCH_TYPE: rocm
       DOCKER_IMAGE: libtorch-cxx11-builder
       DOCKER_IMAGE_TAG_PREFIX: rocm6.4

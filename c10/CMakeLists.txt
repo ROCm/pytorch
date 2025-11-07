@@ -18,12 +18,25 @@ else()
   set(C10_LIB c10)
 endif()
 
+<<<<<<< HEAD
 set(C10_USE_GFLAGS ${USE_GFLAGS})  # also used in torch/headeronly
 set(C10_USE_GLOG ${USE_GLOG})  # also used in torch/headeronly
 set(C10_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})  # also used in torch/headeronly
 set(C10_USE_NUMA ${USE_NUMA})  # also used in torch/headeronly
 set(C10_USE_MSVC_STATIC_RUNTIME ${CAFFE2_USE_MSVC_STATIC_RUNTIME})  # also used in torch/headeronly
 set(C10_USE_ROCM_KERNEL_ASSERT ${USE_ROCM_KERNEL_ASSERT})  # also used in torch/headeronly
+=======
+  # ---[ Configure macro file.
+  set(C10_USE_GFLAGS ${USE_GFLAGS}) # used in cmake_macros.h.in
+  set(C10_USE_GLOG ${USE_GLOG}) # used in cmake_macros.h.in
+  set(C10_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS}) # used in cmake_macros.h.in
+  set(C10_USE_NUMA ${USE_NUMA})
+  set(C10_USE_MSVC_STATIC_RUNTIME ${CAFFE2_USE_MSVC_STATIC_RUNTIME})
+  set(C10_USE_ROCM_KERNEL_ASSERT ${USE_ROCM_KERNEL_ASSERT})
+  configure_file(
+      ${CMAKE_CURRENT_LIST_DIR}/macros/cmake_macros.h.in
+      ${CMAKE_BINARY_DIR}/c10/macros/cmake_macros.h)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   # Note: if you want to add ANY dependency to the c10 library, make sure you
   # check with the core PyTorch developers as the dependency will be
@@ -90,8 +103,11 @@ if(NOT BUILD_LIBTORCHLESS)
   if(C10_USE_GLOG)
     target_link_libraries(c10 PUBLIC glog::glog)
   endif()
+<<<<<<< HEAD
 
   target_link_libraries(c10 PUBLIC headeronly)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   target_link_libraries(c10 PRIVATE fmt::fmt-header-only)
   target_link_libraries(c10 PRIVATE nlohmann)
   target_link_libraries(c10 PRIVATE moodycamel)
@@ -168,6 +184,11 @@ endif()
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
+<<<<<<< HEAD
+=======
+install(FILES ${CMAKE_BINARY_DIR}/c10/macros/cmake_macros.h
+        DESTINATION include/c10/macros)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if(MSVC AND C10_BUILD_SHARED_LIBS)
   install(FILES $<TARGET_PDB_FILE:c10> DESTINATION lib OPTIONAL)

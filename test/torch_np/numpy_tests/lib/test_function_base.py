@@ -2881,8 +2881,12 @@ class TestPercentile(TestCase):
         np.testing.assert_equal(res.dtype, arr.dtype)
 
     H_F_TYPE_CODES = [
+<<<<<<< HEAD
         (int_type, np.float64)
         for int_type in "Bbhil"  # np.typecodes["AllInteger"]
+=======
+        (int_type, np.float64) for int_type in "Bbhil"  # np.typecodes["AllInteger"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ] + [
         (np.float16, np.float16),
         (np.float32, np.float32),

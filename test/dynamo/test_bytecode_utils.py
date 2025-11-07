@@ -284,7 +284,11 @@ def fn():
         def nothing(*args):
             pass
 
+<<<<<<< HEAD
         code, _ = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+=======
+        code = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(code.co_exceptiontable, fn.__code__.co_exceptiontable)
 
     @skipIfNotPy311
@@ -300,7 +304,11 @@ def fn():
         def nothing(*args):
             pass
 
+<<<<<<< HEAD
         code, _ = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+=======
+        code = bytecode_transformation.transform_code_object(fn.__code__, nothing)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(code.co_exceptiontable, fn.__code__.co_exceptiontable)
 
     @skipIfNotPy311
@@ -544,6 +552,7 @@ def fn():
 
         self.assertEqual(fn(torch.ones(3)), torch.ones(3) + 1)
 
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/160471
     def test_extended_args_starts_line(self):
         # NOTE: need to LOAD_CONST i before LOAD_FAST x
@@ -572,6 +581,8 @@ def fn():
 
         bytecode_transformation.transform_code_object(fn.__code__, transformations)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class BytecodeHookTests(torch._dynamo.test_case.TestCase):
     def test_bytecode_hook(self):

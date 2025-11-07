@@ -1433,7 +1433,11 @@ Tensor& cholesky_inverse_kernel_impl(Tensor &result, Tensor& infos, bool upper) 
   // This function calculates the inverse matrix in-place
   // result should be in column major order and contain matrices to invert
   // the content of result is overwritten by 'apply_cholesky_inverse'
+<<<<<<< HEAD
 #if defined(USE_LINALG_SOLVER)
+=======
+#if defined(USE_LINALG_SOLVER) && !defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto preferred_backend = at::globalContext().linalgPreferredBackend();
   switch (preferred_backend) {
     case at::LinalgBackend::Cusolver:

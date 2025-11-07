@@ -7,7 +7,10 @@ namespace torch::nativert {
 enum class LayoutPlannerAlgorithmType {
   Bump,
   GreedyBySize,
+<<<<<<< HEAD
   DisjointStorageGroups,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 class LayoutManagerSettings {

@@ -239,12 +239,19 @@ class SchemaMatcher:
     def match_schemas(cls, t: _ExtraFields_TorchOp) -> tuple[FunctionSchema, ...]:
         signature = tuple(
             # Tensor
+<<<<<<< HEAD
             TensorKey.from_tensor(i)
             if isinstance(i, _TensorMetadata)
             #
             # TensorList
             else [TensorKey.from_tensor(j) for j in i]
             if isinstance(i, list)
+=======
+            TensorKey.from_tensor(i) if isinstance(i, _TensorMetadata)
+            #
+            # TensorList
+            else [TensorKey.from_tensor(j) for j in i] if isinstance(i, list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             #
             # Scalar and uncaptured inputs.
             else i
@@ -516,7 +523,11 @@ class DataFlowGraph:
     def flow_nodes(self) -> tuple[DataFlowNode, ...]:
         return tuple(self._flow_nodes)
 
+<<<<<<< HEAD
     def validate(self) -> None:
+=======
+    def validate(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Check that each (Tensor, version) pair has a unique creation node
         outputs: set[tuple[TensorKey, int]] = set()
         for node in self.flow_nodes:
@@ -966,7 +977,11 @@ class MemoryProfile:
                     if key is not None:
                         self._categories.set_by_id(key, Category.OPTIMIZER_STATE)
 
+<<<<<<< HEAD
     def _set_autograd_detail(self) -> None:
+=======
+    def _set_autograd_detail(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prior = {None, Category.AUTOGRAD_DETAIL}
         for node in self._data_flow_graph.flow_nodes:
             if RecordScope.BACKWARD_FUNCTION in get_scopes(node._event):
@@ -978,7 +993,11 @@ class MemoryProfile:
 
 
 class MemoryProfileTimeline:
+<<<<<<< HEAD
     def __init__(self, memory_profile) -> None:
+=======
+    def __init__(self, memory_profile):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """The minimum representation of the memory profile timeline
         includes the memory timeline and categories. The timeline
         consists of [timestamp, action, (TensorKey, version), numbytes]
@@ -1001,7 +1020,11 @@ class MemoryProfileTimeline:
         times: list[int] = []
         sizes: list[list[int]] = []
 
+<<<<<<< HEAD
         def update(key, version, delta) -> None:
+=======
+        def update(key, version, delta):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             category = (
                 self.categories.get(key, version)
                 if isinstance(key, TensorKey)

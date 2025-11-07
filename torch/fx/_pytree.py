@@ -42,7 +42,11 @@ def tree_flatten_spec(
     # I guess these exist for BC, FC reasons.
     # In general, we should be able to directly
     # use pytree tree flattener to flatten them,
+<<<<<<< HEAD
     # as export serializes the pytree separately.
+=======
+    # as export serializes the pytree seperately.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Will remove it in follow up PR.
     if spec.type in SUPPORTED_NODES:
         flatten_fn_spec = SUPPORTED_NODES[spec.type]

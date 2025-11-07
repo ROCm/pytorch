@@ -1,6 +1,9 @@
 # Owner(s): ["oncall: export"]
 import copy
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import tempfile
 import unittest
 
@@ -408,12 +411,16 @@ class TestDraftExport(TestCase):
 
         inp = (torch.ones(3, 3),)
 
+<<<<<<< HEAD
         ep = draft_export(
             M(),
             inp,
             dynamic_shapes={"a": {0: Dim("a0")}},
             prefer_deferred_runtime_asserts_over_guards=True,
         )
+=======
+        ep = draft_export(M(), inp, dynamic_shapes={"a": {0: Dim("a0")}})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         report = ep._report
 
         self.assertEqual(len(report.failures), 1)
@@ -423,11 +430,15 @@ class TestDraftExport(TestCase):
         self.assertEqual(ep.module()(*inp), M()(*inp))
 
         inp = (torch.randn(4, 3),)
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             re.escape("Guard failed: a.size()[0] <= 3"),
         ):
             # expected <= 3, but got 4
+=======
+        with self.assertRaises(RuntimeError):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(*inp)
 
     def test_side_effect1(self):

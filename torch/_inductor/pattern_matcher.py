@@ -63,11 +63,18 @@ from torch._dynamo.utils import counters
 from torch._prims_common import is_integer_dtype
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.experimental.proxy_tensor import make_fx
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import guard_or_false, statically_known_true
 from torch.fx.graph_module import _get_attr
 from torch.fx.immutable_collections import immutable_dict, immutable_list
 from torch.fx.passes.graph_transform_observer import GraphTransformObserver
 from torch.fx.traceback import preserve_node_meta
+=======
+from torch.fx.experimental.symbolic_shapes import statically_known_true
+from torch.fx.graph_module import _get_attr
+from torch.fx.immutable_collections import immutable_dict, immutable_list
+from torch.fx.passes.graph_transform_observer import GraphTransformObserver
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 
 from .._functorch import config as functorch_config
@@ -87,8 +94,11 @@ prims = torch.ops.prims
 Constant = Any
 NodeOrConstant = Union[Constant, torch.fx.Node]
 
+<<<<<<< HEAD
 backend = os.environ.get("TORCHINDUCTOR_PATTERN_MATCH_BACKEND", "inductor")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class SearchFn(Protocol):
     __name__: str
@@ -130,7 +140,11 @@ def _transfer_meta(
     # transfer metadata after pattern matching occurs.
     # skip "val" and "tensor_meta" because this info is too specific; it's unlikely
     # to remain accurate after pattern matching has occurred.
+<<<<<<< HEAD
     if config.trace.provenance_tracking_level == 1:
+=======
+    if config.trace.enabled:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We handle "from_node" field of the node meta specially to record that the new node comes from the old_node.
         new_from_node = new_meta.get("from_node", []).copy()
         new_from_node.append(NodeSource(old_node, pass_name, NodeSourceAction.REPLACE))
@@ -146,8 +160,11 @@ def _transfer_meta(
             for k, v in old_node.meta.items()
             if k in torch.fx.proxy._COPY_META_FIELDS
         )
+<<<<<<< HEAD
     if "stack_trace" in old_node.meta:
         new_meta["stack_trace"] = old_node.meta["stack_trace"]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Match:
@@ -323,12 +340,16 @@ class Match:
                         ]
 
             else:
+<<<<<<< HEAD
                 example_vals = torch.fx.map_arg(
                     args,
                     lambda arg: arg.meta["val"]
                     if "val" in arg.meta
                     else arg.meta["example_value"],
                 )
+=======
+                example_vals = torch.fx.map_arg(args, lambda arg: arg.meta["val"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 replacement = trace_fn(replacement_fn, example_vals)
             if len(self.nodes) == 1:
                 for n in replacement.graph.nodes:
@@ -548,7 +569,11 @@ class _TargetExpr(PatternExpr):
         fns = [fns] if callable(fns) or isinstance(fns, str) else list(fns)
         for fn in fns:
             if isinstance(fn, torch._ops.OpOverloadPacket):
+<<<<<<< HEAD
                 fns.extend(getattr(fn, overload) for overload in fn.overloads())  # noqa: B909
+=======
+                fns.extend(getattr(fn, overload) for overload in fn.overloads())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.fns = fns
         self.fns_set = OrderedSet(fns)
@@ -1177,6 +1202,7 @@ class ReplacementPatternEntry(PatternEntry):
                         raise NotImplementedError(
                             f"NYI: replacement_graph.{target} is not a graph module. Got {sub_gm}."
                         )
+<<<<<<< HEAD
                     assert graph.owning_module is not None
                     graph_name = None
                     for n, mod in graph.owning_module.named_modules():
@@ -1189,6 +1215,14 @@ class ReplacementPatternEntry(PatternEntry):
                             graph.owning_module, target
                         )
                         graph.owning_module.register_module(graph_name, sub_gm)
+=======
+
+                    assert graph.owning_module is not None
+                    _, graph_name = unique_graph_name_with_root(
+                        graph.owning_module, str(target)
+                    )
+                    graph.owning_module.register_module(graph_name, sub_gm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return graph.get_attr(graph_name)
 
                 raise NotImplementedError(f"unhandled {node}")
@@ -1306,9 +1340,13 @@ class ReplacementPatternEntry(PatternEntry):
                 for user in old_uses:
                     idx = maybe_getitem(user)
                     if idx is None:
+<<<<<<< HEAD
                         raise AssertionError(
                             "Deleted index from getitem, did you erase the index and not properly replace it?"
                         )
+=======
+                        raise AssertionError("can't handle")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     replace(user, new[idx])
                 graph.erase_node(old)
 
@@ -1434,9 +1472,13 @@ def register_replacement(
         )
 
         sym_args: list[torch.SymInt] = []
+<<<<<<< HEAD
         fake_mode = torch._dynamo.utils.detect_fake_mode(args)
         assert fake_mode is not None
         with fake_mode:
+=======
+        with torch._dynamo.utils.detect_fake_mode(args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i, grad in enumerate(requires_grad):
                 if isinstance(args[i], torch.Tensor):
                     if grad and is_integer_dtype(args[i].dtype):
@@ -1978,12 +2020,20 @@ class PatternMatcherPass:
                         continue
                     if os.environ.get("TORCHINDUCTOR_PATTERN_MATCH_DEBUG") == node.name:
                         log.warning("%s%s %s %s", node, node.args, m, entry.pattern)
+<<<<<<< HEAD
 
                     if is_match(m) and guard_or_false(entry.extra_check(m)):
                         count += 1
                         entry.apply(m, graph, node)
                         counters[backend]["pattern_matcher_count"] += 1
                         counters[backend]["pattern_matcher_nodes"] += len(m.nodes)
+=======
+                    if is_match(m) and entry.extra_check(m):
+                        count += 1
+                        entry.apply(m, graph, node)
+                        counters["inductor"]["pattern_matcher_count"] += 1
+                        counters["inductor"]["pattern_matcher_nodes"] += len(m.nodes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return count
 
     def clear(self) -> None:
@@ -2108,7 +2158,11 @@ def fwd_only(
 ) -> torch.fx.GraphModule:
     """Build a normalized inference graph, for use with fx_to_pattern"""
     # TODO - look into using aot autograd, asserting no mutating ops here
+<<<<<<< HEAD
     with enable_python_dispatcher(), preserve_node_meta():
+=======
+    with enable_python_dispatcher():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         decompositions = (
             get_decomp_fn() if get_decomp_fn is not None else select_decomp_table()
         )
@@ -2219,13 +2273,21 @@ def init_once_fakemode(fn: Callable[..., Any]) -> Callable[[], Any]:
     @functools.cache
     @functools.wraps(fn)
     def lazy_init() -> Any:
+<<<<<<< HEAD
         counters_ref = counters[backend].copy()
+=======
+        counters_ref = counters["inductor"].copy()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with torch._guards.tracing(None), unset_fake_temporarily(), FakeTensorMode():
             result = fn()
 
         # clear view matches encountered during tracing
+<<<<<<< HEAD
         counters[backend] = counters_ref
+=======
+        counters["inductor"] = counters_ref
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return result
 

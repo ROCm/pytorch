@@ -12,9 +12,12 @@ from torch._dynamo import utils
 from torch._inductor.test_case import TestCase
 
 
+<<<<<<< HEAD
 _IS_WINDOWS = sys.platform == "win32"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestUtils(TestCase):
     def test_nan(self):
         a = torch.Tensor([float("nan")])
@@ -246,6 +249,7 @@ class TestDynamoTimed(TestCase):
         utils.reset_frame_count()
         torch._logging._internal.structured_logging_overhead.clear()
 
+<<<<<<< HEAD
     @dynamo_config.patch({"log_compilation_metrics": True})
     @inductor_config.patch({"force_disable_caches": True})
     def test_stack_trace(self):
@@ -350,6 +354,8 @@ class TestDynamoTimed(TestCase):
             "'Dynamo does not know how to trace builtin operator `print`'",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dynamo_config.patch(
         {
             "log_compilation_metrics": True,
@@ -407,6 +413,7 @@ class TestDynamoTimed(TestCase):
  'additional_fake_tensor_prop': [0.0, 0.0],
  'aot_collect_metadata': [0.0],
  'aot_trace_joint_graph': [0.0],
+<<<<<<< HEAD
  'backward._backward_impl': [0.0],
  'build_guards': [0.0],
  'bytecode_tracing': [0.0],
@@ -438,6 +445,8 @@ class TestDynamoTimed(TestCase):
  'additional_fake_tensor_prop': [0.0, 0.0],
  'aot_collect_metadata': [0.0],
  'aot_trace_joint_graph': [0.0],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'async_compile.wait': [0.0, 0.0],
  'backward._backward_impl': [0.0],
  'build_guards': [0.0],
@@ -462,6 +471,7 @@ class TestDynamoTimed(TestCase):
 {'_recursive_joint_graph_passes': 0.0,
  '_recursive_post_grad_passes': 0.0,
  '_recursive_pre_grad_passes': 0.0,
+<<<<<<< HEAD
  'backend_compile': 0.0,
  'code_gen': 0.0,
  'entire_backward_compile': 0.0,
@@ -474,6 +484,8 @@ class TestDynamoTimed(TestCase):
 {'_recursive_joint_graph_passes': 0.0,
  '_recursive_post_grad_passes': 0.0,
  '_recursive_pre_grad_passes': 0.0,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'async_compile.wait': 0.0,
  'backend_compile': 0.0,
  'code_gen': 0.0,
@@ -500,9 +512,12 @@ class TestDynamoTimed(TestCase):
             e.cuda_version = None
             e.triton_version = None
             e.python_version = None
+<<<<<<< HEAD
             e.stack_trace = None
             e.graph_node_shapes = None
             e.exception_stack_trace = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # First event is for the forward. Formatting makes reading diffs
         # much easier.
@@ -541,7 +556,10 @@ class TestDynamoTimed(TestCase):
  'dynamo_time_before_restart_s': 0.0,
  'end_time_us': 100,
  'entire_frame_compile_time_s': 0.0,
+<<<<<<< HEAD
  'exception_stack_trace': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'fail_reason': None,
  'fail_type': None,
  'fail_user_frame_filename': None,
@@ -550,7 +568,10 @@ class TestDynamoTimed(TestCase):
  'gc_time_us': 0,
  'graph_input_count': 1,
  'graph_node_count': 3,
+<<<<<<< HEAD
  'graph_node_shapes': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'graph_op_count': 1,
  'guard_count': 9,
  'has_guarded_code': True,
@@ -563,7 +584,10 @@ class TestDynamoTimed(TestCase):
  'inductor_fx_remote_cache_hit_keys': None,
  'inductor_fx_remote_cache_miss_count': None,
  'inductor_fx_remote_cache_miss_keys': None,
+<<<<<<< HEAD
  'inline_inbuilt_nn_modules_candidate': False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'is_forward': True,
  'is_runtime': False,
  'joint_graph_pass_time_us': 0,
@@ -577,7 +601,10 @@ class TestDynamoTimed(TestCase):
  'pre_grad_pass_time_us': 0,
  'python_version': None,
  'recompile_reason': None,
+<<<<<<< HEAD
  'recompile_user_contexts': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'remote_cache_time_saved_s': None,
  'remote_cache_version': None,
  'remote_fx_graph_cache_get_time_ms': None,
@@ -589,6 +616,7 @@ class TestDynamoTimed(TestCase):
  'runtime_triton_autotune_time_us': None,
  'shape_env_guard_count': 0,
  'specialize_float': False,
+<<<<<<< HEAD
  'stack_trace': None,
  'start_time': 0.0001,
  'start_time_us': 100,
@@ -675,6 +703,8 @@ class TestDynamoTimed(TestCase):
  'shape_env_guard_count': 0,
  'specialize_float': False,
  'stack_trace': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'start_time': 0.0001,
  'start_time_us': 100,
  'structured_logging_overhead_s': 0.0,
@@ -710,8 +740,13 @@ class TestDynamoTimed(TestCase):
  'compile_id': '1/0',
  'compile_time_autotune_time_us': None,
  'compliant_custom_ops': None,
+<<<<<<< HEAD
  'config_inline_inbuilt_nn_modules': False,
  'config_suppress_errors': False,
+=======
+ 'config_inline_inbuilt_nn_modules': None,
+ 'config_suppress_errors': None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'cuda_version': None,
  'cudagraph_skip_reason': None,
  'distributed_ephemeral_timeout_us': None,
@@ -722,7 +757,10 @@ class TestDynamoTimed(TestCase):
  'dynamo_time_before_restart_s': None,
  'end_time_us': 100,
  'entire_frame_compile_time_s': None,
+<<<<<<< HEAD
  'exception_stack_trace': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'fail_reason': None,
  'fail_type': None,
  'fail_user_frame_filename': None,
@@ -731,7 +769,10 @@ class TestDynamoTimed(TestCase):
  'gc_time_us': None,
  'graph_input_count': None,
  'graph_node_count': None,
+<<<<<<< HEAD
  'graph_node_shapes': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'graph_op_count': None,
  'guard_count': None,
  'has_guarded_code': None,
@@ -744,7 +785,10 @@ class TestDynamoTimed(TestCase):
  'inductor_fx_remote_cache_hit_keys': None,
  'inductor_fx_remote_cache_miss_count': None,
  'inductor_fx_remote_cache_miss_keys': None,
+<<<<<<< HEAD
  'inline_inbuilt_nn_modules_candidate': False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'is_forward': False,
  'is_runtime': False,
  'joint_graph_pass_time_us': None,
@@ -758,7 +802,10 @@ class TestDynamoTimed(TestCase):
  'pre_grad_pass_time_us': None,
  'python_version': None,
  'recompile_reason': None,
+<<<<<<< HEAD
  'recompile_user_contexts': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'remote_cache_time_saved_s': None,
  'remote_cache_version': None,
  'remote_fx_graph_cache_get_time_ms': None,
@@ -770,6 +817,7 @@ class TestDynamoTimed(TestCase):
  'runtime_triton_autotune_time_us': None,
  'shape_env_guard_count': None,
  'specialize_float': None,
+<<<<<<< HEAD
  'stack_trace': None,
  'start_time': 0.0001,
  'start_time_us': 100,
@@ -856,6 +904,8 @@ class TestDynamoTimed(TestCase):
  'shape_env_guard_count': None,
  'specialize_float': None,
  'stack_trace': None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  'start_time': 0.0001,
  'start_time_us': 100,
  'structured_logging_overhead_s': 0.0,

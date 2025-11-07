@@ -1437,7 +1437,11 @@ void nnc_aten_embedding(
     r = at::embedding(weight, indices);
   } catch (...) {
   }
+<<<<<<< HEAD
   // TODO: have to copy output because at::embedding doesn't have an out
+=======
+  // TODO: have to copy output because at::embedding doesnt have an out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // variant and NNC's external calls don't support allocations
   memcpy(buf_data[0], r.const_data_ptr(), r.element_size() * r.numel());
 }

@@ -1,20 +1,29 @@
 # mypy: allow-untyped-defs
 import copy
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import traceback
 from contextlib import contextmanager
 from enum import Enum
 from typing import Any, Optional, Union
 
+<<<<<<< HEAD
 from torch._utils_internal import signpost_event
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ._compatibility import compatibility
 from .graph import Graph
 from .node import Node
 
 
+<<<<<<< HEAD
 log = logging.getLogger(__name__)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     "preserve_node_meta",
     "has_preserved_node_meta",
@@ -56,8 +65,11 @@ class NodeSource:
     action: list["NodeSourceAction"]
     from_node: list["NodeSource"]
     node_info: Optional["NodeInfo"]
+<<<<<<< HEAD
     _dict: Optional[dict[str, Any]]
     _action_string: Optional[str]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -87,10 +99,13 @@ class NodeSource:
             self.node_info = None
             self.from_node = []
 
+<<<<<<< HEAD
         # cache the action string and dict representation for performance.
         self._action_string: Optional[str] = None
         self._dict: Optional[dict[str, Any]] = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def name(self) -> str:
         return self.node_info.name if self.node_info else ""
@@ -107,9 +122,13 @@ class NodeSource:
         return self.print_readable()
 
     def _get_action_string(self):
+<<<<<<< HEAD
         if self._action_string is None:
             self._action_string = "+".join([a.name.lower() for a in self.action])
         return self._action_string
+=======
+        return "+".join([a.name.lower() for a in self.action])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def print_readable(self, indent=0):
         if indent > 9:
@@ -125,6 +144,7 @@ class NodeSource:
         return result
 
     def to_dict(self) -> dict:
+<<<<<<< HEAD
         if self._dict is None:
             # Convert the object to a dictionary
             action_string = self._get_action_string()
@@ -211,6 +231,18 @@ class NodeSource:
         else:
             node_source.from_node = []
         return node_source
+=======
+        # Convert the object to a dictionary
+        action_string = self._get_action_string()
+        return {
+            "name": self.name,
+            "target": self.target,
+            "graph_id": self.graph_id,
+            "pass_name": self.pass_name,
+            "action": action_string,
+            "from_node": [node.to_dict() for node in self.from_node],
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @compatibility(is_backward_compatible=False)
@@ -316,6 +348,7 @@ def get_graph_provenance_json(graph: Graph) -> dict[str, Any]:
     """
     Given an fx.Graph, return a json that contains the provenance information of each node.
     """
+<<<<<<< HEAD
     try:
         provenance_tracking_json = {}
         for node in graph.nodes:
@@ -339,3 +372,14 @@ def get_graph_provenance_json(graph: Graph) -> dict[str, Any]:
             },
         )
         return {}
+=======
+    provenance_tracking_json = {}
+    for node in graph.nodes:
+        if node.op == "call_function":
+            provenance_tracking_json[node.name] = (
+                [source.to_dict() for source in node.meta["from_node"]]
+                if "from_node" in node.meta
+                else []
+            )
+    return provenance_tracking_json
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

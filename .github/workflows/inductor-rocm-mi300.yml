@@ -28,7 +28,11 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -47,8 +51,13 @@ jobs:
       docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
       test-matrix: |
         { include: [
+<<<<<<< HEAD
           { config: "inductor", shard: 1, num_shards: 2, runner: "linux.rocm.gpu.gfx942.1" },
           { config: "inductor", shard: 2, num_shards: 2, runner: "linux.rocm.gpu.gfx942.1" },
+=======
+          { config: "inductor", shard: 1, num_shards: 2, runner: "linux.rocm.gpu.mi300.2" },
+          { config: "inductor", shard: 2, num_shards: 2, runner: "linux.rocm.gpu.mi300.2" },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]}
     secrets: inherit
 

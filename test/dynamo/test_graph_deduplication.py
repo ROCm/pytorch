@@ -4,16 +4,23 @@ import contextlib
 
 import torch
 import torch.fx
+<<<<<<< HEAD
 from torch._dynamo.graph_deduplication import apply_graph_deduplication
 from torch._dynamo.graph_utils import _detect_cycles
 from torch._dynamo.output_graph import FakeRootModule
+=======
+from torch._dynamo.graph_utils import _detect_cycles
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.test_case import TestCase
 from torch._dynamo.testing import (
     AotEagerAndRecordGraphs,
     extract_graph_and_tracker,
     normalize_gm,
 )
+<<<<<<< HEAD
 from torch.compiler import allow_in_graph
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 
 
@@ -1109,6 +1116,7 @@ def forward(self, L_x_ : torch.Tensor, L_y_ : torch.Tensor):
     """,
         )
 
+<<<<<<< HEAD
     def test_tuple_return(self):
         @allow_in_graph
         def tuple_return(x, y):
@@ -1224,6 +1232,8 @@ graph():
 
         fn_opt(*args)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

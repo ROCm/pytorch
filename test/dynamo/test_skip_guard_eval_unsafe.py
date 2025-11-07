@@ -54,9 +54,14 @@ class RunDiffGuardTests(torch._dynamo.test_case.TestCase):
 
     def test_post_recompile(self):
         class Foo:
+<<<<<<< HEAD
             def __init__(self):
                 self.a = 4
                 self.b = 5
+=======
+            a = 4
+            b = 5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         foo = Foo()
 

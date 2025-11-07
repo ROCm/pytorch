@@ -89,6 +89,7 @@ class Threshold(Module):
         # TODO: check in THNN (if inplace == True, then assert value <= threshold)
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -98,6 +99,11 @@ class Threshold(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.threshold(input, self.threshold, self.value, self.inplace)
+
+    def extra_repr(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = ", inplace=True" if self.inplace else ""
         return f"threshold={self.threshold}, value={self.value}{inplace_str}"
 
@@ -133,11 +139,16 @@ class ReLU(Module):
     __constants__ = ["inplace"]
     inplace: bool
 
+<<<<<<< HEAD
     def __init__(self, inplace: bool = False) -> None:
+=======
+    def __init__(self, inplace: bool = False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -147,6 +158,11 @@ class ReLU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.relu(input, inplace=self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = "inplace=True" if self.inplace else ""
         return inplace_str
 
@@ -197,13 +213,18 @@ class RReLU(Module):
 
     def __init__(
         self, lower: float = 1.0 / 8, upper: float = 1.0 / 3, inplace: bool = False
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.lower = lower
         self.upper = upper
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -213,6 +234,11 @@ class RReLU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.rrelu(input, self.lower, self.upper, self.training, self.inplace)
+
+    def extra_repr(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = ", inplace=True" if self.inplace else ""
         return f"lower={self.lower}, upper={self.upper}{inplace_str}"
 
@@ -286,6 +312,7 @@ class Hardtanh(Module):
         assert self.max_val > self.min_val
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -295,6 +322,11 @@ class Hardtanh(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.hardtanh(input, self.min_val, self.max_val, self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = ", inplace=True" if self.inplace else ""
         return f"min_val={self.min_val}, max_val={self.max_val}{inplace_str}"
 
@@ -321,6 +353,7 @@ class ReLU6(Hardtanh):
         >>> output = m(input)
     """
 
+<<<<<<< HEAD
     def __init__(self, inplace: bool = False) -> None:
         super().__init__(0.0, 6.0, inplace)
 
@@ -328,6 +361,12 @@ class ReLU6(Hardtanh):
         """
         Return the extra representation of the module.
         """
+=======
+    def __init__(self, inplace: bool = False):
+        super().__init__(0.0, 6.0, inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = "inplace=True" if self.inplace else ""
         return inplace_str
 
@@ -353,9 +392,12 @@ class Sigmoid(Module):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.sigmoid(input)
 
 
@@ -396,9 +438,12 @@ class Hardsigmoid(Module):
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.hardsigmoid(input, self.inplace)
 
 
@@ -424,9 +469,12 @@ class Tanh(Module):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.tanh(input)
 
 
@@ -462,11 +510,16 @@ class SiLU(Module):
     __constants__ = ["inplace"]
     inplace: bool
 
+<<<<<<< HEAD
     def __init__(self, inplace: bool = False) -> None:
+=======
+    def __init__(self, inplace: bool = False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -476,6 +529,11 @@ class SiLU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.silu(input, inplace=self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = "inplace=True" if self.inplace else ""
         return inplace_str
 
@@ -507,11 +565,16 @@ class Mish(Module):
     __constants__ = ["inplace"]
     inplace: bool
 
+<<<<<<< HEAD
     def __init__(self, inplace: bool = False) -> None:
+=======
+    def __init__(self, inplace: bool = False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -521,6 +584,11 @@ class Mish(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.mish(input, inplace=self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = "inplace=True" if self.inplace else ""
         return inplace_str
 
@@ -564,9 +632,12 @@ class Hardswish(Module):
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.hardswish(input, self.inplace)
 
 
@@ -611,6 +682,7 @@ class ELU(Module):
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -620,6 +692,11 @@ class ELU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.elu(input, self.alpha, self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = ", inplace=True" if self.inplace else ""
         return f"alpha={self.alpha}{inplace_str}"
 
@@ -662,6 +739,7 @@ class CELU(Module):
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -671,6 +749,11 @@ class CELU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.celu(input, self.alpha, self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = ", inplace=True" if self.inplace else ""
         return f"alpha={self.alpha}{inplace_str}"
 
@@ -718,6 +801,7 @@ class SELU(Module):
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -727,6 +811,11 @@ class SELU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.selu(input, self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = "inplace=True" if self.inplace else ""
         return inplace_str
 
@@ -762,6 +851,7 @@ class GLU(Module):
         self.dim = dim
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -771,6 +861,11 @@ class GLU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.glu(input, self.dim)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"dim={self.dim}"
 
 
@@ -810,6 +905,7 @@ class GELU(Module):
         self.approximate = approximate
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -819,6 +915,11 @@ class GELU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.gelu(input, approximate=self.approximate)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"approximate={repr(self.approximate)}"
 
 
@@ -859,6 +960,7 @@ class Hardshrink(Module):
         self.lambd = lambd
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Run forward pass.
         """
@@ -868,6 +970,11 @@ class Hardshrink(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.hardshrink(input, self.lambd)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"{self.lambd}"
 
 
@@ -916,6 +1023,7 @@ class LeakyReLU(Module):
         self.inplace = inplace
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Run forward pass.
         """
@@ -925,6 +1033,11 @@ class LeakyReLU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.leaky_relu(input, self.negative_slope, self.inplace)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inplace_str = ", inplace=True" if self.inplace else ""
         return f"negative_slope={self.negative_slope}{inplace_str}"
 
@@ -949,9 +1062,12 @@ class LogSigmoid(Module):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Run forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.logsigmoid(input)
 
 
@@ -994,6 +1110,7 @@ class Softplus(Module):
         self.threshold = threshold
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Run forward pass.
         """
@@ -1003,6 +1120,11 @@ class Softplus(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.softplus(input, self.beta, self.threshold)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"beta={self.beta}, threshold={self.threshold}"
 
 
@@ -1041,6 +1163,7 @@ class Softshrink(Module):
         self.lambd = lambd
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Run forward pass.
         """
@@ -1050,6 +1173,11 @@ class Softshrink(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.softshrink(input, self.lambd)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return str(self.lambd)
 
 
@@ -1226,7 +1354,11 @@ class MultiheadAttention(Module):
 
         self._reset_parameters()
 
+<<<<<<< HEAD
     def _reset_parameters(self) -> None:
+=======
+    def _reset_parameters(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self._qkv_same_embed_dim:
             xavier_uniform_(self.in_proj_weight)
         else:
@@ -1625,6 +1757,7 @@ class PReLU(Module):
         self.weight = Parameter(torch.empty(num_parameters, **factory_kwargs))
         self.reset_parameters()
 
+<<<<<<< HEAD
     def reset_parameters(self) -> None:
         """
         Resets parameters based on their initialization used in ``__init__``.
@@ -1641,6 +1774,15 @@ class PReLU(Module):
         """
         Return the extra representation of the module.
         """
+=======
+    def reset_parameters(self):
+        torch.nn.init.constant_(self.weight, self.init)
+
+    def forward(self, input: Tensor) -> Tensor:
+        return F.prelu(input, self.weight)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"num_parameters={self.num_parameters}"
 
 
@@ -1664,9 +1806,12 @@ class Softsign(Module):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.softsign(input)
 
 
@@ -1690,9 +1835,12 @@ class Tanhshrink(Module):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.tanhshrink(input)
 
 
@@ -1740,6 +1888,7 @@ class Softmin(Module):
             self.dim = None
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -1749,6 +1898,11 @@ class Softmin(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.softmin(input, self.dim, _stacklevel=5)
+
+    def extra_repr(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"dim={self.dim}"
 
 
@@ -1805,6 +1959,7 @@ class Softmax(Module):
             self.dim = None
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -1814,6 +1969,11 @@ class Softmax(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.softmax(input, self.dim, _stacklevel=5)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"dim={self.dim}"
 
 
@@ -1840,9 +2000,12 @@ class Softmax2d(Module):
     """
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() not in (3, 4):
             raise ValueError(
                 f"Softmax2d: expected input to be 3D or 4D, got {input.dim()}D instead"
@@ -1890,6 +2053,7 @@ class LogSoftmax(Module):
             self.dim = None
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -1899,4 +2063,9 @@ class LogSoftmax(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.log_softmax(input, self.dim, _stacklevel=5)
+
+    def extra_repr(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"dim={self.dim}"

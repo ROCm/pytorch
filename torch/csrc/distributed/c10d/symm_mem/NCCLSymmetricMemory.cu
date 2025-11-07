@@ -93,6 +93,85 @@ class NCCLSymmetricMemory : public SymmetricMemory {
     return nullptr;
   }
 
+<<<<<<< HEAD
+=======
+  // TODO: This is up for change.
+  at::Tensor get_buffer(
+      int rank,
+      c10::IntArrayRef sizes,
+      c10::ScalarType dtype,
+      int64_t storage_offset) {
+    // TODO: deduplicate
+    const size_t numel = std::accumulate(
+        sizes.begin(),
+        sizes.end(),
+        static_cast<size_t>(1),
+        std::multiplies<size_t>());
+    const auto element_size = c10::elementSize(dtype);
+    const auto req_size = (numel + storage_offset) * element_size;
+    TORCH_CHECK(
+        req_size <= buffer_size_,
+        "NCCLSymmetricMemory::get_buffer: the requested size (",
+        req_size,
+        " bytes) exceeds the allocated size (",
+        buffer_size_,
+        " bytes)");
+    auto data_ptr = reinterpret_cast<uint8_t*>(buffers_[rank]) +
+        storage_offset * element_size;
+    auto device = c10::Device(c10::DeviceType::CUDA, device_idx_);
+    auto options = at::TensorOptions().dtype(dtype).device(device);
+    return at::for_blob(data_ptr, sizes)
+        .options(options)
+        .target_device(device)
+        .make_tensor();
+  }
+
+  // TODO: This is up for change.
+  at::Tensor get_signal_pad(
+      int rank,
+      c10::IntArrayRef sizes,
+      std::optional<c10::ScalarType> dtype,
+      int64_t storage_offset) override {
+    // TODO: deduplicate
+    // If the dtype is unspecified, default it to UInt32, as it
+    // is the most common type for signaling purposes.
+    if (!dtype.has_value()) {
+      dtype = c10::ScalarType::UInt32;
+    }
+
+    // If the shape is unspecified, treat the signal pad as a 1d tensor.
+    const auto element_size = c10::elementSize(*dtype);
+    std::vector<int64_t> shape;
+    if (!sizes.empty()) {
+      shape = sizes.vec();
+    } else {
+      shape.push_back(signal_pad_size / element_size);
+    }
+
+    const size_t numel = std::accumulate(
+        shape.begin(),
+        shape.end(),
+        static_cast<size_t>(1),
+        std::multiplies<size_t>());
+    const auto req_size = (numel + storage_offset) * element_size;
+    TORCH_CHECK(
+        req_size <= signal_pad_size,
+        "NCCLSymmetricMemory::get_signal_pad: the requested size (",
+        req_size,
+        " bytes) exceeds the allocated size (",
+        signal_pad_size,
+        " bytes)");
+    auto data_ptr = reinterpret_cast<uint8_t*>(signal_pads_[rank]) +
+        storage_offset * element_size;
+    auto device = c10::Device(c10::DeviceType::CUDA, device_idx_);
+    auto options = at::TensorOptions().dtype(*dtype).device(device);
+    return at::for_blob(data_ptr, shape)
+        .options(options)
+        .target_device(device)
+        .make_tensor();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void barrier(int channel, size_t timeout_ms) override {
     // TODO
   }
@@ -113,10 +192,13 @@ class NCCLSymmetricMemory : public SymmetricMemory {
     return world_size_;
   }
 
+<<<<<<< HEAD
   c10::Device get_device() override {
     return c10::Device(c10::DeviceType::CUDA, device_idx_);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual std::vector<int>& get_rank_to_global_rank() override {
     return rank_to_global_rank_;
   };
@@ -157,6 +239,11 @@ class NCCLSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
 
     auto group_info = get_group_info("0");
     auto store = group_info.store;
+<<<<<<< HEAD
+=======
+    int rank = group_info.rank;
+    int world_size = group_info.world_size;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     c10::cuda::CUDAGuard guard(device_idx);
     // TODO: we might need to use a roundup or mempool for mem allocation.
     void* ptr;
@@ -204,6 +291,10 @@ class NCCLSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
     ncclWindow_t signal_handle;
 
     auto group_info = get_group_info(group_name.value());
+<<<<<<< HEAD
+=======
+    auto global_rank = get_group_info("0").rank;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto buffer_size_map =
         storeExchange.all_gather(group_info.store, group_info.rank, group_info.world_size, it->second->buffer_size);
 
@@ -229,7 +320,11 @@ class NCCLSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
           comm));
 
     void* signal_pad_ptr;
+<<<<<<< HEAD
     C10D_NCCL_CHECK(ncclMemAlloc(&signal_pad_ptr, signal_pad_size), "ncclMemAlloc failed");
+=======
+    TORCH_CHECK(ncclMemAlloc(&signal_pad_ptr, signal_pad_size) == ncclSuccess, "ncclMemAlloc failed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     C10D_NCCL_CHECK(
     ncclCommWindowRegister(comm, signal_pad_ptr, signal_pad_size, (ncclWindow_t*)&signal_handle, NCCL_WIN_COLL_SYMMETRIC),
     c10::str(
@@ -252,6 +347,7 @@ class NCCLSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
     return false;
   };
 
+<<<<<<< HEAD
   c10::DeviceType supported_device_type() override {
     return c10::DeviceType::CUDA;
   }
@@ -260,6 +356,8 @@ class NCCLSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
     return "NCCL";
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   std::unordered_map<void*, c10::intrusive_ptr<SymmetricMemory>>
       ptr_to_symm_mem_;
@@ -271,6 +369,7 @@ class NCCLSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
 
 struct RegisterNCCLSymmetricMemoryAllocator {
     RegisterNCCLSymmetricMemoryAllocator() {
+<<<<<<< HEAD
     auto allocator = c10::make_intrusive<NCCLSymmetricMemoryAllocator>();
     // Query backend used for CUDA tensor
     if (getSymmMemBackendCUDA() == "NCCL") {
@@ -281,6 +380,13 @@ struct RegisterNCCLSymmetricMemoryAllocator {
     } else {
       // Register availability in case `set_backend` is called dynamically
       register_availability("NCCL", allocator);
+=======
+    // Query backend used for CUDA tensor
+    if (getSymmMemBackendCUDA() == "NCCL") {
+      register_allocator(
+          c10::DeviceType::CUDA,
+          c10::make_intrusive<NCCLSymmetricMemoryAllocator>());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 };

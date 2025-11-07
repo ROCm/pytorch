@@ -170,6 +170,7 @@ class RemoteCache(Generic[_T]):
             try:
                 result = self._get(key, sample)
                 cache_stats.get(type(self).__name__, result)
+<<<<<<< HEAD
             except Exception as e:
                 cache_stats.exception(type(self).__name__)
                 if sample:
@@ -177,6 +178,12 @@ class RemoteCache(Generic[_T]):
                 raise
             finally:
                 self._log_sample(sample)
+=======
+            except Exception:
+                cache_stats.exception(type(self).__name__)
+                raise
+            self._log_sample(sample)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return result
 
     # Add `value` to the cache with the key `key`. Note that `None` is not a
@@ -189,6 +196,7 @@ class RemoteCache(Generic[_T]):
             try:
                 self._put(key, value, sample)
                 cache_stats.put(type(self).__name__)
+<<<<<<< HEAD
             except Exception as e:
                 cache_stats.exception(type(self).__name__)
                 if sample:
@@ -196,6 +204,12 @@ class RemoteCache(Generic[_T]):
                 raise
             finally:
                 self._log_sample(sample)
+=======
+            except Exception:
+                cache_stats.exception(type(self).__name__)
+                raise
+            self._log_sample(sample)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Used to convert data from the cache into structured data.
     def _decode(self, data: _U, sample: Optional[Sample]) -> _T:  # type: ignore[override]

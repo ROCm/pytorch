@@ -488,7 +488,11 @@ class TestNumPyInterop(TestCase):
             )  # type: ignore[call-overload]
         else:
             self.assertRaisesRegex(
+<<<<<<< HEAD
                 ValueError,
+=======
+                RuntimeError,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "(Overflow|an integer is required)",
                 lambda: torch.mean(torch.randn(1, 1), np.uint64(-1)),
             )  # type: ignore[call-overload]
@@ -639,6 +643,7 @@ class TestNumPyInterop(TestCase):
         # Regression test for https://github.com/pytorch/pytorch/issues/113037
         self.assertEqual(torch.div(x, y, rounding_mode="floor").shape, y.shape)
 
+<<<<<<< HEAD
     def test_ndarray_astype_object_graph_break(self):
         @torch.compile(backend="eager", fullgraph=True)
         def f(xs):
@@ -661,6 +666,8 @@ class TestNumPyInterop(TestCase):
         ):
             f(xs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(TestNumPyInterop, globals())
 

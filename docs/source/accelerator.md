@@ -25,6 +25,7 @@
     synchronize
     device_index
 ```
+<<<<<<< HEAD
 
 ```{eval-rst}
 .. automodule:: torch.accelerator.memory
@@ -48,3 +49,5 @@
      reset_accumulated_memory_stats
      reset_peak_memory_stats
 ```
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

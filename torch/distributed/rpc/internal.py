@@ -226,7 +226,11 @@ def _handle_exception(result):
         exc = None
         try:
             exc = result.exception_type(exception_msg)
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(  # noqa: B904
                 f"Failed to create original exception type. Error msg was {str(e)}"
                 f" Original exception on remote side was {exception_msg}"

@@ -22,7 +22,10 @@ LABEL_CIFLOW_BINARIES = "ciflow/binaries"
 LABEL_CIFLOW_PERIODIC = "ciflow/periodic"
 LABEL_CIFLOW_BINARIES_LIBTORCH = "ciflow/binaries_libtorch"
 LABEL_CIFLOW_BINARIES_WHEEL = "ciflow/binaries_wheel"
+<<<<<<< HEAD
 LABEL_CIFLOW_ROCM = "ciflow/rocm"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -59,7 +62,13 @@ class BinaryBuildWorkflow:
     is_scheduled: str = ""
     branches: str = "nightly"
     # Mainly for macos
+<<<<<<< HEAD
     macos_runner: str = "macos-14-xlarge"
+=======
+    cross_compile_arm64: bool = False
+    macos_runner: str = "macos-14-xlarge"
+    use_split_build: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Mainly used for libtorch builds
     build_variant: str = ""
 
@@ -70,6 +79,12 @@ class BinaryBuildWorkflow:
                 for item in [self.os, "binary", self.package_type, self.build_variant]
                 if item != ""
             )
+<<<<<<< HEAD
+=======
+        if self.use_split_build:
+            # added to distinguish concurrency groups
+            self.build_environment += "-split"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def generate_workflow_file(self, workflow_template: jinja2.Template) -> None:
         output_file_path = (
@@ -112,6 +127,24 @@ LINUX_BINARY_BUILD_WORFKLOWS = [
             isolated_workflow=True,
         ),
     ),
+<<<<<<< HEAD
+=======
+    # See https://github.com/pytorch/pytorch/issues/138750
+    #   BinaryBuildWorkflow(
+    #     os=OperatingSystem.LINUX,
+    #     package_type="manywheel",
+    #     build_configs=generate_binary_build_matrix.generate_wheels_matrix(
+    #         OperatingSystem.LINUX,
+    #         use_split_build=True,
+    #         arches=["11.8", "12.1", "12.4", "cpu"],
+    #     ),
+    #     ciflow_config=CIFlowConfig(
+    #         labels={LABEL_CIFLOW_BINARIES, LABEL_CIFLOW_BINARIES_WHEEL},
+    #         isolated_workflow=True,
+    #     ),
+    #     use_split_build=True,
+    # ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     BinaryBuildWorkflow(
         os=OperatingSystem.LINUX,
         package_type="libtorch",
@@ -127,6 +160,7 @@ LINUX_BINARY_BUILD_WORFKLOWS = [
     ),
 ]
 
+<<<<<<< HEAD
 ROCM_SMOKE_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.LINUX,
@@ -149,17 +183,43 @@ ROCM_SMOKE_WORKFLOWS = [
     ),
 ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 LINUX_BINARY_SMOKE_WORKFLOWS = [
     BinaryBuildWorkflow(
         os=OperatingSystem.LINUX,
         package_type="manywheel",
         build_configs=generate_binary_build_matrix.generate_wheels_matrix(
             OperatingSystem.LINUX,
+<<<<<<< HEAD
             arches=["12.8"],
             python_versions=["3.12"],
         ),
         branches="main",
     ),
+=======
+            arches=["12.6", "12.8", "12.9", "6.4"],
+            python_versions=["3.9"],
+        ),
+        branches="main",
+    ),
+    # See https://github.com/pytorch/pytorch/issues/138750
+    # BinaryBuildWorkflow(
+    #     os=OperatingSystem.LINUX,
+    #     package_type="manywheel",
+    #     build_configs=generate_binary_build_matrix.generate_wheels_matrix(
+    #         OperatingSystem.LINUX,
+    #         arches=["11.8", "12.1", "12.4"],
+    #         python_versions=["3.9"],
+    #         use_split_build=True,
+    #     ),
+    #     ciflow_config=CIFlowConfig(
+    #         labels={LABEL_CIFLOW_PERIODIC},
+    #     ),
+    #     branches="main",
+    #     use_split_build=True,
+    # ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     BinaryBuildWorkflow(
         os=OperatingSystem.LINUX,
         package_type="libtorch",
@@ -302,6 +362,10 @@ MACOS_BINARY_BUILD_WORKFLOWS = [
             generate_binary_build_matrix.RELEASE,
             libtorch_variants=["shared-with-deps"],
         ),
+<<<<<<< HEAD
+=======
+        cross_compile_arm64=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         macos_runner="macos-14-xlarge",
         ciflow_config=CIFlowConfig(
             labels={LABEL_CIFLOW_BINARIES, LABEL_CIFLOW_BINARIES_LIBTORCH},
@@ -314,6 +378,10 @@ MACOS_BINARY_BUILD_WORKFLOWS = [
         build_configs=generate_binary_build_matrix.generate_wheels_matrix(
             OperatingSystem.MACOS_ARM64
         ),
+<<<<<<< HEAD
+=======
+        cross_compile_arm64=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         macos_runner="macos-14-xlarge",
         ciflow_config=CIFlowConfig(
             labels={LABEL_CIFLOW_BINARIES, LABEL_CIFLOW_BINARIES_WHEEL},
@@ -373,11 +441,14 @@ def main() -> None:
             S390X_BINARY_BUILD_WORKFLOWS,
         ),
         (
+<<<<<<< HEAD
             # Give rocm it's own workflow file
             jinja_env.get_template("linux_binary_build_workflow.yml.j2"),
             ROCM_SMOKE_WORKFLOWS,
         ),
         (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             jinja_env.get_template("linux_binary_build_workflow.yml.j2"),
             LINUX_BINARY_SMOKE_WORKFLOWS,
         ),

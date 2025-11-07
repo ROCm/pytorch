@@ -1,6 +1,9 @@
 # Owner(s): ["module: intel"]
 
+<<<<<<< HEAD
 import gc
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import subprocess
 import sys
@@ -102,7 +105,10 @@ class TestXpu(TestCase):
         self.assertEqual(device_name, torch.xpu.get_device_name())
 
         device_capability = torch.xpu.get_device_capability(current_device)
+<<<<<<< HEAD
         self.assertTrue(device_capability["device_id"] > 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(device_capability["max_work_group_size"] > 0)
         self.assertTrue(device_capability["max_num_sub_groups"] > 0)
         self.assertEqual(
@@ -134,10 +140,13 @@ class TestXpu(TestCase):
                 device_properties.architecture,
                 device_capability["architecture"],
             )
+<<<<<<< HEAD
         self.assertEqual(
             len(str(device_properties.uuid)), 36
         )  # xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         self.assertEqual(len(device_properties.uuid.bytes), 16)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
     def test_wrong_xpu_fork(self):
@@ -525,6 +534,7 @@ if __name__ == "__main__":
         )
         del a
 
+<<<<<<< HEAD
     def test_memory_stats(self):
         gc.collect()
         torch.xpu.empty_cache()
@@ -561,6 +571,8 @@ if __name__ == "__main__":
         self.assertEqual(torch.accelerator.max_memory_allocated(), prev_max_allocated)
         self.assertEqual(torch.accelerator.max_memory_reserved(), prev_max_reserved)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipXPUIf(
         int(torch.version.xpu) < 20250000,
         "Test requires SYCL compiler version 2025.0.0 or newer.",

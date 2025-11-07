@@ -25,7 +25,11 @@ TEST(TestHalf, Arithmetic) {
   ASSERT_EQ(one + one, 2);
 }
 
+<<<<<<< HEAD
 TEST(TestHalf, Comparisons) {
+=======
+TEST(TestHalf, Comparisions) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Half zero = 0;
   Half one = 1;
   ASSERT_LT(zero, one);

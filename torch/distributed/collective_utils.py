@@ -9,6 +9,7 @@ Each should also handle single rank scenario.
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 import importlib
 import logging
 from collections import defaultdict
@@ -32,6 +33,14 @@ __all__: list[str] = [
 
 logger = logging.getLogger(__name__)
 
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, cast, Generic, Optional, TypeVar, Union
+
+import torch.distributed as dist
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T = TypeVar("T")
 
 
@@ -232,6 +241,7 @@ def all_gather_object_enforce_type(
                 f"Object type at index {i} is {type(object_list[i])}, "
                 f"while first object type is {type(first_obj)}"
             )
+<<<<<<< HEAD
 
 
 def _summarize_ranks(ranks: Iterable[int]) -> str:
@@ -341,3 +351,5 @@ def _check_rng_sync(
         log_str = f"Generator desync detected:\n{_desync_table_str(value_header, value_ranks)}"
         logger.error(log_str)
     return log_str
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

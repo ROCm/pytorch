@@ -1126,11 +1126,14 @@ This class does not support ``__members__`` property.)");
       .def_static(
           "has_multicast_support",
           &::c10d::symmetric_memory::has_multicast_support)
+<<<<<<< HEAD
       .def_static("set_backend", &::c10d::symmetric_memory::set_backend)
       .def_static("get_backend", &::c10d::symmetric_memory::get_backend)
       .def_static(
           "get_mempool_allocator",
           &::c10d::symmetric_memory::get_mempool_allocator)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def_property_readonly("rank", &SymmetricMemory::get_rank)
       .def_property_readonly("world_size", &SymmetricMemory::get_world_size)
       .def_property_readonly(
@@ -1170,7 +1173,10 @@ This class does not support ``__members__`` property.)");
       .def_property_readonly("buffer_size", &SymmetricMemory::get_buffer_size)
       .def_property_readonly(
           "signal_pad_size", &SymmetricMemory::get_signal_pad_size)
+<<<<<<< HEAD
       .def_property_readonly("offset", &SymmetricMemory::get_offset)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def(
           "get_buffer",
           &SymmetricMemory::get_buffer,
@@ -1202,12 +1208,15 @@ This class does not support ``__members__`` property.)");
           py::arg("src_rank"),
           py::arg("channel") = 0,
           py::arg("timeout_ms") = 0)
+<<<<<<< HEAD
       .def(
           "get_remote_tensor",
           &SymmetricMemory::get_remote_tensor,
           py::arg("peer"),
           py::arg("sizes"),
           py::arg("dtype"))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Util functions that are often used together with symmetric memory but
       // not necessarily directly on symmetric memory.
       .def_static(
@@ -2073,6 +2082,7 @@ communication mechanism.
           .def("rank", &::c10d::ProcessGroup::getRank, R"(Get the rank of this process group.)")
           .def("size", &::c10d::ProcessGroup::getSize, R"(Get the size of this process group.)")
           .def("name", &::c10d::ProcessGroup::getBackendName, R"(Get the name of this process group.)")
+<<<<<<< HEAD
           .def("get_group_store", &::c10d::ProcessGroup::getStore, R"(Get the store of this process group.)")
           .def(
               "split_group",
@@ -2103,6 +2113,8 @@ communication mechanism.
               py::arg("group_name") = std::nullopt,
               py::arg("group_desc") = std::nullopt,
               py::call_guard<py::gil_scoped_release>())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .def(
               "abort",
               &::c10d::ProcessGroup::abort,
@@ -2126,22 +2138,35 @@ communication mechanism.
               py::call_guard<py::gil_scoped_release>(),
               R"(Broadcasts the tensor to all processes in the process group.
 
+<<<<<<< HEAD
               See :func:`torch.distributed.broadcast` for more details.)")
+=======
+              See :func:`torch.distributed.broadcast for more details.)")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .def(
               "broadcast",
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  at::Tensor& x,
+<<<<<<< HEAD
                  int rootRank,
                 std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::BroadcastOptions opts;
                 opts.rootRank = rootRank;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 int rootRank) {
+                ::c10d::BroadcastOptions opts;
+                opts.rootRank = rootRank;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> tensors = {x};
                 return self->broadcast(tensors, opts);
               },
               py::arg("tensor"),
               py::arg("root"),
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Broadcasts the tensor to all processes in the process group.
 
@@ -2159,16 +2184,25 @@ communication mechanism.
               "allreduce",
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  std::vector<at::Tensor>& xs,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                 std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::AllreduceOptions opts;
                 opts.reduceOp = op;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 const ::c10d::ReduceOp& op) {
+                ::c10d::AllreduceOptions opts;
+                opts.reduceOp = op;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return self->allreduce(xs, opts);
               },
               py::arg("tensors"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Allreduces the provided tensors across all processes in the process group.
 
@@ -2178,17 +2212,26 @@ communication mechanism.
               "allreduce",
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  at::Tensor& x,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                  std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::AllreduceOptions opts;
                 opts.reduceOp = op;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 const ::c10d::ReduceOp& op) {
+                ::c10d::AllreduceOptions opts;
+                opts.reduceOp = op;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> xs = {x};
                 return self->allreduce(xs, opts);
               },
               py::arg("tensor"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Allreduces the provided tensors across all processes in the process group.
 
@@ -2218,19 +2261,29 @@ communication mechanism.
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  at::Tensor& x,
                  int rootRank,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                 std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::ReduceOptions opts;
                 opts.reduceOp = op;
                 opts.rootRank = rootRank;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 const ::c10d::ReduceOp& op) {
+                ::c10d::ReduceOptions opts;
+                opts.reduceOp = op;
+                opts.rootRank = rootRank;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> xs = {x};
                 return self->reduce(xs, opts);
               },
               py::arg("tensor"),
               py::arg("root"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Reduces the provided tensors across all processes in the process group.
 
@@ -2249,6 +2302,7 @@ communication mechanism.
               "allgather",
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  std::vector<at::Tensor>& output,
+<<<<<<< HEAD
                  at::Tensor& input,
                  std::optional<std::chrono::milliseconds> timeout) {
                 std::vector<std::vector<at::Tensor>> outputs = {output};
@@ -2264,6 +2318,20 @@ communication mechanism.
               R"(Allgathers the input tensors from all processes across the process group.
 
               See :func:`torch.distributed.all_gather` for more details.)")
+=======
+                 at::Tensor& input) {
+                std::vector<std::vector<at::Tensor>> outputs = {output};
+                std::vector<at::Tensor> inputs = {input};
+                return self->allgather(
+                    outputs, inputs, ::c10d::AllgatherOptions());
+              },
+              py::arg("output_tensors"),
+              py::arg("input_tensor"),
+              py::call_guard<py::gil_scoped_release>(),
+              R"(Allgathers the input tensors from all processes across the process group.
+
+              See :func:`torch.distributed.all_gather: for more details.)")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .def(
               "_allgather_base",
               &::c10d::ProcessGroup::_allgather_base,
@@ -2307,6 +2375,7 @@ communication mechanism.
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  std::vector<at::Tensor>& output,
                  at::Tensor& input,
+<<<<<<< HEAD
                  int rootRank,
                 std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::GatherOptions opts;
@@ -2316,13 +2385,22 @@ communication mechanism.
                 if (!output.empty()) {
                   outputs.push_back(output);
                 }
+=======
+                 int rootRank) {
+                ::c10d::GatherOptions opts;
+                opts.rootRank = rootRank;
+                std::vector<std::vector<at::Tensor>> outputs = {output};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> inputs = {input};
                 return self->gather(outputs, inputs, opts);
               },
               py::arg("output_tensors"),
               py::arg("input_tensor"),
               py::arg("root"),
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Gathers the input tensors from all processes across the process group.
 
@@ -2342,6 +2420,7 @@ communication mechanism.
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  at::Tensor& output,
                  std::vector<at::Tensor>& input,
+<<<<<<< HEAD
                  int rootRank,
                 std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::ScatterOptions opts;
@@ -2351,13 +2430,22 @@ communication mechanism.
                 if (!input.empty()) {
                   inputs.push_back(input);
                 }
+=======
+                 int rootRank) {
+                ::c10d::ScatterOptions opts;
+                opts.rootRank = rootRank;
+                std::vector<std::vector<at::Tensor>> inputs = {input};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> outputs = {output};
                 return self->scatter(outputs, inputs, opts);
               },
               py::arg("output_tensor"),
               py::arg("input_tensors"),
               py::arg("root"),
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Scatters the input tensors from all processes across the process group.
 
@@ -2377,19 +2465,29 @@ communication mechanism.
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                  at::Tensor& output,
                  std::vector<at::Tensor>& input,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                 std::optional<std::chrono::milliseconds> timeout) {
+=======
+                 const ::c10d::ReduceOp& op) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> outputs = {output};
                 std::vector<std::vector<at::Tensor>> inputs = {input};
                 ::c10d::ReduceScatterOptions opts;
                 opts.reduceOp = op;
+<<<<<<< HEAD
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return self->reduce_scatter(outputs, inputs, opts);
               },
               py::arg("output"),
               py::arg("input"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>(),
               R"(Reduces and scatters the input tensors from all processes across the process group.
 
@@ -2422,6 +2520,7 @@ communication mechanism.
               py::call_guard<py::gil_scoped_release>(),
               R"(Alltoalls the input tensors from all processes across the process group.
 
+<<<<<<< HEAD
               See :func:`torch.distributed.all_to_all` for more details.)")
           .def(
               "alltoall_base",
@@ -2444,6 +2543,9 @@ communication mechanism.
               R"(Alltoalls the input tensors from all processes across the process group.
 
               See :func:`torch.distributed.all_to_all` for more details.)")
+=======
+              See :func:`torch.distributed.all_to_all for more details.)")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .def(
               "alltoall",
               &::c10d::ProcessGroup::alltoall,
@@ -2491,6 +2593,7 @@ communication mechanism.
 
               See :func:`torch.distributed.barrier` for more details.)")
           .def(
+<<<<<<< HEAD
             "barrier",
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
                 std::optional<std::chrono::milliseconds> timeout) {
@@ -2505,6 +2608,8 @@ communication mechanism.
 
               See :func:`torch.distributed.barrier` for more details.)")
           .def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               "_set_sequence_number_for_group",
               &::c10d::ProcessGroup::setSequenceNumberForGroup,
               py::call_guard<py::gil_scoped_release>())
@@ -2515,6 +2620,7 @@ communication mechanism.
           .def(
               "monitored_barrier",
               [](const c10::intrusive_ptr<::c10d::ProcessGroup>& self,
+<<<<<<< HEAD
                  const std::optional<std::chrono::milliseconds>& timeout,
                  bool waitAllRanks) {
                 ::c10d::BarrierOptions opts;
@@ -2522,18 +2628,30 @@ communication mechanism.
                 return self->monitoredBarrier(opts, waitAllRanks);
               },
               py::arg("timeout") = std::nullopt,
+=======
+                 const std::chrono::milliseconds& timeout,
+                 bool waitAllRanks) {
+                ::c10d::BarrierOptions opts;
+                opts.timeout = timeout;
+                return self->monitoredBarrier(opts, waitAllRanks);
+              },
+              py::arg("timeout") = ::c10d::kUnsetTimeout,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::arg("wait_all_ranks") = false,
               py::call_guard<py::gil_scoped_release>(),
               R"(Blocks until all processes in the group enter the call, and
               then all leave the call together.
 
               See :func:`torch.distributed.monitored_barrier` for more details.)")
+<<<<<<< HEAD
           .def(
             "set_timeout",
             &::c10d::ProcessGroup::setTimeout,
             py::arg("timeout"),
               py::call_guard<py::gil_scoped_release>(),
               R"(Sets the default timeout for all future operations.)")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .def_property_readonly(
               "_device_types", &::c10d::ProcessGroup::getDeviceTypes)
           .def(
@@ -2679,10 +2797,13 @@ Arguments:
               return ivalue.toCustomClass<::c10d::ProcessGroup>();
           });
 
+<<<<<<< HEAD
   // Thread local process group manipulation
   module.def("_set_process_group", &::c10d::setProcessGroup);
   module.def("_current_process_group", &::c10d::currentProcessGroup);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::enum_<::c10d::ProcessGroup::BackendType>(
       processGroup,
       "BackendType",
@@ -2728,12 +2849,15 @@ Arguments:
               &::c10d::Backend::supportsTimeEstimation,
               "(test whether the backend supports collective time estimation)")
           .def(
+<<<<<<< HEAD
               "set_timeout",
               &::c10d::Backend::setTimeout,
               py::arg("timeout"),
               py::call_guard<py::gil_scoped_release>(),
               R"(Sets the default timeout for all future operations.)")
           .def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               "broadcast",
               &::c10d::Backend::broadcast,
               py::arg("tensors"),
@@ -2743,17 +2867,26 @@ Arguments:
               "broadcast",
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  at::Tensor& x,
+<<<<<<< HEAD
                  int rootRank,
                  std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::BroadcastOptions opts;
                 opts.rootRank = rootRank;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 int rootRank) {
+                ::c10d::BroadcastOptions opts;
+                opts.rootRank = rootRank;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> xs = {x};
                 return self->broadcast(xs, opts);
               },
               py::arg("tensor"),
               py::arg("root"),
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "allreduce",
@@ -2765,32 +2898,50 @@ Arguments:
               "allreduce",
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  std::vector<at::Tensor>& xs,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                  std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::AllreduceOptions opts;
                 opts.reduceOp = op;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 const ::c10d::ReduceOp& op) {
+                ::c10d::AllreduceOptions opts;
+                opts.reduceOp = op;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return self->allreduce(xs, opts);
               },
               py::arg("tensors"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "allreduce",
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  at::Tensor& x,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                  std::optional<std::chrono::milliseconds> timeout) {
                 ::c10d::AllreduceOptions opts;
                 opts.reduceOp = op;
                 opts.timeout = timeout.value_or(::c10d::kUnsetTimeout);
+=======
+                 const ::c10d::ReduceOp& op) {
+                ::c10d::AllreduceOptions opts;
+                opts.reduceOp = op;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> xs = {x};
                 return self->allreduce(xs, opts);
               },
               py::arg("tensor"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = std::nullopt,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "allreduce_coalesced",
@@ -2809,19 +2960,29 @@ Arguments:
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  at::Tensor& x,
                  int rootRank,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                  std::chrono::milliseconds timeout) {
                 ::c10d::ReduceOptions opts;
                 opts.reduceOp = op;
                 opts.rootRank = rootRank;
                 opts.timeout = timeout;
+=======
+                 const ::c10d::ReduceOp& op) {
+                ::c10d::ReduceOptions opts;
+                opts.reduceOp = op;
+                opts.rootRank = rootRank;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> xs = {x};
                 return self->reduce(xs, opts);
               },
               py::arg("tensor"),
               py::arg("root"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = ::c10d::kUnsetTimeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "allgather",
@@ -2841,6 +3002,7 @@ Arguments:
               "allgather",
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  std::vector<at::Tensor>& output,
+<<<<<<< HEAD
                  at::Tensor& input,
                  std::chrono::milliseconds timeout) {
                 std::vector<std::vector<at::Tensor>> outputs = {output};
@@ -2852,6 +3014,16 @@ Arguments:
               py::arg("output_tensors"),
               py::arg("input_tensor"),
               py::arg("timeout") = ::c10d::kUnsetTimeout,
+=======
+                 at::Tensor& input) {
+                std::vector<std::vector<at::Tensor>> outputs = {output};
+                std::vector<at::Tensor> inputs = {input};
+                return self->allgather(
+                    outputs, inputs, ::c10d::AllgatherOptions());
+              },
+              py::arg("output_tensors"),
+              py::arg("input_tensor"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "allgather_coalesced",
@@ -2872,6 +3044,7 @@ Arguments:
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  std::vector<at::Tensor>& output,
                  at::Tensor& input,
+<<<<<<< HEAD
                  int rootRank,
                  std::chrono::milliseconds timeout) {
                 ::c10d::GatherOptions opts;
@@ -2881,13 +3054,22 @@ Arguments:
                 if (!output.empty()) {
                   outputs.push_back(output);
                 }
+=======
+                 int rootRank) {
+                ::c10d::GatherOptions opts;
+                opts.rootRank = rootRank;
+                std::vector<std::vector<at::Tensor>> outputs = {output};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> inputs = {input};
                 return self->gather(outputs, inputs, opts);
               },
               py::arg("output_tensors"),
               py::arg("input_tensor"),
               py::arg("root"),
+<<<<<<< HEAD
               py::arg("timeout") = ::c10d::kUnsetTimeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "scatter",
@@ -2901,6 +3083,7 @@ Arguments:
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  at::Tensor& output,
                  std::vector<at::Tensor>& input,
+<<<<<<< HEAD
                  int rootRank,
                  std::chrono::milliseconds timeout) {
                 ::c10d::ScatterOptions opts;
@@ -2910,13 +3093,22 @@ Arguments:
                 if (!input.empty()) {
                   inputs.push_back(input);
                 }
+=======
+                 int rootRank) {
+                ::c10d::ScatterOptions opts;
+                opts.rootRank = rootRank;
+                std::vector<std::vector<at::Tensor>> inputs = {input};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> outputs = {output};
                 return self->scatter(outputs, inputs, opts);
               },
               py::arg("output_tensor"),
               py::arg("input_tensors"),
               py::arg("root"),
+<<<<<<< HEAD
               py::arg("timeout") = ::c10d::kUnsetTimeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "reduce_scatter",
@@ -2930,19 +3122,29 @@ Arguments:
               [](const c10::intrusive_ptr<::c10d::Backend>& self,
                  at::Tensor& output,
                  std::vector<at::Tensor>& input,
+<<<<<<< HEAD
                  const ::c10d::ReduceOp& op,
                  std::chrono::milliseconds timeout) {
+=======
+                 const ::c10d::ReduceOp& op) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::vector<at::Tensor> outputs = {output};
                 std::vector<std::vector<at::Tensor>> inputs = {input};
                 ::c10d::ReduceScatterOptions opts;
                 opts.reduceOp = op;
+<<<<<<< HEAD
                 opts.timeout = timeout;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return self->reduce_scatter(outputs, inputs, opts);
               },
               py::arg("output_tensors"),
               py::arg("input_tensor"),
               py::arg("op") = ::c10d::ReduceOp::SUM,
+<<<<<<< HEAD
               py::arg("timeout") = ::c10d::kUnsetTimeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "_reduce_scatter_base",
@@ -2965,6 +3167,7 @@ Arguments:
               [](::c10d::Backend& self,
                  at::Tensor& output,
                  at::Tensor& input,
+<<<<<<< HEAD
                  std::vector<int64_t>& outputSplitSizes,
                  std::vector<int64_t>& inputSplitSizes,
                  std::chrono::milliseconds timeout) {
@@ -2972,12 +3175,25 @@ Arguments:
                 opts.timeout = timeout;
                 return self.alltoall_base(
                     output, input, outputSplitSizes, inputSplitSizes, opts);
+=======
+                 std::vector<int64_t> outputSplitSizes,
+                 std::vector<int64_t> inputSplitSizes) {
+                return self.alltoall_base(
+                    output,
+                    input,
+                    outputSplitSizes,
+                    inputSplitSizes,
+                    ::c10d::AllToAllOptions());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               },
               py::arg("output"),
               py::arg("input"),
               py::arg("output_split_sizes"),
               py::arg("input_split_sizes"),
+<<<<<<< HEAD
               py::arg("timeout") = ::c10d::kUnsetTimeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::call_guard<py::gil_scoped_release>())
           .def(
               "alltoall",
@@ -3096,11 +3312,15 @@ options :class:`~torch.distributed.ProcessGroupNCCL.Options`).
               py::arg("backend"),
               py::arg("timeout") = kProcessGroupDefaultTimeout)
           .def_readonly("backend", &::c10d::Backend::Options::backend)
+<<<<<<< HEAD
           .def_readwrite("_timeout", &::c10d::Backend::Options::timeout)
           .def_readwrite(
               "global_ranks_in_group",
               &::c10d::Backend::Options::global_ranks_in_group)
           .def_readwrite("group_name", &::c10d::Backend::Options::group_name);
+=======
+          .def_readwrite("_timeout", &::c10d::Backend::Options::timeout);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifdef USE_C10D_GLOO
   static const std::string GLOO_SOCKET_IFNAME_ENV = "GLOO_SOCKET_IFNAME";
@@ -3116,7 +3336,16 @@ options :class:`~torch.distributed.ProcessGroupNCCL.Options`).
       processGroupGloo, "_Options", backendOptions)
       .def(py::init<>())
       .def_readwrite("_devices", &::c10d::ProcessGroupGloo::Options::devices)
+<<<<<<< HEAD
       .def_readwrite("_threads", &::c10d::ProcessGroupGloo::Options::threads);
+=======
+      .def_readwrite("_threads", &::c10d::ProcessGroupGloo::Options::threads)
+      .def_readwrite(
+          "global_ranks_in_group",
+          &::c10d::ProcessGroupGloo::Options::global_ranks_in_group)
+      .def_readwrite(
+          "group_name", &::c10d::ProcessGroupGloo::Options::group_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   processGroupGloo
       .def_static(
@@ -3214,7 +3443,14 @@ options :class:`~torch.distributed.ProcessGroupNCCL.Options`).
           R"(Create a new ProcessGroupGloo instance.)")
       .def(
           "_set_default_timeout",
+<<<<<<< HEAD
           &::c10d::ProcessGroupGloo::setTimeout,
+=======
+          [](const c10::intrusive_ptr<::c10d::ProcessGroupGloo>& self,
+             std::chrono::milliseconds timeout) {
+            self->getOptions()->timeout = timeout;
+          },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           py::arg("timeout"),
           py::call_guard<py::gil_scoped_release>())
       .def_property_readonly(
@@ -3311,7 +3547,14 @@ options :class:`~torch.distributed.ProcessGroupNCCL.Options`).
               &::c10d::ProcessGroupNCCL::getCommSplitCounter)
           .def(
               "_set_default_timeout",
+<<<<<<< HEAD
               &::c10d::ProcessGroupNCCL::setTimeout,
+=======
+              [](const c10::intrusive_ptr<::c10d::ProcessGroupNCCL>& self,
+                 std::chrono::milliseconds timeout) {
+                self->getOptions()->timeout = timeout;
+              },
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               py::arg("timeout"),
               py::call_guard<py::gil_scoped_release>())
           .def(
@@ -3344,11 +3587,15 @@ options :class:`~torch.distributed.ProcessGroupNCCL.Options`).
           .def(
               "perform_nocolor_split",
               &::c10d::ProcessGroupNCCL::performNocolorSplit)
+<<<<<<< HEAD
           .def(
               "register_mem_pool",
               &::c10d::ProcessGroupNCCL::registerMemPool,
               py::arg("pool"),
               py::arg("symm") = false)
+=======
+          .def("register_mem_pool", &::c10d::ProcessGroupNCCL::registerMemPool)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .def(
               "deregister_mem_pool",
               &::c10d::ProcessGroupNCCL::deregisterMemPool)
@@ -3413,11 +3660,14 @@ for details.
 #ifdef NCCL_HAS_NVLS_CTAS
       .def_readwrite("nvls_ctas", &ncclConfig_t::nvlsCTAs)
 #endif
+<<<<<<< HEAD
       .def(
           "unsafe_get_ptr",
           [](const ncclConfig_t& self) {
             return reinterpret_cast<uintptr_t>(&self);
           })
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def_property(
           "net_name",
           [](const ncclConfig_t& self) { return self.netName; },
@@ -3482,6 +3732,14 @@ Example::
           "split_from", &::c10d::ProcessGroupNCCL::Options::split_from)
       .def_readwrite(
           "split_color", &::c10d::ProcessGroupNCCL::Options::split_color)
+<<<<<<< HEAD
+=======
+      .def_readwrite(
+          "global_ranks_in_group",
+          &::c10d::ProcessGroupNCCL::Options::global_ranks_in_group)
+      .def_readwrite(
+          "group_name", &::c10d::ProcessGroupNCCL::Options::group_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def(
           "__copy__",
           [](const ::c10d::ProcessGroupNCCL::Options& self) {
@@ -3520,6 +3778,7 @@ Example::
           .def(
               py::init([](const c10::intrusive_ptr<::c10d::Store>& store,
                           int rank,
+<<<<<<< HEAD
                           int size,
                           c10::intrusive_ptr<::c10d::ProcessGroupXCCL::Options>
                               options) {
@@ -3563,6 +3822,19 @@ Returns:
       )")
       .def("get_xccl_version", [] { return ::c10d::getXcclVersion(); });
 
+=======
+                          int size) {
+                // gil_scoped_release is not safe as a call_guard in init.
+                // https://github.com/pybind/pybind11/issues/5473
+                py::gil_scoped_release nogil{};
+
+                return c10::make_intrusive<::c10d::ProcessGroupXCCL>(
+                    store, rank, size);
+              }),
+              py::arg("store"),
+              py::arg("rank"),
+              py::arg("size"));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 #ifdef USE_C10D_UCC
@@ -3708,6 +3980,7 @@ such as `dist.all_reduce(tensor, async_op=True)`.
                   or timed out. If timeout, exception will be thrown.
             )")
           .def(
+<<<<<<< HEAD
               "block_current_stream",
               &::c10d::Work::blockCurrentStream,
               py::call_guard<py::gil_scoped_release>(),
@@ -3723,6 +3996,8 @@ such as `dist.all_reduce(tensor, async_op=True)`.
               Work object result asynchronously.
             )")
           .def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               "get_future_result",
               [](::c10d::Work& work)
                   -> std::shared_ptr<jit::PythonFutureWrapper> {
@@ -3821,6 +4096,7 @@ such as `dist.all_reduce(tensor, async_op=True)`.
 
   auto fakeProcessGroup =
       intrusive_ptr_no_gil_destructor_class_<::c10d::FakeProcessGroup>(
+<<<<<<< HEAD
           module, "FakeProcessGroup", backend);
   intrusive_ptr_class_<::c10d::FakeProcessGroup::Options>(
       fakeProcessGroup, "Options", backendOptions)
@@ -3842,6 +4118,16 @@ such as `dist.all_reduce(tensor, async_op=True)`.
               c10::make_intrusive<::c10d::FakeProcessGroup::Options>())
       .def_property_readonly(
           "options", &::c10d::FakeProcessGroup::getBackendOptions);
+=======
+          module, "FakeProcessGroup", backend)
+          .def(
+              py::init([](int rank, int size) {
+                return c10::make_intrusive<::c10d::FakeProcessGroup>(
+                    rank, size);
+              }),
+              py::arg("rank"),
+              py::arg("world_size"));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto fakeWork =
       intrusive_ptr_no_gil_destructor_class_<::c10d::FakeWork>(
           module, "FakeWork", work)

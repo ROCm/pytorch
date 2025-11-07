@@ -793,6 +793,7 @@ static void _get_tensors_to_save(
         if (is_executable) {
           // TODO: We should really just ALWAYS throw an error here, but
           // doing so will break some internal tests. We should fix those.
+<<<<<<< HEAD
           TORCH_CHECK_TYPE(
               false,
               fmt::format(
@@ -804,6 +805,16 @@ static void _get_tensors_to_save(
       }
     }
     Py_CLEAR(self->to_save);
+=======
+          throw torch::TypeError(
+              "save_for_backward can only save variables, but argument %ld is of "
+              "type %s",
+              i,
+              Py_TYPE(obj)->tp_name);
+        }
+      }
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 // Save any variables that requested by to_save
@@ -811,7 +822,11 @@ static void _save_variables(
     const std::vector<std::optional<at::Tensor>>& tensors_to_save,
     const std::shared_ptr<PyNode>& cdata_ptr,
     THPFunction* self) {
+<<<<<<< HEAD
   if (tensors_to_save.size() == 0)
+=======
+  if (!self->to_save)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return;
   size_t num_saved = tensors_to_save.size();
   self->saved_variables.clear();
@@ -824,6 +839,11 @@ static void _save_variables(
       self->saved_variables.emplace_back(opt_tensor.value(), is_output);
     }
   }
+<<<<<<< HEAD
+=======
+  // Free .to_save
+  Py_CLEAR(self->to_save);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Mark requires_grad = 0 on non-differentiable variables (as per
@@ -1053,8 +1073,12 @@ void _trace_post_record(
       }
     }
   }
+<<<<<<< HEAD
   py::object onnx_globals =
       py::module::import("torch.onnx._internal.torchscript_exporter._globals");
+=======
+  py::object onnx_globals = py::module::import("torch.onnx._globals");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::bool_ is_in_onnx_export =
       py::module::import("torch.onnx.__init__").attr("is_in_onnx_export");
   py::bool_ is_autograd_inlining_enabled =

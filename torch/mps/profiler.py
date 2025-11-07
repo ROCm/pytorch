@@ -76,13 +76,21 @@ def is_metal_capture_enabled() -> bool:
 
 
 def is_capturing_metal() -> bool:
+<<<<<<< HEAD
     """Checks if metal capture is in progress"""
+=======
+    """Cheks if metal capture is in progress"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch._C._mps_isCapturing()  # type: ignore[attr-defined]
 
 
 @contextlib.contextmanager
 def metal_capture(fname: str):
+<<<<<<< HEAD
     """Context manager that enables capturing of Metal calls into gputrace"""
+=======
+    """Conext manager that enables capturing of Metal calls into gputrace"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         torch._C._mps_startCapture(fname)  # type: ignore[attr-defined]
         yield

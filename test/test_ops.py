@@ -87,7 +87,11 @@ _variant_ops = partial(
 # Get names of all the operators which have ref in their entry in OpInfo (testing infra)
 #   except for elementwise unary operators (separately implemented in test/test_unary_ufuncs.py),
 #   elementwise binary operators (separately implemented in test_binary_ufuncs.py),
+<<<<<<< HEAD
 #   reduction operations (separately implemented in test_reductions.py),
+=======
+#   reduction operations (separately impelemented in test_reductions.py),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #   and Spectral Functions (separately implemented for only 1D as of now, in test/test_spectral_ops.py)
 _ref_test_ops = tuple(
     filter(
@@ -118,17 +122,30 @@ _ops_and_refs_with_no_numpy_ref = [op for op in ops_and_refs if op.ref is None]
 aten = torch.ops.aten
 
 meta_consistency_out_dtype_mismatch_xfails = {
+<<<<<<< HEAD
+=======
+    xfail("alias_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("all"),
     xfail("amax"),
     xfail("amin"),
     xfail("aminmax"),
     xfail("any"),
+<<<<<<< HEAD
+=======
+    xfail("as_strided_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("bucketize"),
     xfail("conj_physical"),
     xfail("cross"),
     xfail("cummax"),
     xfail("cummin"),
     xfail("diag"),
+<<<<<<< HEAD
+=======
+    xfail("diagonal_copy"),
+    xfail("expand_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("fft.ihfft2"),
     xfail("fft.ihfftn"),
     xfail("frexp"),
@@ -163,6 +180,11 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("msort"),
     xfail("multinomial"),
     xfail("nan_to_num"),
+<<<<<<< HEAD
+=======
+    xfail("nanmean"),
+    xfail("narrow_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("native_batch_norm"),
     xfail("neg"),
     xfail("nn.functional.avg_pool3d"),
@@ -172,6 +194,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("nn.functional.softplus"),
     xfail("nn.functional.softshrink"),
     xfail("ormqr"),
+<<<<<<< HEAD
+=======
+    xfail("permute_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("qr"),
     xfail("renorm"),
     xfail("round"),
@@ -186,10 +212,22 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("softmax"),
     xfail("sort"),
     xfail("sparse.sampled_addmm"),
+<<<<<<< HEAD
     xfail("take"),
     xfail("tril"),
     xfail("triu"),
     xfail("unfold_copy"),
+=======
+    xfail("squeeze_copy"),
+    xfail("t_copy"),
+    xfail("take"),
+    xfail("transpose_copy"),
+    xfail("tril"),
+    xfail("triu"),
+    xfail("unfold_copy"),
+    xfail("unsqueeze_copy"),
+    xfail("view_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("where"),
     # Output has dynamic shape.
     # Does not have a meta kernel implementation.
@@ -373,7 +411,11 @@ class TestCommon(TestCase):
 
             # output_process_fn_grad has a very unfortunate name
             # We use this function in linalg extensively to postprocess the inputs of functions
+<<<<<<< HEAD
             # that are not completely well-defined. Think svd and multiplying the singular vectors by -1.
+=======
+            # that are not completely well-defined. Think svd and muliplying the singular vectors by -1.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # CPU and CUDA implementations of the SVD can return valid SVDs that are different.
             # We use this function to compare them.
             cuda_results = sample.output_process_fn_grad(cuda_results)
@@ -580,7 +622,11 @@ class TestCommon(TestCase):
 
     # Tests that experimental Python References perform the same computation
     # as the operators they reference, when operator calls in the torch
+<<<<<<< HEAD
     # namespace are remapped to the refs namespace (torch.foo becomes refs.foo).
+=======
+    # namesapce are remapped to the refs namespace (torch.foo becomes refs.foo).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(python_ref_db)
     @skipIfTorchInductor("Takes too long for inductor")
@@ -759,7 +805,11 @@ class TestCommon(TestCase):
                 else tuple(n_inp) + n_args
             )
 
+<<<<<<< HEAD
             # Filter the elements that are tensors that require grad
+=======
+            # Filter the elemnts that are tensors that require grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             t_input_tensors = [
                 t for t in t_inputs if isinstance(t, torch.Tensor) and t.requires_grad
             ]
@@ -1109,6 +1159,7 @@ class TestCommon(TestCase):
                 if op.is_factory_function and sample.kwargs.get("dtype", None) is None:
                     op_out(out=out)
                 else:
+<<<<<<< HEAD
                     # TODO: Remove me when all ops will raise type error on mismatched types
                     exc_type = (
                         TypeError
@@ -1125,6 +1176,9 @@ class TestCommon(TestCase):
                         else RuntimeError
                     )
                     with self.assertRaises(exc_type, msg=msg_fail):
+=======
+                    with self.assertRaises(RuntimeError, msg=msg_fail):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         op_out(out=out)
 
     @ops(
@@ -1601,6 +1655,7 @@ class TestCommon(TestCase):
         ) == 0:
             return
 
+<<<<<<< HEAD
         if TEST_WITH_TORCHDYNAMO:
             # NOTE: Also for TEST_WITH_TORCHINDUCTOR tests
             # Under compile, some ops may be decomposed into supported ops
@@ -1611,6 +1666,8 @@ class TestCommon(TestCase):
             ) == 0:
                 return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Reference operators often support additional dtypes, and that's OK
         if op in python_ref_db:
             if (
@@ -2511,6 +2568,10 @@ fake_skips = (
     "mvlgamma.mvlgamma_p_1",  # Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend
     "mvlgamma.mvlgamma_p_3",  # Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend
     "mvlgamma.mvlgamma_p_5",  # Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend
+<<<<<<< HEAD
+=======
+    "nanmean",  # logical_not() got an unexpected keyword argument 'out'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "quantile",  # quantile() q values must be in the range [0, 1]
     "nanquantile",  # quantile() q values must be in the range [0, 1]
     "nn.functional.ctc_loss",  # The tensor has a non-zero number of elements, but its data is not allocated yet
@@ -2595,7 +2656,10 @@ fake_autocast_backward_xfails = {
 @unMarkDynamoStrictTest
 class TestFakeTensor(TestCase):
     def setUp(self):
+<<<<<<< HEAD
         super().setUp()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Turn on FakeTensor caching and cross-checking for these tests:
         cache_enabled = unittest.mock.patch(
             "torch._dynamo.config.fake_tensor_cache_enabled", True

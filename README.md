@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ![PyTorch Logo](https://github.com/pytorch/pytorch/blob/9708fcf92db88b80b9010c68662d634434da3106/docs/source/_static/img/pytorch-logo-dark.png)
+=======
+![PyTorch Logo](https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/pytorch-logo-dark.png)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 --------------------------------------------------------------------------------
 
@@ -72,7 +76,11 @@ Elaborating Further:
 
 If you use NumPy, then you have used Tensors (a.k.a. ndarray).
 
+<<<<<<< HEAD
 ![Tensor illustration](https://github.com/pytorch/pytorch/blob/9708fcf92db88b80b9010c68662d634434da3106/docs/source/_static/img/tensor_illustration.png)
+=======
+![Tensor illustration](./docs/source/_static/img/tensor_illustration.png)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 PyTorch provides Tensors that can live either on the CPU or the GPU and accelerates the
 computation by a huge amount.
@@ -99,7 +107,11 @@ from several research papers on this topic, as well as current and past work suc
 While this technique is not unique to PyTorch, it's one of the fastest implementations of it to date.
 You get the best of speed and flexibility for your crazy research.
 
+<<<<<<< HEAD
 ![Dynamic graph](https://github.com/pytorch/pytorch/blob/9708fcf92db88b80b9010c68662d634434da3106/docs/source/_static/img/dynamic_graph.gif)
+=======
+![Dynamic graph](https://github.com/pytorch/pytorch/raw/main/docs/source/_static/img/dynamic_graph.gif)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ### Python First
 
@@ -200,7 +212,11 @@ If you want to compile with CUDA support, [select a supported version of CUDA fr
 - [NVIDIA cuDNN](https://developer.nvidia.com/cudnn) v8.5 or above
 - [Compiler](https://gist.github.com/ax3l/9489132) compatible with CUDA
 
+<<<<<<< HEAD
 Note: You could refer to the [cuDNN Support Matrix](https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/support-matrix.html) for cuDNN versions with the various supported CUDA, CUDA driver, and NVIDIA hardware.
+=======
+Note: You could refer to the [cuDNN Support Matrix](https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/support-matrix.html) for cuDNN versions with the various supported CUDA, CUDA driver and NVIDIA hardware
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 If you want to disable CUDA support, export the environment variable `USE_CUDA=0`.
 Other potentially useful environment variables may be found in `setup.py`.  If
@@ -228,7 +244,10 @@ If you want to disable Intel GPU support, export the environment variable `USE_X
 Other potentially useful environment variables may be found in `setup.py`.
 
 #### Get the PyTorch Source
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```bash
 git clone https://github.com/pytorch/pytorch
 cd pytorch
@@ -242,8 +261,14 @@ git submodule update --init --recursive
 **Common**
 
 ```bash
+<<<<<<< HEAD
 # Run this command from the PyTorch directory after cloning the source code using the “Get the PyTorch Source“ section above
 pip install --group dev
+=======
+conda install cmake ninja
+# Run this command from the PyTorch directory after cloning the source code using the “Get the PyTorch Source“ section below
+pip install -r requirements.txt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 **On Linux**
@@ -275,6 +300,7 @@ conda install pkg-config libuv
 pip install mkl-static mkl-include
 # Add these packages if torch.distributed is needed.
 # Distributed package support on Windows is a prototype feature and is subject to changes.
+<<<<<<< HEAD
 conda install -c conda-forge libuv
 ```
 
@@ -284,22 +310,41 @@ conda install -c conda-forge libuv
 
 If you're compiling for AMD ROCm then first run this command:
 
+=======
+conda install -c conda-forge libuv=1.39
+```
+
+#### Install PyTorch
+**On Linux**
+
+If you're compiling for AMD ROCm then first run this command:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```bash
 # Only run this if you're compiling for ROCm
 python tools/amd_build/build_amd.py
 ```
 
 Install PyTorch
+<<<<<<< HEAD
 
 ```bash
 export CMAKE_PREFIX_PATH="${CONDA_PREFIX:-'$(dirname $(which conda))/../'}:${CMAKE_PREFIX_PATH}"
 python -m pip install --no-build-isolation -v -e .
+=======
+```bash
+export CMAKE_PREFIX_PATH="${CONDA_PREFIX:-'$(dirname $(which conda))/../'}:${CMAKE_PREFIX_PATH}"
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 **On macOS**
 
 ```bash
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python3 setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 **On Windows**
@@ -311,7 +356,11 @@ If you want to build legacy python code, please refer to [Building on legacy cod
 In this mode PyTorch computations will run on your CPU, not your GPU.
 
 ```cmd
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 Note on OpenMP: The desired OpenMP implementation is Intel OpenMP (iomp). In order to link against iomp, you'll need to manually download the library and set up the building environment by tweaking `CMAKE_INCLUDE_PATH` and `LIB`. The instruction [here](https://github.com/pytorch/pytorch/blob/main/docs/source/notes/windows.rst#building-from-source) is an example for setting up both MKL and Intel OpenMP. Without these configurations for CMake, Microsoft Visual C OpenMP runtime (vcomp) will be used.
@@ -332,6 +381,10 @@ Additional libraries such as
 
 You can refer to the [build_pytorch.bat](https://github.com/pytorch/pytorch/blob/main/.ci/pytorch/win-test-helpers/build_pytorch.bat) script for some other environment variables configurations
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```cmd
 cmd
 
@@ -351,7 +404,12 @@ for /f "usebackq tokens=*" %i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\
 :: [Optional] If you want to override the CUDA host compiler
 set CUDAHOSTCXX=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX64\x64\cl.exe
 
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 **Intel GPU builds**
@@ -373,7 +431,11 @@ if defined CMAKE_PREFIX_PATH (
     set "CMAKE_PREFIX_PATH=%CONDA_PREFIX%\Library"
 )
 
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 ##### Adjust Build Options (Optional)
@@ -383,7 +445,10 @@ the following. For example, adjusting the pre-detected directories for CuDNN or 
 with such a step.
 
 On Linux
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```bash
 export CMAKE_PREFIX_PATH="${CONDA_PREFIX:-'$(dirname $(which conda))/../'}:${CMAKE_PREFIX_PATH}"
 CMAKE_ONLY=1 python setup.py build
@@ -391,10 +456,16 @@ ccmake build  # or cmake-gui build
 ```
 
 On macOS
+<<<<<<< HEAD
 
 ```bash
 export CMAKE_PREFIX_PATH="${CONDA_PREFIX:-'$(dirname $(which conda))/../'}:${CMAKE_PREFIX_PATH}"
 MACOSX_DEPLOYMENT_TARGET=11.0 CMAKE_ONLY=1 python setup.py build
+=======
+```bash
+export CMAKE_PREFIX_PATH="${CONDA_PREFIX:-'$(dirname $(which conda))/../'}:${CMAKE_PREFIX_PATH}"
+MACOSX_DEPLOYMENT_TARGET=10.9 CC=clang CXX=clang++ CMAKE_ONLY=1 python setup.py build
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ccmake build  # or cmake-gui build
 ```
 
@@ -517,7 +588,11 @@ on [our website](https://pytorch.org/get-started/previous-versions).
 
 ## Getting Started
 
+<<<<<<< HEAD
 Three pointers to get you started:
+=======
+Three-pointers to get you started:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - [Tutorials: get you started with understanding and using PyTorch](https://pytorch.org/tutorials/)
 - [Examples: easy to understand PyTorch code across all domains](https://github.com/pytorch/examples)
 - [The API Reference](https://pytorch.org/docs/)
@@ -559,7 +634,11 @@ To learn more about making a contribution to Pytorch, please see our [Contributi
 
 PyTorch is a community-driven project with several skillful engineers and researchers contributing to it.
 
+<<<<<<< HEAD
 PyTorch is currently maintained by [Soumith Chintala](http://soumith.ch), [Gregory Chanan](https://github.com/gchanan), [Dmytro Dzhulgakov](https://github.com/dzhulgakov), [Edward Yang](https://github.com/ezyang), [Alban Desmaison](https://github.com/albanD), [Piotr Bialecki](https://github.com/ptrblck) and [Nikita Shulga](https://github.com/malfet) with major contributions coming from hundreds of talented individuals in various forms and means.
+=======
+PyTorch is currently maintained by [Soumith Chintala](http://soumith.ch), [Gregory Chanan](https://github.com/gchanan), [Dmytro Dzhulgakov](https://github.com/dzhulgakov), [Edward Yang](https://github.com/ezyang), and [Nikita Shulga](https://github.com/malfet) with major contributions coming from hundreds of talented individuals in various forms and means.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 A non-exhaustive but growing list needs to mention: [Trevor Killeen](https://github.com/killeent), [Sasank Chilamkurthy](https://github.com/chsasank), [Sergey Zagoruyko](https://github.com/szagoruyko), [Adam Lerer](https://github.com/adamlerer), [Francisco Massa](https://github.com/fmassa), [Alykhan Tejani](https://github.com/alykhantejani), [Luca Antiga](https://github.com/lantiga), [Alban Desmaison](https://github.com/albanD), [Andreas Koepf](https://github.com/andreaskoepf), [James Bradbury](https://github.com/jekbradbury), [Zeming Lin](https://github.com/ebetica), [Yuandong Tian](https://github.com/yuandong-tian), [Guillaume Lample](https://github.com/glample), [Marat Dukhan](https://github.com/Maratyszcza), [Natalia Gimelshein](https://github.com/ngimel), [Christian Sarofeen](https://github.com/csarofeen), [Martin Raison](https://github.com/martinraison), [Edward Yang](https://github.com/ezyang), [Zachary Devito](https://github.com/zdevito). <!-- codespell:ignore -->
 
 Note: This project is unrelated to [hughperkins/pytorch](https://github.com/hughperkins/pytorch) with the same name. Hugh is a valuable contributor to the Torch community and has helped with many things Torch and PyTorch.

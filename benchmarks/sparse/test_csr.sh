@@ -11,7 +11,11 @@ export USE_MKL=1
 CMAKE_ONLY=1 python setup.py build
 ccmake build  # or cmake-gui build
 
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v .
+=======
+python setup.py install
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 cd benchmarks
 echo "!! SPARSE SPMM TIME BENCHMARK!! " >> $OUTFILE
@@ -28,7 +32,11 @@ echo "----- USE_MKL=0 ------" >> $OUTFILE
 rm -rf build
 
 export USE_MKL=0
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v .
+=======
+python setup.py install
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 cd benchmarks
 for dim0 in 1000 5000 10000; do

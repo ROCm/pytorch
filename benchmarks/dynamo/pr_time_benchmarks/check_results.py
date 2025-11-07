@@ -132,10 +132,17 @@ def main():
             )
 
         new_entry = copy.deepcopy(entry)
+<<<<<<< HEAD
         # only change if abs(ratio) > entry.noise_margin /5.
         new_entry.expected_value = (
             replace_with_zeros(result)
             if abs(ratio) > entry.noise_margin * 100 / 5
+=======
+        # only change if abs(ratio) > entry.noise_margin /3.
+        new_entry.expected_value = (
+            replace_with_zeros(result)
+            if abs(ratio) > entry.noise_margin * 100 / 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else entry.expected_value
         )
         new_expected[key] = new_entry

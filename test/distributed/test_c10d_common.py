@@ -293,6 +293,7 @@ class ConvNet(nn.Module):
         return self.conv3(x)
 
 
+<<<<<<< HEAD
 # A model involving FFTs, used to test DDP with complex tensors
 class FFTModel(nn.Module):
     def __init__(self, hin, win, n_features):
@@ -310,6 +311,8 @@ class FFTModel(nn.Module):
         return x
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class Task(nn.Module):
     def __init__(self) -> None:
         super().__init__()

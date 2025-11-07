@@ -319,7 +319,11 @@ class TestAutocast(JitTestCase):
 
     # TODO: fix and enable this test?
     #   (we could technically fix this, but is it really worth it?)
+<<<<<<< HEAD
     @unittest.skipIf(True, "unsupported autocast syntax")
+=======
+    @unittest.skipIf(True, "unsuported autocast syntax")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reused_autocast_expr(self):
         @torch.jit.script
         def fn(a, b, c, d):

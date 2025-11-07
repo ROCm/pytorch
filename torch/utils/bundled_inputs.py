@@ -116,7 +116,11 @@ def bundle_inputs(
     )
 
     # The above cloning function returns a torch._C.scriptmodule and we need a torch.jit.scriptmodule.
+<<<<<<< HEAD
     # Fortunately there is a function in _recursive that does exactly that conversion.
+=======
+    # Fortunately theres a function in _recursive that does exactly that conversion.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cloned_module = wrap_cpp_module(clone)
     if isinstance(inputs, dict):
         assert isinstance(info, dict) or info is None

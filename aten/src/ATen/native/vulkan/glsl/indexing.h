@@ -1,12 +1,20 @@
 /*
+<<<<<<< HEAD
  * Computes a 4D tensor coordinate from a linearized index
+=======
+ * Computes a 4D tensor co-ordinate from a linearized index
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 uvec4 idx_to_coord(const uint idx, const uvec4 strides, const uvec4 sizes) {
   return ivec4(mod(idx / strides, sizes));
 }
 
 /*
+<<<<<<< HEAD
  * Computes a linearized index from a 4D tensor coordinate
+=======
+ * Computes a linearized index from a 4D tensor co-ordinate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 uint coord_to_idx(const uvec4 coord, const uvec4 strides) {
   return int(dot(coord * strides, ivec4(1)));

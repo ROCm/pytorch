@@ -76,7 +76,11 @@ int filterCloseReturn(int r) {
   return r;
 }
 
+<<<<<<< HEAD
 //  The following wrapX() functions are private functions for wrapping file-io
+=======
+//  The following wrapX() funcions are private functions for wrapping file-io
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //  against interrupt and partial op completions.
 
 // Wrap call to f(args) in loop to retry on EINTR

@@ -53,7 +53,11 @@ CMAKE_ARGS+=("-DANDROID_PIE=ON")
 CMAKE_ARGS+=("-DANDROID_STL=c++_static")
 CMAKE_ARGS+=("-DANDROID_CPP_FEATURES=exceptions")
 
+<<<<<<< HEAD
 # Use-specified CMake arguments go last to allow overriding defaults
+=======
+# Use-specified CMake arguments go last to allow overridding defaults
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CMAKE_ARGS+=($@)
 
 cd build/android/armeabi-v7a && cmake ../../.. \

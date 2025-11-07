@@ -25,7 +25,11 @@ class TestNnModule(torch.nn.Module):
             torch.nn.ReLU(True),
             # state size. (ngf) x 32 x 32
             torch.nn.ConvTranspose2d(ngf, nc, 4, 2, 1, bias=False),
+<<<<<<< HEAD
             torch.nn.Tanh(),
+=======
+            torch.nn.Tanh()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # state size. (nc) x 64 x 64
         )
 

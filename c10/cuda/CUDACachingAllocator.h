@@ -163,7 +163,10 @@ struct AllocatorConfigInfo {
   bool expandable_segments;
   bool release_lock_on_malloc;
   bool pinned_use_host_register;
+<<<<<<< HEAD
   bool graph_capture_record_stream_reuse;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string last_allocator_settings;
   std::vector<size_t> roundup_power2_divisions;
 };
@@ -203,24 +206,43 @@ struct ShareableHandle {
   std::string handle;
 };
 
+<<<<<<< HEAD
 class CUDAAllocator : public DeviceAllocator {
+=======
+class CUDAAllocator : public Allocator {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  public:
   virtual void* raw_alloc(size_t nbytes) = 0;
   virtual void* raw_alloc_with_stream(size_t nbytes, cudaStream_t stream) = 0;
   virtual void raw_delete(void* ptr) = 0;
   virtual void init(int device_count) = 0;
+<<<<<<< HEAD
   virtual double getMemoryFraction(c10::DeviceIndex device) = 0;
   virtual void setMemoryFraction(double fraction, c10::DeviceIndex device) = 0;
+=======
+  virtual bool initialized() = 0;
+  virtual double getMemoryFraction(c10::DeviceIndex device) = 0;
+  virtual void setMemoryFraction(double fraction, c10::DeviceIndex device) = 0;
+  virtual void emptyCache(MempoolId_t mempool_id = {0, 0}) = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void enable(bool value) = 0;
   virtual bool isEnabled() const = 0;
   virtual void cacheInfo(c10::DeviceIndex device, size_t* largestBlock) = 0;
   virtual void* getBaseAllocation(void* ptr, size_t* size) = 0;
+<<<<<<< HEAD
   // Keep for BC only
   virtual void recordStream(const DataPtr& ptr, CUDAStream stream) = 0;
   void recordStream(const DataPtr& ptr, c10::Stream stream) override {
     CUDAStream cuda_stream = CUDAStream(stream);
     recordStream(ptr, cuda_stream);
   }
+=======
+  virtual void recordStream(const DataPtr&, CUDAStream stream) = 0;
+  virtual c10::CachingDeviceAllocator::DeviceStats getDeviceStats(
+      c10::DeviceIndex device) = 0;
+  virtual void resetAccumulatedStats(c10::DeviceIndex device) = 0;
+  virtual void resetPeakStats(c10::DeviceIndex device) = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual SnapshotInfo snapshot(MempoolId_t mempool_id = {0, 0}) = 0;
   virtual void beginAllocateToPool(
       c10::DeviceIndex device,
@@ -525,10 +547,13 @@ inline void enablePeerAccess(
 
 namespace c10::cuda {
 
+<<<<<<< HEAD
 // Keep BC only
 using c10::CaptureId_t;
 using c10::MempoolId_t;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // MemPool represents a pool of memory in a caching allocator. Currently,
 // it's just the ID of the pool object maintained in the CUDACachingAllocator.
 //
@@ -539,7 +564,12 @@ struct C10_CUDA_API MemPool {
   MemPool(
       CUDACachingAllocator::CUDAAllocator* allocator = nullptr,
       bool is_user_created = true,
+<<<<<<< HEAD
       bool use_on_oom = false);
+=======
+      bool use_on_oom = false,
+      bool symmetric = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   MemPool(const MemPool&) = delete;
   MemPool(MemPool&&) = default;
   MemPool& operator=(const MemPool&) = delete;
@@ -547,6 +577,10 @@ struct C10_CUDA_API MemPool {
   ~MemPool();
 
   MempoolId_t id();
+<<<<<<< HEAD
+=======
+  bool is_symmetric();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CUDACachingAllocator::CUDAAllocator* allocator();
   int use_count();
   c10::DeviceIndex device();
@@ -558,6 +592,10 @@ struct C10_CUDA_API MemPool {
   CUDACachingAllocator::CUDAAllocator* allocator_;
   bool is_user_created_;
   MempoolId_t id_;
+<<<<<<< HEAD
+=======
+  bool symmetric_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::DeviceIndex device_;
 };
 

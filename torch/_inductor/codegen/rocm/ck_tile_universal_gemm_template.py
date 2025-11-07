@@ -242,6 +242,7 @@ class CKTileGemmTemplate(CKTileTemplate):
         constexpr auto TileK = {{instance_namespace}}::TileK;
         constexpr auto kPrefetchStages = BaseGemmPipeline::PrefetchStages;
 
+<<<<<<< HEAD
         const auto BiasTerms = std::array<const void*, 0> ();
         const auto BiasStrides = std::array<int32_t, 0> ();
 
@@ -249,13 +250,23 @@ class CKTileGemmTemplate(CKTileTemplate):
            {X},
            {W},
            BiasTerms,
+=======
+        auto kargs = ck_tile::GemmKernelArgs {
+           X,
+           W,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
            Y,
            M,
            N,
            K,
+<<<<<<< HEAD
            {LDA},
            {LDB},
            BiasStrides,
+=======
+           LDA,
+           LDB,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
            LDC,
            kBatch
         };
@@ -693,6 +704,7 @@ class CKTileGemmTemplate(CKTileTemplate):
             elif epilogue_type == "CShuffle":
                 return r"""
             constexpr auto kMemoryOperation = ck_tile::memory_operation_enum::set;
+<<<<<<< HEAD
             using DsDataType = ck_tile::tuple<>; // no bias terms for vanilla GEMM
             using DsLayout = ck_tile::tuple<>;
             constexpr auto ELayout = CLayout;
@@ -705,6 +717,13 @@ class CKTileGemmTemplate(CKTileTemplate):
                                                                      DsLayout,
                                                                      ELayout,
                                                                      CDEElementWise,
+=======
+            using EpilogueProblem = ck_tile::CShuffleEpilogueProblem<ADataType,
+                                                                     BDataType,
+                                                                     AccDataType,
+                                                                     CDataType,
+                                                                     CLayout,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                                                      GemmPipelineProblem::kBlockSize,
                                                                      TileM,
                                                                      TileN,

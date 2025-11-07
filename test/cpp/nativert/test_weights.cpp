@@ -25,7 +25,11 @@ return(%o2, %baz)
 };
 TEST_F(WeightsTest, ConstructEmptyStateDict) {
   std::unordered_map<std::string, c10::IValue> stateDict;
+<<<<<<< HEAD
   Weights weights(graph.get(), stateDict);
+=======
+  Weights weights(graph.get(), stateDict, *placement);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Check that weights are initialized correctly
   EXPECT_TRUE(weights.parameters().empty());
   EXPECT_TRUE(weights.buffers().empty());
@@ -33,7 +37,11 @@ TEST_F(WeightsTest, ConstructEmptyStateDict) {
 }
 TEST_F(WeightsTest, SetAndGetValue) {
   std::unordered_map<std::string, c10::IValue> stateDict;
+<<<<<<< HEAD
   Weights weights(graph.get(), stateDict);
+=======
+  Weights weights(graph.get(), stateDict, *placement);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor tensor = at::ones({2, 2});
   weights.setValue("added_weight", tensor);
   EXPECT_TRUE(weights.contains("added_weight"));

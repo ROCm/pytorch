@@ -677,7 +677,11 @@ inline TypePtr Type::withContained(std::vector<TypePtr> contained_types) {
 }
 
 
+<<<<<<< HEAD
 inline bool operator==(const Type& lhs, const Type& rhs) {
+=======
+TORCH_API inline bool operator==(const Type& lhs, const Type& rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (C10_UNLIKELY(!rhs.symmetric())) {
     return rhs.equals(lhs);
   }

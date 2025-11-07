@@ -17,7 +17,10 @@
 #include <torch/csrc/jit/serialization/import_export_functions.h>
 #include <torch/csrc/jit/serialization/import_export_helpers.h>
 #include <torch/csrc/jit/serialization/onnx.h>
+<<<<<<< HEAD
 #include <torch/csrc/jit/serialization/pickler.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/onnx/back_compat.h>
 #include <torch/csrc/onnx/onnx.h>
 #include <torch/version.h>

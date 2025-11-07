@@ -5,7 +5,13 @@ set -ex
 source "$(dirname "${BASH_SOURCE[0]}")/common_utils.sh"
 
 function install_huggingface() {
+<<<<<<< HEAD
   pip_install -r huggingface-requirements.txt
+=======
+  local version
+  commit=$(get_pinned_commit huggingface)
+  pip_install "git+https://github.com/huggingface/transformers@${commit}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 function install_timm() {
@@ -13,6 +19,7 @@ function install_timm() {
   commit=$(get_pinned_commit timm)
 
   pip_install "git+https://github.com/huggingface/pytorch-image-models@${commit}"
+<<<<<<< HEAD
 }
 
 function install_torchbench() {
@@ -30,10 +37,15 @@ function install_torchbench() {
 
   chown -R jenkins torchbench
   chown -R jenkins /opt/conda
+=======
+  # Clean up
+  conda_run pip uninstall -y torch torchvision triton
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 # Pango is needed for weasyprint which is needed for doctr
 conda_install pango
+<<<<<<< HEAD
 
 # Stable packages are ok here, just to satisfy TorchBench check
 pip_install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
@@ -44,3 +56,7 @@ install_timm
 
 # Clean up
 conda_run pip uninstall -y torch torchvision torchaudio triton torchao
+=======
+install_huggingface
+install_timm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

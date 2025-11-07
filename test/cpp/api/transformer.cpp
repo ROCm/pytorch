@@ -73,7 +73,11 @@ void transformer_encoder_layer_test_helper(
   ASSERT_TRUE(
       torch::allclose(result, ref_output, 1e-7, 1e-5, /*equal_nan=*/true));
 
+<<<<<<< HEAD
   // all 0 values are NOT masked. This shouldn't mask anything
+=======
+  // all 0 values are NOT masked. This should't mask anything
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   torch::Tensor mask = torch::tensor({{0}}, tensor_options) == 1;
   result = model(
                encoder_input,

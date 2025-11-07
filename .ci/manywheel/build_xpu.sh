@@ -25,7 +25,10 @@ source /opt/intel/oneapi/mpi/latest/env/vars.sh
 export USE_STATIC_MKL=1
 export USE_ONEMKL=1
 export USE_XCCL=1
+<<<<<<< HEAD
 export USE_MPI=0
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 WHEELHOUSE_DIR="wheelhousexpu"
 LIBTORCH_HOUSE_DIR="libtorch_housexpu"

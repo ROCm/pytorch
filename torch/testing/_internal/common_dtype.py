@@ -121,6 +121,7 @@ def all_types_and_half():
     return _all_types_and_half
 
 
+<<<<<<< HEAD
 _all_mps_types = (
     _dispatch_dtypes({torch.float, torch.half, torch.bfloat16}) + _integral_types
 )
@@ -134,6 +135,8 @@ def all_mps_types_and(*dtypes):
     return _all_mps_types + _validate_dtypes(*dtypes)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _float8_types = _dispatch_dtypes(
     (
         torch.float8_e4m3fn,

@@ -9,6 +9,14 @@
 
 namespace at::functionalization {
 
+<<<<<<< HEAD
+=======
+ViewMeta ViewMeta::to_out_idx(int64_t out_idx) {
+  if (out_idx == this->out_index) return *this;
+  return ViewMeta(forward_fn, reverse_fn, has_symbolic_inputs, is_multi_output, is_as_strided, out_idx);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Note [Functionalization: Alias Removal Part 2]
 // See Note [Functionalization: Alias Removal] for more details.
 // This function applies a single update from one of the views to the StorageImpl.
@@ -37,12 +45,20 @@ namespace at::functionalization {
 static const Tensor apply_update(const FunctionalStorageImpl::Update& update, const Tensor& base) {
   at::Tensor t = update.new_val;
   TORCH_INTERNAL_ASSERT(!at::functionalization::impl::isFunctionalTensor(t));
+<<<<<<< HEAD
   if (update.view_metas.empty()) { return t; }
+=======
+  if (update.view_metas.empty()) return t;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::vector<at::Tensor> tmp_values({base});
   tmp_values.reserve(update.view_metas.size());
   for (size_t i = 0; i < update.view_metas.size() - 1; ++i) {
+<<<<<<< HEAD
     at::Tensor next_view = update.view_metas[i]->forward(tmp_values.back());
+=======
+    at::Tensor next_view = update.view_metas[i].forward_fn(tmp_values.back(), update.view_metas[i].out_index);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // NB: We only actually need tmp_values for ops like select/slice/diagonal/squeeze/as_strided
     // All of these ops require additional information to recover the sizes of the original tensor.
     // If need to, we could probably apply this optimization and only bother computing tmp_values
@@ -50,8 +66,14 @@ static const Tensor apply_update(const FunctionalStorageImpl::Update& update, co
     tmp_values.push_back(std::move(next_view));
   }
   for(int64_t i = static_cast<int64_t>(update.view_metas.size()) - 1; i >= 0; --i) {
+<<<<<<< HEAD
     // Each view inverse is implemented in ViewInverses.cpp.
     t = update.view_metas[i]->reverse(tmp_values[i], t);
+=======
+    int64_t out_idx = update.view_metas[i].out_index;
+    // Each view inverse is implemented in ViewInverses.cpp.
+    t = update.view_metas[i].reverse_fn(tmp_values[i], t, out_idx);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   TORCH_INTERNAL_ASSERT(!at::functionalization::impl::isFunctionalTensor(t));
   return t;
@@ -105,13 +127,21 @@ FunctionalStorageImpl::FunctionalStorageImpl(const Tensor& base)
   TORCH_INTERNAL_ASSERT(!at::functionalization::impl::isFunctionalTensor(base_));
 }
 
+<<<<<<< HEAD
 void FunctionalStorageImpl::add_update(const Tensor& updated_val, const std::vector<std::shared_ptr<ViewMeta>>& metas) {
+=======
+void FunctionalStorageImpl::add_update(const Tensor& updated_val, const std::vector<ViewMeta>& metas) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(!frozen_, "cannot mutate tensors with frozen storage");
 
   if (metas.size() > 1) {
     for (size_t i = 1; i < metas.size(); ++i) {
       // Skipping this check for XLA. Would be good to add it back, but it is failing XLA CI
+<<<<<<< HEAD
       TORCH_CHECK(updated_val.device().type() == c10::DeviceType::XLA || !metas[i]->is_as_strided,
+=======
+      TORCH_CHECK(updated_val.device().type() == c10::DeviceType::XLA || !metas[i].is_as_strided,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 "During torch.compile, encountered a mutation on a view chain of length ", metas.size(), ", where view ", i,
 " was an as_strided() call. as_strided() is non-compositional, and therefore is not possible to functionalize properly today,"
 "so this behavior is banned in compile. As a workaround, you can either remove the mutation from the model code, or you "

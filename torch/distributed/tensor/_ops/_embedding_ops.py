@@ -113,7 +113,11 @@ class _MaskPartial(Partial):
     def _reduce_value(
         self, tensor: torch.Tensor, mesh: DeviceMesh, mesh_dim: int
     ) -> torch.Tensor:
+<<<<<<< HEAD
         # by the time we need reduction, we should have already saved the mask
+=======
+        # by the time we ned reduction, we should have already saved the mask
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.mask_buffer.data is not None
 
         # apply the mask to the tensor that pending reduction
@@ -134,7 +138,11 @@ class _MaskPartial(Partial):
         mesh_dim: int,
         shard_spec: Placement,
     ) -> torch.Tensor:
+<<<<<<< HEAD
         # by the time we need reduction, we should have already saved the mask
+=======
+        # by the time we ned reduction, we should have already saved the mask
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.mask_buffer.data is not None
 
         # apply the mask to the tensor that pending reduction

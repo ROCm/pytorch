@@ -51,6 +51,12 @@ inline void dot_check(const Tensor& self, const Tensor& other) {
 } // namespace mps
 
 Tensor dot_mps(const Tensor& self, const Tensor& other) {
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(is_macos_13_or_newer(MacOSVersion::MACOS_VER_14_0_PLUS) || self.scalar_type() != ScalarType::Long,
+              "MPS: dot op doesn't support int64 input on MacOS13")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using namespace mps;
   using CachedGraph = MPSBinaryCachedGraph;
 

@@ -148,7 +148,10 @@ def aot_compile(
     with torch.no_grad():
         so_path = torch._inductor.aot_compile(gm, args, kwargs, options=options)  # type: ignore[arg-type]
 
+<<<<<<< HEAD
     assert isinstance(so_path, (str, list))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return so_path
 
 def aot_load(so_path: str, device: str) -> Callable:

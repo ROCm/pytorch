@@ -649,7 +649,11 @@ inline InferredType tryToInferContainerType(
           "."));
     } else {
       // TODO: this message is not correct anymore, since this InferredType is
+<<<<<<< HEAD
       // used from a bunch of circumstances unrelated to tracing. We can reuse
+=======
+      // used from a bunch of circumstances unrelated to tracing. We can re-use
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // this instead of the attribute_failure stuff in concreteType
       return InferredType(c10::str(
           "Only tensors and (possibly nested) tuples of tensors, lists, or dicts ",
@@ -1277,6 +1281,7 @@ TORCH_PYTHON_API std::pair<std::shared_ptr<Operator>, Stack> getOpWithStack(
     const py::args& args,
     const py::kwargs& kwargs);
 
+<<<<<<< HEAD
 // Efficient overload (does not require vector allocation) of the
 // above for use from C++ code.
 std::pair<std::shared_ptr<Operator>, Stack> getOpWithStack(
@@ -1284,12 +1289,15 @@ std::pair<std::shared_ptr<Operator>, Stack> getOpWithStack(
     const py::args& args,
     const py::kwargs& kwargs);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_PYTHON_API py::object invokeOperatorFromPython(
     const std::vector<std::shared_ptr<Operator>>& operations,
     const py::args& args,
     const py::kwargs& kwargs,
     std::optional<c10::DispatchKey> dk = std::nullopt);
 
+<<<<<<< HEAD
 // Efficient overload (does not require vector allocation) of the
 // above for use from C++ code.
 py::object invokeOperatorFromPython(
@@ -1298,6 +1306,8 @@ py::object invokeOperatorFromPython(
     const py::kwargs& kwargs,
     std::optional<c10::DispatchKey> dk = std::nullopt);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_PYTHON_API std::optional<py::object> _maybe_handle_torch_function(
     const std::string& ns,
     const std::string& method_name,
@@ -1319,6 +1329,7 @@ TORCH_PYTHON_API py::object _get_operation_for_overload_or_packet(
     bool is_overload,
     std::optional<c10::DispatchKey> dk = std::nullopt);
 
+<<<<<<< HEAD
 // Efficient overload (does not require vector allocation) of the
 // above for use from C++ code.
 py::object _get_operation_for_overload_or_packet(
@@ -1329,4 +1340,6 @@ py::object _get_operation_for_overload_or_packet(
     bool is_overload,
     std::optional<c10::DispatchKey> dk = std::nullopt);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit

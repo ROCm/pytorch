@@ -238,8 +238,12 @@ class TestDCE(TestCase):
 
     def test_impure_random(self):
         """
+<<<<<<< HEAD
         Test that DCE doesn't remove call_function for torch.rand and other random functions.
         Tests both FX tracing and AOT compilation (issue #151524).
+=======
+        Test that DCE doesn't remove call_function for torch.rand.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         class TestModule(torch.nn.Module):
@@ -247,6 +251,7 @@ class TestDCE(TestCase):
                 x = torch.rand([10])  # noqa: F841
                 return a * 2
 
+<<<<<<< HEAD
         # Test FX tracing + DCE
         self._run_dce_and_test(TestModule(), expect_dce_changes=False)
 
@@ -304,6 +309,11 @@ class TestDCE(TestCase):
         compiled_result = torch.compile(model, backend=aot_backend)(torch.tensor([1.0]))
         self.assertEqual(eager_result, compiled_result)
 
+=======
+        # %torch.rand should not be removed because it has side effects.
+        self._run_dce_and_test(TestModule(), expect_dce_changes=False)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_impure_kwargs(self):
         """
         Test that DCE doesn't remove call_function nodes with side effects on kwargs.
@@ -338,6 +348,11 @@ class TestDCE(TestCase):
         Test that DCE doesn't remote collective ops even the results are not used.
         """
 
+<<<<<<< HEAD
+=======
+        from torch.testing._internal.distributed.fake_pg import FakeStore
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class TestModule(torch.nn.Module):
             def forward(
                 self, a: torch.Tensor, b: torch.Tensor, c: torch.Tensor
@@ -352,6 +367,10 @@ class TestDCE(TestCase):
             backend="fake",
             world_size=2,
             rank=0,
+<<<<<<< HEAD
+=======
+            store=FakeStore(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # collective nodes should not be removed because they have side effects.
         self._run_dce_and_test(TestModule(), expect_dce_changes=False, custom=False)
@@ -363,6 +382,11 @@ class TestDCE(TestCase):
         Test that DCE doesn't remote collective ops (no overload version) even the results are not used.
         """
 
+<<<<<<< HEAD
+=======
+        from torch.testing._internal.distributed.fake_pg import FakeStore
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class TestModule(torch.nn.Module):
             def forward(
                 self, a: torch.Tensor, b: torch.Tensor, c: torch.Tensor
@@ -377,6 +401,10 @@ class TestDCE(TestCase):
             backend="fake",
             world_size=2,
             rank=0,
+<<<<<<< HEAD
+=======
+            store=FakeStore(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # collective nodes should not be removed because they have side effects.
         self._run_dce_and_test(TestModule(), expect_dce_changes=False, custom=False)

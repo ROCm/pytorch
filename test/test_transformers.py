@@ -17,7 +17,11 @@ from unittest.mock import patch, MagicMock, ANY
 import math
 import itertools
 import torch.optim as optim
+<<<<<<< HEAD
 from torch.testing._internal.common_device_type import instantiate_device_type_tests, onlyCUDA, largeTensorTest
+=======
+from torch.testing._internal.common_device_type import instantiate_device_type_tests, onlyCUDA, onlyCPU, largeTensorTest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional
 import torch.utils.cpp_extension
 from torch.testing._internal.common_nn import NNTestCase
@@ -49,8 +53,15 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
     PLATFORM_SUPPORTS_FUSED_ATTENTION,
     PLATFORM_SUPPORTS_CUDNN_ATTENTION,
+<<<<<<< HEAD
     tf32_on_and_off,
     tf32_enabled,
+=======
+    SM90OrLater,
+    tf32_on_and_off,
+    tf32_enabled,
+    ROCM_VERSION,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 if TEST_FAIRSEQ:
@@ -97,7 +108,11 @@ def _check_equal(
     """
     Compare test tensor against golden and reference tensors.
     Golden is the highest precision possible serving as the "ground truth"
+<<<<<<< HEAD
     Reference is the same precision as test and should also serve as less precisie ground truth.
+=======
+    Refernce is the same precision as test and should also serve as less precisie ground truth.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     We calcculate the "reference error" by comparing the golden to reference and use this as the
     measruing stick for the test tensor.
 
@@ -339,11 +354,21 @@ class TestTransformers(NNTestCase):
                 l1_bool = nn.L1Loss()(test_train_bool[:, 0:2, :], test_eval_bool[:, 0:2, :]).item()
                 self.assertTrue(l1_bool < 1e-4, "Eval/Train difference in pad_mask BOOL")
 
+<<<<<<< HEAD
     @tf32_on_and_off(0.001)
+=======
+    @tf32_on_and_off(0.001, only_if=(not TEST_WITH_ROCM or ROCM_VERSION < (7, 0)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("attn_mask_dim", [2, 3, None])
     @parametrize("key_padding_mask_dim", [2, None])
     @parametrize("mask_dtype", [torch.bool, torch.float32])
     def test_multiheadattention_fastpath_attn_mask(self, device, attn_mask_dim, key_padding_mask_dim, mask_dtype):
+<<<<<<< HEAD
+=======
+        if TEST_WITH_ROCM:
+            if attn_mask_dim is not None and mask_dtype == torch.bool:
+                self.skipTest("boolean mask is not fully supported on ROCm yet.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # MHA converts all
         with torch.no_grad():
             B = 2
@@ -426,7 +451,11 @@ class TestTransformers(NNTestCase):
         # remove hook
         handle.remove()
 
+<<<<<<< HEAD
     @tf32_on_and_off(0.0021 if TEST_WITH_ROCM else 0.001)
+=======
+    @tf32_on_and_off(0.001)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("use_torchscript", [False])
     @parametrize("enable_nested_tensor", [True, False])
     @parametrize("use_autocast", [True, False])
@@ -519,7 +548,11 @@ class TestTransformers(NNTestCase):
                 slowpath_output = slowpath_output.masked_fill(src_key_padding_mask.unsqueeze(-1), 0)
                 self.assertEqual(fastpath_output_expanded, slowpath_output)
 
+<<<<<<< HEAD
     @tf32_on_and_off(0.001)
+=======
+    @tf32_on_and_off(0.001, only_if=(not TEST_WITH_ROCM or ROCM_VERSION < (7, 0)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("with_no_grad", [True, False])
     @parametrize("training", [True, False])
     @parametrize("enable_nested_tensor", [False])
@@ -1105,7 +1138,11 @@ class TestTransformers(NNTestCase):
                     return_all_hiddens=False,
                 )[0]
 
+<<<<<<< HEAD
     @tf32_on_and_off(0.003)
+=======
+    @tf32_on_and_off(0.003, only_if=(not TEST_WITH_ROCM or ROCM_VERSION < (7, 0)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("input_dim,attn_mask_dim,is_causal",
                  [(3, None, False), (3, 2, False), (3, 2, True), (3, 3, False), (3, 3, True),
                   (4, None, False), (4, 2, False), (4, 2, True), (4, 4, False), (4, 4, True)],
@@ -1655,6 +1692,22 @@ class TestSDPAFailureModes(NNTestCase):
                     F.scaled_dot_product_attention(rand_query, rand_key, rand_value, dropout_p=0.0,
                                                    is_causal=False, enable_gqa=True)
 
+<<<<<<< HEAD
+=======
+    @onlyCPU
+    def test_invalid_sdpa_kernel_grouped_query_attention_cpu(self, device):
+        rand_query = torch.rand(8, 8, 64, 64, device=device, dtype=torch.float16, requires_grad=True)
+        rand_key = torch.rand(8, 4, 64, 64, device=device, dtype=torch.float16, requires_grad=True)
+        rand_value = torch.rand(8, 4, 64, 64, device=device, dtype=torch.float16, requires_grad=True)
+
+        with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):
+            with self.assertRaisesRegex(RuntimeError, "No available kernel"):
+                with self.assertWarnsRegex(UserWarning, "For dense inputs, both fused kernels require query, "
+                                           "key and value to have"):
+                    F.scaled_dot_product_attention(rand_query, rand_key, rand_value, dropout_p=0.0,
+                                                   is_causal=False, enable_gqa=True)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCUDA
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not flash_attention fused scaled dot product attention")
     @parametrize("kernel", PLATFORM_SPECIFIC_SDPA)
@@ -1702,7 +1755,11 @@ class TestSDPAFailureModes(NNTestCase):
     @onlyCUDA
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support fused SDPA or pre-SM80 hardware")
     def test_unaligned_tensors(self, device):
+<<<<<<< HEAD
         # The alignment is dependent on arch so we specify SM80OrLater
+=======
+        # The alignment is depdent on arch so we specifiy SM80OrLater
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype = torch.float16
         size = SdpaShape(2, 2, 8, 5)
         make_tensor = partial(torch.rand, size, device=device, dtype=dtype)
@@ -2064,11 +2121,14 @@ class TestSDPA(NNTestCase):
             sdp_math = torch.nn.functional.scaled_dot_product_attention(x, x, x, scale=-1.0 / 0.0001)
         self.assertEqual(ref_result, sdp_math)
 
+<<<<<<< HEAD
     def test_scaled_dot_product_attention_fp16_overflow(self, device):
         # Regression test for https://github.com/pytorch/pytorch/issues/160841
         x = torch.full((1, 32, 23, 80), 64.0, dtype=torch.half, device=device)
         y = torch.nn.functional.scaled_dot_product_attention(x, x, x)
         self.assertFalse(y.isnan().any().item())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestSDPACpuOnly(NNTestCase):
     """ Used to test CPU only functionality of scaled_dot_product_attention """
@@ -2089,6 +2149,7 @@ class TestSDPACpuOnly(NNTestCase):
         else:
             assert torch._fused_sdp_choice(q, k, v, dropout_p=dropout) == SDPBackend.FLASH_ATTENTION.value
 
+<<<<<<< HEAD
     def _generate_fixed_qkv_helper(
         self,
         device,
@@ -2109,6 +2170,8 @@ class TestSDPACpuOnly(NNTestCase):
         v = make_tensor(kv_shape).transpose(1, 2)
         return q, k, v
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("fused_kernel", [SDPBackend.FLASH_ATTENTION])
     @parametrize("dtype", [torch.float64, torch.float32, torch.bfloat16, torch.float16])
     @parametrize("batch_size", [2, 12])
@@ -2142,20 +2205,34 @@ class TestSDPACpuOnly(NNTestCase):
             tol = Tolerances(5e-2, 5e-2)
         if dtype is torch.float16:
             tol = Tolerances(1e-2, 1e-2)
+<<<<<<< HEAD
         tol_grad = Tolerances(1e-5, 5e-6)
         if dtype is torch.bfloat16:
             tol_grad = Tolerances(5e-2, 5e-2)
         if dtype is torch.float16:
             tol_grad = Tolerances(1e-1, 1e-1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for mask_shape in itertools.product(
             [q_seq_len, 1], [kv_seq_len, 1]
         ) if mask_dim == 2 else itertools.product(
             [batch_size, 1], [n_head, 1], [q_seq_len, 1], [kv_seq_len, 1]
         ):
+<<<<<<< HEAD
             q, k, v = self._generate_fixed_qkv_helper(
                 device, dtype, batch_size, n_head, n_head, q_seq_len, kv_seq_len, head_dim)
             q2, k2, v2 = self._generate_fixed_qkv_helper(
                 device, dtype, batch_size, n_head, n_head, q_seq_len, kv_seq_len, head_dim)
+=======
+            make_tensor = partial(rand_sdpa_tensor, type="dense", device=device, dtype=dtype, requires_grad=False)
+            q_shape = SdpaShape(batch_size, n_head, q_seq_len, head_dim)
+            kv_shape = SdpaShape(batch_size, n_head, kv_seq_len, head_dim)
+            q = make_tensor(q_shape)
+            k = make_tensor(kv_shape)
+            v = make_tensor(kv_shape)
+            q2, k2, v2 = q.clone(), k.clone(), v.clone()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if train:
                 q.requires_grad_(True)
                 k.requires_grad_(True)
@@ -2164,6 +2241,15 @@ class TestSDPACpuOnly(NNTestCase):
                 k2.requires_grad_(True)
                 v2.requires_grad_(True)
 
+<<<<<<< HEAD
+=======
+            if dtype in [torch.bfloat16, torch.float16]:
+                q2, k2, v2 = q2.float(), k2.float(), v2.float()
+            # (B, nh, T, hs)
+            q = q.view(batch_size, q_seq_len, n_head, head_dim).transpose(1, 2)
+            k = k.view(batch_size, kv_seq_len, n_head, head_dim).transpose(1, 2)
+            v = v.view(batch_size, kv_seq_len, n_head, head_dim).transpose(1, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if set_attn_mask and not casual:
                 if bool_mask:
                     attn_mask = torch.randint(0, 2, size=mask_shape, dtype=torch.bool, device=device)
@@ -2171,11 +2257,22 @@ class TestSDPACpuOnly(NNTestCase):
                     attn_mask = torch.randn(mask_shape, dtype=dtype, device=device)
             else:
                 attn_mask = None
+<<<<<<< HEAD
+=======
+            q2 = q2.view(batch_size, q_seq_len, n_head, head_dim).transpose(1, 2)
+            k2 = k2.view(batch_size, kv_seq_len, n_head, head_dim).transpose(1, 2)
+            v2 = v2.view(batch_size, kv_seq_len, n_head, head_dim).transpose(1, 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             with sdpa_kernel(backends=[fused_kernel]):
                 actual = torch.nn.functional.scaled_dot_product_attention(
                     q, k, v, attn_mask=attn_mask, dropout_p=0.0, is_causal=casual)
             with sdpa_kernel(backends=[SDPBackend.MATH]):
+<<<<<<< HEAD
+=======
+                if not bool_mask and dtype in [torch.bfloat16, torch.float16] and attn_mask is not None:
+                    attn_mask = attn_mask.float()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 math_ref = torch.nn.functional.scaled_dot_product_attention(
                     q2, k2, v2, attn_mask=attn_mask, dropout_p=0.0, is_causal=casual)
 
@@ -2194,6 +2291,7 @@ class TestSDPACpuOnly(NNTestCase):
                 grad_q_actual, grad_k_actual, grad_v_actual = q.grad, k.grad, v.grad
                 grad_q_ref, grad_k_ref, grad_v_ref = q2.grad, k2.grad, v2.grad
 
+<<<<<<< HEAD
                 self.assertFalse(grad_q_actual is None)
                 self.assertFalse(grad_k_actual is None)
                 self.assertFalse(grad_v_actual is None)
@@ -2266,6 +2364,11 @@ class TestSDPACpuOnly(NNTestCase):
             self.assertEqual(grad_q_actual, grad_q_ref, atol=tol_grad.atol, rtol=tol_grad.rtol)
             self.assertEqual(grad_k_actual, grad_k_ref, atol=tol_grad.atol, rtol=tol_grad.rtol)
             self.assertEqual(grad_v_actual, grad_v_ref, atol=tol_grad.atol, rtol=tol_grad.rtol)
+=======
+                self.assertEqual(grad_q_actual, grad_q_ref, atol=tol.atol, rtol=tol.rtol)
+                self.assertEqual(grad_k_actual, grad_k_ref, atol=tol.atol, rtol=tol.rtol)
+                self.assertEqual(grad_v_actual, grad_v_ref, atol=tol.atol, rtol=tol.rtol)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_sdpa_with_inf(self, device):
         # https://github.com/pytorch/pytorch/issues/127055.
@@ -2663,6 +2766,7 @@ class TestSDPACudaOnly(NNTestCase):
         v_shape = SdpaShape(batch, num_heads, seq_len, head_dim_v)
         query, key, value = make_tensor(q_shape), make_tensor(k_shape), make_tensor(v_shape)
 
+<<<<<<< HEAD
         def test():
             with sdpa_kernel(backends=[SDPBackend.CUDNN_ATTENTION], set_priority=True):
                 actual = torch.nn.functional.scaled_dot_product_attention(
@@ -2681,6 +2785,20 @@ class TestSDPACudaOnly(NNTestCase):
         else:
             with self.assertRaisesRegex(RuntimeError, "No available kernel."):
                 test()
+=======
+        with sdpa_kernel(backends=[SDPBackend.CUDNN_ATTENTION, SDPBackend.MATH], set_priority=True):
+            actual = torch.nn.functional.scaled_dot_product_attention(
+                query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False)
+            actual.backward(torch.randn_like(actual))
+        with sdpa_kernel(backends=[SDPBackend.MATH]):
+            math_ref = torch.nn.functional.scaled_dot_product_attention(
+                query.contiguous().to(torch.float32),
+                key.contiguous().to(torch.float32),
+                value.contiguous().to(torch.float32),
+                attn_mask=None, dropout_p=0.0, is_causal=False)
+
+        self.assertEqual(actual.contiguous(), math_ref.contiguous().to(dtype), atol=1e-3, rtol=1e-2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cuDNN Attention is not supported on this system")
     def test_fused_attention_different_dk_dv(self, device):
@@ -2706,7 +2824,10 @@ class TestSDPACudaOnly(NNTestCase):
 
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cuDNN Attention is not supported on this system")
+<<<<<<< HEAD
     @unittest.skipIf(True, "broken as of cuDNN 9.10")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cudnn_attention_fail_d128(self, device):
         # Test that cuDNN attention dispatching correctly bails out on d > 128
         b, h = 1, 2
@@ -2721,6 +2842,10 @@ class TestSDPACudaOnly(NNTestCase):
         ISSM90 = device_cap == (9, 0)
         ISSM100 = device_cap == (10, 0)
         with sdpa_kernel(backends=[SDPBackend.CUDNN_ATTENTION]):
+<<<<<<< HEAD
+=======
+            # SM90/100 support d <= 256 as of cuDNN 9.5.1+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (ISSM90 or ISSM100) and torch.backends.cudnn.version() >= 90501:
                 torch.nn.functional.scaled_dot_product_attention(q, k, v)
             else:
@@ -2810,6 +2935,7 @@ class TestSDPACudaOnly(NNTestCase):
         for permute_order in permute_orders:
             test_attention(SDPBackend.CUDNN_ATTENTION, list(permute_order) + [3])
 
+<<<<<<< HEAD
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cudnn Attention is not supported on this system")
     def test_cudnn_attention_compiles(self):
         q = torch.randn(2, 8, 1024, 128, dtype=torch.half, device='cuda', requires_grad=True)
@@ -2841,6 +2967,8 @@ class TestSDPACudaOnly(NNTestCase):
             out = torch.nn.functional.scaled_dot_product_attention(q, q, q, dropout_p=0.5)
             out.backward(grad)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Fused SDPA was not built for this system")
     @parametrize("mask_dim", [1, 2, 3, 4])
     def test_mem_efficient_attention_mask_variants(self, device, mask_dim: list[int]):
@@ -3163,7 +3291,11 @@ class TestSDPACudaOnly(NNTestCase):
 
         # Cast up and compare
         # Since we are doing the compute on fp16 we have to bump the tolerance
+<<<<<<< HEAD
         # Bump down the tolerance for blfoat16
+=======
+        # Bump down the tolearnce for blfoat16
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         atol = 7e-4 if dtype == torch.float16 else 7e-3
         rtol = 7e-4 if dtype == torch.float16 else 7e-3
         if TEST_WITH_ROCM:
@@ -3184,6 +3316,7 @@ class TestSDPACudaOnly(NNTestCase):
         value = value.view(batch_size, -1, num_heads, head_dim).transpose(1, 2)
         key = key.view(batch_size, -1, num_heads, head_dim).transpose(1, 2)
 
+<<<<<<< HEAD
         device_capability = None
         if "cuda" in str(device):
             device_capability = torch.cuda.get_device_capability()
@@ -3197,6 +3330,17 @@ class TestSDPACudaOnly(NNTestCase):
         elif PLATFORM_SUPPORTS_FLASH_ATTENTION:
             self.assertEqual(torch._fused_sdp_choice(query, key, value), SDPBackend.FLASH_ATTENTION.value)
         elif type != "nested" and PLATFORM_SUPPORTS_CUDNN_ATTENTION and not prefer_cudnn:  # e.g., we're on Windows
+=======
+        # TODO we are currently disabling this by default, lets assert that this returns
+        # FlashAttention, we need to change when we make remove opt-in for cudnn
+        if type != "nested" and PLATFORM_SUPPORTS_CUDNN_ATTENTION and SM90OrLater:
+            self.assertEqual(torch._fused_sdp_choice(query, key, value), SDPBackend.FLASH_ATTENTION.value)
+            with sdpa_kernel(backends=[SDPBackend.CUDNN_ATTENTION]):
+                self.assertEqual(torch._fused_sdp_choice(query, key, value), SDPBackend.CUDNN_ATTENTION.value)
+        elif PLATFORM_SUPPORTS_FLASH_ATTENTION:
+            self.assertEqual(torch._fused_sdp_choice(query, key, value), SDPBackend.FLASH_ATTENTION.value)
+        elif type != "nested" and PLATFORM_SUPPORTS_CUDNN_ATTENTION:  # e.g., we're on Windows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(torch._fused_sdp_choice(query, key, value), SDPBackend.EFFICIENT_ATTENTION.value)
             with sdpa_kernel(backends=[SDPBackend.CUDNN_ATTENTION]):
                 self.assertEqual(torch._fused_sdp_choice(query, key, value), SDPBackend.CUDNN_ATTENTION.value)
@@ -3318,7 +3462,11 @@ class TestSDPACudaOnly(NNTestCase):
             out = F.scaled_dot_product_attention(query, key, value)
             upward_grad = torch.rand_like(out)
             out.backward(upward_grad)
+<<<<<<< HEAD
             initial_query_grad = query.grad
+=======
+            intial_query_grad = query.grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Re-run the op with the same upward grad and check that the backward is
             # not deterministic
@@ -3327,7 +3475,11 @@ class TestSDPACudaOnly(NNTestCase):
                 query.grad = None
                 out = F.scaled_dot_product_attention(query, key, value)
                 out.backward(upward_grad)
+<<<<<<< HEAD
                 if not torch.equal(initial_query_grad, query.grad):
+=======
+                if not torch.equal(intial_query_grad, query.grad):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     diff_anwser_once = True
                     break
             self.assertTrue(diff_anwser_once)
@@ -3337,7 +3489,11 @@ class TestSDPACudaOnly(NNTestCase):
             out = F.scaled_dot_product_attention(query, key, value)
             upward_grad = torch.rand_like(out)
             out.backward(upward_grad)
+<<<<<<< HEAD
             initial_query_grad = query.grad
+=======
+            intial_query_grad = query.grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Re-run the op with the same upward grad and check that the backward is
             # deterministic now that we have enforced it
@@ -3346,7 +3502,11 @@ class TestSDPACudaOnly(NNTestCase):
                 query.grad = None
                 out = F.scaled_dot_product_attention(query, key, value)
                 out.backward(upward_grad)
+<<<<<<< HEAD
                 if not torch.equal(initial_query_grad, query.grad):
+=======
+                if not torch.equal(intial_query_grad, query.grad):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     diff_anwser_once = True
                     break
             self.assertFalse(diff_anwser_once)
@@ -3655,7 +3815,11 @@ class TestSDPACudaOnly(NNTestCase):
                     query, key, value, is_causal=is_causal, scale=scale, enable_gqa=enable_gqa)
         else:
             # Problem: We pad sizes in the composite region of the top level SDPA. But we need the
+<<<<<<< HEAD
             # Debug mask when have dropout. So I am going to manually pad up here when testing dropout
+=======
+            # Debug mask when have dropout. So I am going to manualy pad up here when testing dropout
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             q_padded, q_og_size = pad_last_dim(query, 8)
             k_padded, k_og_size = pad_last_dim(key, 8)
             v_padded, v_og_size = pad_last_dim(value, 8)
@@ -4172,6 +4336,12 @@ class TestSDPACudaOnly(NNTestCase):
 class TestSDPAXpuOnly(NNTestCase):
     """ Used to test XPU only functionality of scaled_dot_product_attention
     Mostly migrate from TestSDPACudaOnly in test/test_transformers.py
+<<<<<<< HEAD
+=======
+
+    Note that as SDPBackend.OVERRIDEABLE is not managed by sdpa_kernel so that
+    math ref has to be called explicitly via torch.ops.aten._scaled_dot_product_attention_math.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     @parametrize("type", ["dense"])
@@ -4197,6 +4367,10 @@ class TestSDPAXpuOnly(NNTestCase):
         v_shape = SdpaShape(batch, num_heads, 2, head_dim_v)
         query, key, value = make_tensor(q_shape), make_tensor(k_shape), make_tensor(v_shape)
 
+<<<<<<< HEAD
+=======
+        # test that we do not dispatch to onednn for an unsupported case
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         actual = F.scaled_dot_product_attention(
             query, key, value, attn_mask=None, dropout_p=0.0, is_causal=False)
 
@@ -4234,6 +4408,10 @@ class TestSDPAXpuOnly(NNTestCase):
         v_shape = SdpaShape(batch_size, n_head_kv, kv_size, head_dim)
         query, key, value = make_tensor(q_shape), make_tensor(k_shape), make_tensor(v_shape)
 
+<<<<<<< HEAD
+=======
+        # test that we do not dispatch to onednn for an unsupported case
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         actual = F.scaled_dot_product_attention(
             query, key, value, attn_mask=None, dropout_p=0.0, is_causal=is_causal, enable_gqa=True)
 
@@ -4303,6 +4481,7 @@ class TestSDPAXpuOnly(NNTestCase):
         for permute_order in permute_orders:
             test_attention(list(permute_order) + [3])
 
+<<<<<<< HEAD
     def test_backends_set_to_math(self, device):
         dtype = torch.bfloat16
         q_shape = SdpaShape(1, 1, 8, 16)
@@ -4332,6 +4511,8 @@ class TestSDPAXpuOnly(NNTestCase):
         self.assertTrue(overrideable_index < math_index < flash_index,
                         f"Expected overrideable < math < flash, got {overrideable_index}, {math_index}, {flash_index}")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_scaled_dot_product_attention_fused_kernels_safe_softmax(self, device):
         dtype = torch.bfloat16
         make_tensor = partial(torch.rand, device=device, dtype=dtype, requires_grad=False)

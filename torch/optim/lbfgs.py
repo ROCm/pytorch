@@ -231,6 +231,7 @@ class LBFGS(Optimizer):
             raise ValueError(f"Invalid learning rate: {lr}")
         if max_eval is None:
             max_eval = max_iter * 5 // 4
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "max_iter": max_iter,
@@ -240,6 +241,17 @@ class LBFGS(Optimizer):
             "history_size": history_size,
             "line_search_fn": line_search_fn,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            max_iter=max_iter,
+            max_eval=max_eval,
+            tolerance_grad=tolerance_grad,
+            tolerance_change=tolerance_change,
+            history_size=history_size,
+            line_search_fn=line_search_fn,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
         if len(self.param_groups) != 1:
@@ -454,8 +466,12 @@ class LBFGS(Optimizer):
                     # the reason we do this: in a stochastic setting,
                     # no use to re-evaluate that function here
                     with torch.enable_grad():
+<<<<<<< HEAD
                         loss = closure()
                     loss = float(loss)
+=======
+                        loss = float(closure())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     flat_grad = self._gather_flat_grad()
                     opt_cond = flat_grad.abs().max() <= tolerance_grad
                     ls_func_evals = 1

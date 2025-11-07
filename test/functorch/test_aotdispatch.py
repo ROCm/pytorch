@@ -51,14 +51,20 @@ from torch._dynamo.testing import normalize_gm
 from torch._dynamo.utils import counters
 from torch._functorch._aot_autograd.autograd_cache import AOTAutogradCache
 from torch._functorch.aot_autograd import (
+<<<<<<< HEAD
     _aot_export_function,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aot_export_joint_simple,
     aot_export_module,
     SerializableAOTDispatchCompiler,
 )
 from torch._higher_order_ops.out_dtype import out_dtype
 from torch._inductor.codecache import compiled_fx_graph_hash
+<<<<<<< HEAD
 from torch._inductor.custom_graph_pass import CustomPartitionerFn
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.output_code import MockFXGraphCacheOutput
 from torch._subclasses.fake_tensor import DynamicOutputShapeException, FakeTensorMode
 from torch.fx.experimental.proxy_tensor import is_sym_node
@@ -99,7 +105,10 @@ from torch.testing._internal.optests import (
 )
 from torch.testing._internal.subclasses import WrapperSubclass
 from torch.testing._internal.two_tensor import TwoTensor, TwoTensorMode
+<<<<<<< HEAD
 from torch.utils._python_dispatch import TorchDispatchMode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 USE_TORCHVISION = False
@@ -693,6 +702,7 @@ def forward(self, primals_1):
         ]
         self.verify_aot_autograd(f, inp, keep_inp_mutations=True)
 
+<<<<<<< HEAD
     def _compile_autocast(self, device, *, forward_autocast):
         with torch.library._scoped_library("mylib", "FRAGMENT") as m:
             m.define("foo(Tensor x) -> Tensor")
@@ -767,6 +777,8 @@ def forward(self, primals_1):
                 self.assertEqual(out, torch.zeros_like(out))
                 self.assertEqual(grad, torch.ones_like(grad))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfDynamoInput(
         "Test doesn't make sense with dynamo, which changes order of mutations"
     )
@@ -993,6 +1005,7 @@ metadata incorrectly.
         ):
             new_out.sum().backward()
 
+<<<<<<< HEAD
     def test_nested_subclasses_non_homogenous(self):
         def f(x):
             x_elem = x.elem
@@ -1097,6 +1110,8 @@ metadata incorrectly.
         self.assertTrue(isinstance(aa2.grad, ConstantExtraMetadataTensor))
         self.assertTrue(isinstance(aa2.grad.elem, TwoTensor))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(IS_WINDOWS, "Windows isn't supported for this case")
     def test_custom_tensor_metadata(self):
         def f(x):
@@ -2478,7 +2493,11 @@ def forward(self, arg0_1, arg1_1):
             return a.mul(3), b.mul(4)
 
         inp = [
+<<<<<<< HEAD
             # First inp doesn't require grad, but we switch it on
+=======
+            # First inp doesnt require grad, but we switch it on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.ones(3, 3, requires_grad=False),
             torch.ones(3, 3, requires_grad=True),
         ]
@@ -4838,6 +4857,7 @@ def forward(self, arg0_1):
         inps = [torch.randn(2, 2), torch.ones(2)]
         gm, _ = aot_export_module(M(), inps, trace_joint=False, pre_dispatch=True)
         self.assertExpectedInline(
+<<<<<<< HEAD
             normalize_gm(gm.print_readable(False, expanded_def=True)),
             """\
 class <lambda>(torch.nn.Module):
@@ -4846,6 +4866,12 @@ class <lambda>(torch.nn.Module):
         arg0_1: "f32[2, 2]",  # PlainAOTInput(idx=0)
         arg1_1: "f32[2]",  # PlainAOTInput(idx=1)
     ):
+=======
+            normalize_gm(gm.print_readable(False)),
+            """\
+class <lambda>(torch.nn.Module):
+    def forward(self, arg0_1: "f32[2, 2]", arg1_1: "f32[2]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sum_1: "f32[]" = torch.ops.aten.sum.default(arg0_1)
         gt: "b8[]" = torch.ops.aten.gt.Scalar(sum_1, 4);  sum_1 = None
 
@@ -4856,10 +4882,14 @@ class <lambda>(torch.nn.Module):
 
         add: "f32[2, 2]" = torch.ops.aten.add.Tensor(getitem, 3)
         add_1: "f32[2, 2]" = torch.ops.aten.add.Tensor(getitem, 4);  getitem = None
+<<<<<<< HEAD
         return (
             add,  # PlainAOTOutput(idx=0)
             add_1,  # PlainAOTOutput(idx=1)
         )
+=======
+        return (add, add_1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class true_graph_0(torch.nn.Module):
         def forward(self, arg0_1: "f32[2, 2]", arg1_1: "f32[2]"):
@@ -4933,6 +4963,7 @@ class <lambda>(torch.nn.Module):
         inps = [torch.randn(2, 2), torch.ones(2)]
         gm, _ = aot_export_module(M(), inps, trace_joint=False, pre_dispatch=True)
         self.assertExpectedInline(
+<<<<<<< HEAD
             normalize_gm(gm.print_readable(False, expanded_def=True)),
             """\
 class <lambda>(torch.nn.Module):
@@ -4941,6 +4972,12 @@ class <lambda>(torch.nn.Module):
         arg0_1: "f32[2, 2]",  # PlainAOTInput(idx=0)
         arg1_1: "f32[2]",  # PlainAOTInput(idx=1)
     ):
+=======
+            normalize_gm(gm.print_readable(False)),
+            """\
+class <lambda>(torch.nn.Module):
+    def forward(self, arg0_1: "f32[2, 2]", arg1_1: "f32[2]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cos: "f32[2, 2]" = torch.ops.aten.cos.default(arg0_1);  arg0_1 = None
 
         _set_grad_enabled = torch._C._set_grad_enabled(True);  _set_grad_enabled = None
@@ -4951,9 +4988,13 @@ class <lambda>(torch.nn.Module):
 
         sum_1: "f32[]" = torch.ops.aten.sum.default(getitem_2);  getitem_2 = None
         add: "f32[2, 2]" = torch.ops.aten.add.Tensor(cos, sum_1);  cos = sum_1 = None
+<<<<<<< HEAD
         return (
             add,  # PlainAOTOutput(idx=0)
         )
+=======
+        return (add,)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class body_graph_0(torch.nn.Module):
         def forward(self, arg0_1: "f32[2]", arg1_1: "f32[2]"):
@@ -5112,6 +5153,7 @@ def forward(self, arg0_1):
         for node in fx_g.graph.nodes:
             node.meta.pop("stack_trace", None)
         self.assertExpectedInline(
+<<<<<<< HEAD
             fx_g.print_readable(print_output=False, expanded_def=True),
             """\
 class <lambda>(torch.nn.Module):
@@ -5126,6 +5168,12 @@ class <lambda>(torch.nn.Module):
         arg6_1: "i64[]",
         arg7_1: "f32[1, 1, 3, 3]",
     ):
+=======
+            fx_g.print_readable(print_output=False),
+            """\
+class <lambda>(torch.nn.Module):
+    def forward(self, arg0_1: "f32[3, 1, 1, 1]", arg1_1: "f32[3]", arg2_1: "f32[3]", arg3_1: "f32[3]", arg4_1: "f32[3]", arg5_1: "f32[3]", arg6_1: "i64[]", arg7_1: "f32[1, 1, 3, 3]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # No stacktrace found for following nodes
         convolution: "f32[1, 3, 3, 3]" = torch.ops.aten.convolution.default(arg7_1, arg0_1, arg1_1, [1, 1], [0, 0], [1, 1], False, [0, 0], 1);  arg1_1 = None
         add: "i64[]" = torch.ops.aten.add.Tensor(arg6_1, 1);  arg6_1 = None
@@ -5207,6 +5255,7 @@ class <lambda>(torch.nn.Module):
         for node in fx_g_inference.graph.nodes:
             node.meta.pop("stack_trace", None)
         self.assertExpectedInline(
+<<<<<<< HEAD
             fx_g_inference.print_readable(print_output=False, expanded_def=True),
             """\
 class <lambda>(torch.nn.Module):
@@ -5221,6 +5270,12 @@ class <lambda>(torch.nn.Module):
         arg6_1: "i64[]",  # PlainAOTInput(idx=6)
         arg7_1: "f32[1, 1, 3, 3]",  # PlainAOTInput(idx=7)
     ):
+=======
+            fx_g_inference.print_readable(print_output=False),
+            """\
+class <lambda>(torch.nn.Module):
+    def forward(self, arg0_1: "f32[3, 1, 1, 1]", arg1_1: "f32[3]", arg2_1: "f32[3]", arg3_1: "f32[3]", arg4_1: "f32[3]", arg5_1: "f32[3]", arg6_1: "i64[]", arg7_1: "f32[1, 1, 3, 3]"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # No stacktrace found for following nodes
         convolution: "f32[1, 3, 3, 3]" = torch.ops.aten.convolution.default(arg7_1, arg0_1, arg1_1, [1, 1], [0, 0], [1, 1], False, [0, 0], 1);  arg7_1 = arg0_1 = arg1_1 = None
         add: "i64[]" = torch.ops.aten.add.Tensor(arg6_1, 1);  arg6_1 = None
@@ -5233,6 +5288,7 @@ class <lambda>(torch.nn.Module):
         detach: "f32[1, 3, 3, 3]" = torch.ops.aten.detach.default(relu);  relu = None
         detach_1: "f32[1, 3, 3, 3]" = torch.ops.aten.detach.default(detach);  detach = None
         detach_2: "f32[1, 3, 3, 3]" = torch.ops.aten.detach.default(detach_1);  detach_1 = None
+<<<<<<< HEAD
         return (
             getitem_3,  # InputMutationAOTOutput(mutated_input=PlainAOTInput(idx=4))
             getitem_4,  # InputMutationAOTOutput(mutated_input=PlainAOTInput(idx=5))
@@ -5240,6 +5296,9 @@ class <lambda>(torch.nn.Module):
             sum_1,  # PlainAOTOutput(idx=0)
             detach_2,  # PlainAOTOutput(idx=1)
         )
+=======
+        return (getitem_3, getitem_4, add, sum_1, detach_2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """,  # noqa: B950
         )
         # Some important characteristics of the exported graph below:
@@ -5365,6 +5424,7 @@ def forward(self, arg0_1, arg1_1, arg2_1):
 
         mod = M()
         inp = torch.randn(2, requires_grad=True)
+<<<<<<< HEAD
         gm, _ = aot_export_module(mod, [inp], trace_joint=False)
         self.assertExpectedInline(
             str(gm.graph).strip(),
@@ -5374,6 +5434,13 @@ graph():
     %add : [num_users=1] = call_function[target=torch.ops.aten.add.Tensor](args = (%arg0_1, 4), kwargs = {})
     return (add, add)""",
         )
+=======
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "Found a graph input that requires gradients, and received a mutation",
+        ):
+            aot_export_module(mod, [inp], trace_joint=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_aot_export_input_mutation_on_parameter_banned(self):
         def fn(p, x):
@@ -5384,6 +5451,7 @@ graph():
         inp = torch.randn(2)
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "aot_export_joint_simple does not support input mutations. ViewAndMutationMeta",
         ):
             aot_export_joint_simple(fn, [mod.p, inp], trace_joint=False)
@@ -5404,6 +5472,13 @@ graph():
     %add : [num_users=1] = call_function[target=torch.ops.aten.add.Tensor](args = (%mul, %arg1_1), kwargs = {})
     return (mul, add)""",
         )
+=======
+            "Found a graph input that requires gradients, and received a mutation",
+        ):
+            aot_export_joint_simple(fn, [mod.p, inp], trace_joint=False)
+            aot_export_joint_simple(fn, [mod.p, inp], trace_joint=True)
+            aot_export_module(mod, [inp], trace_joint=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_aot_export_synthetic_bases_banned(self):
         def fn(p, x, y):
@@ -5554,6 +5629,7 @@ def forward(self):
     return (full_1,)""",  # noqa: B950
         )
 
+<<<<<<< HEAD
     def test_aot_export_input_mutation(self):
         def f(x, buf):
             buf.add_(1)
@@ -5585,6 +5661,8 @@ def forward(self, primals, tangents):
     return pytree.tree_unflatten([mul, mul_1, None], self._out_spec)""",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestPartitioning(AOTTestCase):
     @unittest.skipIf(not USE_NETWORKX, "networkx not available")
@@ -5689,6 +5767,7 @@ def forward(self, primals_1, tangents_1):
         )
 
     @unittest.skipIf(not USE_NETWORKX, "networkx not available")
+<<<<<<< HEAD
     def test_custom_partitioner_fn(self):
         class MyCustomPartitionerFn(CustomPartitionerFn):
             def __init__(self):
@@ -5732,6 +5811,8 @@ def forward(self, primals_1, tangents_1):
         )
 
     @unittest.skipIf(not USE_NETWORKX, "networkx not available")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_min_cut_partitioner_save_shape(self):
         def f(x):
             s = x.sum(dim=1)
@@ -5877,7 +5958,11 @@ def forward(self, primals_1, tangents_1):
         _, fw_graph_out_nodes = get_ins_outs(fw_graph)
         self.assertEqual(
             # fw outputs include b.size() which expands to 2 symints,
+<<<<<<< HEAD
             # then 4 tensors (transposes of matrices used for mm) are saved
+=======
+            # then 4 tensors (transposes of matricies used for mm) are saved
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # finally 3 symints are saved
             [False, True, True, False, False] + [False] * 4 + [True] * 3,
             [is_sym_node(n) for n in fw_graph_out_nodes],
@@ -6207,7 +6292,11 @@ metadata incorrectly.
         self.assertEqual(b_test.a, b_ref.a)
         self.assertEqual(b_test.b, b_ref.b)
 
+<<<<<<< HEAD
         # NOTE: we need to use b in our gradient compute. Otherwise we will need to recompile the backward.
+=======
+        # NOTE: we need to use b in our gradient compute. Otherwise we will need to recompile teh backward.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (b_ref * out_ref).sum().backward()
         (b_test * out_test).sum().backward()
         # Both grad_inputs are TwoTensor
@@ -7676,7 +7765,11 @@ metadata incorrectly.
             "pack_hash",
             "unpack_hash",
         )
+<<<<<<< HEAD
         logger_name = "torch._functorch._aot_autograd.graph_compile"
+=======
+        logger_name = "torch._functorch._aot_autograd.jit_compile_runtime_wrappers"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class SAF(torch.autograd.Function):
             @staticmethod
@@ -8157,6 +8250,7 @@ class TestAOTAutogradWithDynamo(TestAOTAutograd):
         self.assertEqual(ref_inps_after_fw, inps_after_fw)
         self.assertEqual(ref_inps_after_bw, inps_after_bw)
 
+<<<<<<< HEAD
     def test_mutation_of_input_in_fw_and_bw(self):
         class AF(torch.autograd.Function):
             @staticmethod
@@ -8204,6 +8298,8 @@ class TestAOTAutogradWithDynamo(TestAOTAutograd):
             y.sum().backward()
             self.assertEqual(ref, inplace)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class MockFXGraphCache:
     """
@@ -8292,6 +8388,10 @@ class TestAOTAutogradWithCache(TestAOTAutogradWithDynamo):
         {
             "enable_autograd_cache": True,
             "strict_autograd_cache": True,
+<<<<<<< HEAD
+=======
+            "view_replay_for_aliased_outputs": False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
     )
     @torch._inductor.config.patch("fx_graph_cache", True)

@@ -90,7 +90,10 @@ if TYPE_CHECKING:
 
     from torch._guards import CompileId
     from torch._inductor.utils import InputType
+<<<<<<< HEAD
     from torch.cuda import _POOL_HANDLE
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.types import _bool
 
 StorageWeakRefPointer = int
@@ -818,7 +821,11 @@ class CUDAGraphNode:
         id: GraphID,
         parent: Optional[CUDAGraphNode],
         inputs: list[InputType],
+<<<<<<< HEAD
         cuda_graphs_pool: _POOL_HANDLE,
+=======
+        cuda_graphs_pool: tuple[int, int],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device_index: int,
         stack_traces: Optional[StackTraces],
         stream: torch.cuda.Stream,
@@ -1229,7 +1236,10 @@ class CUDAGraphNode:
 
     def _record(self, model: ModelType, inputs: list[InputType]) -> OutputType:
         "Record the model"
+<<<<<<< HEAD
         assert self.graph is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def static_input_iter() -> Generator[torch.Tensor, None, None]:
             for i in self.wrapped_function.static_input_idxs:
@@ -1312,11 +1322,21 @@ class CUDAGraphNode:
                 self.output_storage_alias.append(UnaliasedStorage)
                 continue
 
+<<<<<<< HEAD
             torch._check(
                 o.is_cuda or o.untyped_storage().data_ptr() == 0,
                 lambda: (
                     "Expected all cuda outputs in cuda graph recording. Non cuda output "
                     f"from {self.stack_traces[i] if self.stack_traces else '(unknown)'}"
+=======
+            (
+                torch._check(
+                    o.is_cuda or o.untyped_storage().data_ptr() == 0,
+                    lambda: (
+                        "Expected all cuda outputs in cuda graph recording. Non cuda output "
+                        f"from {self.stack_traces[i] if self.stack_traces else '(unknown)'}"
+                    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
             )
 

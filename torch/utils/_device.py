@@ -82,7 +82,11 @@ class DeviceContext(TorchFunctionMode):
         CURRENT_DEVICE = self.old_device
         cur_stack = []
         # Invariant: there should only be one DeviceContext on the stack at any time
+<<<<<<< HEAD
         # (At the bottom), pop all modes until we hit the bottom, assert it's a DeviceContext
+=======
+        # (At the bottom), pop all mdoes until we hit the bottom, assert it's a DeviceContext
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # or else someone else has popped it!
         for _ in range(_len_torch_function_stack() - 1):
             mode = _pop_mode()

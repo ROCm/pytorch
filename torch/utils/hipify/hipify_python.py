@@ -465,7 +465,11 @@ def find_closure_group(input_string, start, group):
 
 
 def find_bracket_group(input_string, start):
+<<<<<<< HEAD
     """Finds the first balanced parentheses."""
+=======
+    """Finds the first balanced parantheses."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return find_closure_group(input_string, start, group=["{", "}"])
 
 

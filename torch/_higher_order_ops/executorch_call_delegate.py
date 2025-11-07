@@ -49,10 +49,14 @@ def trace_call_delegate(proxy_mode, func_overload, lowered_module, *args):
         if not isinstance(e, (torch.Tensor, torch.SymInt, torch.SymFloat)):
             return e
         return get_proxy_slot(
+<<<<<<< HEAD
             cast(torch.Tensor, e),
             proxy_mode.tracer,
             e,
             lambda e: e.proxy,  # type: ignore[attr-defined]
+=======
+            cast(torch.Tensor, e), proxy_mode.tracer, e, lambda e: e.proxy  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if not is_lowered_module(lowered_module):

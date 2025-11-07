@@ -7,7 +7,11 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}
+<<<<<<< HEAD
   cancel-in-progress: true
+=======
+  cancel-in-progress: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   do_update_viablestrict:
@@ -18,12 +22,20 @@ jobs:
     environment: ${{ (github.event_name == 'schedule') && 'mergebot' || '' }}
     steps:
       - name: Update viable/strict
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/update-viablestrict@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/update-viablestrict@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         id: update_viablestrict
         with:
           repository: pytorch/pytorch
           stable-branch: viable/strict
+<<<<<<< HEAD
           requires: '[\"pull\", \"trunk\", \"lint\", \"^linux-binary-manywheel$\", \"^linux-binary-libtorch-release$\", \"linux-aarch64\"]'
+=======
+          requires: '[\"pull\", \"trunk\", \"lint\", \"linux-binary\"]'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           secret-bot-token: ${{ secrets.MERGEBOT_TOKEN }}
           clickhouse-url: ${{ secrets.CLICKHOUSE_URL }}
           clickhouse-username: ${{ secrets.CLICKHOUSE_VIABLESTRICT_USERNAME }}

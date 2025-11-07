@@ -1,14 +1,20 @@
 # mypy: allow-untyped-defs
 import copy
+<<<<<<< HEAD
 import inspect
 import math
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from collections.abc import Sequence
 from itertools import chain
 from typing import Any, Optional
 
+<<<<<<< HEAD
 import sympy
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch.utils._pytree as pytree
 from torch._export.non_strict_utils import (
@@ -16,16 +22,22 @@ from torch._export.non_strict_utils import (
     _exit_enable_graph_inputs_of_type_nn_module,
     _get_graph_inputs_of_type_nn_module,
 )
+<<<<<<< HEAD
 from torch._export.passes.add_runtime_assertions_for_constraints_pass import (
     _convert_range_to_int,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._export.utils import _check_input_constraints_for_graph
 from torch.export.unflatten import _assign_attr, _AttrKind
 from torch.fx.experimental.proxy_tensor import _pytree_subclasses_that_lose_info
 from torch.fx.graph import _PyTreeCodeGen, _PyTreeInfo
 from torch.fx.traceback import NodeSource, NodeSourceAction
+<<<<<<< HEAD
 from torch.utils._sympy.solve import try_solve
 from torch.utils._sympy.value_ranges import ValueRanges
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ._remove_effect_tokens_pass import _remove_effect_tokens
 from ._tree_utils import reorder_kwargs
@@ -82,6 +94,7 @@ def _check_inputs_match(args, kwargs, in_spec: pytree.TreeSpec) -> list:
     return flat_args_with_path
 
 
+<<<<<<< HEAD
 def _convert_guards_code_to_fn(
     guards_code: list[str],
     paths_of_placeholders: list[pytree.KeyPath],
@@ -181,6 +194,20 @@ def _check_input_constraints_pre_hook(self, args, kwargs):
 
     # NOTE: this call is Dynamo disabled, as it used to be
     _check_input_constraints_for_module(self, args, kwargs)
+=======
+@torch._dynamo.disable
+def _check_input_constraints_pre_hook(self, args, kwargs):
+    if not self.validate_inputs:
+        return
+
+    flat_args_with_path = _check_inputs_match(args, kwargs, self._in_spec)
+
+    _check_input_constraints_for_graph(
+        [node for node in self.graph.nodes if node.op == "placeholder"],
+        flat_args_with_path,
+        self.range_constraints,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _unlift_inputs_as_getattr(
@@ -234,7 +261,16 @@ def _insert_copy_for_mutations(
     Find the all the buffers and inputs that were mutated and insert copy_
     operators to reflect mutations.
     """
+<<<<<<< HEAD
     output_node = gm.graph.output_node()
+=======
+    output_node = None
+    for node in gm.graph.nodes:
+        if node.op == "output":
+            output_node = node
+            break
+    assert output_node is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     outputs = pytree.tree_flatten(output_node.args)[0]
     assert len(outputs) == len(mutated_outputs)
 
@@ -260,6 +296,7 @@ def _insert_copy_for_mutations(
             )
             return_nodes_to_copy[return_node] = copy_node
 
+<<<<<<< HEAD
     output_args = tuple(
         return_nodes_to_copy[node] if node in return_nodes_to_copy else node
         for node in user_output_nodes
@@ -267,6 +304,15 @@ def _insert_copy_for_mutations(
     with gm.graph.inserting_before(output_node):
         # Only return user outputs
         new_output = gm.graph.output(output_args)
+=======
+    output_args = [
+        return_nodes_to_copy[node] if node in return_nodes_to_copy else node
+        for node in user_output_nodes
+    ]
+    with gm.graph.inserting_before(output_node):
+        # Only return user outputs
+        new_output = gm.graph.output(tuple(output_args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output_node.replace_all_uses_with(new_output)
         gm.graph.erase_node(output_node)
         new_output.name = output_node.name
@@ -290,6 +336,7 @@ def _get_codegen(
     """
     if forward_arg_names:
         names = forward_arg_names
+<<<<<<< HEAD
     elif (
         in_spec.type == tuple
         and in_spec.num_children == 2
@@ -302,6 +349,21 @@ def _get_codegen(
         names.extend(in_spec.children_specs[1].context)
     else:
         names = [f"arg_{i}" for i in range(in_spec.num_children)]
+=======
+    else:
+        if (
+            in_spec.type == tuple
+            and in_spec.num_children == 2
+            and in_spec.children_specs[0].type == tuple
+            and in_spec.children_specs[1].type == dict
+        ):
+            # if in_spec contains the args (tuple) and kwargs (dict)
+            names = [f"arg_{i}" for i in range(in_spec.children_specs[0].num_children)]
+            # add kwarg names
+            names.extend(in_spec.children_specs[1].context)
+        else:
+            names = [f"arg_{i}" for i in range(in_spec.num_children)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return _PyTreeCodeGen(
         _PyTreeInfo(
@@ -318,6 +380,11 @@ def _unlift(
     mutated_outputs: Sequence[Optional[str]],
     in_spec: pytree.TreeSpec,
     out_spec: Optional[pytree.TreeSpec],
+<<<<<<< HEAD
+=======
+    state_dict: dict[str, Any],
+    constants: dict[str, Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     forward_arg_names: Optional[list[str]] = None,
 ):
     """
@@ -457,7 +524,11 @@ def _create_stateful_graph_module(
     for constant_fqn in ep.graph_signature.lifted_tensor_constants:
         # Sometimes, the constant can require gradient, this is probably a bug in user code,
         # e.g. `self.const = torch.randn(2, 2, requires_grad=True)`.
+<<<<<<< HEAD
         # We call detach on the constant_val since they're tensor constants and we don't need to
+=======
+        # We call detach on the constant_val since they're tensor contants and we don't need to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # compute their gradients anyway.
         # Users should properly register it as parameter if they want it to require gradient.
         buffer = stateful_gm.get_buffer(constant_fqn)
@@ -515,6 +586,7 @@ def _create_stateful_graph_module(
     return stateful_gm
 
 
+<<<<<<< HEAD
 def _get_input_paths(example_inputs, signature):
     """
     Generate paths of placeholders, needed for generating the guards function.
@@ -658,6 +730,12 @@ def _unlift_exported_program_lifted_states(
     if ep.verifiers[0].dialect != "TRAINING":
         ep = _remove_effect_tokens(ep)
 
+=======
+def _unlift_exported_program_lifted_states(ep: ExportedProgram) -> torch.nn.Module:
+    # TODO T206340015
+    if ep.verifiers[0].dialect != "TRAINING":
+        ep = _remove_effect_tokens(ep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_gm = torch.fx.GraphModule(ep.graph_module, copy.deepcopy(ep.graph))
     _register_attrs_to_new_gm(new_gm, ep.graph_signature, ep.state_dict, ep.constants)
     forward_arg_names = (
@@ -682,16 +760,21 @@ def _unlift_exported_program_lifted_states(
         (
             out_spec.target
             if out_spec.kind
+<<<<<<< HEAD
             in (
                 OutputKind.BUFFER_MUTATION,
                 OutputKind.USER_INPUT_MUTATION,
                 OutputKind.PARAMETER_MUTATION,
             )
+=======
+            in (OutputKind.BUFFER_MUTATION, OutputKind.USER_INPUT_MUTATION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else None
         )
         for out_spec in ep.graph_signature.output_specs
     ]
 
+<<<<<<< HEAD
     source_node_dict = {
         node.name: node for node in ep.graph.nodes if node.op != "placeholder"
     }
@@ -714,16 +797,29 @@ def _unlift_exported_program_lifted_states(
         ]
 
     assert ep.call_spec.in_spec is not None
+=======
+    for node in new_gm.graph.nodes:
+        node.meta["from_node"] = [
+            NodeSource(node, "ExportedProgram.module()", NodeSourceAction.CREATE)
+        ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_gm = _unlift(
         new_gm,
         lifted_inputs,
         mutated_outputs,
         ep.call_spec.in_spec,
         ep.call_spec.out_spec,
+<<<<<<< HEAD
+=======
+        ep.state_dict,
+        ep.constants,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         forward_arg_names=forward_arg_names,
     )
     unlift_gm = _create_stateful_graph_module(new_gm, ep.range_constraints, ep)
     unlift_gm.meta.update(ep.graph_module.meta)
+<<<<<<< HEAD
 
     # create a _guards_fn submodule and insert a call to it after placeholders
     graph = unlift_gm.graph
@@ -758,3 +854,6 @@ class GuardsFn(torch.nn.Module):
 
     def forward(self, *args):
         pass
+=======
+    return unlift_gm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Union
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 from torch import Tensor
 from torch.distributions.distribution import Distribution
@@ -57,7 +60,11 @@ class ExponentialFamily(Distribution):
         """
         Method to compute the entropy using Bregman divergence of the log normalizer.
         """
+<<<<<<< HEAD
         result: Union[Tensor, float] = -self._mean_carrier_measure
+=======
+        result = -self._mean_carrier_measure
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nparams = [p.detach().requires_grad_() for p in self._natural_params]
         lg_normal = self._log_normalizer(*nparams)
         gradients = torch.autograd.grad(lg_normal.sum(), nparams, create_graph=True)

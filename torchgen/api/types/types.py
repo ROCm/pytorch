@@ -79,7 +79,10 @@ tensorOptionsT = BaseCppType("at", "TensorOptions")
 typeAndSizeT = BaseCppType("torch::autograd::generated", "TypeAndSize")
 tensorGeometryT = BaseCppType("at", "TensorGeometry")
 SymIntT = BaseCppType("c10", "SymInt")
+<<<<<<< HEAD
 SymBoolT = BaseCppType("c10", "SymBool")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 symIntArrayRefT = BaseCppType("c10", "SymIntArrayRef")
 
 # Types representing template parameters.  Technically, we probably shouldn't
@@ -126,7 +129,10 @@ BaseTypeToCppMapping: dict[BaseTy, BaseCppType] = {
     BaseTy.Storage: storageT,
     BaseTy.Stream: streamT,
     BaseTy.SymInt: SymIntT,
+<<<<<<< HEAD
     BaseTy.SymBool: SymBoolT,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 # CTypes encode C++ type structure as needed for translation.

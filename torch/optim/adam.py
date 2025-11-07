@@ -85,6 +85,7 @@ class Adam(Optimizer):
             if betas[1].numel() != 1:
                 raise ValueError("Tensor betas[1] must be 1-element")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "betas": betas,
@@ -98,6 +99,21 @@ class Adam(Optimizer):
             "fused": fused,
             "decoupled_weight_decay": decoupled_weight_decay,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            amsgrad=amsgrad,
+            maximize=maximize,
+            foreach=foreach,
+            capturable=capturable,
+            differentiable=differentiable,
+            fused=fused,
+            decoupled_weight_decay=decoupled_weight_decay,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
         if fused:
@@ -459,11 +475,17 @@ def _single_tensor_adam(
                 # expavg.lerp(grad^2, 1-beta2)
                 exp_avg_sq.lerp_(torch.square(grad), weight=1 - beta2)
             else:
+<<<<<<< HEAD
                 exp_avg_sq.mul_(beta2).addcmul_(
                     grad, grad, value=cast(float, 1 - beta2)
                 )
         else:
             exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)  # type: ignore[arg-type]
+=======
+                exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
+        else:
+            exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if capturable or differentiable:
             step = step_t
@@ -534,7 +556,11 @@ def _single_tensor_adam(
             else:
                 denom = (exp_avg_sq.sqrt() / bias_correction2_sqrt).add_(eps)
 
+<<<<<<< HEAD
             param.addcdiv_(exp_avg, denom, value=-step_size)  # type: ignore[arg-type]
+=======
+            param.addcdiv_(exp_avg, denom, value=-step_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Lastly, switch back to complex view
         if amsgrad and torch.is_complex(params[i]):
@@ -677,7 +703,11 @@ def _multi_tensor_adam(
                 # Perform stepweight decay
                 torch._foreach_mul_(device_params, 1 - lr * weight_decay)
             else:
+<<<<<<< HEAD
                 # Reuse the intermediate memory (device_grads) already allocated for maximize
+=======
+                # Re-use the intermediate memory (device_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if maximize:
                     torch._foreach_add_(device_grads, device_params, alpha=weight_decay)
                 else:
@@ -688,9 +718,13 @@ def _multi_tensor_adam(
         # Decay the first and second moment running average coefficient
         # Use device beta1 if beta1 is a tensor to ensure all
         # tensors are on the same device
+<<<<<<< HEAD
         torch._foreach_lerp_(
             device_exp_avgs, device_grads, cast(float, 1 - device_beta1)
         )
+=======
+        torch._foreach_lerp_(device_exp_avgs, device_grads, 1 - device_beta1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         torch._foreach_mul_(device_exp_avg_sqs, beta2)
 

@@ -6,7 +6,11 @@ import textwrap
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+<<<<<<< HEAD
 from torchgen.aoti.fallback_ops import aten_shimified_ops, inductor_fallback_ops
+=======
+from torchgen.aoti.fallback_ops import inductor_fallback_ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torchgen.api.types import DispatcherSignature
 from torchgen.api.types.signatures import CppSignature, CppSignatureGroup
 from torchgen.context import method_with_native_function
@@ -24,14 +28,20 @@ from torchgen.model import (
     OperatorName,
     OptionalType,
     Type,
+<<<<<<< HEAD
     Variant,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torchgen.utils import FileManager, mapMaybe
 
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+<<<<<<< HEAD
     from typing import Optional
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 base_type_to_c_type = {
@@ -251,6 +261,7 @@ def gen_returns(schema: FunctionSchema) -> tuple[list[str], list[str]]:
 
     ret_pointer_can_be_null = False
     unambiguous_name = schema.name.unambiguous_name()
+<<<<<<< HEAD
     for name in (
         "_functional_sym_constrain_range",
         "_scaled_dot_product_cudnn_attention",
@@ -264,6 +275,15 @@ def gen_returns(schema: FunctionSchema) -> tuple[list[str], list[str]]:
         "grid_sampler_3d_backward",
         "linear_backward",
     ):
+=======
+    for name in [
+        "_scaled_dot_product_flash_attention",
+        "_scaled_dot_product_efficient_attention",
+        "_scaled_dot_product_cudnn_attention",
+        "_scaled_dot_product_fused_attention_overrideable",
+        "convolution_backward",
+    ]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in unambiguous_name:
             ret_pointer_can_be_null = True
             break
@@ -393,6 +413,7 @@ def gen_static_dispatch_backend_call_signature(
 
 def gen_static_dispatch_backend_call(
     f: NativeFunction,
+<<<<<<< HEAD
     backend_index: Optional[BackendIndex] = None,
 ) -> str:
     sig = DispatcherSignature.from_schema(f.func)
@@ -416,20 +437,34 @@ def gen_static_dispatch_backend_call(
         return f"at::{cpp_sig.name()}"
     else:
         return f"at::{backend_index.dispatch_key.lower()}::{cpp_sig.name()}"
+=======
+    backend_index: BackendIndex,
+) -> str:
+    sig = DispatcherSignature.from_schema(f.func)
+    cpp_sig = gen_static_dispatch_backend_call_signature(sig, f)
+    return f"at::{backend_index.dispatch_key.lower()}::{cpp_sig.name()}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_backend_index_for_aoti(
     func: NativeFunction,
     func_group_mapping: dict[OperatorName, NativeFunctionsGroup],
+<<<<<<< HEAD
     dispatch_key: Optional[DispatchKey],
+=======
+    dispatch_key: DispatchKey,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_indices: dict[DispatchKey, BackendIndex],
     extend_aoti_c_shim: bool,
 ) -> BackendIndex | None:
     backend_index = None
+<<<<<<< HEAD
 
     if dispatch_key is None:
         return backend_index
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if backend_indices[dispatch_key].has_kernel(func) or (
         func.structured_delegate is not None
         and func.structured_delegate in func_group_mapping
@@ -463,19 +498,31 @@ def get_backend_index_for_aoti(
 def get_header_for_aoti(
     func: NativeFunction,
     func_group_mapping: dict[OperatorName, NativeFunctionsGroup],
+<<<<<<< HEAD
     dispatch_key: Optional[DispatchKey],
+=======
+    dispatch_key: DispatchKey,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_indices: dict[DispatchKey, BackendIndex],
     extend_aoti_c_shim: bool,
 ) -> str | None:
     backend_index = get_backend_index_for_aoti(
         func, func_group_mapping, dispatch_key, backend_indices, extend_aoti_c_shim
     )
+<<<<<<< HEAD
     if backend_index is None:
         if dispatch_key is None:
             return f"#include <ATen/ops/{func.root_name}.h>"
         return None
 
     return f"#include <ATen/ops/{func.root_name}_{backend_index.dispatch_key.lower()}_dispatch.h>"
+=======
+    return (
+        None
+        if backend_index is None
+        else f"#include <ATen/ops/{func.root_name}_{backend_index.dispatch_key.lower()}_dispatch.h>"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_fallback_op_name(func: NativeFunction) -> str:
@@ -490,7 +537,11 @@ def gen_c_shim(
     func: NativeFunction,
     version_info: dict[str, list[str]],
     func_group_mapping: dict[OperatorName, NativeFunctionsGroup],
+<<<<<<< HEAD
     dispatch_key: Optional[DispatchKey],
+=======
+    dispatch_key: DispatchKey,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_indices: dict[DispatchKey, BackendIndex],
     header: bool,
     extend_aoti_c_shim: bool,
@@ -498,11 +549,19 @@ def gen_c_shim(
     backend_index = get_backend_index_for_aoti(
         func, func_group_mapping, dispatch_key, backend_indices, extend_aoti_c_shim
     )
+<<<<<<< HEAD
     if backend_index is None and dispatch_key is not None:
         return None
 
     schema = func.func
     device = "aten" if dispatch_key is None else dispatch_key.lower()
+=======
+    if backend_index is None:
+        return None
+
+    schema = func.func
+    device = dispatch_key.lower()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_call = gen_static_dispatch_backend_call(
         func,
         backend_index,
@@ -528,7 +587,11 @@ def gen_c_shim(
 class ShimGenerator:
     inductor_fallback_ops: dict[str, dict[str, list[str]]]
     func_group_mapping: dict[OperatorName, NativeFunctionsGroup]
+<<<<<<< HEAD
     dispatch_key: Optional[DispatchKey]
+=======
+    dispatch_key: DispatchKey
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_indices: dict[DispatchKey, BackendIndex]
     header: bool  # True to generate .h and False to generate .cpp
     extend_aoti_c_shim: bool
@@ -555,7 +618,11 @@ def gen_aoti_c_shim(
     native_functions: Sequence[NativeFunction],
     inductor_fallback_ops: dict[str, dict[str, list[str]]],
     func_group_mapping: dict[OperatorName, NativeFunctionsGroup],
+<<<<<<< HEAD
     dispatch_key: Optional[DispatchKey],
+=======
+    dispatch_key: DispatchKey,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_indices: dict[DispatchKey, BackendIndex],
     header: bool,
     extend_aoti_c_shim: bool,
@@ -576,6 +643,7 @@ def gen_aoti_c_shim(
             )
         )
     )
+<<<<<<< HEAD
     device = "aten" if dispatch_key is None else dispatch_key.lower()
     include_device_functions = (
         "#include <ATen/Functions.h>"
@@ -589,6 +657,9 @@ def gen_aoti_c_shim(
         if dispatch_key is None
         else ""
     )
+=======
+    device = dispatch_key.lower()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     warning = """
 
 // WARNING: THIS FILE IS AUTOGENERATED BY torchgen. DO NOT MODIFY BY HAND.
@@ -597,7 +668,10 @@ def gen_aoti_c_shim(
     if header:
         return (
             warning
+<<<<<<< HEAD
             + aten_warning
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             + textwrap.dedent("""
 
             #pragma once
@@ -620,14 +694,21 @@ def gen_aoti_c_shim(
     else:
         return (
             warning
+<<<<<<< HEAD
             + aten_warning
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             + textwrap.dedent(f"""
 
             #include <torch/csrc/inductor/aoti_torch/generated/{"extend/" if extend_aoti_c_shim else ""}c_shim_{device}.h>
             #include <torch/csrc/inductor/aoti_torch/utils.h>
 
             #ifndef AT_PER_OPERATOR_HEADERS
+<<<<<<< HEAD
             {include_device_functions}
+=======
+            #include <ATen/{str(dispatch_key)}Functions.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             #include <ATen/CompositeExplicitAutogradFunctions.h>
             #include <ATen/CompositeExplicitAutogradNonFunctionalFunctions.h>
             #include <ATen/CompositeImplicitAutogradFunctions.h>
@@ -646,7 +727,11 @@ def gen_aoti_c_shim(
 
 def gen_aoti_c_shim_files(
     aoti_fm: FileManager,
+<<<<<<< HEAD
     aoti_backends: set[Optional[DispatchKey]],
+=======
+    aoti_backends: set[DispatchKey],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     native_functions: Sequence[NativeFunction],
     backend_indices: dict[DispatchKey, BackendIndex],
     structured_native_functions: Sequence[NativeFunctionsGroup],
@@ -662,6 +747,7 @@ def gen_aoti_c_shim_files(
                 break
 
     for dispatch_key in aoti_backends:
+<<<<<<< HEAD
         # Use aten_shimified_ops for the aten backend, inductor_fallback_ops for others
         fallback_ops_dict = (
             aten_shimified_ops if dispatch_key is None else inductor_fallback_ops
@@ -670,11 +756,18 @@ def gen_aoti_c_shim_files(
         for func in native_functions:
             op_name = get_fallback_op_name(func)
             if op_name in fallback_ops_dict:
+=======
+        fallbacks = {}
+        for func in native_functions:
+            op_name = get_fallback_op_name(func)
+            if op_name in inductor_fallback_ops:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fallbacks[op_name] = func
         fallback_native_functions = tuple(
             value for _, value in sorted(fallbacks.items())
         )
 
+<<<<<<< HEAD
         # Use "aten" as the device name when dispatch_key is Generic
         device_name = "aten" if dispatch_key is None else dispatch_key.lower()
 
@@ -683,6 +776,13 @@ def gen_aoti_c_shim_files(
         new_header = gen_aoti_c_shim(
             fallback_native_functions,
             fallback_ops_dict,
+=======
+        # header files were checked in for ABI-compatiblilty checking
+        header_file_name = f"c_shim_{dispatch_key.lower()}.h"
+        new_header = gen_aoti_c_shim(
+            fallback_native_functions,
+            inductor_fallback_ops,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             structured_func_group_dict,
             dispatch_key,
             backend_indices,
@@ -750,6 +850,7 @@ https://github.com/pytorch/pytorch/pull/154848 as an example.
                     headers.append(header)
             return "\n".join(sorted(set(headers)))
 
+<<<<<<< HEAD
         extra_headers = (
             extra_cuda_headers
             if dispatch_key is not None and is_cuda_dispatch_key(dispatch_key)
@@ -761,6 +862,15 @@ https://github.com/pytorch/pytorch/pull/154848 as an example.
             lambda: gen_aoti_c_shim(
                 fallback_native_functions,
                 fallback_ops_dict,
+=======
+        extra_headers = extra_cuda_headers if is_cuda_dispatch_key(dispatch_key) else ""
+
+        aoti_fm.write(
+            f"c_shim_{dispatch_key.lower()}.cpp",
+            lambda: gen_aoti_c_shim(
+                fallback_native_functions,
+                inductor_fallback_ops,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 structured_func_group_dict,
                 dispatch_key,
                 backend_indices,

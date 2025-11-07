@@ -4,10 +4,14 @@
 #include <mutex>
 #include <shared_mutex>
 #include <stdexcept>
+<<<<<<< HEAD
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
+=======
+#include <utility>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10d::control_plane {
 

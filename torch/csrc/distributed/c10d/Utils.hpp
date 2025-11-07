@@ -444,9 +444,13 @@ inline at::Tensor newLikeFlat(
       sizes, strides, t.options().memory_format(std::nullopt));
 }
 
+<<<<<<< HEAD
 inline at::Tensor newLikeFlat(
     std::vector<at::Tensor>& tensors,
     bool preserve_strides = true) {
+=======
+inline at::Tensor newLikeFlat(std::vector<at::Tensor>& tensors) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (tensors.empty()) {
     TORCH_CHECK(false, "Received an empty list");
   }
@@ -454,6 +458,7 @@ inline at::Tensor newLikeFlat(
   at::DeviceGuard gpuGuard(t.device());
   std::vector<int64_t> sizes{static_cast<int64_t>(tensors.size())};
   sizes.insert(sizes.end(), t.sizes().begin(), t.sizes().end());
+<<<<<<< HEAD
   if (t.is_contiguous() ||
       !preserve_strides) { // we are checking for memory format, so tensor might
     // not be contiguous
@@ -468,6 +473,9 @@ inline at::Tensor newLikeFlat(
     strides.insert(strides.end(), t.strides().begin(), t.strides().end());
     return at::empty_strided(sizes, strides, t.options());
   }
+=======
+  return at::empty(sizes, t.options());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::vector<std::vector<int64_t>> getSizes(

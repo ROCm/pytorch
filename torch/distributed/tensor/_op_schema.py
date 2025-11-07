@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 """
 DTensor operator schema definitions and utilities.
 
@@ -23,11 +24,16 @@ These schema definitions enable the DTensor system to:
 4. Cache sharding decisions for performance optimization
 """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, Optional, Union
+<<<<<<< HEAD
 from typing_extensions import deprecated
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._ops import OpOverload
@@ -37,6 +43,7 @@ from torch.distributed.tensor.placement_types import Placement
 
 
 try:
+<<<<<<< HEAD
     from torch.utils._cxx_pytree import (
         register_pytree_node,
         tree_leaves,
@@ -46,6 +53,11 @@ try:
 except ImportError:
     from torch.utils._pytree import (  # type: ignore[no-redef, assignment]
         register_pytree_node,
+=======
+    from torch.utils._cxx_pytree import tree_leaves, tree_map_only, TreeSpec
+except ImportError:
+    from torch.utils._pytree import (  # type: ignore[no-redef, assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tree_leaves,
         tree_map_only,
         TreeSpec,
@@ -58,7 +70,11 @@ KwargsType = dict[str, object]
 
 PlacementList = list[Optional[Placement]]
 
+<<<<<<< HEAD
 # ATen op schemas could have Tensor, Tuple[Tensor] and List[Tensor], so output type should
+=======
+# ATen op schemas could have Tensor, Tuple[Tensor] and List[Tensor], so output type sould
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # be the same set of possibilities.
 OutputSpecType = Optional[Union[DTensorSpec, Sequence[Optional[DTensorSpec]]]]
 
@@ -95,6 +111,7 @@ class OpSpec:
     note: when the op return value is a single DTensor object, output_specs is
     DTensorSpec; when the return value is a tuple of Optional[DTensor],
     output_specs is a tuple of Optional[DTensorSpec].
+<<<<<<< HEAD
 
     note: we MUST produce an DTensorSpec for every output that is a Tensor.  None
     entries only occur for non-Tensor outputs (e.g., operators that return Optional[Tensor],
@@ -134,6 +151,16 @@ class OpSpec:
             K,    # cost of redistributing tensor_a from 'Shard(0)'
         ],
     """
+=======
+    """
+
+    output_specs: Union[DTensorSpec, tuple[Optional[DTensorSpec], ...]]
+    input_specs: Optional[Sequence[DTensorSpec]] = None
+
+    # redistribute costs to redistribute the operator input shardings to this OpSpec.
+    # Note that We need a nested list to record the cost for each operand of this
+    # operator, and for each operand of this operator it might have multiple OpSpecs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     redistribute_cost: Optional[list[list[float]]] = None
 
     @cached_property
@@ -190,8 +217,11 @@ class OpStrategy(StrategyType):
     """
     OpStrategy that consists of a list of sharding strategies associated with the op,
     where each strategy is an OpSpec that describes the acceptable input/output sharding.
+<<<<<<< HEAD
 
     invariant: the DeviceMesh on all OpSpec must be the same
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def __init__(self, strategies: list[OpSpec]) -> None:
@@ -228,6 +258,7 @@ class OpStrategy(StrategyType):
 
 class TupleStrategy(StrategyType):
     """
+<<<<<<< HEAD
     TupleStrategy is a special case for operators that are fundamentally compound or batched such that some subset
     of the inputs and outputs are completely unrelated to some other subset.
 
@@ -262,16 +293,39 @@ class TupleStrategy(StrategyType):
 
     def child_mesh(self, index: int) -> DeviceMesh:
         op_strategy = self.children[index]
+=======
+    TupleStrategy represents the output strategy of this op is a tuple of OpStrategies,
+    i.e. If the output of this op is a tuple of tensors or list of tensors with possibly
+    different OpStrategies, we should return a TupleStrategy that contains a tuple of
+    OpStrategy, where each child represents the sharding strategy of "each element" of
+    the tuple/list of tensors the op returns.
+
+    NOTE: if the output of the op is a List[Tensor] and they share the same OpStrategy,
+    then we should return a single OpStrategy instead of a TupleStrategy
+    """
+
+    def __init__(self, childs: Sequence[StrategyType]) -> None:
+        super().__init__()
+        self.childs: Sequence[StrategyType] = childs
+
+    def child_mesh(self, index: int) -> DeviceMesh:
+        op_strategy = self.childs[index]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(op_strategy, OpStrategy)
         return op_strategy.mesh
 
     def __str__(self) -> str:
         child_strategies_str = ", ".join(
+<<<<<<< HEAD
             [f"{str(strat)}" for idx, strat in enumerate(self.children)]
+=======
+            [f"{str(strat)}" for idx, strat in enumerate(self.childs)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return f"TupleStrategy({child_strategies_str})"
 
 
+<<<<<<< HEAD
 try:
     register_pytree_node(
         TupleStrategy,
@@ -283,6 +337,8 @@ except ValueError:
     pass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass
 class RuntimeSchemaInfo:
     """
@@ -312,7 +368,11 @@ class OpSchema:
     order preserved). It is mainly used by the DTensor's dispatching logic to perform various
     actions (i.e. sharding propagation, caching sharding decisions, redistribute, etc.)
 
+<<<<<<< HEAD
     NOTE: this must be used as a read only data class
+=======
+    NOTE: this should be used as a read only data class
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TODO: make this a frozen dataclass
 
     Args:
@@ -329,8 +389,11 @@ class OpSchema:
 
     schema_info: Optional[RuntimeSchemaInfo] = None
 
+<<<<<<< HEAD
     _comparison_key: Optional[tuple[object, ...]] = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def args_spec(self) -> tuple[DTensorSpec, ...]:
         """
@@ -377,7 +440,11 @@ class OpSchema:
                 args_schema.append(_pretty_print_spec(arg.strategies[0].output_specs))
                 mesh_shape = arg.mesh_shape
             elif isinstance(arg, TupleStrategy):
+<<<<<<< HEAD
                 first_op_strategy = arg.children[0]
+=======
+                first_op_strategy = arg.childs[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert isinstance(first_op_strategy, OpStrategy)
                 mesh_shape = first_op_strategy.mesh_shape
                 args_schema.append(str(arg))
@@ -393,9 +460,15 @@ class OpSchema:
                     has_symints = True
                     break
         self.has_symints = has_symints
+<<<<<<< HEAD
         self._recompute_comparison_key()
 
     def arg_type_tensor_or_tensor_list_like(self, arg: object) -> bool:
+=======
+
+    def arg_type_tensor_or_tensor_list_like(self, arg_idx: int) -> bool:
+        arg = self.args_schema[arg_idx]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is_tensor = isinstance(arg, DTensorSpec)
         if is_tensor:
             return True
@@ -413,6 +486,7 @@ class OpSchema:
             return_types[0].type, torch.TensorType
         )
 
+<<<<<<< HEAD
     def return_type_list_tensor_like(self) -> bool:
         # returns True if the return type is a List
         return_types = self.op._schema.returns
@@ -420,6 +494,8 @@ class OpSchema:
             return_types[0].type, torch.ListType
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def return_type_tensor(self) -> bool:
         return_types = self.op._schema.returns
         # all dispatch ops only return Tensor or Tuple[Tensor] for tensor like
@@ -444,7 +520,11 @@ class OpSchema:
             mesh = first_arg.mesh
         elif isinstance(first_arg, (list, tuple, TupleStrategy)):
             first_elem = (
+<<<<<<< HEAD
                 first_arg.children[0]
+=======
+                first_arg.childs[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(first_arg, TupleStrategy)
                 else first_arg[0]
             )
@@ -476,10 +556,15 @@ class OpSchema:
         # be entirely correct, but it's good enough for now.
         return "out" in self.op._schema.overload_name
 
+<<<<<<< HEAD
     def is_view_op(self) -> bool:
         return self.op._schema._is_view_op()
 
     def _recompute_comparison_key(self):
+=======
+    def __hash__(self) -> int:
+        # Only hash args and kwargs that op indicates to hash
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.schema_info:
             static_argnum = len(self.args_schema)
             static_kwargkey = None
@@ -490,18 +575,28 @@ class OpSchema:
         args_to_hash = tuple(
             tuple(e) if isinstance(e, list) else e
             for i, e in enumerate(self.args_schema)
+<<<<<<< HEAD
             if self.arg_type_tensor_or_tensor_list_like(e) or i >= static_argnum
+=======
+            if self.arg_type_tensor_or_tensor_list_like(i) or i >= static_argnum
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         if static_kwargkey is not None:
             kwargs_to_hash = tuple(
                 self.kwargs_schema.get(k, None) for k in static_kwargkey
             )
+<<<<<<< HEAD
             self._comparison_key = (self.op, args_to_hash, kwargs_to_hash)
         else:
             self._comparison_key = (self.op, args_to_hash)
 
     def __hash__(self) -> int:
         return hash(self._comparison_key)
+=======
+            return hash((self.op, args_to_hash, kwargs_to_hash))
+        else:
+            return hash((self.op, args_to_hash))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __eq__(self, other: object) -> bool:
         # early return checks
@@ -514,7 +609,35 @@ class OpSchema:
         if len(self.args_schema) != len(other.args_schema):
             return False
 
+<<<<<<< HEAD
         return self._comparison_key == other._comparison_key
+=======
+        # compare each element and early return if any of them is different
+        if not self.schema_info:
+            static_argnum = len(self.args_schema)
+            static_kwargkey = None
+        else:
+            static_argnum = self.schema_info.static_argnum
+            static_kwargkey = self.schema_info.static_kwargkey
+
+        for i, (self_arg, other_arg) in enumerate(
+            zip(self.args_schema, other.args_schema)
+        ):
+            if isinstance(self_arg, DTensorSpec) and self_arg != other_arg:
+                return False
+            elif i >= static_argnum and self_arg != other_arg:
+                return False
+
+        # check kwarg equality when there's a static kwarg key
+        if static_kwargkey:
+            for key in static_kwargkey:
+                if self.kwargs_schema.get(key, None) != other.kwargs_schema.get(
+                    key, None
+                ):
+                    return False
+
+        return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def gen_fake_args(self) -> ArgsType:
         """
@@ -561,7 +684,10 @@ class OpSchema:
                 new_arg_schema.append(arg)
         self.args_schema = tuple(new_arg_schema)
         self.kwargs_schema = origin_schema.kwargs_schema
+<<<<<<< HEAD
         self._recompute_comparison_key()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -576,6 +702,7 @@ class OutputSharding:
     exactly the same as the operator OpSchema, except the DTensorSpecs
     """
 
+<<<<<<< HEAD
     # specifies the output sharding pattern
     output_spec: OutputSpecType
     # schema for redistribution if needed
@@ -584,6 +711,11 @@ class OutputSharding:
     needs_redistribute: bool = False
     # flag to use values from `redistribute_schema`
     use_val_from_redistribute_schema: bool = False
+=======
+    output_spec: OutputSpecType
+    redistribute_schema: Optional[OpSchema] = None
+    needs_redistribute: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @cached_property
     def mesh(self):

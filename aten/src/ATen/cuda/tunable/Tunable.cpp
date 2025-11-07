@@ -220,6 +220,7 @@ TuningResultsValidator::TuningResultsValidator() {
       []() { return GetPyTorchVersion(); },
       [this](auto&& k) { return ValidatePyTorchVersion(std::forward<decltype(k)>(k)); });
 #ifdef USE_ROCM
+<<<<<<< HEAD
   // hip
   {
     // HIP version is more accurate than ROCm version.  User's environment could be a stock
@@ -231,6 +232,21 @@ TuningResultsValidator::TuningResultsValidator() {
        [hip_version](auto&& k) {
         TUNABLE_LOG1("HIP_VERSION validation: expect ", k, " to match ", hip_version);
         return hip_version == k ? OK : FAIL;
+=======
+  // rocm
+  {
+#ifdef _WIN32
+    std::string rocm_version = HIP_VERSION_BUILD_NAME;
+#else
+    std::string rocm_version = ROCM_BUILD_INFO;
+#endif
+    RegisterValidator(
+       "ROCM_VERSION",
+       [rocm_version]() { return rocm_version; },
+       [rocm_version](auto&& k) {
+        TUNABLE_LOG1("ROCM_VERSION validation: expect ", k, " to match ", rocm_version);
+        return rocm_version == k ? OK : FAIL;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       });
   }
   // gfx arch

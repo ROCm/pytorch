@@ -48,6 +48,7 @@
   - "module: dynamic shapes"
   then:
   - "oncall: pt2"
+<<<<<<< HEAD
 - any:
   - "release notes: distributed (c10d)"
   - "release notes: distributed (symm_mem)"
@@ -57,3 +58,5 @@
   - "oncall: distributed"
   then:
   - "ciflow/h100-distributed"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

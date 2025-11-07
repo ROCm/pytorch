@@ -418,7 +418,10 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.native_dropout_backward,
             aten.native_group_norm_backward,
             aten.native_layer_norm_backward,
+<<<<<<< HEAD
             aten._fused_rms_norm_backward,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             aten.new_empty,
             aten.new_full,
             aten.new_ones,

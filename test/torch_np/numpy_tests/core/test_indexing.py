@@ -219,7 +219,11 @@ class TestIndexing(TestCase):
         assert_raises(IndexError, a.__getitem__, 1 << 30)
         # Index overflow produces IndexError
         # Note torch raises RuntimeError here
+<<<<<<< HEAD
         assert_raises((IndexError, ValueError), a.__getitem__, 1 << 64)
+=======
+        assert_raises((IndexError, RuntimeError), a.__getitem__, 1 << 64)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_single_bool_index(self):
         # Single boolean index

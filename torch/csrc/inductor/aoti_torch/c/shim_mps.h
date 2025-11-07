@@ -32,6 +32,7 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_mps_memcpy(
     size_t data_size,
     uint8_t* constants_start);
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_mps_copy_buffer(
     void* src_buffer,
     void* dst_buffer,
@@ -39,6 +40,8 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_mps_copy_buffer(
     size_t src_offset,
     size_t dst_offset);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef __cplusplus
 } // extern "C"
 #endif

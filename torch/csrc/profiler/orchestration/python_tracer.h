@@ -48,7 +48,10 @@ struct TORCH_API PythonTracerBase {
 
   virtual void stop() = 0;
   virtual void restart() = 0;
+<<<<<<< HEAD
   virtual void register_gc_callback() = 0;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual std::vector<std::shared_ptr<Result>> getEvents(
       std::function<c10::time_t(c10::approx_time_t)> time_converter,
       std::vector<CompressedEvent>& enters,

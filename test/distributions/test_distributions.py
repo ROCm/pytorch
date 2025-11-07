@@ -1805,6 +1805,7 @@ class TestDistributions(DistributionsTestCase):
         assert (vals == 0.0).sum() > 4000
         assert (vals == 1.0).sum() > 4000
 
+<<<<<<< HEAD
     def test_torch_binomial_dtype_errors(self):
         dtypes = [torch.int, torch.long, torch.short]
 
@@ -1828,6 +1829,8 @@ class TestDistributions(DistributionsTestCase):
             ):
                 torch.binomial(total_count, total_prob)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @set_default_dtype(torch.double)
     def test_multinomial_1d(self):
         total_count = 10
@@ -6369,7 +6372,11 @@ class TestLazyLogitsInitialization(DistributionsTestCase):
             except NotImplementedError:
                 pass
             self.assertNotIn("probs", dist.__dict__, msg=message)
+<<<<<<< HEAD
             _ = (dist.batch_shape, dist.event_shape)
+=======
+            dist.batch_shape, dist.event_shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertNotIn("probs", dist.__dict__, msg=message)
 
     def test_lazy_probs_initialization(self):
@@ -6386,7 +6393,11 @@ class TestLazyLogitsInitialization(DistributionsTestCase):
             except NotImplementedError:
                 pass
             self.assertNotIn("logits", dist.__dict__, msg=message)
+<<<<<<< HEAD
             _ = (dist.batch_shape, dist.event_shape)
+=======
+            dist.batch_shape, dist.event_shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertNotIn("logits", dist.__dict__, msg=message)
 
 

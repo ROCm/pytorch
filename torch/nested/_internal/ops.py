@@ -517,6 +517,7 @@ register_jagged_func(
 
 
 @register_jagged_func(
+<<<<<<< HEAD
     torch.ops.aten.sym_is_contiguous.default, "self: jt_all, memory_format: any?"
 )
 def sym_is_contiguous_general(func, *args, **kwargs):
@@ -540,6 +541,8 @@ def sym_is_contiguous_general(func, *args, **kwargs):
 
 
 @register_jagged_func(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.ops.aten.clone.default, "input: jt_all, memory_format: any?"
 )
 def clone_default(func, *args, **kwargs):
@@ -865,6 +868,7 @@ def _softmax_default(func, *args, **kwargs):
 
 
 @register_jagged_func(
+<<<<<<< HEAD
     torch.ops.aten._log_softmax.default, "self: jt_all, dim: any, half_to_float: any"
 )
 def _log_softmax_default(func, *args, **kwargs):
@@ -905,6 +909,8 @@ def _log_softmax_default(func, *args, **kwargs):
 
 
 @register_jagged_func(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.ops.aten._softmax_backward_data.default,
     "grad_output: jt, output: jt, dim: any, input_dtype: any",
 )
@@ -2683,7 +2689,11 @@ def flex_njt(
     kernel_options: Dict[str, Any],
     score_mod_other_buffers: Tuple = (),
     mask_mod_other_buffers: Tuple = (),
+<<<<<<< HEAD
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> Tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert query.dim() == 4 and key.dim() == 4 and value.dim() == 4
 
     # TODO: Support this if needed; determine if NJT buffers need be unwrapped as dense.
@@ -2696,9 +2706,12 @@ def flex_njt(
             "currently supported. Please file an issue if this is important to you."
         )
 
+<<<<<<< HEAD
     # Always set them since 0 sized elements are not handled gracefully
     kernel_options = {**kernel_options, "OUTPUT_MAX": True, "OUTPUT_LOGSUMEXP": True}
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # need to pass dense tensor of shape (B, n_heads, sum(seq_len), D)
     output = flex_attention_hop(
         query.values().unsqueeze(0),
@@ -2729,6 +2742,7 @@ def flex_njt(
         max_seqlen=query._maybe_max_seqlen,  # type: ignore[attr-defined]
     ).transpose(1, 2)
 
+<<<<<<< HEAD
     max_scores_njt = torch.nested.nested_tensor_from_jagged(
         output[2].transpose(1, 2).squeeze(0),
         query._offsets,  # type: ignore[attr-defined]
@@ -2738,6 +2752,9 @@ def flex_njt(
     ).transpose(1, 2)
 
     return (output_njt, logsumexp_njt, max_scores_njt)
+=======
+    return (output_njt, logsumexp_njt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @flex_attention_backward_hop.py_impl(NestedTensor)  # type: ignore[misc]

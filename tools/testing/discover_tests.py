@@ -13,7 +13,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def parse_test_module(test: str) -> str:
+<<<<<<< HEAD
     return test.split(".", maxsplit=1)[0]
+=======
+    return test.split(".")[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def discover_tests(

@@ -174,18 +174,24 @@ class AdaptiveLogSoftmaxWithLoss(Module):
             self.tail.append(projection)
 
     def reset_parameters(self) -> None:
+<<<<<<< HEAD
         """
         Resets parameters based on their initialization used in ``__init__``.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.head.reset_parameters()
         for i2h, h2o in self.tail:  # type: ignore[misc]
             i2h.reset_parameters()  # type: ignore[has-type]
             h2o.reset_parameters()  # type: ignore[has-type]
 
     def forward(self, input_: Tensor, target_: Tensor) -> _ASMoutput:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         targ_dim = target_.dim()
 
         if targ_dim == 1:

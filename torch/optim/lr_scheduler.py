@@ -200,16 +200,24 @@ class LRScheduler:
                 )
 
         self._step_count += 1
+<<<<<<< HEAD
         if epoch is not None:
             warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
         self._update_lr(epoch)
 
     def _update_lr(self, epoch: Optional[int] = None):
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with _enable_get_lr_call(self):
             if epoch is None:
                 self.last_epoch += 1
                 values = self.get_lr()
             else:
+<<<<<<< HEAD
+=======
+                warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.last_epoch = epoch
                 if hasattr(self, "_get_closed_form_lr"):
                     values = cast(list[float], self._get_closed_form_lr())
@@ -916,7 +924,11 @@ class SequentialLR(LRScheduler):
         idx = bisect_right(self._milestones, self.last_epoch)
         scheduler = self._schedulers[idx]
         if idx > 0 and self._milestones[idx - 1] == self.last_epoch:
+<<<<<<< HEAD
             scheduler._update_lr(0)
+=======
+            scheduler.step(0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             scheduler.step()
 
@@ -1347,7 +1359,11 @@ class ReduceLROnPlateau(LRScheduler):
             warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
         self.last_epoch = epoch
 
+<<<<<<< HEAD
         if self._is_better(current, self.best):
+=======
+        if self.is_better(current, self.best):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.best = current
             self.num_bad_epochs = 0
         else:
@@ -1389,7 +1405,11 @@ class ReduceLROnPlateau(LRScheduler):
     def in_cooldown(self):  # noqa: D102
         return self.cooldown_counter > 0
 
+<<<<<<< HEAD
     def _is_better(self, a, best):  # noqa: D102
+=======
+    def is_better(self, a, best):  # noqa: D102
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.mode == "min" and self.threshold_mode == "rel":
             rel_epsilon = 1.0 - self.threshold
             return a < best * rel_epsilon
@@ -1689,6 +1709,7 @@ class CyclicLR(LRScheduler):
 
     @override
     def state_dict(self) -> dict[str, Any]:  # noqa: D102
+<<<<<<< HEAD
         """Return the state of the scheduler as a :class:`dict`.
 
         It contains an entry for every variable in self.__dict__ which
@@ -1698,6 +1719,8 @@ class CyclicLR(LRScheduler):
 
         When saving or loading the scheduler, please make sure to also save or load the state of the optimizer.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state = super().state_dict()
         # We are dropping the `_scale_fn_ref` attribute because it is a
         # `weakref.WeakMethod` and can't be pickled.

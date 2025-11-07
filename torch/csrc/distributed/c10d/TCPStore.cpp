@@ -423,6 +423,7 @@ void TCPStore::ping() {
   buffer.flush();
 
   uint32_t returnedNonce = client_->receiveValue<std::uint32_t>();
+<<<<<<< HEAD
   if (nonce != returnedNonce) {
     C10_THROW_ERROR(
         DistNetworkError,
@@ -431,6 +432,10 @@ void TCPStore::ping() {
             nonce,
             returnedNonce));
   }
+=======
+  TORCH_INTERNAL_ASSERT(
+      nonce == returnedNonce, "Ping failed, invalid nonce returned");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void TCPStore::_splitSet(

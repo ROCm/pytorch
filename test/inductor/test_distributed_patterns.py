@@ -436,7 +436,10 @@ class DistributedPatternTests(TestCase):
         self._assert_same_grad(r1, r2)
         self._assert_same_grad(p1, p2)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch("graph_break_on_nn_param_ctor", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nn_param_return3(self):
         def fn(x):
             p = torch.nn.Parameter(x + 123)
@@ -453,7 +456,10 @@ class DistributedPatternTests(TestCase):
         self._assert_same_grad(r1, r2)
         self._assert_same_grad(p1, p2)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch("graph_break_on_nn_param_ctor", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nn_param_return4(self):
         def fn(x):
             p = torch.nn.Parameter(x + 123, requires_grad=False)

@@ -14,6 +14,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import NamedTuple
 
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_GPU
 
 
@@ -24,6 +25,8 @@ if HAS_GPU:
     from torch.library import wrap_triton
     from torch.utils._triton import has_triton
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch._dynamo as torchdynamo
 import torch._export.serde.schema as schema
@@ -31,9 +34,13 @@ import torch.export._trace
 import torch.utils._pytree as pytree
 from torch._export.db.case import ExportCase, SupportLevel
 from torch._export.db.examples import all_examples
+<<<<<<< HEAD
 from torch._export.serde.schema import ArgumentKind
 from torch._export.serde.serialize import (
     _dict_to_dataclass,
+=======
+from torch._export.serde.serialize import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _to_json_bytes,
     canonicalize,
     deserialize,
@@ -292,6 +299,7 @@ def forward(self, x):
         actual_out = loaded_ep.module()(*inp)
         self.assertEqual(exp_out, actual_out)
 
+<<<<<<< HEAD
     def test_serialize_param_mutation(self):
         class Foo(torch.nn.Module):
             def __init__(self):
@@ -311,6 +319,8 @@ def forward(self, x):
         val = loaded_ep.graph_signature.parameters_to_mutate
         self.assertEqual({"div": "parameter"}, val)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_serialize_constant_outputs(self):
         class MyModule(torch.nn.Module):
             def __init__(self) -> None:
@@ -515,12 +525,19 @@ def forward(self, x):
             self.assertNotIn(name, seen)
             seen.add(name)
 
+<<<<<<< HEAD
     def test_nonfinite_inputs(self) -> None:
         class Module(torch.nn.Module):
             def forward(self, x):
                 x = torch.ops.aten.add.Scalar(x, math.inf)
                 x = torch.ops.aten.add.Scalar(x, -math.inf)
                 return torch.ops.aten.add.Scalar(x, math.nan)
+=======
+    def test_infinity_inputs(self) -> None:
+        class Module(torch.nn.Module):
+            def forward(self, x):
+                return torch.ops.aten.add.Scalar(x, math.inf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         fn = Module()
         ep = torch.export.export(
@@ -593,6 +610,7 @@ def forward(self, x):
             serialized.exported_program.range_constraints[symint.name].max_val, 3
         )
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not torch.cuda.is_available() or not has_triton(), "requires cuda and triton"
     )
@@ -705,6 +723,8 @@ def forward(self, x):
                     serialized.example_inputs,
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_kwargs_default(self) -> None:
         """
         Tests that the kwargs default values are serialized even if they are not
@@ -759,6 +779,7 @@ def forward(self, x):
             if "aten.sum.dim_IntList" in node.target:
                 self.assertEqual(node.inputs[1].arg.type, "as_ints")
 
+<<<<<<< HEAD
     def test_empty_constant(self) -> None:
         class M(torch.nn.Module):
             def __init__(self):
@@ -946,6 +967,8 @@ def forward(self, x):
         loaded_ep = load(buffer)
         self.assertEqual(m(*sample_inputs), loaded_ep.module()(*sample_inputs))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @unittest.skipIf(IS_WINDOWS, "Windows not supported for this test")
 @unittest.skipIf(not torchdynamo.is_dynamo_supported(), "dynamo doesn't support")
@@ -1125,7 +1148,11 @@ class TestDeserialize(TestCase):
             )
 
             @torch.library.impl("mylib::foo", "cpu", lib=lib)
+<<<<<<< HEAD
             @torch.library.register_fake("mylib::foo")
+=======
+            @torch.library.impl_abstract("mylib::foo")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def foo_impl(a, b, c):
                 res2 = None
                 if c is not None:
@@ -1214,21 +1241,33 @@ class TestDeserialize(TestCase):
             )
 
             @torch.library.impl("mylib::foo1", "cpu", lib=lib)
+<<<<<<< HEAD
             @torch.library.register_fake("mylib::foo1")
+=======
+            @torch.library.impl_abstract("mylib::foo1")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def foo1_impl(x, y, z, w, n):
                 x.add_(y[0] + w)
                 z.add_(y[1] + n)
                 return n + n
 
             @torch.library.impl("mylib::foo2", "cpu", lib=lib)
+<<<<<<< HEAD
             @torch.library.register_fake("mylib::foo2")
+=======
+            @torch.library.impl_abstract("mylib::foo2")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def foo2_impl(x, y, z, w, n):
                 x.add_(y[0] + w)
                 z.add_(y[1] + n)
                 return (n + n, n * n)
 
             @torch.library.impl("mylib::foo3", "cpu", lib=lib)
+<<<<<<< HEAD
             @torch.library.register_fake("mylib::foo3")
+=======
+            @torch.library.impl_abstract("mylib::foo3")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def foo3_impl(x, y, z, w, n):
                 x.add_(y[0] + w)
                 z.add_(y[1] + n)
@@ -1771,6 +1810,7 @@ def forward(self, x):
             inputs = (torch.ones(2, 3),)
             self.check_graph(m, inputs, strict=False)
 
+<<<<<<< HEAD
     def test_forward_compatibility(self):
         self.assertEqual(
             schema.TensorArgument(
@@ -1785,6 +1825,8 @@ def forward(self, x):
             ),
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestDeserialize)
 
@@ -1917,6 +1959,7 @@ class TestSaveLoad(TestCase):
                 f.seek(0)
                 file_prefix = f.name.split("/")[2].split(".")[0]
 
+<<<<<<< HEAD
                 # Create a new file and copy things over, but modify the
                 # archive version
                 with tempfile.NamedTemporaryFile(suffix=".pt2") as fnew:
@@ -1932,6 +1975,14 @@ class TestSaveLoad(TestCase):
 
                     f.seek(0)
                     load(fnew.name)
+=======
+                # Modify the version
+                with zipfile.ZipFile(f, "a") as zipf:
+                    zipf.writestr(f"{file_prefix}/{ARCHIVE_VERSION_PATH}", "-1")
+
+                f.seek(0)
+                load(f.name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_save_constants(self):
         class Foo(torch.nn.Module):
@@ -2063,7 +2114,10 @@ def forward(self, obj_attr, x):
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
     attr = self.attr
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     takes_foo = torch.ops._TorchScriptTesting.takes_foo.default(attr, x);  attr = None
     add = torch.ops.aten.add.Tensor(x, takes_foo);  x = takes_foo = None
     return pytree.tree_unflatten((add,), self._out_spec)""",
@@ -2170,6 +2224,7 @@ def forward(self, x):
                 self.assertTrue(node.meta["custom"]["quantization_tag"] == "foo")
         self.assertEqual(counter, 1)
 
+<<<<<<< HEAD
     def test_unbacked_range_serdes(self):
         class Foo(torch.nn.Module):
             def forward(self, x, y):
@@ -2224,6 +2279,8 @@ def forward(self, x):
         s0 = next(iter(ep.graph.nodes)).meta["val"].size(0)
         self.assertEqual(shape_env.var_to_range[s0.node.expr].lower, 0)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

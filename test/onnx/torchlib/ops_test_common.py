@@ -246,7 +246,11 @@ def duplicate_opinfo_for_prims(
             new_opinfo = copy.deepcopy(opinfo)
             new_opinfo.name = new_name
             new_opinfo.op = getattr(torch.ops.prims, prims_name)
+<<<<<<< HEAD
             opinfos.append(new_opinfo)  # noqa: B909
+=======
+            opinfos.append(new_opinfo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
     raise RuntimeError(f"OpInfo '{name}' not found in the database.")
 

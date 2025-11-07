@@ -1,5 +1,21 @@
 # Owner(s): ["oncall: profiler"]
 
+<<<<<<< HEAD
+=======
+# if tqdm is not shutdown properly, it will leave the monitor thread alive.
+# This causes an issue in the multithreading test because we check all events
+# in that test with their tids. The events that correspond to these lingering
+# threads all have TID of (uint64_t)(-1) which is invalid.
+# The work around is turnning off monitoring thread when tqdm is loaded.
+# Since these are unit tests, it is safe to turn off monitor thread.
+try:
+    import tqdm
+
+    tqdm.tqdm.monitor_interval = 0
+except ImportError:
+    pass
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import json
 import os
 import tempfile
@@ -39,6 +55,7 @@ from torch.testing._internal.common_utils import (
 from torch.utils._triton import has_triton
 
 
+<<<<<<< HEAD
 # if tqdm is not shutdown properly, it will leave the monitor thread alive.
 # This causes an issue in the multithreading test because we check all events
 # in that test with their tids. The events that correspond to these lingering
@@ -52,6 +69,8 @@ try:
 except ImportError:
     pass
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Json = dict[str, Any]
 
 
@@ -404,7 +423,10 @@ class TestExecutionTrace(TestCase):
 
         nodes = self.get_execution_trace_root(fp.name)
         found_captured_triton_kernel_node = False
+<<<<<<< HEAD
         found_call_compiled_fx_graph = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for n in nodes:
             assert "name" in n
             if "triton_" in n["name"]:
@@ -413,10 +435,14 @@ class TestExecutionTrace(TestCase):
                         found_captured_triton_kernel_node = True
                         assert len(n["inputs"]["values"]) > 0
                         assert len(n["outputs"]["values"]) == 0
+<<<<<<< HEAD
             elif "Call CompiledFxGraph" in n["name"]:
                 found_call_compiled_fx_graph = True
         assert found_captured_triton_kernel_node
         assert found_call_compiled_fx_graph
+=======
+        assert found_captured_triton_kernel_node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(IS_WINDOWS, "torch.compile does not support WINDOWS")
     @unittest.skipIf(
@@ -425,11 +451,14 @@ class TestExecutionTrace(TestCase):
     )
     @skipCPUIf(True, "skip CPU device for testing profiling triton")
     def test_execution_trace_env_enabled_with_pt2(self, device):
+<<<<<<< HEAD
         # clean up the local cache for triton kernel
         from torch._inductor.codecache import PyCodeCache as PyCodeCache
 
         PyCodeCache.cache_clear(purge=True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import os
 
         os.environ["ENABLE_PYTORCH_EXECUTION_TRACE"] = "1"
@@ -444,9 +473,13 @@ class TestExecutionTrace(TestCase):
         a, b, c = (torch.randn(4, 4, requires_grad=True).to(device) for _ in range(3))
 
         inputs = [a, b, c]
+<<<<<<< HEAD
         with torch._inductor.config.patch(
             compile_threads=1, fx_graph_cache=False, fx_graph_remote_cache=False
         ):
+=======
+        with torch._inductor.config.patch(compile_threads=1):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn(*inputs)
 
         with profile(
@@ -480,6 +513,7 @@ class TestExecutionTrace(TestCase):
                         assert len(n["outputs"]["values"]) == 0
         assert found_captured_triton_kernel_node
 
+<<<<<<< HEAD
     @unittest.skipIf(IS_WINDOWS, "torch.compile does not support WINDOWS")
     @unittest.skipIf(
         (not has_triton()) or (not TEST_CUDA and not TEST_XPU),
@@ -585,6 +619,8 @@ class TestExecutionTrace(TestCase):
                         )
                         assert fx_graph[7] == "#   return %cos"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_execution_trace_start_stop(self, device):
         use_device = (
             torch.profiler.ProfilerActivity.CUDA
@@ -740,9 +776,15 @@ class TestExecutionTrace(TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             fp_name = os.path.join(temp_dir, "test.et.json")
 
+<<<<<<< HEAD
             os.environ["ENABLE_PYTORCH_EXECUTION_TRACE_SAVE_INTEGRAL_TENSOR_DATA"] = (
                 "aten::gather"
             )
+=======
+            os.environ[
+                "ENABLE_PYTORCH_EXECUTION_TRACE_SAVE_INTEGRAL_TENSOR_DATA"
+            ] = "aten::gather"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             et = ExecutionTraceObserver()
             et.register_callback(fp_name)
             et.set_extra_resource_collection(True)

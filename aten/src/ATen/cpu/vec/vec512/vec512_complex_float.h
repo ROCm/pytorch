@@ -34,9 +34,13 @@ class Vectorized<c10::complex<float>> {
   static constexpr size_type size() {
     return 8;
   }
+<<<<<<< HEAD
   Vectorized() {
     values = _mm512_setzero_ps();
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(__m512 v) : values(v) {}
   Vectorized(c10::complex<float> val) {
     float real_value = val.real();

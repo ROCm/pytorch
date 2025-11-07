@@ -32,7 +32,11 @@ struct TORCH_API NestedTensorImpl : public c10::TensorImpl {
       at::Tensor nested_strides,
       at::Tensor storage_offsets);
   // assume contiguous, `nested_strides` and `offsets`
+<<<<<<< HEAD
   // can be inferred from `nested_sizes`
+=======
+  // can be infered from `nested_sizes`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   explicit NestedTensorImpl(
       const at::Tensor& buffer,
       const at::Tensor& nested_sizes);
@@ -115,7 +119,11 @@ struct TORCH_API NestedTensorImpl : public c10::TensorImpl {
   // with real implementations
   int64_t numel_custom() const override;
   c10::SymInt sym_numel_custom() const override;
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous_custom(MemoryFormat) const override;
+=======
+  bool is_contiguous_custom(MemoryFormat) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t size_custom(int64_t d) const override {
     return this->size(d);
   }

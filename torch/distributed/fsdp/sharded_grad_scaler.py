@@ -320,8 +320,13 @@ class ShardedGradScaler(GradScaler):
                 self._scale.fill_(new_scale)  # type: ignore[union-attr]
             else:
                 reason = (
+<<<<<<< HEAD
                     "new_scale should be a float or a 1-element torch.cuda.FloatTensor or "
                     "torch.FloatTensor with requires_grad=False."
+=======
+                    "new_scale should be a float or a 1-element torch.cuda.FloatTensor or \
+                    torch.FloatTensor with requires_grad=False."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 assert new_scale.device.type == self._device, reason
                 assert new_scale.numel() == 1, reason

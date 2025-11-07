@@ -18,11 +18,15 @@ import re
 import shutil
 import statistics
 import sys
+<<<<<<< HEAD
 import sysconfig
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import tempfile
 import textwrap
 import time
 import unittest
+<<<<<<< HEAD
 from collections.abc import (
     Collection,
     Generator,
@@ -31,6 +35,9 @@ from collections.abc import (
     MutableMapping,
     MutableSet,
 )
+=======
+from collections.abc import Collection, Iterator, Mapping, MutableMapping, MutableSet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from datetime import datetime
 from io import StringIO
 from typing import (
@@ -59,16 +66,23 @@ from unittest import mock
 import sympy
 
 import torch
+<<<<<<< HEAD
 import torch.utils._pytree as pytree
 from torch._inductor.analysis.device_info import datasheet_tops
 from torch._inductor.runtime.hints import DeviceProperties
 from torch.utils._dtype_abbrs import dtype_abbrs
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._pytree import tree_flatten, tree_map_only
+=======
+from torch._inductor.runtime.hints import DeviceProperties
+from torch.utils._ordered_set import OrderedSet
+from torch.utils._pytree import tree_map_only
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 OPTIMUS_EXCLUDE_POST_GRAD = [
     "activation_quantization_aten_pass",
+<<<<<<< HEAD
     "inductor_autotune_lookup_table",
 ]
 
@@ -80,23 +94,47 @@ from torch.fx.experimental.symbolic_shapes import (
 )
 
 
+=======
+]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence, ValuesView
 
     from torch import SymBool, SymFloat, SymInt
     from torch._prims_common import ELEMENTWISE_TYPE_PROMOTION_KIND
     from torch.fx import GraphModule
+<<<<<<< HEAD
+=======
+    from torch.fx.experimental.symbolic_shapes import ShapeEnv
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.fx.node import Node
 
     from .codegen.common import WorkspaceArg
     from .codegen.wrapper import PythonWrapperCodegen
     from .graph import GraphLowering
+<<<<<<< HEAD
     from .ir import Buffer, ExternKernel, IRNode, Layout, Operation, ReinterpretView
+=======
+    from .ir import (
+        Buffer,
+        ExternKernel,
+        ExternKernelOut,
+        IRNode,
+        Layout,
+        Operation,
+        ReinterpretView,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .output_code import CompiledFxGraph
     from .scheduler import BaseSchedulerNode, SchedulerBuffer
 
 
+<<<<<<< HEAD
 GPU_TYPES = ["cuda", "mps", "xpu", "mtia"]
+=======
+GPU_TYPES = ["cuda", "mps", "xpu"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T = TypeVar("T")
 
 
@@ -133,8 +171,11 @@ from .runtime.runtime_utils import ceildiv as runtime_ceildiv
 _IS_WINDOWS = sys.platform == "win32"
 
 log = logging.getLogger(__name__)
+<<<<<<< HEAD
 perf_hint_log = torch._logging.getArtifactLogger(__name__, "perf_hints")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _T = TypeVar("_T")
 VarRanges = dict[sympy.Expr, sympy.Expr]
@@ -254,10 +295,14 @@ def fp8_bench(fn: Callable[[], Any], warmup: int = 25, rep: int = 100) -> float:
         [
             event
             for event in p.events()
+<<<<<<< HEAD
             if (
                 event.device_type == DeviceType.CUDA
                 and re.match(r"fused_abs_max_\d", event.name) is not None
             )
+=======
+            if event.device_type == DeviceType.CUDA and "fused_abs_max_0" in event.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     )
     if filtered_events:
@@ -726,6 +771,7 @@ def get_kernel_metadata(
     node_schedule: Union[Sequence[BaseSchedulerNode], ExternKernel],
     wrapper: PythonWrapperCodegen,
 ) -> tuple[str, str]:
+<<<<<<< HEAD
     """
     Retrieves metadata information for a kernel.
     Args:
@@ -740,6 +786,8 @@ def get_kernel_metadata(
                 - The second string represent the kernel's detailed metadata.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_origins = aggregate_origins(node_schedule)
     inductor_nodes = [origin for origin in all_origins if origin.op == "call_function"]
 
@@ -784,6 +832,7 @@ def get_kernel_metadata(
 
     # print the aot_autograd graph fragment
     if single_graph is not None:
+<<<<<<< HEAD
         from . import ir
 
         detailed_metadata.append(f"{wrapper.comment} Graph fragment:")
@@ -863,6 +912,13 @@ def get_kernel_metadata(
             )
 
         detailed_metadata.append(f"{wrapper.comment}   return {','.join(all_writes)}")
+=======
+        detailed_metadata.append(f"{wrapper.comment} Graph fragment:")
+        for n in inductor_nodes:
+            # TODO(future): maybe refactor torch/fx/graph.py to make it easy to
+            # generate python code for graph fragments
+            detailed_metadata.append(f"{wrapper.comment}   {n.format_node()}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return metadata, "\n".join(detailed_metadata)
 
@@ -889,7 +945,13 @@ def dominated_nodes(
 
 def gather_origins(
     args: Sequence[IRNode], kwargs: dict[str, IRNode]
+<<<<<<< HEAD
 ) -> OrderedSet[torch.fx.Node]:
+=======
+) -> OrderedSet[IRNode]:
+    import itertools
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from . import ir
 
     def is_unrealized_node(n: IRNode) -> bool:
@@ -897,6 +959,7 @@ def gather_origins(
             return is_unrealized_node(n.data)
         if isinstance(n, ir.StorageBox):
             return is_unrealized_node(n.data)
+<<<<<<< HEAD
         return isinstance(n, ir.IRNode) and not isinstance(
             n,
             (
@@ -914,6 +977,13 @@ def gather_origins(
     args_flatten, _ = tree_flatten(args)
     args_origins = [val.origins for val in args_flatten if is_unrealized_node(val)]
     return OrderedSet(itertools.chain(*args_origins, *kwargs_origins))
+=======
+        return isinstance(n, ir.IRNode) and isinstance(n, ir.Pointwise)
+
+    kwarg_origins = [val.origins for val in kwargs.values() if is_unrealized_node(val)]
+    arg_origins = [arg.origins for arg in args if is_unrealized_node(arg)]
+    return OrderedSet(itertools.chain(*arg_origins, *kwarg_origins))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def sympy_str(expr: sympy.Expr) -> str:
@@ -1091,7 +1161,11 @@ def get_first_incompatible_cudagraph_node(
         if (
             not torch._inductor.config.graph_partition
             and isinstance(node.target, torch._ops.OpOverload)
+<<<<<<< HEAD
             and torch._C.Tag.cudagraph_unsafe in node.target.tags  # type: ignore[attr-defined]
+=======
+            and torch._C.Tag.cudagraph_unsafe in node.target.tags
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             # skip cudagraph if a cudagraph_unsafe op is detected.
             # graph_partition helps by splitting on this cudagraph_unsafe
@@ -1199,17 +1273,25 @@ def fresh_cache(
     """
     clear_caches()
 
+<<<<<<< HEAD
     from torch._inductor.cpp_builder import normalize_path_separator
 
     inductor_cache_dir = normalize_path_separator(tempfile.mkdtemp(dir=dir))
+=======
+    inductor_cache_dir = tempfile.mkdtemp(dir=dir)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         with mock.patch.dict(
             os.environ, {"TORCHINDUCTOR_CACHE_DIR": inductor_cache_dir}
         ):
             log.debug("Using inductor cache dir %s", inductor_cache_dir)
+<<<<<<< HEAD
             triton_cache_dir = normalize_path_separator(
                 os.path.join(inductor_cache_dir, "triton")
             )
+=======
+            triton_cache_dir = os.path.join(inductor_cache_dir, "triton")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with mock.patch.dict(os.environ, {"TRITON_CACHE_DIR": triton_cache_dir}):
                 yield
                 if isinstance(cache_entries, dict):
@@ -1232,7 +1314,10 @@ def fresh_cache(
                 # Let's not fail if we can't clean up the temp dir. Also note that for
                 # Windows, we can't delete the loaded modules because the module binaries
                 # are open.
+<<<<<<< HEAD
                 ignore_errors=is_windows(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 onerror=lambda func, path, exc_info: log.warning(
                     "Failed to remove temporary cache dir at %s",
                     inductor_cache_dir,
@@ -1459,9 +1544,12 @@ class IndentedBuffer:
         res.writelines(other._lines)
         return res
 
+<<<<<<< HEAD
     def contains(self, new_line: Union[DeferredLineBase, LineContext, str]) -> bool:
         return new_line in self._lines
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class FakeIndentedBuffer(IndentedBuffer):
     def __init__(self) -> None:
@@ -1565,6 +1653,7 @@ def is_big_gpu(index_or_device: Union[int, torch.device] = 0) -> bool:
 
 @functools.lru_cache
 def get_max_num_sms() -> int:
+<<<<<<< HEAD
     if torch.xpu.is_available():
         return torch.xpu.get_device_properties().gpu_subslice_count
     return torch.cuda.get_device_properties("cuda").multi_processor_count
@@ -1585,6 +1674,14 @@ def get_num_sms() -> int:
     # TODO we need to properly guard on this global
     if torch.xpu.is_available():
         return get_max_num_sms()
+=======
+    return torch.cuda.get_device_properties("cuda").multi_processor_count
+
+
+def get_num_sms() -> int:
+    """Handle experimental carveout if set otherwise return hardware SM count"""
+    # TODO we need to properly guard on this global
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     carveout = torch._C._get_sm_carveout_experimental()
     return get_max_num_sms() - (carveout if carveout is not None else 0)
 
@@ -1638,11 +1735,15 @@ def _use_conv_autotune_backend(backend: str) -> bool:
 
 
 def use_triton_template(
+<<<<<<< HEAD
     layout: Layout,
     *,
     enable_int32: bool = False,
     enable_float8: bool = False,
     check_max_autotune: bool = True,
+=======
+    layout: Layout, *, enable_int32: bool = False, enable_float8: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> bool:
     from .codegen.common import BackendFeature, has_backend_feature
 
@@ -1659,13 +1760,18 @@ def use_triton_template(
             )
             or (layout.device.type == "cpu" and layout.dtype in layout_dtypes)
         )
+<<<<<<< HEAD
         # some callers handle max-autotune checking externally
         and (config.max_autotune or config.max_autotune_gemm or not check_max_autotune)
+=======
+        and (config.max_autotune or config.max_autotune_gemm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         and _use_autotune_backend("TRITON")
         and has_backend_feature(layout.device, BackendFeature.TRITON_TEMPLATES)
     )
 
 
+<<<<<<< HEAD
 def can_use_tma(*matrices: IRNode, add_guards: bool = False) -> bool:
     """
     Return True iff *all* supplied tensors satisfy the CUDA-12.9 TMA constraints
@@ -1742,10 +1848,36 @@ def can_use_tma(*matrices: IRNode, add_guards: bool = False) -> bool:
 
         # FP8 special case: inner ≥ 32
         if dtype == torch.float8_e4m3fn and not V.graph.sizevars.statically_known_geq(
+=======
+def use_triton_tma_template(*matrices: IRNode) -> bool:
+    from torch.utils._triton import has_triton_stable_tma_api, has_triton_tma_device
+
+    from .virtualized import V
+
+    def _is_tma_compatible(x: IRNode) -> bool:
+        if len(x.get_size()) != 2:
+            return False
+
+        dtype = x.get_dtype()
+        if dtype not in (torch.float16, torch.bfloat16, torch.float8_e4m3fn):
+            return False
+
+        layout = x.get_layout()
+        transposed = layout.is_transposed()
+        if not (layout.is_contiguous() or transposed):
+            return False
+
+        inner_dim = layout.size[1]
+        if transposed:
+            inner_dim = layout.size[0]
+
+        if dtype == torch.float8_e4m3fn and V.graph.sizevars.statically_known_lt(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inner_dim, 32
         ):
             return False
 
+<<<<<<< HEAD
         return True
 
     def _is_tma_compatible_xpu(x: IRNode) -> bool:
@@ -1774,6 +1906,19 @@ def use_triton_tma_template(*matrices: IRNode, add_guards: bool = False) -> bool
         all(len(m.get_size()) == 2 for m in matrices)
         and can_use_tma(*matrices, add_guards=add_guards)
         and config.triton.enable_persistent_tma_matmul
+=======
+        inner_bytes = inner_dim * dtype.itemsize
+        return V.graph.sizevars.statically_known_multiple_of(inner_bytes, TMA_ALIGNMENT)
+
+    if has_triton_stable_tma_api() and config.cpp_wrapper:
+        # TODO(dberard) remove this when we get AOTI support for new TMA APIs (#155047)
+        return False
+
+    return (
+        config.triton.enable_persistent_tma_matmul
+        and has_triton_tma_device()
+        and all(_is_tma_compatible(m) for m in matrices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -1802,9 +1947,14 @@ def use_cutlass_template(layout: Layout, m: int, n: int, k: int) -> bool:
         if not try_import_cutlass():
             log.warning(
                 "Failed to import CUTLASS lib. Please check whether "
+<<<<<<< HEAD
                 "_inductor.config.cuda.cutlass_dir %s is set correctly. "
                 "Skipping CUTLASS backend for now.",
                 config.cuda.cutlass_dir,
+=======
+                "_inductor.config.cuda.cutlass_dir is set correctly. "
+                "Skipping CUTLASS backend for now."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return False
     return res
@@ -1818,6 +1968,7 @@ def _use_cutlass_for_op(op_name: str) -> bool:
     return op_name.upper() in [x.strip() for x in enabled_ops.split(",")]
 
 
+<<<<<<< HEAD
 _IntLike: TypeAlias = Union[int, sympy.Expr]
 
 
@@ -1830,6 +1981,24 @@ def use_decompose_k_choice(m: _IntLike, n: _IntLike, k: _IntLike) -> bool:
     return (
         not torch.version.hip
         and V.graph.sizevars.statically_known_true(
+=======
+decompose_k_threshold = 32
+
+# To limit compile time
+k_splits_limit = 5
+
+# Hand-tuned
+default_k_splits = [16, 32, 64, 128, 256]
+
+_IntLike: TypeAlias = Union[int, sympy.Expr]
+
+
+def use_decompose_k_choice(m: _IntLike, n: _IntLike, k: _IntLike) -> bool:
+    from torch._inductor.virtualized import V
+
+    return (
+        V.graph.sizevars.statically_known_true(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sympy.And(
                 sympy.Ge(k, decompose_k_threshold * m),
                 sympy.Ge(k, decompose_k_threshold * n),
@@ -1837,6 +2006,7 @@ def use_decompose_k_choice(m: _IntLike, n: _IntLike, k: _IntLike) -> bool:
         )
         and not V.graph.aot_mode  # TODO: Support AOTI for decomposeK
         and not V.graph.cpp_wrapper
+<<<<<<< HEAD
     )
 
 
@@ -1861,11 +2031,15 @@ def use_contiguous(m: _IntLike, n: _IntLike, k: _IntLike) -> bool:
         )
         and not V.graph.aot_mode
         and not V.graph.cpp_wrapper
+=======
+        and not config.disable_decompose_k
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
 @functools.cache
 def get_k_splits(m: _IntLike, n: _IntLike, k: _IntLike) -> list[int]:
+<<<<<<< HEAD
     # To limit compile time
     k_splits_limit = config.triton.num_decompose_k_splits
 
@@ -1876,6 +2050,11 @@ def get_k_splits(m: _IntLike, n: _IntLike, k: _IntLike) -> list[int]:
         return default_k_splits
     elif k_splits_limit == 0:
         return []
+=======
+    # If k is a sympy expression, we can't do any splitting
+    if isinstance(k, sympy.Expr) and not k.is_number:
+        return default_k_splits
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (isinstance(m, sympy.Expr) and not m.is_number) or (
         isinstance(n, sympy.Expr) and not n.is_number
@@ -1915,10 +2094,22 @@ def get_k_splits(m: _IntLike, n: _IntLike, k: _IntLike) -> list[int]:
 
     if config.max_autotune_gemm_search_space == "EXHAUSTIVE":
         return pow_of_2_divisors + mul_of_32_divisors + rest_of_splits
+<<<<<<< HEAD
 
     best_splits = pow_of_2_divisors + mul_of_32_divisors + rest_of_splits
     # Otherwise, conform results to k_splits_limit
     return best_splits[:k_splits_limit]
+=======
+    # If the # of power of 2 divisors are greater than k_splits_limit, return all
+    # This should be ok for compile time, all perfect squares between 128 and min(k / m, k / n)
+    # should never be a massive amount
+    if len(pow_of_2_divisors) >= k_splits_limit:
+        return pow_of_2_divisors
+    else:
+        best_splits = pow_of_2_divisors + mul_of_32_divisors + rest_of_splits
+        # Otherwise, conform results to k_splits_limit
+        return best_splits[:k_splits_limit]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @functools.cache
@@ -2193,6 +2384,10 @@ def get_code(fn: Callable[P, _T], *args: P.args, **kwargs: P.kwargs) -> list[str
             self.codegen_with_cpp_wrapper() if self.cpp_wrapper else self.codegen()
         )
         # Skip all the actual compiling.
+<<<<<<< HEAD
+=======
+        nonlocal save_output_code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         save_output_code(wrapper_code.value)
         if kernel_code:
             save_output_code(kernel_code.value)
@@ -2388,6 +2583,7 @@ def get_backend_num_stages() -> int:
 
 
 @functools.cache
+<<<<<<< HEAD
 def get_device_tflops(dtype: torch.dtype) -> float:
     """
     We don't want to throw errors in this function. First check to see if the device is in device_info.py,
@@ -2404,6 +2600,11 @@ def get_device_tflops(dtype: torch.dtype) -> float:
         0,
     )
 
+=======
+def get_device_tflops(dtype: torch.dtype) -> int:
+    from triton.testing import get_max_simd_tflops, get_max_tensorcore_tflops
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert dtype in (torch.float16, torch.bfloat16, torch.float32)
 
     if inspect.signature(get_max_simd_tflops).parameters.get("clock_rate"):
@@ -2411,7 +2612,11 @@ def get_device_tflops(dtype: torch.dtype) -> float:
         from torch._utils_internal import max_clock_rate
 
         sm_clock = max_clock_rate()
+<<<<<<< HEAD
         if dtype in (torch.float16, torch.bfloat16) and SM80OrLater:
+=======
+        if dtype in (torch.float16, torch.bfloat16):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return get_max_tensorcore_tflops(dtype, sm_clock)
 
         if torch.backends.cuda.matmul.allow_tf32:
@@ -2419,7 +2624,11 @@ def get_device_tflops(dtype: torch.dtype) -> float:
         else:
             return get_max_simd_tflops(torch.float32, sm_clock)
     else:
+<<<<<<< HEAD
         if dtype in (torch.float16, torch.bfloat16) and SM80OrLater:
+=======
+        if dtype in (torch.float16, torch.bfloat16):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return get_max_tensorcore_tflops(dtype)
 
         if torch.backends.cuda.matmul.allow_tf32:
@@ -2554,7 +2763,11 @@ def is_output_of_multi_outputs_template(
     return (
         isinstance(input_buf, ir.MultiOutput)
         and len(input_buf.inputs) == 1
+<<<<<<< HEAD
         and is_multi_outputs_template(input_buf.inputs[0])  # type: ignore[arg-type]
+=======
+        and is_multi_outputs_template(input_buf.inputs[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -2568,9 +2781,13 @@ def is_collective(
     from . import ir
 
     return (
+<<<<<<< HEAD
         isinstance(node, ir._CollectiveKernel)
         and not isinstance(node, ir._WaitKernel)
         and (op is None or node.op_overload is op)
+=======
+        type(node) == ir._CollectiveKernel and (op is None or node.op_overload is op)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) or (
         # TODO: this is a temporary solution to ensure that we can identify torchrec's
         # communication ops. But in order to allow better communication and computation
@@ -2896,9 +3113,16 @@ def maybe_get_suppress_shape_guards_ctx() -> contextlib.AbstractContextManager[N
         return contextlib.nullcontext()
 
     # In standalone inductor compile mode, we might not have a shape_env attached to the fake mode
+<<<<<<< HEAD
     if not tracing_context.fake_mode or not tracing_context.fake_mode.shape_env:
         return contextlib.nullcontext()
     shape_env = tracing_context.fake_mode.shape_env
+=======
+    shape_env = tracing_context.fake_mode.shape_env
+    if not shape_env:
+        return contextlib.nullcontext()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return shape_env.suppress_guards()
 
 
@@ -3042,6 +3266,7 @@ def expr_fits_within_32bit(e: sympy.Expr) -> bool:
     # (e.g., via ValueRanges) that it is still in bounds
     if V.graph.sizevars.statically_known_true(e <= int_max):
         return True
+<<<<<<< HEAD
 
     # AOTI doesn't guard on < 2**32, so checking hints isn't a viable option,
     # in case the hinted value is < 2**32, but the allowed range is larger.
@@ -3062,6 +3287,8 @@ def expr_fits_within_32bit(e: sympy.Expr) -> bool:
             # so this could potentially have int64 values
             return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Otherwise, the hint MUST exist and be in range
     return has_hint(e) and size_hint(e) <= int_max
 
@@ -3315,6 +3542,45 @@ def get_donated_idxs() -> Optional[list[int]]:
     return None
 
 
+<<<<<<< HEAD
+=======
+def set_kernel_post_grad_provenance_tracing(
+    node_schedule: Union[Sequence[BaseSchedulerNode], ExternKernelOut],
+    kernel_name: str,
+    is_extern: bool = False,
+) -> None:
+    from .codegen.simd_kernel_features import DisableReduction, EnableReduction
+    from .ir import ExternKernelOut
+    from .virtualized import V
+
+    if is_extern:
+        assert isinstance(node_schedule, ExternKernelOut)
+        curr_node_info = (
+            V.debug._inductor_triton_kernel_to_post_grad_node_info.setdefault(
+                kernel_name, []
+            )
+        )
+        curr_node_info.extend(
+            origin.name
+            for origin in node_schedule.origins
+            if origin.name not in curr_node_info
+        )
+    else:
+        assert isinstance(node_schedule, list)
+        for snode in node_schedule:
+            if snode not in (EnableReduction, DisableReduction):
+                if snode.node is not None:
+                    curr_node_info = V.debug._inductor_triton_kernel_to_post_grad_node_info.setdefault(
+                        kernel_name, []
+                    )
+                    curr_node_info.extend(
+                        origin.name
+                        for origin in snode.node.origins
+                        if origin.name not in curr_node_info
+                    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TritonAttrsDescriptorVersion(enum.Enum):
     V0_NO_TRITON = 0
     V1_COMPILER = 1  # triton.compiler.compiler.AttrsDescriptor
@@ -3367,7 +3633,11 @@ def is_cudagraph_unsafe_op(node: Operation) -> bool:
 
     if (
         isinstance(node.op_overload, torch._ops.OpOverload)
+<<<<<<< HEAD
         and torch._C.Tag.cudagraph_unsafe in node.op_overload.tags  # type: ignore[attr-defined]
+=======
+        and torch._C.Tag.cudagraph_unsafe in node.op_overload.tags
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         return True
 
@@ -3396,6 +3666,7 @@ def is_codegen_graph_partition_subgraph(wrapper: PythonWrapperCodegen) -> bool:
     )
 
 
+<<<<<<< HEAD
 def is_using_cudagraph_partition() -> bool:
     return (
         torch._inductor.config.triton.cudagraphs
@@ -3403,6 +3674,8 @@ def is_using_cudagraph_partition() -> bool:
     ) and torch._inductor.config.graph_partition
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def dtype_from_size(size: int) -> torch.dtype:
     from .virtualized import V
 
@@ -3439,6 +3712,7 @@ def is_mkldnn_fp16_supported(device_type: str) -> bool:
         # match "xpu", "xpu:0", "xpu:1", etc.
         return True
     return False
+<<<<<<< HEAD
 
 
 def tabulate_2d(elements: Sequence[Sequence[T]], headers: Sequence[T]) -> str:
@@ -3705,3 +3979,5 @@ def snode_args_kwargs(snode: BaseSchedulerNode) -> tuple[list[Any], dict[str, An
     flat_args = [to_real_tensor(a) for a in flat_args]
     args, kwargs = pytree.tree_unflatten(flat_args, flat_args_pytree_spec)
     return args, kwargs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -77,7 +77,10 @@ jobs:
         run: |
           git config --global core.longpaths true
           git config --global core.symlinks true
+<<<<<<< HEAD
           git config --global core.ignorecase false
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           # https://git-scm.com/docs/git-fsmonitor--daemon.  The daemon could lock
           # the directory on Windows and prevent GHA from checking out as reported
@@ -85,10 +88,17 @@ jobs:
           git config --global core.fsmonitor false
 
       - name: Clean up leftover processes on non-ephemeral Windows runner
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/cleanup-runner@release/2.9
 
       - name: Setup SSH (Click me for login details)
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/cleanup-runner@release/2.8
+
+      - name: Setup SSH (Click me for login details)
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
           instructions: |
@@ -103,7 +113,11 @@ jobs:
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: true
 
@@ -151,7 +165,11 @@ jobs:
           BUILD_WHEEL: 1
           MAX_JOBS: 8
           CUDA_VERSION: ${{ inputs.cuda-version }}
+<<<<<<< HEAD
           PYTHON_VERSION: "3.10"
+=======
+          PYTHON_VERSION: "3.9"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           SCCACHE_BUCKET: "ossci-compiler-cache"
           SCCACHE_S3_KEY_PREFIX: ${{ github.workflow }}
           SCCACHE_REGION: us-east-1

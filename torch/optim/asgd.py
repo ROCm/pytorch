@@ -47,6 +47,7 @@ class ASGD(Optimizer):
         if not 0.0 <= weight_decay:
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "lambd": lambd,
@@ -58,6 +59,19 @@ class ASGD(Optimizer):
             "differentiable": differentiable,
             "capturable": capturable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            lambd=lambd,
+            alpha=alpha,
+            t0=t0,
+            weight_decay=weight_decay,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            capturable=capturable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):

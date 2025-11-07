@@ -14,6 +14,10 @@
 #include <c10/util/Exception.h>
 #include <nccl.h>
 #include <torch/csrc/cuda/nccl.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/distributed/c10d/TraceUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 
 constexpr int64_t kCommInitBusyWaitMillis = 2;
@@ -231,7 +235,10 @@ static std::map<at::ScalarType, ncclDataType_t> ncclDataType = {
 };
 
 TORCH_API size_t hashTensors(const std::vector<at::Tensor>& tensors);
+<<<<<<< HEAD
 TORCH_API int genNcclSplitColor(const std::vector<int>& ranks);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API std::string getNcclVersion();
 TORCH_API std::tuple<int, int, int> getNcclVersionTuple();
 TORCH_API int getNcclVersionNumber();
@@ -259,10 +266,13 @@ class NCCLComm {
 
   ~NCCLComm() noexcept;
 
+<<<<<<< HEAD
   void setUniqueHash(ncclUniqueId ncclId);
   void setUniqueHash(std::string hash);
   std::string getUniqueHash();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static std::shared_ptr<NCCLComm> create(
       int numRanks,
       int rank,
@@ -291,13 +301,22 @@ class NCCLComm {
       NCCLComm* source,
       int color_id,
       int rank,
+<<<<<<< HEAD
       ncclConfig_t& config);
+=======
+      ncclConfig_t& config,
+      std::vector<uint64_t>& ranks_ull);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // NCCL_HAS_COMM_SPLIT
 
 #if (defined(IS_NCCLX) || defined(USE_ROCM)) && defined(NCCL_COMM_DUMP)
   std::unordered_map<std::string, std::string> ncclCommDump();
 #endif
 
+<<<<<<< HEAD
+=======
+  ncclUniqueId getNcclId();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::DeviceIndex getDeviceIndex();
 
   // Must not be copyable
@@ -357,8 +376,13 @@ class NCCLComm {
   friend class ProcessGroupNCCL;
 
  protected:
+<<<<<<< HEAD
   // Unique hash for this communicator.
   std::string uniqueHash_;
+=======
+  // Unique nccl_id for this communicator.
+  ncclUniqueId ncclId_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool aborted_{false};
   uint64_t ncclCommSplitCounter_{0};
   ncclResult_t ncclAsyncErr_{ncclSuccess};

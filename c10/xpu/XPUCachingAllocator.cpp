@@ -540,7 +540,11 @@ class DeviceCachingAllocator {
 
 static void local_raw_delete(void* ptr);
 
+<<<<<<< HEAD
 class XPUAllocator : public DeviceAllocator {
+=======
+class XPUAllocator : public Allocator {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   std::mutex mutex;
   ska::flat_hash_map<void*, Block*> allocated_blocks;
@@ -576,10 +580,13 @@ class XPUAllocator : public DeviceAllocator {
     }
   }
 
+<<<<<<< HEAD
   bool initialized() override {
     return !device_allocators.empty();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void malloc(
       void** devPtr,
       DeviceIndex device,
@@ -614,13 +621,21 @@ class XPUAllocator : public DeviceAllocator {
     }
   }
 
+<<<<<<< HEAD
   void emptyCache(MempoolId_t mempool_id [[maybe_unused]] = {0, 0}) override {
+=======
+  void emptyCache() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto& da : device_allocators) {
       da->emptyCache();
     }
   }
 
+<<<<<<< HEAD
   void recordStream(const DataPtr& ptr, c10::Stream stream) override {
+=======
+  void recordStream(const DataPtr& ptr, XPUStream stream) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!ptr.get()) {
       return;
     }
@@ -630,8 +645,12 @@ class XPUAllocator : public DeviceAllocator {
 
     Block* block = get_allocated_block(ptr.get());
     TORCH_CHECK(block, "No allocated block can be found.");
+<<<<<<< HEAD
     c10::xpu::XPUStream xpu_stream{stream};
     device_allocators[block->device]->recordStream(block, xpu_stream);
+=======
+    device_allocators[block->device]->recordStream(block, stream);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   DataPtr allocate(size_t size) override {
@@ -684,17 +703,29 @@ class XPUAllocator : public DeviceAllocator {
         ": did you call init?");
   }
 
+<<<<<<< HEAD
   DeviceStats getDeviceStats(DeviceIndex device) override {
+=======
+  DeviceStats getDeviceStats(DeviceIndex device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertValidDevice(device);
     return device_allocators[device]->getStats();
   }
 
+<<<<<<< HEAD
   void resetPeakStats(DeviceIndex device) override {
+=======
+  void resetPeakStats(DeviceIndex device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertValidDevice(device);
     device_allocators[device]->resetPeakStats();
   }
 
+<<<<<<< HEAD
   void resetAccumulatedStats(DeviceIndex device) override {
+=======
+  void resetAccumulatedStats(DeviceIndex device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertValidDevice(device);
     device_allocators[device]->resetAccumulatedStats();
   }

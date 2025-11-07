@@ -88,6 +88,7 @@ jobs:
             pkill "${PROCESS}" || true
           done
 
+<<<<<<< HEAD
       - name: Clean up brew miniconda, if installed
         continue-on-error: true
         run: |
@@ -95,6 +96,11 @@ jobs:
             brew uninstall miniconda
             echo "REINSTALL_BREW_MINICONDA=1" >> "${GITHUB_ENV}"
           fi
+=======
+      - name: Clean up leftover miniconda installation
+        continue-on-error: true
+        run: brew uninstall miniconda || true
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Clean up leftover local python3 site-packages on MacOS pet runner
         continue-on-error: true
@@ -105,11 +111,19 @@ jobs:
           done
 
       - name: Clean up disk space before running MacOS workflow
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.9
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.8
+
+      # [see note: pytorch repo ref]
+      - name: Checkout PyTorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Get workflow job id
         id: get-job-id
@@ -118,12 +132,15 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+<<<<<<< HEAD
       - name: Setup Python
         uses: pytorch/test-infra/.github/actions/setup-python@release/2.9
         with:
           python-version: ${{ inputs.python-version }}
           pip-requirements-file: .github/requirements/pip-requirements-macOS.txt
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Start monitoring script
         id: monitor-script
         if: ${{ !inputs.disable-monitor }}
@@ -136,8 +153,13 @@ jobs:
           MONITOR_LOG_INTERVAL: ${{ inputs.monitor-log-interval }}
           MONITOR_DATA_COLLECT_INTERVAL: ${{ inputs.monitor-data-collect-interval }}
         run: |
+<<<<<<< HEAD
           "$VENV_PATH/bin/python3" -m pip install psutil==5.9.8 dataclasses_json==0.6.7
           "$VENV_PATH/bin/python3" -m tools.stats.monitor --log-interval "$MONITOR_LOG_INTERVAL" --data-collect-interval "$MONITOR_DATA_COLLECT_INTERVAL" > usage_log.txt 2>&1 &
+=======
+          python3 -m pip install psutil==5.9.1 dataclasses_json==0.6.7
+          python3 -m tools.stats.monitor --log-interval "$MONITOR_LOG_INTERVAL" --data-collect-interval "$MONITOR_DATA_COLLECT_INTERVAL" > usage_log.txt 2>&1 &
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           echo "monitor-script-pid=${!}" >> "${GITHUB_OUTPUT}"
 
       - name: Download build artifacts
@@ -152,6 +174,16 @@ jobs:
         with:
           use-gha: true
 
+<<<<<<< HEAD
+=======
+      - name: Setup Python
+        uses: pytorch/test-infra/.github/actions/setup-python@release/2.8
+        with:
+          python-version: ${{ inputs.python-version }}
+          pip-requirements-file: .github/requirements/pip-requirements-macOS.txt
+          default-packages: ""
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: Parse ref
         id: parse-ref
         run: .github/scripts/parse_ref.py
@@ -202,7 +234,11 @@ jobs:
           set -ex
 
           # TODO: Remove me later, and properly activate venv
+<<<<<<< HEAD
           PATH="$VENV_PATH/bin:$PATH"
+=======
+          PATH="$(dirname "$(which python)"):$PATH"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           export PATH
 
           # Print out some information about the test environment
@@ -257,7 +293,11 @@ jobs:
           file-suffix: ${{ github.job }}-${{ matrix.config }}-${{ matrix.shard }}-${{ matrix.num_shards }}-${{ matrix.runner }}_${{ steps.get-job-id.outputs.job-id }}
 
       - name: Upload the benchmark results
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           benchmark-results-dir: test/test-reports
           dry-run: false
@@ -276,6 +316,7 @@ jobs:
           workflow_attempt: ${{github.run_attempt}}
           local_path: usage_log.txt
 
+<<<<<<< HEAD
       - name: Reinstall brew miniconda, if was installed
         if: always()
         continue-on-error: true
@@ -288,3 +329,9 @@ jobs:
         if: always()
         continue-on-error: true
         uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.9
+=======
+      - name: Clean up disk space
+        if: always()
+        continue-on-error: true
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

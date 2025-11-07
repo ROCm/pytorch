@@ -8,7 +8,11 @@ from torch.autograd.grad_mode import no_grad
 
 def _get_foreach_kernels_supported_devices() -> list[str]:
     r"""Return the device type list that supports foreach kernels."""
+<<<<<<< HEAD
     return ["cuda", "xpu", "mtia", torch._C._get_privateuse1_backend_name()]
+=======
+    return ["cuda", "xpu", torch._C._get_privateuse1_backend_name()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_fused_kernels_supported_devices() -> list[str]:
@@ -19,7 +23,10 @@ def _get_fused_kernels_supported_devices() -> list[str]:
         "xpu",
         "hpu",
         "cpu",
+<<<<<<< HEAD
         "mtia",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._C._get_privateuse1_backend_name(),
     ]
 

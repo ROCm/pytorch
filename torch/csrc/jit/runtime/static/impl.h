@@ -29,7 +29,11 @@ TORCH_API std::string dumpValueSet(
     const c10::FastSet<const Value*>& value_set,
     const char* set_name = "");
 
+<<<<<<< HEAD
 inline bool doesNotHeapAllocateWhenStoredInIValue(const Type& type) {
+=======
+TORCH_API inline bool doesNotHeapAllocateWhenStoredInIValue(const Type& type) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   switch (type.kind()) {
     // NOTE: NumberType may allocate because it includes complex.
     case TypeKind::NoneType:
@@ -44,11 +48,19 @@ inline bool doesNotHeapAllocateWhenStoredInIValue(const Type& type) {
   }
 }
 
+<<<<<<< HEAD
 inline c10::Symbol getStaticRuntimeMetadataSymbol() {
   return Symbol::attr("static_runtime::metadata");
 }
 
 inline bool borrowsOutputs(c10::Symbol kind) {
+=======
+TORCH_API inline c10::Symbol getStaticRuntimeMetadataSymbol() {
+  return Symbol::attr("static_runtime::metadata");
+}
+
+TORCH_API inline bool borrowsOutputs(c10::Symbol kind) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static const std::array<c10::Symbol, 4> symbols_with_borrowed_outputs = {
       c10::Symbol::fromQualString("static_runtime::select_tensor"),
       c10::Symbol::fromQualString("static_runtime::dict_unpack"),
@@ -70,7 +82,11 @@ inline bool borrowsOutputs(c10::Symbol kind) {
 //     The output aliases that end up here are as a result of aliasDb failing to
 //     recognize them as outputs due to collection object (e.g., Tuple) aliasing
 //     inputs.
+<<<<<<< HEAD
 // Values that don't show up in output_aliases or external_aliases are created
+=======
+// Values that dont't show up in output_aliases or external_aliases are created
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // and consumed within the graph.
 class ValueGroup {
  public:
@@ -111,7 +127,11 @@ class TORCH_API ManagedTensorRanges {
 
   // If true, then this node is the last use of at least one
   // managed tensor. availableTensorValuesAfterNode(node) will return a vector
+<<<<<<< HEAD
   // of the managed tensors that are available for reuse
+=======
+  // of the managed tensors that are available for re-use
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // in the nodes following this one.
   bool nodeFreesManagedTensors(Node* node) const;
   const std::vector<const Value*>& availableTensorValuesAfterNode(
@@ -141,7 +161,11 @@ class TORCH_API ManagedTensorRanges {
   void extendInputLifetime(Node* node, size_t new_end);
 
   // Maps Node* to the set of managed tensors that are now available
+<<<<<<< HEAD
   // for reuse after this node.
+=======
+  // for re-use after this node.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::FastMap<Node*, std::vector<const Value*>> node_to_newly_free_tensors_{};
   // Maps each Value* to its lifetime (start node index, end node index)
   c10::FastMap<const Value*, Lifetime> value_lifetimes_{};

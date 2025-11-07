@@ -6,7 +6,10 @@ If you are adding a new entry/functionality, please, add it to the
 `torch/ao/quantization/observer.py`, while adding an import statement
 here.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization.observer import (
     _is_activation_post_process,
     _is_per_channel_script_obs_instance,

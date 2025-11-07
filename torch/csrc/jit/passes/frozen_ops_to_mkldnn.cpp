@@ -98,7 +98,11 @@ void InplaceMKLDNNSubgraph(const std::shared_ptr<Graph>& graph) {
   // This function first calculates aliasing sets,
   // then calculates the last node each aliasing set is alive for.
   // Then we go through each node, if it's a node which has an equivalent
+<<<<<<< HEAD
   // inplace node and the aliasing set for its input is dead after this node, we
+=======
+  // inplace node and the aliasing set for its input is dead afer this node, we
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // inplace it. Then we merge the aliasing sets for the input and output of the
   // node and extend the liveness of the set. To inplace a node you need to
   // prove device and dtype of the input and output are the same, which we've
@@ -812,7 +816,11 @@ void ComputeSubgraphInMKLDNN(Node* subgraph_node) {
 
     if (body_node->kind() == aten::conv2d ||
         body_node->kind() == aten::conv3d) {
+<<<<<<< HEAD
       // this node doesn't handle string padding yet...
+=======
+      // this node doesnt handle string padding yet...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!body_node->namedInput("padding")->type()->cast<StringType>()) {
         body_node->replaceWithNewSymbol(Symbol::prim("mkldnn_convolution"));
         body_node->destroy();

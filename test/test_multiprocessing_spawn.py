@@ -47,7 +47,11 @@ def _test_terminate_signal_func(i):
 def _test_terminate_exit_func(i, arg):
     if i == 0:
         sys.exit(arg)
+<<<<<<< HEAD
     time.sleep(4.0)
+=======
+    time.sleep(1.0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _test_success_first_then_exception_func(i, arg):
@@ -145,7 +149,11 @@ class _TestMultiProcessing:
         with self.assertRaisesRegex(Exception, message):
             mp.start_processes(_test_terminate_signal_func, nprocs=2, start_method=self.start_method)
 
+<<<<<<< HEAD
     @parametrize("grace_period", [None, 20])
+=======
+    @parametrize("grace_period", [None, 5])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_terminate_exit(self, grace_period):
         exitcode = 123
         ctx = mp.start_processes(_test_terminate_exit_func, args=(exitcode,), nprocs=2, start_method=self.start_method, join=False)
@@ -201,7 +209,11 @@ class _TestMultiProcessing:
                 try:
                     os.kill(pid, 0)
                 except ProcessLookupError:
+<<<<<<< HEAD
                     pids.remove(pid)  # noqa: B909
+=======
+                    pids.remove(pid)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     break
 
             # This assert fails if any nested child process is still

@@ -40,7 +40,11 @@ def signatures_match(decomposition_sig, torch_op_sig):
         return False
 
     for decomp_param, op_param in zip(decomp_params.values(), op_params.values()):
+<<<<<<< HEAD
         # can't check full equality yet because not all fields are correctly deduced
+=======
+        # can't check full equality yet because not all fields are correcly deduced
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # in the torch_op_sig - like default value
         # can't check 'kind' bc
         # kwarg-only values with defaults not yet supported in TS

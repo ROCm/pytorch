@@ -8,6 +8,7 @@ from typing_extensions import deprecated
 import torch
 
 from ._utils import _device_t, _get_device_index
+<<<<<<< HEAD
 from .memory import (
     empty_cache,
     max_memory_allocated,
@@ -18,6 +19,8 @@ from .memory import (
     reset_accumulated_memory_stats,
     reset_peak_memory_stats,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -25,6 +28,7 @@ __all__ = [
     "current_device_idx",  # deprecated
     "current_device_index",
     "current_stream",
+<<<<<<< HEAD
     "empty_cache",
     "device_count",
     "device_index",
@@ -36,6 +40,11 @@ __all__ = [
     "memory_stats",
     "reset_accumulated_memory_stats",
     "reset_peak_memory_stats",
+=======
+    "device_count",
+    "device_index",
+    "is_available",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "set_device_idx",  # deprecated
     "set_device_index",
     "set_stream",
@@ -137,6 +146,7 @@ current_device_idx = deprecated(
     category=FutureWarning,
 )(current_device_index)
 
+<<<<<<< HEAD
 current_device_idx.__doc__ = r"""
     (Deprecated) Return the index of a currently selected device for the current :ref:`accelerator<accelerators>`.
 
@@ -149,6 +159,8 @@ current_device_idx.__doc__ = r"""
         and will be removed in a future PyTorch release.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def set_device_index(device: _device_t, /) -> None:
     r"""Set the current device index to a given device.
@@ -168,6 +180,7 @@ set_device_idx = deprecated(
     category=FutureWarning,
 )(set_device_index)
 
+<<<<<<< HEAD
 set_device_idx.__doc__ = r"""
     (Deprecated) Set the current device index to a given device.
 
@@ -181,6 +194,8 @@ set_device_idx.__doc__ = r"""
         and will be removed in a future PyTorch release.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def current_stream(device: _device_t = None, /) -> torch.Stream:
     r"""Return the currently selected stream for a given device.

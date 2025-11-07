@@ -158,6 +158,7 @@ void MPSStream::fill(id<MTLBuffer> buffer, uint8_t value, size_t length, size_t 
       endKernelCoalescing();
       id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer() blitCommandEncoder];
 
+<<<<<<< HEAD
       // For some reason fillBufferfor stopped working for lengh > 4Gb on MacOS 26
       // See https://github.com/pytorch/pytorch/issues/163962
       // Workaround by batching copy commands into 4Gb chunks
@@ -170,6 +171,9 @@ void MPSStream::fill(id<MTLBuffer> buffer, uint8_t value, size_t length, size_t 
         bytes_filled += bytes_to_copy;
         bytes_remains -= bytes_to_copy;
       }
+=======
+      [blitEncoder fillBuffer:buffer range:NSMakeRange(offset, length) value:value];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       [blitEncoder endEncoding];
       synchronize(syncType);
     }

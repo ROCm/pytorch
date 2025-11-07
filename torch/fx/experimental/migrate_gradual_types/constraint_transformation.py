@@ -823,7 +823,11 @@ def calc_last_two_dims(constraint, d: list[DVar]):
         [BinConstraintD(d[3], Dyn, op_neq), BinConstraintD(b4, Dyn, op_neq)]
     )
 
+<<<<<<< HEAD
     # transform parameters into tuples in case they are not already
+=======
+    # transform parameters into tuples incase they are not already
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     padding = (
         (constraint.padding, constraint.padding)
         if isinstance(constraint.padding, int)

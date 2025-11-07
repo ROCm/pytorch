@@ -1,15 +1,24 @@
 # flake8: noqa: B950
 import math
+<<<<<<< HEAD
 from typing import Callable, Optional, TypeVar
 from typing_extensions import ParamSpec
+=======
+import typing
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.onnx.ops import _dtype_mappings
 
 
+<<<<<<< HEAD
 # Use ParamSpec for better type preservation instead of bound Callable TypeVar
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
+=======
+_T = typing.TypeVar("_T", bound=Callable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # ONNX to ATen decomp table
 ONNX_ATEN_DECOMP_TABLE: dict[torch._ops.OpOverload, Callable] = {}
@@ -23,12 +32,19 @@ _ATTENTION_23_ALLOWED_INTERMEDIATE_PRECISIONS = frozenset(
 )
 
 
+<<<<<<< HEAD
 def _onnx_op(
     op_type: str, opset_version: int
 ) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
     """Decorator to register an ONNX operator with a custom implementation."""
 
     def decorator(func: Callable[_P, _R]) -> Callable[_P, _R]:
+=======
+def _onnx_op(op_type: str, opset_version: int) -> Callable[[_T], _T]:
+    """Decorator to register an ONNX operator with a custom implementation."""
+
+    def decorator(func: _T) -> _T:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         overload = f"opset{opset_version}"
         torch_op = torch.library.custom_op(
             f"onnx::{op_type}.{overload}", mutates_args=()
@@ -56,6 +72,7 @@ def rotary_embedding_23(
     rotary_embedding_dim: int = 0,
 ) -> torch.Tensor:
     """RotaryEmbedding-23 https://onnx.ai/onnx/operators/onnx__RotaryEmbedding.html#rotaryembedding-23"""
+<<<<<<< HEAD
     # x has shape (batch_size, num_heads, sequence_length, head_size)
     # or (batch_size, sequence_length, hidden_size)
     input_shape = x.shape
@@ -105,6 +122,20 @@ def rotary_embedding_23(
         new_shape = [batch_size, sequence_length, num_heads, head_size]
         x = torch.reshape(x, new_shape)
 
+=======
+    # First ensure x has shape [batch_size, num_heads, seq_len, head_size]
+    batch_size = x.shape[0]
+    sequence_length = x.shape[1]
+    if len(x.shape) == 3:
+        hidden_size = x.shape[2]
+        torch._check(
+            num_heads != 0,
+            lambda: f"num_heads must be provided for 3D inputs. Received input tensor with shape {x.shape}",
+        )
+        head_size = hidden_size // num_heads
+        new_shape = [batch_size, sequence_length, num_heads, head_size]
+        x = torch.reshape(x, new_shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._check(len(x.shape) == 4, lambda: "x should be a 4D tensor by now")
     head_size = x.shape[3]
 
@@ -125,6 +156,7 @@ def rotary_embedding_23(
             position_ids
         ]  # Shape: [batch_size, sequence_length, head_size/2]
     else:
+<<<<<<< HEAD
         cos = cos_cache  # Shape: [batch_size, sequence_length, rotary_embedding_dim/2]
         sin = sin_cache  # Shape: [batch_size, sequence_length, rotary_embedding_dim/2]
 
@@ -144,6 +176,16 @@ def rotary_embedding_23(
         sin.shape[-1] == rotary_embedding_dim_half,
         lambda: f"Last dimension of sin cache ({sin.shape[-1]}) should match rotary_embedding_dim/2 ({rotary_embedding_dim_half}).",
     )
+=======
+        cos = cos_cache
+        sin = sin_cache
+    cos = cos[
+        :, :, :rotary_embedding_dim_half
+    ]  # Shape: [batch_size, sequence_length, rotary_embedding_dim/2]
+    sin = sin[
+        :, :, :rotary_embedding_dim_half
+    ]  # Shape: [batch_size, sequence_length, rotary_embedding_dim/2]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cos = torch.unsqueeze(
         cos, 2
     )  # Shape: [batch_size, sequence_length, 1, rotary_embedding_dim/2]
@@ -173,11 +215,17 @@ def rotary_embedding_23(
     else:
         x_rotate = torch.cat((real, imag), dim=-1)
     output = torch.cat((x_rotate, x_not_rotate), dim=-1)
+<<<<<<< HEAD
     if input_rank == 3:
         return torch.reshape(output, input_shape)
 
     # Return the dimensions to the original order
     return torch.permute(output, (0, 2, 1, 3))
+=======
+    if len(x.shape) == 3:
+        output = torch.reshape(output, x.shape)
+    return output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_scale_factor(scale: Optional[float], head_size: int) -> float:

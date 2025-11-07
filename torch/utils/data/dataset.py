@@ -96,7 +96,11 @@ class IterableDataset(Dataset[_T_co], Iterable[_T_co]):
         >>> class MyIterableDataset(torch.utils.data.IterableDataset):
         ...     def __init__(self, start, end):
         ...         super(MyIterableDataset).__init__()
+<<<<<<< HEAD
         ...         assert end > start, "this example only works with end >= start"
+=======
+        ...         assert end > start, "this example code only works with end >= start"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...         self.start = start
         ...         self.end = end
         ...
@@ -138,7 +142,11 @@ class IterableDataset(Dataset[_T_co], Iterable[_T_co]):
         >>> class MyIterableDataset(torch.utils.data.IterableDataset):
         ...     def __init__(self, start, end):
         ...         super(MyIterableDataset).__init__()
+<<<<<<< HEAD
         ...         assert end > start, "this example only works with end >= start"
+=======
+        ...         assert end > start, "this example code only works with end >= start"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...         self.start = start
         ...         self.end = end
         ...
@@ -198,9 +206,15 @@ class TensorDataset(Dataset[tuple[Tensor, ...]]):
     tensors: tuple[Tensor, ...]
 
     def __init__(self, *tensors: Tensor) -> None:
+<<<<<<< HEAD
         assert all(tensors[0].size(0) == tensor.size(0) for tensor in tensors), (
             "Size mismatch between tensors"
         )
+=======
+        assert all(
+            tensors[0].size(0) == tensor.size(0) for tensor in tensors
+        ), "Size mismatch between tensors"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.tensors = tensors
 
     def __getitem__(self, index):
@@ -222,7 +236,11 @@ class StackDataset(Dataset[_T_stack]):
         >>> tuple_stack = StackDataset(images, texts)
         >>> tuple_stack[0] == (images[0], texts[0])
         >>> dict_stack = StackDataset(image=images, text=texts)
+<<<<<<< HEAD
         >>> dict_stack[0] == {"image": images[0], "text": texts[0]}
+=======
+        >>> dict_stack[0] == {'image': images[0], 'text': texts[0]}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Args:
         *args (Dataset): Datasets for stacking returned as tuple.
@@ -323,9 +341,15 @@ class ConcatDataset(Dataset[_T_co]):
         self.datasets = list(datasets)
         assert len(self.datasets) > 0, "datasets should not be an empty iterable"  # type: ignore[arg-type]
         for d in self.datasets:
+<<<<<<< HEAD
             assert not isinstance(d, IterableDataset), (
                 "ConcatDataset does not support IterableDataset"
             )
+=======
+            assert not isinstance(
+                d, IterableDataset
+            ), "ConcatDataset does not support IterableDataset"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.cumulative_sizes = self.cumsum(self.datasets)
 
     def __len__(self):
@@ -371,17 +395,29 @@ class ChainDataset(IterableDataset):
 
     def __iter__(self):
         for d in self.datasets:
+<<<<<<< HEAD
             assert isinstance(d, IterableDataset), (
                 "ChainDataset only supports IterableDataset"
             )
+=======
+            assert isinstance(
+                d, IterableDataset
+            ), "ChainDataset only supports IterableDataset"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield from d
 
     def __len__(self):
         total = 0
         for d in self.datasets:
+<<<<<<< HEAD
             assert isinstance(d, IterableDataset), (
                 "ChainDataset only supports IterableDataset"
             )
+=======
+            assert isinstance(
+                d, IterableDataset
+            ), "ChainDataset only supports IterableDataset"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             total += len(d)  # type: ignore[arg-type]
         return total
 

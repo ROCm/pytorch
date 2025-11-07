@@ -316,18 +316,28 @@ class TensorVariable(VariableTracker):
         real_value = getattr(_input_associated_real_value, name)
 
         attr_source = AttrSource(self.source, name)
+<<<<<<< HEAD
+=======
+        install_guard(attr_source.make_guard(GuardBuilder.HASATTR))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Typically we'd want to use variable builder here
         # but unfortunately id(real_value.__self__) is not id(<original value>)
         if is_bound_tensor_method(real_value):
+<<<<<<< HEAD
             # No need to install the guard because its a bound tensor method
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from .misc import GetAttrVariable
 
             return GetAttrVariable(
                 self, name, source=attr_source, py_type=type(real_value)
             )
 
+<<<<<<< HEAD
         install_guard(attr_source.make_guard(GuardBuilder.HASATTR))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return VariableTracker.build(tx, real_value, attr_source)
 
     def method_attr_ndim(self, tx):
@@ -1090,6 +1100,7 @@ class TensorVariable(VariableTracker):
             *proxy_args_kwargs([self, key, value], {}),
         )
 
+<<<<<<< HEAD
         if isinstance(value, TensorVariable):
             # [Note: Tensor.__setitem__ and VariableTracker metadata]
             # At this point, we proxied a node representing `self[key] = value` into the graph.
@@ -1114,6 +1125,8 @@ class TensorVariable(VariableTracker):
             for k, v in specialized_props.items():
                 setattr(self, k, v)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if config.use_graph_deduplication or config.track_nodes_for_deduplication:
             tx.output.region_tracker.add_node_mutation(proxy.node, 0)
 
@@ -1564,11 +1577,15 @@ class NumpyNdarrayVariable(TensorVariable):
         args: "list[VariableTracker]",
         kwargs: "dict[str, VariableTracker]",
     ) -> "VariableTracker":
+<<<<<<< HEAD
         from ..exc import unimplemented_v2
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from ..utils import numpy_method_wrapper
 
         args, kwargs = self.patch_args(name, args, kwargs)
 
+<<<<<<< HEAD
         if name == "astype":
             from .builtin import BuiltinVariable
 
@@ -1594,6 +1611,8 @@ class NumpyNdarrayVariable(TensorVariable):
                     ),
                     hints=[*graph_break_hints.FUNDAMENTAL],
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in ["__len__", "size", "tolist"]:
             # delegate back to TensorVariable
             return super().call_method(tx, name, args, kwargs)

@@ -148,7 +148,11 @@ class TestCppExtensionAOT(common.TestCase):
 
     @unittest.skipIf(IS_WINDOWS, "Not available on Windows")
     def test_no_python_abi_suffix_sets_the_correct_library_name(self):
+<<<<<<< HEAD
         # For this test, run_test.py will call `python -m pip install .` in the
+=======
+        # For this test, run_test.py will call `python setup.py install` in the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # cpp_extensions/no_python_abi_suffix_test folder, where the
         # `BuildExtension` class has a `no_python_abi_suffix` option set to
         # `True`. This *should* mean that on Python 3, the produced shared

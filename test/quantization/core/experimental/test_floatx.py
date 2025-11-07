@@ -426,6 +426,10 @@ instantiate_device_type_tests(TestFloat4Dtype, globals())
 
 
 class TestFloat8DtypeCPUOnly(TestCase):
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Test of mul implementation
 

@@ -126,9 +126,15 @@ class EventList(list):
                         current_events.pop()
                     else:
                         parent.append_cpu_child(event)
+<<<<<<< HEAD
                         assert event.cpu_parent is None, (
                             f"There is already a CPU parent event for {event.key}"
                         )
+=======
+                        assert (
+                            event.cpu_parent is None
+                        ), f"There is already a CPU parent event for {event.key}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         event.set_cpu_parent(parent)
                         break
 
@@ -173,7 +179,10 @@ class EventList(list):
         max_shapes_column_width=80,
         header=None,
         top_level_events_only=False,
+<<<<<<< HEAD
         time_unit=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """Print an EventList as a nicely formatted table.
 
@@ -190,8 +199,11 @@ class EventList(list):
                 display events at top level like top-level invocation of python
                 `lstm`, python `add` or other functions, nested events like low-level
                 cpu/cuda/xpu ops events are omitted for profiler result readability.
+<<<<<<< HEAD
             time_unit(str, optional): A time unit to be used for all values in the
                 table. Valid options are: ``s``, ``ms`` and ``us``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         Returns:
             A string containing the table.
@@ -207,7 +219,10 @@ class EventList(list):
             profile_memory=self._profile_memory,
             with_flops=self._with_flops,
             top_level_events_only=top_level_events_only,
+<<<<<<< HEAD
             time_unit=time_unit,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def export_chrome_trace(self, path):
@@ -836,7 +851,10 @@ def _build_table(
     with_flops=False,
     profile_memory=False,
     top_level_events_only=False,
+<<<<<<< HEAD
     time_unit=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """Print a summary of events (which can be a list of FunctionEvent or FunctionEventAvg)."""
     if len(events) == 0:
@@ -1044,6 +1062,7 @@ def _build_table(
                 path = "..." + path[3:]
         return path
 
+<<<<<<< HEAD
     def override_time_unit(time_us, default_str, time_unit):
         US_IN_SECOND = 1000.0 * 1000.0
         US_IN_MS = 1000.0
@@ -1056,6 +1075,8 @@ def _build_table(
         else:
             return default_str
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     event_limit = 0
     for evt in events:
         if event_limit == row_limit:
@@ -1089,6 +1110,7 @@ def _build_table(
         row_values += [
             # Self CPU total %, 0 for async events.
             evt.self_cpu_percent,
+<<<<<<< HEAD
             override_time_unit(
                 evt.self_cpu_time_total, evt.self_cpu_time_total_str, time_unit
             ),  # Self CPU total
@@ -1100,6 +1122,13 @@ def _build_table(
             override_time_unit(
                 evt.cpu_time, evt.cpu_time_str, time_unit
             ),  # CPU time avg
+=======
+            evt.self_cpu_time_total_str,  # Self CPU total
+            # CPU total %, 0 for async events.
+            evt.total_cpu_percent,
+            evt.cpu_time_total_str,  # CPU total
+            evt.cpu_time_str,  # CPU time avg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         if has_device_time:
             evt.total_device_percent = _format_time_share(
@@ -1107,6 +1136,7 @@ def _build_table(
             )
             row_values.extend(
                 [
+<<<<<<< HEAD
                     override_time_unit(
                         evt.self_device_time_total,
                         evt.self_device_time_total_str,
@@ -1120,6 +1150,13 @@ def _build_table(
                     override_time_unit(
                         evt.device_time, evt.device_time_str, time_unit
                     ),  # device time avg
+=======
+                    evt.self_device_time_total_str,
+                    # device time total %
+                    evt.total_device_percent,
+                    evt.device_time_total_str,
+                    evt.device_time_str,  # device time avg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             )
         if profile_memory:
@@ -1172,6 +1209,7 @@ def _build_table(
             append(row_format.format(*empty_headers))
 
     append(header_sep)
+<<<<<<< HEAD
     append(
         f"Self CPU time total: {override_time_unit(sum_self_cpu_time_total, _format_time(sum_self_cpu_time_total), time_unit)}"
     )
@@ -1179,5 +1217,12 @@ def _build_table(
         append(
             f"Self {use_device.upper() if use_device is not None else 'None'} "
             f"time total: {override_time_unit(sum_self_device_time_total, _format_time(sum_self_device_time_total), time_unit)}"
+=======
+    append(f"Self CPU time total: {_format_time(sum_self_cpu_time_total)}")
+    if has_device_time:
+        append(
+            f"Self {use_device.upper() if use_device is not None else 'None'} "
+            f"time total: {_format_time(sum_self_device_time_total)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     return "".join(result)

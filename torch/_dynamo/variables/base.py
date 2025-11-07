@@ -375,9 +375,13 @@ class VariableTracker(metaclass=VariableTrackerMeta):
         if not variables.ConstantVariable.is_literal(value):
             raise NotImplementedError
         source = self.source and AttrSource(self.source, name)
+<<<<<<< HEAD
         if source and not isinstance(self, variables.ConstantVariable):
             # The second condition is to avoid guards on const getattr objects
             # like __code__.co_argcount
+=======
+        if source:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             install_guard(source.make_guard(GuardBuilder.CONSTANT_MATCH))
         return variables.ConstantVariable.create(value, source=source)
 
@@ -549,12 +553,15 @@ class VariableTracker(metaclass=VariableTrackerMeta):
                 "This can happen unintentionally if a previous graph break happens with a builtin iterator "
                 "in the local scope."
             )
+<<<<<<< HEAD
             hints.append(
                 "List/dict comprehensions in Python <= 3.11 result in implicit function calls, which Dynamo "
                 "cannot trace as a top level frame. Possible workarounds are (1) use a loop instead of a comprehension, "
                 "(2) fix any graph breaks in the function above the comprehension, (3) wrap the comprehension in a "
                 "function, or (4) use Python 3.12+."
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unimplemented_v2(
             gb_type="Unsupported method call",
             context=f"call_method {self} {name} {args} {kwargs}",

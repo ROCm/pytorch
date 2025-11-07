@@ -139,7 +139,11 @@ struct Dist {
     static inline data_t map(const data_t& diff, const data_t& p) { return diff; }
     static inline data_t red(const data_t& agg, const data_t& up) { return max(agg, up); }
     static inline scalar_t finish(const scalar_t agg, const scalar_t p) { return agg; }
+<<<<<<< HEAD
     // TODO This backward pass uses a very complex expression to compute (diff
+=======
+    // TODO This backward pass uses a very complext expression to compute (diff
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // == dist) that could be much faster if using SSE instructions.
     static inline Vec backward(const Vec& diff, const scalar_t grad, const scalar_t dist, const Vec& p) { return Vec(grad) * sign(diff) * (Vec(1) - vec::minimum(Vec(1), (diff.abs() - Vec(dist)).abs().ceil())); }
   };

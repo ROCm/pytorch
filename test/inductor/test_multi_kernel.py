@@ -16,6 +16,7 @@ from torch.testing import make_tensor
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
     skipIfRocm,
     skipIfXpu,
 )
@@ -25,6 +26,11 @@ from torch.testing._internal.inductor_utils import (
     IS_BIG_GPU,
     requires_triton,
 )
+=======
+    skipIfXpu,
+)
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TransformerSnippet(nn.Module):
@@ -77,7 +83,10 @@ def make_cpp_wrapper_test(orig_test, **extra_args):
     {
         "triton.multi_kernel": int(os.environ.get("TORCHINDUCTOR_MULTI_KERNEL", "1")),
         "benchmark_kernel": True,
+<<<<<<< HEAD
         "multi_kernel_hints": [64, 256, 4096],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 )
 @instantiate_parametrized_tests
@@ -98,6 +107,7 @@ class MultiKernelTest(TestCase):
         else:
             self.assertFalse(_contains_multi_kernel_code(wrapper_code))
 
+<<<<<<< HEAD
     @requires_triton()
     # TODO: bobrenjc93 to fix multi-kernel for ROCM
     @skipIfRocm
@@ -152,6 +162,8 @@ class MultiKernelTest(TestCase):
         self.assertEqual(ref, act)
         self.assertTrue(_contains_multi_kernel_code(wrapper_code))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("force_kernel", (0, 1))
     @unittest.mock.patch.dict(
         os.environ, {"TORCHINDUCTOR_DISABLE_MULTI_KERNEL_CACHE": "1"}
@@ -252,8 +264,13 @@ class MultiKernelTest(TestCase):
         once for input and once for output. They are ruled out as in-out argument because
         they are considered as graph inputs.
 
+<<<<<<< HEAD
         Multi-kernel previously assumes that we never pass the same argument multi times
         for a kernel. No matter if we change inductor behavior to assure that, it's better
+=======
+        Multi-kernel previously assumes that we never pass the same argument mutli times
+        for a kernel. No mater if we change inductor behavior to assure that, it's better
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to make multi-kernel being able to handle those cases.
         """
         bn = nn.BatchNorm2d(3).to(GPU_TYPE)
@@ -293,7 +310,11 @@ class MultiKernelTest(TestCase):
 
     def test_reduction_scratch_buffer(self, force_multi_kernel=1):
         """
+<<<<<<< HEAD
         The explicitly realized buffer in the test function will be passed in
+=======
+        The explicited realized buffer in the test function will be passed in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         as a scratch buffer for the non-persistent reduction kernel but
         can be skipped for the persistent reduction kernel.
 

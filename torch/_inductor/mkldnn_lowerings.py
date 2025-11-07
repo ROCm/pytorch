@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
 import functools
+<<<<<<< HEAD
 from typing import Optional, Union
+=======
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -35,6 +39,7 @@ def create_int8_compensation(
     x_scale: ir.TensorBox,
     x_zp: ir.TensorBox,
     w_scale: ir.TensorBox,
+<<<<<<< HEAD
 ) -> tuple[
     bool,
     Union[ir.TensorBox, ir.ShapeAsConstantBuffer],
@@ -42,13 +47,25 @@ def create_int8_compensation(
 ]:
     x_w_scale: Optional[Union[ir.TensorBox, ir.ShapeAsConstantBuffer]] = None
     use_int8_fast_compensation_path = all(
+=======
+) -> tuple[bool, ir.TensorBox, Optional[ir.TensorBox]]:
+    use_int8_fast_compensation_path = False
+    weight_compens = None
+    x_w_scale = None
+    if all(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         isinstance(item, ir.TensorBox)
         and item.get_name() in V.graph.constants
         and hasattr(item.data, "data")
         and isinstance(item.data.data, ir.ConstantBuffer)
         for item in [x_scale, x_zp, w_scale]
+<<<<<<< HEAD
     )
     if use_int8_fast_compensation_path:
+=======
+    ):
+        use_int8_fast_compensation_path = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x_w_scale_tensor = (
             V.graph.constants[x_scale.get_name()]
             * V.graph.constants[w_scale.get_name()]
@@ -70,7 +87,11 @@ def create_int8_compensation(
             weight_compens_tensor,
             name=packed_weight.get_name() + "_BMatrixCompens",
         )
+<<<<<<< HEAD
     return (  # type: ignore[return-type]
+=======
+    return (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         use_int8_fast_compensation_path,
         weight_compens,
         x_w_scale,
@@ -147,12 +168,21 @@ def grouped_gemm_lowering(
     choices: list[ChoiceCaller] = []
     *_, layout, x, _ = mm_args(x, permute(w[0], [1, 0]), layout=layout)
 
+<<<<<<< HEAD
     kwargs = {
         "has_bias": [bias is not None for bias in b],
         "trans_w": True,
         "epilogue_creator": None,
         "act_mapping": dict.fromkeys(range(num_gemm), x),
     }
+=======
+    kwargs = dict(
+        has_bias=[bias is not None for bias in b],
+        trans_w=True,
+        epilogue_creator=None,
+        act_mapping=dict.fromkeys(range(num_gemm), x),
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     input_nodes = [x, *w]
     input_nodes.extend([bias for bias in b if bias is not None])
@@ -184,7 +214,11 @@ def grouped_gemm_lowering(
     if len(x_size) > 2:
         for gemm_idx in range(num_gemm):
             return_tensors[gemm_idx] = view(
+<<<<<<< HEAD
                 return_tensors[gemm_idx],  # type: ignore[arg-type]
+=======
+                return_tensors[gemm_idx],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (*x_size[:-1], return_tensors[gemm_idx].get_size()[-1]),
             )
     return return_tensors
@@ -341,7 +375,11 @@ def register_onednn_fusion_ops():
                 # GEMM template needs 2D input, normalize input shape here
                 x = view(x, [-1, x_size[-1]])
             if b is not None:
+<<<<<<< HEAD
                 b = ir.ExternKernel.realize_input(b)  # type: ignore[assignment]
+=======
+                b = ir.ExternKernel.realize_input(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             choices: list[ChoiceCaller] = []
             if config.max_autotune or config.max_autotune_gemm:
                 transposed_w = permute(w, [1, 0])
@@ -353,6 +391,7 @@ def register_onednn_fusion_ops():
                             buf, attr, scalars=scalars, algorithm=algorithm
                         )
 
+<<<<<<< HEAD
                     kwargs = {
                         "has_bias": b is not None,
                         "trans_w": True,
@@ -360,6 +399,13 @@ def register_onednn_fusion_ops():
                             None if attr == "none" else epilogue_creator
                         ),
                     }
+=======
+                    kwargs = dict(
+                        has_bias=b is not None,
+                        trans_w=True,
+                        epilogue_creator=None if attr == "none" else epilogue_creator,
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if b is not None:
                         kwargs["input_indices"] = [2, 0, 1]  # type: ignore[assignment]
                     CppGemmTemplate.add_choices(
@@ -406,7 +452,11 @@ def register_onednn_fusion_ops():
             if len(y_size) > 2:
                 y = view(y, [-1, y_size[-1]])
             if b is not None:
+<<<<<<< HEAD
                 b = ir.ExternKernel.realize_input(b)  # type: ignore[assignment]
+=======
+                b = ir.ExternKernel.realize_input(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             choices: list[ChoiceCaller] = []
             if config.max_autotune or config.max_autotune_gemm:
                 transposed_w = permute(w, [1, 0])
@@ -418,12 +468,20 @@ def register_onednn_fusion_ops():
                     def epilogue_creator(buf):
                         return create_epilogue_with_attr(buf, attr, other=y)
 
+<<<<<<< HEAD
                     kwargs = {
                         "has_bias": b is not None,
                         "trans_w": True,
                         "epilogue_creator": epilogue_creator,
                     }
 
+=======
+                    kwargs = dict(
+                        has_bias=b is not None,
+                        trans_w=True,
+                        epilogue_creator=epilogue_creator,
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     kwargs["input_indices"] = [0, 2, 1] if b is None else [3, 0, 2, 1]
                     CppGemmTemplate.add_choices(
                         choices,
@@ -634,8 +692,13 @@ def register_onednn_fusion_ops():
             return TensorBox.create(
                 mkldnn_ir.QConvPointWiseBinaryPT2E.create(
                     x,
+<<<<<<< HEAD
                     x_scale,  # type: ignore[arg-type]
                     x_zp,  # type: ignore[arg-type]
+=======
+                    x_scale,
+                    x_zp,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     packed_weight,
                     w_scale,
                     w_zp,
@@ -675,8 +738,13 @@ def register_onednn_fusion_ops():
             algorithm,
             layout=None,
         ):
+<<<<<<< HEAD
             assert packed_weight.get_dtype() in [torch.int8, torch.float8_e4m3fn], (
                 "Only int8 and e4m3fn weights are supported by oneDNN qlinear."
+=======
+            assert packed_weight.get_dtype() is torch.int8, (
+                "Only int8 weights are supported by oneDNN qlinear."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             x_size = x.get_size()
             if len(x_size) > 2:
@@ -732,7 +800,11 @@ def register_onednn_fusion_ops():
             ):
                 # W_zp might be a ConstantBuffer with int64, convert it to int32
                 w_zp_tensor = V.graph.constants[w_zp.get_name()].to(torch.int32)
+<<<<<<< HEAD
                 w_zp = V.graph.add_tensor_constant(  # type: ignore[assignment]
+=======
+                w_zp = V.graph.add_tensor_constant(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch.tensor(w_zp_tensor, dtype=torch.int32), name=w_zp.get_name()
                 )
 
@@ -1035,7 +1107,11 @@ def register_onednn_fusion_ops():
                 ir.ConstantBuffer,
             ):
                 w_zp_tensor = V.graph.constants[w_zp.get_name()].to(torch.int32)
+<<<<<<< HEAD
                 w_zp = V.graph.add_tensor_constant(  # type: ignore[assignment]
+=======
+                w_zp = V.graph.add_tensor_constant(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch.tensor(w_zp_tensor, dtype=torch.int32), name=w_zp.get_name()
                 )
             if binary_attr == "sum":

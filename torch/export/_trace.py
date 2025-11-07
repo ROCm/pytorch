@@ -2,18 +2,28 @@
 # mypy: allow-untyped-defs
 import dataclasses
 import functools
+<<<<<<< HEAD
 import gc
 import inspect
 import logging
 import os
+=======
+import inspect
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import sys
 import time
 import warnings
+<<<<<<< HEAD
 import weakref
 from contextlib import contextmanager, nullcontext
 from typing import Any, Callable, Optional, Union
 from typing_extensions import TypeAlias
+=======
+from contextlib import contextmanager, nullcontext
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo
@@ -52,13 +62,22 @@ from torch._export.utils import (
 )
 from torch._export.verifier import SpecViolationError
 from torch._export.wrappers import _wrap_submodules
+<<<<<<< HEAD
 from torch._functorch._aot_autograd.graph_capture_wrappers import create_functional_call
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._functorch._aot_autograd.input_output_analysis import (
     _graph_input_names,
     _graph_output_names,
 )
 from torch._functorch._aot_autograd.schemas import GraphSignature
 from torch._functorch._aot_autograd.subclass_utils import get_subclass_typing_container
+<<<<<<< HEAD
+=======
+from torch._functorch._aot_autograd.traced_function_transforms import (
+    create_functional_call,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._functorch._aot_autograd.utils import (
     create_tree_flattened_fn,
     register_buffer_assignment_hook,
@@ -72,7 +91,10 @@ from torch._library.fake_class_registry import FakeScriptObject
 from torch._logging import dtrace_structured
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch._utils_internal import log_export_usage
+<<<<<<< HEAD
 from torch.export._leakage_detection_utils import find_legit_leaks_from_referrers
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.export._unlift import _check_input_constraints_pre_hook
 from torch.export.dynamic_shapes import (
     _check_dynamic_shapes,
@@ -99,6 +121,11 @@ from torch.fx.graph import _PyTreeCodeGen, _PyTreeInfo
 from torch.utils._pytree import TreeSpec
 from torch.utils._sympy.value_ranges import ValueRangeError
 
+<<<<<<< HEAD
+=======
+from ._safeguard import AutogradStateOpsFailSafeguard
+from ._wrapper_utils import _WrapperModule
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .exported_program import (
     _disable_prexisiting_fake_mode,
     ExportedProgram,
@@ -111,12 +138,15 @@ from .graph_signature import _convert_to_export_graph_signature, ExportGraphSign
 
 log = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 NONSTRICT_EXPORT_SANITIZE_TRACE = "NONSTRICT_EXPORT_SANITIZE_TRACE"
 
 
 # Type alias for dynamic shapes specification
 _DynamicShapesSpec: TypeAlias = Union[dict[str, Any], tuple[Any, ...], list[Any]]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclasses.dataclass
 class ExportDynamoConfig:
@@ -210,7 +240,11 @@ def _strip_root(x):
 
 def _rewrite_tracepoint_node(gm: torch.fx.GraphModule):
     """
+<<<<<<< HEAD
     In-place modify input graph module by replacing the export tracepoint with a new node
+=======
+    In-place modifiy input graph module by replacing the export tracepoint with a new node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     that has the same target and args, but with the _export_root stripped from path.
     """
     for node in gm.graph.nodes:
@@ -268,7 +302,11 @@ def _extract_fake_inputs(gm, args, kwargs):
 
     # We get both because now we might have a combination of symint and tensor
     # inputs, and we want to check that the shape env is consistent between
+<<<<<<< HEAD
     # both. Unfortunately we can't see what fake mode is attached to the shape
+=======
+    # both. Unforunately we can't see what fake mode is attached to the shape
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # env, then we can just compare fake modes.
     detected_fake_mode = detect_fake_mode(fake_inps + fake_vals)
     detected_shape_env = detect_shape_env(fake_inps + fake_vals)
@@ -390,9 +428,13 @@ def _get_param_buffer_mapping(
     param_lookup: dict[int, str] = {}
     buffer_lookup: dict[int, str] = {}
     for name, param in original_module.named_parameters(remove_duplicate=False):
+<<<<<<< HEAD
         if param_lookup.get(id(param)) is None:
             # we only want to keep the first occurrence of a parameter to guarantee parity of original and traced module.
             param_lookup[id(param)] = name
+=======
+        param_lookup[id(param)] = name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for name, buffer in original_module.named_buffers(remove_duplicate=False):
         buffer_lookup[id(buffer)] = name
 
@@ -683,8 +725,13 @@ def _restore_state_dict(
     Restores the state dict of the traced module to that of the original module.
     """
     param_buffer_table = _get_param_buffer_mapping(original_module, traced_module)
+<<<<<<< HEAD
     # Since the graph module is flattened (no module hierarchy), we
     # need to normalize the module by replacing "." with "_". If we
+=======
+    # Since the graph module is flattened (no module heirarchy), we
+    # need to noramlize the module by replacing "." with "_". If we
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # don't, it will try to save the weight to a submodule which no
     # longer exists.
     for name, fqn in param_buffer_table.items():
@@ -744,10 +791,13 @@ def _make_module_call_graph(
     return [*original, *additional]
 
 
+<<<<<<< HEAD
 class _ExportModuleSpecTrackerDict(dict):
     pass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _export_to_torch_ir(
     f: Callable,
     args: tuple[Any, ...],
@@ -756,7 +806,11 @@ def _export_to_torch_ir(
     *,
     preserve_module_call_signature: tuple[str, ...] = (),
     disable_constraint_solver: bool = False,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+=======
+    allow_complex_guards_as_runtime_asserts: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     restore_fqn: bool = True,
     _log_export_usage: bool = True,
     same_signature: bool = True,
@@ -800,9 +854,13 @@ def _export_to_torch_ir(
 
     with torch._dynamo.config.patch(dataclasses.asdict(DEFAULT_EXPORT_DYNAMO_CONFIG)):
         try:
+<<<<<<< HEAD
             module_call_specs: dict[str, dict[str, pytree.TreeSpec]] = (
                 _ExportModuleSpecTrackerDict()
             )
+=======
+            module_call_specs: dict[str, dict[str, pytree.TreeSpec]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ctx = nullcontext()
             if not isinstance(f, torch.fx.GraphModule):
                 ctx = _wrap_submodules(  # type: ignore[assignment]
@@ -816,7 +874,14 @@ def _export_to_torch_ir(
                     assume_static_by_default=True,
                     tracing_mode="symbolic",
                     disable_constraint_solver=disable_constraint_solver,
+<<<<<<< HEAD
                     prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+                    # currently the following 2 flags are tied together for export purposes,
+                    # but untangle for sake of dynamo export api
+                    prefer_deferred_runtime_asserts_over_guards=True,
+                    allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     _log_export_usage=_log_export_usage,
                     same_signature=same_signature,
                 )(
@@ -851,9 +916,29 @@ def _export_to_aten_ir(
     transform=lambda x: x,  # TODO(zhxchen17) Revisit if this is needed later.
     pre_dispatch=False,
     decomp_table=None,
+<<<<<<< HEAD
     _prettify_placeholder_names: bool = True,
     decompose_custom_triton_ops: bool = False,
 ) -> ATenExportArtifact:
+=======
+    _check_autograd_state: bool = True,
+    _is_torch_jit_trace: bool = False,
+    _prettify_placeholder_names: bool = True,
+    decompose_custom_triton_ops: bool = False,
+) -> ATenExportArtifact:
+    # [NOTE] If the user is exporting under training mode, we want to detect if there is any
+    # state change in the autograd global state and error. If the user is exporting under inference
+    # mode, we don't care. At predispatch level, we don't care about the state change.
+    is_grad_enabled = torch._C.is_grad_enabled()
+    grad_safe_guard = nullcontext()
+    # export_to_aten_ir is called when we decompose the ep into inference IR
+    # In that setting, we actually shouldn't check the state change as at this point,
+    # because the intention is specalizing to inference.
+    if _check_autograd_state:
+        if not pre_dispatch and is_grad_enabled:
+            grad_safe_guard = AutogradStateOpsFailSafeguard()  # type: ignore[assignment]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     custom_triton_ops_decomposition_ctx = (
         nullcontext
         if decompose_custom_triton_ops
@@ -870,6 +955,10 @@ def _export_to_aten_ir(
             strict=True,
             stack_weights=True,
         ),
+<<<<<<< HEAD
+=======
+        grad_safe_guard,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _ignore_backend_decomps(),
         _compiling_state_context(),
         custom_triton_ops_decomposition_ctx(),
@@ -891,8 +980,11 @@ def _export_to_aten_ir(
             new_output_node = list(new_gm.graph.nodes)[-1]
             assert old_output_node.op == "output" and new_output_node.op == "output"
             # make sure we don't override any meta
+<<<<<<< HEAD
             if "desc" in new_output_node.meta:
                 del new_output_node.meta["desc"]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert len(new_output_node.meta) == 0
             new_output_node.meta.update(old_output_node.meta)
 
@@ -1202,6 +1294,7 @@ def _get_original_state_dict(mod: torch.nn.Module) -> dict[str, Any]:
     return original_state_dict
 
 
+<<<<<<< HEAD
 def _process_export_inputs(
     mod: torch.nn.Module,
     args: tuple[object, ...],
@@ -1247,6 +1340,9 @@ def _process_export_inputs(
     Raises:
         UserError: If args is not a tuple.
     """
+=======
+def _process_export_inputs(mod, args, kwargs, dynamic_shapes):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not isinstance(args, tuple):
         raise UserError(
             UserErrorType.INVALID_INPUT,
@@ -1255,6 +1351,7 @@ def _process_export_inputs(
     kwargs = kwargs if kwargs is not None else {}
     _, original_in_spec = pytree.tree_flatten((args, kwargs))
 
+<<<<<<< HEAD
     verify_additional_inputs: Callable[[ExportedProgram], None]
     out_dynamic_shapes: Optional[_DynamicShapesSpec]
     if isinstance(dynamic_shapes, torch.export.AdditionalInputs):
@@ -1268,6 +1365,17 @@ def _process_export_inputs(
             out_dynamic_shapes = dynamic_shapes
 
     return args, kwargs, original_in_spec, out_dynamic_shapes, verify_additional_inputs
+=======
+    if isinstance(dynamic_shapes, torch.export.AdditionalInputs):
+        verify_additional_inputs = dynamic_shapes.verify
+        dynamic_shapes = dynamic_shapes.dynamic_shapes(mod, args, kwargs)
+    else:
+        verify_additional_inputs = lambda ep: None  # noqa: E731
+        if isinstance(dynamic_shapes, torch.export.ShapesCollection):
+            dynamic_shapes = dynamic_shapes.dynamic_shapes(mod, args, kwargs)
+
+    return args, kwargs, original_in_spec, dynamic_shapes, verify_additional_inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_module_call_graph(
@@ -1297,7 +1405,11 @@ def _get_module_call_graph(
             outputs=[],
             in_spec=specs["in_spec"],
             out_spec=specs["out_spec"],
+<<<<<<< HEAD
             forward_arg_names=None,  # we only propagate forward_arg_names for the top level module
+=======
+            forward_arg_names=None,  # we only propage forward_arg_names for the top level module
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if len(preserve_module_call_signature) > 0:
@@ -1323,6 +1435,10 @@ def _get_range_constraints(
     args,
     kwargs,
     dynamic_shapes,
+<<<<<<< HEAD
+=======
+    _is_torch_jit_trace=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     gm: torch.fx.GraphModule = export_artifact.aten.gm
     export_graph_signature: ExportGraphSignature = export_artifact.aten.sig
@@ -1335,6 +1451,7 @@ def _get_range_constraints(
         ),
         len(export_graph_signature.input_specs),
     )
+<<<<<<< HEAD
     combined_args = _combine_args(mod, args, kwargs)
 
     # This is because we trace based on the kwargs passed in from user
@@ -1350,6 +1467,26 @@ def _get_range_constraints(
         combined_args_traced_order[key] = kwargs[key]
 
     combined_args = combined_args_traced_order
+=======
+    combined_args = _combine_args(
+        mod, args, kwargs, _is_torch_jit_trace=_is_torch_jit_trace
+    )
+
+    # This is because we trace based on the kewargs passed in from user
+    # not based on the signature. I feel it would be better to just enforce
+    # one ordering at the start of tracing to avoid confusions, but that is
+    # bigger refactor, so do this to unblock for now.
+    if not _is_torch_jit_trace:
+        combined_args_traced_order = {}
+        for arg in combined_args:
+            if arg not in kwargs:
+                combined_args_traced_order[arg] = combined_args[arg]
+
+        for key in kwargs:
+            combined_args_traced_order[key] = kwargs[key]
+
+        combined_args = combined_args_traced_order
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     range_constraints = make_constraints(
         fake_mode,
@@ -1398,6 +1535,47 @@ def _temp_disable_texpr_fuser():
         torch._C._jit_set_texpr_fuser_enabled(original_state)
 
 
+<<<<<<< HEAD
+=======
+def _convert_ts_to_export_experimental(traced_callable, args, kwargs=None):
+    with _temp_disable_texpr_fuser():
+        from torch.jit._trace import TopLevelTracedModule
+
+        export_args, export_kwargs = _process_jit_trace_inputs_for_export(args, kwargs)
+
+        if isinstance(traced_callable, (TopLevelTracedModule, torch._C.ScriptModule)):  # type: ignore[operator]
+            return _export(
+                traced_callable,
+                export_args,
+                export_kwargs,
+                strict=False,
+                _is_torch_jit_trace=True,
+            ).module()
+
+        elif isinstance(traced_callable, torch.ScriptMethod) and isinstance(
+            traced_callable.owner(),  # type: ignore[operator]
+            (torch._C.ScriptModule, torch.nn.Module),
+        ):
+            with patch_forward(traced_callable.owner(), traced_callable):  # type: ignore[operator]
+                return _export(
+                    traced_callable.owner(),  # type: ignore[operator]
+                    export_args,
+                    export_kwargs,
+                    strict=False,
+                    _is_torch_jit_trace=True,
+                ).module()
+
+        else:
+            return _export(
+                _WrapperModule(traced_callable),
+                export_args,
+                export_kwargs,
+                strict=False,
+                _is_torch_jit_trace=True,
+            ).module()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _strict_export(
     mod: torch.nn.Module,
     args: tuple[Any, ...],
@@ -1405,7 +1583,12 @@ def _strict_export(
     dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]],
     preserve_module_call_signature: tuple[str, ...],
     orig_in_spec: TreeSpec,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards: bool,
+=======
+    allow_complex_guards_as_runtime_asserts: bool,
+    _is_torch_jit_trace: bool,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _to_aten_func: Callable,
 ) -> ExportArtifact:
     """
@@ -1419,7 +1602,11 @@ def _strict_export(
         dynamic_shapes,
         preserve_module_call_signature=preserve_module_call_signature,
         restore_fqn=False,  # don't need to restore because we will do it later
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+        allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _log_export_usage=False,
     )
 
@@ -1685,6 +1872,7 @@ def _export_to_aten_ir_make_fx(
                     for k, (old_getattr, _) in tensor_type_to_old_getattribute.items():
                         k.__getattribute__ = old_getattr  # type: ignore[method-assign, attr-defined]
 
+<<<<<<< HEAD
             @contextmanager
             def _maybe_restore_grad_state():
                 """
@@ -1703,6 +1891,9 @@ def _export_to_aten_ir_make_fx(
                 override_getattribute_for_subclasses(flat_args),
                 _maybe_restore_grad_state(),
             ):
+=======
+            with ctx, override_getattribute_for_subclasses(flat_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 gm = make_fx(
                     wrapped_fn,
                     record_module_stack=True,
@@ -1753,7 +1944,10 @@ def _export_to_aten_ir_make_fx(
             gm.graph.eliminate_dead_code(_is_impure)
 
         # create graph signature
+<<<<<<< HEAD
         assert out_spec.spec is not None, "out_spec.spec is None!"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_names = _graph_input_names(gm)
         output_names = _graph_output_names(gm)
         sig = GraphSignature(
@@ -1766,10 +1960,16 @@ def _export_to_aten_ir_make_fx(
                 zip(input_names[param_len : param_len + buffer_len], named_buffers)
             ),
             buffers_to_mutate={},
+<<<<<<< HEAD
             parameters_to_mutate={},
             user_inputs_to_mutate={},
             in_spec=in_spec,
             out_spec=out_spec.spec,
+=======
+            user_inputs_to_mutate={},
+            in_spec=in_spec,
+            out_spec=out_spec,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             backward_signature=None,
             input_tokens=[],
             output_tokens=[],
@@ -1862,7 +2062,12 @@ def _non_strict_export(
     dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]],
     preserve_module_call_signature: tuple[str, ...],
     orig_in_spec: TreeSpec,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards: bool,
+=======
+    allow_complex_guards_as_runtime_asserts: bool,
+    _is_torch_jit_trace: bool,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _to_aten_func: Callable,
 ) -> ExportArtifact:
     """
@@ -1929,9 +2134,12 @@ def _non_strict_export(
                 _strip_root, sig.inputs_to_parameters
             )
             sig.buffers_to_mutate = pytree.tree_map(_strip_root, sig.buffers_to_mutate)
+<<<<<<< HEAD
             sig.parameters_to_mutate = pytree.tree_map(
                 _strip_root, sig.parameters_to_mutate
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             for node in gm.graph.nodes:
                 if "nn_module_stack" in node.meta:
@@ -1959,7 +2167,12 @@ def _non_strict_export(
         args,
         kwargs,
         dynamic_shapes,
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,  # for shape env initialization
+=======
+        _is_torch_jit_trace=_is_torch_jit_trace,
+        allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,  # for shape env initialization
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     fake_params_buffers = _fakify_params_buffers(fake_mode, mod)
@@ -1971,6 +2184,10 @@ def _non_strict_export(
             dynamic_shapes=dynamic_shapes,
             equalities_inputs=equalities_inputs,
             original_signature=original_signature,
+<<<<<<< HEAD
+=======
+            _is_torch_jit_trace=_is_torch_jit_trace,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     tx = TracingContext(fake_mode)
@@ -2040,7 +2257,10 @@ def _export_for_training(
     *,
     strict: bool = True,
     preserve_module_call_signature: tuple[str, ...] = (),
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> ExportedProgram:
     global _EXPORT_MODULE_HIERARCHY
     _EXPORT_MODULE_HIERARCHY = _get_module_hierarchy(mod)
@@ -2058,6 +2278,7 @@ def _export_for_training(
     # Call the appropriate export function based on the strictness of tracing.
     export_func = _strict_export if strict else _non_strict_export
 
+<<<<<<< HEAD
     alive_fake_input_ids_before_export: list[int] = []
 
     if not strict and os.environ.get(NONSTRICT_EXPORT_SANITIZE_TRACE, "0") == "1":
@@ -2068,6 +2289,8 @@ def _export_for_training(
             if isinstance(i, torch._subclasses.fake_tensor.FakeTensor)
         ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     export_artifact = export_func(
         mod=mod,
         args=args,
@@ -2075,7 +2298,12 @@ def _export_for_training(
         dynamic_shapes=dynamic_shapes,
         preserve_module_call_signature=preserve_module_call_signature,
         orig_in_spec=orig_in_spec,
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+        allow_complex_guards_as_runtime_asserts=False,
+        _is_torch_jit_trace=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _to_aten_func=_export_to_aten_ir_make_fx,
     )
 
@@ -2123,6 +2351,7 @@ def _export_for_training(
     )
 
     verify_additional_inputs(exported_program)
+<<<<<<< HEAD
 
     if not strict and os.environ.get(NONSTRICT_EXPORT_SANITIZE_TRACE, "0") == "1":
         # See NOTE [export non-strict fake tensor leak detection]
@@ -2170,6 +2399,8 @@ def _export_for_training(
 
             del legit_leak
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return exported_program
 
 
@@ -2184,7 +2415,12 @@ def _export(
     strict: bool = True,
     preserve_module_call_signature: tuple[str, ...] = (),
     pre_dispatch: bool = False,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+=======
+    allow_complex_guards_as_runtime_asserts: bool = False,
+    _is_torch_jit_trace: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> ExportedProgram:
     """
     Traces either an nn.Module's forward function or just a callable with PyTorch
@@ -2215,7 +2451,11 @@ def _export(
         preserve_module_call_signature: A list of submodule paths for which the original
             calling conventions are preserved as metadata.
 
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards:
+=======
+        allow_complex_guards_as_runtime_asserts:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          With the current dynamic shapes language for dims and derived dims, we can run into constraints
          that are not expressible with the language. For example, flattening a matrix and adding to a vector,
          both fully dynamic (i.e. x.reshape([-1]) + y) emits a guard s0 * s1 = s2, which is not expressible.
@@ -2259,7 +2499,10 @@ def _export(
             dynamic_shapes,
             strict=strict,
             preserve_module_call_signature=preserve_module_call_signature,
+<<<<<<< HEAD
             prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         dtrace_structured("exported_program", payload_fn=lambda: str(ep))
         return ep
@@ -2284,15 +2527,30 @@ def _export(
         dynamic_shapes=dynamic_shapes,
         preserve_module_call_signature=preserve_module_call_signature,
         orig_in_spec=original_in_spec,
+<<<<<<< HEAD
         prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
         _to_aten_func=functools.partial(
             _export_to_aten_ir,
             pre_dispatch=pre_dispatch,
+=======
+        allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+        _is_torch_jit_trace=_is_torch_jit_trace,
+        _to_aten_func=functools.partial(
+            _export_to_aten_ir,
+            pre_dispatch=pre_dispatch,
+            _is_torch_jit_trace=_is_torch_jit_trace,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
     )
     export_graph_signature: ExportGraphSignature = export_artifact.aten.sig
 
+<<<<<<< HEAD
     forward_arg_names = _get_forward_arg_names(mod, args, kwargs)
+=======
+    forward_arg_names = (
+        _get_forward_arg_names(mod, args, kwargs) if not _is_torch_jit_trace else None
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     inline_constraints = _get_inline_constraints(export_artifact.fake_mode)
     # The unbacked symint symbols are updated in aot_export
     # so we serialize them here instead of inside dynamo.
@@ -2304,6 +2562,10 @@ def _export(
         args,
         kwargs,
         dynamic_shapes,
+<<<<<<< HEAD
+=======
+        _is_torch_jit_trace=_is_torch_jit_trace,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     gm, module_call_graph = _get_module_call_graph(
         export_artifact,
@@ -2314,7 +2576,12 @@ def _export(
 
     _verify_nn_module_stack(gm)
     _verify_stack_trace(gm)
+<<<<<<< HEAD
     _verify_placeholder_names(gm, export_graph_signature)
+=======
+    if not _is_torch_jit_trace:
+        _verify_placeholder_names(gm, export_graph_signature)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Remove Proxy because they cannot be deepcopied or pickled.
     torch._export.utils.remove_proxy_from_state_dict(original_state_dict, in_place=True)

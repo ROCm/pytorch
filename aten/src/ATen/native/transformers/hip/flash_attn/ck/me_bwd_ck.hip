@@ -1,7 +1,11 @@
 #include <ATen/native/transformers/hip/flash_attn/flash_common_hip.hpp>
 #include <ATen/native/transformers/hip/flash_attn/ck/me_ck_api.h>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace pytorch_flash {
 std::tuple<
     at::Tensor, // dQ
@@ -117,4 +121,8 @@ mem_eff_backward_ck(
 }
 
 } // namespace pytorch_flash
+<<<<<<< HEAD
 #endif // USE_ROCM_CK_SDPA
+=======
+#endif // USE_CK_FLASH_ATTENTION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

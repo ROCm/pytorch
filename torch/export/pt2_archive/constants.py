@@ -9,9 +9,12 @@ ARCHIVE_ROOT_NAME: str = pt2_archive_constants.ARCHIVE_ROOT_NAME
 ARCHIVE_VERSION_PATH: str = pt2_archive_constants.ARCHIVE_VERSION_PATH
 ARCHIVE_VERSION_VALUE: str = pt2_archive_constants.ARCHIVE_VERSION_VALUE
 CONSTANTS_DIR: str = pt2_archive_constants.CONSTANTS_DIR
+<<<<<<< HEAD
 CONSTANTS_CONFIG_FILENAME_FORMAT: str = (
     pt2_archive_constants.CONSTANTS_CONFIG_FILENAME_FORMAT
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUSTOM_OBJ_FILENAME_PREFIX: str = pt2_archive_constants.CUSTOM_OBJ_FILENAME_PREFIX
 EXTRA_DIR: str = pt2_archive_constants.EXTRA_DIR
 MODELS_DIR: str = pt2_archive_constants.MODELS_DIR
@@ -23,9 +26,12 @@ SAMPLE_INPUTS_FILENAME_FORMAT: str = pt2_archive_constants.SAMPLE_INPUTS_FILENAM
 TENSOR_CONSTANT_FILENAME_PREFIX: str = (
     pt2_archive_constants.TENSOR_CONSTANT_FILENAME_PREFIX
 )
+<<<<<<< HEAD
 WEIGHTS_CONFIG_FILENAME_FORMAT: str = (
     pt2_archive_constants.WEIGHTS_CONFIG_FILENAME_FORMAT
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 WEIGHT_FILENAME_PREFIX: str = pt2_archive_constants.WEIGHT_FILENAME_PREFIX
 WEIGHTS_DIR: str = pt2_archive_constants.WEIGHTS_DIR
 XL_MODEL_WEIGHTS_DIR: str = pt2_archive_constants.XL_MODEL_WEIGHTS_DIR

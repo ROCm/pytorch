@@ -1,12 +1,16 @@
 set ADDITIONAL_OPTIONS=""
 set PYTHON_EXEC="python"
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if "%DESIRED_PYTHON%" == "3.13t" (
     echo Python version is set to 3.13t
     set "PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe"
     set ADDITIONAL_OPTIONS="Include_freethreaded=1"
     set PYTHON_EXEC="python3.13t"
+<<<<<<< HEAD
 ) else if "%DESIRED_PYTHON%"=="3.14" (
     echo Python version is set to 3.14 or 3.14t
     set "PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/3.14.0/python-3.14.0rc1-amd64.exe"
@@ -17,6 +21,10 @@ if "%DESIRED_PYTHON%" == "3.13t" (
     set PYTHON_EXEC="python3.14t"
 ) else (
     echo Python version is set to %DESIRED_PYTHON%
+=======
+) else (
+    echo DESIRED_PYTHON not defined, Python version is set to %DESIRED_PYTHON%
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set "PYTHON_INSTALLER_URL=https://www.python.org/ftp/python/%DESIRED_PYTHON%.0/python-%DESIRED_PYTHON%.0-amd64.exe" %= @lint-ignore =%
 )
 
@@ -28,5 +36,8 @@ start /wait "" python-amd64.exe /quiet InstallAllUsers=1 PrependPath=0 Include_t
 if errorlevel 1 exit /b 1
 
 set "PATH=%CD%\Python\Scripts;%CD%\Python;%PATH%"
+<<<<<<< HEAD
 %PYTHON_EXEC% -m pip install --upgrade pip setuptools packaging wheel
 if errorlevel 1 exit /b 1
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

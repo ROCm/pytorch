@@ -14,15 +14,19 @@ on:
   schedule:
     # Run at 07:00 UTC every Sunday
     - cron: 0 7 * * 0
+<<<<<<< HEAD
   pull_request:
     paths:
       - benchmarks/operator_benchmark/**
       - .github/workflows/operator_benchmark.yml
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true
 
+<<<<<<< HEAD
 permissions:
   id-token: write
   contents: read
@@ -35,12 +39,25 @@ jobs:
     with:
       build-environment: linux-jammy-py3.10-gcc11-build
       docker-image-name: ci-image:pytorch-linux-jammy-py3-gcc11-inductor-benchmarks
+=======
+permissions: read-all
+
+jobs:
+  linux-jammy-cpu-py3_9-gcc11-opbenchmark-build:
+    if: github.repository_owner == 'pytorch'
+    name: linux-jammy-cpu-py3.9-gcc11-opbenchmark
+    uses: ./.github/workflows/_linux-build.yml
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "cpu_operator_benchmark_short", shard: 1, num_shards: 1, runner: "linux.12xlarge" },
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   opbenchmark-on-demand-build:
     if: ${{ github.event_name == 'workflow_dispatch' && github.repository_owner == 'pytorch' }}
     name: opbenchmark-on-demand-build
@@ -48,12 +65,22 @@ jobs:
     with:
       build-environment: linux-jammy-py3.10-gcc11-build
       docker-image-name: ci-image:pytorch-linux-jammy-py3-gcc11-inductor-benchmarks
+=======
+  linux-jammy-cpu-py3_9-gcc11-opbenchmark-on-demand-build:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.repository_owner == 'pytorch' }}
+    name: linux-jammy-cpu-py3.9-gcc11-opbenchmark
+    uses: ./.github/workflows/_linux-build.yml
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "cpu_operator_benchmark_${{ inputs.test_mode }}", shard: 1, num_shards: 1, runner: "linux.12xlarge" },
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   opbenchmark-test:
     name: opbenchmark-test
     uses: ./.github/workflows/_linux-test.yml
@@ -62,4 +89,14 @@ jobs:
       build-environment: linux-jammy-py3.10-gcc11-build
       docker-image: ${{ needs.opbenchmark-build.outputs.docker-image }}
       test-matrix: ${{ needs.opbenchmark-build.outputs.test-matrix }}
+=======
+  linux-jammy-cpu-py3_9-gcc11-opbenchmark-test:
+    name: linux-jammy-cpu-py3.9-gcc11-opbenchmark
+    uses: ./.github/workflows/_linux-test.yml
+    needs: linux-jammy-cpu-py3_9-gcc11-opbenchmark-build
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      docker-image: ${{ needs.linux-jammy-cpu-py3_9-gcc11-opbenchmark-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-cpu-py3_9-gcc11-opbenchmark-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit

@@ -837,9 +837,15 @@ class RendezvousTCPTest(TestCase):
         # not respected, it will take much longer to timeout.
         start = time.time()
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             DistStoreError, "wait timeout after 100ms, keys: /nonexistent key"
         ):
             store0.get("nonexistent key")
+=======
+            DistStoreError, "wait timeout after 100ms, keys: /nonexistant key"
+        ):
+            store0.get("nonexistant key")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         end = time.time()
         time_diff = end - start
@@ -1066,7 +1072,11 @@ class TimeoutTest(TestCase):
             wait_for_workers=False,
         )
 
+<<<<<<< HEAD
         threads = []
+=======
+        ths = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i in range(2):
             t = threading.Thread(
                 target=run,
@@ -1076,16 +1086,26 @@ class TimeoutTest(TestCase):
                 ),
             )
             t.start()
+<<<<<<< HEAD
             threads.append(t)
+=======
+            ths.append(t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def handler(a, b):
             pass
 
         signal.signal(signal.SIGUSR1, handler)
         time.sleep(1)
+<<<<<<< HEAD
         signal.pthread_kill(threads[1].ident, signal.SIGUSR1)
 
         for t in threads:
+=======
+        signal.pthread_kill(ths[1].ident, signal.SIGUSR1)
+
+        for t in ths:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             t.join()
         self.assertTrue(rank_res[0], "rank0")
         self.assertTrue(rank_res[1], "rank1")

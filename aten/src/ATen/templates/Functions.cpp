@@ -64,7 +64,11 @@ Tensor TensorMaker::make_tensor() {
    if (strides_) {
      auto storage_size = detail::computeStorageNbytes(sizes_, *strides_, itemsize);
      if (storage_offset_) {
+<<<<<<< HEAD
        storage_size += storage_offset_.value() * itemsize;
+=======
+       storage_size += storage_offset_.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
      }
      return storage_size;
    }
@@ -75,7 +79,11 @@ Tensor TensorMaker::make_tensor() {
    }
    auto storage_size = size * itemsize;
    if (storage_offset_) {
+<<<<<<< HEAD
      storage_size += storage_offset_.value() * itemsize;
+=======
+     storage_size += storage_offset_.value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    }
    return storage_size;
  }

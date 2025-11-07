@@ -179,10 +179,14 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
                 .check("extern_kernels.mm")
                 .check("triton_poi_fused_relu")
                 .check("torch.ops._c10d_functional.all_reduce_.default")
+<<<<<<< HEAD
                 .check_same("buf0")
                 # mm not use buf prior to wait_tensor
                 .check("extern_kernels.mm")
                 .check_not("buf0")
+=======
+                .check("extern_kernels.mm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 .check("torch.ops._c10d_functional.wait_tensor.default")
                 .check("extern_kernels.mm")
                 .run(code)
@@ -259,11 +263,14 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             "reorder_compute_for_overlap",
         ],
     )
+<<<<<<< HEAD
     @patch.object(
         torch._inductor.config,
         "runtime_estimations_mms_benchmark",
         False,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reorder_compute_for_overlap(self):
         def func(a, *, tag, ranks, group_size):
             ar = _functional_collectives.all_reduce(a, "sum", ranks, tag)

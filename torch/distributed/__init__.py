@@ -4,7 +4,10 @@ import pdb
 import sys
 import traceback
 import typing
+<<<<<<< HEAD
 from datetime import timedelta
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -83,7 +86,11 @@ if is_available():
 
     _breakpoint_cache: dict[int, typing.Any] = {}
 
+<<<<<<< HEAD
     def breakpoint(rank: int = 0, skip: int = 0, timeout_s=3600):
+=======
+    def breakpoint(rank: int = 0, skip: int = 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Set a breakpoint, but only on a single rank.  All other ranks will wait for you to be
         done with the breakpoint before continuing.
@@ -100,6 +107,7 @@ if is_available():
                 log.warning("Skip the breakpoint, counter=%d", counter)
                 return
 
+<<<<<<< HEAD
         # avoid having the default timeout (if short) interrupt your debug session
         if timeout_s is not None:
             for group in torch.distributed.distributed_c10d._pg_map:
@@ -107,6 +115,8 @@ if is_available():
                     timedelta(seconds=timeout_s), group
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if get_rank() == rank:
             pdb = _DistributedPdb()
             pdb.message(

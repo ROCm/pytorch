@@ -28,7 +28,11 @@ class TensorProperties:
 
     def is_complete(self) -> bool:
         """
+<<<<<<< HEAD
         Whether the tensor completely overlaps with its underlying storage
+=======
+        Whehter the tensor completely overlaps with its underlying storage
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         return (
             self.start == self.storage_ptr
@@ -39,7 +43,11 @@ class TensorProperties:
 class Weights(dict):
     """
     A dictionary mapping from weight name to a tuple of (tensor, TensorProperties).
+<<<<<<< HEAD
     tensor represents the actual initial value of the weight.
+=======
+    tensor represents the actual intial value of the weight.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorProperties represents the properties of the weight that are needed to recover the weight.
 
     We use two separate entries because `tensor` could be a clone of the original weight tensor,

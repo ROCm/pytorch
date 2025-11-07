@@ -53,6 +53,7 @@ class Adamax(Optimizer):
         if not 0.0 <= weight_decay:
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "betas": betas,
@@ -63,6 +64,18 @@ class Adamax(Optimizer):
             "differentiable": differentiable,
             "capturable": capturable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            capturable=capturable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -376,7 +389,11 @@ def _multi_tensor_adamax(
 
         if weight_decay != 0:
             if maximize:
+<<<<<<< HEAD
                 # Reuse the intermediate memory (grouped_grads) already allocated for maximize
+=======
+                # Re-use the intermediate memory (grouped_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._foreach_add_(grouped_grads, grouped_params, alpha=weight_decay)
             else:
                 grouped_grads = torch._foreach_add(  # type: ignore[assignment]

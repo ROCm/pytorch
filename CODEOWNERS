@@ -14,6 +14,10 @@
 /torch/csrc/autograd/ @albanD @soulitzer
 /torch/autograd/ @albanD @soulitzer
 /tools/autograd/ @albanD @soulitzer
+<<<<<<< HEAD
+=======
+/torch/header_only_apis.txt @janeyx99
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /torch/nn/ @albanD @jbschlosser @mikaylagawarecki
 /torch/optim/ @albanD @janeyx99
 /test/test_public_bindings.py @albanD
@@ -50,12 +54,21 @@ nn/qat/ @jerryzh168
 /torch/csrc/distributed/c10d/Ops.* @kwen2501
 
 # ONNX Export
+<<<<<<< HEAD
 /torch/_dynamo/backends/onnxrt.py @titaiwangms @xadupre @justinchuby
 /torch/csrc/jit/passes/onnx.h @titaiwangms @xadupre
 /torch/csrc/jit/passes/onnx.cpp @titaiwangms @xadupre
 /torch/csrc/jit/passes/onnx/ @titaiwangms @xadupre
 /torch/onnx/ @titaiwangms @xadupre @justinchuby
 /test/onnx/  @titaiwangms @xadupre @justinchuby
+=======
+/torch/_dynamo/backends/onnxrt.py @wschin
+/torch/csrc/jit/passes/onnx.h @titaiwangms @shubhambhokare1
+/torch/csrc/jit/passes/onnx.cpp @titaiwangms @shubhambhokare1
+/torch/csrc/jit/passes/onnx/ @titaiwangms @shubhambhokare1
+/torch/onnx/ @titaiwangms @shubhambhokare1 @justinchuby @wschin
+/test/onnx/  @titaiwangms @shubhambhokare1 @justinchuby @wschin
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # CI
 /.ci  @pytorch/pytorch-dev-infra
@@ -135,7 +148,11 @@ torch/profiler/ @sraikund16
 test/functorch/test_aotdispatch.py @ezyang @Chillee
 
 # Dataloader
+<<<<<<< HEAD
 torch/utils/data/ @divyanshk @ramanishsingh @scotts
+=======
+torch/utils/data/ @divyanshk @ramanishsingh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # hipify
 torch/utils/hipify/ @jeffdaily @jithunnair-amd
@@ -164,7 +181,10 @@ caffe2/utils/hip @jeffdaily @jithunnair-amd
 # torch.export
 /torch/export/ @avikchaudhuri @tugsbayasgalan @zhxchen17 @ydwu4 @angelayi
 /torch/_export/ @avikchaudhuri @tugsbayasgalan @zhxchen17 @ydwu4 @angelayi
+<<<<<<< HEAD
 /torch/_export/serde/schema.py @SherlockNoMad @zhxchen17
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Dynamic Shapes
 /torch/fx/experimental/symbolic_shapes.py @bobrenjc93 @laithsakka
@@ -196,8 +216,11 @@ torch/backends/cudnn/ @eqy @syed-ahmed
 /torch/utils/_cxx_pytree.py @XuehaiPan
 /torch/utils/pytree/ @XuehaiPan
 /torch/_dynamo/polyfills/pytree.py @XuehaiPan
+<<<<<<< HEAD
 
 # Relating to libtorch ABI
 /torch/csrc/stable/ @janeyx99 @mikaylagawarecki
 /torch/headeronly/ @janeyx99
 /torch/header_only_apis.txt @janeyx99
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

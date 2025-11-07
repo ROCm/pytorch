@@ -238,9 +238,12 @@ void initDynamoBindings(PyObject* torch) {
           "update_diff_guard_root_manager",
           &CacheEntry::update_diff_guard_root_manager);
 
+<<<<<<< HEAD
   py::class_<PrecompileEntry>(m, "_PrecompileEntry")
       .def_readonly("guard_manager", &PrecompileEntry::guard_manager);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::class_<ExtraState>(m, "_ExtraState")
       .def("invalidate", &ExtraState::invalidate);
 
@@ -262,7 +265,10 @@ void initDynamoBindings(PyObject* torch) {
   m.def("_debug_get_cache_entry_list", &_debug_get_cache_entry_list);
   m.def("_reset_precompile_entries", &_reset_precompile_entries);
   m.def("_load_precompile_entry", &_load_precompile_entry);
+<<<<<<< HEAD
   m.def("_debug_get_precompile_entries", &_debug_get_precompile_entries);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::bind_vector<std::vector<uint8_t>>(m, "VectorUInt8");
   m.attr("py_opcode_caches") = _PyOpcode_Caches_vec;
   m.def("code_framelocals_names", &code_framelocals_names);

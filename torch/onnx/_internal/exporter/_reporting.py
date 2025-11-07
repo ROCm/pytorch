@@ -22,7 +22,11 @@ class ExportStatus:
     torch_export_strict: bool | None = None
     # Whether torch.export.export(..., strict=False) succeeds
     torch_export_non_strict: bool | None = None
+<<<<<<< HEAD
     # Whether torch.export.draft_export() succeeds
+=======
+    # Whether torch.export._draft_export.draft_export() succeeds
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch_export_draft_export: bool | None = None
     # Whether decomposition succeeds
     decomposition: bool | None = None
@@ -47,7 +51,11 @@ def _format_export_status(status: ExportStatus) -> str:
         f"```\n"
         f"{_status_emoji(status.torch_export_non_strict)} Obtain model graph with `torch.export.export(..., strict=False)`\n"
         f"{_status_emoji(status.torch_export_strict)} Obtain model graph with `torch.export.export(..., strict=True)`\n"
+<<<<<<< HEAD
         f"{_status_emoji(status.torch_export_draft_export)} Obtain model graph with `torch.export.draft_export`\n"
+=======
+        f"{_status_emoji(status.torch_export_draft_export)} Obtain model graph with `torch.export._draft_export.draft_export`\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f"{_status_emoji(status.decomposition)} Decompose operators for ONNX compatibility\n"
         f"{_status_emoji(status.onnx_translation)} Translate the graph into ONNX\n"
         f"{_status_emoji(status.onnx_checker)} Run `onnx.checker` on the ONNX model\n"

@@ -100,8 +100,13 @@ def _split_autocast(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     split_autocast creates a new graph module that splits the input graph module into multiple submodules
     based on the `_enter_autocast` and `_exit_autocast` nodes. It doesn't mutate the input graph module.
 
+<<<<<<< HEAD
     Nodes between the **outer-most** `_enter_autocast` and `_exit_autocast(_enter_autocast)` are split
     into a submodule. Nested autocast regions are not split.
+=======
+    Nodes between the **outer-most** `_enter_autocast` and `_exit_autocast(_enter_autocast)` are splitted
+    into a submodule. Nested autocast regions are not splitted.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     `_enter_autocast` and `_exit_autocast(_enter_autocast)` nodes are in the submodule as well.
 
     Below is an example of splitting. A, B, C, D, E are blocks of non-autocast nodes in the original graph

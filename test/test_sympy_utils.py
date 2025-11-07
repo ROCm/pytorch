@@ -5,7 +5,11 @@ import itertools
 import math
 import pickle
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -24,7 +28,10 @@ from torch.utils._sympy.functions import (
     FloorDiv,
     Identity,
     OpaqueUnaryFn_cos,
+<<<<<<< HEAD
     BitwiseFn_bitwise_and,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     simple_floordiv_gcd,
 )
 from torch.utils._sympy.interp import sympy_interp
@@ -424,10 +431,17 @@ class TestSympyInterp(TestCase):
                 sargs = [sympy.sympify(a) for a in args]
                 sympy_expr = getattr(ReferenceAnalysis, fn)(*symbols)
                 ref_r = getattr(ReferenceAnalysis, fn)(*sargs)
+<<<<<<< HEAD
                 # Yes, I know this is a long-winded way of saying xreplace; the
                 # point is to test sympy_interp
                 r = sympy_interp(
                     ReferenceAnalysis, dict(zip(symbols, sargs, strict=False)), sympy_expr
+=======
+                # Yes, I know this is a longwinded way of saying xreplace; the
+                # point is to test sympy_interp
+                r = sympy_interp(
+                    ReferenceAnalysis, dict(zip(symbols, sargs)), sympy_expr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 self.assertEqual(ref_r, r)
 
@@ -502,7 +516,11 @@ class TestSympyInterp(TestCase):
 
                 self.assertEqual(
                     sympy_interp(
+<<<<<<< HEAD
                         PythonReferenceAnalysis, dict(zip(symbols, args, strict=False)), sympy_expr
+=======
+                        PythonReferenceAnalysis, dict(zip(symbols, args)), sympy_expr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     gm(*args),
                 )
@@ -556,7 +574,11 @@ class TestSympyInterp(TestCase):
                     direct_result = tensor_fn(*tensor_args)
                     interp_result = sympy_interp(
                         TensorReferenceAnalysis,
+<<<<<<< HEAD
                         dict(zip(symbols, tensor_args, strict=False)),
+=======
+                        dict(zip(symbols, tensor_args)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         sympy_expr,
                     )
 
@@ -874,10 +896,13 @@ class TestSympyFunctions(TestCase):
         r = pickle.loads(pickle.dumps(x))
         self.assertEqual(x, r)
 
+<<<<<<< HEAD
         x = BitwiseFn_bitwise_and(sympy.Symbol("a"), sympy.Symbol("b"))
         r = pickle.loads(pickle.dumps(x))
         self.assertEqual(x, r)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestSingletonInt(TestCase):
     def test_basic(self):

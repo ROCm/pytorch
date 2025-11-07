@@ -248,10 +248,14 @@ class CoordescTuner:
 
         log.debug("= Do coordinate descent tuning for %s =", self.name)
         log.debug(
+<<<<<<< HEAD
             "%s: Baseline Config %s, baseline timing %f",
             self.name,
             baseline_config,
             baseline_timing,
+=======
+            "Baseline Config %s, baseline timing %f", baseline_config, baseline_timing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         improved = True
         best_config = baseline_config
@@ -293,17 +297,28 @@ class CoordescTuner:
 
                 if improved:
                     msg = red_text(
+<<<<<<< HEAD
                         "%s: Coordinate descend tuning found improvement of %.3fx by looking in all directions."
                     )
                     log.debug(
                         msg,
                         self.name,
+=======
+                        "Coordinate descend tuning found improvement of %.3fx by looking in all directions."
+                    )
+                    log.debug(
+                        msg,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         old_best_timing / best_timing,
                     )
 
         log.debug(
+<<<<<<< HEAD
             "%s: Improve from %s %f -> %s %f, %.3fx",
             self.name,
+=======
+            "Improve from %s %f -> %s %f, %.3fx",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             baseline_config,
             baseline_timing,
             best_config,

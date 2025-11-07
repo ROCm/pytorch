@@ -260,7 +260,10 @@ namespace at::native {
     check_foreach_api_restrictions(input, tensors1, tensors2);            \
                                                                           \
     std::vector<Tensor> result;                                           \
+<<<<<<< HEAD
     result.reserve(input.size());                                         \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (const auto i : c10::irange(input.size())) {                      \
       result.emplace_back(input[i].OP(tensors1[i], tensors2[i], scalar)); \
     }                                                                     \
@@ -289,7 +292,10 @@ namespace at::native {
     check_foreach_api_restrictions(input, tensors1, tensors2, scalars);       \
                                                                               \
     std::vector<Tensor> result;                                               \
+<<<<<<< HEAD
     result.reserve(input.size());                                             \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (const auto i : c10::irange(input.size())) {                          \
       result.emplace_back(input[i].OP(tensors1[i], tensors2[i], scalars[i])); \
     }                                                                         \
@@ -419,7 +425,10 @@ std::vector<Tensor> foreach_tensor_ternary_lerp_slow(
     TensorList tensors3) {
   check_foreach_api_restrictions(tensors1, tensors2, tensors3);
   std::vector<Tensor> result;
+<<<<<<< HEAD
   result.reserve(tensors1.size());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto i : c10::irange(tensors1.size())) {
     result.emplace_back(tensors1[i].lerp(tensors2[i], tensors3[i]));
   }
@@ -442,7 +451,10 @@ std::vector<Tensor> foreach_tensor_lerp_scalarlist_kernel_slow(
     at::ArrayRef<Scalar> scalars) {
   check_foreach_api_restrictions(tensors1, tensors2, scalars);
   std::vector<Tensor> result;
+<<<<<<< HEAD
   result.reserve(tensors1.size());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto i : c10::irange(tensors1.size())) {
     result.emplace_back(tensors1[i].lerp(tensors2[i], scalars[i]));
   }
@@ -473,7 +485,10 @@ std::vector<Tensor> foreach_tensor_norm_slow(
     std::optional<ScalarType> dtype) {
   check_foreach_api_restrictions(tensors);
   std::vector<Tensor> result;
+<<<<<<< HEAD
   result.reserve(tensors.size());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& t : tensors) {
     result.emplace_back(at::linalg_vector_norm(t, ord, {}, false, dtype));
   }
@@ -483,7 +498,10 @@ std::vector<Tensor> foreach_tensor_norm_slow(
 std::vector<Tensor> foreach_tensor_max_slow(TensorList tensors) {
   check_foreach_api_restrictions(tensors);
   std::vector<Tensor> result;
+<<<<<<< HEAD
   result.reserve(tensors.size());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& t : tensors) {
     result.emplace_back(at::max(t));
   }

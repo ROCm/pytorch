@@ -190,7 +190,11 @@ class _DistWrapper:
         local_data: Union[WRAPPED_EXCEPTION, T]
         try:
             local_data = map_fun()
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_data = _wrap_exception(e)
 
         all_data = self.gather_object(local_data)
@@ -206,7 +210,11 @@ class _DistWrapper:
                         list[Union[R, CheckpointException]],
                         reduce_fun(cast(list[T], all_data)),
                     )
+<<<<<<< HEAD
                 except BaseException as e:  # noqa: B036
+=======
+                except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     node_failures[self.rank] = _wrap_exception(e)
 
             if len(node_failures) > 0:
@@ -237,7 +245,11 @@ class _DistWrapper:
         local_data: Union[T, WRAPPED_EXCEPTION]
         try:
             local_data = map_fun()
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_data = _wrap_exception(e)
 
         all_data = self.gather_object(local_data)
@@ -248,7 +260,11 @@ class _DistWrapper:
             if len(node_failures) == 0:
                 try:
                     result = reduce_fun(cast(list[T], all_data))
+<<<<<<< HEAD
                 except BaseException as e:  # noqa: B036
+=======
+                except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     node_failures[self.rank] = _wrap_exception(e)
 
             if len(node_failures) > 0:
@@ -274,7 +290,11 @@ class _DistWrapper:
         result: Union[T, WRAPPED_EXCEPTION]
         try:
             result = map_fun()
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = _wrap_exception(e)
 
         all_results = self.all_gather_object(result)
@@ -300,7 +320,11 @@ class _DistWrapper:
         if self.is_coordinator:
             try:
                 result = map_fun()
+<<<<<<< HEAD
             except BaseException as e:  # noqa: B036
+=======
+            except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 result = CheckpointException(step, {self.rank: _wrap_exception(e)})
         final_result = self.broadcast_object(result)
         if isinstance(final_result, CheckpointException):

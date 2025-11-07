@@ -3,13 +3,17 @@
 import functools
 import sys
 import unittest
+<<<<<<< HEAD
 from unittest import skipUnless
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import MagicMock, patch
 
 import torch
 from torch._dynamo.testing import rand_strided
 from torch._inductor.runtime.triton_compat import HAS_WARP_SPEC
 from torch._inductor.utils import clone_preserve_strides
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     IS_LINUX,
@@ -21,6 +25,11 @@ from torch.testing._internal.common_utils import (
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CUDA_AND_TRITON,
+=======
+from torch.testing._internal.common_utils import IS_LINUX, runOnRocm, skipIfXpu
+from torch.testing._internal.inductor_utils import (
+    GPU_TYPE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     HAS_GPU,
     requires_cuda_with_enough_memory,
 )
@@ -76,7 +85,10 @@ def get_autotuned_amd_sqr_kernel():
     )(amd_sqr_kernel)
 
 
+<<<<<<< HEAD
 @instantiate_parametrized_tests
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestTritonHeuristics(TestCase):
     device_type = GPU_TYPE
 
@@ -267,11 +279,16 @@ class TestTritonHeuristics(TestCase):
         def fn(x):
             return triton_sqr(x)
 
+<<<<<<< HEAD
         x = torch.randn(32, device=GPU_TYPE)
+=======
+        x = torch.randn(32, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = fn(x)
         res = torch.compile(fn)(x)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     @skipIfXpu
     @skipIfRocm
     @skipUnless(HAS_CUDA_AND_TRITON, "requires CUDA")
@@ -300,6 +317,8 @@ class TestTritonHeuristics(TestCase):
             )
             self.assertEqual(len(configs), expected_count)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestArgumentCloneAndRestore(TestCase):
     # Our tensor is large enough. If a unexpected copy happens, the

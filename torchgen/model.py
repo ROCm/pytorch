@@ -288,8 +288,11 @@ dispatch_keys = [
     DispatchKey.SparseCsrXPU,
     DispatchKey.SparseCUDA,
     DispatchKey.SparseCsrCUDA,
+<<<<<<< HEAD
     DispatchKey.SparseMPS,
     DispatchKey.SparseCsrMPS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DispatchKey.QuantizedCPU,
     DispatchKey.QuantizedCUDA,
     DispatchKey.CompositeImplicitAutograd,

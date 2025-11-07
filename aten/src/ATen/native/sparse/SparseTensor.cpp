@@ -730,7 +730,11 @@ static std::tuple<Tensor, Tensor, OptTensor> sparse_mask_like_prepare_sparse_inp
   // is that these primitives might project first argument onto second one or
   // the other way around depending on which arguments are coalesced and which are
   // larger. This function prepares inputs for `sparse_mask` such that `t` is
+<<<<<<< HEAD
   // projected onto `mask` by sorting `t` if uncoalesced and artificially marking it
+=======
+  // projected onto `mask` by sorting `t` if uncoalesced and artifically marking it
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // as coalesced all while `mask` is set to uncoalesced.
   // The result of this projectionk is going to be uncoalesced, so it is up to the
   // user to set the corresponding flag correctly with respect to the operations'

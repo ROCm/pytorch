@@ -4444,18 +4444,24 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
     @dtypes(torch.float32)
     @parametrize("requires_grad", [False, True])
     @parametrize("components_require_grad", [False, True])
+<<<<<<< HEAD
     @parametrize(
         "func",
         [torch.nn.functional.softmax, torch.nn.functional.log_softmax],
         name_fn=lambda func: func.__name__,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_softmax_dim(
         self,
         device,
         dtype,
         requires_grad,
         components_require_grad,
+<<<<<<< HEAD
         func,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Softmax passes when reducing on valid reduction dimensions.
@@ -4474,7 +4480,11 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
 
         for reduce_dim, _ in reduce_dims:
             nt = torch.nested.as_nested_tensor(ts, layout=torch.jagged)
+<<<<<<< HEAD
             out_actual = func(nt, dim=reduce_dim)
+=======
+            out_actual = torch.nn.functional.softmax(nt, dim=reduce_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._dynamo.disable(self.assertEqual)(
                 len(out_actual.shape), len(output_shape)
             )  # disable if running on dynamo
@@ -4504,10 +4514,19 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
             reduce_dim, reduce_dim_expected = reduce_dim_tuple
 
             if nt.dim() > reduce_dim:
+<<<<<<< HEAD
                 # nested tensor
                 out_actual = func(nt, dim=reduce_dim)
                 # dense tensor of dimensions 1 less than out_actual
                 out_expected = func(nt.values(), dim=reduce_dim_expected)
+=======
+                out_actual = torch.nn.functional.softmax(
+                    nt, dim=reduce_dim
+                )  # nested tensor
+                out_expected = torch.nn.functional.softmax(
+                    nt.values(), dim=reduce_dim_expected
+                )  # dense tensor of dimensions 1 less than out_actual
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertTrue(
                     torch.allclose(out_actual.values().view(-1), out_expected.view(-1))
                 )
@@ -4605,6 +4624,7 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
     @dtypes(torch.float32)
     @parametrize("requires_grad", [False, True])
     @parametrize("components_require_grad", [False, True])
+<<<<<<< HEAD
     @parametrize(
         "func",
         [torch.nn.functional.softmax, torch.nn.functional.log_softmax],
@@ -4612,6 +4632,10 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
     )
     def test_softmax_reduce_batch_dim(
         self, device, dtype, requires_grad, components_require_grad, func
+=======
+    def test_softmax_reduce_batch_dim(
+        self, device, dtype, requires_grad, components_require_grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Softmax on NestedTensor fails when trying to reduce across batch dimension.
@@ -4636,7 +4660,11 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
                 RuntimeError,
                 "not supported when reducing across the batch dimension for NestedTensor",
             ):
+<<<<<<< HEAD
                 out = func(nt, dim=reduce_dim)
+=======
+                out = torch.nn.functional.softmax(nt, dim=reduce_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @dtypes(torch.float32)
     @parametrize("requires_grad", [False, True])
@@ -5649,11 +5677,14 @@ class TestNestedTensorSubclass(NestedTensorTestCase):
         ):
             torch.nested.nested_tensor_from_jagged(values, offsets=None, lengths=None)
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(ValueError, "Expected jagged_dim >=1, but got 0."):
             torch.nested.nested_tensor_from_jagged(
                 values, lengths=lengths, jagged_dim=0
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCPU
     def test_nested_tensor_from_jagged_fx_trace(self, device):
         def fn(x, y):
@@ -6760,10 +6791,18 @@ torch.cuda.synchronize()
             and check_cudnn
             and (dtype == torch.float16 or dtype == torch.bfloat16)
         ):
+<<<<<<< HEAD
             with torch.nn.attention.sdpa_kernel(
                 torch.nn.attention.SDPBackend.CUDNN_ATTENTION
             ):
                 check_forward_backward()
+=======
+            with self.assertRaisesRegex(RuntimeError, "cuDNN SDPA Nested Tensor"):
+                with torch.nn.attention.sdpa_kernel(
+                    torch.nn.attention.SDPBackend.CUDNN_ATTENTION
+                ):
+                    check_forward_backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfTorchDynamo("SDPA test compiles internally")
     @unittest.skipIf(IS_WINDOWS, reason="Windows not yet supported for torch.compile")
@@ -7203,7 +7242,11 @@ torch.cuda.synchronize()
 
         query = torch.rand(bs, d1, d3, device=device)
         value = torch.rand(30, d2, requires_grad=True, device=device)
+<<<<<<< HEAD
         # total_length must > than max_length otherwise flash_attn backward will fail
+=======
+        # total_length must > than max_length otherwise flash_attn backwark will fail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offsets = torch.tensor([0, 2, 3, 30], device=device)
 
         m = mha(use_legacy_api)
@@ -7285,9 +7328,12 @@ torch.cuda.synchronize()
 
         return query, key, value
 
+<<<<<<< HEAD
     @unittest.skip(
         "Temporarily skip - nested tensor backward pass broken after return-max-scores commit"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCUDA
     @flex_attention_supported_platform
     @dtypes(torch.float32)
@@ -8099,7 +8145,10 @@ FORWARD_SKIPS_AND_XFAILS = [
             "std.unbiased",
             "var",
             "var.unbiased",
+<<<<<<< HEAD
             "hash_tensor",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
         name="not_implemented",
     ),
@@ -8547,6 +8596,17 @@ BACKWARD_SKIPS_AND_XFAILS = [
 
 COMPILE_FORWARD_SKIPS_AND_XFAILS = [
     *FORWARD_SKIPS_AND_XFAILS,
+<<<<<<< HEAD
+=======
+    # Needs investigation in AOTAutograd: len(unwrapped_args) == num_args_tallied assertion fails
+    # e.g. Expected 5 == 4
+    XFailRule(
+        error_type=AssertionError,
+        op_match_fn=lambda device, op: (op.full_name == "fill"),
+        sample_match_fn=lambda device, sample: ("noncontig_transposed" in sample.name),
+        name="fill_aot_autograd_bug_with_transposed_input",
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Bug: cross-device conversions with to() result in new nested ints within compile only
     XFailRule(
         error_type=AssertionError,
@@ -8584,6 +8644,21 @@ COMPILE_FORWARD_SKIPS_AND_XFAILS = [
         sample_match_fn=lambda device, sample: ("batch_dim" in sample.name),
         name="broken_select_backward_unbacked",
     ),
+<<<<<<< HEAD
+=======
+    # Bug: no idea what's going on here; needs investigation within AOTAutograd
+    XFailRule(
+        op_match_fn=lambda device, op: (op.full_name == "nan_to_num"),
+        sample_match_fn=lambda device, sample: ("noncontig_transposed" in sample.name),
+        name="crazy_aot_autograd_bug1",
+    ),
+    # Bug: also no idea what's going on here: needs investigation within AOTAutograd
+    XFailRule(
+        op_match_fn=lambda device, op: (op.full_name == "isreal"),
+        sample_match_fn=lambda device, sample: ("noncontig_transposed" in sample.name),
+        name="crazy_aot_autograd_bug2",
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 COMPILE_BACKWARD_SKIPS_AND_XFAILS = [

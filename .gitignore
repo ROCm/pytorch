@@ -32,7 +32,10 @@ coverage.xml
 aten/build/
 aten/src/ATen/Config.h
 aten/src/ATen/cuda/CUDAConfig.h
+<<<<<<< HEAD
 aten/src/ATen/hip/HIPConfig.h
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 benchmarks/.data
 caffe2/cpp_test/
 dist/
@@ -82,7 +85,10 @@ torch/return_types.pyi
 torch/nn/functional.pyi
 torch/utils/data/datapipes/datapipe.pyi
 torch/csrc/autograd/generated/*
+<<<<<<< HEAD
 torch/csrc/functionalization/generated/*
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 torch/csrc/lazy/generated/*.[!m]*
 torch_compile_debug/
 # Listed manually because some files in this directory are not generated
@@ -148,9 +154,12 @@ merge_record.json
 torchgen/packaged/*
 !torchgen/packaged/README.md
 
+<<<<<<< HEAD
 # This file is injected by ROCm build scripts to bootstrap in torch/__init__.py.
 torch/_rocm_init.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # IPython notebook checkpoints
 .ipynb_checkpoints
 

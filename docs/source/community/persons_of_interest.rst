@@ -131,12 +131,19 @@ Distributed
 -  Ke Wen (`kwen2501 <https://github.com/kwen2501>`__)
 -  Chien-Chin Huang (`fegin <https://github.com/fegin>`__)
 -  Tristan Rice (`d4l3k <https://github.com/d4l3k>`__)
+<<<<<<< HEAD
 -  Junjie Wang (`fduwjj <https://github.com/fduwjj>`__)
 -  Wei Feng (`weifengpy <https://github.com/weifengpy>`__)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -  (emeritus) Shen Li (`mrshenli <https://github.com/mrshenli>`__)
 -  (emeritus) Pritam Damania (`pritamdamania87 <https://github.com/pritamdamania87>`__)
 -  (emeritus) Yanli Zhao (`zhaojuanmao <https://github.com/zhaojuanmao>`__)
 -  (emeritus) Rohan Varma (`rohan-varma <https://github.com/rohan-varma>`__)
+<<<<<<< HEAD
+=======
+-  (emeritus) Junjie Wang (`fduwjj <https://github.com/fduwjj>`__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -  (emeritus) Alisson Azzolini (`aazzolini <https://github.com/aazzolini>`__)
 -  (emeritus) James Reed (`jamesr66a <https://github.com/jamesr66a>`__)
 -  (emeritus) Kiuk Chung (`kiukchung <https://github.com/kiukchung>`__)
@@ -350,9 +357,15 @@ XLA
 TorchServe
 ~~~~~~~~~~
 
+<<<<<<< HEAD
 -  (emeritus) Li Ning (`lxning <https://github.com/lxning>`__)
 -  (emeritus) Ankith Gunapal (`agunapal <https://github.com/agunapal>`__)
 -  (emeritus) Hamid Shojanazeri (`HamidShojanazeri <https://github.com/HamidShojanazeri>`__)
+=======
+-  Li Ning (`lxning <https://github.com/lxning>`__)
+-  Ankith Gunapal (`agunapal <https://github.com/agunapal>`__)
+-  Hamid Shojanazeri (`HamidShojanazeri <https://github.com/HamidShojanazeri>`__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -  (emeritus) Mark Saroufim (`msaroufIm <https://github.com/msaroufIm>`__)
 -  (emeritus) Manoj Rao (`mycpuorg <https://github.com/mycpuorg>`__)
 -  (emeritus) Vamshi Dantu (`vdantu <https://github.com/vdantu>`__)

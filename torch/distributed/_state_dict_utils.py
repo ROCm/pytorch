@@ -423,7 +423,11 @@ def _create_cpu_state_dict(
             t = t.share_memory_()
             if pin_memory:
                 pin_memory_utils.pin_memory(t.data_ptr(), t.numel() * t.element_size())
+<<<<<<< HEAD
                 weakref.finalize(t, pin_memory_utils.unpin_memory, t.data_ptr())
+=======
+                weakref.finalize(t, pin_memory_utils.unpin_memory, t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return t
         elif pin_memory:

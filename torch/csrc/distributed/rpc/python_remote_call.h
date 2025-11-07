@@ -3,6 +3,10 @@
 #include <torch/csrc/distributed/rpc/message.h>
 #include <torch/csrc/distributed/rpc/rpc_command_base.h>
 #include <torch/csrc/distributed/rpc/types.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/serialization/pickler.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace torch::distributed::rpc {
 
 class TORCH_API PythonRemoteCall : public RpcCommandBase {

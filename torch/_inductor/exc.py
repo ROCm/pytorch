@@ -92,9 +92,12 @@ class CppCompileError(RuntimeError):
         if isinstance(output, bytes):
             output = output.decode("utf-8")
 
+<<<<<<< HEAD
         self.cmd = cmd
         self.output = output
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             textwrap.dedent(
                 """
@@ -111,9 +114,12 @@ class CppCompileError(RuntimeError):
             .format(cmd=" ".join(cmd), output=output)
         )
 
+<<<<<<< HEAD
     def __reduce__(self) -> tuple[type, tuple[list[str], str]]:
         return (self.__class__, (self.cmd, self.output))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class CUDACompileError(CppCompileError):
     pass

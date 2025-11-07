@@ -105,7 +105,11 @@ using supported_primitive_arg_types = guts::typelist::typelist<
 // So a valid input type is one that our boxed functor wrapper can
 // unbox from an IValue into a C++ value.
 //
+<<<<<<< HEAD
 // Whereas a valid output type is one that our wrapper can receive
+=======
+// Whereas a valid output type is one that our wrapper can recieve
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // as a C++ value from the unboxed functor, and box into an IValue.
 
 //

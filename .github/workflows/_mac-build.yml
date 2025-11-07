@@ -67,11 +67,19 @@ jobs:
       test-matrix: ${{ steps.filter.outputs.test-matrix }}
     steps:
       - name: Clean up disk space before running MacOS workflow
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.9
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.8
+
+      # [see note: pytorch repo ref]
+      - name: Checkout PyTorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Set xcode version
         env:
@@ -82,7 +90,11 @@ jobs:
           fi
 
       - name: Setup Python
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-python@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/setup-python@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           python-version: ${{ inputs.python-version }}
           pip-requirements-file: .github/requirements/pip-requirements-macOS.txt
@@ -123,7 +135,11 @@ jobs:
             else
               # The runner has access to the S3 bucket via IAM profile without the need
               # for any credential
+<<<<<<< HEAD
               echo "SCCACHE_BUCKET=ossci-compiler-cache-circleci-v2" >> "${GITHUB_ENV}"
+=======
+              echo "SCCACHE_BUCKET=ossci-compiler-cache-circleci-v2" >> "${GITHUB_ENV}"0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               echo "SCCACHE_S3_KEY_PREFIX=${GITHUB_WORKFLOW}" >> "${GITHUB_ENV}"
             fi
 
@@ -152,14 +168,27 @@ jobs:
         env:
           OUR_GITHUB_JOB_ID: ${{ steps.get-job-id.outputs.job-id }}
         run: |
+<<<<<<< HEAD
           # TODO: Remove me later, and properly activate venv
           PATH="$VENV_PATH/bin:$PATH"
           export PATH
+=======
+          echo "CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname "$(which conda)")/../"}" >> "${GITHUB_ENV}"
+
+          if [[ -n "$CONDA_ENV" ]]; then
+            # Use binaries under conda environment
+            export PATH="$CONDA_ENV/bin":$PATH
+          fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           # NB: Same trick as Linux, there is no need to initialize sccache with the risk of getting
           # it hangs or timeout at initialization. The cache will be started automatically
           export SKIP_SCCACHE_INITIALIZATION=1
+<<<<<<< HEAD
           .ci/pytorch/macos-build.sh
+=======
+          ${CONDA_RUN} .ci/pytorch/macos-build.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Archive artifacts into zip
         if: inputs.build-generates-artifacts && steps.build.outcome != 'skipped'
@@ -188,4 +217,8 @@ jobs:
       - name: Clean up disk space
         if: always()
         continue-on-error: true
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

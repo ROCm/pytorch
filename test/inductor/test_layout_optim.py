@@ -300,7 +300,11 @@ class TestLayoutOptim(TestCase):
         The CUDA implementation of aten.nll_loss2d_backward.default requires
         the self tensor (whose layout will be used to create grad_input)
         to be contiguous. Layout optimization may change the self tensor's layout
+<<<<<<< HEAD
         and cause failure. We fix that by adding layout constraints to the
+=======
+        and cause failure. We fix that by adding layout constaints to the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fallback of aten.nll_loss2d_backward.default .
         """
 

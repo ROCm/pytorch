@@ -568,9 +568,15 @@ bool Dispatcher::profilingOperatorEvents() {
   return TORCH_SDT_IS_ENABLED(operator_start) || TORCH_SDT_IS_ENABLED(operator_end);
 }
 
+<<<<<<< HEAD
 C10_NOINLINE void Dispatcher::fireOpStartUSDT(at::RecordFunction::schema_ref_t schema_ref, std::vector<void*>& argsAddresses, std::vector<const char*>& argsTypes) {
   if (TORCH_SDT_IS_ENABLED(operator_start)) {
     TORCH_SDT_WITH_SEMAPHORE(operator_start, schema_ref.get().name().c_str(), argsAddresses.size(), argsAddresses.data(), argsTypes.data());
+=======
+C10_NOINLINE void Dispatcher::fireOpStartUSDT(at::RecordFunction::schema_ref_t schema_ref) {
+  if (TORCH_SDT_IS_ENABLED(operator_start)) {
+    TORCH_SDT_WITH_SEMAPHORE(operator_start, schema_ref.get().name().c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

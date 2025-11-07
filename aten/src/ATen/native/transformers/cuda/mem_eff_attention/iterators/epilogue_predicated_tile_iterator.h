@@ -68,7 +68,11 @@ namespace threadblock {
 /// ForwardTileIterator
 ///
 template <
+<<<<<<< HEAD
     typename ThreadMap_, ///< Thread map (concept: OutputTileThreadMap)
+=======
+    typename ThreadMap_, ///< Thread map (conept: OutputTileThreadMap)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     typename Element_, ///< Element data type
     bool ScatterD = false, ///< Scatter D operand or not
     bool UseCUDAStore = false>

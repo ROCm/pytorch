@@ -1,5 +1,8 @@
 #include <ATen/native/quantized/cpu/qlinear.h>
+<<<<<<< HEAD
 #include <ATen/record_function.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/DeviceType.h>
 #include <c10/core/DispatchKey.h>
 #include <c10/core/GradMode.h>
@@ -25,10 +28,13 @@
 #include <iostream>
 #include <vector>
 
+<<<<<<< HEAD
 #include <c10/core/Device.h>
 #include <c10/core/DeviceGuard.h>
 #include <c10/core/Stream.h>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
 #else
@@ -389,6 +395,7 @@ AOTITorchError aoti_torch_get_device_index(
   });
 }
 
+<<<<<<< HEAD
 AOTITorchError aoti_torch_get_layout(
     AtenTensorHandle tensor,
     int32_t* ret_layout) {
@@ -398,6 +405,8 @@ AOTITorchError aoti_torch_get_layout(
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTITorchError aoti_torch_get_storage_offset(
     AtenTensorHandle tensor,
     int64_t* ret_storage_offset) {
@@ -416,6 +425,7 @@ AOTITorchError aoti_torch_is_contiguous(
   });
 }
 
+<<<<<<< HEAD
 AOTITorchError aoti_torch_is_defined(
     AtenTensorHandle tensor,
     bool* ret_is_defined) {
@@ -425,6 +435,8 @@ AOTITorchError aoti_torch_is_defined(
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTITorchError aoti_torch_new_tensor_handle(
     AtenTensorHandle orig_handle,
     AtenTensorHandle* new_handle) {
@@ -475,6 +487,7 @@ AOTITorchError aoti_torch_empty_strided(
   });
 }
 
+<<<<<<< HEAD
 AOTITorchError aoti_torch_empty_strided_pinned(
     int64_t ndim,
     const int64_t* sizes_ptr,
@@ -497,6 +510,8 @@ AOTITorchError aoti_torch_empty_strided_pinned(
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTITorchError aoti_torch_create_tensor_from_blob(
     void* data,
     int64_t ndim,
@@ -1026,17 +1041,28 @@ AOTITorchError aoti_torch_cpu__wrapped_linear_prepack(
 AOTITorchError aoti_torch_cpu_wrapped_fbgemm_linear_fp16_weight(
     AtenTensorHandle input,
     AtenTensorHandle weight,
+<<<<<<< HEAD
     AtenTensorHandle bias, // optional argument
+=======
+    AtenTensorHandle bias,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t out_channel,
     AtenTensorHandle* out) {
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     at::Tensor* input_tensor = tensor_handle_to_tensor_pointer(input);
     at::Tensor* weight_tensor = tensor_handle_to_tensor_pointer(weight);
+<<<<<<< HEAD
     auto optional_bias_tensor =
         pointer_to_optional(tensor_handle_to_tensor_pointer(bias));
 
     *out = new_tensor_handle(at::fbgemm_linear_fp16_weight_fp32_activation(
         *input_tensor, *weight_tensor, optional_bias_tensor));
+=======
+    at::Tensor* bias_tensor = tensor_handle_to_tensor_pointer(bias);
+
+    *out = new_tensor_handle(at::fbgemm_linear_fp16_weight_fp32_activation(
+        *input_tensor, *weight_tensor, *bias_tensor));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
 }
 
@@ -1101,6 +1127,7 @@ AOTITorchError aoti_torch_check_inf_and_nan(
   });
 }
 
+<<<<<<< HEAD
 AOTITorchError aoti_record_function_start(
     const char* name,
     IValueMapHandle kwargs,
@@ -1140,6 +1167,8 @@ AOTITorchError aoti_record_function_end(AtenRecordFunctionHandle guard) {
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTITorchError aoti_torch_scatter_out(
     AtenTensorHandle out,
     AtenTensorHandle self,
@@ -1266,7 +1295,12 @@ void aoti_torch_print_tensor_handle(AtenTensorHandle self, const char* msg) {
   if (msg) {
     std::cout << "  " << msg;
   }
+<<<<<<< HEAD
   std::cout << "  " << "]:" << '\n';
+=======
+  std::cout << "  "
+            << "]:" << '\n';
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Print exact tensor values for small size tensors
   const int64_t numel = t->numel();
@@ -1673,6 +1707,7 @@ AOTITorchError aoti_torch_call_dispatcher(
     }
   });
 }
+<<<<<<< HEAD
 
 AOTITorchError aoti_torch_create_device_guard(
     int32_t device_index,
@@ -1730,3 +1765,5 @@ AOTITorchError aoti_torch_get_current_device_index(int32_t* ret_device_index) {
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE(
       { *ret_device_index = at::accelerator::getDeviceIndex(); });
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

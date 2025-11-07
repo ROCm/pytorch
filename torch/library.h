@@ -89,7 +89,11 @@ struct NoInferSchemaTag {};
 
 #define HAS_PT2_COMPLIANT_TAG
 
+<<<<<<< HEAD
 // For multipy/torchdeploy use case  // codespell:ignore multipy
+=======
+// For multipy/torchdeploy use case
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enum class _RegisterOrVerify { REGISTER, VERIFY };
 
 template <class CurClass>
@@ -926,7 +930,11 @@ class TorchLibraryInit final {
             }
 
       void initialize() {
+<<<<<<< HEAD
         lib = std::make_unique<Library>(kind, ns, key, file, line);
+=======
+        lib = std::unique_ptr<Library>(new Library(kind, ns, key, file, line));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         init_function(*lib);
       }
 };
@@ -1022,7 +1030,11 @@ class TorchLibraryInit final {
 /// Macro for defining a function that will be run at static
 /// initialization time to define operator overrides for dispatch key
 /// `k` (must be an unqualified enum member of c10::DispatchKey) in
+<<<<<<< HEAD
 /// namespace `ns` (must be a valid C++ identifier, no quotes).  Use this
+=======
+/// namespace `ns` (must be a valid C++ identifer, no quotes).  Use this
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /// macro when you want to implement a preexisting set of custom
 /// operators on a new dispatch key (e.g., you want to provide CUDA
 /// implementations of already existing operators).  One common usage

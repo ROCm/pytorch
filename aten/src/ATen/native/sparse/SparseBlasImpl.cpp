@@ -23,9 +23,12 @@
 #include <ATen/Parallel.h>
 #endif
 
+<<<<<<< HEAD
 #if AT_USE_EIGEN_SPARSE()
 #include <ATen/native/sparse/eigen/SparseBlasImpl.h>
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::native::sparse::impl {
 
@@ -445,6 +448,7 @@ void add_out_sparse_csr(
     const Tensor& mat2,
     const Scalar& alpha,
     const Tensor& result) {
+<<<<<<< HEAD
 #if AT_USE_MKL_SPARSE()
   sparse::impl::mkl::add_out_sparse_csr(mat1, mat2, alpha, result);
 #elif AT_USE_EIGEN_SPARSE()
@@ -454,6 +458,15 @@ void add_out_sparse_csr(
     false,
     "Calling add on a sparse CPU tensor requires compiling PyTorch with MKL. ",
     "Please use PyTorch built MKL support.");
+=======
+#if !AT_MKL_ENABLED()
+  TORCH_CHECK(
+      false,
+      "Calling add on a sparse CPU tensor requires compiling PyTorch with MKL. ",
+      "Please use PyTorch built MKL support.");
+#else
+  sparse::impl::mkl::add_out_sparse_csr(mat1, mat2, alpha, result);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 }
 
@@ -464,7 +477,11 @@ void triangular_solve_out_sparse_csr(
     bool upper,
     bool transpose,
     bool unitriangular) {
+<<<<<<< HEAD
 #if !AT_USE_MKL_SPARSE()
+=======
+#if !AT_MKL_ENABLED()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       false,
       "Calling triangular_solve on a sparse CPU tensor requires compiling PyTorch with MKL. ",

@@ -115,6 +115,7 @@ def match_coalesced_groups(
             for r in all_ops:
                 if len(all_ops[r]) > i:
                     rank, event = all_rank_events[r][i]
+<<<<<<< HEAD
                     # Check if the pg_guid exists for this rank and process group
                     pg_key = (event["process_group"][0], rank)
                     if pg_key in _pg_guids:
@@ -128,6 +129,15 @@ def match_coalesced_groups(
                     else:
                         # Skip this entry if pg_guid mapping doesn't exist
                         row.append(None)  # type: ignore[arg-type]
+=======
+                    row.append(
+                        Op(
+                            event,
+                            memberships,
+                            _pg_guids[(event["process_group"][0], rank)],
+                        )
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     progress = True
                 else:
                     row.append(None)  # type: ignore[arg-type]
@@ -250,6 +260,7 @@ def match_coalesced_groups_with_non_p2p(
             for r in all_ops:
                 if len(all_ops[r]) > i:
                     rank, event = all_rank_events[r][i]
+<<<<<<< HEAD
                     # Check if the pg_guid exists for this rank and process group
                     pg_key = (event["process_group"][0], rank)
                     if pg_key in _pg_guids:
@@ -263,6 +274,15 @@ def match_coalesced_groups_with_non_p2p(
                     else:
                         # Skip this entry if pg_guid mapping doesn't exist
                         row.append(None)  # type: ignore[arg-type]
+=======
+                    row.append(
+                        Op(
+                            event,
+                            memberships,
+                            _pg_guids[(event["process_group"][0], rank)],
+                        )
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     progress = True
                 else:
                     row.append(None)  # type: ignore[arg-type]
@@ -628,7 +648,10 @@ def just_print_entries(
     _memberships: dict[str, set[Any]],
     _pg_guids: dict[tuple[str, int], str],
     args: argparse.Namespace,
+<<<<<<< HEAD
     stack_id_trace_map: dict[str, int],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     rows = []
     ranks = sorted(all_entries.keys())
@@ -663,6 +686,7 @@ def just_print_entries(
 
     logger.info(tabulate(rows, headers=headers))
 
+<<<<<<< HEAD
     if stack_id_trace_map and args.print_stack_trace:
         headers = ["stack_id", "frame_stack"]
         rows = []
@@ -674,6 +698,8 @@ def just_print_entries(
 
         logger.info(tabulate(rows, headers=headers))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def check_no_missing_dump_files(
     entries: dict[int, Any], memberships: list[Membership]
@@ -701,6 +727,7 @@ def get_version_detail(version: str) -> tuple[int, int]:
     return major, minor
 
 
+<<<<<<< HEAD
 def add_stack_id_in_entries(
     entries: dict[int, list[dict[str, Any]]],
 ) -> tuple[dict[int, list[dict[str, Any]]], dict[str, int]]:
@@ -722,6 +749,8 @@ def add_stack_id_in_entries(
     return entries, stack_id_trace_map
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def align_trace_from_beginning(
     entries: dict[int, list[dict[str, Any]]],
 ) -> dict[int, list[dict[str, Any]]]:

@@ -4104,7 +4104,10 @@ class TestIO(TestCase):
             def test_decimal_period_separator():
                 pass
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def test_decimal_comma_separator():
                 with CommaDecimalPointLocale():
                     pass
@@ -6787,10 +6790,14 @@ class TestWritebackIfCopy(TestCase):
 class TestArange(TestCase):
     def test_infinite(self):
         assert_raises(
+<<<<<<< HEAD
             (RuntimeError, ValueError),
             np.arange,
             0,
             np.inf,  # "unsupported range",
+=======
+            (RuntimeError, ValueError), np.arange, 0, np.inf  # "unsupported range",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_nan_step(self):

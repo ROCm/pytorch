@@ -14,7 +14,11 @@ So far the recommendation was to standardize on fused conditionals.
 
 ## Expression Conditionals vs Statement Conditionals
 
+<<<<<<< HEAD
 Tensor IR contains both expression conditionals (`CompareSelect` and `IfThenElse`), as well as statement conditionals (`Cond`).  Expression conditionals are defined by being functional in nature: there is no side effect from duplicating the conditional, evaluating it twice, etc.  They are an important ingredient in expressing important operators like ReLU:
+=======
+Tensor IR contains both expression conditionals (`CompareSelect` and `IfThenElse`), as well as statement conditionals (`Cond`).  Expression conditionals are defined by being functional in nature: there is no side effect from duplicating the conditional, evaluating it twice, etc.  They are an important ingredient in expression important operators like ReLU:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ```
 store (((load A) >= 0.0) ? (load A) : 0.0), B

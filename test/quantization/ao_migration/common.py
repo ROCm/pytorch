@@ -47,6 +47,12 @@ class AOMigrationTestCase(TestCase):
             new_dict = getattr(new_location, dict_name)
             assert old_dict == new_dict, f"Dicts don't match: {dict_name}"
             for key in new_dict.keys():
+<<<<<<< HEAD
                 assert old_dict[key] == new_dict[key], (
                     f"Dicts don't match: {dict_name} for key {key}"
                 )
+=======
+                assert (
+                    old_dict[key] == new_dict[key]
+                ), f"Dicts don't match: {dict_name} for key {key}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

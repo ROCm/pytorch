@@ -11,6 +11,7 @@ from typing_extensions import TypeAlias
 
 import torch
 import torch.utils._pytree as pytree
+<<<<<<< HEAD
 from torch._export.serde import schema
 from torch._export.serde.serialize import (
     _dataclass_to_dict,
@@ -29,6 +30,11 @@ from torch._inductor.cpp_builder import normalize_path_separator
 from torch._subclasses.fake_tensor import FakeTensor
 from torch.export import ExportedProgram
 from torch.export._tree_utils import reorder_kwargs
+=======
+from torch._export.serde.serialize import deserialize, serialize, SerializedArtifact
+from torch.export._tree_utils import reorder_kwargs
+from torch.export.exported_program import ExportedProgram
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.export.pt2_archive._package_weights import (
     get_complete,
     group_weights,
@@ -40,16 +46,23 @@ from torch.export.pt2_archive.constants import (
     ARCHIVE_FORMAT_VALUE,
     ARCHIVE_VERSION_PATH,
     ARCHIVE_VERSION_VALUE,
+<<<<<<< HEAD
     CONSTANTS_CONFIG_FILENAME_FORMAT,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CONSTANTS_DIR,
     CUSTOM_OBJ_FILENAME_PREFIX,
     EXTRA_DIR,
     MODELS_DIR,
     MODELS_FILENAME_FORMAT,
     SAMPLE_INPUTS_FILENAME_FORMAT,
+<<<<<<< HEAD
     TENSOR_CONSTANT_FILENAME_PREFIX,
     WEIGHT_FILENAME_PREFIX,
     WEIGHTS_CONFIG_FILENAME_FORMAT,
+=======
+    WEIGHT_FILENAME_PREFIX,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     WEIGHTS_DIR,
 )
 from torch.types import FileLike
@@ -93,8 +106,11 @@ class PT2ArchiveWriter:
     """
 
     def __init__(self, archive_path_or_buffer: FileLike):
+<<<<<<< HEAD
         if isinstance(archive_path_or_buffer, str):
             archive_path_or_buffer = normalize_path_separator(archive_path_or_buffer)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.archive_file = torch._C.PyTorchFileWriter(archive_path_or_buffer)  # type: ignore[arg-type]
         # NOTICE: version here is different from the archive_version
         # this is the version of zip file format, which is used by PyTorchFileWriter, which write to /.data/version
@@ -189,8 +205,11 @@ class PT2ArchiveReader:
     """
 
     def __init__(self, archive_path_or_buffer: FileLike):
+<<<<<<< HEAD
         if isinstance(archive_path_or_buffer, str):
             archive_path_or_buffer = normalize_path_separator(archive_path_or_buffer)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.archive_file = torch._C.PyTorchFileReader(archive_path_or_buffer)  # type: ignore[arg-type]
         assert self.read_string(ARCHIVE_FORMAT_PATH) == ARCHIVE_FORMAT_VALUE, (
             "Invalid archive format"
@@ -238,11 +257,14 @@ class PT2ArchiveReader:
         return self.archive_file.get_all_records()
 
 
+<<<<<<< HEAD
 is_pt2_package.__module__ = "torch.export.pt2_archive"
 PT2ArchiveWriter.__module__ = "torch.export.pt2_archive"
 PT2ArchiveReader.__module__ = "torch.export.pt2_archive"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _package_aoti_files(
     archive_writer: PT2ArchiveWriter,
     aoti_files: Optional[AOTI_FILES],
@@ -325,6 +347,7 @@ def _package_aoti_files(
             logger.debug(weights_config)
 
 
+<<<<<<< HEAD
 def _is_fake_tensor(t: torch.Tensor) -> bool:
     return isinstance(t, FakeTensor)
 
@@ -481,6 +504,8 @@ def _package_payload_config(
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _package_exported_programs(
     archive_writer: PT2ArchiveWriter,
     exported_programs: Optional[Union[ExportedProgram, dict[str, ExportedProgram]]],
@@ -491,11 +516,16 @@ def _package_exported_programs(
         return
 
     if isinstance(exported_programs, ExportedProgram):
+<<<<<<< HEAD
         exported_programs = {"model": exported_programs}
+=======
+        exported_programs = {"model", exported_programs}  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     assert isinstance(exported_programs, dict)
 
     for model_name, ep in exported_programs.items():
+<<<<<<< HEAD
         weights_config = _package_state_dict(ep, archive_writer, pickle_protocol)
         weights_config_file = WEIGHTS_CONFIG_FILENAME_FORMAT.format(model_name)
         _package_payload_config(archive_writer, weights_config, weights_config_file)
@@ -509,10 +539,21 @@ def _package_exported_programs(
             opset_version,
             pickle_protocol,
         )
+=======
+        artifact: SerializedArtifact = serialize(ep, opset_version, pickle_protocol)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         archive_writer.write_bytes(
             MODELS_FILENAME_FORMAT.format(model_name), artifact.exported_program
         )
+<<<<<<< HEAD
+=======
+        # TODO:Consider dedup this with the weights saved in package_aoti_files
+        archive_writer.write_bytes(f"{WEIGHTS_DIR}{model_name}.pt", artifact.state_dict)
+        archive_writer.write_bytes(
+            f"{CONSTANTS_DIR}{model_name}.pt", artifact.constants
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         archive_writer.write_bytes(
             SAMPLE_INPUTS_FILENAME_FORMAT.format(model_name),
             artifact.example_inputs,
@@ -540,21 +581,38 @@ def package_pt2(
     opset_version: Optional[dict[str, int]] = None,
     pickle_protocol: int = DEFAULT_PICKLE_PROTOCOL,
 ) -> FileLike:
+<<<<<<< HEAD
     r"""
     Saves the artifacts to a PT2Archive format. The artifact can then be loaded
     using ``load_pt2``.
 
     Args:
         f (str | os.PathLike[str] | IO[bytes]): A file-like object (has to
+=======
+    """
+    Saves the artifacts to a PT2Archive format
+    (https://docs.google.com/document/d/1RQ4cmywilnFUT1VE-4oTGxwXdc8vowCSZsrRgo3wFA8/edit?tab=t.0#heading=h.v2y2jgnwc56a).
+    The artifact can then be loaded using ``load_pt2``.
+
+    Args:
+        f (str | os.PathLike[str] | IO[bytes]) A file-like object (has to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          implement write and flush) or a string containing a file name.
 
         exported_programs (Union[ExportedProgram, dict[str, ExportedProgram]]):
          The exported program to save, or a dictionary mapping model name to an
          exported program to save. The exported program will be saved under
+<<<<<<< HEAD
          models/\*.json. If only one ExportedProgram is specified, this will
          automatically be named "model".
 
         aoti_files (Union[list[str], dict[str, list[str]]]): A list of files
+=======
+         models/*.json. If only one ExportedProgram is specified, this will
+         automatically be named "model".
+
+        aoti_files (Union[list[str], dict[str, list[str]]): A list of files
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          generated by AOTInductor via
          ``torch._inductor.aot_compile(..., {"aot_inductor.package": True})``,
          or a dictionary mapping model name to its AOTInductor generated files.
@@ -580,7 +638,10 @@ def package_pt2(
     if not (
         (isinstance(f, (io.IOBase, IO)) and f.writable() and f.seekable())
         or (isinstance(f, (str, os.PathLike)) and os.fspath(f).endswith(".pt2"))
+<<<<<<< HEAD
         or (isinstance(f, tempfile._TemporaryFileWrapper) and f.name.endswith(".pt2"))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         # TODO: turn this into an error
         logger.warning(
@@ -666,6 +727,7 @@ class PT2ArchiveContents:
     extra_files: dict[str, Any]
 
 
+<<<<<<< HEAD
 def _create_flat_tensor_from_bytes(
     tensor_bytes: bytes,
     tensor_meta: schema.TensorMeta,
@@ -845,6 +907,8 @@ def _load_constants(
         return constants
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _load_exported_programs(
     archive_reader: PT2ArchiveReader,
     file_names: list[str],
@@ -862,6 +926,7 @@ def _load_exported_programs(
             len(prefix) : -len(suffix)
         ]  # given "models/foo.json" we can now get "foo"
 
+<<<<<<< HEAD
         sample_inputs_file = SAMPLE_INPUTS_FILENAME_FORMAT.format(model_name)
         serialized_sample_inputs = archive_reader.read_bytes(sample_inputs_file)
 
@@ -881,6 +946,26 @@ def _load_exported_programs(
             serialized_sample_inputs,
         )
 
+=======
+        weights_file = f"{WEIGHTS_DIR}{model_name}.pt"
+        constants_file = f"{CONSTANTS_DIR}{model_name}.pt"
+        sample_inputs_file = SAMPLE_INPUTS_FILENAME_FORMAT.format(model_name)
+
+        serialized_exported_program = archive_reader.read_bytes(file)
+        serialized_weights = archive_reader.read_bytes(weights_file)
+        serialized_constants = archive_reader.read_bytes(constants_file)
+        serialized_sample_inputs = archive_reader.read_bytes(sample_inputs_file)
+
+        artifact: SerializedArtifact = SerializedArtifact(
+            serialized_exported_program,
+            serialized_weights,
+            serialized_constants,
+            serialized_sample_inputs,
+        )
+
+        # Deserialize ExportedProgram
+        ep = deserialize(artifact, expected_opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         exported_programs[model_name] = ep
 
     return exported_programs
@@ -933,8 +1018,11 @@ def load_pt2(
         A ``PT2ArchiveContents`` object which contains all the objects in the PT2.
     """
 
+<<<<<<< HEAD
     from torch._inductor.cpp_builder import normalize_path_separator
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not (
         (isinstance(f, (io.IOBase, IO)) and f.readable() and f.seekable())
         or (isinstance(f, (str, os.PathLike)) and os.fspath(f).endswith(".pt2"))
@@ -973,9 +1061,12 @@ def load_pt2(
                 file_end = file[
                     len(AOTINDUCTOR_DIR) :
                 ]  # remove data/aotinductor/ prefix
+<<<<<<< HEAD
                 file_end = normalize_path_separator(
                     file_end
                 )  # Win32 need normalize path before split.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 model_name = file_end.split("/")[
                     0
                 ]  # split "model_name/...cpp" into "model_name"

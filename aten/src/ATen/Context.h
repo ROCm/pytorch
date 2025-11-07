@@ -28,7 +28,10 @@
 #include <c10/util/irange.h>
 
 #include <cstdint>
+<<<<<<< HEAD
 #include <map>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <mutex>
 
 namespace at {
@@ -132,8 +135,11 @@ class TORCH_API Context {
   static bool hasKleidiAI();
   static bool hasLAPACK();
   static bool hasMKLDNN();
+<<<<<<< HEAD
   static bool ckSupported();
   static bool hasEigenSparse();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static bool hasMAGMA() {
     return detail::getCUDAHooks().hasMAGMA();
   }
@@ -164,12 +170,15 @@ class TORCH_API Context {
   static bool hasROCM() {
     return detail::getCUDAHooks().hasROCM();
   }
+<<<<<<< HEAD
   static bool hasCKSDPA() {
     return detail::getCUDAHooks().hasCKSDPA();
   }
   static bool hasCKGEMM() {
     return detail::getCUDAHooks().hasCKGEMM();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static bool hasHIP() {
     return detail::getHIPHooks().hasHIP();
   }
@@ -213,8 +222,11 @@ class TORCH_API Context {
   void setBenchmarkCuDNN(bool);
   int benchmarkLimitCuDNN() const;
   void setBenchmarkLimitCuDNN(int);
+<<<<<<< HEAD
   bool immediateMiopen() const;
   void setImmediateMiopen(bool);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool deterministicCuDNN() const;
   void setDeterministicCuDNN(bool);
   bool deterministicMkldnn() const;
@@ -260,7 +272,11 @@ class TORCH_API Context {
   at::BlasBackend blasPreferredBackend();
   void setBlasPreferredBackend(at::BlasBackend);
 
+<<<<<<< HEAD
   at::ROCmFABackend getROCmFAPreferredBackend();
+=======
+  at::ROCmFABackend getROCmFAPreferredBackend() const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void setROCmFAPreferredBackend(at::ROCmFABackend);
 
   // Note [Enabling Deterministic Operations]
@@ -347,20 +363,28 @@ class TORCH_API Context {
   void alertCuBLASConfigNotDeterministic() const;
 
   void setFloat32MatmulPrecision(const std::string& s);
+<<<<<<< HEAD
   void setFloat32Precision(
       const std::string& backend,
       const std::string& op,
       const std::string& s);
   bool allowTF32CuDNN(const std::string& op = std::string()) const;
+=======
+  bool allowTF32CuDNN() const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void setAllowTF32CuDNN(bool);
   bool allowTF32OneDNN() const;
   void setAllowTF32OneDNN(bool);
   bool allowTF32CuBLAS() const;
   void setAllowTF32CuBLAS(bool);
   Float32MatmulPrecision float32MatmulPrecision() const;
+<<<<<<< HEAD
   std::string float32Precision(
       const std::string& backend,
       const std::string& op) const;
+=======
+  void setFloat32MatmulPrecision(Float32MatmulPrecision p);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool allowFP16ReductionCuBLAS() const;
   void setAllowFP16ReductionCuBLAS(bool);
   bool allowBF16ReductionCuBLAS() const;
@@ -441,8 +465,12 @@ class TORCH_API Context {
       at::SDPBackend::flash_attention,
       at::SDPBackend::efficient_attention,
       at::SDPBackend::math,
+<<<<<<< HEAD
       at::SDPBackend::cudnn_attention,
       at::SDPBackend::overrideable};
+=======
+      at::SDPBackend::cudnn_attention};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool enabled_flashSDP = true;
   bool enabled_mem_efficientSDP = true;
   bool enabled_mathSDP = true;
@@ -450,7 +478,10 @@ class TORCH_API Context {
   bool enabled_overrideable = true;
   bool allow_fp16_bf16_reduction_mathSDP = false;
   bool benchmark_cudnn = false;
+<<<<<<< HEAD
   bool immediate_miopen = false;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Float32MatmulPrecision float32_matmul_precision =
       c10::utils::check_env("TORCH_ALLOW_TF32_CUBLAS_OVERRIDE") == true
       ? at::Float32MatmulPrecision::HIGH
@@ -484,6 +515,7 @@ class TORCH_API Context {
   bool release_original_weights = false;
 #endif
   bool display_vmap_fallback_warnings_ = false;
+<<<<<<< HEAD
   std::atomic<at::QEngine> quantized_engine = at::QEngine::NoQEngine;
   bool enable_sparse_tensor_invariant_checks = false;
   bool allow_fp16_reduction_cpu = false;
@@ -505,6 +537,12 @@ class TORCH_API Context {
         {"all", "none"}}},
   };
 
+=======
+  std::optional<at::QEngine> quantized_engine = std::nullopt;
+  bool enable_sparse_tensor_invariant_checks = false;
+  bool allow_fp16_reduction_cpu = false;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Allocator* prev_allocator_ptr_{nullptr};
 };
 
@@ -616,10 +654,13 @@ inline bool hasLAPACK() {
   return globalContext().hasLAPACK();
 }
 
+<<<<<<< HEAD
 inline bool hasEigenSparse() {
   return globalContext().hasEigenSparse();
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline bool hasMAGMA() {
   return globalContext().hasMAGMA();
 }

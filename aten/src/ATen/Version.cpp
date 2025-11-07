@@ -95,6 +95,7 @@ std::string get_cpu_capability() {
   // environment variable
   auto capability = native::get_cpu_capability();
   switch (capability) {
+<<<<<<< HEAD
     case native::CPUCapability::DEFAULT:
       return "DEFAULT";
 #if defined(HAVE_VSX_CPU_DEFINITION)
@@ -107,6 +108,26 @@ std::string get_cpu_capability() {
     case native::CPUCapability::SVE256:
       return "SVE256";
 #else
+=======
+#if defined(HAVE_VSX_CPU_DEFINITION)
+    case native::CPUCapability::DEFAULT:
+      return "DEFAULT";
+    case native::CPUCapability::VSX:
+      return "VSX";
+#elif defined(HAVE_ZVECTOR_CPU_DEFINITION)
+    case native::CPUCapability::DEFAULT:
+      return "DEFAULT";
+    case native::CPUCapability::ZVECTOR:
+      return "Z VECTOR";
+#elif defined(HAVE_SVE256_CPU_DEFINITION) && defined(HAVE_ARM_BF16_CPU_DEFINITION)
+    case native::CPUCapability::DEFAULT:
+      return "DEFAULT";
+    case native::CPUCapability::SVE256:
+      return "SVE256";
+#else
+    case native::CPUCapability::DEFAULT:
+      return "NO AVX";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case native::CPUCapability::AVX2:
       return "AVX2";
     case native::CPUCapability::AVX512:

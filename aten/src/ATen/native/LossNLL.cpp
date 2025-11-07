@@ -47,6 +47,7 @@ TORCH_META_FUNC(nll_loss_forward)
   TORCH_CHECK(
       target.dim() <= 1,
       "0D or 1D target tensor expected, multi-target not supported");
+<<<<<<< HEAD
   if (self.dim() == 1 && target.dim() == 1) {
       TORCH_CHECK_VALUE(
           target.size(0) == 1,
@@ -55,6 +56,12 @@ TORCH_META_FUNC(nll_loss_forward)
   }
   TORCH_CHECK(
       self.dim() == 1 || (self.size(0) == target.size(0)),
+=======
+
+  auto no_batch_dim = self.dim() == 1  && target.dim() == 0;
+  TORCH_CHECK(
+      no_batch_dim || (self.size(0) == target.size(0)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "size mismatch (got input: ",
       self.sizes(),
       ", target: ",

@@ -5,6 +5,7 @@ set -ex
 # cuSPARSELt license: https://docs.nvidia.com/cuda/cusparselt/license.html
 mkdir tmp_cusparselt && cd tmp_cusparselt
 
+<<<<<<< HEAD
 if [[ ${CUDA_VERSION:0:4} =~ "13" ]]; then
     arch_path='sbsa'
     export TARGETARCH=${TARGETARCH:-$(uname -m)}
@@ -14,6 +15,9 @@ if [[ ${CUDA_VERSION:0:4} =~ "13" ]]; then
     CUSPARSELT_NAME="libcusparse_lt-linux-${arch_path}-0.8.0.4_cuda13-archive"
     curl --retry 3 -OLs https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-${arch_path}/${CUSPARSELT_NAME}.tar.xz
 elif [[ ${CUDA_VERSION:0:4} =~ ^12\.[5-9]$ ]]; then
+=======
+if [[ ${CUDA_VERSION:0:4} =~ ^12\.[5-9]$ ]]; then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arch_path='sbsa'
     export TARGETARCH=${TARGETARCH:-$(uname -m)}
     if [ ${TARGETARCH} = 'amd64' ] || [ "${TARGETARCH}" = 'x86_64' ]; then
@@ -21,6 +25,7 @@ elif [[ ${CUDA_VERSION:0:4} =~ ^12\.[5-9]$ ]]; then
     fi
     CUSPARSELT_NAME="libcusparse_lt-linux-${arch_path}-0.7.1.0-archive"
     curl --retry 3 -OLs https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-${arch_path}/${CUSPARSELT_NAME}.tar.xz
+<<<<<<< HEAD
 elif [[ ${CUDA_VERSION:0:4} == "12.4" ]]; then
     arch_path='sbsa'
     export TARGETARCH=${TARGETARCH:-$(uname -m)}
@@ -29,6 +34,8 @@ elif [[ ${CUDA_VERSION:0:4} == "12.4" ]]; then
     fi
     CUSPARSELT_NAME="libcusparse_lt-linux-${arch_path}-0.6.2.3-archive"
     curl --retry 3 -OLs https://developer.download.nvidia.com/compute/cusparselt/redist/libcusparse_lt/linux-${arch_path}/${CUSPARSELT_NAME}.tar.xz
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else
     echo "Not sure which libcusparselt version to install for this ${CUDA_VERSION}"
 fi

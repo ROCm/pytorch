@@ -215,8 +215,11 @@ class Verifier(metaclass=_VerifierMeta):
                 torch.sym_min,
                 torch.sym_not,
                 torch.sym_sqrt,
+<<<<<<< HEAD
                 torch.sym_sum,
                 torch.export.custom_ops._call_custom_autograd_function_in_pre_dispatch,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # TODO (tmanlaibaatar)
                 # Predispatch export is able to contain autograd ops.
                 # These will be modeled as HOO later
@@ -224,11 +227,14 @@ class Verifier(metaclass=_VerifierMeta):
                 torch.amp.autocast_mode._enter_autocast,
                 torch.amp.autocast_mode._exit_autocast,
                 torch.fx.experimental.symbolic_shapes.cast_symbool_to_symint_guardless,
+<<<<<<< HEAD
                 torch._functorch.predispatch._add_batch_dim,
                 torch._functorch.predispatch._remove_batch_dim,
                 torch._functorch.predispatch._vmap_increment_nesting,
                 torch._functorch.predispatch._vmap_decrement_nesting,
                 torch._functorch.predispatch.lazy_load_decompositions,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             if not isinstance(op, _allowed_op_types()):
@@ -283,6 +289,7 @@ class Verifier(metaclass=_VerifierMeta):
                         if type(attr).__name__ == "LoweredBackendModule":
                             if (
                                 _is_type("backend_id", str)
+<<<<<<< HEAD
                                 and hasattr(attr, "original_module")
                                 and hasattr(attr, "module_name")
                                 and getattr(attr, "backend_id", None) == "aoti"
@@ -290,6 +297,8 @@ class Verifier(metaclass=_VerifierMeta):
                                 continue
                             if (
                                 _is_type("backend_id", str)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 and _is_type("processed_bytes", bytes)
                                 and _is_type("compile_specs", list)
                                 and hasattr(attr, "original_module")
@@ -476,12 +485,16 @@ def _verify_exported_program_signature(exported_program) -> None:
         )
 
     num_tokens = len(gs.output_tokens)
+<<<<<<< HEAD
     end = (
         len(gs.buffers_to_mutate)
         + len(gs.parameters_to_mutate)
         + len(gs.user_inputs_to_mutate)
         + num_tokens
     )
+=======
+    end = len(gs.buffers_to_mutate) + len(gs.user_inputs_to_mutate) + num_tokens
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mutate_nodes: list[str] = output_nodes[num_tokens:end]
     user_output_nodes = output_nodes[end : end + len(gs.user_outputs)]
 
@@ -493,6 +506,7 @@ def _verify_exported_program_signature(exported_program) -> None:
                     f"Dict of buffers that are mutated, in order: {gs.buffers_to_mutate} \n"
                     f"Buffer nodes available: {gs.buffers} \n"
                 )
+<<<<<<< HEAD
         elif mutation_node in gs.parameters_to_mutate:
             if gs.parameters_to_mutate[mutation_node] not in gs.parameters:
                 raise SpecViolationError(
@@ -500,6 +514,8 @@ def _verify_exported_program_signature(exported_program) -> None:
                     f"Dict of parameters that are mutated, in order: {gs.parameters_to_mutate} \n"
                     f"Parameter nodes available: {gs.parameters} \n"
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif mutation_node in gs.user_inputs_to_mutate:
             if gs.user_inputs_to_mutate[mutation_node] not in gs.user_inputs:
                 raise SpecViolationError(

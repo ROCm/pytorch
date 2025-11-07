@@ -147,7 +147,10 @@ class Metadata:
     planner_data: Any = None
     storage_data: Any = None
     storage_meta: Optional[StorageMeta] = None
+<<<<<<< HEAD
     version: Optional[str] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass(frozen=True)

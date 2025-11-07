@@ -49,6 +49,7 @@ class SGD(Optimizer):  # noqa: D101
         if weight_decay < 0.0:
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "momentum": momentum,
@@ -60,6 +61,19 @@ class SGD(Optimizer):  # noqa: D101
             "differentiable": differentiable,
             "fused": fused,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            momentum=momentum,
+            dampening=dampening,
+            weight_decay=weight_decay,
+            nesterov=nesterov,
+            maximize=maximize,
+            foreach=foreach,
+            differentiable=differentiable,
+            fused=fused,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
         super().__init__(params, defaults)
@@ -355,7 +369,11 @@ def _single_tensor_sgd(
             buf = momentum_buffer_list[i]
 
             if buf is None:
+<<<<<<< HEAD
                 buf = grad.detach().clone()
+=======
+                buf = torch.clone(grad).detach()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 momentum_buffer_list[i] = buf
             else:
                 buf.mul_(momentum).add_(grad, alpha=1 - dampening)
@@ -417,7 +435,11 @@ def _multi_tensor_sgd(
             device_grads = torch._foreach_neg(device_grads)  # type: ignore[assignment]
 
         if weight_decay != 0:
+<<<<<<< HEAD
             # Reuse the intermediate memory (device_grads) already allocated for maximize
+=======
+            # Re-use the intermediate memory (device_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if maximize:
                 torch._foreach_add_(device_grads, device_params, alpha=weight_decay)
             else:
@@ -445,7 +467,11 @@ def _multi_tensor_sgd(
                     if device_momentum_buffer_list[i] is None:
                         buf = device_momentum_buffer_list[i] = momentum_buffer_list[
                             indices[i]
+<<<<<<< HEAD
                         ] = device_grads[i].detach().clone()
+=======
+                        ] = torch.clone(device_grads[i]).detach()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     else:
                         buf = cast(Tensor, device_momentum_buffer_list[i])
                         buf.mul_(momentum).add_(device_grads[i], alpha=1 - dampening)

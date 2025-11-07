@@ -34,6 +34,7 @@
 #include <ATen/ops/quantize_per_channel_native.h>
 #include <ATen/ops/quantize_per_tensor_native.h>
 #include <ATen/ops/zeros.h>
+<<<<<<< HEAD
 #include <ATen/ops/convolution.h>
 #include <ATen/ops/linear.h>
 #include <ATen/ops/relu.h>
@@ -43,6 +44,8 @@
 #include <ATen/ops/hardtanh.h>
 #include <ATen/ops/hardswish.h>
 #include <ATen/ops/sigmoid.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 #include <c10/util/irange.h>
@@ -1277,7 +1280,11 @@ at::Tensor PackedConvWeightsOnednn<kSpatialDim>::apply_impl(
   float sum_scale = has_accum ? accum.value().q_scale() : 1.0;
   int32_t sum_zero_point = has_accum ? accum.value().q_zero_point() : 0;
   if (has_accum) {
+<<<<<<< HEAD
     // Just tells we have these post op, the actual value such as scale and zero point will be set later.
+=======
+    // Just tells we have these post op, the actual value such as scale and zero point will be setted later.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     op_attr = kReluFused ? ideep::attr_t::residual_with_sum_zero_point() : ideep::attr_t::fuse_sum();
     const ideep::scale_t accum_scale = ideep::scale_t(1, 1.0/sum_scale);
     const ideep::zero_point_t accum_zero_points = ideep::zero_point_t(1, sum_zero_point);
@@ -1393,6 +1400,7 @@ template at::Tensor PackedConvWeightsOnednn<3>::apply_relu(
     double output_scale,
     int64_t output_zero_point);
 
+<<<<<<< HEAD
 static at::Tensor _fp8_convolution_onednn_ref(
     at::Tensor act, // contains quantized values but not QTensor
     double act_scale,
@@ -1507,6 +1515,8 @@ static at::Tensor _fp8_convolution_onednn_ref(
   return y_f32.to(out_dtype);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static at::Tensor _quantized_convolution_onednn(
     at::Tensor act, // contains quantized values but not QTensor
     double act_scale,
@@ -1531,7 +1541,10 @@ static at::Tensor _quantized_convolution_onednn(
     std::optional<std::string_view> unary_attr,
     torch::List<std::optional<at::Scalar>> unary_scalars,
     std::optional<std::string_view> unary_algorithm) {
+<<<<<<< HEAD
   using ideep::tensor;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /*********************************/
   /*          Checks               */
   /*********************************/
@@ -1588,6 +1601,13 @@ static at::Tensor _quantized_convolution_onednn(
   if (kSpatialDim == 1) {
     kSpatialDim += 1;
   }
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(
+    weight.is_mkldnn(),
+    func_name, ": Weight should be prepacked as an MKLDNN tensor"
+  );
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (transposed) {
     TORCH_CHECK(
       false,
@@ -1601,6 +1621,7 @@ static at::Tensor _quantized_convolution_onednn(
     padding = quant_utils::MakeArgForConv1d(padding, 0);
     dilation = quant_utils::MakeArgForConv1d(dilation, 1);
   }
+<<<<<<< HEAD
   auto act_dtype = act.scalar_type();
   TORCH_CHECK(
     act_dtype == c10::ScalarType::Byte || act_dtype == c10::ScalarType::Float8_e4m3fn,
@@ -1608,6 +1629,14 @@ static at::Tensor _quantized_convolution_onednn(
   TORCH_CHECK(
     weight.scalar_type() == c10::ScalarType::Char || weight.scalar_type() == c10::ScalarType::Float8_e4m3fn,
     func_name, ": Weight tensor should have int8 (char) or fp8 data type");
+=======
+  TORCH_CHECK(
+    act.scalar_type() == c10::ScalarType::Byte,
+    func_name, ": Input tensor should have uint8 (unsigned char) data type");
+  TORCH_CHECK(
+    weight.scalar_type() == c10::ScalarType::Char,
+    func_name, ": Weight tensor should have int8 (char) data type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
     weight.ndimension() == kSpatialDim + 2,
     func_name, ": Weights are expected to have ", kSpatialDim + 2, " dimensions");
@@ -1623,6 +1652,7 @@ static at::Tensor _quantized_convolution_onednn(
     dilation.size() == (decltype(dilation.size()))kSpatialDim,
     func_name, ": dilation should contain ", kSpatialDim, " elements for ",
     kSpatialDim, "D convolution.");
+<<<<<<< HEAD
   bool is_fp8 = weight.scalar_type() == c10::ScalarType::Float8_e4m3fn;
   if (is_fp8) {
     TORCH_CHECK(act_dtype == c10::ScalarType::Float8_e4m3fn,
@@ -1647,6 +1677,8 @@ static at::Tensor _quantized_convolution_onednn(
     weight.is_mkldnn(),
     func_name, ": Weight should be prepacked as an MKLDNN tensor"
   );
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Parameters
 #if IDEEP_PREREQ(3, 1, 0, 1)
@@ -1722,7 +1754,11 @@ static at::Tensor _quantized_convolution_onednn(
                                    c10::MemoryFormat::ChannelsLast :
                                    c10::MemoryFormat::ChannelsLast3d);
   auto src_dims = act_contig.sizes().vec();
+<<<<<<< HEAD
   auto src_data_type = at::native::get_mkldnn_dtype(act.scalar_type());
+=======
+  auto src_data_type = dnnl::memory::data_type::u8;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto src_desc = ideep::tensor::desc(src_dims, src_data_type,
       kSpatialDim == 2 ? ideep::format_tag::nhwc : ideep::format_tag::ndhwc);
   ideep::tensor src;
@@ -1734,13 +1770,20 @@ static at::Tensor _quantized_convolution_onednn(
   output_sizes = at::native::conv_output_size(input_size, kernel_size, padding.vec(), stride.vec(), dilation.vec());
   ideep::dims dst_dims = ideep::dims({output_sizes.cbegin(), output_sizes.cend()});
   // Output is not a quantized tensor but data type is uint8
+<<<<<<< HEAD
   auto out_dtype = output_dtype.has_value() ? output_dtype.value() : act_dtype;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor output = has_accum_postop_sum ?
     accum.value() :
     at::empty(
       dst_dims,
       at::device(c10::kCPU)
+<<<<<<< HEAD
           .dtype(out_dtype)
+=======
+          .dtype(fp32_output ? c10::kFloat : (bfloat16_output ? c10::kBFloat16 : c10::kByte))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           .memory_format(kSpatialDim == 2 ?
               c10::MemoryFormat::ChannelsLast :
               c10::MemoryFormat::ChannelsLast3d)
@@ -1760,6 +1803,7 @@ static at::Tensor _quantized_convolution_onednn(
     unary_scalars,
     unary_algorithm.has_value() ? unary_algorithm.value() : ""
   );
+<<<<<<< HEAD
   // Avoid NaN if output dtype is fp8
   if (out_dtype == c10::kFloat8_e4m3fn) {
     // To avoid NaN, we need to clamp the intermediate results (in fp32) to [-488, 488]
@@ -1770,13 +1814,21 @@ static at::Tensor _quantized_convolution_onednn(
     op_attr.set_post_ops(post_ops);
     output_scale = 1.0f;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if IDEEP_PREREQ(3, 1, 0, 0)
   // Use oneDNN's APIs instead of prepare/compute from ideep to reduce integration overhead.
   // The functions from ideep are heavy because they have complex data structures for unified API
   // oneDNN version >= 3.1.0 is required.
+<<<<<<< HEAD
   auto weight_grouped = packed_weight.make_grouped_weights(groups, /* is_deconv */false);
   auto weights_desc = tensor::desc(weight_grouped.get_dims(), packed_weight.get_data_type(), ideep::format_tag::any);
+=======
+  using ideep::tensor;
+  auto weight_grouped = packed_weight.make_grouped_weights(groups, /* is_deconv */false);
+  auto weights_desc = tensor::desc(weight_grouped.get_dims(), ideep::data_type::s8, ideep::format_tag::any);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (groups > 1) {
     weights_desc = weights_desc.to_grouped(groups);
   }
@@ -2245,6 +2297,7 @@ TORCH_LIBRARY_IMPL(onednn, MkldnnCPU, m) {
   m.impl(TORCH_SELECTIVE_NAME("onednn::qconv2d_pointwise.binary_tensor"), at::native::QConvoneDNN::run_pointwise_binary_tensor);
 }
 
+<<<<<<< HEAD
 TORCH_LIBRARY_IMPL(onednn, CPU, m) {
   m.impl(TORCH_SELECTIVE_NAME("onednn::qconv_pointwise"), at::native::QConvoneDNN::run_pointwise);
   m.impl(TORCH_SELECTIVE_NAME("onednn::qconv_pointwise.tensor"), at::native::QConvoneDNN::run_pointwise_tensor);
@@ -2252,5 +2305,7 @@ TORCH_LIBRARY_IMPL(onednn, CPU, m) {
   m.impl(TORCH_SELECTIVE_NAME("onednn::qconv2d_pointwise.binary_tensor"), at::native::QConvoneDNN::run_pointwise_binary_tensor);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 } // namespace at::native

@@ -125,7 +125,11 @@ def make_test_case(
     assert callable(func), "not a callable"
     func = slowTest(func) if slow else func
 
+<<<<<<< HEAD
     @config.patch(cpp_wrapper=True)
+=======
+    @config.patch(cpp_wrapper=True, search_autotune_cache=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def fn(self):
         tests.setUpClass()
         tests.setUp()

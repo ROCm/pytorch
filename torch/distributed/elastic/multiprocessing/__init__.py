@@ -80,7 +80,10 @@ from torch.distributed.elastic.multiprocessing.api import (  # noqa: F401
     to_map,
 )
 from torch.distributed.elastic.utils.logging import get_logger
+<<<<<<< HEAD
 from torch.numa.binding import NumaOptions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -107,7 +110,10 @@ def start_processes(
     logs_specs: LogsSpecs,
     log_line_prefixes: Optional[dict[int, str]] = None,
     start_method: str = "spawn",
+<<<<<<< HEAD
     numa_options: Optional[NumaOptions] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> PContext:
     """
     Start ``n`` copies of ``entrypoint`` processes with the provided options.
@@ -141,8 +147,13 @@ def start_processes(
     For each process, the ``log_dir`` will contain:
 
     #. ``{local_rank}/error.json``: if the process failed, a file with the error info
+<<<<<<< HEAD
     #. ``{local_rank}/stdout.log``: if ``redirect & STDOUT == STDOUT``
     #. ``{local_rank}/stderr.log``: if ``redirect & STDERR == STDERR``
+=======
+    #. ``{local_rank}/stdout.json``: if ``redirect & STDOUT == STDOUT``
+    #. ``{local_rank}/stderr.json``: if ``redirect & STDERR == STDERR``
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note:: It is expected that the ``log_dir`` exists, is empty, and is a directory.
 
@@ -216,7 +227,10 @@ def start_processes(
             envs=envs,
             logs_specs=logs_specs,
             log_line_prefixes=log_line_prefixes,
+<<<<<<< HEAD
             numa_options=numa_options,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     else:
         context = MultiprocessContext(
@@ -227,7 +241,10 @@ def start_processes(
             log_line_prefixes=log_line_prefixes,
             start_method=start_method,
             logs_specs=logs_specs,
+<<<<<<< HEAD
             numa_options=numa_options,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     try:

@@ -361,7 +361,11 @@ def _get_aten_graph_module_for_pattern(
         example_inputs,
         kwargs,
         strict=True,
+<<<<<<< HEAD
     ).module(check_guards=False)
+=======
+    ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     aten_pattern.graph.eliminate_dead_code()  # type: ignore[operator, union-attr]
     aten_pattern.recompile()  # type: ignore[operator]

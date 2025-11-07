@@ -248,9 +248,15 @@ class _ReferenceConvBnNd(torch.nn.Conv2d, torch.nn.modules.conv._ConvNd):
             + cls._FLOAT_MODULE.__name__
         )
         if not qconfig:
+<<<<<<< HEAD
             assert hasattr(mod, "qconfig"), (
                 "Input float module must have qconfig defined"
             )
+=======
+            assert hasattr(
+                mod, "qconfig"
+            ), "Input float module must have qconfig defined"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert mod.qconfig, "Input float module must have a valid qconfig"
             qconfig = mod.qconfig
         conv, bn = mod[0], mod[1]

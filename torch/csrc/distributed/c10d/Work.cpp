@@ -1,6 +1,9 @@
 #include <ATen/ThreadLocalState.h>
 #include <distributed/c10d/ProcessGroup.hpp>
+<<<<<<< HEAD
 #include <torch/csrc/distributed/c10d/cuda/StreamBlock.hpp>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <torch/csrc/distributed/c10d/Work.hpp>
 #include <utility>
@@ -101,6 +104,7 @@ bool Work::wait(std::chrono::milliseconds timeout) {
   return true;
 }
 
+<<<<<<< HEAD
 void Work::blockCurrentStream() {
   // block cuda stream indefinitely until work is completed.
   std::shared_ptr<c10d::cuda::StreamBlock> handle =
@@ -110,6 +114,8 @@ void Work::blockCurrentStream() {
       [handle](c10::ivalue::Future& future) { handle->abort(); });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void Work::abort() {
   TORCH_CHECK(false, "Work::abort not implemented.");
 }

@@ -18,7 +18,10 @@ import sympy
 
 import torch
 import torch._logging
+<<<<<<< HEAD
 from torch._inductor.ir import MultiTemplateBuffer
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.tiling_utils import analyze_memory_coalescing
 from torch.fx.experimental.symbolic_shapes import free_unbacked_symbols
 from torch.fx.immutable_collections import immutable_dict
@@ -41,7 +44,10 @@ from ..dependencies import MemoryDep, StarDep, WeakDep
 if TYPE_CHECKING:
     from ..ir import IRNode
 
+<<<<<<< HEAD
 from ..debug import set_kernel_post_grad_provenance_tracing
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..optimize_indexing import indexing_dtype_strength_reduction
 from ..runtime.runtime_utils import green_text, yellow_text
 from ..scheduler import BaseSchedulerNode, BaseScheduling, WhyNoFuse
@@ -52,6 +58,10 @@ from ..utils import (
     IndentedBuffer,
     Placeholder,
     prefix_is_reduction,
+<<<<<<< HEAD
+=======
+    set_kernel_post_grad_provenance_tracing,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sympy_index_symbol,
     sympy_product,
     sympy_subs,
@@ -408,7 +418,10 @@ class SIMDKernel(Kernel[CSEVariableType], Generic[CSEVariableType]):
             else self.should_use_cooperative_reduction()
         )
         self.tiling_scores: Optional[dict[str, sympy.Expr]] = tiling_scores
+<<<<<<< HEAD
         self.tiling: dict[str, sympy.Expr] = tiling
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.persistent_reduction: bool = (
             override_persistent_reduction
             if override_persistent_reduction is not None
@@ -757,6 +770,7 @@ class SIMDKernel(Kernel[CSEVariableType], Generic[CSEVariableType]):
     def split_and_set_ranges(
         self, lengths: Sequence[Sequence[sympy.Expr]]
     ) -> list[list[sympy.Expr]]:
+<<<<<<< HEAD
         """
         Split and set iteration ranges for the kernel based on the provided lengths.
 
@@ -776,16 +790,23 @@ class SIMDKernel(Kernel[CSEVariableType], Generic[CSEVariableType]):
 
         # If we're not inside a reduction loop, set all reduction dimensions to 1
         # This effectively disables reduction dimensions when not needed
+=======
+        tiling = {rt.prefix: rt.numel for rt in self.range_trees}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.inside_reduction:
             for prefix in tiling:
                 if prefix_is_reduction(prefix):
                     tiling[prefix] = sympy.S.One
 
+<<<<<<< HEAD
         # Extract the values from the tiling dictionary to create groups
         groups = [*tiling.values()]
 
         # Map the kernel's group structure to the node's sizes and set the ranges
         # using the set_ranges method, returning the resulting iteration variables
+=======
+        groups = [*tiling.values()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.map_kernel_groups_to_node_sizes(groups, lengths, self.set_ranges)
 
     @classmethod
@@ -972,6 +993,7 @@ class SIMDKernel(Kernel[CSEVariableType], Generic[CSEVariableType]):
             return tuple(map(fn, value))
         return fn(value)
 
+<<<<<<< HEAD
     def estimate_flops(self) -> Optional[int]:
         flops = [
             node.estimate_flops()
@@ -979,6 +1001,8 @@ class SIMDKernel(Kernel[CSEVariableType], Generic[CSEVariableType]):
         ]
         return sum(filter(None, flops))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def estimate_kernel_num_bytes(self):
         """
         Try the best to estimate the total size (in bytes) of the
@@ -1423,6 +1447,7 @@ class SIMDScheduling(BaseScheduling):
             if buf.has_tensor_output()
         ]
 
+<<<<<<< HEAD
         for buf in buffers:
             if not buf.has_tensor_output() and isinstance(buf, ir.MutationOutput):
                 mutated_bufs = buf.get_mutation_buffers()
@@ -1432,14 +1457,22 @@ class SIMDScheduling(BaseScheduling):
                     if buf.has_tensor_output()
                 ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not all(expr_fits_within_32bit(size) for size in buf_sizes):
             return False
 
         # Only install guards for 32-bit indexing as there is no correctness
         # issue with using 64-bit for everything
+<<<<<<< HEAD
         V.graph.sizevars.check_leq(numel, int_max)  # type: ignore[arg-type]
         for size in buf_sizes:
             V.graph.sizevars.check_leq(size, int_max)  # type: ignore[arg-type]
+=======
+        V.graph.sizevars.guard_leq(numel, int_max)  # type: ignore[arg-type]
+        for size in buf_sizes:
+            V.graph.sizevars.guard_leq(size, int_max)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
 
     def codegen_node_schedule(self, kernel_features: SIMDKernelFeatures):
@@ -1459,17 +1492,28 @@ class SIMDScheduling(BaseScheduling):
         for kernel in kernels:
             self.codegen_node_schedule_with_kernel(node_schedule, kernel)
         MultiKernel.merge_workspaces_inplace(kernels)
+<<<<<<< HEAD
         debug_handles: list[tuple[str, Optional[int]]] = []
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for kernel in kernels:
             with V.set_kernel_handler(kernel):
                 src_code = kernel.codegen_kernel()
             kernel_name = self.define_kernel(src_code, node_schedule, kernel)
+<<<<<<< HEAD
             if config.trace.provenance_tracking_level != 0:
                 debug_handle = set_kernel_post_grad_provenance_tracing(
                     node_schedule,  # type: ignore[arg-type]
                     kernel_name,
                 )
                 debug_handles.append((kernel_name, debug_handle))
+=======
+            if config.trace.enabled:
+                set_kernel_post_grad_provenance_tracing(
+                    node_schedule,  # type: ignore[arg-type]
+                    kernel_name,
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             log.debug("Generating kernel code with kernel_name: %s", kernel_name)
             kernel.kernel_name = kernel_name
             kernel.code_hash = code_hash(src_code)
@@ -1486,10 +1530,13 @@ class SIMDScheduling(BaseScheduling):
                 node.mark_run()
 
         self.codegen_comment(node_schedule)
+<<<<<<< HEAD
         for kernel_name, debug_handle in debug_handles:
             V.graph.wrapper_code.write_provenance_debug_handle(
                 kernel_name, debug_handle
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         final_kernel.call_kernel(final_kernel.kernel_name)
 
         if config.nan_asserts:
@@ -1501,7 +1548,11 @@ class SIMDScheduling(BaseScheduling):
         V.graph.inplaced_to_remove |= final_kernel.inplaced_to_remove
 
         if (
+<<<<<<< HEAD
             V.graph.wrapper_code.supports_intermediate_hooks  # type: ignore[has-type]
+=======
+            V.graph.wrapper_code.supports_intermediate_hooks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and config.generate_intermediate_hooks
         ):
             # Not every node in the schedule will actually be live on output;
@@ -1565,6 +1616,7 @@ class SIMDScheduling(BaseScheduling):
                     index_vars = kernel.split_and_set_ranges(node.get_ranges())
                     node.codegen(index_vars)
 
+<<<<<<< HEAD
     def _codegen_single_template(
         self,
         kernel,
@@ -1578,6 +1630,20 @@ class SIMDScheduling(BaseScheduling):
         """
         Helper method to codegen a single template kernel variant
         """
+=======
+    def codegen_template(
+        self, template_node, epilogue_nodes, prologue_nodes, *, only_gen_src_code=False
+    ) -> Optional[str]:
+        """
+        Codegen a triton template
+
+        If `only_gen_src_code` the src code will be returned instead of codegen'd into the wrapper
+        """
+        _, (_numel, rnumel) = template_node.group
+        assert rnumel == 1
+        kernel, render = template_node.node.make_kernel_render(template_node.node)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         buf_name_to_prologue_group = {}
         template_reads = template_node.used_buffer_names()
         prologue_group = []
@@ -1641,9 +1707,13 @@ class SIMDScheduling(BaseScheduling):
                             kernel.cse.invalidate(OrderedSet())
 
         if not isinstance(partial_code, str):
+<<<<<<< HEAD
             # This is used to calculate flops in TritonTemplateKernels
             with ir.IRNode.current_origins(template_node.node.origins):
                 partial_code.finalize_hook("<DEF_KERNEL>")
+=======
+            partial_code.finalize_hook("<DEF_KERNEL>")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             partial_code.finalize_hook("<ARGDEFS>", strict=False)
         # finalize must be called after adding epilogue above
 
@@ -1655,6 +1725,7 @@ class SIMDScheduling(BaseScheduling):
                 partial_code.finalize_hook(subgraph_name, strict=False)
 
             with kernel.set_subgraph_body("<STORE_OUTPUT>"):
+<<<<<<< HEAD
                 if not isinstance(partial_code, str):
                     partial_code.finalize_hook("<STORE_OUTPUT>")
 
@@ -1665,6 +1736,13 @@ class SIMDScheduling(BaseScheduling):
                 # Note: some of these hooks may have been registered by a kernel subclass
                 src_code = partial_code.finalize_remaining()
 
+=======
+                if isinstance(partial_code, str):
+                    src_code = partial_code
+                else:
+                    partial_code.finalize_hook("<STORE_OUTPUT>")
+                    src_code = partial_code.code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             node_schedule = [*prologue_nodes, template_node, *epilogue_nodes]
 
             if config.benchmark_kernel:
@@ -1678,6 +1756,7 @@ class SIMDScheduling(BaseScheduling):
             if only_gen_src_code:
                 return src_code
 
+<<<<<<< HEAD
             kernel.kernel_name = self.define_kernel(src_code, node_schedule, kernel)
 
             if config.trace.provenance_tracking_level != 0:
@@ -1785,6 +1864,20 @@ class SIMDScheduling(BaseScheduling):
                 V.graph.inplaced_to_remove |= kernel.inplaced_to_remove
                 self.free_buffers_in_scheduler()
                 return None
+=======
+            kernel_name = self.define_kernel(src_code, node_schedule, kernel)
+
+            if config.trace.enabled:
+                set_kernel_post_grad_provenance_tracing(node_schedule, kernel_name)
+
+        self.codegen_comment(node_schedule)
+        kernel.call_kernel(kernel_name, template_node.node)
+
+        V.graph.removed_buffers |= kernel.removed_buffers
+        V.graph.inplaced_to_remove |= kernel.inplaced_to_remove
+        self.free_buffers_in_scheduler()
+        return None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_sync(self):
         V.graph.wrapper_code.writeline(V.graph.device_ops.synchronize())
@@ -1865,7 +1958,11 @@ class SIMDScheduling(BaseScheduling):
         for src_code, kernel, _ in kernel_code_list:
             kernel_name = self.define_kernel(src_code, [combo_kernel_node], kernel)
             # dump provenance node info for ComboKernelNode/ForeachKernel type
+<<<<<<< HEAD
             if config.trace.provenance_tracking_level != 0:
+=======
+            if config.trace.enabled:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 set_kernel_post_grad_provenance_tracing(
                     combo_kernel_node.snodes, kernel_name
                 )
@@ -2007,7 +2104,11 @@ class SIMDScheduling(BaseScheduling):
     @classmethod
     def create_tiling(
         cls, pw_tiling: Sequence[sympy.Expr], reduction_tiling: Sequence[sympy.Expr]
+<<<<<<< HEAD
     ) -> immutable_dict[str, sympy.Expr]:
+=======
+    ) -> dict[str, sympy.Expr]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Create a tiling dict from pointwise and reduction splits.
         """
@@ -2022,7 +2123,11 @@ class SIMDScheduling(BaseScheduling):
         cls,
         tiling: Sequence[sympy.Expr],
         is_pointwise: bool,
+<<<<<<< HEAD
     ) -> immutable_dict[str, sympy.Expr]:
+=======
+    ) -> dict[str, sympy.Expr]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls.create_tiling(
             tiling if is_pointwise else [],
             tiling if not is_pointwise else [],
@@ -2034,7 +2139,11 @@ class SIMDScheduling(BaseScheduling):
         tiling: dict[str, sympy.Expr],
         numel: sympy.Expr,
         reduction_numel: sympy.Expr,
+<<<<<<< HEAD
     ) -> immutable_dict[str, sympy.Expr]:
+=======
+    ) -> dict[str, sympy.Expr]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Given a tiling for only pointwise or reduction dimensions, adds the missing one.
         """
@@ -2055,7 +2164,11 @@ class SIMDScheduling(BaseScheduling):
         node_schedule,
         pointwise_numel,
         reduction_numel,
+<<<<<<< HEAD
     ) -> list[immutable_dict[str, sympy.Expr]]:
+=======
+    ) -> list[dict[str, tuple[sympy.Expr]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Creates N-dimensional tiling candidates, attempting to simplify loads/stores
         by tiling the kernel into higher dimensions.
@@ -2063,7 +2176,11 @@ class SIMDScheduling(BaseScheduling):
         Returns a list of tilings ranked by dimensionality.
         """
         is_pointwise = reduction_numel == 1
+<<<<<<< HEAD
         tilings = OrderedSet[immutable_dict[str, sympy.Expr]]()
+=======
+        tilings = OrderedSet[dict[str, sympy.Expr]]()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in EnableReduction.filter(node_schedule):
             if not isinstance(node, scheduler.SchedulerNode):
                 continue
@@ -2328,7 +2445,11 @@ class SIMDScheduling(BaseScheduling):
                     )
                 )
 
+<<<<<<< HEAD
         tilings: list[tuple[CandidateTiling, immutable_dict[str, sympy.Expr]]] = []
+=======
+        tilings: list[tuple[CandidateTiling, dict[str, sympy.Expr]]] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for (pw_split, pw_score), (red_split, red_score) in score_split:
             candidate = CandidateTiling(
                 cls.create_tiling(pw_split, red_split),
@@ -2557,9 +2678,13 @@ class SIMDScheduling(BaseScheduling):
     def ready_to_flush(self) -> bool:
         return False
 
+<<<<<<< HEAD
     def generate_kernel_code_from_nodes(
         self, nodes, benchmark_kernel=False, hint_override: Optional[int] = None
     ):
+=======
+    def generate_kernel_code_from_nodes(self, nodes, benchmark_kernel=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not any(n.is_template() for n in nodes):
             _, (numel, rnumel) = max(nodes, key=lambda x: int(x.is_reduction())).group
             node_schedule = self.generate_node_schedule(nodes, numel, rnumel)
@@ -2584,7 +2709,10 @@ class SIMDScheduling(BaseScheduling):
                     epilogue,
                     prologue,
                     only_gen_src_code=True,
+<<<<<<< HEAD
                     hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         src_code = src_code.replace(str(Placeholder.KERNEL_NAME), "triton_")

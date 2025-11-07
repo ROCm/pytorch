@@ -557,7 +557,11 @@ void TracingState::setValue(const IValue& v, Value* value) {
 
     // If the value comes from a CallFunction or CallMethod, it may not have
     // shape information attached. For debuggability, we enhance the type
+<<<<<<< HEAD
     // information by assigning the concrete value's type to the jit::Value.
+=======
+    // information by assigning the concrete value's tupe to the jit::Value.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (auto tensor_type = value->type()->cast<TensorType>()) {
       if (!tensor_type->isComplete()) {
         value->inferTypeFrom(var);

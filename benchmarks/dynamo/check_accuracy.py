@@ -14,9 +14,12 @@ flaky_models = {
     "detectron2_maskrcnn_r_101_c4",
     "timm_efficientnet",  # see https://github.com/pytorch/pytorch/issues/148699
     "XGLMForCausalLM",  # discovered in https://github.com/pytorch/pytorch/pull/128148
+<<<<<<< HEAD
     "moondream",  # discovered in https://github.com/pytorch/pytorch/pull/159291
     # discovered in https://github.com/pytorch/pytorch/issues/161419. Its not flaky but really hard to repro, so skipping it
     "mobilenetv3_large_100",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 

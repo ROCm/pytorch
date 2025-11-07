@@ -1652,7 +1652,11 @@ class TestNNParametrization(NNTestCase):
                 if can_initialize:
                     assert_weight_allclose_Q(m.weight, w_init)
 
+<<<<<<< HEAD
                 # Initializing with a given orthogonal matrix works
+=======
+                # Intializing with a given orthogonal matrix works
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 X = torch.randn_like(m.weight)
                 if wide_matrix:
                     X = X.mT
@@ -1669,7 +1673,11 @@ class TestNNParametrization(NNTestCase):
                     with self.assertRaisesRegex(NotImplementedError, msg):
                         m.weight = w_new
 
+<<<<<<< HEAD
                 # Initializing with a non-orthogonal matrix makes m.weight be the Q part of the given matrix
+=======
+                # Intializing with a non-orthogonal matrix makes m.weight be the Q part of the given matrix
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 w_new = torch.randn_like(m.weight)
                 if can_initialize:
                     m.weight = w_new

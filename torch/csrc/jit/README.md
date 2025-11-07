@@ -26,5 +26,9 @@ A brief summary of the source tree:
 **Refer** to each folder for more in-depth documentation.
 
 Other relevant parts of the codebase not contained here:
+<<<<<<< HEAD
 - [aten/src/ATen/core](../../../aten/src/ATen/core): contains JIT code reused by other elements of the
+=======
+- [aten/src/ATen/core](../../../aten/src/ATen/core): contains JIT code re-used by other elements of the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   runtime system (eager, mobile, etc.)

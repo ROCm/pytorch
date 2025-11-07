@@ -31,8 +31,12 @@ from torch.nn.utils.fusion import fuse_linear_bn_weights
 from torch.nn import Buffer, Parameter
 from torch.nn.parallel._functions import Broadcast
 from torch.testing._internal.common_dtype import integral_types, get_all_math_dtypes, floating_types
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, run_tests, TestCase, \
     skipIfNoLapack, skipIfRocm, \
+=======
+from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, run_tests, TestCase, skipIfNoLapack, skipIfRocm, \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_NUMPY, TEST_SCIPY, TEST_WITH_CROSSREF, TEST_WITH_ROCM, \
     download_file, get_function_arglist, load_tests, skipIfMPS, \
     IS_PPC, \
@@ -56,12 +60,20 @@ from torch.testing._internal.common_utils import _assertGradAndGradgradChecks, g
 from torch.testing._internal.common_utils import dtype2prec_DONTUSE
 from torch.testing._internal.common_cuda import tf32_on_and_off, tf32_off, tf32_on
 from torch.types import _TensorOrTensors
+<<<<<<< HEAD
 from torch.testing._internal.common_mkldnn import reduced_f32_on_and_off
+=======
+from torch.testing._internal.common_mkldnn import bf32_on_and_off
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 AMPERE_OR_ROCM = TEST_WITH_ROCM or torch.cuda.is_tf32_supported()
 
 if TEST_WITH_ROCM:
     os.environ["PYTORCH_MIOPEN_SUGGEST_NHWC"] = "1"
+<<<<<<< HEAD
+=======
+    os.environ["PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM"] = "1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # load_tests from common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
@@ -583,6 +595,7 @@ class TestNN(NNTestCase):
         m.buffer_name = Buffer(buffer3)
         self.assertEqual(m.buffer_name, Buffer(buffer3))
 
+<<<<<<< HEAD
     def test_register_buffer_allows_tensor_like_object(self):
         class TensorLike:
             @classmethod
@@ -599,6 +612,8 @@ class TestNN(NNTestCase):
         self.assertEqual(m.buffer_name, buffer2)
         self.assertEqual(m.get_buffer('buffer_name'), buffer2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_buffer(self):
         m = nn.Module()
         buffer1 = torch.randn(2, 3)
@@ -2033,7 +2048,11 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 eval_out0 = wrapped_m(input)
                 # assert eval gives same result as last training iteration
                 self.assertEqual(eval_out0, last_train_out)
+<<<<<<< HEAD
                 # assert doing more iteration in eval don't change things
+=======
+                # assert doing more iteartion in eval don't change things
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(eval_out0, wrapped_m(input))
                 self.assertEqual(last_train_u, m.weight_u)
                 self.assertEqual(last_train_v, m.weight_v)
@@ -3513,7 +3532,10 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             self.assertRaisesRegex(RuntimeError, re.escape("input.size(-1) must be equal to input_size"), rnn, x_wrong)
 
     @unittest.skipIf(not TEST_CUDNN, 'CUDNN not available')
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cudnn_weight_format(self):
         rnns = [
             nn.LSTM(10, 20, batch_first=True),
@@ -3521,7 +3543,12 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             nn.GRU(10, 20, batch_first=True),
             nn.RNN(10, 20, batch_first=True)
         ]
+<<<<<<< HEAD
         first_warn = True
+=======
+        # ROCm RNN does not issue warning about single contig chunk of memory, so don't assert it
+        first_warn = False if torch.version.hip else True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for rnn in rnns:
             rnn.cuda()
             input = torch.randn(5, 4, 10, requires_grad=True, device="cuda")
@@ -5147,6 +5174,20 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         self.assertTrue(torch.equal(running_mean, bn.running_mean))
         self.assertTrue(torch.equal(running_var, bn.running_var))
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_batchnorm_nhwc_cuda(self):
+        for dtype in (torch.half, torch.float):
+            (N, C, H, W) = 2, 64, 50, 50
+            model = torch.nn.BatchNorm2d(C, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+            model = model.eval().cuda().to(dtype)
+            inp1 = torch.randn(N, C, H, W, device=torch.device('cuda'), dtype=dtype)
+            inp2 = inp1.contiguous(memory_format=torch.channels_last)
+            out1 = model(inp1)
+            out2 = model(inp2)
+            self.assertEqual(out1, out2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     @parametrize_test("dims", [2, 3], name_fn=lambda x: f"{x}D")
@@ -5170,10 +5211,26 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             ("NCHW", "native", False, torch.float),
             ("NCHW", "native", True, torch.half),
             ("NCHW", "native", True, torch.bfloat16),
+<<<<<<< HEAD
+=======
+
+            ("NHWC", "cpu", False, torch.float),
+            ("NHWC", "cpu", True, torch.half),
+            ("NHWC", "cpu", True, torch.bfloat16),
+
+            ("NHWC", "native", False, torch.float),
+            ("NHWC", "native", True, torch.half),
+            ("NHWC", "native", True, torch.bfloat16),
+
+            ("NHWC", "NCHW", False, torch.float),
+            ("NHWC", "NCHW", True, torch.half),
+            ("NHWC", "NCHW", True, torch.bfloat16),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
         name_fn=lambda f, b, m, t: f"{f}_vs_{b}{'_mixed' if m else ''}_{dtype_name(t)}"
     )
     def test_batchnorm(self, dims, mode, memory_format, ref_backend, mixed, dtype):
+<<<<<<< HEAD
         if torch.version.cuda:
             if self._testMethodName in ("test_batchnorm_2D_train_NCHW_vs_cpu_mixed_bfloat16",
                                         "test_batchnorm_3D_train_NCHW_vs_cpu_mixed_bfloat16",
@@ -5201,6 +5258,24 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
             if self._testMethodName == "test_batchnorm_3D_train_NCHW_vs_native_mixed_float16":
                 self.skipTest("3D float16 NCHW train failed on ROCm")
+=======
+        if self._testMethodName == "test_batchnorm_3D_train_NCHW_vs_native_mixed_float16":
+           self.skipTest("3D float16 NCHW train failed on CUDA and ROCm due to Native batchnorm accuracy issue SWDEV-541024")
+        if torch.version.hip:
+            if self._testMethodName in ("test_batchnorm_2D_train_NHWC_vs_NCHW_mixed_bfloat16",
+                                    "test_batchnorm_2D_train_NCHW_vs_cpu_mixed_bfloat16",
+                                    "test_batchnorm_3D_train_NHWC_vs_NCHW_mixed_bfloat16",
+                                    "test_batchnorm_3D_train_NCHW_vs_cpu_mixed_bfloat16"
+                                    ) and _get_torch_rocm_version() < (6, 4):
+                # NCHW bfloat16 path uses native kernels for rocm<=6.3
+                # train failed on rocm<=6.3 due to native tolerance issue SWDEV-507600
+                self.skipTest("bfloat16 NHWC train failed on ROCm <= 6.3")
+
+            if self._testMethodName in ("test_batchnorm_2D_train_NCHW_vs_native_mixed_bfloat16",
+                                        "test_batchnorm_3D_train_NCHW_vs_native_mixed_bfloat16"
+                                        ) and _get_torch_rocm_version() >= (6, 4):
+                self.skipTest("bfloat16 NCHW train failed due to native tolerance issue SWDEV-507600")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if dims == 3 and memory_format in ("NHWC", "NCHW"):
             memory_format = memory_format + "3D"
@@ -5252,10 +5327,18 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             return ValueError("Unsupported memory_format")
 
         def _create_backend(inp: torch.Tensor, mixed: bool = False):
+<<<<<<< HEAD
             if inp.dim() == 4:
                 return nn.BatchNorm2d(inp.size(1), device=inp.device, dtype=torch.float if mixed else inp.dtype)
             else:
                 return nn.BatchNorm3d(inp.size(1), device=inp.device, dtype=torch.float if mixed else inp.dtype)
+=======
+
+            mod = nn.BatchNorm2d(inp.size(1), device=inp.device, dtype=torch.float if mixed else inp.dtype) \
+                if inp.dim() == 4 else \
+                    nn.BatchNorm3d(inp.size(1), device=inp.device, dtype=torch.float if mixed else inp.dtype)
+            return mod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def _test_batchnorm_train(inp, grad, mixed, ref_inp, ref_grad, ref_backend):
             mod = _create_backend(inp, mixed).train()
@@ -5296,6 +5379,28 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             _test_batchnorm_train(inp=inp, grad=grad, mixed=mixed,
                                   ref_inp=ref_inp, ref_grad=ref_grad, ref_backend=ref_backend)
 
+<<<<<<< HEAD
+=======
+            # TODO: enable permute logic later
+            # size = (2, 8, 8, 1)
+            # input = _create_tensor(size, memory_format, dtype, device="cuda").detach().requires_grad_()
+            # grad = _create_tensor(size, memory_format=torch.contiguous_format, dtype=dtype, device="cuda")
+            # # grad = _create_tensor(size, memory_format=memory_format, dtype=dtype, device="cuda")
+
+            # ref_input = input.detach().clone(memory_format=ref_memory_format).to(device=ref_device).requires_grad_(True)
+            # ref_grad = grad.detach().clone(memory_format=torch.contiguous_format).to(device=ref_device)
+            # # ref_grad = grad.detach().clone(memory_format=ref_memory_format).to(device=ref_device)
+
+            # if memory_format == torch.channels_last:
+            #     grad = grad.permute(0, 2, 1, 3)
+            #     # grad = grad.permute(0, 2, 3, 1)
+            # if ref_memory_format == torch.channels_last:
+            #     ref_grad = ref_grad.permute(0, 2, 1, 3)
+            #     # ef_grad = ref_grad.permute(0, 2, 3, 1)
+            # _test_batchnorm_train(input=input, grad=grad, mixed=mixed,
+            #                       ref_input=ref_input, ref_grad=ref_grad, ref_backend=ref_backend)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def _inference(memory_format_name, ref_backend, mixed, dtype):
             memory_format = _get_memory_format_from_name(memory_format_name)
             ref_memory_format = _get_backend_memory_format(ref_backend, memory_format)
@@ -5312,6 +5417,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 ref_out = ref_mod(ref_inp)
             self.assertEqual(out, ref_out)
 
+<<<<<<< HEAD
         if mode == "train":
             _train(memory_format, ref_backend, mixed, dtype)
         else:
@@ -5328,6 +5434,22 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             out1 = model(inp1)
             out2 = model(inp2)
             self.assertTrue(torch.equal(out1, out2))
+=======
+        # TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM once ROCm officially supports NHWC in MIOpen
+        PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM = "PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM"
+        prev_val = os.getenv(PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM)
+        try:
+            os.environ[PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM] = "1"
+            if mode == "train":
+                _train(memory_format, ref_backend, mixed, dtype)
+            else:
+                _inference(memory_format, ref_backend, mixed, dtype)
+        finally:
+            if prev_val is None:
+                del os.environ[PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM]
+            else:
+                os.environ[PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM] = prev_val
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_batchnorm_load_state_dict(self):
         bn = torch.nn.BatchNorm2d(3)
@@ -7435,7 +7557,10 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 if bias and elementwise_affine:
                     self.assertEqual(ln.bias.grad, ln_cuda.bias.grad, f"bias grad failed: {m=} {n=}", rtol=rtol, atol=atol)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @largeTensorTest("40GB", device="cuda")
     def test_layer_norm_large_tensor(self):
         # test for https://github.com/pytorch/pytorch/issues/136291
@@ -8299,7 +8424,11 @@ class TestNNDeviceType(NNTestCase):
                      "Scipy v1.0 and/or numpy not found")
     @expectedFailureMPS  # Unsupported Border padding mode https://github.com/pytorch/pytorch/issues/125098
     @tf32_on_and_off()
+<<<<<<< HEAD
     @reduced_f32_on_and_off()
+=======
+    @bf32_on_and_off()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_affine_2d_rotate0(self, device):
         # scipy before 1.0.0 do not support homogeneous coordinate
         # scipy.ndimage.affine_transform, so we need to skip.
@@ -8340,7 +8469,11 @@ class TestNNDeviceType(NNTestCase):
                      "Scipy v1.0 and/or numpy not found")
     @expectedFailureMPS  # Unsupported Border padding mode https://github.com/pytorch/pytorch/issues/125098
     @tf32_on_and_off(0.01 if TEST_WITH_ROCM else 0.001)
+<<<<<<< HEAD
     @reduced_f32_on_and_off(0.001)
+=======
+    @bf32_on_and_off(0.001)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_affine_2d_rotate90(self, device):
         # scipy before 1.0.0 do not support homogeneous coordinate
         # scipy.ndimage.affine_transform, so we need to skip.
@@ -8390,7 +8523,11 @@ class TestNNDeviceType(NNTestCase):
                      "Scipy v1.0 and/or numpy not found")
     @expectedFailureMPS  # Unsupported Border padding mode https://github.com/pytorch/pytorch/issues/125098
     @tf32_on_and_off(0.005)
+<<<<<<< HEAD
     @reduced_f32_on_and_off(0.005)
+=======
+    @bf32_on_and_off(0.005)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_affine_2d_rotate45(self, device):
         # scipy before 1.0.0 do not support homogeneous coordinate
         # scipy.ndimage.affine_transform, so we need to skip.
@@ -8468,7 +8605,11 @@ class TestNNDeviceType(NNTestCase):
                      "Scipy v1.0 and/or numpy not found")
     @expectedFailureMPS  # Unsupported Border padding mode https://github.com/pytorch/pytorch/issues/125098
     @tf32_on_and_off(0.05 if TEST_WITH_ROCM else 0.005)
+<<<<<<< HEAD
     @reduced_f32_on_and_off(0.005)
+=======
+    @bf32_on_and_off(0.005)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_affine_2d_rotateRandom(self, device):
         # scipy before 1.0.0 do not support homogeneous coordinate
         # scipy.ndimage.affine_transform, so we need to skip.
@@ -8519,8 +8660,14 @@ class TestNNDeviceType(NNTestCase):
 
     @unittest.skipIf((not TEST_NUMPY) or (not TEST_SCIPY) or (scipy.__version__ < '1.0.0'),
                      "Scipy v1.0 and/or numpy not found")
+<<<<<<< HEAD
     @tf32_on_and_off(0.05 if TEST_WITH_ROCM else 0.005)
     @reduced_f32_on_and_off(0.005)
+=======
+    @expectedFailureMPS  # aten::grid_sampler_3d not implemented https://github.com/pytorch/pytorch/issues/77764
+    @tf32_on_and_off(0.05 if TEST_WITH_ROCM else 0.005)
+    @bf32_on_and_off(0.005)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_affine_3d_rotateRandom(self, device):
         # scipy before 1.0.0 do not support homogeneous coordinate
         # scipy.ndimage.affine_transform, so we need to skip.
@@ -8573,7 +8720,10 @@ class TestNNDeviceType(NNTestCase):
 
             self.assertEqual(scipy_ary, gridsample_ary.reshape_as(scipy_ary))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCUDA
     @dtypes(torch.float, torch.half)
     def test_batchnorm_large_batch(self, device, dtype):
@@ -8768,6 +8918,7 @@ class TestNNDeviceType(NNTestCase):
 
         self.assertEqual(Y_ref, Y)
 
+<<<<<<< HEAD
     @onlyNativeDeviceTypes
     @dtypes(torch.float16, torch.bfloat16, torch.float32, torch.float64)
     @dtypesIfMPS(torch.float16, torch.bfloat16, torch.float32)
@@ -8793,6 +8944,8 @@ class TestNNDeviceType(NNTestCase):
 
         self.assertEqual(Y_ref, Y)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCPU
     def test_glu_bfloat16(self, device):
         def test_dtype(fn, input, dtype):
@@ -8945,7 +9098,10 @@ class TestNNDeviceType(NNTestCase):
             Y_cpu = group_norm(X.cpu())
             self.assertEqual(Y_cpu, Y, rtol=0, atol=1e-5)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Double is not supported on MPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.float64, torch.complex128)
     def test_pad(self, device, dtype):
@@ -8957,7 +9113,11 @@ class TestNNDeviceType(NNTestCase):
         # Should raise error when negative padding results in negative output shape
         self.assertRaises(RuntimeError, lambda: F.pad(inputs, (-3, -2), mode='circular'))
 
+<<<<<<< HEAD
         # assert that reflection padding errors when pad >= input size
+=======
+        # assert that relfection padding errors when pad >= input size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expected_err_msg = r"Padding size should be less than the corresponding input dimension"
         inputs = torch.randn(1, 1, 2, 3, device=device, dtype=dtype)
         self.assertRaisesRegex(RuntimeError, expected_err_msg,
@@ -8977,7 +9137,10 @@ class TestNNDeviceType(NNTestCase):
             out.fill_(4)
             self.assertTrue(torch.all(torch.abs(inputs) < 2))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Unsupported float64/complex128
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.float64, torch.complex128)
     def test_ReplicationPad_empty(self, device, dtype):
@@ -9116,7 +9279,10 @@ class TestNNDeviceType(NNTestCase):
         self.assertEqual(inp1.grad, torch.zeros_like(inp1))
         self.assertEqual(inp2.grad, torch.zeros_like(inp2))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Double not supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @expectedFailureMeta  # RuntimeError: cannot reshape tensor of 0 elements into shape [1, 0, -1]
     @onlyNativeDeviceTypes
     def test_TransformerEncoderLayer_empty(self, device):
@@ -9146,7 +9312,10 @@ class TestNNDeviceType(NNTestCase):
                     _test_module_empty_input(self, encoder_layer, input, check_size=False)
 
     @expectedFailureMeta  # RuntimeError: cannot reshape tensor of 0 elements into shape [1, 0, -1]
+<<<<<<< HEAD
     @expectedFailureMPS   # Float64 is not supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_TransformerEncoder_empty(self, device):
         for batch_first, input_shape in [(True, (0, 10, 512)),
@@ -9157,7 +9326,10 @@ class TestNNDeviceType(NNTestCase):
             _test_module_empty_input(self, transformer_encoder, input, check_size=False)
 
     @expectedFailureMeta  # RuntimeError: cannot reshape tensor of 0 elements into shape [1, 0, -1]
+<<<<<<< HEAD
     @expectedFailureMPS   # Float64 is not supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_TransformerDecoderLayer_empty(self, device):
         for batch_first, memory_shape, tgt_shape in [(True, (0, 10, 512), (0, 20, 512)),
@@ -9168,7 +9340,10 @@ class TestNNDeviceType(NNTestCase):
             self._test_module_empty_inputs(decoder_layer, [tgt, memory])
 
     @expectedFailureMeta  # RuntimeError: cannot reshape tensor of 0 elements into shape [1, 0, -1]
+<<<<<<< HEAD
     @expectedFailureMPS   # Float64 is not supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_TransformerDecoder_empty(self, device):
         for batch_first, memory_shape, tgt_shape in [(True, (0, 10, 512), (0, 20, 512)),
@@ -9180,7 +9355,10 @@ class TestNNDeviceType(NNTestCase):
             self._test_module_empty_inputs(transformer_decoder, [tgt, memory])
 
     @expectedFailureMeta  # RuntimeError: cannot reshape tensor of 0 elements into shape [1, 0, -1]
+<<<<<<< HEAD
     @expectedFailureMPS   # Float64 is not supported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_Transformer_empty(self, device):
         for batch_first, src_shape, tgt_shape in [(True, (10, 0, 512), (20, 0, 512))]:
@@ -9215,7 +9393,11 @@ class TestNNDeviceType(NNTestCase):
 
     @onlyNativeDeviceTypes
     def test_ReflectionPad_fails(self, device):
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, r'Padding size 2 is not supported for 4D input tensor'):
+=======
+        with self.assertRaisesRegex(RuntimeError, 'Only 2D, 3D, 4D, 5D'):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mod = torch.nn.ReflectionPad1d(2)
             inp = torch.randn(3, 3, 10, 10, device=device)
             mod(inp)
@@ -9224,7 +9406,11 @@ class TestNNDeviceType(NNTestCase):
             inp = torch.randn(3, 3, 10, 10, device=device)
             torch.ops.aten.reflection_pad1d(inp, (2, 2))
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, r'Padding size 4 is not supported for 5D input tensor'):
+=======
+        with self.assertRaisesRegex(RuntimeError, 'Only 2D, 3D, 4D, 5D'):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mod = torch.nn.ReflectionPad2d(2)
             inp = torch.randn(3, 3, 10, 10, 10, device=device)
             mod(inp)
@@ -9233,7 +9419,11 @@ class TestNNDeviceType(NNTestCase):
             inp = torch.randn(3, 3, 10, 10, 10, device=device)
             torch.ops.aten.reflection_pad2d(inp, (2, 2, 2, 2))
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, r'Padding size 6 is not supported for 6D input tensor'):
+=======
+        with self.assertRaisesRegex(RuntimeError, 'Only 2D, 3D, 4D, 5D'):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mod = torch.nn.ReflectionPad3d(3)
             inp = torch.randn(3, 3, 10, 10, 10, 10, device=device)
             mod(inp)
@@ -9316,7 +9506,10 @@ class TestNNDeviceType(NNTestCase):
 
             self.assertEqual(x.grad, ref_x.grad)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Unimplemented margin_loss
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.float, torch.double)
     def test_MarginLoss_empty(self, device, dtype):
@@ -9345,6 +9538,7 @@ class TestNNDeviceType(NNTestCase):
                 mod(x, y)
 
     @onlyCUDA
+<<<<<<< HEAD
     @dtypes(torch.float, torch.double)
     def test_MarginLoss_race(self, device, dtype):
         loss = torch.nn.MultiMarginLoss().to(device)
@@ -9364,6 +9558,8 @@ class TestNNDeviceType(NNTestCase):
         self.assertEqual(x_cpu.grad, x.grad.cpu())
 
     @onlyCUDA
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_MarginLoss_warnings(self, device):
         model = torch.nn.Linear(128, 22, device=device)
         loss = torch.nn.MultiMarginLoss()
@@ -9376,6 +9572,7 @@ class TestNNDeviceType(NNTestCase):
             l.backward()
         self.assertTrue(len(f.getvalue()) == 0)
 
+<<<<<<< HEAD
     @onlyCUDA
     def test_mse_loss_error(self, device):
         i = torch.randn((10, 1), device=device)
@@ -9384,6 +9581,8 @@ class TestNNDeviceType(NNTestCase):
             F.mse_loss(i, t)
 
     @expectedFailureMPS   # TODO: Fixme, and raise assert on empty tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_Unfold_empty(self, device):
         inp = torch.randn(0, 3, 3, 4, device=device)
@@ -9607,7 +9806,10 @@ class TestNNDeviceType(NNTestCase):
                     verify_reduction_scalars(input, reduction, output)
 
     # verify that bogus reduction strings are errors
+<<<<<<< HEAD
     @expectedFailureMPS  # CTCLoss unimplemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_invalid_reduction_strings(self, device):
         input = torch.randn(3, 5, requires_grad=True, device=device)
@@ -10094,7 +10296,10 @@ class TestNNDeviceType(NNTestCase):
     @parametrize_test("align_corners", [True, False])
     @parametrize_test("mode", ["bilinear", "bicubic"])
     @parametrize_test("memory_format", [torch.contiguous_format, torch.channels_last])
+<<<<<<< HEAD
     @expectedFailureMPS  # double device type
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_upsamplingBiMode2d(self, device, antialias, align_corners, mode, memory_format):
         # Forward AD does not support XLA because XLA tensors don't have storage
@@ -10164,7 +10369,10 @@ class TestNNDeviceType(NNTestCase):
     @parametrize_test("num_channels", [3, 5])
     @parametrize_test("mode", ["nearest", "nearest-exact", "bilinear", "bicubic"])
     @parametrize_test("dtype", integral_types() + floating_types())
+<<<<<<< HEAD
     @skipIfMPS  # Error message is wrong for some dtypes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_upsamplingBiMode2d_nonsupported_dtypes(self, device, antialias, num_channels, mode, dtype):
         x = torch.ones(1, num_channels, 32, 32, dtype=dtype, device=device)
@@ -11094,7 +11302,11 @@ class TestNNDeviceType(NNTestCase):
     @onlyCUDA
     @dtypes(torch.double)
     def test_lstmcell_backward_only_one_output_grad(self, device, dtype):
+<<<<<<< HEAD
         # checks that undefined gradients doesn't hamper the backward
+=======
+        # checks that undefined gradients doen't hamper the backward
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # see #11872
         l = torch.nn.LSTMCell(2, 3).to(device).to(dtype=dtype)
         s = torch.randn(1, 2, device=device, dtype=dtype, requires_grad=True)
@@ -11487,7 +11699,10 @@ class TestNNDeviceType(NNTestCase):
         self.assertTrue(gradcheck(F.hardsigmoid, (inputs,)))
 
     # currently fails on XLA
+<<<<<<< HEAD
     @expectedFailureMPS  # TypeError: the MPS framework doesn't support float64
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_hardswish_grad(self, device):
         inputs = (torch.randn(4, 16, 16, device=device, dtype=torch.double) - 0.5) * 10
@@ -11695,7 +11910,10 @@ class TestNNDeviceType(NNTestCase):
                 self._test_batchnorm_simple_average(device, dtype, torch.float)
 
     @onlyNativeDeviceTypes
+<<<<<<< HEAD
     @expectedFailureMPS  # Unsupported Border padding mode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float, torch.double)
     def test_grid_sample_nan_inf(self, device, dtype):
         input = torch.zeros([1, 1, 3, 3], device=device, dtype=dtype)
@@ -12045,6 +12263,7 @@ class TestNNDeviceType(NNTestCase):
     def test_softmax_bfloat16(self, device):
         for dim in [0, 1, 2, 3]:
             _test_bfloat16_ops(self, torch.nn.Softmax(dim=dim), device, inp_dims=(16, 33, 15, 16), prec=1e-2)
+<<<<<<< HEAD
             # test softmax with large input value which causes exp() to overflow
             _test_bfloat16_ops(self, torch.nn.Softmax(dim=dim), device, inp_dims=(16, 33, 15, 16), prec=0.05, scale_factor=1000.0)
 
@@ -12054,6 +12273,11 @@ class TestNNDeviceType(NNTestCase):
         with self.assertRaisesRegex(ValueError, "For 1D input, 1D target must have size 1"):
             F.nll_loss(x, t)
 
+=======
+            # test softmax with large input value which casues exp() to overflow
+            _test_bfloat16_ops(self, torch.nn.Softmax(dim=dim), device, inp_dims=(16, 33, 15, 16), prec=0.05, scale_factor=1000.0)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nll_loss_mismatched_batch(self, device):
         x = torch.randn((10, 3), requires_grad=True, device=device)
         # t should have size (10,)
@@ -12382,7 +12606,11 @@ if __name__ == '__main__':
             input = torch.randn(N, C, *other_dims, device=device, requires_grad=True)
             target = torch.empty(N, *other_dims, dtype=torch.long, device=device).random_(0, C)
 
+<<<<<<< HEAD
             # construct target probability that should have the same result as label_smoothing
+=======
+            # construct target probablity that should have the same result as label_smoothing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             target_proba = F.one_hot(target, num_classes=C)
             # Need to put the C dim at index 1.
             target_proba = target_proba.permute(0, -1, *range(1, target_proba.dim() - 1))
@@ -12814,7 +13042,10 @@ if __name__ == '__main__':
         F.threshold(x, 0.5, 0.5, inplace=True)
         F.threshold_(x, 0.5, 0.5)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Double is unsupported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_triplet_margin_with_distance_loss_default_parity(self, device):
         # Test for `nn.TripletMarginWithDistanceLoss` and
@@ -12849,7 +13080,10 @@ if __name__ == '__main__':
             self.assertTrue(gradcheck(lambda a, p, n: loss_op(a, p, n),
                             (anchor, positive, negative)))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Double is unsupported
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_triplet_margin_with_distance_loss(self, device):
         # Test for parity between `nn.TripletMarginWithDistanceLoss` and

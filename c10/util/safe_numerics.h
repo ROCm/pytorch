@@ -1,7 +1,10 @@
 #pragma once
 #include <c10/macros/Macros.h>
 
+<<<<<<< HEAD
 #include <cstddef>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cstdint>
 
 // GCC has __builtin_mul_overflow from before it supported __has_builtin
@@ -32,6 +35,7 @@ C10_ALWAYS_INLINE bool add_overflows(uint64_t a, uint64_t b, uint64_t* out) {
 #endif
 }
 
+<<<<<<< HEAD
 template <typename T>
 C10_ALWAYS_INLINE bool mul_overflows(T a, T b, T* out) {
 #if C10_HAS_BUILTIN_OVERFLOW()
@@ -62,6 +66,30 @@ C10_ALWAYS_INLINE bool mul_overflows(T a, T b, T* out) {
 
 C10_ALWAYS_INLINE bool mul_overflows(uint64_t a, uint64_t b, uint64_t* out) {
   return mul_overflows<uint64_t>(a, b, out);
+=======
+C10_ALWAYS_INLINE bool mul_overflows(uint64_t a, uint64_t b, uint64_t* out) {
+#if C10_HAS_BUILTIN_OVERFLOW()
+  return __builtin_mul_overflow(a, b, out);
+#else
+  *out = a * b;
+  // This test isn't exact, but avoids doing integer division
+  return (
+      (c10::llvm::countLeadingZeros(a) + c10::llvm::countLeadingZeros(b)) < 64);
+#endif
+}
+
+C10_ALWAYS_INLINE bool mul_overflows(int64_t a, int64_t b, int64_t* out) {
+#if C10_HAS_BUILTIN_OVERFLOW()
+  return __builtin_mul_overflow(a, b, out);
+#else
+  volatile int64_t tmp = a * b;
+  *out = tmp;
+  if (a == 0 || b == 0) {
+    return false;
+  }
+  return !(a == tmp / b);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename It>

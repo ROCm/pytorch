@@ -1,11 +1,18 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 """Implementation of reduction operations, to be wrapped into arrays, dtypes etc
+=======
+""" Implementation of reduction operations, to be wrapped into arrays, dtypes etc
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 in the 'public' layer.
 
 Anything here only deals with torch objects, e.g. "dtype" is a torch.dtype instance etc
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import functools

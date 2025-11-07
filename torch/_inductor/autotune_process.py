@@ -31,12 +31,16 @@ from torch._inductor.codecache import (
     get_hash,
     PyCodeCache,
 )
+<<<<<<< HEAD
 from torch._inductor.utils import (
     get_gpu_type,
     get_ld_library_path,
     is_gpu,
     python_subprocess_env,
 )
+=======
+from torch._inductor.utils import get_gpu_type, get_ld_library_path, is_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import getArtifactLogger
 from torch.utils._ordered_set import OrderedSet
 
@@ -44,7 +48,11 @@ from torch.utils._ordered_set import OrderedSet
 if TYPE_CHECKING:
     from types import ModuleType
 
+<<<<<<< HEAD
     from torch._inductor.select_algorithm import PartialRender, TritonTemplateCaller
+=======
+    from torch._inductor.select_algorithm import TritonTemplateCaller
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from . import config
 from .runtime.benchmarking import benchmarker
@@ -128,8 +136,16 @@ class TuningProcess:
             f"--read-fd={str(subproc_read_fd)}",
             f"--write-fd={str(subproc_write_fd)}",
         ]
+<<<<<<< HEAD
         env = {
             **python_subprocess_env(),
+=======
+        extra_env = {
+            # We need to set the PYTHONPATH so the subprocess can find torch.
+            "PYTHONPATH": os.environ.get(
+                "TORCH_CUSTOM_PYTHONPATH", os.pathsep.join(sys.path)
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # We shouldn't be using the Triton async compile subprocess pool,
             # but as a precaution set the env var that disables its creation.
             "TORCH_WARM_POOL": "0",
@@ -141,10 +157,17 @@ class TuningProcess:
             else "0",
         }
         if self.device is not None:
+<<<<<<< HEAD
             env[CUDA_VISIBLE_DEVICES] = str(self.device)
         self.process = subprocess.Popen(
             cmd,
             env=env,
+=======
+            extra_env[CUDA_VISIBLE_DEVICES] = str(self.device)
+        self.process = subprocess.Popen(
+            cmd,
+            env={**os.environ, **extra_env},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pass_fds=(subproc_read_fd, subproc_write_fd),
         )
         os.close(subproc_read_fd)
@@ -766,7 +789,11 @@ class CUDABenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
             return
         self.ensure_dll_loaded()
         unique_input_count = len(
+<<<<<<< HEAD
             dict.fromkeys(meta.name for meta in self.input_tensor_meta)
+=======
+            {meta.name for meta in self.input_tensor_meta}  # noqa: set_linter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         args = [c_void_p(None) for _ in range(unique_input_count + 1)]
         stream_ptr = c_void_p(torch.cuda.current_stream().cuda_stream)
@@ -876,6 +903,7 @@ class CppBenchmarkRequest(CPUDeviceBenchmarkMixin, BenchmarkRequest):
         return f"{self.kernel_name=}"
 
 
+<<<<<<< HEAD
 class CuteDSLBenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
     """Benchmark request for CuteDSL (CUTLASS Python DSL) kernels."""
 
@@ -925,6 +953,8 @@ class CuteDSLBenchmarkRequest(GPUDeviceBenchmarkMixin, BenchmarkRequest):
         """Clean up any resources used by the kernel."""
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.cache
 def get_tuning_process_pool() -> TuningProcessPool:
     pool = TuningProcessPool()

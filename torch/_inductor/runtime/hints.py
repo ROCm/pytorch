@@ -13,7 +13,11 @@ from torch.utils._triton import has_triton_package
 # The following maximums only apply to runtime autotuning, when using FixedTritonConfig one may see larger values
 # NOTE: if these fail asserts submit a PR to increase them
 TRITON_MAX_BLOCK = {
+<<<<<<< HEAD
     "X": 8192,
+=======
+    "X": 4096,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "Y": 1024,
     "Z": 1024,
     "R0_": 4096 * 16,  # * 16 is multi-kernel only
@@ -153,8 +157,14 @@ class DeviceProperties(typing.NamedTuple):
         except AttributeError:
             if device_type == "xpu":
                 multi_processor_count = props.gpu_subslice_count
+<<<<<<< HEAD
             elif device_type == "mtia":
                 multi_processor_count = 64
+=======
+            elif device_type == "mps":
+                # TODO: Fetch the actual value from ioreg
+                multi_processor_count = 8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 raise
         return cls(

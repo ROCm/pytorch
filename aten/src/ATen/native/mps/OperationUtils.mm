@@ -89,6 +89,13 @@ void runMPSGraph(MPSStream* mpsStream, MPSGraph* mpsGraph, NSDictionary* feeds, 
   mpsStream->executeMPSGraph(mpsGraph, feeds, results, SyncType::COMMIT_ADAPTIVE);
 }
 
+<<<<<<< HEAD
+=======
+static inline void checkSupportsComplex() {
+  TORCH_CHECK_TYPE(supportsComplex(), "MPS complex types are only supported on MacOS 14.0 or newer.");
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MPSDataType getMPSDataType(ScalarType scalar_type) {
   switch (scalar_type) {
     case ScalarType::Float:
@@ -96,6 +103,10 @@ MPSDataType getMPSDataType(ScalarType scalar_type) {
     case ScalarType::Half:
       return MPSDataTypeFloat16;
     case ScalarType::BFloat16:
+<<<<<<< HEAD
+=======
+      checkSupportsBFloat16();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return MPSDataTypeBFloat16;
     case ScalarType::Int:
       return MPSDataTypeInt32;
@@ -114,6 +125,7 @@ MPSDataType getMPSDataType(ScalarType scalar_type) {
                        "Cannot convert a float64 Tensor to MPS as the MPS framework doesn't support float64. "
                        "Please use float32 instead.")
     case ScalarType::ComplexHalf:
+<<<<<<< HEAD
       return MPSDataTypeComplexFloat16;
     case ScalarType::ComplexFloat:
       return MPSDataTypeComplexFloat32;
@@ -124,6 +136,13 @@ MPSDataType getMPSDataType(ScalarType scalar_type) {
       return MPSDataTypeUInt32;
     case ScalarType::UInt16:
       return MPSDataTypeUInt16;
+=======
+      checkSupportsComplex();
+      return MPSDataTypeComplexFloat16;
+    case ScalarType::ComplexFloat:
+      checkSupportsComplex();
+      return MPSDataTypeComplexFloat32;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       TORCH_CHECK_TYPE(
           false, "Trying to convert ", scalar_type, " to the MPS backend but it does not have support for that dtype.")
@@ -133,10 +152,23 @@ MPSDataType getMPSDataType(ScalarType scalar_type) {
 // #issue 104398441 sortWithTensor and argsortWithTensor has support of
 // Int32, Half and Float32 types. These utilities are to help cast to these
 // types.
+<<<<<<< HEAD
 MPSGraphTensor* castToIHFTypes(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor, const TensorBase& input) {
   MPSDataType dataType = getMPSDataType(input.scalar_type());
   bool condition = (dataType != MPSDataTypeInt32) && (dataType != MPSDataTypeFloat32) &&
       (dataType != MPSDataTypeFloat16) && (dataType != MPSDataTypeInt64);
+=======
+MPSGraphTensor* castToIHFTypes(MPSGraph* mpsGraph,
+                               MPSGraphTensor* inputTensor,
+                               const TensorBase& input,
+                               bool includesInt64) {
+  MPSDataType dataType = getMPSDataType(input.scalar_type());
+  bool condition =
+      (dataType != MPSDataTypeInt32) && (dataType != MPSDataTypeFloat32) && (dataType != MPSDataTypeFloat16);
+  if (includesInt64) {
+    condition = condition && (dataType != MPSDataTypeInt64);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (condition) {
     dataType = (dataType & MPSDataTypeFloatBit) ? MPSDataTypeFloat32 : MPSDataTypeInt32;
     return [mpsGraph castTensor:inputTensor toType:dataType name:@"castInputTensor"];
@@ -147,10 +179,23 @@ MPSGraphTensor* castToIHFTypes(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor, 
 // #issue 104398441 sortWithTensor and argsortWithTensor has support of
 // Int32, Half and Float32 types. These utilities are to help cast from these
 // types.
+<<<<<<< HEAD
 MPSGraphTensor* castFromIHFTypes(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor, const TensorBase& input) {
   MPSDataType dataType = getMPSDataType(input.scalar_type());
   bool condition = (dataType != MPSDataTypeInt32) && (dataType != MPSDataTypeFloat32) &&
       (dataType != MPSDataTypeFloat16) && (dataType != MPSDataTypeInt64);
+=======
+MPSGraphTensor* castFromIHFTypes(MPSGraph* mpsGraph,
+                                 MPSGraphTensor* inputTensor,
+                                 const TensorBase& input,
+                                 bool includesInt64) {
+  MPSDataType dataType = getMPSDataType(input.scalar_type());
+  bool condition =
+      (dataType != MPSDataTypeInt32) && (dataType != MPSDataTypeFloat32) && (dataType != MPSDataTypeFloat16);
+  if (includesInt64) {
+    condition = condition && (dataType != MPSDataTypeInt64);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (condition) {
     inputTensor = [mpsGraph castTensor:inputTensor toType:dataType name:@"castInputTensor"];
   }
@@ -167,6 +212,10 @@ MPSDataType getMPSScalarType(ScalarType scalar_type) {
     case ScalarType::Half:
       return MPSDataTypeFloat16;
     case ScalarType::BFloat16:
+<<<<<<< HEAD
+=======
+      checkSupportsBFloat16();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return MPSDataTypeBFloat16;
     case ScalarType::Int:
       return MPSDataTypeInt32;
@@ -181,11 +230,16 @@ MPSDataType getMPSScalarType(ScalarType scalar_type) {
     case ScalarType::Bool:
       return MPSDataTypeBool;
     case ScalarType::ComplexHalf:
+<<<<<<< HEAD
+=======
+      checkSupportsComplex();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return MPSDataTypeComplexFloat16;
     // This is an intentional fallthrough supporting ComplexDouble for Scalar
     // types as they are casted to Complex64 currently.
     case ScalarType::ComplexDouble:
     case ScalarType::ComplexFloat:
+<<<<<<< HEAD
       return MPSDataTypeComplexFloat32;
     // Unsigned types
     case ScalarType::UInt64:
@@ -194,6 +248,10 @@ MPSDataType getMPSScalarType(ScalarType scalar_type) {
       return MPSDataTypeUInt32;
     case ScalarType::UInt16:
       return MPSDataTypeUInt16;
+=======
+      checkSupportsComplex();
+      return MPSDataTypeComplexFloat32;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       TORCH_CHECK_TYPE(
           false, "Trying to convert ", scalar_type, " to the MPS backend but it does not have support for that dtype.")
@@ -226,6 +284,7 @@ std::string getMPSTypeString(ScalarType scalar_type, bool short_name) {
       return short_name ? "c16" : "ComplexFloat16";
     case ScalarType::ComplexFloat:
       return short_name ? "c32" : "ComplexFloat32";
+<<<<<<< HEAD
     // Unsigned types
     case ScalarType::UInt64:
       return short_name ? "u64" : "UInt64";
@@ -233,6 +292,8 @@ std::string getMPSTypeString(ScalarType scalar_type, bool short_name) {
       return short_name ? "u32" : "UInt32";
     case ScalarType::UInt16:
       return short_name ? "u16" : "UInt16";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       return "Undefined";
   }
@@ -245,6 +306,10 @@ std::string scalarToMetalTypeString(const c10::ScalarType& scalar_type) {
     case ScalarType::Half:
       return "half";
     case ScalarType::BFloat16:
+<<<<<<< HEAD
+=======
+      checkSupportsBFloat16();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return "bfloat";
     case ScalarType::Int:
       return "int";
@@ -262,6 +327,7 @@ std::string scalarToMetalTypeString(const c10::ScalarType& scalar_type) {
       return "half2";
     case ScalarType::ComplexFloat:
       return "float2";
+<<<<<<< HEAD
     // Unsigned types
     case ScalarType::UInt64:
       return "ulong";
@@ -269,6 +335,8 @@ std::string scalarToMetalTypeString(const c10::ScalarType& scalar_type) {
       return "uint";
     case ScalarType::UInt16:
       return "ushort";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       TORCH_CHECK(false, "Undefined type ", scalar_type);
       return "Undefined";
@@ -332,7 +400,11 @@ std::string getTensorsStringKey(const TensorList& tensors, bool short_dtype, boo
         if (exclude_shape) {
           fmt::format_to(buf_iterator, "-1");
         } else {
+<<<<<<< HEAD
           fmt::format_to(buf_iterator, "{}", getArrayRefString(tensor.sizes()));
+=======
+          fmt::format_to(buf_iterator, getArrayRefString(tensor.sizes()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
       }
       fmt::format_to(buf_iterator, "]");
@@ -382,6 +454,39 @@ MPSShape* getMPSShape(IntArrayRef sizes, c10::MemoryFormat memory_format) {
   return [NSArray arrayWithObjects:numbers.data() count:numbers.size()];
 }
 
+<<<<<<< HEAD
+=======
+void printTensorNDArray(const TensorBase& t) {
+  if (!t.is_mps())
+    return;
+  if (t.numel() == 0)
+    return;
+  // Get shape and data type
+  auto selfShape = getMPSShape(t);
+  auto selfDType = getMPSDataType(t.scalar_type());
+
+  // Initialize data
+  id<MTLBuffer> selfBuf = getMTLBufferStorage(t);
+  MPSGraphTensorData* tdata = [[[MPSGraphTensorData alloc] initWithMTLBuffer:selfBuf shape:selfShape
+                                                                    dataType:selfDType] autorelease];
+  C10_CLANG_DIAGNOSTIC_PUSH()
+#if C10_CLANG_HAS_WARNING("-Wobjc-method-access")
+  C10_CLANG_DIAGNOSTIC_IGNORE("-Wobjc-method-access")
+#endif
+  [tdata printNDArray];
+  C10_CLANG_DIAGNOSTIC_POP()
+}
+
+MPSNDArray* ndArrayFromTensor(const TensorBase& tensor, MPSShape* shape, MPSDataType mpsType) {
+  id<MTLBuffer> buffer = getMTLBufferStorage(tensor);
+  MPSGraphTensorData* tmpGraphTensorData = [[[MPSGraphTensorData alloc] initWithMTLBuffer:buffer
+                                                                                    shape:shape
+                                                                                 dataType:mpsType] autorelease];
+
+  return [tmpGraphTensorData mpsndarray];
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::vector<int64_t> getSortedStrides(const IntArrayRef& s) {
   std::vector<int64_t> idx(s.size());
   iota(idx.begin(), idx.end(), 0);
@@ -432,6 +537,7 @@ static MPSNDArray* permuteNDArray(MPSNDArray* inArray, const std::vector<int64_t
   return result;
 }
 
+<<<<<<< HEAD
 // Should be called before initWithBuffer to prevent hard crashes with
 // '[MPSNDArray initWithDevice:descriptor:isTextureBacked:] Error: NDArray dimension length > INT_MAX'
 static void check_mps_shape(MPSShape* shape) {
@@ -441,13 +547,18 @@ static void check_mps_shape(MPSShape* shape) {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MPSNDArray* getMPSNDArray(const TensorBase& t, MPSShape* sizes, MPSShape* strides) {
   id<MTLBuffer> srcBuf = getMTLBufferStorage(t);
 
   MPSDataType mpsDataType = getMPSDataType(t.scalar_type());
   MPSNDArrayDescriptor* srcTensorDesc = [MPSNDArrayDescriptor descriptorWithDataType:mpsDataType shape:sizes];
   srcTensorDesc.preferPackedRows = YES;
+<<<<<<< HEAD
   check_mps_shape(sizes);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   MPSNDArray* srcNDArray = [[[MPSNDArray alloc] initWithBuffer:srcBuf
                                                         offset:t.storage_offset() * t.element_size()
                                                     descriptor:srcTensorDesc] autorelease];
@@ -557,9 +668,15 @@ Placeholder::Placeholder(MPSGraphTensor* mpsGraphTensor,
   // Tensor is contiguous and has no storage offset.
   // Wrap it directly inside MPSGraphTensorData
   if ((_tensor.is_contiguous() && !_tensor.storage_offset()) || !useMPSStridedAPI || !is_macOS_15_0_or_newer) {
+<<<<<<< HEAD
     auto shape = mpsShape_ ? mpsShape_ : getMPSShape(_tensor);
     check_mps_shape(shape);
     _value = [[[MPSGraphTensorData alloc] initWithMTLBuffer:srcBuf shape:shape dataType:dataType] autorelease];
+=======
+    _value = [[[MPSGraphTensorData alloc] initWithMTLBuffer:srcBuf
+                                                      shape:mpsShape_ ? mpsShape_ : getMPSShape(_tensor)
+                                                   dataType:dataType] autorelease];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     IntArrayRef view_shape;
     if (mpsShape_) {
@@ -568,11 +685,16 @@ Placeholder::Placeholder(MPSGraphTensor* mpsGraphTensor,
 
     MPSShape* mpsShape = getMPSShape(_tensor);
     MPSShape* mpsStrides = getMPSShape(_tensor.strides());
+<<<<<<< HEAD
     check_mps_shape(mpsShape);
 
     auto storage_numel = src.storage().nbytes() / src.element_size();
     TORCH_CHECK(storage_numel <= std::numeric_limits<int32_t>::max(),
                 "MPSGaph does not support tensor dims larger than INT_MAX");
+=======
+
+    auto storage_numel = src.storage().nbytes() / src.element_size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPSNDArrayDescriptor* srcTensorDesc = [MPSNDArrayDescriptor descriptorWithDataType:dataType
                                                                                  shape:@[ @(storage_numel) ]];
     srcTensorDesc.preferPackedRows = YES;
@@ -656,11 +778,14 @@ MPSScalar getMPSScalar(const Scalar& scalar, ScalarType type) {
     case ScalarType::ComplexFloat:
     case ScalarType::ComplexDouble:
       return {.size = sizeof(int64_t), .type = type, .value.cf = scalar.to<c10::complex<float>>()};
+<<<<<<< HEAD
     // Unsigned types
     case ScalarType::UInt32:
       return {.size = sizeof(uint32_t), .type = type, .value.i = scalar.to<uint32_t>()};
     case ScalarType::UInt16:
       return {.size = sizeof(uint16_t), .type = type, .value.i = scalar.to<uint16_t>()};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     default:
       TORCH_INTERNAL_ASSERT(false, "Unsupported scalar type '", type, "' on MPS backend.");
   }
@@ -856,7 +981,13 @@ id<MTLLibrary> MetalShaderLibrary::compileLibrary(const std::string& src) {
   MTLCompileOptions* options = compile_options;
   if (!options) {
     options = [[MTLCompileOptions new] autorelease];
+<<<<<<< HEAD
     [options setLanguageVersion:MTLLanguageVersion3_1];
+=======
+    // Need 3.0 for atomic oprations, 3.1 introduces bfloat support
+    [options setLanguageVersion:is_macos_13_or_newer(MacOSVersion::MACOS_VER_14_0_PLUS) ? MTLLanguageVersion3_1
+                                                                                        : MTLLanguageVersion3_0];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (is_macos_13_or_newer(MacOSVersion::MACOS_VER_15_0_PLUS)) {
       options.mathMode = fast_math ? MTLMathModeFast : MTLMathModeSafe;
       options.mathFloatingPointFunctions =
@@ -928,7 +1059,12 @@ class BundledShaderLibary : public MetalShaderLibrary {
     if (C10_UNLIKELY(!library)) {
       auto device = MPSDevice::getInstance()->device();
       NSError* error = nil;
+<<<<<<< HEAD
       library = [device newLibraryWithData:getSectionData("metal_basic") error:&error];
+=======
+      auto section_name = is_macos_13_or_newer(MacOSVersion::MACOS_VER_14_0_PLUS) ? "metal_bfloat" : "metal_basic";
+      library = [device newLibraryWithData:getSectionData(section_name) error:&error];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_CHECK(library, "Failed to create metal library, error: ", [[error description] UTF8String]);
     }
     return library;

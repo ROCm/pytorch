@@ -23,7 +23,10 @@
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/PrefixStore.hpp>
 #include <torch/csrc/distributed/c10d/Store.hpp>
+<<<<<<< HEAD
 #include <torch/csrc/distributed/c10d/cuda/CUDAEventCache.hpp>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/distributed/c10d/logger.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/intra_node_comm.hpp>
 
@@ -44,11 +47,14 @@ namespace c10d {
 static std::vector<std::string> TORCH_NCCL_BCAST_UNIQUEID = {
     "TORCH_NCCL_BCAST_UNIQUEID"};
 
+<<<<<<< HEAD
 // Control EagerInit P2P serialization warning
 static std::vector<std::string>
     TORCH_NCCL_SHOW_EAGER_INIT_P2P_SERIALIZATION_WARNING = {
         "TORCH_NCCL_SHOW_EAGER_INIT_P2P_SERIALIZATION_WARNING"};
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Control whether to always use high priority streams
 static std::vector<std::string> TORCH_NCCL_HIGH_PRIORITY = {
     "TORCH_NCCL_HIGH_PRIORITY"};
@@ -350,10 +356,13 @@ class TORCH_API ProcessGroupNCCL : public Backend {
     // or timed out. If timeout, exception will be thrown.
     bool wait(std::chrono::milliseconds timeout = kNoTimeout) override;
 
+<<<<<<< HEAD
     void blockCurrentStream() override {
       synchronize();
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     void abort() override;
 
     // Let current stream wait on the completion of the NCCL work
@@ -448,8 +457,13 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
     // Record collective sizes for debug. We only record the size on the first
     // device as multi-device per process is deprecated
+<<<<<<< HEAD
     size_t numelIn_ = 0;
     size_t numelOut_ = 0;
+=======
+    size_t numelIn_ = -1;
+    size_t numelOut_ = -1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Wrapper method for the static checkForNCCLErrors which can be overridden
     // for tests.
@@ -504,6 +518,26 @@ class TORCH_API ProcessGroupNCCL : public Backend {
     friend class ProcessGroupNCCL;
   };
 
+<<<<<<< HEAD
+=======
+  class CUDAEventCache
+      : public std::enable_shared_from_this<ProcessGroupNCCL::CUDAEventCache> {
+   public:
+    CUDAEventCache();
+    std::shared_ptr<at::cuda::CUDAEvent> create(bool timing);
+    static std::shared_ptr<ProcessGroupNCCL::CUDAEventCache> get(
+        at::DeviceIndex device);
+
+   private:
+    std::mutex cacheMutex_;
+    // NOTE: We intentionally store raw pointers so that
+    // we do not attempt to destroy the event objects on process exit,
+    // because cuda may be gone.
+    std::array<std::deque<at::cuda::CUDAEvent*>, 2>
+        eventsArray_; // 0 for timing=false, 1 for timing=true
+  };
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   struct Options : Backend::Options {
     // NOTE: timeout in ProcessGroupNCCL::Options denote the timeout for
     // operations. This is only used when blockingWait_ is enabled.
@@ -525,7 +559,11 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
     // Optional "parent" backend and color to create communicators from
     // via `ncclCommSplit`
+<<<<<<< HEAD
     c10::intrusive_ptr<ProcessGroupNCCL> split_from;
+=======
+    std::shared_ptr<ProcessGroupNCCL> split_from;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Color to use for `ncclCommSplit`, values:
     // * Non-negative value: in group;
     // * NCCL_SPLIT_NOCOLOR (-1): not in group;
@@ -545,6 +583,11 @@ class TORCH_API ProcessGroupNCCL : public Backend {
     // the int value of `NCCL_SPLIT_NOCOLOR` (-1) instead.
     int split_color{-2};
 #endif
+<<<<<<< HEAD
+=======
+    std::vector<uint64_t> global_ranks_in_group;
+    std::string group_name;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   // Helper class related to TORCH_NCCL_DESYNC_DEBUG
@@ -786,10 +829,13 @@ class TORCH_API ProcessGroupNCCL : public Backend {
     return options_;
   }
 
+<<<<<<< HEAD
   c10::intrusive_ptr<Backend::Options> getBackendOptions() override {
     return c10::static_intrusive_pointer_cast<Backend::Options>(options_);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const std::string getBackendName() const override {
     return std::string(NCCL_BACKEND_NAME);
   }
@@ -810,10 +856,13 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 #endif
   }
 
+<<<<<<< HEAD
   void setTimeout(std::chrono::milliseconds timeout) override {
     options_->timeout = timeout;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void startCoalescing() override;
 
   c10::intrusive_ptr<Work> endCoalescing() override;
@@ -958,6 +1007,7 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
   void enableCollectivesTiming() override;
 
+<<<<<<< HEAD
   c10::intrusive_ptr<Backend> split(
       const c10::intrusive_ptr<Store>& store,
       const std::vector<int>& ranks,
@@ -969,6 +1019,8 @@ class TORCH_API ProcessGroupNCCL : public Backend {
       const int& rank,
       const int& size) override;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Helper function for iteratively aborting communicators in the provided map
   void abortCommsFromMap(
       std::unordered_map<std::string, std::shared_ptr<NCCLComm>>& ncclCommsMap,
@@ -1002,7 +1054,11 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
   // Performs NCCL user buffer registration for all buffers in
   // the given MemPool
+<<<<<<< HEAD
   void registerMemPool(c10::cuda::MemPool* pool, bool symm = false);
+=======
+  void registerMemPool(c10::cuda::MemPool* pool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Performs NCCL user buffer de-registration for all buffers in
   // the given MemPool
@@ -1092,10 +1148,13 @@ class TORCH_API ProcessGroupNCCL : public Backend {
   int globalRankStart_;
   int globalRankStride_;
 
+<<<<<<< HEAD
  private:
   bool eagerInit_{false};
   bool showSerializationWarning_{true};
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Helper that encapsulates work shared across all collective communication
   // primitives.  The callbacks have the following signatures:
   //

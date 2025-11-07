@@ -188,7 +188,11 @@ class TestJit(JitCommonTestCase):
             # Note: only runs in float32 because schema isn't affected by dtype,
             #   so running it on all dtypes is would be excessive
             if dtype == torch.float32:
+<<<<<<< HEAD
                 # TODO: no reason why we can't run this with tracing graph
+=======
+                # TODO: no reason why we cant run this with tracing graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if support_script and op.name != "rsub":
                     check_alias_annotation(
                         name,

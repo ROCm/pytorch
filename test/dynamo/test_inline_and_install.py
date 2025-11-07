@@ -57,7 +57,11 @@ unittest.expectedFailure(
 )
 
 
+<<<<<<< HEAD
 # These tests do string comparison on the graphs, and since buffers are now inlined, they
+=======
+# These tests do string comparisson on the graphs, and since buffers are now inlined, they
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # are named different, resulting in failure
 unittest.expectedFailure(
     InlineAndInstallExportTests.test_param_buffer_safe_from_mutation_simple_inline_and_install  # noqa: F821

@@ -180,7 +180,11 @@ def vector_norm(
             if keepdim or x.ndim == 0:
                 return to_result_dtype(x).contiguous()
             elif dim is None:
+<<<<<<< HEAD
                 return to_result_dtype(x).flatten()[0]
+=======
+                return x.flatten()[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 new_shape = [s for d, s in enumerate(x.shape) if d not in dim]
                 return to_result_dtype(x.view(new_shape)).contiguous()

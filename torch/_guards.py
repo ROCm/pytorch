@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import contextlib
@@ -36,16 +40,22 @@ log = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Generator, Iterator
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from types import CodeType
 
     import sympy
 
+<<<<<<< HEAD
     from torch._dynamo.backends.distributed import DDPOptimizerContext
     from torch._dynamo.codegen import PyCodegen
     from torch._functorch._aot_autograd.schemas import ViewAndMutationMeta
     from torch._subclasses.fake_tensor import FakeTensorMode
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 """
 torch._guards is the definitional source of truth for general purpose guard structures.
@@ -88,7 +98,11 @@ class CompileId:
     # TODO: consider also tracking the recompilation count
     # See Note: Updating CompileId
 
+<<<<<<< HEAD
     def __str__(self) -> str:
+=======
+    def __str__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NOTE: Keep this in sync with both from_string and the tlparse repo
         if self.compiled_autograd_id is not None:
             assert (self.frame_id is None) == (self.frame_compile_id is None)
@@ -102,7 +116,11 @@ class CompileId:
             return f"{self.frame_id}/{self.frame_compile_id}"
 
     @classmethod
+<<<<<<< HEAD
     def from_string(cls, compile_id: Optional[str]) -> Optional[CompileId]:
+=======
+    def from_string(cls, compile_id: Optional[str]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Factory method that creates a CompileId from its string representation.
         Keep this in sync with the __str__ method.
@@ -130,7 +148,11 @@ class TraceId(NamedTuple):
     # up by one
     attempt: int
 
+<<<<<<< HEAD
     def __str__(self) -> str:
+=======
+    def __str__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Keep this in sync with tlparse repo
         if self.attempt == 0:
             return str(self.compile_id)
@@ -190,7 +212,11 @@ class GuardSource(enum.Enum):
             GuardSource.LOCAL_UNSPECIALIZED_BUILTIN_NN_MODULE,
         )
 
+<<<<<<< HEAD
     def is_local(self) -> bool:
+=======
+    def is_local(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self in (
             GuardSource.LOCAL,
             GuardSource.LOCAL_SPECIALIZED_NN_MODULE,
@@ -223,7 +249,11 @@ class SLoc:
     framework_loc: Optional[Union[traceback.FrameSummary, str]]
     maybe_user_loc: Optional[str]
 
+<<<<<<< HEAD
     def __str__(self) -> str:
+=======
+    def __str__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         floc = (
             self.framework_loc
             if isinstance(self.framework_loc, str)
@@ -268,19 +298,32 @@ class Guard:
     guard_types: Optional[list[str]] = None
     code_list: Optional[list[str]] = None
     obj_weakref: Optional[object] = None
+<<<<<<< HEAD
     guarded_class_weakref: Optional[weakref.ReferenceType[Any]] = None
+=======
+    guarded_class_weakref: Optional[type] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     stack: Optional[CapturedTraceback] = None
     user_stack: Optional[traceback.StackSummary] = None
     _hash: Optional[int] = None
+<<<<<<< HEAD
     _unserializable: bool = False
 
     def __hash__(self) -> int:
+=======
+
+    def __hash__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self._hash is None:
             self._hash = hash((self.name, self.source, id(self.create_fn)))
         return self._hash
 
+<<<<<<< HEAD
     def sort_key(self) -> tuple[bool, int, int, str, int]:
+=======
+    def sort_key(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Put the duplicate input guards at the end. The duplicate guards have
         # two sources while guard.name only considers one source.
 
@@ -296,10 +339,17 @@ class Guard:
             self.inner_create_fn().__code__.co_firstlineno,
         )
 
+<<<<<<< HEAD
     def __lt__(self, other: Guard) -> bool:
         return self.sort_key() < other.sort_key()
 
     def inner_create_fn(self) -> Callable[[GuardBuilderBase, Guard], Any]:
+=======
+    def __lt__(self, other):
+        return self.sort_key() < other.sort_key()
+
+    def inner_create_fn(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(self.create_fn, functools.partial):
             return self.create_fn.func
         else:
@@ -314,7 +364,11 @@ class Guard:
         return self.originating_source.guard_source()
 
     @staticmethod
+<<<<<<< HEAD
     def weakref_to_str(obj_weakref: object) -> str:
+=======
+    def weakref_to_str(obj_weakref):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         This is a workaround of a Python weakref bug.
 
@@ -338,7 +392,11 @@ class Guard:
         else:
             return str(obj_weakref)
 
+<<<<<<< HEAD
     def __repr__(self) -> str:
+=======
+    def __repr__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         s = f"""
         {self.source.name.lower() if self.source else ""} {repr(self.name)} {self.inner_create_fn().__name__}
         {{
@@ -350,7 +408,11 @@ class Guard:
         """
         return s
 
+<<<<<<< HEAD
     def __str__(self) -> str:
+=======
+    def __str__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output = f"Name: {repr(self.name)}\n"
         source = self.source.name.lower() if self.source else ""
         output += f"    Source: {source}\n"
@@ -361,7 +423,11 @@ class Guard:
         output += f"    Guarded Class Weakref: {self.guarded_class_weakref}\n"
         return output
 
+<<<<<<< HEAD
     def create(self, builder: GuardBuilderBase) -> Any:
+=======
+    def create(self, builder: GuardBuilderBase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             return self.create_fn(builder, self)
         except Exception:
@@ -370,6 +436,7 @@ class Guard:
                 log.error("Created at:\n%s", "".join(self.stack.format()[-4:]).rstrip())
             raise
 
+<<<<<<< HEAD
     def is_specialized_nn_module(self) -> bool:
         return self.source.is_specialized_nn_module()
 
@@ -393,6 +460,18 @@ class Guard:
         code_list: list[str],
         obj_weakref: object,
     ) -> None:
+=======
+    def is_specialized_nn_module(self):
+        return self.source.is_specialized_nn_module()
+
+    def is_fsdp_module(self):
+        return self.source.is_fsdp_module()
+
+    def is_local(self):
+        return self.source.is_local()
+
+    def set_export_info(self, guard_type, guarded_class, code_list, obj_weakref):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.guard_types:
             self.guard_types = []
 
@@ -447,7 +526,11 @@ class DuplicateInputs(GuardEnvExpr):
     input_source_a: Source
     input_source_b: Source
 
+<<<<<<< HEAD
     def __post_init__(self) -> None:
+=======
+    def __post_init__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.input_source_a != self.input_source_b
 
 
@@ -478,7 +561,11 @@ copy_graphstate() -> T, a somewhat legacy name, is expected to emit a snapshot o
 can also be taken in at restore_graphstate(T) calls.
 
 When to snapshot, is, at the moment, an implementation detail of upstream callers. Checkpointable
+<<<<<<< HEAD
 does not provide any guarantees around consistency, idempotency, or safety of calling its APIs, yet.
+=======
+does not provide any garuantees around consistency, idempotency, or safety of calling its APIs, yet.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 In the future, it will have a closer coupling to a generic Checkpoint management system.
 """
@@ -489,7 +576,11 @@ class Checkpointable(Generic[T]):
     def copy_graphstate(self) -> T: ...
 
     @abstractmethod
+<<<<<<< HEAD
     def restore_graphstate(self, state: T) -> None: ...
+=======
+    def restore_graphstate(self, state: T): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class GuardsCheckpointState:
@@ -499,10 +590,17 @@ class GuardsCheckpointState:
 
     dynamo_guards: set[Guard] = set()
 
+<<<<<<< HEAD
     def __init__(self, dynamo_guards: set[Guard]) -> None:
         self.dynamo_guards = dynamo_guards
 
     def diff(self, other: GuardsCheckpointState) -> Optional[set[Guard]]:
+=======
+    def __init__(self, dynamo_guards):
+        self.dynamo_guards = dynamo_guards
+
+    def diff(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Produces a delta against another GuardsCheckpointState.
 
@@ -514,19 +612,30 @@ class GuardsCheckpointState:
             return None
         return r
 
+<<<<<<< HEAD
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, GuardsCheckpointState):
             return False
+=======
+    def __eq__(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.diff(other) is None
 
 
 class ModuleContextCheckpointState:
     nn_modules: dict[str, torch.nn.Module] = {}
 
+<<<<<<< HEAD
     def __init__(self, nn_modules: dict[str, torch.nn.Module]) -> None:
         self.nn_modules = nn_modules
 
     def diff(self, other: ModuleContextCheckpointState) -> Optional[set[str]]:
+=======
+    def __init__(self, nn_modules):
+        self.nn_modules = nn_modules
+
+    def diff(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Produces a delta against another ModuleContextCheckpointState.
 
@@ -538,9 +647,13 @@ class ModuleContextCheckpointState:
             return None
         return r
 
+<<<<<<< HEAD
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ModuleContextCheckpointState):
             return False
+=======
+    def __eq__(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.diff(other) is None
 
 
@@ -548,21 +661,37 @@ class ModuleContext(Checkpointable[ModuleContextCheckpointState]):
     def __init__(self) -> None:
         self.nn_modules: dict[str, Any] = {}
 
+<<<<<<< HEAD
     def copy_graphstate(self) -> ModuleContextCheckpointState:
         return ModuleContextCheckpointState(dict(self.nn_modules))
 
     def restore_graphstate(self, state: ModuleContextCheckpointState) -> None:
+=======
+    def copy_graphstate(self):
+        return ModuleContextCheckpointState(dict(self.nn_modules))
+
+    def restore_graphstate(self, state):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(state, ModuleContextCheckpointState)
         self.nn_modules = state.nn_modules
 
 
 class GlobalContextCheckpointState:
+<<<<<<< HEAD
     global_state: dict[str, tuple[Callable, Any]] = {}
 
     def __init__(self, global_states: dict[str, tuple[Callable, Any]]) -> None:
         self.global_state = global_states
 
     def diff(self, other: GlobalContextCheckpointState) -> Optional[set[str]]:
+=======
+    global_state: dict[str, tuple[Callable, ...]] = {}
+
+    def __init__(self, global_states):
+        self.global_state = global_states
+
+    def diff(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Produces a delta against another GlobalContextCheckpointState.
 
@@ -574,9 +703,13 @@ class GlobalContextCheckpointState:
             return None
         return r
 
+<<<<<<< HEAD
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, GlobalContextCheckpointState):
             return False
+=======
+    def __eq__(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.diff(other) is None
 
 
@@ -596,12 +729,21 @@ class GlobalContext(Checkpointable[GlobalContextCheckpointState]):
     }
 
     def __init__(self) -> None:
+<<<<<<< HEAD
         self.global_state: dict[str, tuple[Callable, Any]] = {}
 
     def copy_graphstate(self) -> GlobalContextCheckpointState:
         return GlobalContextCheckpointState(self.global_state)
 
     def restore_graphstate(self, state: GlobalContextCheckpointState) -> None:
+=======
+        self.global_state: dict[str, tuple[Callable, ...]] = {}
+
+    def copy_graphstate(self):
+        return GlobalContextCheckpointState(dict(self.global_state))
+
+    def restore_graphstate(self, state):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(state, GlobalContextCheckpointState)
         self.global_state = state.global_state
         assert (
@@ -615,19 +757,31 @@ class GlobalContext(Checkpointable[GlobalContextCheckpointState]):
 # Like a Set[Guard] but will record the user stack on all guards at the
 # time they were installed at their destination
 class GuardsSet:
+<<<<<<< HEAD
     def __init__(self, inner: Optional[set[Guard]] = None) -> None:
+=======
+    def __init__(self, inner=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if inner is None:
             inner = set()
         self.inner = inner
 
+<<<<<<< HEAD
     def __iter__(self) -> Iterator[Guard]:
         return iter(self.inner)
 
     def __len__(self) -> int:
+=======
+    def __iter__(self):
+        return iter(self.inner)
+
+    def __len__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.inner)
 
     # Subtraction along with bool is typically used to determine the delta of
     # added guards between checkpoints for higher order ops
+<<<<<<< HEAD
     def __sub__(self, other: GuardsSet) -> GuardsSet:
         return GuardsSet(self.inner - other.inner)
 
@@ -637,21 +791,42 @@ class GuardsSet:
     def add(
         self, guard: Guard, *, collect_debug_stack: bool = True, skip: int = 0
     ) -> None:
+=======
+    def __sub__(self, other):
+        return GuardsSet(self.inner - other.inner)
+
+    def __bool__(self):
+        return bool(self.inner)
+
+    def add(self, guard: Guard, *, collect_debug_stack=True, skip=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if guard in self.inner:
             return
         if collect_debug_stack:
             if guard.stack is None:
                 guard.stack = CapturedTraceback.extract(skip=1 + skip)
+<<<<<<< HEAD
         if guard.user_stack is None:
             guard.user_stack = TracingContext.extract_stack()
         self.inner.add(guard)
 
     def update(self, *others: set[Guard]) -> None:
+=======
+            if guard.user_stack is None:
+                guard.user_stack = TracingContext.extract_stack()
+        self.inner.add(guard)
+
+    def update(self, *others: set[Guard]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for o in others:
             for g in o:
                 self.add(g, skip=1)
 
+<<<<<<< HEAD
     def remove_guards_with_source(self, source: Source) -> None:
+=======
+    def remove_guards_with_source(self, source):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Delete all guards that contains a given source"""
         from ._dynamo.source import is_from_source
 
@@ -673,10 +848,17 @@ class GuardsContext(Checkpointable[GuardsCheckpointState]):
         self.dynamo_guards: GuardsSet = GuardsSet()
         self.aotautograd_guards: list[GuardEnvExpr] = []
 
+<<<<<<< HEAD
     def copy_graphstate(self) -> GuardsCheckpointState:
         return GuardsCheckpointState(set(self.dynamo_guards.inner))
 
     def restore_graphstate(self, state: GuardsCheckpointState) -> None:
+=======
+    def copy_graphstate(self):
+        return GuardsCheckpointState(set(self.dynamo_guards.inner))
+
+    def restore_graphstate(self, state):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NB: "steals" the passed in state
         assert isinstance(state, GuardsCheckpointState)
         self.dynamo_guards = GuardsSet(state.dynamo_guards)
@@ -684,12 +866,17 @@ class GuardsContext(Checkpointable[GuardsCheckpointState]):
 
 class HopSubgraphCache:
     @abstractmethod
+<<<<<<< HEAD
     def add_dynamo_installed_submodule(self, fn_id: int, identifier: str) -> None: ...
+=======
+    def add_dynamo_installed_submodule(self, fn_id: int, identifier: str): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abstractmethod
     def get_dynamo_installed_submodules(self, fn_id: int) -> list[str]: ...
 
     @abstractmethod
+<<<<<<< HEAD
     def add_autograd_key_entry(self, identifier: str, key: Callable) -> None: ...
 
     @abstractmethod
@@ -700,6 +887,18 @@ class HopSubgraphCache:
 
     @abstractmethod
     def get_proxy_dispatch_entry(self, identifier: str) -> Optional[Callable]: ...
+=======
+    def add_autograd_key_entry(self, identifier: str, key: Callable): ...
+
+    @abstractmethod
+    def get_autograd_key_entry(self, identifier: str): ...
+
+    @abstractmethod
+    def add_proxy_dispatch_entry(self, identifier: str, key: Callable): ...
+
+    @abstractmethod
+    def get_proxy_dispatch_entry(self, identifier: str): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abstractmethod
     def add_lazy_bwd_entry(
@@ -707,12 +906,20 @@ class HopSubgraphCache:
         identifier: str,
         tangent_metadata: tuple[object],
         gmod: torch.fx.GraphModule,
+<<<<<<< HEAD
     ) -> int: ...
+=======
+    ): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abstractmethod
     def get_lazy_bwd_entry(
         self, identifier: str, tangent_metadata: tuple[object]
+<<<<<<< HEAD
     ) -> tuple[Optional[torch.fx.GraphModule], Optional[int]]: ...
+=======
+    ) -> int: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class InvokeSubgraphCache(HopSubgraphCache):
@@ -724,12 +931,17 @@ class InvokeSubgraphCache(HopSubgraphCache):
             str, dict[tuple[object], tuple[torch.fx.GraphModule, int]]
         ] = defaultdict(dict)
 
+<<<<<<< HEAD
     def add_dynamo_installed_submodule(self, fn_id: int, identifier: str) -> None:
+=======
+    def add_dynamo_installed_submodule(self, fn_id: int, identifier: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.dynamo_installed_submodules[fn_id].append(identifier)
 
     def get_dynamo_installed_submodules(self, fn_id: int) -> list[str]:
         return self.dynamo_installed_submodules.get(fn_id, [])
 
+<<<<<<< HEAD
     def add_autograd_key_entry(self, identifier: str, key: Callable) -> None:
         self.autograd_cache[identifier] = key
 
@@ -740,6 +952,18 @@ class InvokeSubgraphCache(HopSubgraphCache):
         self.proxy_dispatch_cache[identifier] = key
 
     def get_proxy_dispatch_entry(self, identifier: str) -> Optional[Callable]:
+=======
+    def add_autograd_key_entry(self, identifier: str, key: Callable):
+        self.autograd_cache[identifier] = key
+
+    def get_autograd_key_entry(self, identifier: str):
+        return self.autograd_cache.get(identifier, None)
+
+    def add_proxy_dispatch_entry(self, identifier: str, key: Callable):
+        self.proxy_dispatch_cache[identifier] = key
+
+    def get_proxy_dispatch_entry(self, identifier: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.proxy_dispatch_cache.get(identifier, None)
 
     def add_lazy_bwd_entry(
@@ -747,15 +971,23 @@ class InvokeSubgraphCache(HopSubgraphCache):
         identifier: str,
         tangent_metadata: tuple[object],
         gmod: torch.fx.GraphModule,
+<<<<<<< HEAD
     ) -> int:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Save the number of existing graph modules in the dictionary to get the suffix
         num_gmods = len(self.lazy_bwd_cache[identifier])
         self.lazy_bwd_cache[identifier][tangent_metadata] = (gmod, num_gmods)
         return num_gmods
 
+<<<<<<< HEAD
     def get_lazy_bwd_entry(
         self, identifier: str, tangent_metadata: tuple[object]
     ) -> tuple[Optional[torch.fx.GraphModule], Optional[int]]:
+=======
+    def get_lazy_bwd_entry(self, identifier: str, tangent_metadata: tuple[object]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if identifier not in self.lazy_bwd_cache:
             return (None, None)
 
@@ -808,7 +1040,11 @@ class CompileContext:
     def try_get() -> Optional[CompileContext]:
         return getattr(_TLS, "compile_context", None)
 
+<<<<<<< HEAD
     def __init__(self, compile_id: Optional[CompileId]) -> None:
+=======
+    def __init__(self, compile_id):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert compile_id is None or isinstance(compile_id, CompileId)
         self.compile_id: Optional[CompileId] = compile_id
         self.attempt = 0
@@ -816,14 +1052,22 @@ class CompileContext:
         self.shape_env_guards: list[str] = []
 
     @staticmethod
+<<<<<<< HEAD
     def current_compile_id() -> Optional[CompileId]:
+=======
+    def current_compile_id():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self = CompileContext.try_get()
         if self is None:
             return None
         return self.compile_id
 
     @staticmethod
+<<<<<<< HEAD
     def current_trace_id() -> Optional[TraceId]:
+=======
+    def current_trace_id():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self = CompileContext.try_get()
         if self is None:
             return None
@@ -852,6 +1096,7 @@ class TracingContext:
             "TracingContext.get() must be called within an ongoing trace."
         )
 
+<<<<<<< HEAD
     def __init__(self, fake_mode: Optional[FakeTensorMode]) -> None:
         self.guards_context = GuardsContext()
         self.module_context = ModuleContext()
@@ -860,12 +1105,23 @@ class TracingContext:
         self.previously_cleaned_instructions: dict[Any, Any] = dict()
         self.fake_mode: Optional[FakeTensorMode] = fake_mode
         self.frame_summary_stack: list[traceback.FrameSummary] = []
+=======
+    def __init__(self, fake_mode):
+        self.guards_context = GuardsContext()
+        self.module_context = ModuleContext()
+        self.global_context = GlobalContext()
+        self.previously_inlined_functions = dict()
+        self.previously_cleaned_instructions = dict()
+        self.fake_mode = fake_mode
+        self.frame_summary_stack = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This is morally part of frame_summary_stack, but it is kept separate
         # for clarity.  As we process a frame, this variable gets updated
         # to keep track of what line we are in the function.  We make a
         # function call, this gets cleared and the frame location is pushed
         # to frame_summary_stack (prepping this variable for the inner frame's
         # progress)
+<<<<<<< HEAD
         self.loc_in_frame: Optional[tuple[str, int, str]] = None
         # this is only set after aot_autograd
         self.fw_metadata: Optional[ViewAndMutationMeta] = None
@@ -876,6 +1132,16 @@ class TracingContext:
         self.params_flat: Optional[list[Any]] = None
         self.params_flat_unwrap_subclasses: Optional[list[Any]] = None
         self.params_unwrapped_to_flat_index: Optional[list[Any]] = None
+=======
+        self.loc_in_frame = None
+        # this is only set after aot_autograd
+        self.fw_metadata = None
+        # this is only set after aot_autograd
+        self.aot_graph_name = None
+        self.params_flat = None
+        self.params_flat_unwrap_subclasses = None
+        self.params_unwrapped_to_flat_index = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # this is for extended return calling convention from backend
         # compiler to aot_autograd
         # Per output, what the compiler specified stride of the output is,
@@ -895,7 +1161,11 @@ class TracingContext:
         # See note [Tensor Fakification and Symbol Caching]
         self.tensor_to_context = WeakTensorKeyDictionary()
 
+<<<<<<< HEAD
         # If this true, Aot Autograd will return output Fake Tensors with appropriate
+=======
+        # If this true, Aot Autograd will return output Fake Tensors with appropiate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # meta on the first invocation
         # see note: [Returning Fake Tensors on First AOT Autograd Call]
         self.fakify_first_call = False
@@ -903,7 +1173,11 @@ class TracingContext:
         # list of code objects for inlined functions
         self.traced_code: list[CodeType] = []
 
+<<<<<<< HEAD
     def clear(self) -> None:
+=======
+    def clear(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Look at the note in output_graph.py in function `save_global_state`
         # for the context on clearing global context.
         self.global_context.global_state = {}
@@ -912,7 +1186,11 @@ class TracingContext:
 
     @staticmethod
     @contextmanager
+<<<<<<< HEAD
     def patch(**kwargs: Any) -> Generator[None, None, None]:
+=======
+    def patch(**kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prior = {}
         ctx = TracingContext.get()
 
@@ -928,7 +1206,11 @@ class TracingContext:
                 setattr(ctx, key, val)
 
     @staticmethod
+<<<<<<< HEAD
     def extract_stack() -> traceback.StackSummary:
+=======
+    def extract_stack():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self = TracingContext.try_get()
         if self is None:
             return traceback.StackSummary()
@@ -937,7 +1219,11 @@ class TracingContext:
             stack = stack + [self._populate_loc_in_frame_summary()]
         return traceback.StackSummary.from_list(stack)
 
+<<<<<<< HEAD
     def _populate_loc_in_frame_summary(self) -> traceback.FrameSummary:
+=======
+    def _populate_loc_in_frame_summary(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.loc_in_frame is not None
         filename, lineno, frame_name = self.loc_in_frame
         return traceback.FrameSummary(filename, lineno, frame_name, lookup_line=False)
@@ -946,7 +1232,11 @@ class TracingContext:
     # associated with the current frame state
     @staticmethod
     @contextlib.contextmanager
+<<<<<<< HEAD
     def clear_frame() -> Generator[None, None, None]:
+=======
+    def clear_frame():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tc = TracingContext.get()
         with (
             unittest.mock.patch.object(tc, "frame_summary_stack", []),
@@ -978,9 +1268,13 @@ class TracingContext:
 
     @staticmethod
     @contextlib.contextmanager
+<<<<<<< HEAD
     def current_frame(
         frame_summary: Optional[traceback.FrameSummary],
     ) -> Generator[None, None, None]:
+=======
+    def current_frame(frame_summary):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # frame_summary can be None to solely take advantage of real_stack
         # attachment to thrown exceptions
         tc = TracingContext.get()
@@ -1001,9 +1295,13 @@ class TracingContext:
 
     @staticmethod
     @contextlib.contextmanager
+<<<<<<< HEAD
     def report_output_strides() -> Generator[
         Optional[list[Optional[tuple[int, ...]]]], None, None
     ]:
+=======
+    def report_output_strides():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tc = TracingContext.try_get()
         if tc is None:
             yield None
@@ -1016,13 +1314,21 @@ class TracingContext:
             tc.output_strides = old_output_strides
 
     @staticmethod
+<<<<<<< HEAD
     def set_current_loc(filename: str, lineno: int, frame_name: str) -> None:
+=======
+    def set_current_loc(filename, lineno, frame_name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Save the current location in the frame. Lazily generate the
         # framesummary.
         TracingContext.get().loc_in_frame = (filename, lineno, frame_name)
 
     @staticmethod
+<<<<<<< HEAD
     def get_traced_code() -> Optional[list[CodeType]]:
+=======
+    def get_traced_code():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tc = TracingContext.try_get()
         if tc is None:
             return None
@@ -1030,9 +1336,13 @@ class TracingContext:
 
 
 @contextmanager
+<<<<<<< HEAD
 def compile_context(
     context: Optional[CompileContext],
 ) -> Generator[Optional[CompileContext], None, None]:
+=======
+def compile_context(context: Optional[CompileContext]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     old_context = getattr(_TLS, "compile_context", None)
     _TLS.compile_context = context
     try:
@@ -1042,9 +1352,13 @@ def compile_context(
 
 
 @contextmanager
+<<<<<<< HEAD
 def tracing(
     context: Optional[TracingContext],
 ) -> Generator[Optional[TracingContext], None, None]:
+=======
+def tracing(context: Optional[TracingContext]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     This function installs the passed in tracing context as a dynamic scoped
     global variable.
@@ -1074,6 +1388,7 @@ def tracing(
 # TODO(voz): Consider a toplevel torch/_source.py
 @dataclasses.dataclass(frozen=True)
 class Source:
+<<<<<<< HEAD
     def is_dict_key(self) -> bool:
         return False
 
@@ -1081,6 +1396,15 @@ class Source:
         return False
 
     def reconstruct(self, codegen: PyCodegen) -> None:
+=======
+    def is_dict_key(self):
+        return False
+
+    def is_ephemeral(self):
+        return False
+
+    def reconstruct(self, codegen):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     def guard_source(self) -> GuardSource:
@@ -1089,7 +1413,11 @@ class Source:
     def name(self) -> str:
         raise NotImplementedError
 
+<<<<<<< HEAD
     def make_guard(self, fn: Callable[..., Any]) -> Guard:
+=======
+    def make_guard(self, fn) -> Guard:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.guard_source() is GuardSource.CONSTANT:
             raise NotImplementedError
         return Guard(self, fn)
@@ -1097,7 +1425,11 @@ class Source:
     def is_specialized_nn_module(self) -> bool:
         return self.guard_source().is_specialized_nn_module()
 
+<<<<<<< HEAD
     def subguards_allowed(self) -> bool:
+=======
+    def subguards_allowed(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """True if you can guard on attributes of this"""
         return self.guard_source() != GuardSource.SYNTHETIC_LOCAL
 
@@ -1107,11 +1439,19 @@ class Source:
 class ChainedSource(Source):
     base: Source
 
+<<<<<<< HEAD
     def is_dict_key(self) -> bool:
         # Recurse until you either hit a ConstDictKey or a Source
         return self.base.is_dict_key()
 
     def is_ephemeral(self) -> bool:
+=======
+    def is_dict_key(self):
+        # Recurse until you either hit a ConstDictKey or a Source
+        return self.base.is_dict_key()
+
+    def is_ephemeral(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.base.is_ephemeral()
 
     def get_base(self) -> Source:
@@ -1121,7 +1461,11 @@ class ChainedSource(Source):
         return current
 
 
+<<<<<<< HEAD
 def detect_fake_mode(inputs: Any = None) -> Optional[FakeTensorMode]:
+=======
+def detect_fake_mode(inputs: Any = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Attempts to "detect" what the current fake mode is.  If there is one ambiently
     available from TracingContext, we preferentially use that.  Otherwise, we
@@ -1165,7 +1509,11 @@ def detect_fake_mode(inputs: Any = None) -> Optional[FakeTensorMode]:
         return None
 
 
+<<<<<<< HEAD
 def active_fake_mode() -> Optional[FakeTensorMode]:
+=======
+def active_fake_mode():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Inspects the dispatch mode stack for an active fake mode and returns it.
     Returns None if no fake mode is active.

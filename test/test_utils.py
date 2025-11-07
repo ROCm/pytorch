@@ -20,7 +20,12 @@ import torch.nn as nn
 import torch.utils.cpp_extension
 import torch.utils.data
 from torch._utils import try_import
+<<<<<<< HEAD
 from torch._utils_internal import deprecated
+=======
+from torch.autograd._functions.utils import check_onnx_broadcast
+from torch.onnx.symbolic_opset9 import _prepare_onnx_paddings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
@@ -60,9 +65,12 @@ HAS_CUDA = torch.cuda.is_available()
 from torch.testing._internal.common_utils import run_tests, TestCase
 
 
+<<<<<<< HEAD
 # mypy: disable-error-code="name-defined"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RandomDatasetMock(torch.utils.data.Dataset):
     def __getitem__(self, index):
         return torch.tensor([torch.rand(1).item(), random.uniform(0, 1)])
@@ -788,6 +796,68 @@ class TestCollectEnv(TestCase):
         self.assertTrue(info_output.count("\n") >= 17)
 
 
+<<<<<<< HEAD
+=======
+class TestONNXUtils(TestCase):
+    def test_prepare_onnx_paddings(self):
+        sizes = [2, 3, 4]
+        pad = [1, 2, 3, 4]
+        paddings = _prepare_onnx_paddings(len(sizes), pad)
+        self.assertEqual(paddings, [0, 3, 1, 0, 4, 2])
+
+    def test_check_onnx_broadcast(self):
+        def try_check_onnx_broadcast(dims1, dims2, expect_broadcast, expect_fail):
+            broadcast = True
+            fail = False
+            try:
+                broadcast = check_onnx_broadcast(dims1, dims2)
+            except ValueError:
+                fail = True
+            self.assertEqual(broadcast, expect_broadcast)
+            self.assertEqual(fail, expect_fail)
+
+        # Case 1, check the case when len(dims1) < len(dims2) and numel(dims2) > 1
+        dims1 = [3, 4]
+        dims2 = [2, 3, 4]
+        try_check_onnx_broadcast(dims1, dims2, True, True)
+
+        # Case 2, check the case when len(dims1) < len(dims2) and numel(dims2) == 1
+        dims1 = [3, 4]
+        dims2 = [1, 1, 1]
+        try_check_onnx_broadcast(dims1, dims2, True, False)
+
+        # Case 3, check the case when len(dims1) > len(dims2) and numel(dims2) == 1
+        dims1 = [1, 1]
+        dims2 = [1]
+        try_check_onnx_broadcast(dims1, dims2, True, False)
+
+        # Case 4, check the case when len(dims1) > len(dims2) and dims1[x:] == dims2
+        dims1 = [2, 3, 4]
+        dims2 = [3, 4]
+        try_check_onnx_broadcast(dims1, dims2, True, False)
+
+        # Case 5, check the case when len(dims1) > len(dims2), but dims1[x:] != dims2
+        dims1 = [2, 3, 4]
+        dims2 = [1, 4]
+        try_check_onnx_broadcast(dims1, dims2, True, True)
+
+        # Case 6, check the equal case, no broadcast
+        dims1 = [3, 4]
+        dims2 = [3, 4]
+        try_check_onnx_broadcast(dims1, dims2, False, False)
+
+        # Case 7, check the case when len(dims1) == len(dims2), but dims1 != dims2
+        dims1 = [3, 4]
+        dims2 = [1, 4]
+        try_check_onnx_broadcast(dims1, dims2, True, True)
+
+        # Case 8, check the case when len(dims1) == len(dims2) and numel(s2) == 1
+        dims1 = [3, 4]
+        dims2 = [1, 1]
+        try_check_onnx_broadcast(dims1, dims2, True, False)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestHipify(TestCase):
     def test_import_hipify(self):
         from torch.utils.hipify import hipify_python  # noqa: F401
@@ -795,9 +865,13 @@ class TestHipify(TestCase):
 
 class TestHipifyTrie(TestCase):
     def setUp(self):
+<<<<<<< HEAD
         from torch.utils.hipify import hipify_python
 
         self.trie = hipify_python.Trie()
+=======
+        self.trie = torch.utils.hipify.hipify_python.Trie()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_add_and_search_trie(self):
         self.trie.add("banana")
@@ -1142,6 +1216,7 @@ class TestTryImport(TestCase):
         self.assertIsNone(missing_module)
 
 
+<<<<<<< HEAD
 @deprecated()
 def _deprecated_api(x, y=15):
     return x + y
@@ -1157,5 +1232,7 @@ class TestDeprecate(TestCase):
         _deprecated_api(1, y=2)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

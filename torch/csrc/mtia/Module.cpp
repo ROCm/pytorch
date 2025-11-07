@@ -63,6 +63,7 @@ void initModule(PyObject* module) {
     return at::detail::getMTIAHooks().getDefaultStream(device_index);
   });
 
+<<<<<<< HEAD
   m.def(
       "_mtia_setStream",
       [](int64_t stream_id,
@@ -75,6 +76,8 @@ void initModule(PyObject* module) {
             static_cast<c10::DeviceType>(device_type)));
       });
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_mtia_setCurrentStream", [](const c10::Stream& stream) {
     torch::utils::device_lazy_init(at::kMTIA);
     auto device = at::detail::getMTIAHooks().getCurrentDevice();

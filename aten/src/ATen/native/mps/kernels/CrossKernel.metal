@@ -20,7 +20,13 @@ REGISTER_CROSS_FUNC(short);
 REGISTER_CROSS_FUNC(char);
 REGISTER_CROSS_FUNC(uchar);
 REGISTER_CROSS_FUNC(bool);
+<<<<<<< HEAD
 REGISTER_CROSS_FUNC(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+REGISTER_CROSS_FUNC(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <typename T, typename U>
 kernel void cross(
@@ -66,4 +72,10 @@ REGISTER_CROSS_OP(short);
 REGISTER_CROSS_OP(char);
 REGISTER_CROSS_OP(uchar);
 REGISTER_CROSS_OP(bool);
+<<<<<<< HEAD
 REGISTER_CROSS_OP(bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+REGISTER_CROSS_OP(bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

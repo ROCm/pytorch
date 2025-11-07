@@ -258,7 +258,11 @@ DECLARE_HOST_ALLOCATOR(
     CUDACachingHostAllocator,
     CUDACachingHostAllocatorImpl,
     raw_local_deleter,
+<<<<<<< HEAD
     caching_host_allocator)
+=======
+    caching_host_allocator);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 REGISTER_HOST_ALLOCATOR(at::kCUDA, &caching_host_allocator)
 

@@ -125,7 +125,11 @@ its type to `common_constant_types`.
 
     def const_getattr(self, tx: "InstructionTranslator", name):
         if not hasattr(self.value, name):
+<<<<<<< HEAD
             raise_observed_exception(AttributeError, tx, args=[name])
+=======
+            raise NotImplementedError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         member = getattr(self.value, name)
         if callable(member):
             raise NotImplementedError
@@ -173,6 +177,7 @@ its type to `common_constant_types`.
                 raise_observed_exception(type(e), tx)
         elif isinstance(self.value, (float, int)):
             if not (args or kwargs):
+<<<<<<< HEAD
                 try:
                     return ConstantVariable.create(getattr(self.value, name)())
                 except (OverflowError, ValueError) as exc:
@@ -181,6 +186,9 @@ its type to `common_constant_types`.
                         tx,
                         args=list(map(ConstantVariable.create, exc.args)),
                     )
+=======
+                return ConstantVariable.create(getattr(self.value, name)())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (
                 hasattr(operator, name)
                 and len(args) == 1
@@ -206,16 +214,20 @@ its type to `common_constant_types`.
         elif isinstance(self.value, bytes) and name == "decode":
             method = getattr(self.value, name)
             return ConstantVariable.create(method(*const_args, **const_kwargs))
+<<<<<<< HEAD
         elif type(self.value) is complex and name in complex.__dict__.keys():
             method = getattr(self.value, name)
             try:
                 return ConstantVariable.create(method(*const_args, **const_kwargs))
             except Exception as e:
                 raise_observed_exception(type(e), tx)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if name == "__len__" and not (args or kwargs):
             return ConstantVariable.create(len(self.value))
         elif name == "__round__" and len(args) == 1 and args[0].is_python_constant():
+<<<<<<< HEAD
             try:
                 return ConstantVariable.create(
                     round(self.value, args[0].as_python_constant())
@@ -234,6 +246,16 @@ its type to `common_constant_types`.
                 raise_observed_exception(
                     type(e), tx, args=list(map(ConstantVariable.create, e.args))
                 )
+=======
+            return ConstantVariable.create(
+                round(self.value, args[0].as_python_constant())
+            )
+        elif name == "__contains__" and len(args) == 1 and args[0].is_python_constant():
+            assert not kwargs
+            search = args[0].as_python_constant()
+            result = search in self.value
+            return ConstantVariable.create(result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().call_method(tx, name, args, kwargs)
 
     def call_obj_hasattr(

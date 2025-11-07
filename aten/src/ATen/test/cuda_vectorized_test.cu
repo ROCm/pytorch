@@ -10,6 +10,7 @@ using namespace at::native::memory;
 
 constexpr int buffer_size = 1024;
 
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && CUDA_VERSION < 13000
 __managed__ double4 buffer1[buffer_size];
 __managed__ double4 buffer2[buffer_size];
@@ -17,6 +18,10 @@ __managed__ double4 buffer2[buffer_size];
 __managed__ double4_16a buffer1[buffer_size];
 __managed__ double4_16a buffer2[buffer_size];
 #endif
+=======
+__managed__ double4 buffer1[buffer_size];
+__managed__ double4 buffer2[buffer_size];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void reset_buffers() {
   for (int i = 0; i < buffer_size; i++) {

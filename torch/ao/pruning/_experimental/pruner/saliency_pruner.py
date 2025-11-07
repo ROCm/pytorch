@@ -7,7 +7,11 @@ class SaliencyPruner(BaseStructuredSparsifier):
     Prune rows based on the saliency (L1 norm) of each row.
 
     This pruner works on N-Dimensional weight tensors.
+<<<<<<< HEAD
     For each row, we will calculate the saliency, which is the sum the L1 norm of all weights in that row.
+=======
+    For each row, we will calculate the saliency, whic is the sum the L1 norm of all weights in that row.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     We expect that the resulting saliency vector has the same shape as our mask.
     We then pick elements to remove until we reach the target sparsity_level.
     """

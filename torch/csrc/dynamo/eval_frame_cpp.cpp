@@ -139,6 +139,7 @@ PyObject* dynamo__custom_eval_frame(
 
   auto fail = [&]() { clear_old_frame_if_python_312_plus(tstate, frame); };
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_12_PLUS
   // skip tracing the frame if CPython is in a tracing state (e.g.
   // sys.monitoring call)
@@ -148,6 +149,8 @@ PyObject* dynamo__custom_eval_frame(
   }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ExtraState* extra = get_extra_state(F_CODE(frame));
 
   if (callback.is(py::bool_(false)) && extra == nullptr) {
@@ -344,6 +347,7 @@ PyObject* set_code_exec_strategy(PyObject* dummy, PyObject* args) {
   extra_state_set_exec_strategy(extra, strategy);
   Py_RETURN_NONE;
 }
+<<<<<<< HEAD
 
 void skip_code_recursive(PyCodeObject* code) {
   ExtraState* extra = get_extra_state(code);
@@ -355,3 +359,5 @@ void skip_code_recursive(PyCodeObject* code) {
       FrameExecStrategy{FrameAction::SKIP, FrameAction::SKIP};
   extra_state_set_exec_strategy(extra, strategy);
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

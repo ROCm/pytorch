@@ -11,7 +11,10 @@ from ..scheduler import (
     SchedulerNode,
 )
 from .cuda.cuda_cpp_scheduling import CUDACPPScheduling
+<<<<<<< HEAD
 from .cutedsl.cutedsl_scheduling import CuteDSLScheduling
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .rocm.rocm_cpp_scheduling import ROCmCPPScheduling
 from .triton import TritonScheduling
 
@@ -45,7 +48,10 @@ class CUDACombinedScheduling(BaseScheduling):
         self._triton_scheduling = TritonScheduling(scheduler)
         self._cuda_cpp_scheduling = CUDACPPScheduling(scheduler)
         self._rocm_cpp_scheduling = ROCmCPPScheduling(scheduler)
+<<<<<<< HEAD
         self._cutedsl_scheduling = CuteDSLScheduling(scheduler)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_backend_features(self, device: torch.device) -> OrderedSet[BackendFeature]:
         return self._triton_scheduling.get_backend_features(device)
@@ -55,8 +61,11 @@ class CUDACombinedScheduling(BaseScheduling):
             return self._cuda_cpp_scheduling
         if self._rocm_cpp_scheduling.is_rocm_cpp_template(node):
             return self._rocm_cpp_scheduling
+<<<<<<< HEAD
         if self._cutedsl_scheduling.is_cutedsl_template(node):
             return self._cutedsl_scheduling
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._triton_scheduling
 
     def can_fuse_vertical(
@@ -68,11 +77,14 @@ class CUDACombinedScheduling(BaseScheduling):
             node1
         ) or self._cuda_cpp_scheduling.is_cuda_cpp_template(node2):
             return False
+<<<<<<< HEAD
         # CuteDSL doesn't support vertical fusion currently
         elif self._cutedsl_scheduling.is_cutedsl_template(
             node1
         ) or self._cutedsl_scheduling.is_cutedsl_template(node2):
             return False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._triton_scheduling.can_fuse_vertical(node1, node2)
 
     def can_fuse_horizontal(
@@ -83,10 +95,13 @@ class CUDACombinedScheduling(BaseScheduling):
                 return self._cuda_cpp_scheduling.can_fuse_horizontal(
                     node1, node2
                 )  # always False at the moment
+<<<<<<< HEAD
             if self._cutedsl_scheduling.is_cutedsl_template(node):
                 return self._cutedsl_scheduling.can_fuse_horizontal(
                     node1, node2
                 )  # always False at the moment
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._triton_scheduling.can_fuse_horizontal(node1, node2)
 
     def group_fn(
@@ -111,6 +126,7 @@ class CUDACombinedScheduling(BaseScheduling):
             return self._rocm_cpp_scheduling.codegen_template(
                 template_node, epilogue_nodes, prologue_nodes
             )
+<<<<<<< HEAD
         elif self._cutedsl_scheduling.is_cutedsl_template(template_node):
             # TODO remove this when we add epilogue support
             assert not epilogue_nodes
@@ -118,6 +134,8 @@ class CUDACombinedScheduling(BaseScheduling):
             return self._cutedsl_scheduling.codegen_template(
                 template_node, epilogue_nodes, prologue_nodes
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return self._triton_scheduling.codegen_template(
                 template_node, epilogue_nodes, prologue_nodes
@@ -144,6 +162,7 @@ class CUDACombinedScheduling(BaseScheduling):
         return self._triton_scheduling.benchmark_codegened_module(module)
 
     def generate_kernel_code_from_nodes(
+<<<<<<< HEAD
         self,
         nodes: Sequence[Any],
         benchmark_kernel: bool = False,
@@ -151,6 +170,12 @@ class CUDACombinedScheduling(BaseScheduling):
     ) -> str:
         return self._triton_scheduling.generate_kernel_code_from_nodes(
             nodes, benchmark_kernel, hint_override=hint_override
+=======
+        self, nodes: Sequence[Any], benchmark_kernel: bool = False
+    ) -> str:
+        return self._triton_scheduling.generate_kernel_code_from_nodes(
+            nodes, benchmark_kernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def benchmark_combo_kernel(

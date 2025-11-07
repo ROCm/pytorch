@@ -760,7 +760,11 @@ def _nll_loss_nd(
         batch_size = input.shape[0]
         loss = -input[torch.arange(batch_size), target] * current_weight
     else:
+<<<<<<< HEAD
         # 3D case (N batch size, C classes, K dimensions)
+=======
+        # 3D case (N batch size, C classe, K dimensions)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # input (N batch size, C classes, K)
         batch_size = input.shape[0]
         extent = input.shape[2]

@@ -13,6 +13,7 @@ The metrics system enables comprehensive monitoring and analysis of both compila
 execution performance.
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import heapq
@@ -26,6 +27,14 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 from torch.utils._traceback import CapturedTraceback
+=======
+import heapq
+import logging
+import time
+from collections.abc import Iterator
+from typing import Any, Callable, Optional
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
@@ -70,9 +79,14 @@ class MetricsContext:
         self._metrics: dict[str, Any] = {}
         self._start_time_ns: int = 0
         self._level: int = 0
+<<<<<<< HEAD
         self._edits: list[tuple[CapturedTraceback, set[str]]] = []
 
     def __enter__(self) -> Self:
+=======
+
+    def __enter__(self) -> "MetricsContext":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Initialize metrics recording.
         """
@@ -120,6 +134,7 @@ class MetricsContext:
             self._metrics[metric] = 0
         self._metrics[metric] += value
 
+<<<<<<< HEAD
     def _render_edits(self, pred: set[str]) -> str:
         return "\n\n" + "\n\n".join(
             "Previous Traceback:\n" + "".join(e.format())
@@ -127,6 +142,8 @@ class MetricsContext:
             if k & pred
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def set(self, metric: str, value: Any, overwrite: bool = False) -> None:
         """
         Set a metric to a given value. Raises if the metric has been assigned previously
@@ -136,11 +153,16 @@ class MetricsContext:
             raise RuntimeError(f"Cannot set {metric} outside of a MetricsContext")
         if metric in self._metrics and not overwrite:
             raise RuntimeError(
+<<<<<<< HEAD
                 self._render_edits({metric})
                 + f"\n\nRuntimeError: Metric '{metric}' has already been set in the current context "
                 "(see above for current and previous traceback)."
             )
         self._edits.append((CapturedTraceback.extract(skip=1), {metric}))
+=======
+                f"Metric '{metric}' has already been set in the current context"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._metrics[metric] = value
 
     def set_key_value(self, metric: str, key: str, value: Any) -> None:
@@ -168,11 +190,16 @@ class MetricsContext:
         existing = self._metrics.keys() & values.keys()
         if existing and not overwrite:
             raise RuntimeError(
+<<<<<<< HEAD
                 self._render_edits(set(values.keys()))
                 + f"\n\nRuntimeError: Metric(s) {existing} have already been set in the current context.  "
                 "(see above for current and previous traceback)."
             )
         self._edits.append((CapturedTraceback.extract(skip=1), set(values.keys())))
+=======
+                f"Metric(s) {existing} have already been set in the current context"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._metrics.update(values)
 
     def update_outer(self, values: dict[str, Any]) -> None:

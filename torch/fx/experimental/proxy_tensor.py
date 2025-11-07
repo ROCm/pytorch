@@ -11,7 +11,11 @@ import functools
 import inspect
 import logging
 import operator
+<<<<<<< HEAD
 import threading
+=======
+import traceback
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import typing
 import typing_extensions
 import weakref
@@ -67,6 +71,10 @@ from torch.utils._python_dispatch import (
 )
 from torch.utils._stats import count
 from torch.utils._thunk import Thunk
+<<<<<<< HEAD
+=======
+from torch.utils._traceback import CapturedTraceback
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils.weak import _WeakHashRef, WeakIdKeyDictionary, WeakTensorKeyDictionary
 
 from ._backward_state import BackwardState
@@ -180,7 +188,11 @@ def is_sym_node(node: _HasMeta) -> bool:
     return "val" in node.meta and isinstance(node.meta["val"], py_sym_types)
 
 
+<<<<<<< HEAD
 @overload  # type: ignore[no-overload-impl]
+=======
+@overload
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def set_proxy_slot(obj: Tensor, tracer: _ProxyTracer, proxy: _ProxyTensor) -> None: ...
 
 
@@ -196,6 +208,7 @@ def set_proxy_slot(
 ) -> None: ...
 
 
+<<<<<<< HEAD
 class _DisableUpdateTensorTracker(threading.local):
     value: bool = False
 
@@ -259,6 +272,9 @@ def _proxy_tensor_disable_update_tensor_tracker() -> Generator[None, None, None]
 
 
 def set_proxy_slot(  # type: ignore[no-redef]
+=======
+def set_proxy_slot(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     obj: Union[PySymType, _AnyScriptObjectType, Tensor],
     tracer: _ProxyTracer,
     proxy: object,
@@ -268,9 +284,13 @@ def set_proxy_slot(  # type: ignore[no-redef]
         # We DO want to clobber proxies whenever we run an inplace operation
         # on a tensor, and it affects the metadata on the proxy.
         assert isinstance(proxy, _ProxyTensor)
+<<<<<<< HEAD
         # see NOTE [Do not clobber inplace ops]
         if not _is_proxy_tensor_update_tensor_tracker_disabled():
             tracer.tensor_tracker[obj] = proxy
+=======
+        tracer.tensor_tracker[obj] = proxy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(obj, (_AnyScriptObject)):
         # We DO want to clobber proxies, with a similar rationale as for tensors.
         assert isinstance(proxy, Proxy)
@@ -820,6 +840,7 @@ def _maybe_record_pointwise_barrier(
     last_node.meta["low_precision_pointwise_barrier"] = True
 
 
+<<<<<<< HEAD
 def _fetch_proxies_and_all_constant_flag(
     flat_args_kwargs: Union[list[object], tuple[object, ...]], tracer: _ProxyTracer
 ) -> tuple[list[object], tuple[object, ...], bool]:
@@ -863,6 +884,8 @@ def _fetch_proxies_and_all_constant_flag(
     return f_flat_args_kwargs, tuple(proxy_flat_args_kwargs), all_constant
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def proxy_call(
     proxy_mode: ProxyTorchDispatchMode,
     func: OpOverload,
@@ -915,8 +938,32 @@ def proxy_call(
             return (args[0] != 0).item()  # type: ignore[attr-defined]
 
     tracer = proxy_mode.tracer
+<<<<<<< HEAD
     f_flat_args_kwargs, proxy_flat_args_kwargs, all_constant = (
         _fetch_proxies_and_all_constant_flag(flat_args_kwargs, tracer)
+=======
+    f_flat_args_kwargs = [
+        (
+            fetch_object_proxy(tracer, x)
+            if isinstance(x, (Tensor, _AnyScriptObject))
+            else x
+        )
+        for x in flat_args_kwargs
+    ]
+
+    # If there are SymInts, we also should not consider this constant.
+    # However, fake tensor handling of SymInts is sufficiently broken that
+    # I couldn't write a test for this case
+    all_constant = (
+        not any(
+            t.constant is None
+            for t in f_flat_args_kwargs
+            if isinstance(t, _ProxyTensor)
+        )
+        # TODO: maybe constant SymInts should also be allowed?  Not sure if
+        # this can happen
+        and not any(isinstance(x, py_sym_types) for x in flat_args_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     if torch.Tag.data_dependent_output in func.tags:
@@ -944,6 +991,16 @@ def proxy_call(
                 "in your make_fx call."
             )
 
+<<<<<<< HEAD
+=======
+    proxy_flat_args_kwargs = [
+        e.proxy if isinstance(e, _ProxyTensor) else e for e in f_flat_args_kwargs
+    ]
+    proxy_flat_args_kwargs = [
+        (fetch_sym_proxy(proxy_mode.tracer)(e) if isinstance(e, py_sym_types) else e)
+        for e in proxy_flat_args_kwargs
+    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     proxy_args, proxy_kwargs = pytree.tree_unflatten(proxy_flat_args_kwargs, spec)
 
     # When we trace through a torch.tensor invocation, you never actually
@@ -1097,6 +1154,10 @@ class PythonKeyTracer(Tracer):
     tensor_tracker: MutableMapping[Tensor, _ProxyTensor]
     torch_fn_counts: dict[OpOverload, int]
     enable_thunkify: bool = False
+<<<<<<< HEAD
+=======
+    stack_trace: bool = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self) -> None:
         super().__init__(autowrap_modules=())  # type: ignore[arg-type]
@@ -1160,7 +1221,11 @@ class PythonKeyTracer(Tracer):
 
     def unwrap_proxy(self, e: T) -> object:
         if isinstance(e, Tensor):
+<<<<<<< HEAD
             return get_proxy_slot(e, self, e, lambda x: x.proxy)  # type: ignore[attr-defined]
+=======
+            return get_proxy_slot(e, self, e, lambda x: x.proxy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(e, py_sym_types):
             return get_proxy_slot(e, self, e, lambda e: e.force())
         elif isinstance(e, _AnyScriptObject):
@@ -1179,8 +1244,43 @@ class PythonKeyTracer(Tracer):
     ) -> torch.fx.Node:
         node = super().create_node(kind, target, args, kwargs, name, type_expr)  # type: ignore[arg-type]
 
+<<<<<<< HEAD
         if node.op in ["placeholder", "output"] and "stack_trace" in node.meta:
             del node.meta["stack_trace"]
+=======
+        # stack_trace
+        if (
+            self.stack_trace
+            and "stack_trace" not in node.meta
+            and node.op not in ["placeholder", "output"]
+        ):
+            user_frame_summary = CapturedTraceback.extract().summary()
+            if user_frame_summary:
+                # we retain frames from forward() calls, or ops
+                # located in torch/__init__.py (e.g. sym_int, sym_constrain_range, vmap)
+                stack_trace = [
+                    frame
+                    for frame in user_frame_summary
+                    if (
+                        frame.name == "forward"
+                        or frame.filename.endswith("torch/__init__.py")
+                    )
+                ]
+                # filter out forward() frames from fx/_symbolic_trace.py, export/_trace.py
+                # this is hardcoded, but leads to a much cleaner stack trace
+                stack_trace = [
+                    frame
+                    for frame in stack_trace
+                    if not frame.filename.endswith(
+                        ("fx/_symbolic_trace.py", "export/_trace.py")
+                    )
+                ]
+                if (
+                    stack_trace
+                ):  # empty list for strict mode, dynamo should handle stack_trace
+                    stack_trace = traceback.StackSummary.from_list(stack_trace)
+                    node.meta["stack_trace"] = "".join(stack_trace.format()).strip()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if kind == "get_attr":
             assert isinstance(target, str)
@@ -1435,7 +1535,11 @@ class PreDispatchTorchFunctionMode(TorchFunctionMode):
         kwargs = kwargs or {}
         if func in _side_effectful_need_to_be_preserved_pre_dispatch:
             # It's for passing the export verifier which needs to verify the meta['val']
+<<<<<<< HEAD
             # TODO(tmanlaibaatar): we should systematically couple it with export verifier,
+=======
+            # TODO(tmanlaibaatar): we should systematically couple it with expoert verifier,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # instead of hardcoding it here.
             # T203648563
             if func == torch.amp.autocast_mode._exit_autocast:
@@ -1450,6 +1554,7 @@ class PreDispatchTorchFunctionMode(TorchFunctionMode):
                 torch.amp.autocast_mode._exit_autocast,
             ]:
                 node.meta["val"] = None
+<<<<<<< HEAD
             # For autocast, the python APIs run so we don't have to run them again
             # here.
             if func is torch._C._set_grad_enabled:
@@ -1476,6 +1581,11 @@ class PreDispatchTorchFunctionMode(TorchFunctionMode):
             res = func(*args, **kwargs)
             track_tensor_tree(res, out_proxy, constant=None, tracer=self.tracer)
             return res
+=======
+            return node
+            # Don't actually run the function! We just want to trace the calls
+            # into a graph. We don't actualy want to change global autograd state.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return func(*args, **kwargs)
 
 
@@ -1770,8 +1880,12 @@ class _ModuleStackTracer(PythonKeyTracer):
 
     def __init__(self, scope_root: GraphModule) -> None:
         super().__init__()
+<<<<<<< HEAD
         self.record_stack_traces = True
         self._record_forward_stack_traces_only = True
+=======
+        self.stack_trace = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.scope_root = scope_root
         self.enable_attr_proxy = False
         self.submodule_paths = {}
@@ -1907,6 +2021,7 @@ class _ModuleStackTracer(PythonKeyTracer):
     ) -> fx.Graph:
         res = super().trace(root, concrete_args)
 
+<<<<<<< HEAD
         # NOTE [export non-strict fake tensor leak detection]
         # In non-strict export, we don't have dynamo's side effect
         # tracking logic which makes some cases hard to detect.
@@ -1926,6 +2041,8 @@ class _ModuleStackTracer(PythonKeyTracer):
         for key, val in self.tensor_tracker.items():
             _FAKE_TENSOR_ID_TO_PROXY_MAP_FOR_EXPORT[id(key)] = val.proxy.node
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Since we are making _AttrProxy mimic the original
         # submodule, when someone registers a module directly
         # to the tracer while tracing, the proxy object gets registered
@@ -2021,7 +2138,11 @@ class _ModuleStackTracer(PythonKeyTracer):
         # nn_module_stack
         if node.op not in ["placeholder", "output"]:
             if "nn_module_stack" not in node.meta:
+<<<<<<< HEAD
                 node.meta["nn_module_stack"] = self.module_stack.copy()
+=======
+                node.meta["nn_module_stack"] = self.module_stack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # convert nn_module_stack from Dict[key, (FQN, class)] -> Dict[str, Tuple[str, str]]
             for key, (fqn, mod_cls) in node.meta["nn_module_stack"].items():
                 if isinstance(mod_cls, type):
@@ -2054,8 +2175,12 @@ class _MakefxTracer:
         record_module_stack: bool,
         _allow_fake_constant: bool,
         _error_on_data_dependent_ops: bool,
+<<<<<<< HEAD
         record_stack_traces: bool = False,
         parent_tracer: Optional[_MakefxTracer] = None,
+=======
+        stack_trace: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         # Configurations that are used to initialize the context managers and their states.
         # Should not modify them during tracing.
@@ -2086,8 +2211,12 @@ class _MakefxTracer:
         self.torch_fn_metadata_mode: Union[nullcontext, TorchFunctionMetadataMode] = (
             nullcontext()
         )
+<<<<<<< HEAD
         self.record_stack_traces = record_stack_traces
         self.parent_tracer: Optional[_MakefxTracer] = parent_tracer
+=======
+        self.stack_trace = stack_trace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _checkpoint_modes(self) -> list[Any]:
         return [
@@ -2127,6 +2256,7 @@ class _MakefxTracer:
             if hasattr(f, "_orig_mod") and self.record_module_stack:
                 scope_root = f._orig_mod
                 # _ModuleStackTracer always try to preserve stack trace
+<<<<<<< HEAD
                 # in forward functions
                 self.fx_tracer = _ModuleStackTracer(scope_root)
             else:
@@ -2134,6 +2264,12 @@ class _MakefxTracer:
                 self.fx_tracer.record_stack_traces = self.record_stack_traces
                 if self.record_stack_traces:
                     self.fx_tracer._record_forward_stack_traces_only = True
+=======
+                self.fx_tracer = _ModuleStackTracer(scope_root)
+            else:
+                self.fx_tracer = PythonKeyTracer()
+                self.fx_tracer.stack_trace = self.stack_trace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if self.tracing_mode == "fake":
                 import torch._dynamo
@@ -2336,6 +2472,7 @@ class _MakefxTracer:
                 )
                 raise
 
+<<<<<<< HEAD
         if (
             self.is_hop_subgraph_tracer()
             and (fake_mode := torch._guards.detect_fake_mode(args))
@@ -2345,6 +2482,8 @@ class _MakefxTracer:
 
             insert_deferred_runtime_asserts(t, fake_mode.shape_env, "reenter_make_fx")
             t.recompile()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: kind of a bad way to do it, should maybe figure out a better way
         if self.tracing_mode == "symbolic":
             assert self.fake_tensor_mode is not None
@@ -2355,9 +2494,12 @@ class _MakefxTracer:
         with self._init_modes_from_inputs(f, args):
             return self._trace_inner(f, *args)
 
+<<<<<<< HEAD
     def is_hop_subgraph_tracer(self) -> bool:
         return self.parent_tracer is not None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def trace_subgraph(self, f: Callable, *args: object) -> GraphModule:
         # Create a new tracer based on parent's config
         sub_tracer = _MakefxTracer(
@@ -2368,7 +2510,10 @@ class _MakefxTracer:
             self.record_module_stack,
             self._allow_fake_constant,
             self._error_on_data_dependent_ops,
+<<<<<<< HEAD
             parent_tracer=self,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         with sub_tracer._init_modes_from_parent(self):
             return sub_tracer._trace_inner(f, *args)
@@ -2398,14 +2543,22 @@ def make_fx(
     record_module_stack: bool = False,
     _allow_fake_constant: bool = False,
     _error_on_data_dependent_ops: bool = True,
+<<<<<<< HEAD
     record_stack_traces: bool = False,
+=======
+    stack_trace: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[..., GraphModule]:
     """
     Given a function f, return a new function which when executed with valid
     arguments to f, returns an FX GraphModule representing the set of operations that
     were executed during the course of execution.
 
+<<<<<<< HEAD
     If record_stack_traces is True, the stack trace will be preserved on node.meta["stack_trace"]
+=======
+    If stack_trace is True, the stack_trace will be preserved on node.meta["stack_trace"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     assert tracing_mode in ["real", "fake", "symbolic"]
@@ -2420,8 +2573,12 @@ def make_fx(
         record_module_stack,
         _allow_fake_constant,
         _error_on_data_dependent_ops,
+<<<<<<< HEAD
         record_stack_traces=record_stack_traces
         or config.trace.provenance_tracking_level == 1,
+=======
+        stack_trace=stack_trace or config.trace.enabled,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     @functools.wraps(f)

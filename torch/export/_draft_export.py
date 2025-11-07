@@ -4,24 +4,37 @@ import logging
 import os
 import re
 import tempfile
+<<<<<<< HEAD
 import time
 from collections.abc import Mapping
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import Any, Callable, Optional, Union
 
 import torch
 import torch._logging._internal
+<<<<<<< HEAD
 import torch.utils._pytree as pytree
 from torch._dynamo.exc import UserError, UserErrorType
+=======
+import torch._logging.structured
+import torch.utils._pytree as pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._export.passes.insert_custom_op_guards import (
     get_op_profiles,
     insert_custom_op_guards,
     OpProfile,
 )
+<<<<<<< HEAD
 from torch._utils_internal import log_draft_export_usage
 
 from ._trace import _export, get_ep_stats
+=======
+
+from ._trace import _export
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .dynamic_shapes import _DimHint, _DimHintType, Dim
 from .exported_program import ExportedProgram
 
@@ -365,12 +378,17 @@ class CaptureStructuredTrace(torch._logging._internal.LazyTraceHandler):
 def draft_export(
     mod: torch.nn.Module,
     args: tuple[Any, ...],
+<<<<<<< HEAD
     kwargs: Optional[Mapping[str, Any]] = None,
+=======
+    kwargs: Optional[dict[str, Any]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     *,
     dynamic_shapes: Optional[Union[dict[str, Any], tuple[Any], list[Any]]] = None,
     preserve_module_call_signature: tuple[str, ...] = (),
     strict: bool = False,
     pre_dispatch: bool = True,
+<<<<<<< HEAD
     prefer_deferred_runtime_asserts_over_guards: bool = False,
 ) -> ExportedProgram:
     start_time = time.time()
@@ -378,6 +396,12 @@ def draft_export(
     dynamic_shapes = dynamic_shapes or {}
 
     constraint_violation_msg = None
+=======
+) -> ExportedProgram:
+    kwargs = kwargs or {}
+    dynamic_shapes = dynamic_shapes or {}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     capture_structured_log = CaptureStructuredTrace()
 
     with (
@@ -397,6 +421,7 @@ def draft_export(
                 strict=strict,
                 pre_dispatch=pre_dispatch,
                 preserve_module_call_signature=preserve_module_call_signature,
+<<<<<<< HEAD
                 prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
             )
         except Exception as exc:
@@ -433,6 +458,28 @@ def draft_export(
                     type=f"{type(exc).__name__}.{type(exc).__qualname__}",
                 )
                 raise exc
+=======
+            )
+        except torch._dynamo.exc.UserError:
+
+            def convert_dim_to_auto(dim: Any) -> Any:
+                if isinstance(dim, Dim):
+                    return Dim.AUTO(min=dim.min, max=dim.max)
+                elif isinstance(dim, _DimHint) and dim.type == _DimHintType.DYNAMIC:
+                    return Dim.AUTO(min=dim.min, max=dim.max)
+                return dim
+
+            new_shapes = pytree.tree_map(convert_dim_to_auto, dynamic_shapes)
+            ep = _export(
+                mod,
+                args,
+                kwargs,
+                dynamic_shapes=new_shapes,
+                strict=strict,
+                pre_dispatch=pre_dispatch,
+                preserve_module_call_signature=preserve_module_call_signature,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         torch._logging.dtrace_structured("exported_program", payload_fn=lambda: str(ep))
 
@@ -531,6 +578,7 @@ You can now change back to torch.export.export()
     """
         )
 
+<<<<<<< HEAD
     log_draft_export_usage(
         error=False,
         export_time=time.time() - start_time,
@@ -539,4 +587,6 @@ You can now change back to torch.export.export()
         report=ep._report,
         **get_ep_stats(ep),
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ep

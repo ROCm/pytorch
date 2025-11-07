@@ -28,10 +28,16 @@ class SimpleLibraryRegistry:
         self._data = {}
 
     def find(self, qualname: str) -> "SimpleOperatorEntry":
+<<<<<<< HEAD
         res = self._data.get(qualname, None)
         if res is None:
             self._data[qualname] = res = SimpleOperatorEntry(qualname)
         return res
+=======
+        if qualname not in self._data:
+            self._data[qualname] = SimpleOperatorEntry(qualname)
+        return self._data[qualname]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 singleton: SimpleLibraryRegistry = SimpleLibraryRegistry()

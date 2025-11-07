@@ -52,7 +52,11 @@ demonstration of these components in action:
 
 The **symbolic tracer** performs "symbolic execution" of the Python
 code. It feeds fake values, called Proxies, through the code. Operations
+<<<<<<< HEAD
 on these Proxies are recorded. More information about symbolic tracing
+=======
+on theses Proxies are recorded. More information about symbolic tracing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 can be found in the :func:`symbolic_trace` and :class:`Tracer`
 documentation.
 

@@ -21,6 +21,7 @@
 
 #if IS_PYTHON_3_11_PLUS
 #include <internal/pycore_frame.h>
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS
 #include <internal/pycore_interpframe_structs.h>
 #endif
@@ -31,6 +32,8 @@
 
 #if IS_PYTHON_3_14_PLUS && !defined(_WIN32)
 #include <internal/pycore_code.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 #undef Py_BUILD_CORE
@@ -40,6 +43,7 @@
 extern "C" {
 #endif
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS && !defined(_WIN32)
 
 #define F_CODE(x) (PyCodeObject*)PyStackRef_AsPyObjectBorrow(x->f_executable)
@@ -52,6 +56,8 @@ extern "C" {
 
 #else
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if IS_PYTHON_3_13_PLUS
 #define F_CODE(x) ((PyCodeObject*)(x)->f_executable)
 #define PREV_INSTR(x) (x)->instr_ptr
@@ -60,8 +66,11 @@ extern "C" {
 #define PREV_INSTR(x) (x)->prev_instr
 #endif
 
+<<<<<<< HEAD
 #endif // IS_PYTHON_3_14_PLUS
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if IS_PYTHON_3_12_PLUS
 #define FUNC(x) ((x)->f_funcobj)
 #else

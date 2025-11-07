@@ -48,7 +48,11 @@ def _wrap_generator(ctx_factory, func):
                         gen.close()
                     raise
 
+<<<<<<< HEAD
                 except BaseException:  # noqa: B036
+=======
+                except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Propagate the exception thrown at us by the caller
                     with ctx_factory():
                         response = gen.throw(*sys.exc_info())

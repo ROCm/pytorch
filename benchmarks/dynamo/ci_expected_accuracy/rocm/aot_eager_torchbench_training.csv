@@ -102,7 +102,11 @@ hf_DistilBert,pass,6
 
 
 
+<<<<<<< HEAD
 hf_GPT2,pass,8
+=======
+hf_GPT2,pass,6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -114,7 +118,11 @@ hf_Longformer,pass,4
 
 
 
+<<<<<<< HEAD
 hf_Reformer,pass,25
+=======
+hf_Reformer,pass,23
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

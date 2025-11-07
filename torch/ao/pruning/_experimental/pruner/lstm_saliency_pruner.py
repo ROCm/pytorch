@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from typing import Any, cast
 
 import torch
@@ -5,6 +6,14 @@ from torch import nn
 
 from .base_structured_sparsifier import BaseStructuredSparsifier
 from .parametrization import FakeStructuredSparsity
+=======
+# mypy: allow-untyped-defs
+from typing import cast
+
+import torch
+
+from .base_structured_sparsifier import BaseStructuredSparsifier, FakeStructuredSparsity
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LSTMSaliencyPruner(BaseStructuredSparsifier):
@@ -26,7 +35,11 @@ class LSTMSaliencyPruner(BaseStructuredSparsifier):
     This applies to both weight_ih_l{k} and weight_hh_l{k}.
     """
 
+<<<<<<< HEAD
     def update_mask(self, module: nn.Module, tensor_name: str, **kwargs: Any) -> None:
+=======
+    def update_mask(self, module, tensor_name, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         weights = getattr(module, tensor_name)
 
         for p in getattr(module.parametrizations, tensor_name):

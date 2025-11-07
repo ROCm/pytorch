@@ -144,14 +144,24 @@ class ValueRanges(Generic[_T]):
         self: ValueRanges[sympy.Expr],
         lower: ExprIn,
         upper: ExprIn,
+<<<<<<< HEAD
     ) -> None: ...
+=======
+    ) -> None:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def __init__(  # type: ignore[misc]
         self: ValueRanges[SympyBoolean],
         lower: BoolIn,
         upper: BoolIn,
+<<<<<<< HEAD
     ) -> None: ...
+=======
+    ) -> None:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self, lower: AllIn, upper: AllIn) -> None:
         lower = simple_sympify(lower)
@@ -238,13 +248,23 @@ class ValueRanges(Generic[_T]):
     def __and__(
         self: ValueRanges[sympy.Expr],
         other: ValueRanges[sympy.Expr],
+<<<<<<< HEAD
     ) -> ValueRanges[sympy.Expr]: ...
+=======
+    ) -> ValueRanges[sympy.Expr]:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def __and__(  # type: ignore[misc]
         self: ValueRanges[SympyBoolean],
         other: ValueRanges[SympyBoolean],
+<<<<<<< HEAD
     ) -> ValueRanges[SympyBoolean]: ...
+=======
+    ) -> ValueRanges[SympyBoolean]:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __and__(self: AllVR, other: AllVR) -> AllVR:
         if other in (ValueRanges.unknown(), ValueRanges.unknown_int()):
@@ -268,13 +288,23 @@ class ValueRanges(Generic[_T]):
     def __or__(
         self: ValueRanges[sympy.Expr],
         other: ValueRanges[sympy.Expr],
+<<<<<<< HEAD
     ) -> ValueRanges[sympy.Expr]: ...
+=======
+    ) -> ValueRanges[sympy.Expr]:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     def __or__(  # type: ignore[misc]
         self: ValueRanges[SympyBoolean],
         other: ValueRanges[SympyBoolean],
+<<<<<<< HEAD
     ) -> ValueRanges[SympyBoolean]: ...
+=======
+    ) -> ValueRanges[SympyBoolean]:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __or__(self: AllVR, other: AllVR) -> AllVR:
         if ValueRanges.unknown() in (self, other):
@@ -337,7 +367,12 @@ class ValueRanges(Generic[_T]):
 
     @overload
     @staticmethod
+<<<<<<< HEAD
     def decreasing_map(x: Union[ExprIn, ExprVR], fn: ExprFn) -> ExprVR: ...
+=======
+    def decreasing_map(x: Union[ExprIn, ExprVR], fn: ExprFn) -> ExprVR:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     @staticmethod
@@ -377,7 +412,12 @@ class ValueRanges(Generic[_T]):
         x: Union[ExprIn, ExprVR],
         y: Union[ExprIn, ExprVR],
         fn: ExprFn2,
+<<<<<<< HEAD
     ) -> ExprVR: ...
+=======
+    ) -> ExprVR:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @overload
     @staticmethod
@@ -385,7 +425,12 @@ class ValueRanges(Generic[_T]):
         x: Union[BoolIn, BoolVR],
         y: Union[BoolIn, BoolVR],
         fn: BoolFn2,
+<<<<<<< HEAD
     ) -> BoolVR: ...
+=======
+    ) -> BoolVR:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def coordinatewise_increasing_map(
@@ -911,7 +956,11 @@ class SymPyValueRangeAnalysis:
         return (a, b)
 
     # piecewise function can be used to convert a SymBool to SymInt:
+<<<<<<< HEAD
     # int_expr = Piecewise((1, bool_expr), (0, True)), it evaluates to 1 when sym_bool is True and 0 otherwise.
+=======
+    # int_expr = Piecewise((1, bool_expr), (0, True)), it evalutes to 1 when sym_bool is True and 0 otherwise.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #
     # ranges is a sequence of (expr_range, condition_range) pairs. The range pair is constructed in expr_cond_pair.
     # The ValueRange of Piecewise is just the union of all expr ranges whose condition expr can be True.
@@ -1019,7 +1068,11 @@ def bound_sympy(
 
     # If there's a tracing context, augment available constrained ranges.
     context = torch._guards.TracingContext.try_get()
+<<<<<<< HEAD
     if context and context.fake_mode and context.fake_mode.shape_env:
+=======
+    if context and context.fake_mode.shape_env:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if ranges:
             ranges = {**context.fake_mode.shape_env.var_to_range, **ranges}
         else:

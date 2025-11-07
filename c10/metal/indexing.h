@@ -186,8 +186,15 @@ inline T val_at_offs(constant void* ptr, long offs, ScalarType type) {
       return cast_to<T>(val_at_offs<float>(ptr, offs));
     case ScalarType::Half:
       return cast_to<T>(val_at_offs<half>(ptr, offs));
+<<<<<<< HEAD
     case ScalarType::BFloat16:
       return cast_to<T>(val_at_offs<bfloat>(ptr, offs));
+=======
+#if __METAL_VERSION__ >= 310
+    case ScalarType::BFloat16:
+      return cast_to<T>(val_at_offs<bfloat>(ptr, offs));
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Complex
     case ScalarType::ComplexHalf:
       return cast_to<T>(val_at_offs<half2>(ptr, offs));

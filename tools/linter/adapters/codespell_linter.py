@@ -49,8 +49,13 @@ def format_error_message(
     if message is None and error is not None:
         message = (
             f"Failed due to {error.__class__.__name__}:\n{error}\n"
+<<<<<<< HEAD
             "Please either fix the error or add the word(s) to the dictionary file.\n"
             "HINT: all-lowercase words in the dictionary can cover all case variations."
+=======
+            "Please either fix the error or "
+            "add the word(s) to the dictionary file (lowercase is preferred)."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     return LintMessage(
         path=filename,

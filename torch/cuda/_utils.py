@@ -30,6 +30,7 @@ def _check_cuda(result: int) -> None:
 
 
 def _get_nvrtc_library() -> ctypes.CDLL:
+<<<<<<< HEAD
     major_version = int(torch.version.cuda.split(".")[0])  # type: ignore[union-attr]
     if sys.platform == "win32":
         nvrtc_libs = [
@@ -46,6 +47,14 @@ def _get_nvrtc_library() -> ctypes.CDLL:
         except OSError:
             continue
     raise OSError("Could not find any NVRTC library")
+=======
+    # Since PyTorch already loads NVRTC, we can use the system library
+    # which should be compatible with PyTorch's version
+    if sys.platform == "win32":
+        return ctypes.CDLL("nvrtc64_120_0.dll")
+    else:
+        return ctypes.CDLL("libnvrtc.so")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _nvrtc_compile(

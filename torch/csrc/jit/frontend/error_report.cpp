@@ -6,6 +6,7 @@ namespace torch::jit {
 
 // Avoid storing objects with destructor in thread_local for mobile build.
 #ifndef C10_MOBILE
+<<<<<<< HEAD
 // [NOTE: Thread-safe CallStack]
 // `calls` maintains a stack of Python calls that resulted in the
 // currently compiled TorchScript code. RAII ErrorReport::CallStack
@@ -34,6 +35,9 @@ namespace torch::jit {
 //      (since now multiple threads access a given thread_local calls object)
 static thread_local std::shared_ptr<ErrorReport::Calls> calls =
     std::make_shared<ErrorReport::Calls>();
+=======
+static thread_local std::vector<Call> calls;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // C10_MOBILE
 
 ErrorReport::ErrorReport(const ErrorReport& e)
@@ -44,15 +48,23 @@ ErrorReport::ErrorReport(const ErrorReport& e)
 
 #ifndef C10_MOBILE
 ErrorReport::ErrorReport(const SourceRange& r)
+<<<<<<< HEAD
     : context(r), error_stack(calls->get_stack()) {}
 
 void ErrorReport::CallStack::update_pending_range(const SourceRange& range) {
   calls->update_pending_range(range);
+=======
+    : context(r), error_stack(calls.begin(), calls.end()) {}
+
+void ErrorReport::CallStack::update_pending_range(const SourceRange& range) {
+  calls.back().caller_range = range;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 ErrorReport::CallStack::CallStack(
     const std::string& name,
     const SourceRange& range) {
+<<<<<<< HEAD
   source_callstack_ = calls;
   source_callstack_->push_back({name, range});
 }
@@ -61,6 +73,13 @@ ErrorReport::CallStack::~CallStack() {
   if (source_callstack_) {
     source_callstack_->pop_back();
   }
+=======
+  calls.push_back({name, range});
+}
+
+ErrorReport::CallStack::~CallStack() {
+  calls.pop_back();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 #else // defined C10_MOBILE
 ErrorReport::ErrorReport(const SourceRange& r) : context(r) {}
@@ -91,7 +110,11 @@ static std::string get_stacked_errors(const std::vector<Call>& error_stack) {
 
 std::string ErrorReport::current_call_stack() {
 #ifndef C10_MOBILE
+<<<<<<< HEAD
   return get_stacked_errors(calls->get_stack());
+=======
+  return get_stacked_errors(calls);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   TORCH_CHECK(false, "Call stack not supported on mobile");
 #endif // C10_MOBILE

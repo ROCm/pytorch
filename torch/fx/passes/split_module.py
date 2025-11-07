@@ -248,7 +248,10 @@ def split_module(
                                 s_def_partition = partitions[s_defined]
                                 s_def_partition.outputs.setdefault(s_node.name)
                                 s_def_partition.dependents.setdefault(used)
+<<<<<<< HEAD
                                 use_partition.dependencies.setdefault(s_defined)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if defined is not None:
                     use_partition.dependencies.setdefault(defined)
 
@@ -395,7 +398,11 @@ def split_module(
         root_partition = root_partitions.pop()
         sorted_partitions.append(root_partition)
         for dependent in partitions[root_partition].dependents:
+<<<<<<< HEAD
             partitions[dependent].dependencies.pop(root_partition)  # noqa: B909
+=======
+            partitions[dependent].dependencies.pop(root_partition)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not partitions[dependent].dependencies:
                 root_partitions.append(dependent)
     if len(sorted_partitions) != len(partitions):

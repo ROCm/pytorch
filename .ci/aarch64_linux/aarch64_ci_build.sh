@@ -3,6 +3,7 @@ set -eux -o pipefail
 
 GPU_ARCH_VERSION=${GPU_ARCH_VERSION:-}
 
+<<<<<<< HEAD
 # Set CUDA architecture lists to match x86 build_cuda.sh
 if [[ "$GPU_ARCH_VERSION" == *"12.6"* ]]; then
     export TORCH_CUDA_ARCH_LIST="8.0;9.0"
@@ -17,6 +18,10 @@ if [[ "$DESIRED_CUDA" == *"13"* ]]; then
     export TORCH_NVCC_FLAGS="-compress-mode=size"
     # Bundle ptxas into the cu13 wheel, see https://github.com/pytorch/pytorch/issues/163801
     export BUILD_BUNDLE_PTXAS=1
+=======
+if [[ "$GPU_ARCH_VERSION" == *"12.9"* ]]; then
+    export TORCH_CUDA_ARCH_LIST="8.0;9.0;10.0;12.0"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 fi
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -30,7 +35,11 @@ cd /
 # on the mounted pytorch repo
 git config --global --add safe.directory /pytorch
 pip install -r /pytorch/requirements.txt
+<<<<<<< HEAD
 pip install auditwheel==6.2.0 wheel
+=======
+pip install auditwheel==6.2.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if [ "$DESIRED_CUDA" = "cpu" ]; then
     echo "BASE_CUDA_VERSION is not set. Building cpu wheel."
     #USE_PRIORITIZED_TEXT_FOR_LD for enable linker script optimization https://github.com/pytorch/pytorch/pull/121975/files
@@ -38,6 +47,7 @@ if [ "$DESIRED_CUDA" = "cpu" ]; then
 else
     echo "BASE_CUDA_VERSION is set to: $DESIRED_CUDA"
     export USE_SYSTEM_NCCL=1
+<<<<<<< HEAD
 
     # Check if we should use NVIDIA libs from PyPI (similar to x86 build_cuda.sh logic)
     if [[ -z "$PYTORCH_EXTRA_INSTALL_REQUIREMENTS" ]]; then
@@ -48,6 +58,8 @@ else
         export USE_NVIDIA_PYPI_LIBS=1
     fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #USE_PRIORITIZED_TEXT_FOR_LD for enable linker script optimization https://github.com/pytorch/pytorch/pull/121975/files
     USE_PRIORITIZED_TEXT_FOR_LD=1 python /pytorch/.ci/aarch64_linux/aarch64_wheel_ci_build.py --enable-mkldnn --enable-cuda
 fi

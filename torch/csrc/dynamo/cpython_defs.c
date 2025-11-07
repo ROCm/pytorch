@@ -2,6 +2,7 @@
 #include <torch/csrc/dynamo/cpython_includes.h>
 #include <torch/csrc/dynamo/debug_macros.h>
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS
 
 const uint8_t* THP_PyOpcode_Caches = NULL;
@@ -16,6 +17,8 @@ THP_PyFrame_Clear(_PyInterpreterFrame *frame)
 
 #else
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if IS_PYTHON_3_11_PLUS
 
 #define Py_BUILD_CORE
@@ -374,5 +377,8 @@ const uint8_t* THP_PyOpcode_Caches = NULL;
 const int THP_PyOpcode_Caches_size = 0;
 
 #endif
+<<<<<<< HEAD
 
 #endif // IS_PYTHON_3_14_PLUS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

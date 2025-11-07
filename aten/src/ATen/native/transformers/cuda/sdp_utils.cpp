@@ -61,6 +61,7 @@
 namespace sdp {
 namespace {
 
+<<<<<<< HEAD
 // tracks whether we've set the default priority order once, to avoid setting
 // it redundantly or overwriting a user-specified priority order
 // when the priority order context manager is used before the default priority
@@ -84,6 +85,23 @@ bool check_prefer_cudnn_attention() {
   auto dprops = at::cuda::getCurrentDeviceProperties();
   auto major = dprops->major;
   return (major == 9 || major == 10) && !dprops->minor;
+=======
+// TODO(eqy): more benchmarking to determine whether this should include sm86/89
+// Needs to be kept in-sync with test_fused_chocie in test_transformers.py
+bool check_prefer_cudnn_attention() {
+  // TODO(eqy): Re-enable by default after upgrading to a release later than 9.5.0
+  // see context: https://github.com/pytorch/pytorch/issues/138340
+  // return false;
+#if defined(CUDNN_VERSION)
+
+#if CUDNN_VERSION > 90000
+  auto dprops = at::cuda::getCurrentDeviceProperties();
+  return dprops->major >= 9;
+#else
+  return false;
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   return false;
 #endif
@@ -91,6 +109,7 @@ bool check_prefer_cudnn_attention() {
 
 // flash_attention V2 is universally faster than efficient_attention and Math
 std::array<SDPBackend, num_backends> priority_order(sdp_params const& params) {
+<<<<<<< HEAD
   if (!priority_order_init_) {
     priority_order_init_ = true;
     if (check_prefer_cudnn_attention()) {
@@ -101,6 +120,8 @@ std::array<SDPBackend, num_backends> priority_order(sdp_params const& params) {
         at::globalContext().setSDPPriorityOrder(cudnn_order);
     }
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return at::globalContext().sDPPriorityOrder();
 }
 
@@ -437,7 +458,11 @@ bool check_flash_causal_non_square_seqlens(sdp_params const& params, bool debug)
 
 bool check_all_tensors_on_device(sdp_params const& params, bool debug) {
   // Check that all tensors are on the GPU device
+<<<<<<< HEAD
   // This should be handled by the stub dispatch, but we call can_use_*_attention
+=======
+  // This should be handled by the stub dispatch, but whe call can_use_*_attention
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // directly from python we need to ensure that the tensors are on cuda
   if (params.query.device().type() != at::DeviceType::CUDA) {
     if (debug) {
@@ -473,9 +498,15 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
     return false;
   }
   auto head_dim_limit = 128;
+<<<<<<< HEAD
   if (cudnn_version >= 91000) {
     auto dprops = at::cuda::getCurrentDeviceProperties();
     if (dprops->major == 9 && !dprops->minor) {
+=======
+  if (cudnn_version >= 90501) {
+    auto dprops = at::cuda::getCurrentDeviceProperties();
+    if (dprops->major == 9  && !dprops->minor) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       head_dim_limit = 256;
     }
   }
@@ -512,6 +543,7 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
       return false;
     }
   }
+<<<<<<< HEAD
   if (s_k == 1) {
     if (debug) {
       TORCH_WARN_ONCE("cudnn SDPA does not support key/value sequence length 1.");
@@ -521,6 +553,11 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
   if (s_q == 1 && params.dropout != 0.0) {
     if (debug) {
       TORCH_WARN_ONCE("cudnn SDPA does not support query sequence length 1 with dropout.");
+=======
+  if (s_q == 1 || s_k == 1) {
+    if (debug) {
+      TORCH_WARN_ONCE("cudnn SDPA does not support sequence length 1.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return false;
   }
@@ -628,9 +665,15 @@ bool check_for_nested_inputs(sdp_params const& params, bool debug) {
 
   const auto dprop = at::cuda::getCurrentDeviceProperties();
   // Check that the input is nested
+<<<<<<< HEAD
   if (!(dprop->major == 9 || dprop->major == 10) && has_for_nested_inputs(params)) {
     if (debug) {
       TORCH_WARN("cuDNN SDPA supports nested tensors on SM 9.0, SM 10.0.");
+=======
+  if (dprop->major != 9 && has_for_nested_inputs(params)) {
+    if (debug) {
+      TORCH_WARN("CuDNN SDPA supports nested tensors on SM 9.0.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return false;
   }
@@ -654,7 +697,11 @@ bool check_runtime_disabled_cudnn(sdp_params const& params, bool debug) {
   // sdp kernels
   if (!at::globalContext().userEnabledCuDNNSDP()) {
     if (debug) {
+<<<<<<< HEAD
       TORCH_WARN("cuDNN attention has been runtime disabled.");
+=======
+      TORCH_WARN("CuDNN attention has been runtime disabled.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return false;
   }
@@ -685,6 +732,7 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
 #endif
 #if defined(CUDNN_VERSION) && CUDNN_VERSION < 90000
   if (debug) {
+<<<<<<< HEAD
     TORCH_WARN(CUDNN_VERSION, " cuDNN version too old to use cuDNN Attention (< v9.0.0)");
   }
   return false;
@@ -698,14 +746,27 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
     return false;
   }
 #endif
+=======
+    TORCH_WARN(CUDNN_VERSION, " cuDNN version too old to use CuDNN Attention (< v9.0.0)");
+  }
+  return false;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Define gate functions that determine if a flash kernel can be ran
   // Replace with std::to_array when we migrate to c++20
   constexpr auto general_constraints =
       c10::array_of<bool (*)(sdp_params const&, bool)>(
           check_runtime_disabled_cudnn,
           check_for_nested_inputs,
+<<<<<<< HEAD
           check_all_tensors_on_device,
           check_tensor_shapes,
+=======
+          check_nonzero_sequence_lengths_dense,
+          check_all_tensors_on_device,
+          check_tensor_shapes,
+          check_cudnn_tensor_shapes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           check_cudnn_deterministic,
           check_dtypes_low_precision,
           check_attn_mask_shape,
@@ -718,10 +779,15 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
   }
   constexpr auto dense_constraints =
       c10::array_of<bool (*)(sdp_params const&, bool)>(
+<<<<<<< HEAD
       check_nonzero_sequence_lengths_dense,
       check_last_dim_stride_equals_1_dense<true /*ignore_singleton_dim=*/>,
       check_batch_size_and_num_heads_dense<true /*enable_gqa*/, false /*requires_same_num_heads*/>,
       check_cudnn_tensor_shapes
+=======
+      check_last_dim_stride_equals_1_dense<true /*ignore_singleton_dim=*/>,
+      check_batch_size_and_num_heads_dense<true /*enable_gqa*/, false /*requires_same_num_heads*/>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   );
 
   if (has_only_dense_inputs(params)) {
@@ -917,11 +983,14 @@ SDPBackend select_sdp_backend(sdp_params const& kernel_params) {
           return SDPBackend::math;
         }
         break;
+<<<<<<< HEAD
       case SDPBackend::overrideable:
         if (ctx.userEnabledOverrideableSDP()) {
           TORCH_CHECK(false, "Invalid backend");
         }
         break;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       default:
         TORCH_CHECK(false, "Invalid backend");
     }
@@ -938,7 +1007,11 @@ SDPBackend select_sdp_backend(sdp_params const& kernel_params) {
   sdp::can_use_mem_efficient_attention(kernel_params, print_debug);
   TORCH_WARN("Flash attention kernel not used because:");
   sdp::can_use_flash_attention(kernel_params, print_debug);
+<<<<<<< HEAD
   TORCH_WARN("cuDNN attention kernel not used because:");
+=======
+  TORCH_WARN("CuDNN attention kernel not used because:");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   sdp::can_use_cudnn_attention(kernel_params, print_debug);
   TORCH_CHECK(!print_debug, "No available kernel. Aborting execution.")
   return SDPBackend::error;

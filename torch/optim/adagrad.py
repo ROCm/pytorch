@@ -54,6 +54,7 @@ class Adagrad(Optimizer):
         if not 0.0 <= eps:
             raise ValueError(f"Invalid epsilon value: {eps}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "lr_decay": lr_decay,
@@ -65,6 +66,19 @@ class Adagrad(Optimizer):
             "differentiable": differentiable,
             "fused": fused,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            lr_decay=lr_decay,
+            eps=eps,
+            weight_decay=weight_decay,
+            initial_accumulator_value=initial_accumulator_value,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            fused=fused,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
         if fused:
@@ -117,7 +131,10 @@ class Adagrad(Optimizer):
                 )
 
     def share_memory(self):
+<<<<<<< HEAD
         """Calls tensor.share_memory_() on the state sum tensors."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for group in self.param_groups:
             for p in group["params"]:
                 state = self.state[p]
@@ -467,7 +484,11 @@ def _multi_tensor_adagrad(
             torch._foreach_add_(device_state_steps, 1)
 
         if weight_decay != 0:
+<<<<<<< HEAD
             # Reuse the intermediate memory (device_grads) already allocated for maximize
+=======
+            # Re-use the intermediate memory (device_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if maximize:
                 torch._foreach_add_(device_grads, device_params, alpha=weight_decay)
             else:
@@ -485,7 +506,11 @@ def _multi_tensor_adagrad(
         torch._foreach_add_(std, eps)
 
         if weight_decay != 0 or maximize:
+<<<<<<< HEAD
             # Again, reuse the intermediate memory (device_grads) already allocated
+=======
+            # Again, re-use the intermediate memory (device_grads) already allocated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._foreach_mul_(device_grads, minus_clr)
             numerator = device_grads
         else:

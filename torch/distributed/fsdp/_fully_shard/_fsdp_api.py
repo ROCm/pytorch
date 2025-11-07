@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -9,6 +10,12 @@ import torch.distributed as dist
 
 
 _ReduceOp = Union[dist.ReduceOp, dist.ReduceOp.RedOpType]
+=======
+from dataclasses import dataclass
+from typing import Optional
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass(frozen=True)
@@ -53,6 +60,7 @@ class MixedPrecisionPolicy:
     cast_forward_inputs: bool = True
 
 
+<<<<<<< HEAD
 class Comm(ABC):
     """
     Interface for communication primitives.
@@ -127,6 +135,8 @@ class ReduceScatter(Comm):
     ) -> Optional[dist.Work]: ...
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass
 class OffloadPolicy:
     """

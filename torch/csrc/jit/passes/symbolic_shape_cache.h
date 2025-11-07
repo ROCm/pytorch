@@ -8,7 +8,11 @@ namespace torch::jit {
 struct TORCH_API CanonicalizedSymbolicShape {
   // TODO: Consider in the future if it is reasonable to
   // merge code with SymbolicShape or VaryingShape while keeping
+<<<<<<< HEAD
   // the two not implicitly convertible (and cause bugs).
+=======
+  // the two not implicitly convertable (and cause bugs).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CanonicalizedSymbolicShape(
       const c10::SymbolicShape& orig_shape,
       std::unordered_map<int64_t, int64_t>& ss_map) {

@@ -302,7 +302,11 @@ class TestFunctionalizationRngOps(TestCase):
         fwd_compiler = functools.partial(count_philox_rand, freq=1)
         bwd_compiler = functools.partial(count_philox_rand, freq=0)
         aot_fn = aot_function(fn, fwd_compiler, bwd_compiler)
+<<<<<<< HEAD
         # We can't check accuracy here because rand_like generated different rand numbers than dropout
+=======
+        # We cant check accuracy here because rand_like generated different rand numbers than dropout
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res = aot_fn(x, y)
         res.sum().backward()
 
@@ -316,7 +320,11 @@ class TestFunctionalizationRngOps(TestCase):
 
         # Ensure the decomp is happening
         aot_fn = aot_function(fn, functools.partial(count_philox_rand, freq=1))
+<<<<<<< HEAD
         # We can't check accuracy here because rand_like generated different rand numbers than dropout
+=======
+        # We cant check accuracy here because rand_like generated different rand numbers than dropout
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aot_fn(x)
 
 

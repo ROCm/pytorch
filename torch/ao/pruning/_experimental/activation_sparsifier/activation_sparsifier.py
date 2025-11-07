@@ -159,7 +159,11 @@ class ActivationSparsifier:
                 if data is None:
                     out_data = [
                         0 for _ in range(0, len(features))
+<<<<<<< HEAD
                     ]  # create one in case of 1st forward
+=======
+                    ]  # create one incase of 1st forward
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.state[name]["mask"] = [0 for _ in range(0, len(features))]
                 else:
                     out_data = data  # a list

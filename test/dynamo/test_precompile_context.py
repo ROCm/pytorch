@@ -1,16 +1,23 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
 import pickle
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch._dynamo
 import torch._dynamo.test_case
 import torch._functorch
+<<<<<<< HEAD
 from torch._dynamo.precompile_context import (
     EditablePrecompileCacheArtifact,
     PrecompileCacheArtifact,
     PrecompileContext,
 )
+=======
+from torch._dynamo.precompile_context import PrecompileContext
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._functorch import config as functorch_config
 from torch._functorch._aot_autograd.autograd_cache import (
     BundledAOTAutogradCacheArtifact,
@@ -20,8 +27,13 @@ from torch.testing._internal.inductor_utils import GPU_TYPE, requires_triton
 
 
 @functorch_config.patch({"enable_autograd_cache": True})
+<<<<<<< HEAD
 @torch._dynamo.config.patch(
     {"caching_precompile": True}
+=======
+@functorch_config.patch(
+    {"bundled_autograd_cache": True}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )  # Requires bundledaotautograd cache for now
 class PrecompileContextTests(InductorTestCase):
     def setUp(self):
@@ -47,9 +59,16 @@ class PrecompileContextTests(InductorTestCase):
         x = torch.randn(10, device=GPU_TYPE, requires_grad=True)
         result = compiled_fn(x)
         result.sum().backward()
+<<<<<<< HEAD
         self.assertEqual(len(PrecompileContext._new_cache_artifacts_by_key), 2)
         self.assertEqual(len(PrecompileContext._new_cache_artifacts), 0)
 
+=======
+        # Check that PrecompileContext._new_cache_artifacts_by_key has length 1
+        self.assertEqual(len(PrecompileContext._new_cache_artifacts_by_key), 1)
+
+        self.assertEqual(len(PrecompileContext._new_cache_artifacts), 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = PrecompileContext.serialize()
         assert result is not None
         serialized, cache_info = result
@@ -82,6 +101,7 @@ class PrecompileContextTests(InductorTestCase):
         x = torch.randn(10, device=GPU_TYPE, requires_grad=True)
         result = compiled_fn(x)
         result.sum().backward()
+<<<<<<< HEAD
         self.assertEqual(len(PrecompileContext._new_cache_artifacts_by_key), 2)
         for key in PrecompileContext._new_cache_artifacts_by_key.keys():
             result = PrecompileContext.serialize_artifact_by_key(key)
@@ -123,6 +143,13 @@ class PrecompileContextTests(InductorTestCase):
 
         PrecompileContext.edit_artifact(key, edit_fn)
 
+=======
+        # Check that PrecompileContext._new_cache_artifacts_by_key has length 1
+        # TODO: the key right now is the AOTAutogradCacheKey, but will be backend_id once
+        # we have torch._dynamo.package implemented
+        self.assertEqual(len(PrecompileContext._new_cache_artifacts_by_key), 1)
+        key = next(iter(PrecompileContext._new_cache_artifacts_by_key.keys()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = PrecompileContext.serialize_artifact_by_key(key)
         assert isinstance(result, BundledAOTAutogradCacheArtifact)
         self.assertEqual(result.key, key)
@@ -130,6 +157,7 @@ class PrecompileContextTests(InductorTestCase):
         self.assertEqual(len(PrecompileContext._new_cache_artifacts), 0)
         result = PrecompileContext.serialize()
         assert result is not None
+<<<<<<< HEAD
         artifacts, cache_info = result
         self.assertEqual(len(cache_info.precompile_aot_autograd_artifacts), 1)
 
@@ -146,6 +174,11 @@ class PrecompileContextTests(InductorTestCase):
             len(PrecompileContext._new_cache_artifacts["precompile_aot_autograd"]), 0
         )
 
+=======
+        _, cache_info = result
+        self.assertEqual(len(cache_info.precompile_aot_autograd_artifacts), 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

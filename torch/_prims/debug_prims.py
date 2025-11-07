@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import contextlib
 from collections.abc import Generator, Sequence
+=======
+# mypy: allow-untyped-defs
+import contextlib
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional
 
 import torch
@@ -10,7 +15,11 @@ LOAD_TENSOR_READER: Optional[ContentStoreReader] = None
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def load_tensor_reader(loc: str) -> Generator[None, None, None]:
+=======
+def load_tensor_reader(loc):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global LOAD_TENSOR_READER
     assert LOAD_TENSOR_READER is None
     # load_tensor is an "op", and we will play merry hell on
@@ -26,13 +35,18 @@ def load_tensor_reader(loc: str) -> Generator[None, None, None]:
         LOAD_TENSOR_READER = None
 
 
+<<<<<<< HEAD
 def register_debug_prims() -> None:
+=======
+def register_debug_prims():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.library.define(
         "debugprims::load_tensor",
         "(str name, int[] size, int[] stride, *, ScalarType dtype, Device device) -> Tensor",
     )
 
     @torch.library.impl("debugprims::load_tensor", "BackendSelect")
+<<<<<<< HEAD
     def load_tensor_factory(
         name: str,
         size: Sequence[int],
@@ -40,6 +54,9 @@ def register_debug_prims() -> None:
         dtype: torch.dtype,
         device: torch.device,
     ) -> torch.Tensor:
+=======
+    def load_tensor_factory(name, size, stride, dtype, device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if LOAD_TENSOR_READER is None:
             from torch._dynamo.testing import rand_strided
 
@@ -56,5 +73,9 @@ def register_debug_prims() -> None:
             # Unlike the other properties, we will do coercions for dtype
             # mismatch
             if r.dtype != dtype:
+<<<<<<< HEAD
                 r = clone_input(r, dtype=dtype)  # type: ignore[no-untyped-call]
+=======
+                r = clone_input(r, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return r

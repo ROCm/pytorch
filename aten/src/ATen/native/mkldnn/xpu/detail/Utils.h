@@ -110,6 +110,7 @@ struct PartitionCache {
   // bit 1: is uint8
   // bit 2: fp16(0) / bf16(1)
   // bit 3: is fp32
+<<<<<<< HEAD
   // bit 4: is sdpa pattern
   // bit 5: is sdpa backward pattern
   // bit 6-7: reserved for future use
@@ -125,6 +126,13 @@ struct PartitionCache {
     SdpaBwdPattern = 5
   };
 
+=======
+  // bit 4: is sdp pattern
+  // bit 5-7: N/A
+  // The rest of the bits depend upon the arguments provided
+  // However, down the line, we might have different bitsets for different
+  // patterns
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   dnnl::graph::partition& insert_partition_cache(
       std::bitset<32>& patternID,
       dnnl::graph::partition& p) {

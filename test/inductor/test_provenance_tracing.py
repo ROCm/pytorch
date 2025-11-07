@@ -1,14 +1,20 @@
 # Owner(s): ["module: inductor"]
 
+<<<<<<< HEAD
 import contextlib
 import io
 import json
 import logging
 import os
+=======
+import json
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import shutil
 import tempfile
 import unittest
+<<<<<<< HEAD
 import zipfile
 from pathlib import Path
 
@@ -26,6 +32,16 @@ from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.virtualized import V
 from torch.testing._internal.common_utils import IS_MACOS
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
+=======
+from pathlib import Path
+
+import torch
+from torch._inductor import config
+from torch._inductor.debug import create_node_mapping
+from torch._inductor.test_case import run_tests, TestCase
+from torch.testing._internal.inductor_utils import HAS_GPU
+from torch.testing._internal.triton_utils import requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -34,9 +50,12 @@ except ImportError:
     from test_aot_inductor_utils import AOTIRunnerUtil
 
 
+<<<<<<< HEAD
 trace_log = logging.getLogger("torch.__trace")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class Model(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -70,6 +89,7 @@ class Model3(torch.nn.Module):
         return torch.nn.functional.linear(a, self.weight, self.bias)
 
 
+<<<<<<< HEAD
 class Model4(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -89,18 +109,29 @@ class Model4(torch.nn.Module):
 
 @config.patch("trace.enabled", True)
 @config.patch("trace.provenance_tracking_level", 1)
+=======
+@config.patch("trace.enabled", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestProvenanceTracingArtifact(TestCase):
     """
     This test checks that generated provenance tracing artifact from "post_grad" to
     corresponding "inductor triton kernel node" is expected.
     """
 
+<<<<<<< HEAD
     def _check_provenance_tracing_kernel_to_post_grad(self, filepath, expected_data):
         self.assertTrue(filepath.is_dir())
         filename = Path(filepath) / "inductor_provenance_tracking_node_mappings.json"
         with open(filename) as f:
             actual_data = json.load(f)
         actual_data = actual_data["cppCodeToPost"]
+=======
+    def _check_provenance_tracing_artifact(self, filepath, expected_data):
+        self.assertTrue(filepath.is_dir())
+        filename = Path(filepath) / "inductor_generated_kernel_to_post_grad_nodes.json"
+        with open(filename) as f:
+            actual_data = json.load(f)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # check that the generated provenance tracing artifact is expected
         self.assertEqual(sorted(actual_data.items()), sorted(expected_data.items()))
 
@@ -118,11 +149,18 @@ class TestProvenanceTracingArtifact(TestCase):
         c = torch.randn(10, 30, device=device)
         example_inputs = (a, b, c)
 
+<<<<<<< HEAD
         model = Model().to(device)
         filepath = None
 
         for backend in ["aot_inductor", "inductor"]:
             reset_inductor_kernel_provenance_debug_handle()
+=======
+        model = Model()
+        filepath = None
+
+        for backend in ["aot_inductor", "inductor"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 with config.patch(
                     {
@@ -145,12 +183,32 @@ class TestProvenanceTracingArtifact(TestCase):
                     self.assertTrue(m)
                     filepath = Path(m.group(1))
                     if device == "cuda":
+<<<<<<< HEAD
+=======
+                        expected_data = {
+                            "triton_poi_fused_mul_0": ["mul"],
+                            "triton_poi_fused_addmm_gelu_1": [
+                                "mul_3",
+                                "mul_1",
+                                "add_tensor",
+                                "add",
+                                "erf",
+                                "mul_2",
+                            ],
+                        }
+                        self._check_provenance_tracing_artifact(filepath, expected_data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         expected_mapping = [
                             (
                                 "cppCodeToPost",
                                 {
+<<<<<<< HEAD
                                     "triton_poi_fused_mul_0:1": ["mul"],
                                     "triton_poi_fused_addmm_gelu_1:2": [
+=======
+                                    "triton_poi_fused_mul_0": ["mul"],
+                                    "triton_poi_fused_addmm_gelu_1": [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                         "mul_3",
                                         "mul_1",
                                         "add_tensor",
@@ -163,6 +221,7 @@ class TestProvenanceTracingArtifact(TestCase):
                             (
                                 "postToCppCode",
                                 {
+<<<<<<< HEAD
                                     "mul": ["triton_poi_fused_mul_0:1"],
                                     "mul_3": ["triton_poi_fused_addmm_gelu_1:2"],
                                     "mul_1": ["triton_poi_fused_addmm_gelu_1:2"],
@@ -170,6 +229,15 @@ class TestProvenanceTracingArtifact(TestCase):
                                     "add": ["triton_poi_fused_addmm_gelu_1:2"],
                                     "erf": ["triton_poi_fused_addmm_gelu_1:2"],
                                     "mul_2": ["triton_poi_fused_addmm_gelu_1:2"],
+=======
+                                    "mul": ["triton_poi_fused_mul_0"],
+                                    "mul_3": ["triton_poi_fused_addmm_gelu_1"],
+                                    "mul_1": ["triton_poi_fused_addmm_gelu_1"],
+                                    "add_tensor": ["triton_poi_fused_addmm_gelu_1"],
+                                    "add": ["triton_poi_fused_addmm_gelu_1"],
+                                    "erf": ["triton_poi_fused_addmm_gelu_1"],
+                                    "mul_2": ["triton_poi_fused_addmm_gelu_1"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 },
                             ),
                             (
@@ -194,6 +262,7 @@ class TestProvenanceTracingArtifact(TestCase):
                                 },
                             ),
                         ]
+<<<<<<< HEAD
                         if backend == "aot_inductor":
                             expected_mapping[0][1]["aoti_torch_cuda_mm_out:3"] = [
                                 "mm_default"
@@ -208,6 +277,8 @@ class TestProvenanceTracingArtifact(TestCase):
                             expected_mapping[1][1]["mm_default"] = [
                                 "extern_kernels.mm:3"
                             ]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self._check_provenance_tracking_node_mappings(
                             filepath, expected_mapping
                         )
@@ -216,9 +287,15 @@ class TestProvenanceTracingArtifact(TestCase):
                         # check the inductor kernel to post grad nodes mapping is expected for cpu
                         if backend == "aot_inductor":
                             expected_data = {
+<<<<<<< HEAD
                                 "cpp_fused_mul_0:1": ["mul"],
                                 "aoti_torch_cpu_addmm_out:3": ["addmm"],
                                 "cpp_fused_gelu_1:2": [
+=======
+                                "cpp_fused_mul_0": ["mul"],
+                                "aoti_torch_cpu_addmm_out": ["addmm", "mul"],
+                                "cpp_fused_gelu_1": [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                     "mul_3",
                                     "mul_1",
                                     "add",
@@ -229,24 +306,37 @@ class TestProvenanceTracingArtifact(TestCase):
                         else:
                             # backend == "inductor"
                             expected_data = {
+<<<<<<< HEAD
                                 "cpp_fused_mul_0:1": ["mul"],
                                 "cpp_fused_gelu_1:2": [
+=======
+                                "cpp_fused_mul_0": ["mul"],
+                                "aoti_torch_cpu_addmm_out": ["addmm", "mul"],
+                                "cpp_fused_gelu_1": [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                     "mul_3",
                                     "mul_1",
                                     "add",
                                     "erf",
                                     "mul_2",
                                 ],
+<<<<<<< HEAD
                                 "extern_kernels.addmm:3": ["addmm"],
                             }
                         self._check_provenance_tracing_kernel_to_post_grad(
                             filepath, expected_data
                         )
+=======
+                                "extern_kernels.addmm": ["addmm", "mul"],
+                            }
+                        self._check_provenance_tracing_artifact(filepath, expected_data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             finally:
                 if filepath:
                     shutil.rmtree(filepath)
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
     def test_triton_kernel_to_post_grad_tracing_cuda(self):
         self._test_triton_kernel_to_post_grad_tracing(device="cuda")
@@ -255,6 +345,17 @@ class TestProvenanceTracingArtifact(TestCase):
         self._test_triton_kernel_to_post_grad_tracing(device="cpu")
 
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+    def test_triton_kernel_to_post_grad_tracing_cuda(self):
+        self._test_triton_kernel_to_post_grad_tracing(device="cuda")
+
+    @unittest.skipIf(HAS_GPU, "the test is only for cpu")
+    def test_triton_kernel_to_post_grad_tracing_cpu(self):
+        self._test_triton_kernel_to_post_grad_tracing(device="cpu")
+
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_to_post_grad_tracing_extern_kernel(self):
         M = 8
         N = 6
@@ -266,7 +367,10 @@ class TestProvenanceTracingArtifact(TestCase):
         filepath = None
 
         for backend in ["aot_inductor", "inductor"]:
+<<<<<<< HEAD
             reset_inductor_kernel_provenance_debug_handle()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             try:
                 with config.patch(
                     {
@@ -290,22 +394,39 @@ class TestProvenanceTracingArtifact(TestCase):
                     filepath = Path(m.group(1))
                     if backend == "inductor":
                         expected_data = {
+<<<<<<< HEAD
                             "extern_kernels.addmm:1": ["addmm"],
+=======
+                            "aoti_torch_cuda_addmm_out": ["addmm", "_tensor_constant1"],
+                            "triton_poi_fused_0": ["_tensor_constant1"],
+                            "extern_kernels.addmm": ["addmm"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         }
                     else:
                         # backend = aot_inductor
                         expected_data = {
+<<<<<<< HEAD
                             "aoti_torch_cuda_addmm_out:2": ["addmm"],
                             "triton_poi_fused_0:1": ["_tensor_constant1"],
                         }
                     self._check_provenance_tracing_kernel_to_post_grad(
                         filepath, expected_data
                     )
+=======
+                            "aoti_torch_cuda_addmm_out": ["addmm", "_tensor_constant1"],
+                            "triton_poi_fused_0": ["_tensor_constant1"],
+                        }
+                    self._check_provenance_tracing_artifact(filepath, expected_data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             finally:
                 if filepath:
                     shutil.rmtree(filepath)
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_pt_tracing_combo_kernel(self, backend):
         """This test checks that generated provenance tracing artifact from triton combo kernel to post grad nodes"""
         a = torch.randn(10, 10, device="cuda")
@@ -314,7 +435,10 @@ class TestProvenanceTracingArtifact(TestCase):
         example_inputs = (a, b, c)
 
         model = Model2()
+<<<<<<< HEAD
         reset_inductor_kernel_provenance_debug_handle()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -338,10 +462,17 @@ class TestProvenanceTracingArtifact(TestCase):
             m = re.match(r"WARNING.* debug trace: (.*)", cm.output[0])
             self.assertTrue(m)
             filepath = Path(m.group(1)).resolve()
+<<<<<<< HEAD
             expected_data = {"triton_poi_fused_0:1": ["relu", "sigmoid", "tanh"]}
             self._check_provenance_tracing_kernel_to_post_grad(filepath, expected_data)
 
     @requires_cuda_and_triton
+=======
+            expected_data = {"triton_poi_fused_0": ["relu", "sigmoid", "tanh"]}
+            self._check_provenance_tracing_artifact(filepath, expected_data)
+
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_kernel_to_post_grad_tracing_combo_kernel(self):
         self._test_pt_tracing_combo_kernel(backend="inductor")
         self._test_pt_tracing_combo_kernel(backend="aot_inductor")
@@ -413,6 +544,7 @@ class TestProvenanceTracingNodeMapping(TestCase):
             "triton_poi_fused_addmm_relu_sigmoid_0": ["relu", "add_tensor"]
         }
 
+<<<<<<< HEAD
         result = create_mapping_pre_post_grad_nodes(
             pre_grad_graph_id,
             post_to_pre_grad_nodes_json,
@@ -424,6 +556,13 @@ class TestProvenanceTracingNodeMapping(TestCase):
             ),
         }
 
+=======
+        result = create_node_mapping(
+            pre_grad_graph_id,
+            post_to_pre_grad_nodes_json,
+            triton_kernel_to_post_grad_json,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             result,
             {
@@ -451,6 +590,7 @@ class TestProvenanceTracingNodeMapping(TestCase):
         )
 
 
+<<<<<<< HEAD
 class TestProvenanceTracingNodeMeta(TestCase):
     def get_node_with_target(self, gm, target):
         """
@@ -778,5 +918,7 @@ class TestProvenanceTracingStackTraces(TestCase):
             self.assertTrue("aoti_torch_cpu_convolution" in keys)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

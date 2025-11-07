@@ -65,6 +65,7 @@ class TypedExpr:
 
     def __post_init__(self):
         if _is_constant(self.expr):
+<<<<<<< HEAD
             expr = self.expr
             if isinstance(expr, sympy.Expr):
                 expr = expr.expand(identity=True)
@@ -77,6 +78,9 @@ class TypedExpr:
                 if self.dtype.is_signed:
                     expr = expr - 2 ** (bits - 1)
             self.expr = expr
+=======
+            self.expr = dtype_to_type(self.dtype)(self.expr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SymPyOps:

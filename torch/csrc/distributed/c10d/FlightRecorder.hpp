@@ -20,10 +20,17 @@ namespace c10d {
 // (minor when adding fields, major when changing existing fields)
 // Also update both JSON and Pickle dumps to make use of the newly defined
 // field(s).
+<<<<<<< HEAD
 DEFINE_CONSTANT(version_val, "2.10")
 DEFINE_CONSTANT(entries_key, "entries")
 DEFINE_CONSTANT(nccl_comm_key, "nccl_comm_state")
 DEFINE_CONSTANT(comm_lib_version_key, "comm_lib_version")
+=======
+DEFINE_CONSTANT(version_val, "2.9")
+DEFINE_CONSTANT(entries_key, "entries")
+DEFINE_CONSTANT(nccl_comm_key, "nccl_comm_state")
+DEFINE_CONSTANT(nccl_version_key, "nccl_version")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DEFINE_CONSTANT(version_key, "version")
 DEFINE_CONSTANT(pg_config_key, "pg_config")
 DEFINE_CONSTANT(pg_status_key, "pg_status")
@@ -179,7 +186,11 @@ struct FlightRecorder {
   std::map<size_t, std::shared_ptr<ProcessGroupStatus>> all_pg_status_ = {};
   std::map<std::tuple<std::string, std::string>, std::vector<uint64_t>>
       pg_name_to_ranks_ = {};
+<<<<<<< HEAD
   std::string comm_lib_version_;
+=======
+  std::string nccl_version_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::optional<size_t> record(
       size_t pg_id,
@@ -200,7 +211,11 @@ struct FlightRecorder {
       const std::tuple<std::string, std::string>& pg_name,
       std::vector<uint64_t> ranks);
 
+<<<<<<< HEAD
   void record_accelerator_version(const std::string comm_lib_version);
+=======
+  void record_accelerator_version(const std::string nccl_version);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void update_state(Entry& r);
 

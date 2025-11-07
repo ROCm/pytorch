@@ -1,15 +1,28 @@
 # This file is to cache other dependencies not specified elsewhere in:
+<<<<<<< HEAD
 #   requirements.txt
 #   requirements-build.txt
+=======
+#   requirement.txt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #   docs/requirements.txt
 #   docs/cpp/requirements.txt
 #   functorch/docs/requirements.txt
 #   .ci/docker/requirements-ci.txt
 boto3==1.35.42
 jinja2==3.1.6
+<<<<<<< HEAD
 lintrunner==0.12.7
 ninja==1.10.0.post1
 nvidia-ml-py==11.525.84
 pyyaml==6.0.2
 requests==2.32.4
 rich==14.1.0
+=======
+lintrunner==0.10.7
+ninja==1.10.0.post1
+nvidia-ml-py==11.525.84
+pyyaml==6.0
+requests==2.32.4
+rich==10.9.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

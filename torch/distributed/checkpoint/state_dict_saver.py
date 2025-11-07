@@ -4,14 +4,21 @@ import inspect
 import os
 import warnings
 from concurrent.futures import Future
+<<<<<<< HEAD
 from dataclasses import dataclass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from enum import Enum
 from typing import cast, Optional, Union
 from typing_extensions import deprecated
 
 import torch
 import torch.distributed as dist
+<<<<<<< HEAD
 from torch.distributed._state_dict_utils import STATE_DICT_TYPE
+=======
+from torch.distributed._state_dict_utils import _copy_state_dict, _create_cpu_state_dict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint._async_executor import (  # noqa: TC001
     _AsyncCheckpointExecutor,
 )
@@ -24,6 +31,7 @@ from torch.distributed.checkpoint._async_thread_executor import (
 from torch.distributed.checkpoint._storage_utils import _storage_setup
 from torch.distributed.checkpoint.default_planner import DefaultSavePlanner
 from torch.distributed.checkpoint.logger import _dcp_method_logger
+<<<<<<< HEAD
 from torch.distributed.checkpoint.metadata import Metadata
 from torch.distributed.checkpoint.planner import SavePlan, SavePlanner
 from torch.distributed.checkpoint.staging import (
@@ -33,11 +41,19 @@ from torch.distributed.checkpoint.staging import (
 )
 from torch.distributed.checkpoint.stateful import Stateful
 from torch.distributed.checkpoint.storage import StorageWriter, WriteResult
+=======
+from torch.distributed.checkpoint.metadata import Metadata, STATE_DICT_TYPE
+from torch.distributed.checkpoint.planner import SavePlan, SavePlanner
+from torch.distributed.checkpoint.staging import AsyncStager
+from torch.distributed.checkpoint.stateful import Stateful
+from torch.distributed.checkpoint.storage import StorageWriter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.distributed_c10d import _get_default_group
 
 from .utils import _api_bc_check, _DistWrapper, _profile
 
 
+<<<<<<< HEAD
 __all__ = [
     "save_state_dict",
     "save",
@@ -45,6 +61,9 @@ __all__ = [
     "AsyncCheckpointerType",
     "AsyncSaveResponse",
 ]
+=======
+__all__ = ["save_state_dict", "save", "async_save", "AsyncCheckpointerType"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class AsyncCheckpointerType(Enum):
@@ -92,7 +111,10 @@ def save(
     planner: Optional[SavePlanner] = None,
     process_group: Optional[dist.ProcessGroup] = None,
     no_dist: bool = False,
+<<<<<<< HEAD
     use_collectives: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Metadata:
     """
     Save a distributed model in SPMD style.
@@ -144,6 +166,7 @@ def save(
             (Default: ``None``)
         no_dist (bool):
             If ``True``, this function will assume the intent is to load
+<<<<<<< HEAD
             a checkpoint on a single rank/process.
             (Default: ``False``)
         use_collectives (bool): If ``False``, this function will assume the intent is to save
@@ -151,6 +174,10 @@ def save(
             (Default: ``True``)
             This configuration is experimental and should be used with caution.
             It will change the format of the saved checkpoint and may not be backward compatible.
+=======
+            a checkpoint without using cross-rank synchronization.
+            (Default: ``False``)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         Metadata: Metadata object for the saved checkpoint.
@@ -196,6 +223,7 @@ def save(
             process_group=process_group,
             no_dist=no_dist,
             planner=planner,
+<<<<<<< HEAD
             use_collectives=use_collectives,
         )
 
@@ -214,6 +242,11 @@ class AsyncSaveResponse:
     upload_completion: Future[None]
 
 
+=======
+        )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @_dcp_method_logger(log_exceptions=True)
 def async_save(
     state_dict: STATE_DICT_TYPE,
@@ -223,16 +256,23 @@ def async_save(
     planner: Optional[SavePlanner] = None,
     process_group: Optional[dist.ProcessGroup] = None,
     async_checkpointer_type: AsyncCheckpointerType = AsyncCheckpointerType.THREAD,
+<<<<<<< HEAD
     async_stager: Optional[AsyncStager] = None,
     no_dist: bool = False,
     use_collectives: bool = True,
 ) -> Union[Future, AsyncSaveResponse]:
+=======
+) -> Future:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Asynchronous version of ``save``. This code first de-stages the state_dict on to the
     staging storage (defaults to CPU memory), and then calls the `save` in a separate thread.
 
     .. warning::
         This feature is experimental and subject to change.
+<<<<<<< HEAD
         MUST CALL CLOSE AFTER LAST CHECKPOINT IS SAVED
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Args:
         state_dict (Dict[str, Any]): The state_dict to save.
@@ -252,6 +292,7 @@ def async_save(
         process_group (Optional[ProcessGroup]):
             ProcessGroup to be used for cross-rank synchronization.
             (Default: ``None``)
+<<<<<<< HEAD
         async_checkpointer_type (AsyncCheckpointerType):
             whether to do checkpoint in separate thread or process
             (Default: ``AsyncCheckpointerType.THREAD``)
@@ -265,6 +306,8 @@ def async_save(
         use_collectives: If False, Save the checkpoint without rank coordination. (Default: ``True``)
             This configuration is experimental and should be used with caution.
             It will change the format of the saved checkpoint and may not be backward compatible.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         Future: A future holding the resultant Metadata object from `save`.
@@ -298,6 +341,7 @@ def async_save(
             "A CPU backend must be enabled for async save; try initializing process group with 'cpu:gloo,cuda:nccl'"
         )
 
+<<<<<<< HEAD
     if async_stager is None:
         if storage_writer is not None and isinstance(storage_writer, AsyncStager):
             # bwc with old storage_writers
@@ -312,6 +356,8 @@ def async_save(
                 )
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     storage_writer = cast(
         StorageWriter, _storage_setup(storage_writer, checkpoint_id, reader=False)
     )
@@ -319,23 +365,44 @@ def async_save(
     state_dict = _stateful_to_state_dict(state_dict)
 
     @_dcp_method_logger(log_exceptions=True)
+<<<<<<< HEAD
     def stage_state_dict() -> Union[Future[STATE_DICT_TYPE], STATE_DICT_TYPE]:
         return async_stager.stage(state_dict)
 
     staging_future_or_state_dict = stage_state_dict()
 
     upload_executor: _AsyncCheckpointExecutor = (
+=======
+    def stage_state_dict():
+        if isinstance(storage_writer, AsyncStager):
+            staged_state_dict = storage_writer.stage(state_dict)
+        else:  # provides bwc for storage_writers not implementing AsyncStager
+            staged_state_dict = _create_cpu_state_dict(state_dict)
+            _copy_state_dict(state_dict, staged_state_dict, type_check=False)
+
+        return staged_state_dict
+
+    staged_state_dict = stage_state_dict()
+
+    executor: _AsyncCheckpointExecutor = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _ProcessBasedAsyncCheckpointExecutor()
         if async_checkpointer_type == AsyncCheckpointerType.PROCESS
         else _ThreadBasedAsyncCheckpointExecutor()
     )
 
+<<<<<<< HEAD
     upload_future: Future = upload_executor.execute_save(
         staging_future_or_state_dict,
+=======
+    f: Future = executor.execute_save(
+        staged_state_dict,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         checkpoint_id=checkpoint_id,
         storage_writer=storage_writer,
         planner=planner,
         process_group=process_group,
+<<<<<<< HEAD
         no_dist=no_dist,
         use_collectives=use_collectives,
     )
@@ -372,6 +439,21 @@ def async_save(
 
         maybe_synchronize_staging()
         return upload_future
+=======
+    )
+
+    @_dcp_method_logger(log_exceptions=True)
+    def maybe_synchronize_staging():
+        if (
+            isinstance(storage_writer, AsyncStager)
+            and storage_writer.should_synchronize_after_execute
+        ):
+            storage_writer.synchronize_staging()
+
+    maybe_synchronize_staging()
+
+    return f
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @_dcp_method_logger(log_exceptions=True)
@@ -392,7 +474,10 @@ def _save_state_dict(
     coordinator_rank: int = 0,
     no_dist: bool = False,
     planner: Optional[SavePlanner] = None,
+<<<<<<< HEAD
     use_collectives: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Metadata:
     torch._C._log_api_usage_once("torch.distributed.checkpoint.save_state_dict")
 
@@ -425,6 +510,7 @@ def _save_state_dict(
                 storage_meta=storage_meta,
                 is_coordinator=distW.is_coordinator,
             )
+<<<<<<< HEAD
 
         if (
             "kwargs"
@@ -437,6 +523,9 @@ def _save_state_dict(
             )
         else:
             storage_writer.set_up_storage_writer(distW.is_coordinator)
+=======
+        storage_writer.set_up_storage_writer(distW.is_coordinator)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         local_plan = planner.create_local_plan()
         local_plan = storage_writer.prepare_local_plan(local_plan)
@@ -451,6 +540,7 @@ def _save_state_dict(
         all_local_plans = storage_writer.prepare_global_plan(all_local_plans)
         return all_local_plans
 
+<<<<<<< HEAD
     central_plan: Optional[SavePlan] = None
     if use_collectives:
         central_plan = distW.reduce_scatter("plan", local_step, global_step)
@@ -458,11 +548,17 @@ def _save_state_dict(
         local_plan: SavePlan = local_step()
         global_plan: list[SavePlan] = global_step([local_plan])
         central_plan = global_plan[0]
+=======
+    central_plan: SavePlan = distW.reduce_scatter("plan", local_step, global_step)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @_dcp_method_logger(**ckpt_kwargs)
     def write_data():
         assert planner is not None
+<<<<<<< HEAD
         assert central_plan is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         final_local_plan = planner.finish_plan(central_plan)
         all_writes = storage_writer.write_data(final_local_plan, planner)
 
@@ -475,6 +571,7 @@ def _save_state_dict(
         storage_writer.finish(metadata=global_metadata, results=all_results)
         return global_metadata
 
+<<<<<<< HEAD
     if use_collectives:
         metadata = distW.all_reduce("write", write_data, finish_checkpoint)
     else:
@@ -483,3 +580,6 @@ def _save_state_dict(
         distW.barrier()
 
     return metadata
+=======
+    return distW.all_reduce("write", write_data, finish_checkpoint)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -64,7 +64,10 @@ constexpr DynamicTypeBits kDynamicClassTypeBit = DYNAMIC_TYPE_BIT(10);
   _(ScalarType, kDynamicIntTypeBit, 1)                                \
   _(Layout, kDynamicIntTypeBit, 1)                                        \
   _(SymInt, kDynamicIntTypeBit, 1)                                        \
+<<<<<<< HEAD
   _(SymBool, kDynamicIntTypeBit, 1)                                        \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _(MemoryFormat, kDynamicIntTypeBit, 1)
 
 #define FORWARD_DECL_TYPE(NAME, _, __) struct NAME ## Type;

@@ -3,8 +3,12 @@ import functools
 import math
 import operator
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, SupportsFloat, TYPE_CHECKING, TypeVar, Union
+=======
+from typing import Callable, Optional, SupportsFloat, TYPE_CHECKING, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeVarTuple, Unpack
 
 import sympy
@@ -99,7 +103,11 @@ def _is_symbols_binary_summation(expr: sympy.Expr) -> bool:
 
 
 def _keep_float(
+<<<<<<< HEAD
     f: Callable[[Unpack[_Ts]], _T],
+=======
+    f: Callable[[Unpack[_Ts]], _T]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[[Unpack[_Ts]], Union[_T, sympy.Float]]:
     @functools.wraps(f)
     def inner(*args: Unpack[_Ts]) -> Union[_T, sympy.Float]:
@@ -456,12 +464,15 @@ class PythonMod(sympy.Function):
     def _eval_is_nonpositive(self) -> Optional[bool]:
         return True if self.args[1].is_negative else None  # type: ignore[attr-defined]
 
+<<<<<<< HEAD
     def _ccode(self, printer):
         p = printer.parenthesize(self.args[0], PRECEDENCE["Atom"] - 0.5)
         q = printer.parenthesize(self.args[1], PRECEDENCE["Atom"] - 0.5)
         abs_q = str(q) if self.args[1].is_positive else f"abs({q})"
         return f"({p} % {q}) < 0 ? {p} % {q} + {abs_q} : {p} % {q}"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Generic modulus: only defined on non-negative arguments
 class Mod(sympy.Function):
@@ -927,12 +938,19 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
 
     _eval_is_algebraic = lambda s: _torf(i.is_algebraic for i in s.args)  # noqa: E731
     _eval_is_antihermitian = lambda s: _torf(  # noqa: E731
+<<<<<<< HEAD
         i.is_antihermitian
         for i in s.args  # noqa: E731
     )  # noqa: E731
     _eval_is_commutative = lambda s: _torf(  # noqa: E731
         i.is_commutative
         for i in s.args  # noqa: E731
+=======
+        i.is_antihermitian for i in s.args  # noqa: E731
+    )  # noqa: E731
+    _eval_is_commutative = lambda s: _torf(  # noqa: E731
+        i.is_commutative for i in s.args  # noqa: E731
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )  # noqa: E731
     _eval_is_complex = lambda s: _torf(i.is_complex for i in s.args)  # noqa: E731
     _eval_is_composite = lambda s: _torf(i.is_composite for i in s.args)  # noqa: E731
@@ -946,12 +964,19 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
     _eval_is_negative = lambda s: _torf(i.is_negative for i in s.args)  # noqa: E731
     _eval_is_noninteger = lambda s: _torf(i.is_noninteger for i in s.args)  # noqa: E731
     _eval_is_nonnegative = lambda s: _torf(  # noqa: E731
+<<<<<<< HEAD
         i.is_nonnegative
         for i in s.args  # noqa: E731
     )  # noqa: E731
     _eval_is_nonpositive = lambda s: _torf(  # noqa: E731
         i.is_nonpositive
         for i in s.args  # noqa: E731
+=======
+        i.is_nonnegative for i in s.args  # noqa: E731
+    )  # noqa: E731
+    _eval_is_nonpositive = lambda s: _torf(  # noqa: E731
+        i.is_nonpositive for i in s.args  # noqa: E731
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )  # noqa: E731
     _eval_is_nonzero = lambda s: _torf(i.is_nonzero for i in s.args)  # noqa: E731
     _eval_is_odd = lambda s: _torf(i.is_odd for i in s.args)  # noqa: E731
@@ -961,12 +986,19 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
     _eval_is_rational = lambda s: _torf(i.is_rational for i in s.args)  # noqa: E731
     _eval_is_real = lambda s: _torf(i.is_real for i in s.args)  # noqa: E731
     _eval_is_extended_real = lambda s: _torf(  # noqa: E731
+<<<<<<< HEAD
         i.is_extended_real
         for i in s.args  # noqa: E731
     )  # noqa: E731
     _eval_is_transcendental = lambda s: _torf(  # noqa: E731
         i.is_transcendental
         for i in s.args  # noqa: E731
+=======
+        i.is_extended_real for i in s.args  # noqa: E731
+    )  # noqa: E731
+    _eval_is_transcendental = lambda s: _torf(  # noqa: E731
+        i.is_transcendental for i in s.args  # noqa: E731
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )  # noqa: E731
     _eval_is_zero = lambda s: _torf(i.is_zero for i in s.args)  # noqa: E731
 
@@ -1068,7 +1100,11 @@ class PowByNatural(sympy.Function):
 
 
 # base is assumed to be nonnegative, thereby prevent complex numbers from
+<<<<<<< HEAD
 # occurring
+=======
+# occuring
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FloatPow(sympy.Function):
     is_real = True
 
@@ -1193,8 +1229,12 @@ class IsNonOverlappingAndDenseIndicator(sympy.Function):
             # When all strides are integral, we can sort, and the size for the
             # largest stride doesn't matter and can be arbitrarily symbolic
             s_sizes, s_strides = zip(
+<<<<<<< HEAD
                 *sorted(zip(sizes, strides, strict=False), key=operator.itemgetter(1)),
                 strict=False,
+=======
+                *sorted(zip(sizes, strides), key=operator.itemgetter(1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             # Put something arbitrary in the max size spot, it'll be ignored
             if all(isinstance(a, sympy.Integer) for a in s_sizes[:-1]):
@@ -1329,7 +1369,11 @@ def make_opaque_unary_fn(name):
         constant propagation.  This helps avoid performing transformations
         that are valid for real numbers but are invalid for floating point;
         in particular, while we are willing to make optimizations that change
+<<<<<<< HEAD
         numerics for Tensor compute, we are NOT willing to make optimizations
+=======
+        numerics for Tensor compute, we are NOT willing to make optimziations
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         that change numerics for size compute.
         """
 
@@ -1413,10 +1457,14 @@ def make_opaque_bitwise_fn(name, real_op_name):
                 return sympy.Integer(getattr(operator, real_op_name)(int(a), int(b)))
             return None
 
+<<<<<<< HEAD
     nm = "BitwiseFn_" + name
     BitwiseFn.__name__ = nm
     BitwiseFn.__qualname__ = nm
 
+=======
+    BitwiseFn.__name__ = "BitwiseFn_" + name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return BitwiseFn
 
 

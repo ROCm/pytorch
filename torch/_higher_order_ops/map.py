@@ -13,6 +13,10 @@ from torch._subclasses.fake_tensor import FakeTensorMode
 from torch._subclasses.functional_tensor import disable_functional_mode
 from torch.fx.experimental.proxy_tensor import (
     disable_proxy_modes_tracing,
+<<<<<<< HEAD
+=======
+    make_fx,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ProxyTorchDispatchMode,
     track_tensor_tree,
 )
@@ -21,6 +25,7 @@ from .utils import (
     _from_fun,
     _stack_pytree,
     _unstack_pytree,
+<<<<<<< HEAD
     create_bw_fn,
     fill_none_with_masks,
     filter_with_masks,
@@ -28,6 +33,12 @@ from .utils import (
     save_tensors_and_symints_for_backward,
     saved_tensors_and_symints,
     split_into_chunks,
+=======
+    clone_outputs_aliasing_inputs,
+    prepare_fw_with_masks,
+    save_tensors_and_symints_for_backward,
+    saved_tensors_and_symints,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -42,13 +53,91 @@ class MapImpl(HigherOrderOperator):
 map_impl = MapImpl()
 
 
+<<<<<<< HEAD
+=======
+def create_fw_bw_graph(f, num_mapped_args, *args):
+    mapped_xs = args[:num_mapped_args]
+    pos_args = args[num_mapped_args:]
+
+    # See Note [HOP create fw_bw graph] in create_fw_bw_graph in utils.py
+
+    with suspend_functionalization(), disable_functional_mode():
+        with disable_proxy_modes_tracing():
+            unwrapped_mapped_xs = pytree.tree_map(_from_fun, mapped_xs)
+            example_xs = _unstack_pytree(unwrapped_mapped_xs)[0]
+
+            example_pos_args = [
+                _from_fun(arg) if isinstance(arg, torch.Tensor) else arg
+                for arg in pos_args
+            ]
+            example_flat_out = pytree.tree_map(
+                _from_fun, f(*example_xs, *example_pos_args)
+            )
+            if any(
+                not isinstance(out, torch.Tensor)
+                for out in example_flat_out
+                if out is not None
+            ):
+                raise RuntimeError(
+                    "Expect outputs of map only contains tensors or None. "
+                    f"Got types {[type(out) for out in example_flat_out]}."
+                )
+            example_grad = [_from_fun(out) for out in example_flat_out]
+
+            fw_graph = make_fx(f)(*example_xs, *example_pos_args)
+
+        from torch._functorch.aot_autograd import AOTConfig, create_joint
+
+        dummy_aot_config = AOTConfig(
+            fw_compiler=None,  # type: ignore[arg-type]
+            bw_compiler=None,  # type: ignore[arg-type]
+            partition_fn=None,  # type: ignore[arg-type]
+            decompositions={},
+            num_params_buffers=0,
+            aot_id=0,
+            keep_inference_input_mutations=False,
+        )
+
+        def joint_f(*example_args):
+            joint_mapped_args = example_args[:joint_num_mapped]
+            args = example_args[joint_num_mapped:]
+
+            mapped_input = joint_mapped_args[:num_mapped_args]
+            mapped_grads = joint_mapped_args[num_mapped_args:]
+
+            joint = create_joint(prepare_fw_with_masks(f), aot_config=dummy_aot_config)
+            _, grads = joint(
+                list(mapped_input) + list(args),
+                [
+                    grad
+                    for grad in mapped_grads
+                    if grad is not None and grad.requires_grad
+                ],
+            )
+
+            # In order to keep map functional for backward graph,
+            # we clone outputs that are aliasing inputs
+            maybe_clone = clone_outputs_aliasing_inputs(example_args)
+
+            return pytree.tree_map(maybe_clone, grads)
+
+        joint_num_mapped = len(example_grad) + len(example_xs)
+        joint_graph = make_fx(joint_f)(*example_xs, *example_grad, *example_pos_args)
+        return fw_graph, joint_graph
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def map(
     f: Callable[[pytree.PyTree, tuple[pytree.PyTree, ...]], pytree.PyTree],
     xs: Union[pytree.PyTree, torch.Tensor],
     *args: TypeVarTuple,
 ):
     r"""
+<<<<<<< HEAD
     Performs a map of f with xs. Intuitively, you can think of the semantic being:
+=======
+    Perfoms a map of f with xs. Intuitively, you can think of the semantic being:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     out = []
     for idx in len(xs.size(0)):
@@ -124,6 +213,7 @@ def map(
 
 class MapAutogradOp(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     def forward(ctx, f, num_mapped_args, *flat_args):
         ctx._f = f
         ctx._num_mapped_args = num_mapped_args
@@ -137,11 +227,23 @@ class MapAutogradOp(torch.autograd.Function):
         with torch._C._AutoDispatchBelowAutograd():
             return (
                 *map_impl(f, flat_args[:num_mapped_args], flat_args[num_mapped_args:]),
+=======
+    def forward(ctx, fw_graph, joint_graph, num_mapped_args, *flat_args):
+        save_tensors_and_symints_for_backward(ctx, flat_args)
+        ctx._joint_graph = joint_graph
+        ctx._num_mapped_args = num_mapped_args
+        with torch._C._AutoDispatchBelowAutograd():
+            return (
+                *map_impl(
+                    fw_graph, flat_args[:num_mapped_args], flat_args[num_mapped_args:]
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     @staticmethod
     def backward(ctx, *flat_grads):
         fw_args = saved_tensors_and_symints(ctx)
+<<<<<<< HEAD
         num_mapped_args = ctx._num_mapped_args
         num_pos_args = ctx._num_pos_args
         num_grads = len(flat_grads)
@@ -214,6 +316,24 @@ def trace_map(proxy_mode, func_overload, f, xs, pos_args):
         body_graph = f
 
         body_graph = reenter_make_fx(body_graph)(*example_input, *pos_args)
+=======
+        fw_mapped_args = fw_args[: ctx._num_mapped_args]
+        pos_args = fw_args[ctx._num_mapped_args :]
+
+        grads = map_impl(
+            ctx._joint_graph,
+            fw_mapped_args + flat_grads,
+            pos_args,
+        )
+        return None, None, None, *grads
+
+
+def trace_map(proxy_mode, func_overload, f, xs, pos_args):
+    example_input = _unstack_pytree(xs)[0]
+    body_graph = f
+
+    body_graph = reenter_make_fx(body_graph)(*example_input, *pos_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     next_name = proxy_mode.tracer.get_fresh_qualname("body_graph_")
 
@@ -240,7 +360,12 @@ def map_dense(f, xs, pos_args):
 @map_impl.py_autograd_impl
 def map_autograd(f, xs, pos_args):
     num_mapped_args = len(xs)
+<<<<<<< HEAD
     flat_out = MapAutogradOp.apply(f, num_mapped_args, *xs, *pos_args)
+=======
+    fw_graph, bw_graph = create_fw_bw_graph(f, num_mapped_args, *xs, *pos_args)
+    flat_out = MapAutogradOp.apply(fw_graph, bw_graph, num_mapped_args, *xs, *pos_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return flat_out
 
 

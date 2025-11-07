@@ -721,9 +721,15 @@ def filter_desired_device_types(device_type_test_bases, except_for=None, only_fo
     intersect = set(except_for if except_for else []) & set(
         only_for if only_for else []
     )
+<<<<<<< HEAD
     assert not intersect, (
         f"device ({intersect}) appeared in both except_for and only_for"
     )
+=======
+    assert (
+        not intersect
+    ), f"device ({intersect}) appeared in both except_for and only_for"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Replace your privateuse1 backend name with 'privateuse1'
     if is_privateuse1_backend_available():
@@ -1277,6 +1283,7 @@ class skipPRIVATEUSE1If(skipIf):
 
 
 def _has_sufficient_memory(device, size):
+<<<<<<< HEAD
     device_ = torch.device(device)
     device_type = device_.type
     if device_type in ["cuda", "xpu"]:
@@ -1310,6 +1317,28 @@ def _has_sufficient_memory(device, size):
         raise unittest.SkipTest("TODO: Memory availability checks for XLA?")
 
     if device_type != "cpu":
+=======
+    if torch.device(device).type == "cuda":
+        if not torch.cuda.is_available():
+            return False
+        gc.collect()
+        torch.cuda.empty_cache()
+        # torch.cuda.mem_get_info, aka cudaMemGetInfo, returns a tuple of (free memory, total memory) of a GPU
+        if device == "cuda":
+            device = "cuda:0"
+        return (
+            torch.cuda.memory.mem_get_info(device)[0]
+            * torch.cuda.memory.get_per_process_memory_fraction(device)
+        ) >= size
+
+    if device == "xla":
+        raise unittest.SkipTest("TODO: Memory availability checks for XLA?")
+
+    if device == "xpu":
+        raise unittest.SkipTest("TODO: Memory availability checks for Intel GPU?")
+
+    if device != "cpu":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise unittest.SkipTest("Unknown device type")
 
     # CPU
@@ -1355,6 +1384,10 @@ def largeTensorTest(size, device=None, inductor=TEST_WITH_TORCHINDUCTOR):
             # an additional array of the same size as the input.
             if inductor and torch._inductor.config.cpp_wrapper and _device != "cpu":
                 size_bytes *= 2
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not _has_sufficient_memory(_device, size_bytes):
                 raise unittest.SkipTest(f"Insufficient {_device} memory")
 
@@ -1419,9 +1452,15 @@ class deviceCountAtLeast:
         self.num_required_devices = num_required_devices
 
     def __call__(self, fn):
+<<<<<<< HEAD
         assert not hasattr(fn, "num_required_devices"), (
             f"deviceCountAtLeast redefinition for {fn.__name__}"
         )
+=======
+        assert not hasattr(
+            fn, "num_required_devices"
+        ), f"deviceCountAtLeast redefinition for {fn.__name__}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fn.num_required_devices = self.num_required_devices
 
         @wraps(fn)
@@ -1486,6 +1525,7 @@ def onlyNativeDeviceTypesAnd(devices=None):
 # self.precision *2, max(1, self.precision)).
 class precisionOverride:
     def __init__(self, d):
+<<<<<<< HEAD
         assert isinstance(d, dict), (
             "precisionOverride not given a dtype : precision dict!"
         )
@@ -1493,6 +1533,15 @@ class precisionOverride:
             assert isinstance(dtype, torch.dtype), (
                 f"precisionOverride given unknown dtype {dtype}"
             )
+=======
+        assert isinstance(
+            d, dict
+        ), "precisionOverride not given a dtype : precision dict!"
+        for dtype in d.keys():
+            assert isinstance(
+                dtype, torch.dtype
+            ), f"precisionOverride given unknown dtype {dtype}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.d = d
 
@@ -1525,12 +1574,21 @@ class toleranceOverride:
     def __init__(self, d):
         assert isinstance(d, dict), "toleranceOverride not given a dtype : tol dict!"
         for dtype, prec in d.items():
+<<<<<<< HEAD
             assert isinstance(dtype, torch.dtype), (
                 f"toleranceOverride given unknown dtype {dtype}"
             )
             assert isinstance(prec, tol), (
                 "toleranceOverride not given a dtype : tol dict!"
             )
+=======
+            assert isinstance(
+                dtype, torch.dtype
+            ), f"toleranceOverride given unknown dtype {dtype}"
+            assert isinstance(
+                prec, tol
+            ), "toleranceOverride not given a dtype : tol dict!"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.d = d
 
@@ -1558,6 +1616,7 @@ class dtypes:
                     "all dtype variants must be. "
                     f"Received non-list non-tuple dtype {str(arg)}"
                 )
+<<<<<<< HEAD
                 assert all(isinstance(dtype, torch.dtype) for dtype in arg), (
                     f"Unknown dtype in {str(arg)}"
                 )
@@ -1565,6 +1624,15 @@ class dtypes:
             assert all(isinstance(arg, torch.dtype) for arg in args), (
                 f"Unknown dtype in {str(args)}"
             )
+=======
+                assert all(
+                    isinstance(dtype, torch.dtype) for dtype in arg
+                ), f"Unknown dtype in {str(arg)}"
+        else:
+            assert all(
+                isinstance(arg, torch.dtype) for arg in args
+            ), f"Unknown dtype in {str(args)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.args = args
         self.device_type = device_type
@@ -1589,12 +1657,15 @@ class dtypesIfCUDA(dtypes):
         super().__init__(*args, device_type="cuda")
 
 
+<<<<<<< HEAD
 # Overrides specified dtypes on Intel GPU.
 class dtypesIfXPU(dtypes):
     def __init__(self, *args):
         super().__init__(*args, device_type="xpu")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class dtypesIfMPS(dtypes):
     def __init__(self, *args):
         super().__init__(*args, device_type="mps")
@@ -1978,18 +2049,27 @@ IS_FLEX_ATTENTION_CPU_PLATFORM_SUPPORTED = (
     and torch.cpu._is_avx2_supported()
     and os.getenv("ATEN_CPU_CAPABILITY") != "default"
 )
+<<<<<<< HEAD
 IS_FLEX_ATTENTION_XPU_PLATFORM_SUPPORTED = (
     torch.xpu.is_available() and torch.utils._triton.has_triton()
 )
 flex_attention_supported_platform = unittest.skipUnless(
     IS_FLEX_ATTENTION_XPU_PLATFORM_SUPPORTED
     or IS_FLEX_ATTENTION_CPU_PLATFORM_SUPPORTED
+=======
+flex_attention_supported_platform = unittest.skipUnless(
+    IS_FLEX_ATTENTION_CPU_PLATFORM_SUPPORTED
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     or (
         torch.cuda.is_available()
         and torch.utils._triton.has_triton()
         and torch.cuda.get_device_capability() >= (8, 0)
     ),
+<<<<<<< HEAD
     "Requires CUDA and Triton, Intel GPU and triton, or CPU with avx2 and later",
+=======
+    "Requires CUDA and Triton, or CPU with avx2 and later",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 if torch.version.hip and "gfx94" in torch.cuda.get_device_properties(0).gcnArchName:
     e4m3_type = torch.float8_e4m3fnuz

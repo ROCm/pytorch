@@ -10,7 +10,10 @@ from typing import Any, Callable, Literal, Optional, TYPE_CHECKING
 
 import torch.fx
 from torch._dynamo.utils import dynamo_timed
+<<<<<<< HEAD
 from torch._inductor.cpp_builder import normalize_path_separator
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.cudagraph_utils import BoxedDeviceIndex
 from torch._inductor.runtime.cache_dir_utils import temporary_cache_dir
 from torch._inductor.utils import BoxedBool, InputType
@@ -117,7 +120,10 @@ class CompiledArtifact:
     def load(
         *, path: str, format: Literal["binary", "unpacked"] = "binary"
     ) -> CompiledArtifact:
+<<<<<<< HEAD
         path = normalize_path_separator(path)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with dynamo_timed("CompiledArtifact.load"):
             if format == "binary":
                 # can't assert that it is a file since it might not exist yet
@@ -205,7 +211,10 @@ def standalone_compile(
         # Reuse fake_mode from the TracingContext.
         # NB: The TracingContext only exists if we're currently in a torch.compile backend.
         context = torch._guards.TracingContext.get()
+<<<<<<< HEAD
         assert context.fake_mode is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fake_mode = context.fake_mode
     elif dynamic_shapes == "from_graph":
         fake_mode = FakeTensorMode(shape_env=ShapeEnv())
@@ -216,13 +225,18 @@ def standalone_compile(
         last_node = next(iter(reversed(gm.graph.nodes)))
         assert last_node.op == "output"
         assert len(last_node.args) == 1
+<<<<<<< HEAD
 
         def handle_node(node: torch.fx.Node) -> None:
             nonlocal fake_mode
+=======
+        for node in last_node.args[0]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if "example_value" in node.meta:
                 maybe_tensor = node.meta["example_value"]
                 if isinstance(maybe_tensor, torch._subclasses.fake_tensor.FakeTensor):
                     fake_mode = maybe_tensor.fake_mode
+<<<<<<< HEAD
 
         # If gm came from Dynamo, then last_node.args[0] is always a list,
         # even in single-Tensor returns.
@@ -236,6 +250,8 @@ def standalone_compile(
             for node in last_node.args[0]:
                 handle_node(node)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         raise ValueError(
             f"standalone_compile got unsupported `dynamic_shapes` value: dynamic_shapes={dynamic_shapes}."

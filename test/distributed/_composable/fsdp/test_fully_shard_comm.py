@@ -6,7 +6,10 @@ import itertools
 import os
 import tempfile
 from typing import Callable, Optional, Union
+<<<<<<< HEAD
 from unittest.mock import MagicMock
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -20,12 +23,18 @@ from torch.distributed.fsdp import (
     MixedPrecisionPolicy,
     OffloadPolicy,
 )
+<<<<<<< HEAD
 from torch.distributed.fsdp._fully_shard._fsdp_api import AllGather
 from torch.distributed.fsdp._fully_shard._fsdp_collectives import (
     _div_if_needed,
     _get_gradient_divide_factors,
     DefaultAllGather,
     DefaultReduceScatter,
+=======
+from torch.distributed.fsdp._fully_shard._fsdp_collectives import (
+    _div_if_needed,
+    _get_gradient_divide_factors,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     foreach_all_gather,
     foreach_all_gather_copy_out,
     foreach_reduce,
@@ -166,7 +175,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
         all_gather_stream,
     ):
         def all_gather(fsdp_param_group: FSDPParamGroup, group: dist.ProcessGroup):
+<<<<<<< HEAD
             all_gather_comm = DefaultAllGather()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             all_gather_result = foreach_all_gather(
                 fsdp_param_group.fsdp_params,
                 group,
@@ -174,7 +186,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
                 all_gather_copy_in_stream=all_gather_copy_in_stream,
                 all_gather_stream=all_gather_stream,
                 device=self.device,
+<<<<<<< HEAD
                 all_gather_comm=all_gather_comm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             foreach_all_gather_copy_out(all_gather_result, fsdp_params, group)
             # Transition to unsharded state to register unsharded parameters
@@ -267,7 +282,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
         group = fsdp_param_group.mesh_info.shard_process_group
         self.assertEqual(group.size(), self.world_size)
         all_reduce_stream = device_module.Stream()
+<<<<<<< HEAD
         comm = DefaultReduceScatter()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             _,
             _,
@@ -280,7 +298,10 @@ class TestFullyShardCollectiveOps(FSDPTestMultiThread):
             unsharded_grads,
             group,
             reduce_scatter_stream,
+<<<<<<< HEAD
             comm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             orig_dtype=orig_params[0].dtype,
             reduce_dtype=reduce_scatter_dtype,
             device=self.device,
@@ -419,10 +440,13 @@ class TestFullyShardCommunication(FSDPTest):
             {"divide_factor": [self.world_size * 2, self.world_size]},
             self._test_set_reduce_scatter_divide_factor,
         )
+<<<<<<< HEAD
         self.run_subtests(
             {"divide_factor": [self.world_size]},
             self._test_set_reduce_scatter_divide_factor_mixed_prevision,
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _test_set_reduce_scatter_divide_factor(self, divide_factor: float):
         torch.manual_seed(42)
@@ -455,6 +479,7 @@ class TestFullyShardCommunication(FSDPTest):
             self.assertEqual(ref_loss, loss)
             check_sharded_parity(self, ref_model, model)
 
+<<<<<<< HEAD
     def _test_set_reduce_scatter_divide_factor_mixed_prevision(
         self, divide_factor: float
     ):
@@ -504,6 +529,8 @@ class TestFullyShardCommunication(FSDPTest):
             self.assertEqual(ref_loss, loss)
             check_sharded_parity(self, ref_model, model)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_set_reshard_after_forward(self):
         """
@@ -1415,6 +1442,7 @@ class TestFullyShardAllocFromPG(FSDPTest):
         with open(self.nccl_log_dir.name + "/nccl_log") as f:
             self.assertRegex(f.read(), self.MEMORY_REGISTER_RE)
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(2)
     def test_exception_when_used_together_with_comm_hooks(self):
         model = nn.Linear(16, 16)
@@ -1431,6 +1459,8 @@ class TestFullyShardAllocFromPG(FSDPTest):
         with self.assertRaises(AssertionError):
             model.set_allocate_memory_from_process_group_for_comm(True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestFullyShardForceSumReduction(FSDPTest):
     # The messages might change when we move to a different NCCL version.
@@ -1570,6 +1600,7 @@ class TestFullyShardForceSumReduction(FSDPTest):
         self.assertRegex(logs, all_reduce_sum_re)
 
 
+<<<<<<< HEAD
 class TestFullyShardReduceOpWorldSize1(FSDPTest):
     @property
     def world_size(self) -> int:
@@ -1619,5 +1650,7 @@ class TestFullyShardReduceOpWorldSize1(FSDPTest):
         self.assertEqual(all_reduce_op, ReduceOp.SUM)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

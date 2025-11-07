@@ -75,8 +75,11 @@ class TORCH_API ThreadLocalState {
 
   bool functionalization_reapply_views_state_;
 
+<<<<<<< HEAD
   bool dtensor_allow_implicit_replication_;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // TLS for arbitrary python objects that is registered via hooks
   at::impl::ThreadLocalPythonObjects saved_objects_;
 

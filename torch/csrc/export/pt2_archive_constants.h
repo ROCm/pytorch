@@ -33,14 +33,20 @@ namespace torch::_export::archive_spec {
   DO(WEIGHTS_DIR, "data/weights/")                                             \
   DO(WEIGHT_FILENAME_PREFIX, "weight_")                                        \
   DO(WEIGHTS_PARAM_CONFIG_FORMAT, "data/weights/{}_model_param_config.json")   \
+<<<<<<< HEAD
   DO(WEIGHTS_CONFIG_FILENAME_FORMAT, "data/weights/{}_weights_config.json")    \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /* constants, including tensor_constants, non-persistent buffers and script  \
    * objects */                                                                \
   DO(CONSTANTS_DIR, "data/constants/")                                         \
   DO(CONSTANTS_PARAM_CONFIG_FORMAT,                                            \
      "data/constants/{}_model_constants_config.json")                          \
+<<<<<<< HEAD
   DO(CONSTANTS_CONFIG_FILENAME_FORMAT,                                         \
      "data/constants/{}_constants_config.json")                                \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   DO(TENSOR_CONSTANT_FILENAME_PREFIX, "tensor_")                               \
   DO(CUSTOM_OBJ_FILENAME_PREFIX, "custom_obj_")                                \
   /* example inputs */                                                         \

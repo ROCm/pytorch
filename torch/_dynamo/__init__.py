@@ -10,6 +10,7 @@ seamlessly optimize PyTorch programs, including those using modern Python featur
 
 import torch
 
+<<<<<<< HEAD
 from . import (
     aot_compile,
     config,
@@ -18,6 +19,9 @@ from . import (
     functional_export,
     resume_execution,
 )
+=======
+from . import config, convert_frame, eval_frame, resume_execution
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .backends.registry import list_backends, lookup_backend, register_backend
 from .callback import callback_handler, on_compile_end, on_compile_start
 from .code_context import code_context
@@ -28,7 +32,10 @@ from .decorators import (
     disable,
     disallow_in_graph,
     dont_skip_tracing,
+<<<<<<< HEAD
     error_on_graph_break,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     forbid_in_graph,
     graph_break,
     mark_dynamic,
@@ -57,6 +64,7 @@ from .external_utils import is_compiling
 from .mutation_guard import GenerationTracker
 from .pgo import reset_code_state
 from .symbolic_convert import TensorifyState
+<<<<<<< HEAD
 from .utils import (
     graph_break_reasons,
     guard_failures,
@@ -64,6 +72,9 @@ from .utils import (
     register_hook_for_recompile_user_context,
     reset_frame_count,
 )
+=======
+from .utils import graph_break_reasons, guard_failures, orig_code_map, reset_frame_count
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Register polyfill functions
@@ -73,6 +84,7 @@ from .polyfills import loader as _  # usort: skip # noqa: F401
 __all__ = [
     "allow_in_graph",
     "assume_constant_result",
+<<<<<<< HEAD
     "config",
     "disable",
     "disallow_in_graph",
@@ -84,6 +96,13 @@ __all__ = [
     "is_compiling",
     "list_backends",
     "lookup_backend",
+=======
+    "disallow_in_graph",
+    "dont_skip_tracing",
+    "forbid_in_graph",
+    "substitute_in_graph",
+    "graph_break",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "mark_dynamic",
     "maybe_mark_dynamic",
     "mark_static",
@@ -91,6 +110,7 @@ __all__ = [
     "nonstrict_trace",
     "optimize",
     "optimize_assert",
+<<<<<<< HEAD
     "OptimizedModule",
     "patch_dynamo_config",
     "register_backend",
@@ -101,6 +121,23 @@ __all__ = [
     "set_stance",
     "skip_frame",
     "substitute_in_graph",
+=======
+    "patch_dynamo_config",
+    "skip_frame",
+    "export",
+    "explain",
+    "run",
+    "replay",
+    "disable",
+    "set_stance",
+    "reset",
+    "OptimizedModule",
+    "is_compiling",
+    "register_backend",
+    "list_backends",
+    "lookup_backend",
+    "config",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 # allowlist this for weights_only load of NJTs

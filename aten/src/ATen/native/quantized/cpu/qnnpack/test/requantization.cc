@@ -17,7 +17,11 @@
 #include "requantization-tester.h"
 
 /*
+<<<<<<< HEAD
  * Precise scalar implementation using unsigned 32-bit arithmetic.
+=======
+ * Precise scalar implementation using unsigned 32-bit arithmetics.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 
 TEST(PRECISE__SCALAR_UNSIGNED32, exact_divide_by_po2) {
@@ -83,7 +87,11 @@ TEST(PRECISE__SCALAR_UNSIGNED32, random_cases) {
 }
 
 /*
+<<<<<<< HEAD
  * Precise scalar implementation using unsigned 64-bit arithmetic.
+=======
+ * Precise scalar implementation using unsigned 64-bit arithmetics.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 
 TEST(PRECISE__SCALAR_UNSIGNED64, exact_divide_by_po2) {
@@ -149,7 +157,11 @@ TEST(PRECISE__SCALAR_UNSIGNED64, random_cases) {
 }
 
 /*
+<<<<<<< HEAD
  * Precise scalar implementation using signed 64-bit arithmetic.
+=======
+ * Precise scalar implementation using signed 64-bit arithmetics.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 
 TEST(PRECISE__SCALAR_SIGNED64, exact_divide_by_po2) {
@@ -302,7 +314,11 @@ TEST(GEMMLOWP__SCALAR, random_cases) {
 }
 
 /*
+<<<<<<< HEAD
  * Precise PSIMD implementation using unsigned 32-bit arithmetic.
+=======
+ * Precise PSIMD implementation using unsigned 32-bit arithmetics.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  */
 
 TEST(PRECISE__PSIMD, exact_divide_by_po2) {

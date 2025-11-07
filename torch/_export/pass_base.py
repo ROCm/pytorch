@@ -252,11 +252,16 @@ class _ExportPassBaseDeprecatedDoNotUse(PassBase):
             else:
                 raise ExportPassBaseError(f"Unsupported target type: {target}")
 
+<<<<<<< HEAD
         def get_attr(  # type: ignore[override]
             self,
             target: str,
             args: tuple[Argument, ...],
             kwargs: dict[str, Argument],
+=======
+        def get_attr(
+            self, target: str, args: tuple[Argument, ...], kwargs: dict[str, Argument]  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) -> Argument:
             return super().get_attr(target, args, kwargs)
 
@@ -268,11 +273,16 @@ class _ExportPassBaseDeprecatedDoNotUse(PassBase):
         ) -> None:
             raise ExportPassBaseError("call_module is not supported.")
 
+<<<<<<< HEAD
         def call_method(  # type: ignore[override]
             self,
             target: str,
             args: tuple[Argument, ...],
             kwargs: dict[str, Argument],
+=======
+        def call_method(
+            self, target: str, args: tuple[Argument, ...], kwargs: dict[str, Argument]  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) -> None:
             raise ExportPassBaseError("call_method is not supported.")
 
@@ -432,6 +442,7 @@ class _ExportPassBaseDeprecatedDoNotUse(PassBase):
     def call_submodule(
         self, graph_module: fx.GraphModule, inputs: tuple[Argument, ...]
     ) -> PassResult:
+<<<<<<< HEAD
         prev_tracer, self.tracer = (
             self.tracer,
             self.ExportTracer(self, graph_module.graph._codegen),
@@ -443,6 +454,15 @@ class _ExportPassBaseDeprecatedDoNotUse(PassBase):
             torch.fx.Interpreter(  # type: ignore[assignment]
                 torch.fx.GraphModule(torch.nn.Module(), torch.fx.Graph())
             ),
+=======
+        prev_tracer, self.tracer = self.tracer, self.ExportTracer(
+            self, graph_module.graph._codegen
+        )
+        self.tracer.fake_tensor_mode = prev_tracer.fake_tensor_mode
+        interpreter = self.ExportInterpreter(self, graph_module)
+        prev_interpreter, self.interpreter = self.interpreter, torch.fx.Interpreter(  # type: ignore[assignment]
+            torch.fx.GraphModule(torch.nn.Module(), torch.fx.Graph())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         inputs_data = pytree.tree_map_only(ProxyValue, lambda x: x.data, inputs)
         with fx_traceback.preserve_node_meta():
@@ -468,9 +488,15 @@ class _ExportPassBaseDeprecatedDoNotUse(PassBase):
         fake_tensor_mode = None
         for i in inputs:
             if isinstance(i, FakeTensor):
+<<<<<<< HEAD
                 assert fake_tensor_mode is None or fake_tensor_mode is i.fake_mode, (
                     "Multiple fake tensor mode detected."
                 )
+=======
+                assert (
+                    fake_tensor_mode is None or fake_tensor_mode is i.fake_mode
+                ), "Multiple fake tensor mode detected."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fake_tensor_mode = i.fake_mode
         if fake_tensor_mode is None:
             self.tracer.fake_tensor_mode = FakeTensorMode(allow_non_fake_inputs=True)

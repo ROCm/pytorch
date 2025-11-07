@@ -22,7 +22,10 @@ from .. import ir
 from ..dependencies import Dep
 from ..loop_body import LoopBody
 from ..scheduler import BaseSchedulerNode, SchedulerBuffer
+<<<<<<< HEAD
 from ..shape_propagation import BlockShapeType
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..utils import IndentedBuffer, sympy_index_symbol_with_prefix, sympy_subs
 from ..virtualized import ops, OpsValue, V
 from .common import CSEVariable, Kernel, KernelArgs, OptimizationContext
@@ -146,9 +149,14 @@ class CppCSEVariable(CSEVariable):
         name,
         bounds: ValueRanges[Any],
         dtype: Optional[torch.dtype] = None,
+<<<<<<< HEAD
         shape: BlockShapeType = None,
     ) -> None:
         super().__init__(name, bounds, dtype, shape=shape)
+=======
+    ) -> None:
+        super().__init__(name, bounds, dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.is_vec = False
         self.dependent_itervars = OrderedSet[sympy.Symbol]()
 
@@ -201,6 +209,7 @@ class CppPrinter(_CppPrinter):
             expr = V.graph.sizevars.simplify(expr)
         return super().doprint(expr)
 
+<<<<<<< HEAD
     def parenthesize(self, item: sympy.Expr, level: int, strict: bool = False) -> str:
         if isinstance(item, sympy.Mod):
             # use parenthesis to enforce precedence.
@@ -209,6 +218,8 @@ class CppPrinter(_CppPrinter):
         else:
             return super().parenthesize(item, level, strict)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # A function to print, useful for printing sympy symbols.
 cexpr = CppPrinter().doprint

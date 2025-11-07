@@ -273,9 +273,12 @@ class Vectorized<double> {
   Vectorized<double> C10_ALWAYS_INLINE exp_u20() const {
     return exp();
   }
+<<<<<<< HEAD
   Vectorized<double> C10_ALWAYS_INLINE fexp_u20() const {
     return exp();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Vectorized<double> lgamma() const __ubsan_ignore_undefined__ {
     return {Sleef_lgammad2_u10(_vec0), Sleef_lgammad2_u10(_vec1)};

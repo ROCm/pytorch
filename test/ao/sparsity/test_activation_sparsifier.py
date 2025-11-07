@@ -50,7 +50,11 @@ class TestActivationSparsifier(TestCase):
         sparsifier_defaults = activation_sparsifier.defaults
         combined_defaults = {**defaults, "sparse_config": sparse_config}
 
+<<<<<<< HEAD
         # more keys are populated in activation sparsifier (even though they may be None)
+=======
+        # more keys are populated in activation sparsifier (eventhough they may be None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(combined_defaults) <= len(activation_sparsifier.defaults)
 
         for key, config in sparsifier_defaults.items():

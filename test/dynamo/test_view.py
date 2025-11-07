@@ -33,6 +33,7 @@ class ViewTests(torch._dynamo.test_case.TestCase):
         t = torch.tensor([2, 4], dtype=torch.int32)
         f(t, 8)
 
+<<<<<<< HEAD
     def test_view_with_tensor_shape_params(self):
         # Test for issue #156720: aten.view.default with tensor shape parameters
         class TestModel(torch.nn.Module):
@@ -113,6 +114,8 @@ class ViewTests(torch._dynamo.test_case.TestCase):
 
         torch.testing.assert_close(result, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

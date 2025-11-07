@@ -43,8 +43,15 @@ def _load_boolean_flag(
     return state
 
 
+<<<<<<< HEAD
 ENABLE_DRAFT_EXPORT: bool = _load_boolean_flag(
     "TORCH_ONNX_ENABLE_DRAFT_EXPORT",
     this_will="enable torch.export.draft_export as a strategy for capturing models",
     default=False,
+=======
+PLACEHOLDER: bool = _load_boolean_flag(
+    "TORCH_ONNX_PLACEHOLDER",
+    this_will="do nothing",
+    default=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )

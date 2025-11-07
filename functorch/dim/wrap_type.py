@@ -26,8 +26,23 @@ FUNC_TYPES = (
 PROPERTY_TYPES = (GetSetDescriptorType, property)
 
 
+<<<<<<< HEAD
 def wrap_type(to_patch, pattern, __torch_function__):
     wrap_method = _wrap_method
+=======
+def _py_wrap_method(orig, __torch_function__):
+    def impl(*args, **kwargs):
+        return __torch_function__(orig, None, args, kwargs)
+
+    return impl
+
+
+def wrap_type(use_c, to_patch, pattern, __torch_function__):
+    if use_c:
+        wrap_method = _wrap_method
+    else:
+        wrap_method = _py_wrap_method
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     all = {}
     for t in reversed(pattern.mro()[:-1]):  # skip object

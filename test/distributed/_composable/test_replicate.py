@@ -69,7 +69,11 @@ class ReplicateStateDictTest(MultiProcessTestCase):
 
     def test_replicate_non_root_multiple_save_load(self):
         """
+<<<<<<< HEAD
         Tests the replicate() on multiple submodules matches
+=======
+        Tests tha replicate() on multiple submodules matches
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local module state_dict.
         """
         self._init_pg()

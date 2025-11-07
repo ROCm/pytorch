@@ -2,7 +2,10 @@
 # The design document please check this RFC: https://github.com/pytorch/pytorch/issues/124245
 
 import copy
+<<<<<<< HEAD
 import ctypes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import errno
 import functools
 import json
@@ -19,7 +22,11 @@ import tempfile
 import textwrap
 import warnings
 from collections.abc import Sequence
+<<<<<<< HEAD
 from ctypes import cdll, wintypes
+=======
+from ctypes import cdll
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ctypes.util import find_library
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -142,6 +149,7 @@ def check_compiler_exist_windows(compiler: str) -> None:
         pass
 
 
+<<<<<<< HEAD
 class WinPeFileVersionInfo:
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
@@ -337,6 +345,12 @@ def get_cpp_compiler() -> str:
         compiler = normalize_path_separator(compiler)
         check_compiler_exist_windows(compiler)
         check_msvc_cl_language_id(compiler)
+=======
+def get_cpp_compiler() -> str:
+    if _IS_WINDOWS:
+        compiler = os.environ.get("CXX", "cl")
+        check_compiler_exist_windows(compiler)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         if config.is_fbcode():
             return build_paths.cc
@@ -754,11 +768,14 @@ def _get_os_related_cpp_cflags(cpp_compiler: str) -> list[str]:
             "wd4067",
             "wd4068",
             "EHsc",
+<<<<<<< HEAD
             # For Intel oneAPI, ref: https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=msvc-170
             "Zc:__cplusplus",
             # Enable max compatible to msvc for oneAPI headers.
             # ref: https://github.com/pytorch/pytorch/blob/db38c44ad639e7ada3e9df2ba026a2cb5e40feb0/cmake/public/utils.cmake#L352-L358 # noqa: B950
             "permissive-",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     else:
         cflags = ["Wno-unused-variable", "Wno-unknown-pragmas"]
@@ -769,6 +786,7 @@ def _get_os_related_cpp_cflags(cpp_compiler: str) -> list[str]:
                 else "Wno-ignored-optimization-argument"
             )
             cflags.append(ignored_optimization_argument)
+<<<<<<< HEAD
         if _is_gcc(cpp_compiler):
             # Issue all the warnings demanded by strict ISO C and ISO C++.
             # Ref: https://github.com/pytorch/pytorch/issues/153180#issuecomment-2986676878
@@ -812,10 +830,33 @@ def _get_ffast_math_flags() -> list[str]:
 
         if is_gcc():
             flags.append("fexcess-precision=fast")
+=======
+    return cflags
+
+
+def _get_ffast_math_flags() -> list[str]:
+    # ffast-math is equivalent to these flags as in
+    # https://github.com/gcc-mirror/gcc/blob/4700ad1c78ccd7767f846802fca148b2ea9a1852/gcc/opts.cc#L3458-L3468
+    # however gcc<13 sets the FTZ/DAZ flags for runtime on x86 even if we have
+    # -ffast-math -fno-unsafe-math-optimizations because the flags for runtime
+    # are added by linking in crtfastmath.o. This is done by the spec file which
+    # only does globbing for -ffast-math.
+    flags = [
+        "fno-trapping-math",
+        "funsafe-math-optimizations",
+        "ffinite-math-only",
+        "fno-signed-zeros",
+        "fno-math-errno",
+    ]
+
+    if is_gcc():
+        flags.append("fexcess-precision=fast")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return flags
 
 
+<<<<<<< HEAD
 def _get_inductor_debug_symbol_cflags() -> tuple[list[str], list[str]]:
     """
     When we turn on generate debug symbol.
@@ -863,6 +904,26 @@ def _get_optimization_cflags(
     if _IS_WINDOWS:
         pass
     else:
+=======
+def _get_optimization_cflags(
+    cpp_compiler: str, min_optimize: bool = False
+) -> list[str]:
+    if _IS_WINDOWS:
+        return ["O1" if min_optimize else "O2"]
+    else:
+        wrapper_opt_level = config.aot_inductor.compile_wrapper_opt_level
+        cflags = (
+            ["O0", "g"]
+            if config.aot_inductor.debug_compile
+            else [wrapper_opt_level if min_optimize else "O3", "DNDEBUG"]
+        )
+        cflags += _get_ffast_math_flags()
+        cflags.append("fno-finite-math-only")
+        if not config.cpp.enable_unsafe_math_opt_flag:
+            cflags.append("fno-unsafe-math-optimizations")
+        cflags.append(f"ffp-contract={config.cpp.enable_floating_point_contract_flag}")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if sys.platform != "darwin":
             # on macos, unknown argument: '-fno-tree-loop-vectorize'
             if _is_gcc(cpp_compiler):
@@ -875,6 +936,7 @@ def _get_optimization_cflags(
                 else:
                     cflags.append("march=native")
 
+<<<<<<< HEAD
         if config.aot_inductor.enable_lto and _is_clang(cpp_compiler):
             cflags.append("flto=thin")
 
@@ -882,6 +944,12 @@ def _get_optimization_cflags(
 
 
 def _get_shared_cflags(do_link: bool) -> list[str]:
+=======
+        return cflags
+
+
+def _get_shared_cflag(do_link: bool) -> list[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _IS_WINDOWS:
         """
         MSVC `/MD` using python `ucrtbase.dll` lib as runtime.
@@ -911,29 +979,42 @@ def get_cpp_options(
     libraries: list[str] = []
     passthrough_args: list[str] = []
 
+<<<<<<< HEAD
     opt_cflags, opt_ldflags = _get_optimization_cflags(cpp_compiler, min_optimize)
 
     cflags = (
         opt_cflags
         + _get_shared_cflags(do_link)
+=======
+    cflags = (
+        _get_shared_cflag(do_link)
+        + _get_optimization_cflags(cpp_compiler, min_optimize)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         + _get_warning_all_cflag(warning_all)
         + _get_cpp_std_cflag()
         + _get_os_related_cpp_cflags(cpp_compiler)
     )
 
+<<<<<<< HEAD
     definitions += _get_os_related_cpp_definitions(cpp_compiler)
 
     if not _IS_WINDOWS and config.aot_inductor.enable_lto and _is_clang(cpp_compiler):
         ldflags.append("fuse-ld=lld")
         ldflags.append("flto=thin")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     passthrough_args.append(" ".join(extra_flags))
 
     return (
         definitions,
         include_dirs,
         cflags,
+<<<<<<< HEAD
         ldflags + opt_ldflags,
+=======
+        ldflags,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         libraries_dirs,
         libraries,
         passthrough_args,
@@ -996,6 +1077,16 @@ class CppOptions(BuildOptionsBase):
         self._finalize_options()
 
 
+<<<<<<< HEAD
+=======
+def _get_glibcxx_abi_build_flags() -> list[str]:
+    if not _IS_WINDOWS:
+        return ["-D_GLIBCXX_USE_CXX11_ABI=" + str(int(torch._C._GLIBCXX_USE_CXX11_ABI))]
+    else:
+        return []
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_torch_cpp_wrapper_definition() -> list[str]:
     return ["TORCH_INDUCTOR_CPP_WRAPPER", "STANDALONE_TORCH_HEADER"]
 
@@ -1321,6 +1412,7 @@ def _get_openmp_args(
     return cflags, ldflags, include_dir_paths, lib_dir_paths, libs, passthrough_args
 
 
+<<<<<<< HEAD
 def _get_libstdcxx_args() -> tuple[list[str], list[str]]:
     """
     For fbcode cpu case, we should link stdc++ instead assuming the binary where dlopen is executed is built with dynamic stdc++.
@@ -1334,6 +1426,8 @@ def _get_libstdcxx_args() -> tuple[list[str], list[str]]:
     return lib_dir_paths, libs
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_mmap_self_macro(use_mmap_weights: bool) -> list[str]:
     macros = []
     if use_mmap_weights:
@@ -1349,6 +1443,7 @@ def get_cpp_torch_options(
     use_relative_path: bool,
     use_mmap_weights: bool,
 ) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str], list[str]]:
+<<<<<<< HEAD
     """
     This function is used to get the build args of torch related build options.
     1. Torch include_directories, libraries, libraries_directories.
@@ -1358,6 +1453,8 @@ def get_cpp_torch_options(
     5. MISC
     6. Return the build args
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     definitions: list[str] = []
     include_dirs: list[str] = []
     cflags: list[str] = []
@@ -1394,6 +1491,10 @@ def get_cpp_torch_options(
         omp_passthrough_args,
     ) = _get_openmp_args(cpp_compiler)
 
+<<<<<<< HEAD
+=======
+    cxx_abi_passthrough_args = _get_glibcxx_abi_build_flags()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fb_macro_passthrough_args = _use_fb_internal_macros()
 
     mmap_self_macros = get_mmap_self_macro(use_mmap_weights)
@@ -1416,7 +1517,14 @@ def get_cpp_torch_options(
     libraries_dirs = python_libraries_dirs + torch_libraries_dirs + omp_lib_dir_paths
     libraries = torch_libraries + omp_lib
     passthrough_args = (
+<<<<<<< HEAD
         sys_libs_passthrough_args + isa_ps_args_build_flags + omp_passthrough_args
+=======
+        sys_libs_passthrough_args
+        + isa_ps_args_build_flags
+        + cxx_abi_passthrough_args
+        + omp_passthrough_args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     return (
@@ -1538,6 +1646,7 @@ def get_cpp_torch_device_options(
     aot_mode: bool = False,
     compile_only: bool = False,
 ) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str], list[str]]:
+<<<<<<< HEAD
     """
     This function is used to get the build args of device related build options.
     1. Device include_directories, libraries, libraries_directories.
@@ -1545,6 +1654,8 @@ def get_cpp_torch_device_options(
     3. MISC
     4. Return the build args
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     definitions: list[str] = []
     include_dirs: list[str] = []
     cflags: list[str] = []
@@ -1564,8 +1675,11 @@ def get_cpp_torch_device_options(
 
     include_dirs = cpp_extension.include_paths(device_type)
     libraries_dirs = cpp_extension.library_paths(device_type)
+<<<<<<< HEAD
     if not config.is_fbcode():
         libraries += ["c10"]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if device_type == "cuda":
         definitions.append(" USE_ROCM" if torch.version.hip else " USE_CUDA")
 
@@ -1584,6 +1698,7 @@ def get_cpp_torch_device_options(
 
     if device_type == "xpu":
         definitions.append(" USE_XPU")
+<<<<<<< HEAD
         xpu_error_string = (
             "Intel GPU driver is not properly installed, please follow the instruction "
             "in https://github.com/pytorch/pytorch?tab=readme-ov-file#intel-gpu-support."
@@ -1602,6 +1717,16 @@ def get_cpp_torch_device_options(
 
             if not find_library("ze_loader"):
                 raise OSError(xpu_error_string)
+=======
+        # Suppress multi-line comment warnings in sycl headers
+        cflags += ["Wno-comment"]
+        libraries += ["c10_xpu", "sycl", "ze_loader", "torch_xpu"]
+        if not find_library("ze_loader"):
+            raise OSError(
+                "Intel GPU driver is not properly installed, please follow the instruction "
+                "in https://github.com/pytorch/pytorch?tab=readme-ov-file#intel-gpu-support."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if device_type == "mps":
         definitions.append(" USE_MPS")
@@ -1615,6 +1740,7 @@ def get_cpp_torch_device_options(
                     # Only add link args, when compile_only is false.
                     passthrough_args = ["-Wl,-Bstatic -lcudart_static -Wl,-Bdynamic"]
 
+<<<<<<< HEAD
         if device_type == "cpu":
             (
                 stdcxx_lib_dir_paths,
@@ -1623,6 +1749,8 @@ def get_cpp_torch_device_options(
             libraries_dirs += stdcxx_lib_dir_paths
             libraries += stdcxx_libs
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if config.aot_inductor.custom_op_libs:
         libraries += config.aot_inductor.custom_op_libs
 
@@ -1802,9 +1930,12 @@ class CppBuilder:
         self._aot_mode: bool = False
 
         self._name = name
+<<<<<<< HEAD
         self._target_name = (
             config.aot_inductor.model_name_for_generated_files or "aoti_model"
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Code start here, initial self internal variables firstly.
         self._build_option = BuildOption
@@ -1857,8 +1988,12 @@ class CppBuilder:
         if isinstance(sources, str):
             sources = [sources]
 
+<<<<<<< HEAD
         # Use relative paths only when requested (typically for remote builds)
         if config.is_fbcode() and self._use_relative_path:
+=======
+        if config.is_fbcode() and (not self._aot_mode or self._use_relative_path):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Will create another temp directory for building, so do NOT use the
             # absolute path.
             self._orig_source_paths = list(sources)
@@ -2031,6 +2166,7 @@ class CppBuilder:
         """
 
         definitions = " ".join(self._build_option.get_definitions())
+<<<<<<< HEAD
         target_library_type = (
             "STATIC" if config.aot_inductor.compile_standalone else "SHARED"
         )
@@ -2089,6 +2225,30 @@ class CppBuilder:
                 """
             )
 
+=======
+        contents = textwrap.dedent(
+            f"""
+            cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
+            project(aoti_model LANGUAGES CXX)
+            set(CMAKE_CXX_STANDARD 17)
+
+            # May need to point CMAKE_PREFIX_PATH to the right torch location
+            find_package(Torch REQUIRED)
+
+            # Set a shared library target
+            add_library(aoti_model SHARED)
+
+            # Add macro definitions
+            target_compile_definitions(aoti_model PRIVATE {definitions})
+
+            # Add compile flags
+            target_compile_options(aoti_model PRIVATE {self._cflags_args})
+            # Backend specific flags
+            target_compile_options(aoti_model PRIVATE {self._passthrough_parameters_args} -c)
+
+            """
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if device_type == "cuda" and torch.version.hip is None:
             from torch._inductor.codecache import _nvcc_arch_as_compile_option
 
@@ -2096,11 +2256,15 @@ class CppBuilder:
             contents += textwrap.dedent(
                 f"""
                 enable_language(CUDA)
+<<<<<<< HEAD
                 set(CMAKE_CUDA_STANDARD 17)
                 find_package(CUDAToolkit REQUIRED)
                 target_include_directories({self._target_name} PRIVATE ${{CUDAToolkit_INCLUDE_DIRS}})
                 target_compile_definitions({self._target_name} PRIVATE USE_CUDA)
                 target_link_libraries({self._target_name} PRIVATE cuda CUDA::cudart_static)
+=======
+                find_package(CUDAToolkit REQUIRED)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 find_program(OBJCOPY_EXECUTABLE objcopy)
                 if(NOT OBJCOPY_EXECUTABLE)
@@ -2129,7 +2293,11 @@ class CppBuilder:
                     add_custom_command(
                         OUTPUT ${{FATBIN_FILE}}
                         COMMAND ${{CUDAToolkit_NVCC_EXECUTABLE}} --fatbin ${{PTX_FILE}} -o ${{FATBIN_FILE}} ${{NVCC_GENCODE_FLAGS}}
+<<<<<<< HEAD
                                 -gencode arch=compute_{current_arch},code=compute_{current_arch}
+=======
+                                -gencode arch=compute_80,code=compute_80
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 -gencode arch=compute_{current_arch},code=sm_{current_arch}
                         DEPENDS ${{PTX_FILE}}
                     )
@@ -2164,7 +2332,11 @@ class CppBuilder:
         # Remove the directory part of file_path
         src_path = "${CMAKE_CURRENT_SOURCE_DIR}/" + Path(src_path).name
         with open(cmake_path, "a") as f:
+<<<<<<< HEAD
             f.write(f"target_sources({self._target_name} PRIVATE {src_path})\n")
+=======
+            f.write(f"target_sources(aoti_model PRIVATE {src_path})\n")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def save_kernel_asm_to_cmake(self, cmake_path: str, asm_files: list[str]) -> None:
         # TODO: make this work beyond CUDA
@@ -2178,6 +2350,7 @@ class CppBuilder:
                     """
                 )
                 f.write(contents)
+<<<<<<< HEAD
             if asm_files:
                 f.write(f"add_dependencies({self._target_name} ${{KERNEL_TARGETS}})\n")
                 f.write(
@@ -2192,15 +2365,30 @@ class CppBuilder:
             # When compile_standalone is True, do not link with libtorch
             return
 
+=======
+            f.write("add_dependencies(aoti_model ${KERNEL_TARGETS})\n")
+            f.write(
+                "target_link_libraries(aoti_model PRIVATE ${KERNEL_OBJECT_FILES})\n"
+            )
+
+    def save_link_cmd_to_cmake(self, cmake_path: str) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lflags = " ".join(self._build_option.get_ldflags())
         libs = " ".join(self._build_option.get_libraries())
         contents = textwrap.dedent(
             f"""
             # Add linker flags
+<<<<<<< HEAD
             target_link_options({self._target_name} PRIVATE {lflags})
 
             # Add libraries
             target_link_libraries({self._target_name} PRIVATE {libs})
+=======
+            target_link_options(aoti_model PRIVATE {lflags})
+
+            # Add libraries
+            target_link_libraries(aoti_model PRIVATE {libs})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          """
         )
 
@@ -2209,6 +2397,7 @@ class CppBuilder:
         )
         with open(cmake_path, "a") as f:
             f.write(contents)
+<<<<<<< HEAD
 
 
 def run_asm_build_object(src: str, target: str, cwd: str) -> None:
@@ -2239,3 +2428,5 @@ def run_asm_build_object(src: str, target: str, cwd: str) -> None:
         target=normalize_path_separator(target),
     )
     run_compile_cmd(cmd, cwd=normalize_path_separator(cwd))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

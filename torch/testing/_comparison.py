@@ -1538,9 +1538,13 @@ def assert_close(
         >>> expected = torch.tensor([1.0, 2.0, 3.0])
         >>> actual = torch.tensor([1.0, 4.0, 5.0])
         >>> # The default error message can be overwritten.
+<<<<<<< HEAD
         >>> torch.testing.assert_close(
         ...     actual, expected, msg="Argh, the tensors are not close!"
         ... )
+=======
+        >>> torch.testing.assert_close(actual, expected, msg="Argh, the tensors are not close!")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Traceback (most recent call last):
         ...
         AssertionError: Argh, the tensors are not close!

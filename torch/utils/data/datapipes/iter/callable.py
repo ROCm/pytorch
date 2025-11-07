@@ -4,7 +4,10 @@ from collections import namedtuple
 from collections.abc import Iterator, Sized
 from typing import Any, Callable, Optional, TypeVar, Union
 
+<<<<<<< HEAD
 import torch
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils.data._utils.collate import default_collate
 from torch.utils.data.datapipes._decorator import functional_datapipe
 from torch.utils.data.datapipes.dataframe import dataframe_wrapper as df_wrapper
@@ -55,8 +58,12 @@ class MapperIterDataPipe(IterDataPipe[_T_co]):
         >>> def add_one(x):
         ...     return x + 1
         >>> dp = IterableWrapper(range(10))
+<<<<<<< HEAD
         >>> # Invocation via functional form is preferred
         ... map_dp_1 = dp.map(add_one)
+=======
+        >>> map_dp_1 = dp.map(add_one)  # Invocation via functional form is preferred
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> list(map_dp_1)
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         >>> # We discourage the usage of `lambda` functions as they are not serializable with `pickle`
@@ -76,7 +83,10 @@ class MapperIterDataPipe(IterDataPipe[_T_co]):
         input_col=None,
         output_col=None,
     ) -> None:
+<<<<<<< HEAD
         torch._C._log_api_usage_once("python.data_pipes.map")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.datapipe = datapipe
 
@@ -150,7 +160,11 @@ def _collate_helper(conversion, item):
 
     for name in conversion.keys():
         if name not in columns_name:
+<<<<<<< HEAD
             raise RuntimeError("Conversion keys mismatch")
+=======
+            raise RuntimeError("Conversion keys missmatch")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for name in columns_name:
         if name in conversion:
@@ -203,7 +217,11 @@ class CollatorIterDataPipe(MapperIterDataPipe):
         >>> class MyIterDataPipe(torch.utils.data.IterDataPipe):
         ...     def __init__(self, start, end):
         ...         super(MyIterDataPipe).__init__()
+<<<<<<< HEAD
         ...         assert end > start, "this example only works with end >= start"
+=======
+        ...         assert end > start, "this example code only works with end >= start"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ...         self.start = start
         ...         self.end = end
         ...
@@ -212,11 +230,19 @@ class CollatorIterDataPipe(MapperIterDataPipe):
         ...
         ...     def __len__(self):
         ...         return self.end - self.start
+<<<<<<< HEAD
+=======
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> ds = MyIterDataPipe(start=3, end=7)
         >>> print(list(ds))
         [3, 4, 5, 6]
         >>> def collate_fn(batch):
         ...     return torch.tensor(batch, dtype=torch.float)
+<<<<<<< HEAD
+=======
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> collated_ds = CollateIterDataPipe(ds, collate_fn=collate_fn)
         >>> print(list(collated_ds))
         [tensor(3.), tensor(4.), tensor(5.), tensor(6.)]

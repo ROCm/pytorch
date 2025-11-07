@@ -77,7 +77,11 @@ void nnc_aten_{name}(
   at::Tensor& r = tensors[0];
   {nl.join(tensor_decls)}
   try {{
+<<<<<<< HEAD
     at::{name}_out({", ".join(["r"] + arg_names)});
+=======
+    at::{name}_out({', '.join(['r'] + arg_names)});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }} catch (...) {{
   }}
 }}"""

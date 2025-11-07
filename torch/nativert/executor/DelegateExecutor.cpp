@@ -8,8 +8,13 @@
 
 #include <c10/util/Logging.h>
 
+<<<<<<< HEAD
 #include <torch/nativert/common/FileUtil.h>
 #include <string>
+=======
+#include <c10/util/string_view.h>
+#include <torch/nativert/common/FileUtil.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::nativert {
 
@@ -28,7 +33,10 @@ char* _mkdtemp(char* outputDir) {
 std::string extractToTemporaryFolder(
     caffe2::serialize::PyTorchStreamReader& packageReader,
     const std::string& targetPath) {
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   char outputDir[] = "/tmp/delegate_model_XXXXXX";
   char* tempdir = _mkdtemp(outputDir);
   TORCH_CHECK(
@@ -54,7 +62,11 @@ std::string extractToTemporaryFolder(
             << " from archive path: " << path << " size: " << dataSize;
 
     File extracted(extractedFilename, O_CREAT | O_WRONLY, 0640);
+<<<<<<< HEAD
     const auto bytesWritten = writeFull(
+=======
+    const auto bytesWritten = torch::nativert::writeFull(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extracted.fd(), const_cast<void*>(dataPointer.get()), dataSize);
     TORCH_CHECK(
         bytesWritten != -1,

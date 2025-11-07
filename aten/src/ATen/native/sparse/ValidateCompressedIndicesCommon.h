@@ -242,7 +242,11 @@ void _validate_compressed_sparse_indices_kernel(
   // Catch integer overflow from large dimensions. Otherwise, the
   // invariant checks may fail with bogus exceptions or succeed with
   // false-positive results when int64_t typed dimensions are cast to
+<<<<<<< HEAD
   // index dtype that corresponds to smaller integer type such as
+=======
+  // index dtype that corresponds to smaller interger type such as
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // int32_t.
   {
     AT_DISPATCH_INDEX_TYPES(idx.scalar_type(), NAME, [cdim, dim, nnz]() {

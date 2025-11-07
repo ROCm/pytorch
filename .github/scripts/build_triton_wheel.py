@@ -119,7 +119,10 @@ def build_triton(
                 ["git", "checkout", f"release/{ver}.{rev}.x"], cwd=triton_basedir
             )
         else:
+<<<<<<< HEAD
             check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
 
         # change built wheel name and version

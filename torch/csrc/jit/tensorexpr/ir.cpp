@@ -125,7 +125,11 @@ Dtype Intrinsics::IntrinsicsDtype(
     IntrinsicsOp op_type,
     const std::vector<ExprPtr>& params) {
   // TODO: check the op_type and make a real decision
+<<<<<<< HEAD
   // Doesn't this fail with kRand?
+=======
+  // Doesnt this fail with kRand?
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (params.empty()) {
     throw malformed_input("invalid params in Intrinsics");
   } else if (params.size() == 1) {

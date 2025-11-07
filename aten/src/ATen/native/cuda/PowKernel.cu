@@ -185,12 +185,15 @@ void pow_tensor_scalar_kernel(TensorIteratorBase& iter, const Scalar& exp_scalar
       return;
     }
     AT_DISPATCH_COMPLEX_TYPES(iter.common_dtype(), "pow_cuda", [&]() {
+<<<<<<< HEAD
       if (exp_scalar.equal(2.0)) {
         gpu_kernel(iter, [=]GPU_LAMBDA(scalar_t base) -> scalar_t {
           return base * base;
         });
         return;
       }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const auto exp = exp_scalar.to<scalar_t>();
       gpu_kernel(iter, [=]GPU_LAMBDA(scalar_t base) -> scalar_t {
         return pow_(base, exp);

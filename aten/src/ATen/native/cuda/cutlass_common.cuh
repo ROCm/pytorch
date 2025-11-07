@@ -26,6 +26,7 @@ struct enable_3x_kernel_for_sm9x : Kernel {
 };
 
 template <typename Kernel>
+<<<<<<< HEAD
 struct enable_3x_kernel_for_sm10 : Kernel {
   template <typename... Args>
   CUTLASS_DEVICE void operator()(Args&&... args) {
@@ -36,6 +37,8 @@ struct enable_3x_kernel_for_sm10 : Kernel {
 };
 
 template <typename Kernel>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct enable_3x_kernel_for_sm10_or_later : Kernel {
   template <typename... Args>
   CUTLASS_DEVICE void operator()(Args&&... args) {

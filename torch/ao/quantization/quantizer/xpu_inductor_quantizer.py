@@ -85,7 +85,11 @@ class XPUInductorQuantizer(X86InductorQuantizer):
         overrides. We keep the annotate methods but make the function
         body empty, aiming to let `_generate_qdq_quantized_model`
         generate qdq around op and graph execute on fp32 dtype for
+<<<<<<< HEAD
         unsupported operators.
+=======
+        unspported operators.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def _annotate_qat_conv2d_fusion_pattern(

@@ -60,10 +60,14 @@ def functional_call(
 
     .. code-block:: python
 
+<<<<<<< HEAD
             a = (
                 {"weight": torch.ones(1, 1)},
                 {"buffer": torch.zeros(1)},
             )  # two separate dictionaries
+=======
+            a = ({'weight': torch.ones(1, 1)}, {'buffer': torch.zeros(1)})  # two separate dictionaries
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mod = nn.Bar(1, 1)  # return self.weight @ x + self.buffer
             print(mod.weight)  # tensor(...)
             print(mod.buffer)  # tensor(...)
@@ -86,12 +90,18 @@ def functional_call(
         t = torch.randn(4, 3)
         model = nn.Linear(3, 3)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def compute_loss(params, x, t):
             y = functional_call(model, params, x)
             return nn.functional.mse_loss(y, t)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grad_weights = grad(compute_loss)(dict(model.named_parameters()), x, t)
 
     .. note:: If the user does not need grad tracking outside of grad transforms, they can detach all of the
@@ -184,11 +194,17 @@ def stack_module_state(
         models = [torch.nn.Linear(in_features, out_features) for i in range(num_models)]
         data = torch.randn(batch_size, 3)
 
+<<<<<<< HEAD
 
         def wrapper(params, buffers, data):
             return torch.func.functional_call(models[0], (params, buffers), data)
 
 
+=======
+        def wrapper(params, buffers, data):
+            return torch.func.functional_call(models[0], (params, buffers), data)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         params, buffers = stack_module_state(models)
         output = vmap(wrapper, (0, 0, None))(params, buffers, data)
 
@@ -199,8 +215,11 @@ def stack_module_state(
     .. code-block:: python
 
         import torch.nn as nn
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Foo(nn.Module):
             def __init__(self, in_features, out_features):
                 super().__init__()
@@ -211,7 +230,10 @@ def stack_module_state(
             def forward(self, x):
                 return self.l2(self.l1(x))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         num_models = 5
         in_features, out_features = 3, 3
         models = [Foo(in_features, out_features) for i in range(num_models)]

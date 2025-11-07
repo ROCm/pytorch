@@ -35,7 +35,11 @@ struct TORCH_API Event {
   std::unordered_map<std::string, data_value_t> data;
 };
 
+<<<<<<< HEAD
 inline bool operator==(const Event& lhs, const Event& rhs) {
+=======
+TORCH_API inline bool operator==(const Event& lhs, const Event& rhs) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return lhs.name == rhs.name && lhs.timestamp == rhs.timestamp &&
       lhs.data == rhs.data;
 }

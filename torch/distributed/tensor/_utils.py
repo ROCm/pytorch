@@ -284,19 +284,31 @@ def compute_global_tensor_shape(
     if isinstance(placements[0], Replicate):
         return shape
     elif isinstance(placements[0], Shard):
+<<<<<<< HEAD
         local_shape = torch.tensor(list(shape), device=mesh.device_type)
+=======
+        local_shape = torch.tensor(list(shape))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gathered_shaped_tensors = [
             torch.empty_like(local_shape, device=local_shape.device)
             for _ in range(mesh.size())
         ]
+<<<<<<< HEAD
         funcol.all_gather_inplace(gathered_shaped_tensors, local_shape, mesh)
+=======
+        funcol.all_gather_inplace(gathered_shaped_tensors, local_shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sharded_dim_sum = 0
         shard_dim = placements[0].dim
         other_dims = [d for d in range(mesh.ndim) if d != shard_dim]
         for shape_tensor in gathered_shaped_tensors:
             if not torch.equal(local_shape[other_dims], shape_tensor[other_dims]):
                 raise RuntimeError(
+<<<<<<< HEAD
                     "Non-sharded dimensions should have identical size across ranks."
+=======
+                    "Non-sharded dimentions should have identical size across ranks."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             shape_tensor_list = shape_tensor.tolist()
             sharded_dim_sum += shape_tensor_list[shard_dim]

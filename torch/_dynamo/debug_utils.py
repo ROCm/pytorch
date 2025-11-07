@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+# mypy: disable-error-code="method-assign"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Debug utilities for TorchDynamo compilation and execution.
 
@@ -16,8 +22,11 @@ Key classes:
 - BuckTargetWriter: Manages Buck build system integration
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import atexit
 import copy
 import cProfile
@@ -34,14 +43,21 @@ import tempfile
 import textwrap
 from collections import Counter
 from importlib import import_module
+<<<<<<< HEAD
 from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar
+=======
+from typing import Any, Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._prims_common as utils
 import torch._subclasses.meta_utils
 from torch import Tensor
 from torch._dynamo.testing import rand_strided
+<<<<<<< HEAD
 from torch._inductor.cpp_builder import normalize_path_separator
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._prims_common import is_float_dtype
 from torch.multiprocessing.reductions import StorageWeakRef
 from torch.utils._content_store import ContentStoreReader, ContentStoreWriter
@@ -50,6 +66,7 @@ from . import config
 from .utils import clone_inputs, get_debug_dir
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -57,6 +74,8 @@ if TYPE_CHECKING:
     from torch.storage import UntypedStorage
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -71,7 +90,10 @@ if use_buck:
 
 extra_deps = []
 extra_imports = ""
+<<<<<<< HEAD
 cur_target = ""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if use_buck:
     extra_deps = [
         "//caffe2/torch/fb/sparsenn:sparsenn_operators_gpu",
@@ -87,7 +109,11 @@ BUCK_CMD_PREFIX = ["buck2", "run", "@mode/dev-nosan"]
 
 
 class BuckTargetWriter:
+<<<<<<< HEAD
     def __init__(self, filename: str) -> None:
+=======
+    def __init__(self, filename):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.subdir, self.py_file = os.path.split(os.path.abspath(filename))
         self.target = self.py_file.replace(".py", "")
 
@@ -101,7 +127,11 @@ class BuckTargetWriter:
         tmp = tmp[tmp.find("fbcode/") :][7:]
         self.cmd_line_path = f"//{tmp}:{self.target}"
 
+<<<<<<< HEAD
     def build(self) -> str:
+=======
+    def build(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_cpp_deps = "\n".join([f'        "{x}",' for x in extra_deps])
         return textwrap.dedent(
             f"""
@@ -127,7 +157,11 @@ python_binary(
 """
         )
 
+<<<<<<< HEAD
     def write(self, print_msg: bool = True) -> list[str]:
+=======
+    def write(self, print_msg=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         target_file = os.path.join(self.subdir, "TARGETS")
         with open(target_file, "w") as fd:
             fd.write(self.build())
@@ -141,7 +175,11 @@ python_binary(
         return cmd_split
 
 
+<<<<<<< HEAD
 def minifier_dir() -> str:
+=======
+def minifier_dir():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     path = os.path.join(get_debug_dir(), "minifier")
     if path is None:
         path = f"{tempfile.gettempdir()}/minifier_{getpass.getuser()}"
@@ -179,7 +217,11 @@ class NNModuleToString:
     ]
 
     @staticmethod
+<<<<<<< HEAD
     def can_convert_to_string(gm: torch.fx.GraphModule) -> bool:
+=======
+    def can_convert_to_string(gm):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cant_convert = set()
         for _, module in gm.named_children():
             if type(module) not in NNModuleToString.safe_reprs:
@@ -191,7 +233,11 @@ class NNModuleToString:
         return True
 
     @staticmethod
+<<<<<<< HEAD
     def convert(gm: torch.fx.GraphModule) -> str:
+=======
+    def convert(gm):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.nn.modules.module import _addindent
 
         tab = " " * 4
@@ -256,7 +302,11 @@ class NNModuleToString:
 
 
 @functools.cache  # subprocess is expensive
+<<<<<<< HEAD
 def _cuda_system_info_comment() -> str:
+=======
+def _cuda_system_info_comment():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not torch.cuda.is_available():
         return "# torch.cuda.is_available()==False, no GPU info collected\n"
 
@@ -280,7 +330,11 @@ def _cuda_system_info_comment() -> str:
     return model_str
 
 
+<<<<<<< HEAD
 def generate_env_vars_string(*, stable_output: bool = False) -> str:
+=======
+def generate_env_vars_string(*, stable_output=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Generate a string configuration for environment variables related to Dynamo, Inductor, and Triton.
     """
@@ -290,7 +344,11 @@ def generate_env_vars_string(*, stable_output: bool = False) -> str:
     allow_list = ["TORCH", "DYNAMO", "INDUCTOR", "TRITON"]
     skip_list = ["TRITON_LIBDEVICE_PATH", "TRITON_PTXAS_PATH", "TRITON_LIBCUDA_PATH"]
 
+<<<<<<< HEAD
     def filter(key: str) -> bool:
+=======
+    def filter(key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return any(string in key for string in allow_list) and key not in skip_list
 
     config_lines = [
@@ -299,6 +357,7 @@ def generate_env_vars_string(*, stable_output: bool = False) -> str:
         if filter(key)
     ]
     config_string = "\n".join(config_lines)
+<<<<<<< HEAD
     return normalize_path_separator(f"""\
 import os
 {config_string}
@@ -306,6 +365,15 @@ import os
 
 
 def generate_config_string(*, stable_output: bool = False) -> str:
+=======
+    return f"""\
+import os
+{config_string}
+    """
+
+
+def generate_config_string(*, stable_output=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import torch._functorch.config
     import torch._inductor.config
 
@@ -325,11 +393,19 @@ import torch.fx.experimental._config
 """
 
 
+<<<<<<< HEAD
 def get_minifier_repro_path() -> str:
     return os.path.join(minifier_dir(), "minifier_launcher.py")
 
 
 def helper_for_dump_minify(contents: str) -> None:
+=======
+def get_minifier_repro_path():
+    return os.path.join(minifier_dir(), "minifier_launcher.py")
+
+
+def helper_for_dump_minify(contents):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     minified_repro_path = get_minifier_repro_path()
     log.warning("Writing minified repro to:\n%s", minified_repro_path)
 
@@ -348,7 +424,11 @@ class AccuracyError(Exception):
     pass
 
 
+<<<<<<< HEAD
 def clone_inputs_retaining_gradness(example_inputs: Sequence[Any]) -> list[Any]:
+=======
+def clone_inputs_retaining_gradness(example_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     This clone inputs is different from utils clone_input. In case of minifier,
     all the tensors are leaf tensors while creating a new graph. So, we set the
@@ -358,6 +438,7 @@ def clone_inputs_retaining_gradness(example_inputs: Sequence[Any]) -> list[Any]:
     for idx in range(len(example_inputs)):
         if isinstance(cloned_inputs[idx], torch.Tensor):
             cloned_inputs[idx].requires_grad_(example_inputs[idx].requires_grad)
+<<<<<<< HEAD
     return cloned_inputs  # type: ignore[return-value]
 
 
@@ -367,6 +448,12 @@ def run_fwd_maybe_bwd(
     only_fwd: bool = False,
     disable_clone: bool = False,
 ) -> Any:
+=======
+    return cloned_inputs
+
+
+def run_fwd_maybe_bwd(gm, args, only_fwd=False, disable_clone=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Runs a forward and possibly backward iteration for a given mod and args.
 
@@ -394,6 +481,7 @@ def run_fwd_maybe_bwd(
 
 
 def same_two_models(
+<<<<<<< HEAD
     gm: torch.fx.GraphModule,
     opt_gm: torch.fx.GraphModule,
     example_inputs: Sequence[Any],
@@ -402,6 +490,16 @@ def same_two_models(
     require_fp64: bool = False,
     ignore_non_fp: bool = False,
 ) -> bool:
+=======
+    gm,
+    opt_gm,
+    example_inputs,
+    only_fwd=False,
+    *,
+    require_fp64=False,
+    ignore_non_fp=False,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Check two models have same accuracy.
 
@@ -451,7 +549,11 @@ def same_two_models(
     return passing
 
 
+<<<<<<< HEAD
 def cast_dtype_args_to_fp64(model: torch.fx.GraphModule) -> torch.fx.GraphModule:
+=======
+def cast_dtype_args_to_fp64(model):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node in model.graph.nodes:
         if (
             node.op == "call_function"
@@ -472,9 +574,13 @@ def cast_dtype_args_to_fp64(model: torch.fx.GraphModule) -> torch.fx.GraphModule
     return model
 
 
+<<<<<<< HEAD
 def cast_to(
     dtype: torch.dtype, model: torch.fx.GraphModule, inputs: list[Any]
 ) -> tuple[torch.fx.GraphModule, list[Any]]:
+=======
+def cast_to(dtype, model, inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.utils._pytree import tree_map
 
     model = model.to(dtype)
@@ -492,13 +598,18 @@ def cast_to(
     return model, inputs
 
 
+<<<<<<< HEAD
 def cast_to_fp64(
     model: torch.fx.GraphModule, inputs: list[Any]
 ) -> tuple[torch.fx.GraphModule, list[Any]]:
+=======
+def cast_to_fp64(model, inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return cast_to(torch.float64, model, inputs)
 
 
 def backend_accuracy_fails(
+<<<<<<< HEAD
     gm: torch.fx.GraphModule,
     example_inputs: Sequence[Any],
     compiler_fn: Callable[[torch.fx.GraphModule, list[Any]], torch.fx.GraphModule],
@@ -507,6 +618,16 @@ def backend_accuracy_fails(
     require_fp64: bool = False,
     ignore_non_fp: bool = False,
 ) -> bool:
+=======
+    gm,
+    example_inputs,
+    compiler_fn,
+    only_fwd=False,
+    *,
+    require_fp64=False,
+    ignore_non_fp=False,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         compiled_gm = compiler_fn(
             copy.deepcopy(gm), clone_inputs_retaining_gradness(example_inputs)
@@ -540,10 +661,17 @@ def backend_accuracy_fails(
 
 
 def _stride_or_default(
+<<<<<<< HEAD
     stride: Optional[torch._prims_common.StrideType],
     *,
     shape: torch._prims_common.ShapeType,
 ) -> torch._prims_common.StrideType:
+=======
+    stride: Optional["torch._prims_common.StrideType"],
+    *,
+    shape: "torch._prims_common.ShapeType",
+) -> "torch._prims_common.StrideType":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return stride if stride is not None else utils.make_contiguous_strides_for(shape)
 
 
@@ -562,6 +690,7 @@ class NopInputReader:
     def __init__(self) -> None:
         self.total = 0
 
+<<<<<<< HEAD
     def storage(
         self,
         storage_hash: Optional[str],
@@ -576,13 +705,26 @@ class NopInputReader:
         pass
 
     def symint(self, *args: Any, **kwargs: Any) -> Optional[int]:
+=======
+    def storage(self, storage_hash, nbytes, *, device=None, dtype_hint=None):
+        self.total += 1
+
+    def tensor(self, *args, **kwargs):
+        pass
+
+    def symint(self, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass
 
 
 # TODO: Support bundling the entire repro into a zip file for ease of
 # transferring around
 class InputReader:
+<<<<<<< HEAD
     def __init__(self, save_dir: Optional[str] = None, *, pbar: Optional[tqdm] = None):
+=======
+    def __init__(self, save_dir=None, *, pbar=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # If None, we will generate random data instead.  It's important
         # to natively support this use case as it will allow people to
         # share repros without including the real data, if the problem
@@ -590,6 +732,7 @@ class InputReader:
         if save_dir is None:
             log.warning("no save_dir specified, will generate random data")
         self.store = ContentStoreReader(save_dir) if save_dir is not None else None
+<<<<<<< HEAD
         self.args: list[Any] = []
         self.pbar = pbar
 
@@ -604,6 +747,15 @@ class InputReader:
         if self.pbar is not None:
             self.pbar.update(1)
         device = _device_or_default(device)  # type: ignore[arg-type]
+=======
+        self.args = []
+        self.pbar = pbar
+
+    def storage(self, storage_hash, nbytes, *, device=None, dtype_hint=None):
+        if self.pbar is not None:
+            self.pbar.update(1)
+        device = _device_or_default(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype_hint = _dtype_or_default(dtype_hint)
         if self.store is not None and storage_hash is not None:
             try:
@@ -624,6 +776,7 @@ class InputReader:
 
     def tensor(
         self,
+<<<<<<< HEAD
         storage: UntypedStorage,
         shape: torch._prims_common.ShapeType,
         stride: Optional[torch._prims_common.StrideType] = None,
@@ -634,6 +787,18 @@ class InputReader:
         is_leaf: Optional[bool] = None,
         **metadata: Any,
     ) -> torch.Tensor:
+=======
+        storage,
+        shape,
+        stride=None,
+        *,
+        storage_offset=None,
+        dtype=None,
+        requires_grad=None,
+        is_leaf=None,
+        **metadata,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         stride = _stride_or_default(stride, shape=shape)
         storage_offset = _storage_offset_or_default(storage_offset)
         dtype = _dtype_or_default(dtype)
@@ -655,7 +820,11 @@ class InputReader:
         self.args.append(t)
         return t  # for BC
 
+<<<<<<< HEAD
     def symint(self, val: Any) -> Any:
+=======
+    def symint(self, val):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.args.append(val)
         return val  # for BC
 
@@ -673,8 +842,13 @@ class InputReader:
 
 
 class InputWriter:
+<<<<<<< HEAD
     def __init__(self, save_dir: Optional[str], *, stable_hash: bool = False) -> None:
         self._lines: list[str] = []
+=======
+    def __init__(self, save_dir, *, stable_hash=False):
+        self._lines = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: consider ensuring tensor and storage counters line up?
         self.storage_counter = itertools.count()
         self.save_dir = save_dir
@@ -683,9 +857,15 @@ class InputWriter:
             if save_dir is not None
             else None
         )
+<<<<<<< HEAD
         self.seen_storages: dict[StorageWeakRef, str] = {}
 
     def lines(self) -> list[str]:
+=======
+        self.seen_storages = {}
+
+    def lines(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r = [
             "def load_args(reader):",
         ]
@@ -700,6 +880,7 @@ class InputWriter:
     # of initialization may be appropriate
     #
     # If we had a FakeTensor, device_hint tells us what device should be
+<<<<<<< HEAD
     def storage(
         self,
         untyped_storage: UntypedStorage,
@@ -707,6 +888,9 @@ class InputWriter:
         device_hint: Optional[torch._prims_common.DeviceLikeType] = None,
         dtype_hint: Optional[torch.dtype] = None,
     ) -> str:
+=======
+    def storage(self, untyped_storage, *, dtype_hint=None, device_hint=None) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ws = StorageWeakRef(untyped_storage)
         v = self.seen_storages.get(ws)
         if v is not None:
@@ -721,7 +905,11 @@ class InputWriter:
         device = untyped_storage.device
         if device.type == "meta":
             assert device_hint is not None
+<<<<<<< HEAD
             device = device_hint  # type: ignore[assignment]
+=======
+            device = device_hint
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if _device_or_default(None) != device:
             maybe_device = f", device={device!r}"
         nbytes = untyped_storage.nbytes()
@@ -734,7 +922,11 @@ class InputWriter:
         self.seen_storages[ws] = v
         return v
 
+<<<<<<< HEAD
     def tensor(self, name: str, t: torch.Tensor) -> None:
+=======
+    def tensor(self, name, t) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.fx.experimental.symbolic_shapes import statically_known_true, sym_eq
 
         storage = self.storage(
@@ -766,7 +958,11 @@ class InputWriter:
             + f")  # {name}"
         )
 
+<<<<<<< HEAD
     def unsupported(self, name: str, arg: Any) -> None:
+=======
+    def unsupported(self, name, arg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NB: Try hard not to /print/ a tensor, that will be very slow
         self._lines.append(f"# {name} was unsupported type for dumping: {type(arg)}")
         # Best effort dump as much useful stuff we can lol, in case you want
@@ -784,13 +980,21 @@ class InputWriter:
             self._lines.append('"""')
 
     # write out that the arg was filtered out as it is constant
+<<<<<<< HEAD
     def const(self, name: str) -> None:
+=======
+    def const(self, name) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._lines.append(
             f"reader.const({name!r})  # {name}, filtered out during compilation"
         )
 
     # TODO: this doesn't actually symint atm
+<<<<<<< HEAD
     def symint(self, name: str, val: Any) -> None:
+=======
+    def symint(self, name, val) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(val, torch.SymInt):
             val = val.node.hint
         self._lines.append(f"reader.symint({val!r})  # {name}")
@@ -819,10 +1023,15 @@ def aot_graph_input_parser(
 
     from torch.utils._dtype_abbrs import dtype_abbrs
 
+<<<<<<< HEAD
     dtype_map: dict[str, torch.dtype] = {
         value: key for key, value in dtype_abbrs.items()
     }
     dtype_pattern: str = "|".join(dtype_abbrs.values())
+=======
+    dtype_map = {value: key for key, value in dtype_abbrs.items()}
+    dtype_pattern = "|".join(dtype_abbrs.values())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Extracting the source code from the function
     source = inspect.getsource(func)
@@ -838,6 +1047,7 @@ def aot_graph_input_parser(
     # Dictionary for tensors from annotations
     kwargs: dict[str, Any] = {}
 
+<<<<<<< HEAD
     sym_shapes_dict: dict[str, int] = sym_shapes or {}
 
     def get_sym_int(symint: str) -> int:
@@ -848,11 +1058,27 @@ def aot_graph_input_parser(
         return sym_shapes_dict.get(symint, default_sym_shape)  # type: ignore[return-value]
 
     def gen_tensor(shape: torch._prims_common.ShapeType, dtype: torch.dtype) -> Tensor:
+=======
+    sym_shapes = sym_shapes or {}
+
+    def get_sym_int(symint):
+        torch._check(
+            symint in sym_shapes or default_sym_shape is not None,
+            lambda: f"{symint} not in symbolic_shapes and default sym shape not passed in",
+        )
+        return sym_shapes.get(symint, default_sym_shape)
+
+    def gen_tensor(shape, dtype) -> Tensor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Resolve symbolic shapes to concrete values
         resolved_shape = []
         dynamic_dims = []
         for i, dim in enumerate(shape):
+<<<<<<< HEAD
             dim = dim.strip()  # type: ignore[attr-defined]
+=======
+            dim = dim.strip()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if "s" in dim:
                 s = get_sym_int(dim)
                 resolved_shape.append(s)
@@ -907,9 +1133,15 @@ def profile_to_file(filename: str) -> Callable[[T], T]:
     prof = cProfile.Profile()
     filename = os.path.abspath(os.path.expanduser(filename))
 
+<<<<<<< HEAD
     def decorator(fn: Any) -> Any:
         @functools.wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+=======
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prof.enable()
             try:
                 return fn(*args, **kwargs)
@@ -918,7 +1150,11 @@ def profile_to_file(filename: str) -> Callable[[T], T]:
 
         return wrapper
 
+<<<<<<< HEAD
     def save_it() -> None:
+=======
+    def save_it():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prof.dump_stats(filename)
         sys.stderr.write(
             textwrap.dedent(

@@ -75,6 +75,7 @@ struct IsVecMaskType<at::vec::VecMask<T, N>> : std::true_type {};
 #endif
 
 template <typename T, uint64_t kChunkSize>
+<<<<<<< HEAD
 struct CascadeSumHelper {
   // A data struct to help cascade summation:
   std::vector<T> sum_stk{};
@@ -134,6 +135,8 @@ inline T cascade_sum_final(CascadeSumHelper<T, kChunkSize>* c) {
 }
 
 template <typename T, uint64_t kChunkSize>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct WelfordHelper {
   // A data struct to help welford reduction:
   // 1. Save the reciprocal of weights to avoid redundant divisions.
@@ -270,6 +273,7 @@ Welford<T> welford_combine(
       out.index};
 }
 
+<<<<<<< HEAD
 template <typename T, uint64_t kChunkSize = 0>
 inline T cascade_sum_combine(
     T& data,
@@ -295,6 +299,8 @@ inline T cascade_sum_combine(
   return c->sum_stk[0];
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T>
 T max_masked_reduce(const T& a, const T& b, const int64_t tail_size) {
   auto out = at::vec::maximum(a, b);

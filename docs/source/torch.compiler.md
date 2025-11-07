@@ -26,9 +26,12 @@ written in Python and it marks the transition of PyTorch from C++ to Python.
   which results in capturing the backwards pass "ahead-of-time". This enables
   acceleration of both forwards and backwards pass using TorchInductor.
 
+<<<<<<< HEAD
 To better understand how `torch.compile` tracing behavior on your code, or to
 learn more about the internals of `torch.compile`, please refer to the [`torch.compile` programming model](compile/programming_model.md).
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 :::{note}
 In some cases, the terms `torch.compile`, TorchDynamo, `torch.compiler`
 might be used interchangeably in this documentation.
@@ -39,7 +42,11 @@ TorchDynamo requires a backend that converts the captured graphs into a fast
 machine code. Different backends can result in various optimization gains.
 The default backend is called TorchInductor, also known as *inductor*,
 TorchDynamo has a list of supported backends developed by our partners,
+<<<<<<< HEAD
 which can be seen by running `torch.compiler.list_backends()` each of which
+=======
+which can be see by running `torch.compiler.list_backends()` each of which
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 with its optional dependencies.
 
 Some of the most commonly used backends include:
@@ -59,6 +66,11 @@ Some of the most commonly used backends include:
      - CUDA graphs with AOT Autograd. `Read more <https://github.com/pytorch/torchdynamo/pull/757>`__
    * - ``torch.compile(m, backend="ipex")``
      - Uses IPEX on CPU. `Read more <https://github.com/intel/intel-extension-for-pytorch>`__
+<<<<<<< HEAD
+=======
+   * - ``torch.compile(m, backend="onnxrt")``
+     - Uses ONNX Runtime for training on CPU/GPU. :doc:`Read more <onnx_dynamo_onnxruntime_backend>`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 **Inference-only backends**
@@ -91,7 +103,10 @@ Some of the most commonly used backends include:
    torch.compiler_api
    torch.compiler.config
    torch.compiler_fine_grain_apis
+<<<<<<< HEAD
    torch.compiler_backward
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    torch.compiler_aot_inductor
    torch.compiler_inductor_profiling
    torch.compiler_profiling_torch_compile
@@ -101,6 +116,7 @@ Some of the most commonly used backends include:
    torch.compiler_inductor_provenance
 ```
 
+<<<<<<< HEAD
 ```{eval-rst}
 .. toctree::
    :caption: `torch.compile` Programming Model
@@ -108,6 +124,8 @@ Some of the most commonly used backends include:
    compile/programming_model
 ```
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 % _If you want to contribute a developer-level topic
 %  that provides in-depth overview of a torch._dynamo feature,
 %  add in the below toc.

@@ -5,7 +5,11 @@ namespace at {
 
 namespace detail {
 
+<<<<<<< HEAD
 inline void noopDelete(void*) {}
+=======
+TORCH_API inline void noopDelete(void*) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace detail
 

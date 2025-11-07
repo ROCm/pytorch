@@ -27,7 +27,10 @@ import torch.nn as nn
 import torch.optim
 import torch.utils.data
 from torch._C._profiler import _ExperimentalConfig, _ExtraFields_PyCall
+<<<<<<< HEAD
 from torch._inductor.utils import is_big_gpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.autograd.profiler import KinetoStepTracker, profile as _profile
 from torch.autograd.profiler_legacy import profile as _profile_legacy
 from torch.profiler import (
@@ -985,6 +988,7 @@ class TestProfiler(TestCase):
         )
         self.assertIn("Total MFLOPs", profiler_output)
 
+<<<<<<< HEAD
     def test_override_time_units(self):
         US_IN_SECOND = 1000.0 * 1000.0
         US_IN_MS = 1000.0
@@ -1029,6 +1033,8 @@ class TestProfiler(TestCase):
             self.assertTrue(cpu_time_str_us in profiler_output)
             self.assertTrue(cpu_time_total_str_us in profiler_output)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @patch.dict(os.environ, {"KINETO_USE_DAEMON": "1"})
     @patch.dict(os.environ, {"KINETO_DAEMON_INIT_DELAY_S": "1"})
     def test_kineto_profiler_api(self):
@@ -1468,7 +1474,11 @@ class TestProfiler(TestCase):
                     cats = {e.get("cat", None) for e in j["traceEvents"]}
             self.assertTrue(
                 "cuda_sync" in cats,
+<<<<<<< HEAD
                 f"Expected to find cuda_sync event found = {cats}",
+=======
+                "Expected to find cuda_sync event" f" found = {cats}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         print("Testing enable_cuda_sync_events in _ExperimentalConfig")
@@ -2336,6 +2346,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             events = main_with_thread_fn(profile_all_threads)
             verify_events(events)
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("profiler gets ignored if dynamo activated")
     @unittest.skipIf(not kineto_available(), "Kineto is required")
     def test_python_gc_event(self):
@@ -2404,6 +2415,8 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
                 payload()
             validate_json(prof, gc_flag)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class SimpleNet(nn.Module):
     def __init__(self) -> None:
@@ -3158,6 +3171,7 @@ aten::mm""",
             assert "Overload Name" in key_averages.table()
             validate_json(prof)
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.cuda.is_available(), "requries CUDA")
     def test_profiler_debug_autotuner(self):
         """
@@ -3205,6 +3219,8 @@ aten::mm""",
         n2 = names(prof2)
         self.assertEqual(n1, n2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

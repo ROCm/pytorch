@@ -759,6 +759,7 @@ def reinplace_inplaceable_ops_core(graph: torch.fx.Graph) -> None:
         graph.erase_node(node)
 
 
+<<<<<<< HEAD
 def reinplace_inplaceable_ops(
     fake_tensor_updater: torch._inductor.fx_utils.FakeTensorUpdater,
     graph: torch.fx.Graph,
@@ -769,5 +770,10 @@ def reinplace_inplaceable_ops(
         # We run fake_tensor_updater to update the alias information.
         # Correct alias information is required for `reinplace_inplaceable_ops_core`.
         fake_tensor_updater.incremental_update()
+=======
+def reinplace_inplaceable_ops(graph: torch.fx.Graph) -> None:
+    with enable_python_dispatcher():
+        canonicalize_view_scatter_ops(graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reinplace_inplaceable_ops_core(graph)
         decompose_generalized_scatter(graph)

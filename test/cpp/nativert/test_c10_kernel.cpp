@@ -27,6 +27,11 @@ return (%x)
   std::advance(it, 1);
   const Node& node = *it;
 
+<<<<<<< HEAD
+=======
+  c10::Device device = torch::Device(torch::kCPU, 0);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto a = at::randn({6, 6, 6});
   auto b = at::randn({6, 6, 6});
 
@@ -34,7 +39,11 @@ return (%x)
   frame.setIValue(graph->getValue("a")->id(), a);
   frame.setIValue(graph->getValue("b")->id(), b);
 
+<<<<<<< HEAD
   auto kernel = C10Kernel(&node);
+=======
+  auto kernel = C10Kernel(&node, device);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   kernel.computeInternal(frame);
 

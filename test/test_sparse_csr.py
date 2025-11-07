@@ -2791,7 +2791,11 @@ class TestSparseCSR(TestCase):
             raise ValueError("Expected at least one 2D tensor in samples.")
 
         for sample in samples:
+<<<<<<< HEAD
             # We must skip samples of low dimensionality, we can't convert them to sparsed compressed layouts
+=======
+            # We must skip samples of low dimensionality, we can't covert them to sparsed compressed layouts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if sample.input.ndim < 2:
                 continue
             sparse_input = sample.input.to_sparse_csr().requires_grad_(True)
@@ -3255,7 +3259,11 @@ class TestSparseCSR(TestCase):
         # helpers
 
         def _check_against_scipy_matrix(pt_matrix, dense, blocksize, **kwargs):
+<<<<<<< HEAD
             # scipy has no bsc layout, so we check against the bsr layout of the transposed dense
+=======
+            # scipy has no bsc layout, so we check against the bsr layout of the tranposed dense
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if layout == torch.sparse_bsc:
                 sp_matrix = self._construct_sp_matrix(dense.t(), layout=torch.sparse_bsr, blocksize=blocksize[::-1])
             else:
@@ -3272,7 +3280,11 @@ class TestSparseCSR(TestCase):
             self.assertEqual(torch.tensor(sp_matrix.indptr, dtype=torch.int64), compressed_indices_mth(pt_matrix))
             self.assertEqual(torch.tensor(sp_matrix.indices, dtype=torch.int64), plain_indices_mth(pt_matrix))
             if layout == torch.sparse_bsc:
+<<<<<<< HEAD
                 # we must transpose the blocks before comparing
+=======
+                # we must tranpose the blocks before comparing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(torch.tensor(sp_matrix.data), pt_matrix.values().transpose(-2, -1))
             else:
                 self.assertEqual(torch.tensor(sp_matrix.data), pt_matrix.values())
@@ -3371,7 +3383,11 @@ class TestSparseCSR(TestCase):
 
         # special cases for batched tensors
         if batched:
+<<<<<<< HEAD
             # batched sparse tensors need only have the same number of non-zeros in each batch not necessarily the
+=======
+            # batched sparse tensors need only have the same number of non-zeros in each batch not nessesarily the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # same sparsity pattern in each batch
             sparse_shape = sparse_sizes[0]
             hybrid_shape = hybrid_sizes[0]
@@ -3382,7 +3398,11 @@ class TestSparseCSR(TestCase):
             # number of elements/blocks in each batch (total not nnz)
             batch_mask_shape = sparse_shape
             if layout in blocked_layouts:
+<<<<<<< HEAD
                 # if we are blocked the mask is generated for the block valued elements
+=======
+                # if we are blocked the mask is genereated for the block valued elemetns
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 batch_mask_shape = sparse_shape[0] // blocksize[0], sparse_shape[1] // blocksize[1]
 
             # random bool vector w/ length equal to max possible nnz for the sparse_shape
@@ -3603,8 +3623,13 @@ class TestSparseCompressedTritonKernels(TestCase):
     @onlyCUDA
     @dtypes(torch.half, torch.bfloat16, torch.float)
     @dtypesIfCUDA(torch.half, *[torch.bfloat16] if SM80OrLater else [], torch.float)
+<<<<<<< HEAD
     @unittest.skipIf((not TEST_WITH_TORCHINDUCTOR) or (IS_FBCODE and IS_REMOTE_GPU),
                      "Skipped for internal with remote GPUs")
+=======
+    @unittest.skipIf((not TEST_WITH_TORCHINDUCTOR) or (IS_FBCODE and IS_REMOTE_GPU) or torch._running_with_deploy(),
+                     "Skipped for deploy and internal with remote GPUs")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_bsr_dense_bmm(self, device, dtype, index_dtype, block_size):
         from functools import partial
         from torch.sparse._triton_ops import bsr_dense_mm
@@ -3680,8 +3705,13 @@ class TestSparseCompressedTritonKernels(TestCase):
 
     @onlyCUDA
     @dtypes(torch.half)
+<<<<<<< HEAD
     @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU,
                      "Skipped for internal with remote GPUs")
+=======
+    @unittest.skipIf(IS_FBCODE and IS_REMOTE_GPU or torch._running_with_deploy(),
+                     "Skipped for deploy and internal with remote GPUs")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_bsr_dense_bmm_error_messages(self, device, dtype):
         from torch.sparse._triton_ops import bsr_dense_mm
 
@@ -3815,7 +3845,11 @@ class TestSparseCompressedTritonKernels(TestCase):
                 input_broadcasted_clone.col_indices(),
                 # For testing `out=` let's make values to have "weird" strides
                 # so that if the kernel modifies values to it's needs, the result
+<<<<<<< HEAD
                 # is being copied into out.values.
+=======
+                # is being compied into out.values.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 input_broadcasted_clone.values().transpose(-3, -2).contiguous().transpose(-3, -2),
                 layout=input_broadcasted_clone.layout,
                 size=input_broadcasted_clone.shape
@@ -3930,7 +3964,11 @@ class TestSparseCompressedTritonKernels(TestCase):
                     try:
                         result = bsr_scatter_mm(bsr, dense, indices_data=indices_data)
                     except triton.compiler.OutOfResources:
+<<<<<<< HEAD
                         # ensure that there was at least one successful test:
+=======
+                        # ensure that there was at least one succesful test:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         assert SPLIT_N < SPLIT_N_list[0]
                         break
 

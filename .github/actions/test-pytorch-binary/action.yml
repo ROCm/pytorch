@@ -24,6 +24,10 @@ runs:
           -e PYTORCH_FINAL_PACKAGE_DIR \
           -e PYTORCH_ROOT \
           -e SKIP_ALL_TESTS \
+<<<<<<< HEAD
+=======
+          -e USE_SPLIT_BUILD \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           --tty \
           --detach \
           -v "${GITHUB_WORKSPACE}/pytorch:/pytorch" \

@@ -49,6 +49,10 @@ from statistics import mean
 from typing import (
     Any,
     Callable,
+<<<<<<< HEAD
+=======
+    Dict,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Optional,
     TypeVar,
     Union,
@@ -101,9 +105,14 @@ try:
 except ImportError:
     has_pytest = False
 
+<<<<<<< HEAD
 MI350_ARCH = ("gfx950",)
 MI300_ARCH = ("gfx942",)
 MI200_ARCH = ("gfx90a")
+=======
+
+MI300_ARCH = ("gfx940", "gfx941", "gfx942")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
@@ -308,7 +317,11 @@ if os.getenv("SLOW_TESTS_FILE", ""):
 if os.getenv("DISABLED_TESTS_FILE", ""):
     disabled_tests_dict = maybe_load_json(os.getenv("DISABLED_TESTS_FILE", ""))
 
+<<<<<<< HEAD
 NATIVE_DEVICES = ('cpu', 'cuda', 'xpu', 'meta', 'mps', torch._C._get_privateuse1_backend_name())
+=======
+NATIVE_DEVICES = ('cpu', 'cuda', 'xpu', 'meta', torch._C._get_privateuse1_backend_name())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # used for managing devices testing for torch profiler UTs
 # for now cpu, cuda and xpu are added for testing torch profiler UTs
@@ -340,10 +353,16 @@ def extract_test_fn() -> Optional[Callable]:
             self_val = frame.f_locals["self"]
             if isinstance(self_val, unittest.TestCase):
                 test_id = self_val.id()
+<<<<<<< HEAD
                 *_, cls_name, test_name = test_id.rsplit('.', 2)
                 if cls_name == type(self_val).__name__ and test_name.startswith("test"):
                     test_fn = getattr(self_val, test_name).__func__
                     return test_fn
+=======
+                test_name = test_id.split('.')[2]
+                test_fn = getattr(self_val, test_name).__func__
+                return test_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except Exception:
         pass
     return None
@@ -1708,10 +1727,13 @@ def serialTest(condition=True):
     """
     Decorator for running tests serially.  Requires pytest
     """
+<<<<<<< HEAD
     # If one apply decorator directly condition will be callable
     # And test will essentially be essentially skipped, which is undesirable
     assert type(condition) is bool
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def decorator(fn):
         if has_pytest and condition:
             return pytest.mark.serial(fn)
@@ -1931,6 +1953,7 @@ def skipIfRocm(func=None, *, msg="test doesn't currently work on the ROCm stack"
         return dec_fn(func)
     return dec_fn
 
+<<<<<<< HEAD
 def getRocmArchName(device_index: int = 0):
     return torch.cuda.get_device_properties(device_index).gcnArchName
 
@@ -1938,13 +1961,23 @@ def isRocmArchAnyOf(arch: tuple[str, ...]):
     rocmArch = getRocmArchName()
     return any(x in rocmArch for x in arch)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfRocmArch(arch: tuple[str, ...]):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
+<<<<<<< HEAD
             if TEST_WITH_ROCM and isRocmArchAnyOf(arch):
                 reason = f"skipIfRocm: test skipped on {arch}"
                 raise unittest.SkipTest(reason)
+=======
+            if TEST_WITH_ROCM:
+                prop = torch.cuda.get_device_properties(0)
+                if prop.gcnArchName.split(":")[0] in arch:
+                    reason = f"skipIfRocm: test skipped on {arch}"
+                    raise unittest.SkipTest(reason)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return fn(self, *args, **kwargs)
         return wrap_fn
     return dec_fn
@@ -1962,9 +1995,17 @@ def runOnRocmArch(arch: tuple[str, ...]):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
+<<<<<<< HEAD
             if TEST_WITH_ROCM and not isRocmArchAnyOf(arch):
                 reason = f"skipIfRocm: test only runs on {arch}"
                 raise unittest.SkipTest(reason)
+=======
+            if TEST_WITH_ROCM:
+                prop = torch.cuda.get_device_properties(0)
+                if prop.gcnArchName.split(":")[0] not in arch:
+                    reason = f"skipIfRocm: test only runs on {arch}"
+                    raise unittest.SkipTest(reason)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return fn(self, *args, **kwargs)
         return wrap_fn
     return dec_fn
@@ -1972,6 +2013,7 @@ def runOnRocmArch(arch: tuple[str, ...]):
 def xfailIfS390X(func):
     return unittest.expectedFailure(func) if IS_S390X else func
 
+<<<<<<< HEAD
 def xfailIf(condition):
     def wrapper(func):
         if condition:
@@ -1980,6 +2022,8 @@ def xfailIf(condition):
             return func
     return wrapper
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfXpu(func=None, *, msg="test doesn't currently work on the XPU stack"):
     def dec_fn(fn):
         reason = f"skipIfXpu: {msg}"
@@ -2024,18 +2068,27 @@ def skipIfHpu(fn):
             fn(*args, **kwargs)
     return wrapper
 
+<<<<<<< HEAD
 def getRocmVersion() -> tuple[int, int]:
     from torch.testing._internal.common_cuda import _get_torch_rocm_version
     rocm_version = _get_torch_rocm_version()
     return (rocm_version[0], rocm_version[1])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Skips a test on CUDA if ROCm is available and its version is lower than requested.
 def skipIfRocmVersionLessThan(version=None):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
             if TEST_WITH_ROCM:
+<<<<<<< HEAD
                 rocm_version_tuple = getRocmVersion()
+=======
+                rocm_version = str(torch.version.hip)
+                rocm_version = rocm_version.split("-")[0]    # ignore git sha
+                rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
                     reason = f"ROCm {rocm_version_tuple} is available but {version} required"
                     raise unittest.SkipTest(reason)
@@ -2043,6 +2096,26 @@ def skipIfRocmVersionLessThan(version=None):
         return wrap_fn
     return dec_fn
 
+<<<<<<< HEAD
+=======
+def skipIfRocmVersionAndArch(version=None, arch=None):
+    def dec_fn(fn):
+        @wraps(fn)
+        def wrap_fn(self, *args, **kwargs):
+            if TEST_WITH_ROCM:
+                rocm_version = str(torch.version.hip)
+                rocm_version = rocm_version.split("-")[0]    # ignore git sha
+                rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+                if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
+                    prop = torch.cuda.get_device_properties(0)
+                    if prop.gcnArchName.split(":")[0] in arch:
+                        reason = f"ROCm {version} and {arch} combination not supported"
+                        raise unittest.SkipTest(reason)
+            return fn(self, *args, **kwargs)
+        return wrap_fn
+    return dec_fn
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfNotMiopenSuggestNHWC(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -2067,6 +2140,7 @@ def skipIfWindows(func=None, *, msg="test doesn't currently work on the Windows 
         return dec_fn(func)
     return dec_fn
 
+<<<<<<< HEAD
 def requires_cuda_p2p_access():
     cuda_p2p_access_available = (
         torch.cuda.is_available()
@@ -2087,6 +2161,8 @@ def requires_cuda_p2p_access():
         "cuda p2p access is not available",
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reverts the linalg backend back to default to make sure potential failures in one
 # test do not affect other tests
 def setLinalgBackendsToDefaultFinally(fn):
@@ -2601,18 +2677,32 @@ class CudaMemoryLeakCheck:
                 msg = ("CUDA caching allocator reports a memory leak not "  # type: ignore[possibly-undefined]
                        f"verified by the driver API in {self.name}! "
                        f"Caching allocator allocated memory was {self.caching_allocator_befores[i]} "
+<<<<<<< HEAD
                        f"and is now reported as {caching_allocator_mem_allocated} "  # type: ignore[possibly-undefined]
                        f"on device {i}. "
                        f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")  # type: ignore[possibly-undefined]
                 warnings.warn(msg)
             elif caching_allocator_discrepancy and driver_discrepancy:  # type: ignore[possibly-undefined]
+=======
+                       f"and is now reported as {caching_allocator_mem_allocated} "
+                       f"on device {i}. "
+                       f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")
+                warnings.warn(msg)
+            elif caching_allocator_discrepancy and driver_discrepancy:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # A caching allocator discrepancy validated by the driver API is a
                 #   failure (except on ROCm, see below)
                 msg = (f"CUDA driver API confirmed a leak in {self.name}! "  # type: ignore[possibly-undefined]
                        f"Caching allocator allocated memory was {self.caching_allocator_befores[i]} "
+<<<<<<< HEAD
                        f"and is now reported as {caching_allocator_mem_allocated} "  # type: ignore[possibly-undefined]
                        f"on device {i}. "
                        f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")  # type: ignore[possibly-undefined]
+=======
+                       f"and is now reported as {caching_allocator_mem_allocated} "
+                       f"on device {i}. "
+                       f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 raise RuntimeError(msg)
 
@@ -3342,7 +3432,11 @@ class TestCase(expecttest.TestCase):
                     def wrapper(*args, **kwargs):
                         try:
                             f(*args, **kwargs)
+<<<<<<< HEAD
                         except BaseException as e:  # noqa: B036
+=======
+                        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.skipTest(e)
                         raise RuntimeError(f"Unexpected success, please remove `{file_name}`")
                     return wrapper
@@ -3364,7 +3458,11 @@ class TestCase(expecttest.TestCase):
                     def wrapper(*args, **kwargs):
                         try:
                             f(*args, **kwargs)
+<<<<<<< HEAD
                         except BaseException as e:  # noqa: B036
+=======
+                        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.skipTest(e)
                         method = getattr(self, self._testMethodName)
                         if getattr(method, "__unittest_expecting_failure__", False):
@@ -3394,8 +3492,11 @@ class TestCase(expecttest.TestCase):
 
         if strict_mode or should_reset_dynamo:
             torch._dynamo.reset()
+<<<<<<< HEAD
         elif torch._dynamo.config.compiled_autograd:
             torch._dynamo.compiled_autograd.reset()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Early terminate test if necessary.  If using pytest, use the -x flag instead
         if using_unittest and self._should_stop_test_suite():
@@ -5760,6 +5861,7 @@ def scoped_load_inline(func):
                 return cpp_extension.load_inline(*args, **kwargs)
 
         return func(*args, load_inline=load_inline, **kwargs)
+<<<<<<< HEAD
     return wrapper
 
 def recover_orig_fp32_precision(fn):
@@ -5795,3 +5897,30 @@ def skipIfPythonVersionMismatch(predicate):
                 raise unittest.SkipTest("Python version mismatch")
         return wrap_fn
     return dec_fn
+=======
+
+    return wrapper
+
+# Decorator to patch multiple test class members for the duration of the subtest
+def patch_test_members(updates: Dict[str, Any]):
+    def decorator(test_func):
+        @wraps(test_func)
+        def wrapper(self, *args, **kwargs):
+            # Store the original values of the specified members
+            original_values = {member: getattr(self, member) for member in updates}
+
+            # Update the members before running the subtest
+            for member, value in updates.items():
+                setattr(self, member, value)
+
+            # Run the test function, allowing subtests to run
+            try:
+                return test_func(self, *args, **kwargs)
+            finally:
+                # Restore the original values of the specified members after the subtest finishes
+                for member, original_value in original_values.items():
+                    setattr(self, member, original_value)
+
+        return wrapper
+    return decorator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

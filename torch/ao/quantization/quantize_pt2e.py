@@ -76,7 +76,11 @@ def prepare_pt2e(
 
         # Step 1. program capture
         # NOTE: this API will be updated to torch.export API in the future, but the captured
+<<<<<<< HEAD
         # result should mostly stay the same
+=======
+        # result shoud mostly stay the same
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = torch.export.export_for_training(m, *example_inputs).module()
         # we get a model with aten ops
 
@@ -153,7 +157,11 @@ def prepare_qat_pt2e(
 
         # Step 1. program capture
         # NOTE: this API will be updated to torch.export API in the future, but the captured
+<<<<<<< HEAD
         # result should mostly stay the same
+=======
+        # result shoud mostly stay the same
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = torch.export.export_for_training(m, *example_inputs).module()
         # we get a model with aten ops
 
@@ -218,7 +226,11 @@ def convert_pt2e(
 
     Args:
       * `model` (torch.fx.GraphModule): calibrated/trained model
+<<<<<<< HEAD
       * `use_reference_representation` (bool): boolean flag to indicate whether to produce reference representation or not
+=======
+      * `use_reference_representation` (bool): boolean flag to indicate whether to produce referece representation or not
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       * `fold_quantize` (bool): boolean flag for whether fold the quantize op or not
 
     Returns:

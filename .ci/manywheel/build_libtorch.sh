@@ -92,7 +92,11 @@ if [[ -z "$PYTORCH_ROOT" ]]; then
     exit 1
 fi
 pushd "$PYTORCH_ROOT"
+<<<<<<< HEAD
 retry pip install -qUr requirements-build.txt
+=======
+retry pip install -q cmake
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 python setup.py clean
 retry pip install -qr requirements.txt
 retry pip install -q numpy==2.0.1
@@ -104,7 +108,11 @@ if [[ "$DESIRED_CUDA" == *"rocm"* ]]; then
     export ROCclr_DIR=/opt/rocm/rocclr/lib/cmake/rocclr
 fi
 
+<<<<<<< HEAD
 echo "Calling 'python -m pip install .' at $(date)"
+=======
+echo "Calling setup.py install at $(date)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if [[ $LIBTORCH_VARIANT = *"static"* ]]; then
     STATIC_CMAKE_FLAG="-DTORCH_STATIC=1"
@@ -120,7 +128,11 @@ fi
         # TODO: Remove this flag once https://github.com/pytorch/pytorch/issues/55952 is closed
         CFLAGS='-Wno-deprecated-declarations' \
         BUILD_LIBTORCH_CPU_WITH_DEBUG=1 \
+<<<<<<< HEAD
         python -m pip install --no-build-isolation -v .
+=======
+        python setup.py install
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     mkdir -p libtorch/{lib,bin,include,share}
 

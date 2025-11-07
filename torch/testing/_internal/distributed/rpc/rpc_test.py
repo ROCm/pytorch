@@ -3560,7 +3560,11 @@ class RpcTest(RpcAgentTestFixture, RpcTestCommon):
                 print(f"Got msg {msg}")
                 self.assertTrue("Original exception on remote side was" in msg)
                 self.assertTrue("CustomException" in msg)
+<<<<<<< HEAD
             except BaseException as e:  # noqa: B036
+=======
+            except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raise RuntimeError(f"Failure - expected RuntimeError, got {e}") from e
             finally:
                 self.assertTrue(exc_caught)

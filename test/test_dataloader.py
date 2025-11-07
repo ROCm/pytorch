@@ -25,7 +25,10 @@ from torch.testing._internal.common_device_type import instantiate_device_type_t
 from torch.testing._internal.common_utils import (
     IS_CI,
     IS_JETSON,
+<<<<<<< HEAD
     IS_MACOS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_S390X,
     IS_SANDCASTLE,
     IS_WINDOWS,
@@ -735,12 +738,21 @@ class SleepDataset(Dataset):
     def __init__(self, size, sleep_sec):
         self.size = size
         self.sleep_sec = sleep_sec
+<<<<<<< HEAD
         self.slept = False
 
     def __getitem__(self, idx):
         if not self.slept:
             time.sleep(self.sleep_sec)
             self.slept = True
+=======
+        self.sleeped = False
+
+    def __getitem__(self, idx):
+        if not self.sleeped:
+            time.sleep(self.sleep_sec)
+            self.sleeped = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return idx
 
     def __len__(self):
@@ -3134,6 +3146,7 @@ class TestDictDataLoader(TestCase):
             self.assertTrue(sample["a_tensor"].is_pinned())
             self.assertTrue(sample["another_dict"]["a_number"].is_pinned())
 
+<<<<<<< HEAD
     @skipIfXpu
     @skipIfRocm
     @unittest.skipIf(TEST_CUDA, "Test for when CUDA is not available")
@@ -3143,6 +3156,8 @@ class TestDictDataLoader(TestCase):
             self.assertFalse(sample["a_tensor"].is_pinned())
             self.assertFalse(sample["another_dict"]["a_number"].is_pinned())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
     def test_pin_memory_device(self):
         loader = DataLoader(
@@ -3478,10 +3493,13 @@ class TestIndividualWorkerQueue(TestCase):
             if current_worker_idx == num_workers:
                 current_worker_idx = 0
 
+<<<<<<< HEAD
     @unittest.skipIf(
         IS_WINDOWS or IS_MACOS,
         "Flaky on Windows and MacOS https://github.com/pytorch/pytorch/issues/68643",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_ind_worker_queue(self):
         max_num_workers = None
         if hasattr(os, "sched_getaffinity"):

@@ -159,7 +159,11 @@ def _get_restore_location(device):
 #     serialization), and the state dict saves "data" only, thus
 #     stripping the backward hooks.  In some cases, hooks are
 #     essential to the well-functioning of a model (e.g., DDP),
+<<<<<<< HEAD
 #     but DDP already manages re-adding the hooks!
+=======
+#     but DDP already manages readding the hooks!
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #
 #   - We didn't serialize them in many cases.  Prior to #10220, we
 #     were dropping backward hooks in ForkingPickler.  We "fixed" this
@@ -190,7 +194,11 @@ def _rebuild_tensor(storage, storage_offset, size, stride):
 
 def get_tensor_metadata(tensor):
     # Tensor's Metadata for serializing.
+<<<<<<< HEAD
     # Currently, this only returns a dict[string, bool] specifying whether
+=======
+    # Currently, this only returns a dict[string, bool] specifing whether
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # `conj` or `neg` bit is set.
     assert isinstance(tensor, torch.Tensor)
     return torch._C._get_tensor_metadata(tensor)  # type: ignore[attr-defined]
@@ -499,7 +507,11 @@ def _rebuild_parameter_with_state(data, requires_grad, backward_hooks, state):
 
 def _get_obj_state(obj):
     # Get the state of the python subclass
+<<<<<<< HEAD
     # This loosely mimics the function on the object class but since Tensor do not inherit
+=======
+    # This loosely mimicks the function on the object class but since Tensor do not inherit
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # from it, we cannot call that function directly
     # https://github.com/python/cpython/blob/c83919bd635f4433f1c6ae8504996a9fe3c215e5/Objects/typeobject.c#L4891
     # Note that starting with Python 3.11, this `__getstate__` is always defined and thus

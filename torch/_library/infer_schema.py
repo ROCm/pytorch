@@ -150,13 +150,21 @@ def infer_schema(
                     "the arguments that are mutated or the string 'unknown'. "
                 )
             if schema_type.startswith("Tensor"):
+<<<<<<< HEAD
                 schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor') :]}"
+=======
+                schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor'):]}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif name in mutates_args:
             if not schema_type.startswith("Tensor"):
                 error_fn(
                     f"Parameter {name} is in mutable_args but only Tensors or collections of Tensors can be mutated"
                 )
+<<<<<<< HEAD
             schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor') :]}"
+=======
+            schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor'):]}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         seen_args.add(name)
         if param.default is inspect.Parameter.empty:
             params.append(f"{schema_type} {name}")

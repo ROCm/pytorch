@@ -374,12 +374,18 @@ def make_functional(
         model = nn.Linear(3, 3)
         func, params = make_functional(model)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def compute_loss(params, x, t):
             y = func(params, x)
             return nn.functional.mse_loss(y, t)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grad_weights = grad(compute_loss)(params, x, t)
 
     If the model has any buffers, please use :func:`make_functional_with_buffers` instead.
@@ -445,12 +451,18 @@ def make_functional_with_buffers(
         model = nn.Linear(3, 3)
         func, params, buffers = make_functional_with_buffers(model)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def compute_loss(params, buffers, x, t):
             y = func(params, buffers, x)
             return nn.functional.mse_loss(y, t)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grad_weights = grad(compute_loss)(params, buffers, x, t)
 
     Args:
@@ -473,7 +485,11 @@ def make_functional_with_buffers(
 
 
 def transpose_stack(
+<<<<<<< HEAD
     tuple_of_tuple_of_tensors: tuple[tuple[Tensor, ...], ...],
+=======
+    tuple_of_tuple_of_tensors: tuple[tuple[Tensor, ...], ...]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[Tensor, ...]:
     tuple_of_tuple_of_tensors = tuple(zip(*tuple_of_tuple_of_tensors))
     results = tuple(

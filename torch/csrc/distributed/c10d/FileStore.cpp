@@ -33,11 +33,15 @@
 #define LOCK_SH 0x00000010
 #define LOCK_UN 0x00000100
 
+<<<<<<< HEAD
 #if defined(_WIN32) && defined(USE_ROCM)
 static
 #endif
     int
     flock_(int fd, int op) {
+=======
+int flock_(int fd, int op) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE hdl = (HANDLE)_get_osfhandle(fd);
   DWORD low = 1, high = 0;
   OVERLAPPED offset = {0, 0, 0, 0, NULL};

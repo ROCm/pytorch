@@ -73,9 +73,13 @@ class TransformerTests(TestCase):
 
 
 devices = ["cpu", "cuda", "hpu", "xpu"]
+<<<<<<< HEAD
 instantiate_device_type_tests(
     TransformerTests, globals(), only_for=devices, allow_xpu=True
 )
+=======
+instantiate_device_type_tests(TransformerTests, globals(), only_for=devices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

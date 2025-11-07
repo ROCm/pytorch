@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module provides utilities for analyzing, transforming and manipulating Python bytecode.
 It includes functionality for:
@@ -21,11 +26,18 @@ import itertools
 import sys
 import types
 import uuid
+<<<<<<< HEAD
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import Any, Callable, cast, Optional, TYPE_CHECKING, Union
 
 from ..utils._backport_slots import dataclass_slots
 from . import config
+=======
+from collections.abc import Iterator, Sequence
+from typing import Any, Callable, cast, Optional, Union
+
+from ..utils._backport_slots import dataclass_slots
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .bytecode_analysis import (
     get_indexof,
     propagate_line_nums,
@@ -35,10 +47,13 @@ from .bytecode_analysis import (
 from .utils import is_safe_constant
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from .output_graph import DynamoTracerOutput
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass_slots
 @dataclasses.dataclass
 class InstructionExnTabEntry:
@@ -56,9 +71,13 @@ class InstructionExnTabEntry:
             f"depth={self.depth}, lasti={self.lasti})"
         )
 
+<<<<<<< HEAD
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, InstructionExnTabEntry):
             return False
+=======
+    def __eq__(self, o) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             self.start is o.start
             and self.end is o.end
@@ -89,7 +108,11 @@ class Instruction:
     def __hash__(self) -> int:
         return id(self)
 
+<<<<<<< HEAD
     def __eq__(self, other: object) -> bool:
+=======
+    def __eq__(self, other) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return id(self) == id(other)
 
     def short_inst_repr(self) -> str:
@@ -150,26 +173,42 @@ class _NotProvided:
 
 if sys.version_info >= (3, 12):
 
+<<<<<<< HEAD
     def inst_has_op_bits(name: str) -> bool:
+=======
+    def inst_has_op_bits(name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return name in ("LOAD_ATTR", "LOAD_GLOBAL", "LOAD_SUPER_ATTR")
 
 elif sys.version_info >= (3, 11):
 
+<<<<<<< HEAD
     def inst_has_op_bits(name: str) -> bool:
+=======
+    def inst_has_op_bits(name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return name == "LOAD_GLOBAL"
 
 else:
 
+<<<<<<< HEAD
     def inst_has_op_bits(name: str):
+=======
+    def inst_has_op_bits(name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
 
 def create_instruction(
+<<<<<<< HEAD
     name: str,
     *,
     arg: Optional[int] = None,
     argval: Optional[Any] = _NotProvided,
     target: Optional[Instruction] = None,
+=======
+    name, *, arg=None, argval=_NotProvided, target=None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Instruction:
     """
     At most one of `arg`, `argval`, and `target` can be not None/_NotProvided.
@@ -207,16 +246,24 @@ def create_instruction(
 
 
 # Python 3.11 remaps
+<<<<<<< HEAD
 def create_jump_absolute(target: Instruction) -> Instruction:
+=======
+def create_jump_absolute(target) -> Instruction:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     inst = "JUMP_FORWARD" if sys.version_info >= (3, 11) else "JUMP_ABSOLUTE"
     return create_instruction(inst, target=target)
 
 
+<<<<<<< HEAD
 def is_jump_absolute(target: Instruction) -> bool:
     return target.opname in ("JUMP_FORWARD", "JUMP_ABSOLUTE")
 
 
 def create_load_const(val: Any, checked: bool = True) -> Instruction:
+=======
+def create_load_const(val, checked=True) -> Instruction:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     In general we should only create `LOAD_CONST` for immutable objects, but
     sometimes it's convenient _and safe_ for Dynamo create `LOAD_CONST` for
@@ -233,7 +280,11 @@ def create_dup_top() -> Instruction:
     return create_instruction("DUP_TOP")
 
 
+<<<<<<< HEAD
 def create_rot_n(n: int) -> list[Instruction]:
+=======
+def create_rot_n(n) -> list[Instruction]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Returns a "simple" sequence of instructions that rotates TOS to the n-th
     position in the stack. For Python < 3.11, returns a single ROT_*
@@ -251,6 +302,7 @@ def create_rot_n(n: int) -> list[Instruction]:
         # e.g. rotate 3 is equivalent to swap 3, swap 2
         return [create_instruction("SWAP", arg=i) for i in range(n, 1, -1)]
 
+<<<<<<< HEAD
     # ROT_N does not exist in Python <= 3.9, but we can simulate it
     if sys.version_info < (3, 10) and n >= 5:
         """
@@ -266,6 +318,11 @@ def create_rot_n(n: int) -> list[Instruction]:
             create_instruction("BUILD_TUPLE", arg=n - 1),
             create_instruction("UNPACK_SEQUENCE", arg=n - 1),
         ]
+=======
+    # ensure desired rotate function exists
+    if sys.version_info < (3, 10) and n >= 5:
+        raise AttributeError(f"rotate {n} not supported for Python < 3.10")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if n <= 4:
         return [create_instruction("ROT_" + ["TWO", "THREE", "FOUR"][n - 2])]
@@ -290,6 +347,7 @@ def add_push_null(
     In this case, instructions WILL be modified.
     """
     if isinstance(inst_or_insts, Instruction):
+<<<<<<< HEAD
         insts: list[Instruction] = [inst_or_insts]
     else:
         assert isinstance(inst_or_insts, list)
@@ -302,6 +360,19 @@ def add_push_null(
     def set_inst_bit(idx: int) -> None:
         assert insts[idx].arg is not None
         insts[idx].arg |= 1  # type: ignore[operator]
+=======
+        insts = [inst_or_insts]
+    else:
+        insts = inst_or_insts
+
+    def inst_has_bit_set(idx):
+        assert insts[idx].arg is not None
+        return insts[idx].arg & 1 == 1
+
+    def set_inst_bit(idx):
+        assert insts[idx].arg is not None
+        insts[idx].arg |= 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if sys.version_info >= (3, 13):
         # In 3.13, NULL follows the callable
@@ -338,9 +409,14 @@ def add_push_null_call_function_ex(
     is not set, due to an expected CALL_FUNCTION_EX instruction.
     """
     if isinstance(inst_or_insts, Instruction):
+<<<<<<< HEAD
         insts: list[Instruction] = [inst_or_insts]
     else:
         assert isinstance(inst_or_insts, list)
+=======
+        insts = [inst_or_insts]
+    else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         insts = inst_or_insts
 
     if sys.version_info < (3, 11):
@@ -361,7 +437,11 @@ def add_push_null_call_function_ex(
     return insts
 
 
+<<<<<<< HEAD
 def create_call_function(nargs: int, push_null: bool) -> list[Instruction]:
+=======
+def create_call_function(nargs, push_null) -> list[Instruction]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Creates a sequence of instructions that makes a function call.
 
@@ -416,7 +496,11 @@ def create_call_function(nargs: int, push_null: bool) -> list[Instruction]:
     return [create_instruction("CALL_FUNCTION", arg=nargs)]
 
 
+<<<<<<< HEAD
 def create_call_method(nargs: int) -> list[Instruction]:
+=======
+def create_call_method(nargs) -> list[Instruction]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 12):
         return [create_instruction("CALL", arg=nargs)]
     if sys.version_info >= (3, 11):
@@ -427,28 +511,43 @@ def create_call_method(nargs: int) -> list[Instruction]:
     return [create_instruction("CALL_METHOD", arg=nargs)]
 
 
+<<<<<<< HEAD
 def create_load_method(name: str) -> Instruction:
+=======
+def create_load_method(name) -> Instruction:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 12):
         # in 3.12, create a LOAD_ATTR instruction with the low bit set
         return create_instruction("LOAD_ATTR", arg=1, argval=name)
     return create_instruction("LOAD_METHOD", argval=name)
 
 
+<<<<<<< HEAD
 def create_setup_with(target: Instruction) -> Instruction:
+=======
+def create_setup_with(target) -> Instruction:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     opname = "BEFORE_WITH" if sys.version_info >= (3, 11) else "SETUP_WITH"
     return create_instruction(opname, target=target)
 
 
+<<<<<<< HEAD
 def create_swap(n: int) -> list[Instruction]:
+=======
+def create_swap(n) -> list[Instruction]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 11):
         return [create_instruction("SWAP", arg=n)]
     # in Python < 3.11, SWAP is a macro that expands to multiple instructions
     if n == 1:
         return []
+<<<<<<< HEAD
     elif n == 2:
         return [create_instruction("ROT_TWO")]
     elif n == 3:
         return [create_instruction("ROT_THREE"), create_instruction("ROT_TWO")]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     e.g. swap "a" and "b" in this stack:
     0 a 1 2 3 b
@@ -485,6 +584,7 @@ def create_swap(n: int) -> list[Instruction]:
     ]
 
 
+<<<<<<< HEAD
 def create_binary_slice(
     start: Optional[int], end: Optional[int], store: bool = False
 ) -> list[Instruction]:
@@ -545,6 +645,8 @@ def create_print_value(value: Any) -> list[Instruction]:
     ]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def lnotab_writer(
     lineno: int, byteno: int = 0
 ) -> tuple[list[int], Callable[[int, int], None]]:
@@ -556,7 +658,11 @@ def lnotab_writer(
     assert sys.version_info < (3, 10)
     lnotab: list[int] = []
 
+<<<<<<< HEAD
     def update(lineno_new: int, byteno_new: int) -> None:
+=======
+    def update(lineno_new, byteno_new):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nonlocal byteno, lineno
         while byteno_new != byteno or lineno_new != lineno:
             byte_offset = max(0, min(byteno_new - byteno, 255))
@@ -569,9 +675,13 @@ def lnotab_writer(
     return lnotab, update
 
 
+<<<<<<< HEAD
 def linetable_310_writer(
     first_lineno: int,
 ) -> tuple[list[int], Callable[[int, int], None], Callable[[int], None]]:
+=======
+def linetable_310_writer(first_lineno):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Used to create typing.CodeType.co_linetable
     See https://github.com/python/cpython/blob/main/Objects/lnotab_notes.txt
@@ -583,7 +693,11 @@ def linetable_310_writer(
     lineno_delta = 0
     byteno = 0
 
+<<<<<<< HEAD
     def _update(byteno_delta: int, lineno_delta: int) -> None:
+=======
+    def _update(byteno_delta, lineno_delta):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         while byteno_delta != 0 or lineno_delta != 0:
             byte_offset = max(0, min(byteno_delta, 254))
             line_offset = max(-127, min(lineno_delta, 127))
@@ -592,7 +706,11 @@ def linetable_310_writer(
             lineno_delta -= line_offset
             linetable.extend((byte_offset, line_offset & 0xFF))
 
+<<<<<<< HEAD
     def update(lineno_new: int, byteno_new: int) -> None:
+=======
+    def update(lineno_new, byteno_new):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nonlocal lineno, lineno_delta, byteno
         byteno_delta = byteno_new - byteno
         byteno = byteno_new
@@ -600,7 +718,11 @@ def linetable_310_writer(
         lineno_delta = lineno_new - lineno
         lineno = lineno_new
 
+<<<<<<< HEAD
     def end(total_bytes: int) -> None:
+=======
+    def end(total_bytes):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _update(total_bytes - byteno, lineno_delta)
 
     return linetable, update, end
@@ -621,9 +743,13 @@ def encode_varint(n: int) -> list[int]:
     return b
 
 
+<<<<<<< HEAD
 def linetable_311_writer(
     first_lineno: int,
 ) -> tuple[list[int], Callable[[Optional["dis.Positions"], int], None]]:
+=======
+def linetable_311_writer(first_lineno: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Used to create typing.CodeType.co_linetable
     See https://github.com/python/cpython/blob/3.11/Objects/locations.md
@@ -633,11 +759,19 @@ def linetable_311_writer(
     linetable = []
     lineno = first_lineno
 
+<<<<<<< HEAD
     def update(positions: Optional["dis.Positions"], inst_size: int) -> None:
         nonlocal lineno
         lineno_new = positions.lineno if positions else None
 
         def _update(delta: int, size: int) -> None:
+=======
+    def update(positions: "dis.Positions", inst_size):
+        nonlocal lineno
+        lineno_new = positions.lineno if positions else None
+
+        def _update(delta, size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert 0 < size <= 8
             # first byte - use 13 (no column info) is positions is
             # malformed, otherwise use 14 (long form)
@@ -816,9 +950,13 @@ def assemble(instructions: list[Instruction], firstlineno: int) -> tuple[bytes, 
     return bytes(code), bytes(lnotab)
 
 
+<<<<<<< HEAD
 def _get_instruction_by_offset(
     offset_to_inst: dict[int, Instruction], offset: int
 ) -> Optional[Instruction]:
+=======
+def _get_instruction_by_offset(offset_to_inst: dict[int, Instruction], offset: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Get the instruction located at a given offset, accounting for EXTENDED_ARGs
     """
@@ -828,11 +966,17 @@ def _get_instruction_by_offset(
     return None
 
 
+<<<<<<< HEAD
 def virtualize_jumps(instructions: Iterable[Instruction]) -> None:
     """Replace jump targets with pointers to make editing easier"""
     jump_targets = {
         inst.offset: inst for inst in instructions if inst.offset is not None
     }
+=======
+def virtualize_jumps(instructions) -> None:
+    """Replace jump targets with pointers to make editing easier"""
+    jump_targets = {inst.offset: inst for inst in instructions}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for inst in instructions:
         if inst.opcode in dis.hasjabs or inst.opcode in dis.hasjrel:
@@ -855,7 +999,11 @@ def flip_jump_direction(instruction: Instruction) -> None:
     assert instruction.opcode in _REL_JUMPS
 
 
+<<<<<<< HEAD
 def _get_instruction_front(instructions: list[Instruction], idx: int) -> Instruction:
+=======
+def _get_instruction_front(instructions: list[Instruction], idx: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     i.e. get the first EXTENDED_ARG instruction (if any) when targeting
     instructions[idx] with a jump.
@@ -869,7 +1017,11 @@ def _get_instruction_front(instructions: list[Instruction], idx: int) -> Instruc
     return target
 
 
+<<<<<<< HEAD
 def devirtualize_jumps(instructions: list[Instruction]) -> None:
+=======
+def devirtualize_jumps(instructions):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Fill in args for virtualized jump target after instructions may have moved"""
     jumps = set(dis.hasjabs).union(set(dis.hasjrel))
 
@@ -877,11 +1029,14 @@ def devirtualize_jumps(instructions: list[Instruction]) -> None:
     for inst in instructions:
         if inst.opcode in jumps:
             if inst.opcode not in dis.hasjabs:
+<<<<<<< HEAD
                 assert (
                     inst.target is not None
                     and inst.target.offset is not None
                     and inst.offset is not None
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if inst.target.offset < inst.offset:
                     if sys.version_info < (3, 11):
                         raise RuntimeError("Got negative jump offset for Python < 3.11")
@@ -900,7 +1055,10 @@ def devirtualize_jumps(instructions: list[Instruction]) -> None:
     # compute jump instruction arg
     for inst in instructions:
         if inst.opcode in jumps:
+<<<<<<< HEAD
             assert inst.target is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             target = _get_instruction_front(instructions, indexof[inst.target])
             if inst.opcode in dis.hasjabs:
                 if sys.version_info < (3, 10):
@@ -913,7 +1071,10 @@ def devirtualize_jumps(instructions: list[Instruction]) -> None:
                     raise RuntimeError("Python 3.11+ should not have absolute jumps")
             else:  # relative jump
                 # byte offset between target and next instruction
+<<<<<<< HEAD
                 assert target.offset is not None and inst.offset is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inst.arg = abs(
                     int(target.offset - inst.offset - instruction_size(inst))
                 )
@@ -924,9 +1085,13 @@ def devirtualize_jumps(instructions: list[Instruction]) -> None:
             inst.argrepr = f"to {target.offset}"
 
 
+<<<<<<< HEAD
 def virtualize_exception_table(
     exn_tab_bytes: bytes, instructions: list[Instruction]
 ) -> None:
+=======
+def virtualize_exception_table(exn_tab_bytes: bytes, instructions: list[Instruction]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Replace exception table entries with pointers to make editing easier"""
     exn_tab = parse_exception_table(exn_tab_bytes)
     offset_to_inst = {cast(int, inst.offset): inst for inst in instructions}
@@ -935,7 +1100,11 @@ def virtualize_exception_table(
     exn_tab_iter = iter(exn_tab)
     try:
 
+<<<<<<< HEAD
         def step() -> tuple[ExceptionTableEntry, InstructionExnTabEntry]:
+=======
+        def step():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             nonlocal end_offset_idx
             entry = next(exn_tab_iter)
             # find rightmost offset <= entry.end, since entry.end may not be
@@ -949,9 +1118,15 @@ def virtualize_exception_table(
             assert end_offset_idx > 0
             end_offset = offsets[end_offset_idx - 1]
             inst_entry = InstructionExnTabEntry(
+<<<<<<< HEAD
                 _get_instruction_by_offset(offset_to_inst, entry.start),  # type: ignore[arg-type]
                 _get_instruction_by_offset(offset_to_inst, end_offset),  # type: ignore[arg-type]
                 _get_instruction_by_offset(offset_to_inst, entry.target),  # type: ignore[arg-type]
+=======
+                _get_instruction_by_offset(offset_to_inst, entry.start),
+                _get_instruction_by_offset(offset_to_inst, end_offset),
+                _get_instruction_by_offset(offset_to_inst, entry.target),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 entry.depth,
                 entry.lasti,
             )
@@ -959,7 +1134,10 @@ def virtualize_exception_table(
 
         entry, inst_entry = step()
         for inst in instructions:
+<<<<<<< HEAD
             assert inst.offset is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             while inst.offset > entry.end:
                 entry, inst_entry = step()
             if inst.offset >= entry.start:
@@ -981,18 +1159,27 @@ def compute_exception_table(
             start = _get_instruction_front(
                 instructions, indexof[inst.exn_tab_entry.start]
             ).offset
+<<<<<<< HEAD
             assert start is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # point to the last 2 bytes of the end instruction
             end = (
                 cast(int, inst.exn_tab_entry.end.offset)
                 + instruction_size(inst.exn_tab_entry.end)
                 - 2
             )
+<<<<<<< HEAD
             assert end is not None
             target = _get_instruction_front(
                 instructions, indexof[inst.exn_tab_entry.target]
             ).offset
             assert target is not None
+=======
+            target = _get_instruction_front(
+                instructions, indexof[inst.exn_tab_entry.target]
+            ).offset
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             key = (start, end)
             val = (target, inst.exn_tab_entry.depth, inst.exn_tab_entry.lasti)
             if key in exn_dict:
@@ -1012,7 +1199,11 @@ def compute_exception_table(
     key_stack: list[tuple[int, int]] = []
     exn_tab: list[ExceptionTableEntry] = []
 
+<<<<<<< HEAD
     def pop() -> None:
+=======
+    def pop():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Pop the key_stack and append an exception table entry if possible.
         """
@@ -1046,7 +1237,11 @@ def compute_exception_table(
 
 
 def check_inst_exn_tab_entries_nested(
+<<<<<<< HEAD
     tab: list[InstructionExnTabEntry], indexof: dict[Instruction, int]
+=======
+    tab: list[InstructionExnTabEntry], indexof
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     Checks `tab` is a properly sorted list of nested InstructionExnTabEntry's,
@@ -1091,7 +1286,11 @@ def propagate_inst_exn_table_entries(instructions: list[Instruction]) -> None:
             instructions[i].exn_tab_entry = copy.copy(entry)
 
 
+<<<<<<< HEAD
 def check_inst_exn_tab_entries_valid(instructions: list[Instruction]) -> None:
+=======
+def check_inst_exn_tab_entries_valid(instructions: list[Instruction]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Checks that exn_tab_entries of instructions are valid.
     An entry's start, end, and target must be in instructions.
@@ -1124,9 +1323,13 @@ def strip_extended_args(instructions: list[Instruction]) -> None:
 # instruction, exception table entries, and positions.
 # Returns the modified sequence of instructions (including the modified
 # old instruction!) that can be manipulated elsewhere.
+<<<<<<< HEAD
 def overwrite_instruction(
     old_inst: Instruction, new_insts: list[Instruction]
 ) -> list[Instruction]:
+=======
+def overwrite_instruction(old_inst, new_insts):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # update old_inst.exnt_tab_entry.end if necessary
     if (
         old_inst.exn_tab_entry
@@ -1233,6 +1436,7 @@ def remove_fused_load_store(instructions: list[Instruction]) -> None:
     instructions[:] = new_insts
 
 
+<<<<<<< HEAD
 # adds GRAPH_BREAK_IF_LEAF (not a real instruction) before RETURN_* instructions
 # for testing purposes
 def add_graph_break_if_leaf_instructions(instructions: list[Instruction]) -> None:
@@ -1276,6 +1480,8 @@ def remove_graph_break_if_leaf_instructions(instructions: list[Instruction]) -> 
     instructions[:] = new_insts
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def explicit_super(code: types.CodeType, instructions: list[Instruction]) -> None:
     """convert super() with no args into explicit arg form"""
     cell_and_free = (code.co_cellvars or ()) + (code.co_freevars or ())
@@ -1318,7 +1524,11 @@ def fix_extended_args(instructions: list[Instruction]) -> int:
     """Fill in correct argvals for EXTENDED_ARG ops"""
     output: list[Instruction] = []
 
+<<<<<<< HEAD
     def maybe_pop_n(n: int) -> None:
+=======
+    def maybe_pop_n(n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for _ in range(n):
             if output and output[-1].opcode == dis.EXTENDED_ARG:
                 output.pop()
@@ -1347,7 +1557,11 @@ def fix_extended_args(instructions: list[Instruction]) -> int:
     return added
 
 
+<<<<<<< HEAD
 def instruction_size(inst: Instruction) -> int:
+=======
+def instruction_size(inst) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import torch
 
     if sys.version_info >= (3, 11):
@@ -1355,21 +1569,33 @@ def instruction_size(inst: Instruction) -> int:
     return 2
 
 
+<<<<<<< HEAD
 def check_offsets(instructions: Sequence[Instruction]) -> None:
+=======
+def check_offsets(instructions) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     offset = 0
     for inst in instructions:
         assert inst.offset == offset
         offset += instruction_size(inst)
 
 
+<<<<<<< HEAD
 def update_offsets(instructions: Sequence[Instruction]) -> None:
+=======
+def update_offsets(instructions) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     offset = 0
     for inst in instructions:
         inst.offset = offset
         offset += instruction_size(inst)
 
 
+<<<<<<< HEAD
 def debug_bytes(*args: bytes) -> str:
+=======
+def debug_bytes(*args) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     index = range(max(map(len, args)))
     result = [
         " ".join(f"{x:03}" for x in arg)
@@ -1381,9 +1607,15 @@ def debug_bytes(*args: bytes) -> str:
     return "bytes mismatch\n" + "\n".join(result)
 
 
+<<<<<<< HEAD
 def debug_checks(code: types.CodeType) -> None:
     """Make sure our assembler produces same bytes as we start with"""
     dode, _ = transform_code_object(code, lambda x, y: None, safe=True)
+=======
+def debug_checks(code):
+    """Make sure our assembler produces same bytes as we start with"""
+    dode = transform_code_object(code, lambda x, y: None, safe=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert code.co_code == dode.co_code, debug_bytes(code.co_code, dode.co_code)
     assert code.co_lnotab == dode.co_lnotab, debug_bytes(code.co_lnotab, dode.co_lnotab)
 
@@ -1394,7 +1626,11 @@ HAS_FREE = set(dis.hasfree)
 HAS_CONST = set(dis.hasconst)
 
 
+<<<<<<< HEAD
 def get_const_index(code_options: dict[str, Any], val: Any) -> int:
+=======
+def get_const_index(code_options, val) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for i, v in enumerate(code_options["co_consts"]):
         # NOTE: stronger comparison is required, since we have
         # examples where two values compare equal but have
@@ -1406,6 +1642,7 @@ def get_const_index(code_options: dict[str, Any], val: Any) -> int:
     return len(code_options["co_consts"]) - 1
 
 
+<<<<<<< HEAD
 def fix_vars(
     instructions: list[Instruction],
     code_options: dict[str, Any],
@@ -1415,6 +1652,13 @@ def fix_vars(
     names = {name: idx for idx, name in enumerate(code_options["co_names"])}
 
     def get_name_index(name: str) -> int:
+=======
+def fix_vars(instructions: list[Instruction], code_options, varname_from_oparg=None):
+    # compute instruction arg from argval if arg is not provided
+    names = {name: idx for idx, name in enumerate(code_options["co_names"])}
+
+    def get_name_index(name) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             idx = names[name]
         except KeyError:
@@ -1449,7 +1693,11 @@ def fix_vars(
         }
     for i in range(len(instructions)):
 
+<<<<<<< HEAD
         def should_compute_arg() -> bool:
+=======
+        def should_compute_arg():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # argval is prioritized over arg
             return instructions[i].argval is not _NotProvided
 
@@ -1517,7 +1765,11 @@ def fix_vars(
                 instructions[i].arg = idx
 
 
+<<<<<<< HEAD
 def clear_instruction_args(instructions: list[Instruction]) -> None:
+=======
+def clear_instruction_args(instructions):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Clear the instruction arg for instructions that have argvals.
     # Useful for using dis'd bytecode within generated bytecode.
     for inst in instructions:
@@ -1574,6 +1826,7 @@ def get_code_keys() -> list[str]:
     return keys
 
 
+<<<<<<< HEAD
 def transform_code_object(
     code: types.CodeType,
     transformations: Callable[
@@ -1581,23 +1834,36 @@ def transform_code_object(
     ],
     safe: bool = False,
 ) -> tuple[types.CodeType, Optional["DynamoTracerOutput"]]:
+=======
+def transform_code_object(code, transformations, safe=False) -> types.CodeType:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     keys = get_code_keys()
     code_options = {k: getattr(code, k) for k in keys}
     assert len(code_options["co_varnames"]) == code_options["co_nlocals"]
 
     instructions = cleaned_instructions(code, safe)
+<<<<<<< HEAD
     # propagate line nums again for added instructions
     propagate_line_nums(instructions)
 
     tracer_output = transformations(instructions, code_options)
     _, bytecode = clean_and_assemble_instructions(instructions, keys, code_options)
     return bytecode, tracer_output
+=======
+    propagate_line_nums(instructions)
+
+    transformations(instructions, code_options)
+    return clean_and_assemble_instructions(instructions, keys, code_options)[1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def clean_and_assemble_instructions(
     instructions: list[Instruction], keys: list[str], code_options: dict[str, Any]
 ) -> tuple[list[Instruction], types.CodeType]:
+<<<<<<< HEAD
     remove_graph_break_if_leaf_instructions(instructions)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # also implicitly checks for no duplicate instructions
     check_inst_exn_tab_entries_valid(instructions)
 
@@ -1636,7 +1902,11 @@ def clean_and_assemble_instructions(
     return instructions, types.CodeType(*[code_options[k] for k in keys])
 
 
+<<<<<<< HEAD
 def populate_kw_names_argval(instructions: Sequence[Instruction], consts: Any) -> None:
+=======
+def populate_kw_names_argval(instructions, consts):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for inst in instructions:
         if inst.opname == "KW_NAMES":
             inst.argval = consts[inst.arg]
@@ -1644,7 +1914,11 @@ def populate_kw_names_argval(instructions: Sequence[Instruction], consts: Any) -
 
 # If safe=True, we do not make any bytecode modifications.
 # Mainly used for debugging bytecode_transformation (see debug_checks)
+<<<<<<< HEAD
 def cleaned_instructions(code: types.CodeType, safe: bool = False) -> list[Instruction]:
+=======
+def cleaned_instructions(code, safe=False) -> list[Instruction]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instructions = _cached_cleaned_instructions(code, safe)
     # We have a lot of code that implicitly mutates the instruction array. We
     # could do better here by making the copies explicit when necessary.
@@ -1652,7 +1926,11 @@ def cleaned_instructions(code: types.CodeType, safe: bool = False) -> list[Instr
 
 
 # Copy an instructions array, making sure to remap the individual instruction targets.
+<<<<<<< HEAD
 def _clone_instructions(instructions: Sequence[Instruction]) -> list[Instruction]:
+=======
+def _clone_instructions(instructions):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This is super hot and this is the fastest way to do this (tried copy.copy
     # and dataclasses.replace).
     copied = [
@@ -1674,10 +1952,17 @@ def _clone_instructions(instructions: Sequence[Instruction]) -> list[Instruction
 
     remap = dict(zip(instructions, copied))
     # Handle `None` in the remapper so we don't need an extra `if`.
+<<<<<<< HEAD
     remap[None] = None  # type: ignore[index, assignment]
 
     for i in copied:
         i.target = remap[i.target]  # type: ignore[index]
+=======
+    remap[None] = None
+
+    for i in copied:
+        i.target = remap[i.target]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if entry := i.exn_tab_entry:
             i.exn_tab_entry = InstructionExnTabEntry(
                 remap[entry.start],
@@ -1690,12 +1975,17 @@ def _clone_instructions(instructions: Sequence[Instruction]) -> list[Instruction
 
 
 @functools.lru_cache
+<<<<<<< HEAD
 def _cached_cleaned_instructions(
     code: types.CodeType, safe: bool = False
 ) -> Sequence[Instruction]:
     instructions = list(map(convert_instruction, dis.get_instructions(code)))
     # propagate now in case we remove some instructions
     propagate_line_nums(instructions)
+=======
+def _cached_cleaned_instructions(code, safe=False) -> Sequence[Instruction]:
+    instructions = list(map(convert_instruction, dis.get_instructions(code)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     check_offsets(instructions)
     if sys.version_info >= (3, 11):
         populate_kw_names_argval(instructions, code.co_consts)
@@ -1713,8 +2003,11 @@ def _cached_cleaned_instructions(
                 remove_binary_store_slice(instructions)
             if sys.version_info >= (3, 13):
                 remove_fused_load_store(instructions)
+<<<<<<< HEAD
         if config.debug_force_graph_break_on_leaf_return:
             add_graph_break_if_leaf_instructions(instructions)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 11):
         update_offsets(instructions)
         devirtualize_jumps(instructions)
@@ -1724,7 +2017,11 @@ def _cached_cleaned_instructions(
 _unique_id_counter = itertools.count()
 
 
+<<<<<<< HEAD
 def unique_id(name: str, with_uuid: bool = False) -> str:
+=======
+def unique_id(name, with_uuid=False) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ret = f"{name}_{next(_unique_id_counter)}"
     if with_uuid:
         ret += f"_{uuid.uuid4()}".replace("-", "_")
@@ -1736,12 +2033,16 @@ def is_generator(code: types.CodeType) -> bool:
     return (code.co_flags & co_generator) > 0
 
 
+<<<<<<< HEAD
 def bytecode_from_template(
     fn: Callable[..., Any],
     varname_map: Optional[Mapping[Any, Any]] = None,
     noreturn: bool = True,
     noprefix: bool = True,
 ) -> list[Instruction]:
+=======
+def bytecode_from_template(fn, varname_map=None, noreturn=True, noprefix=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Generates bytecode from a template function `fn` for use in
     dynamo bytecode generation.
 

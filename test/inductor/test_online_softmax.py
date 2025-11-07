@@ -14,7 +14,11 @@ from torch.testing._internal.common_utils import (
     IS_LINUX,
     parametrize,
 )
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 DO_PERF_TEST = os.environ.get("DO_PERF_TEST") == "1"
@@ -293,6 +297,7 @@ class TestOnlineSoftmax(TestCase):
         self.assertTrue(not act.isnan().any())
         self.assertTrue(torch.allclose(ref, act))
 
+<<<<<<< HEAD
     @inductor_config.patch(split_reductions=False)
     def test_3d_tiled_online_softmax(self):
         def f(x, y):
@@ -306,9 +311,15 @@ class TestOnlineSoftmax(TestCase):
         opt_f = torch.compile(f)
         torch.testing.assert_close(f(x, y), opt_f(x, y), atol=1e-3, rtol=1e-3)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestOnlineSoftmax)
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     if IS_LINUX and HAS_CUDA_AND_TRITON:
+=======
+    if IS_LINUX and HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

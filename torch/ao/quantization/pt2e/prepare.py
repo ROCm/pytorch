@@ -22,7 +22,10 @@ from torch.ao.quantization.quantizer import (
     QuantizationSpecBase,
     SharedQuantizationSpec,
 )
+<<<<<<< HEAD
 from torch.ao.quantization.utils import _assert_and_get_unique_device
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx import Graph, GraphModule, Node
 from torch.fx.node import Argument
 
@@ -276,7 +279,11 @@ def _get_edge_or_node_to_group_id(
 
             _update_shared_with(input_edge, qspec, shared_with_map)
 
+<<<<<<< HEAD
     # now that we get the sharing relations between all edges and nodes, we can assign group ids
+=======
+    # now that we get the sharing relations between all edges and nodes, we can assingn group ids
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cur_group_id = 0
     edge_or_node_to_group_id: dict[EdgeOrNode, int] = {}
     for edge_or_node in shared_with_map.keys():
@@ -320,7 +327,10 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
     named_modules: dict[str, torch.nn.Module],
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize],
     is_qat: bool,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Argument:
     """
     Given a `node` and an `arg`, inserts an input observer between
@@ -339,7 +349,10 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
                 named_modules,
                 obs_or_fq_map,
                 is_qat,
+<<<<<<< HEAD
                 model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             new_arg_to_return.append(new_inner_arg)
         return type(arg)(new_arg_to_return)
@@ -393,12 +406,16 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
 
     assert isinstance(model.graph, Graph)
     new_arg = _insert_obs_or_fq(
+<<<<<<< HEAD
         arg,
         input_edge_obs_or_fq,
         model,
         named_modules,
         model.graph,
         model_device,
+=======
+        arg, input_edge_obs_or_fq, model, named_modules, model.graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     return new_arg
 
@@ -410,7 +427,10 @@ def _maybe_insert_input_observers_for_node(
     named_modules: dict[str, torch.nn.Module],
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize],
     is_qat: bool,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     If needed, inserts observers to the input args and kwargs of `node`.
@@ -437,7 +457,10 @@ def _maybe_insert_input_observers_for_node(
             named_modules,
             obs_or_fq_map,
             is_qat,
+<<<<<<< HEAD
             model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         new_args.append(new_arg)
 
@@ -462,17 +485,24 @@ def _maybe_insert_output_observer_for_node(
     graph: Graph,
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize],
     is_qat: bool,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Optional[Node]:
     if node in obs_or_fq_map:
         output_act_obs_or_fq = obs_or_fq_map[node]
         new_output = _insert_obs_or_fq(
+<<<<<<< HEAD
             node,
             output_act_obs_or_fq,
             model,
             named_modules,
             graph,
             model_device,
+=======
+            node, output_act_obs_or_fq, model, named_modules, graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # propagate numeric debug handle from original node to observer/fake_quant node
         if (
@@ -495,7 +525,10 @@ def _maybe_insert_input_and_output_observers_for_node(
     model: torch.fx.GraphModule,
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize],
     is_qat: bool,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     this_node_quantization_annotation = (
         node.meta["quantization_annotation"]
@@ -513,7 +546,10 @@ def _maybe_insert_input_and_output_observers_for_node(
         named_modules,
         obs_or_fq_map,
         is_qat,
+<<<<<<< HEAD
         model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     output_is_a_tensor = "val" in node.meta and isinstance(node.meta["val"], FakeTensor)
@@ -522,6 +558,7 @@ def _maybe_insert_input_and_output_observers_for_node(
 
     # this returns the new observer node if it was needed
     maybe_output_obs_node = _maybe_insert_output_observer_for_node(
+<<<<<<< HEAD
         node,
         model,
         named_modules,
@@ -529,6 +566,9 @@ def _maybe_insert_input_and_output_observers_for_node(
         obs_or_fq_map,
         is_qat,
         model_device,
+=======
+        node, model, named_modules, model.graph, obs_or_fq_map, is_qat
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     if maybe_output_obs_node is None:
@@ -576,16 +616,23 @@ def prepare(
     )
     if obs_or_fq_callback:
         obs_or_fq_callback(model, obs_or_fq_map)
+<<<<<<< HEAD
     model_device = _assert_and_get_unique_device(model)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for node in nodes_before_observation:
         # TODO: simplify logic for inserting observers
         _maybe_insert_input_and_output_observers_for_node(
+<<<<<<< HEAD
             node,
             model,
             obs_or_fq_map,
             is_qat,
             model_device,
+=======
+            node, model, obs_or_fq_map, is_qat
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     model = GraphModule(model, model.graph)

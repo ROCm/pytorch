@@ -18,6 +18,7 @@ logger.setLevel(logging.WARNING)
 
 class Partition:
     def __init__(
+<<<<<<< HEAD
         self,
         id: Optional[int] = None,
         nodes: Optional[Iterable[Node]] = None,
@@ -35,12 +36,23 @@ class Partition:
                     "nodes and node_orders must have the same length"
                 )
                 self.nodes = dict(zip(nodes_list, node_orders_list))
+=======
+        self, id: Optional[int] = None, nodes: Optional[Iterable[Node]] = None
+    ):
+        self.id = id
+        self.nodes = dict.fromkeys(nodes) if nodes is not None else {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self) -> str:
         return str(self.nodes)
 
+<<<<<<< HEAD
     def add_node(self, node: Node, node_order: Optional[int] = None):
         self.nodes.update({node: node_order})
+=======
+    def add_node(self, node: Node):
+        self.nodes.update({node: None})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def remove_node(self, node: Node):
         del self.nodes[node]
@@ -185,7 +197,11 @@ class CapabilityBasedPartitioner:
 
             return merge_id, True
 
+<<<<<<< HEAD
         def merge_single_node(node: Node, node_order: Optional[int], id: Optional[int]):
+=======
+        def merge_single_node(node: Node, id: Optional[int]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def _update_partition_map(node: Node, id: int):
                 # Iterate through all the users of this node and update the partition map to indicate
                 # that there is a path from the partition id of this node to the target partition id.
@@ -202,19 +218,31 @@ class CapabilityBasedPartitioner:
                 assignment.pop(node)
             elif id not in partitions_by_id:
                 assignment[node] = id
+<<<<<<< HEAD
                 assert node_order is not None
                 partitions_by_id[id] = Partition(
                     id=id, nodes=[node], node_orders=[node_order]
                 )
+=======
+                partitions_by_id[id] = Partition(id=id, nodes=[node])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 partition_users[id] = set(node.users)
                 _update_partition_map(node, id)
             else:
                 assignment[node] = id
+<<<<<<< HEAD
                 partitions_by_id[id].add_node(node, node_order)
 
         logger.debug("Proposing partitions...")
 
         for node_order, node in enumerate(reversed(self.graph_module.graph.nodes)):
+=======
+                partitions_by_id[id].add_node(node)
+
+        logger.debug("Proposing partitions...")
+
+        for node in reversed(self.graph_module.graph.nodes):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # use Dict as an ordered set to ensure deterministic partitioning result, don't care value
             merge_candidates: dict[int, None] = {}
 
@@ -227,7 +255,11 @@ class CapabilityBasedPartitioner:
                 partition_id = next(new_partition_id)
                 nodes_order[node] = partition_id
                 partitions_order[partition_id] = partition_id
+<<<<<<< HEAD
                 merge_single_node(node, node_order, partition_id)
+=======
+                merge_single_node(node, partition_id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 merge_candidates[partition_id] = None
 
             # merge all possible partitions
@@ -244,6 +276,7 @@ class CapabilityBasedPartitioner:
                     # in the graph, otherwise, this is a no-op
                     self_id, _ = maybe_merge_partition(self_id, other_id)
 
+<<<<<<< HEAD
         # sort partition nodes based on descending node order
         for partition in partitions_by_id.values():
             partition.nodes = dict(
@@ -252,6 +285,8 @@ class CapabilityBasedPartitioner:
                 )
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # post processing to re-assign "getitem" nodes into upstream partition
         logger.debug("Reassigning getitem nodes to its producer node's partition...")
         nodes_reassignment: dict[Node, int] = {}
@@ -272,7 +307,11 @@ class CapabilityBasedPartitioner:
                     if assignment.get(user, None) != id:  # type: ignore[arg-type]
                         nodes_reassignment[user] = id  # type: ignore[assignment]
         for node, id in nodes_reassignment.items():
+<<<<<<< HEAD
             merge_single_node(node, None, id)
+=======
+            merge_single_node(node, id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # filter out single node partitions
         if not self.allows_single_node_partition:

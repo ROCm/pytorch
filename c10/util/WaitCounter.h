@@ -3,7 +3,10 @@
 #include <chrono>
 #include <memory>
 #include <string_view>
+<<<<<<< HEAD
 #include <vector>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <c10/macros/Macros.h>
 #include <c10/util/ScopeExit.h>

@@ -15,6 +15,7 @@ from torch.distributed.tensor import (
 )
 from torch.distributed.tensor._collective_utils import shard_dim_alltoall
 from torch.distributed.tensor.debug import CommDebugMode
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
@@ -22,6 +23,9 @@ from torch.testing._internal.common_utils import (
     TEST_CUDA,
     TEST_HPU,
 )
+=======
+from torch.testing._internal.common_utils import run_tests, TEST_CUDA, TEST_HPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     with_comms,
@@ -37,10 +41,16 @@ class RedistributeTest(DTensorTestBase):
         return 4
 
     @with_comms
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.cfloat])
     def test_shard_to_replicate_forward_backward(self, dtype):
         # 1) test shard -> replicate forward
         device_mesh = self.build_device_mesh()
+=======
+    def test_shard_to_replicate_forward_backward(self):
+        # 1) test shard -> replicate forward
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replica_spec = [Replicate()]
 
         input_sizes_and_shard_dim = [
@@ -56,7 +66,11 @@ class RedistributeTest(DTensorTestBase):
         for input_size, shard_dim in input_sizes_and_shard_dim:
             shard_spec = [Shard(shard_dim)]
             expected_tensor = torch.randn(
+<<<<<<< HEAD
                 input_size, device=self.device_type, requires_grad=True, dtype=dtype
+=======
+                input_size, device=self.device_type, requires_grad=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             dtensor = distribute_tensor(expected_tensor, device_mesh, shard_spec)
             with comm_mode:
@@ -75,14 +89,22 @@ class RedistributeTest(DTensorTestBase):
             grad_input = dtensor.grad
             self.assertEqual(grad_input.placements, shard_spec)
             self.assertEqual(
+<<<<<<< HEAD
                 grad_input.to_local(),
                 torch.ones(dtensor.to_local().size(), dtype=dtype),
+=======
+                grad_input.to_local(), torch.ones(dtensor.to_local().size())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.assertEqual(comm_mode.get_total_counts(), 0)
 
     @with_comms
     def test_replicate_to_replicate_forward_backward(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replica_spec = [Replicate()]
         local_tensor = torch.randn(12, 3, device=self.device_type, requires_grad=True)
 
@@ -109,6 +131,7 @@ class RedistributeTest(DTensorTestBase):
         self.assertEqual(comm_mode.get_total_counts(), 0)
 
     @with_comms
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.cfloat])
     def test_replicate_to_local_partial_grad(self, dtype):
         device_mesh = self.build_device_mesh()
@@ -116,6 +139,12 @@ class RedistributeTest(DTensorTestBase):
         local_tensor = torch.randn(
             12, 3, device=self.device_type, requires_grad=True, dtype=dtype
         )
+=======
+    def test_replicate_to_local_partial_grad(self):
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+        replica_spec = [Replicate()]
+        local_tensor = torch.randn(12, 3, device=self.device_type, requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         replica_tensor = distribute_tensor(local_tensor, device_mesh, replica_spec)
 
@@ -132,7 +161,11 @@ class RedistributeTest(DTensorTestBase):
 
     @with_comms
     def test_replicate_to_shard_forward_backward(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replica_spec = [Replicate()]
 
         input_sizes_and_shard_dim = [
@@ -179,16 +212,25 @@ class RedistributeTest(DTensorTestBase):
             )
 
     @with_comms
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.cfloat])
     def test_partial_to_replicate_forward_backward(self, dtype):
+=======
+    def test_partial_to_replicate_forward_backward(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Although we don't allow user to reshard to produce a partial
         # placement (i.e. user can't reshard to partial), we do allow
         # replicate to partial internally, and also partial to replicate
         # backward should work as expected
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
         partial_local = torch.ones(
             12, 3, device=self.device_type, requires_grad=True, dtype=dtype
         )
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+        partial_local = torch.ones(12, 3, device=self.device_type, requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         partial_spec = [Partial()]
         replica_spec = [Replicate()]
 
@@ -213,14 +255,22 @@ class RedistributeTest(DTensorTestBase):
             global_partial_tensor.backward(torch.ones_like(global_partial_tensor))
         self.assertIsNotNone(partial_local.grad)
         self.assertEqual(partial_local.grad.size(), partial_local.size())
+<<<<<<< HEAD
         self.assertEqual(
             partial_local.grad, torch.ones_like(partial_local, dtype=dtype)
         )
+=======
+        self.assertEqual(partial_local.grad, torch.ones_like(partial_local))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(comm_mode.get_total_counts(), 0)
 
     @with_comms
     def test_replicate_to_replicate_forward_backward_datatype_conversion(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = init_device_mesh(self.device_type, mesh_shape=(self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replica_spec = [Replicate()]
 
         forward_datatypes = [
@@ -277,7 +327,11 @@ class RedistributeTest(DTensorTestBase):
 
     @with_comms
     def test_shard_to_replicate_forward_backward_datatype_conversion(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = init_device_mesh(self.device_type, mesh_shape=(self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replica_spec = [Replicate()]
 
         shard_dim_and_input_sizes = [
@@ -349,7 +403,11 @@ class RedistributeTest(DTensorTestBase):
 
     @with_comms
     def test_replicate_to_partial(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_tensor = torch.randn(12, 3, device=self.device_type, requires_grad=True)
         partial_spec = Partial()
         replica_spec = Replicate()
@@ -396,9 +454,14 @@ class RedistributeTest(DTensorTestBase):
         self.assertEqual(comm_mode.get_total_counts(), 0)
 
     @with_comms
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.cfloat])
     def test_partial_to_shard(self, dtype):
         device_mesh = self.build_device_mesh()
+=======
+    def test_partial_to_shard(self):
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         partial_spec = [Partial()]
         my_rank = device_mesh.get_rank()
 
@@ -416,7 +479,11 @@ class RedistributeTest(DTensorTestBase):
         for input_size, shard_dim in input_sizes_and_shard_dim:
             shard_spec = [Shard(shard_dim)]
 
+<<<<<<< HEAD
             partial_local = torch.ones(input_size, device=self.device_type, dtype=dtype)
+=======
+            partial_local = torch.ones(input_size, device=self.device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             partial_tensor = DTensor.from_local(
                 partial_local, device_mesh, partial_spec, run_check=False
             )
@@ -445,7 +512,11 @@ class RedistributeTest(DTensorTestBase):
             self.assertEqual(scatter_shard_tensor.placements, shard_spec)
             self.assertEqual(
                 scatter_shard_tensor.to_local(),
+<<<<<<< HEAD
                 torch.ones(local_shape, dtype=dtype) * self.world_size,
+=======
+                torch.ones(local_shape) * self.world_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.assertEqual(
                 comm_mode.get_comm_counts()[funcol.reduce_scatter_tensor], 1
@@ -453,7 +524,11 @@ class RedistributeTest(DTensorTestBase):
 
     @with_comms
     def test_redistribute_negative_shard_dim(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_tensor = torch.randn(12, 3, device=self.device_type, requires_grad=True)
         shard_spec = [Shard(1)]
         shard_minus_spec = [Shard(-1)]
@@ -488,6 +563,7 @@ class RedistributeTest(DTensorTestBase):
                 self.assertEqual(dt_full_tensor, input_tensor)
 
     @with_comms
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.cfloat])
     def test_redistribute_shard_dim_change(self, dtype):
         # test 1d device mesh
@@ -503,6 +579,22 @@ class RedistributeTest(DTensorTestBase):
             torch.randn((5, 8), device=self.device_type, dtype=dtype),
             # uneven case 3
             torch.randn((5, 5), device=self.device_type, dtype=dtype),
+=======
+    def test_redistribute_shard_dim_change(self):
+        # test 1d device mesh
+        mesh_1d = DeviceMesh(self.device_type, torch.arange(self.world_size))
+        data_to_test = [
+            # evenly sharded case
+            torch.randn((8, 8), device=self.device_type),
+            # 3d or more dims
+            torch.randn((8, 8, 8), device=self.device_type),
+            # uneven case 1
+            torch.randn((8, 5), device=self.device_type),
+            # uneven case 2
+            torch.randn((5, 8), device=self.device_type),
+            # uneven case 3
+            torch.randn((5, 5), device=self.device_type),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         sharding_src_dst_pairs = [([Shard(0)], [Shard(1)]), ([Shard(1)], [Shard(0)])]
@@ -538,6 +630,7 @@ class RedistributeTest(DTensorTestBase):
         )
         data_to_test_2d = [
             # evenly sharded case
+<<<<<<< HEAD
             torch.randn((8, 8), device=self.device_type, dtype=dtype),
             # 3d or more dims
             torch.randn((8, 8, 8), device=self.device_type, dtype=dtype),
@@ -547,6 +640,17 @@ class RedistributeTest(DTensorTestBase):
             torch.randn((5, 8), device=self.device_type, dtype=dtype),
             # uneven case 3
             torch.randn((5, 5), device=self.device_type, dtype=dtype),
+=======
+            torch.randn((8, 8), device=self.device_type),
+            # 3d or more dims
+            torch.randn((8, 8, 8), device=self.device_type),
+            # uneven case 1
+            torch.randn((8, 5), device=self.device_type),
+            # uneven case 2
+            torch.randn((5, 8), device=self.device_type),
+            # uneven case 3
+            torch.randn((5, 5), device=self.device_type),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         sharding_src_dst_pairs_2d = [
             ([Shard(0), Shard(1)], [Shard(0), Shard(0)]),
@@ -586,11 +690,18 @@ class RedistributeTest(DTensorTestBase):
                 self.assertEqual(local_out_dt, local_expected_dt)
 
     @with_comms
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.cfloat])
     def test_shard_dim_alltoall(self, dtype):
         # init 2d mesh here so we can test when group_rank != global_rank
         mesh = init_device_mesh(self.device_type, (2, 2))
         tensor = torch.randn(12, self.world_size, device=self.device_type, dtype=dtype)
+=======
+    def test_shard_dim_alltoall(self):
+        # init 2d mesh here so we can test when group_rank != global_rank
+        mesh = init_device_mesh(self.device_type, (2, 2))
+        tensor = torch.randn(12, self.world_size, device=self.device_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_tensor = shard_dim_alltoall(tensor, 0, 1, mesh, 0)
 
         meta_tensor = torch.randn(12, self.world_size, device="meta")
@@ -600,9 +711,12 @@ class RedistributeTest(DTensorTestBase):
         self.assertEqual(new_tensor.stride(), new_meta_tensor.stride())
 
 
+<<<<<<< HEAD
 instantiate_parametrized_tests(RedistributeTest)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class MultiDimRedistributeTest(DTensorTestBase):
     @property
     def world_size(self) -> int:
@@ -635,7 +749,11 @@ class MultiDimRedistributeTest(DTensorTestBase):
                 dt = distribute_tensor(full_tensor, device_mesh, repl_inputs)
 
                 if repl_inputs != inputs:
+<<<<<<< HEAD
                     # create a new DTensor reinterpreting some of the replicated entries as "Partial"
+=======
+                    # create a new DTensor reinterpreting some of the replicated entires as "Partial"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     dt = DTensor.from_local(
                         dt.to_local(), device_mesh, inputs, run_check=False
                     )

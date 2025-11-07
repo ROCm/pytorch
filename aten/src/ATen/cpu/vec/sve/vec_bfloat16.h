@@ -5,7 +5,10 @@
 #include <ATen/cpu/vec/sve/vec_common_sve.h>
 #include <ATen/cpu/vec/sve/vec_float.h>
 #include <ATen/cpu/vec/vec_base.h>
+<<<<<<< HEAD
 #include <c10/util/bit_cast.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cmath>
 namespace at {
 namespace vec {
@@ -37,7 +40,11 @@ class Vectorized<BFloat16> {
     return VECTOR_WIDTH / sizeof(BFloat16);
   }
 
+<<<<<<< HEAD
   Vectorized();
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(svbfloat16_t v) : values(v) {}
   Vectorized(int val);
   Vectorized(BFloat16 val);
@@ -164,9 +171,12 @@ class Vectorized<BFloat16> {
   Vectorized<BFloat16> exp_u20() const {
     return exp();
   }
+<<<<<<< HEAD
   Vectorized<BFloat16> fexp_u20() const {
     return exp();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<BFloat16> fmod(const Vectorized<BFloat16>& q) const;
   Vectorized<BFloat16> hypot(const Vectorized<BFloat16>& b) const;
   Vectorized<BFloat16> i0() const;
@@ -224,12 +234,17 @@ class Vectorized<BFloat16> {
   Vectorized<BFloat16> le(const Vectorized<BFloat16>& other) const;
 };
 
+<<<<<<< HEAD
 #if defined(__GNUC__) && __GNUC__ == 14
 // Workaround for gcc-14.2.0 ICE during RTL pass: vregs when compiling for SVE
 __attribute__((optimize("no-tree-vectorize")))
 #endif
 inline std::tuple<Vectorized<float>, Vectorized<float>>
 convert_bfloat16_float(const Vectorized<c10::BFloat16>& a) {
+=======
+inline std::tuple<Vectorized<float>, Vectorized<float>> convert_bfloat16_float(
+    const Vectorized<c10::BFloat16>& a) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static_assert(
       Vectorized<c10::BFloat16>::size() == 2 * Vectorized<float>::size());
   auto zero = svreinterpret_bf16_f32(svdup_n_f32(0.0f));
@@ -307,11 +322,14 @@ Vectorized<c10::BFloat16> inline operator/(
   return binary_operator_via_float(std::divides<Vectorized<float>>(), a, b);
 }
 
+<<<<<<< HEAD
 inline Vectorized<BFloat16>::Vectorized() {
   const short zero = 0;
   values = svdup_n_bf16(c10::bit_cast<bfloat16_t>(zero));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Vectorized<BFloat16>::Vectorized(int val) {
   auto vals_f = svdup_n_f32(val);
   values = convert_float_bfloat16(vals_f, vals_f);

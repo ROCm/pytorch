@@ -118,6 +118,7 @@ struct TORCH_API CUDAHooksInterface : AcceleratorHooksInterface {
     return false;
   }
 
+<<<<<<< HEAD
   virtual bool hasCKSDPA() const {
     return false;
   }
@@ -126,6 +127,8 @@ struct TORCH_API CUDAHooksInterface : AcceleratorHooksInterface {
     return false;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual const at::cuda::NVRTC& nvrtc() const {
     TORCH_CHECK(false, "NVRTC requires CUDA. ", CUDA_HELP);
   }

@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 r"""Quantized convolution modules."""
 
+<<<<<<< HEAD
 from typing import ClassVar, Literal, Optional
+=======
+from typing import ClassVar, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.intrinsic as nni
@@ -401,7 +405,11 @@ class Conv1d(_ConvNd):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ):

@@ -8,10 +8,17 @@ ModelReport
  Most detectors require a **traceable GraphModule**, but some (ex. `PerChannelDetector`) require just an `nn.Module`.
 
 #### Typical Fx Workflow
+<<<<<<< HEAD
 - Initialize model &rarr; Prepare model &rarr; Calibrate model &rarr; Convert model &rarr; ...
 
 #### Fx Workflow with ModelReport
 - Initialize model &rarr; Prepare model &rarr; **Add detector observers** &rarr; Calibrate model &rarr; **Generate report** &rarr; **Remove detector observers** &rarr; Convert model &rarr; ...
+=======
+- Initialize model &rarr; Prepare model &rarr; Callibrate model &rarr; Convert model &rarr; ...
+
+#### Fx Workflow with ModelReport
+- Initialize model &rarr; Prepare model &rarr; **Add detector observers** &rarr; Callibrate model &rarr; **Generate report** &rarr; **Remove detector observers** &rarr; Convert model &rarr; ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  > ⚠️ **You can only prepare and remove observers once with a given ModelReport Instance**: Be very careful here!
 
@@ -23,7 +30,11 @@ This snippet should be ready to copy, paste, and use with the exception of a few
 # prep model
 qconfig_mapping = torch.ao.quantization.get_default_qconfig_mapping()
 model = Model() # TODO define model
+<<<<<<< HEAD
 example_input = torch.randn((*args)) # TODO get example data for calibration
+=======
+example_input = torch.randn((*args)) # TODO get example data for callibration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 prepared_model = quantize_fx.prepare_fx(model, qconfig_mapping, example_input)
 
 # create ModelReport instance and insert observers
@@ -31,8 +42,13 @@ detector_set = set([DynamicStaticDetector()]) # TODO add all desired detectors
 model_report = ModelReport(model, detector_set)
 ready_for_callibrate = model_report.prepare_detailed_callibration()
 
+<<<<<<< HEAD
 # calibrate model and generate report
 ready_for_callibrate(example_input) # TODO run calibration of model with relevant data
+=======
+# callibrate model and generate report
+ready_for_callibrate(example_input) # TODO run callibration of model with relevant data
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 reports = model_report.generate_model_report(remove_inserted_observers=True)
 for report_name in report.keys():
     text_report, report_dict = reports[report_name]
@@ -46,7 +62,11 @@ mod_rep_visualizer.generate_table_visualization() # shows collected data as a ta
 ```
 
 There is a tutorial in the works that will walk through a full usage of the ModelReport API.
+<<<<<<< HEAD
 This tutorial will show the ModelReport API being used on toy model in both an Fx Graph Mode workflow and an alternative workflow with just a traceable model.
+=======
+This tutorial will show the ModelReport API being used on toy model in both an Fx Graph Mode workflow and an alterative workflow with just a traceable model.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 This README will be updated with a link to the tutorial upon completion of the tutorial.
 
 # Key Modules Overview
@@ -60,7 +80,11 @@ There are three primary methods to be familiar with when using the ModelReport c
 This is so that we can keep track of where we want to insert observers on a detector by detector basis and also keep track of which detectors to generate reports for.
 - `prepare_detailed_calibration(self)` &rarr; `GraphModule` inserts observers into the locations specified by each detector in the model.
 It then returns the GraphModule with the detectors inserted into both the regular module structure as well as the node structure.
+<<<<<<< HEAD
 - `generate_model_report(self, remove_inserted_observers: bool)` &rarr; `Dict[str, Tuple[str, Dict]]` uses calibrated GraphModule to optionally removes inserted observers, and generate, for each detector the ModelReport instance was initialized with:
+=======
+- `generate_model_report(self, remove_inserted_observers: bool)` &rarr; `Dict[str, Tuple[str, Dict]]` uses callibrated GraphModule to optionally removes inserted observers, and generate, for each detector the ModelReport instance was initialized with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   - A string-based report that is easily digestable and actionable explaining the data collected by relevant observers for that detector
   - A dictionary containing statistics collected by the relevant observers and values calculated by the detector for further analysis or plotting
 
@@ -107,7 +131,11 @@ For both of the two things listed above, you can filter the data by either `modu
 To get a list of all the modules or features, you can call `mod_rep_visualizer.get_all_unique_module_fqns()`
 and `mod_rep_visualizer.get_all_unique_feature_names()` respectively.
 For the features, because some features are not plottable, you can set the flag to only get plottable features
+<<<<<<< HEAD
 in the aforementioned `get_all_unique_feature_names` method.
+=======
+in the aformentioned `get_all_unique_feature_names` method.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ## Detector Overview
 
@@ -152,7 +180,11 @@ The statistics collected by the `ModelReportObserver` include:
 - Ratio of 100th percentile to some *n*th percentile
 - Number of constant value batches to pass through each channel
 
+<<<<<<< HEAD
 After the `ModelReportObserver` collects the statistics above during the calibration process, the detectors then extract the information they need to generate their reports from the relevant observers.
+=======
+After the `ModelReportObserver` collects the statistics above during the callibration process, the detectors then extract the information they need to generate their reports from the relevant observers.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ### Using Your Own Observer
 

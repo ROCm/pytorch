@@ -163,7 +163,11 @@ def _remove_extraneous_pytrees(gm: torch.fx.GraphModule) -> None:
     """
 
     for node in gm.graph.nodes:
+<<<<<<< HEAD
         if node.op == "call_module" and node.target != "_guards_fn":
+=======
+        if node.op == "call_module":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _try_remove_connecting_pytrees(node)
 
     gm.graph.eliminate_dead_code()

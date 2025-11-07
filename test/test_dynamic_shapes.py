@@ -15,7 +15,11 @@ import torch.fx
 import torch.nn.functional as F
 from torch import sym_int, SymBool, SymFloat, SymInt
 from torch._C import _disabled_torch_function_impl
+<<<<<<< HEAD
 from torch._dynamo.testing import CompileCounter, CompileCounterWithBackend
+=======
+from torch._dynamo.testing import CompileCounterWithBackend
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.utils import fresh_cache
 from torch.fx.experimental import sym_node
 from torch.fx.experimental.proxy_tensor import make_fx
@@ -861,7 +865,11 @@ def forward(self, x_1):
         s2 = create_symint(shape_env, 5, duck=False)
         bool(s0 * (s1 // s0) == s2)
 
+<<<<<<< HEAD
     def test_non_overlapping_and_dense_backed(self):
+=======
+    def test_non_overlapping_and_dense(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shape_env = ShapeEnv()
         a0 = create_symint(shape_env, 5)
         r = torch.empty_strided((a0, 7), (1, a0), device="meta")
@@ -896,6 +904,7 @@ def forward(self, x_1):
             )
         )
 
+<<<<<<< HEAD
     def test_prims_non_overlapping_and_dense(self):
         shape_env = ShapeEnv()
         cf = torch._prims_common.is_non_overlapping_and_dense
@@ -954,6 +963,8 @@ def forward(self, x_1):
             )
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sympy_optimized_add_binary_search(self):
         import sympy
 
@@ -1915,6 +1926,7 @@ class TestFloorDiv(TestCase):
 
 
 class TestDimConstraints(TestCase):
+<<<<<<< HEAD
     @skipIfTorchDynamo("mark_dynamic not supported")
     def test_simplify_max_1_0(self):
         x = torch.rand(10)
@@ -1937,6 +1949,8 @@ class TestDimConstraints(TestCase):
         self.assertEqual(func(x, 1), x * 400)
         self.assertEqual(func(x, 0), x * 400)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dim_constraints_reduce_congruences_simple(self):
         from sympy import Symbol
 
@@ -3130,7 +3144,10 @@ def custom_pass(graph: torch.fx.Graph) -> torch.fx.Graph:
 
 
 class TestUnbacked(TestCase):
+<<<<<<< HEAD
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/156135")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     @parametrize("backend", ["inductor", "eager"])
     def test_deferred_neq_assert(self, backend):
@@ -3178,7 +3195,10 @@ class TestUnbacked(TestCase):
         with self.assertRaises(RuntimeError):
             func(torch.rand(2, 50), torch.tensor([51]))
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/156135")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     @parametrize("backend", ["inductor", "eager"])
     def test_deferred_sym_or_assert(self, backend):
@@ -3200,7 +3220,10 @@ class TestUnbacked(TestCase):
         self.assertTrue(has_free_symbols(sympy.sympify("a*2")))
         self.assertTrue(has_free_symbols(sympy.sympify("a+b")))
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/156135")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._dynamo.config.patch("capture_scalar_outputs", True)
     @parametrize("backend", ["inductor", "eager"])
     def test_deferred_sym_eq_assert(self, backend):
@@ -3245,10 +3268,16 @@ class TestUbackedOps(TestCase):
             f = y.item()
             t1 = x.view((f, f))
             t2 = x.reshape((f, f))
+<<<<<<< HEAD
             t3 = torch._ops.ops.aten.view_copy(x, (f, f))
             # TODO avoid _check_is_size here.
             torch._check_is_size(f)
             return t1 * 10, t2 * 10, t3
+=======
+            # TODO avoid _check_is_size here.
+            torch._check_is_size(f)
+            return t1 * 10, t2 * 10
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         compiled_func = torch.compile(
             fullgraph=True,
@@ -3270,7 +3299,11 @@ class TestUbackedOps(TestCase):
             self.assertEqual(compiled_result, eager_result)
 
         log_stream, ctx = logs_to_string(
+<<<<<<< HEAD
             "torch._functorch._aot_autograd.graph_capture", "aot_graphs"
+=======
+            "torch._functorch._aot_autograd.dispatch_and_compile_graph", "aot_graphs"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         with ctx():
             make_non_contiguous_tensor_and_test(4)
@@ -3288,12 +3321,19 @@ def forward(self, arg0_1: "i64[1][1]cpu", arg1_1: "Sym(u1)", arg2_1: "Sym(s7)", 
         eq: "Sym(Eq(u1, u0**2))" = arg1_1 == pow_1;  arg1_1 = pow_1 = None
         _assert_scalar_2 = torch.ops.aten._assert_scalar.default(eq, "Runtime assertion failed for expression Eq(u1, u0**2) on node 'eq'");  eq = _assert_scalar_2 = None
         view: "i64[u0, u0][s7*u0, s7]cpu" = torch.ops.aten.view.default(arg3_1, [_local_scalar_dense, _local_scalar_dense])
+<<<<<<< HEAD
         view_1: "i64[u0, u0][s7*u0, s7]cpu" = torch.ops.aten.view.default(arg3_1, [_local_scalar_dense, _local_scalar_dense])
         view_2: "i64[u0, u0][s7*u0, s7]cpu" = torch.ops.aten.view.default(arg3_1, [_local_scalar_dense, _local_scalar_dense]);  arg3_1 = _local_scalar_dense = None
         clone: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.clone.default(view_2);  view_2 = None
         mul_11: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view, 10);  view = None
         mul_14: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view_1, 10);  view_1 = None
         return (mul_11, mul_14, clone)""",  # noqa: B950
+=======
+        view_1: "i64[u0, u0][s7*u0, s7]cpu" = torch.ops.aten.view.default(arg3_1, [_local_scalar_dense, _local_scalar_dense]);  arg3_1 = _local_scalar_dense = None
+        mul_9: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view, 10);  view = None
+        mul_12: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view_1, 10);  view_1 = None
+        return (mul_9, mul_12)""",  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ignore_comments=True,
             ignore_empty_lines=True,
         )
@@ -3307,7 +3347,11 @@ def forward(self, arg0_1: "i64[1][1]cpu", arg1_1: "Sym(u1)", arg2_1: "Sym(s7)", 
         torch._dynamo.decorators.mark_unbacked(x, 0)
 
         log_stream, ctx = logs_to_string(
+<<<<<<< HEAD
             "torch._functorch._aot_autograd.graph_capture", "aot_graphs"
+=======
+            "torch._functorch._aot_autograd.dispatch_and_compile_graph", "aot_graphs"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         with ctx():
             compiled_result = compiled_func(x, torch.tensor([10]))
@@ -3329,12 +3373,19 @@ def forward(self, arg0_1: "i64[1][1]cpu", arg1_1: "Sym(u1)", arg2_1: "i64[u1][1]
         eq: "Sym(Eq(u1, u0**2))" = arg1_1 == pow_1;  arg1_1 = pow_1 = None
         _assert_scalar_2 = torch.ops.aten._assert_scalar.default(eq, "Runtime assertion failed for expression Eq(u1, u0**2) on node 'eq'");  eq = _assert_scalar_2 = None
         view: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.view.default(arg2_1, [_local_scalar_dense, _local_scalar_dense])
+<<<<<<< HEAD
         view_1: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.view.default(arg2_1, [_local_scalar_dense, _local_scalar_dense])
         view_2: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.view.default(arg2_1, [_local_scalar_dense, _local_scalar_dense]);  arg2_1 = _local_scalar_dense = None
         clone: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.clone.default(view_2);  view_2 = None
         mul_6: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view, 10);  view = None
         mul_9: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view_1, 10);  view_1 = None
         return (mul_6, mul_9, clone)""",  # noqa: B950
+=======
+        view_1: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.view.default(arg2_1, [_local_scalar_dense, _local_scalar_dense]);  arg2_1 = _local_scalar_dense = None
+        mul_4: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view, 10);  view = None
+        mul_7: "i64[u0, u0][Max(1, u0), 1]cpu" = torch.ops.aten.mul.Tensor(view_1, 10);  view_1 = None
+        return (mul_4, mul_7)""",  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ignore_comments=True,
             ignore_empty_lines=True,
         )
@@ -3349,7 +3400,11 @@ def forward(self, arg0_1: "i64[1][1]cpu", arg1_1: "Sym(u1)", arg2_1: "i64[u1][1]
     def test_unbacked_reshape2(self):
         cnt = CompileCounterWithBackend("inductor")
 
+<<<<<<< HEAD
         # This reshape requires a clone when the input is not contiguous and we can't compute strides.
+=======
+        # This reshape requires a clone when the input is not contiguous and we cant compute strides.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # reshape (u2, u3) -> (u0, u1)
         def func(x, y):
             u0, u1 = y.tolist()
@@ -3368,7 +3423,11 @@ def forward(self, arg0_1: "i64[1][1]cpu", arg1_1: "Sym(u1)", arg2_1: "i64[u1][1]
         torch._dynamo.decorators.mark_unbacked(x, 1)
 
         log_stream, ctx = logs_to_string(
+<<<<<<< HEAD
             "torch._functorch._aot_autograd.graph_capture", "aot_graphs"
+=======
+            "torch._functorch._aot_autograd.dispatch_and_compile_graph", "aot_graphs"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         with ctx():
             result_eager = func(x, torch.tensor([5, 20]))
@@ -3399,8 +3458,13 @@ def forward(self, arg0_1: "i64[2][1]cpu", arg1_1: "Sym(u2)", arg2_1: "Sym(u3)", 
         _assert_scalar_4 = torch.ops.aten._assert_scalar.default(eq, "Runtime assertion failed for expression Eq(u2*u3, u0*u1) on node 'eq'");  eq = _assert_scalar_4 = None
         clone: "f32[u2, u3][Max(1, u3), 1]cpu" = torch.ops.aten.clone.default(arg3_1, memory_format = torch.contiguous_format);  arg3_1 = None
         view: "f32[u0, u1][Max(1, u1), 1]cpu" = torch.ops.aten.view.default(clone, [_local_scalar_dense, _local_scalar_dense_1]);  clone = _local_scalar_dense = _local_scalar_dense_1 = None
+<<<<<<< HEAD
         mul_21: "f32[u0, u1][Max(1, u1), 1]cpu" = torch.ops.aten.mul.Tensor(view, 10);  view = None
         return (mul_21,)""",  # noqa: B950
+=======
+        mul_19: "f32[u0, u1][Max(1, u1), 1]cpu" = torch.ops.aten.mul.Tensor(view, 10);  view = None
+        return (mul_19,)""",  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ignore_comments=True,
             ignore_empty_lines=True,
         )
@@ -3418,11 +3482,19 @@ def forward(self, arg0_1: "i64[2][1]cpu", arg1_1: "Sym(u2)", arg2_1: "Sym(u3)", 
 
         # Pass a contiguous tensor. A recompilation will happen due to 0/1 speciialization on stride.
         log_stream, ctx = logs_to_string(
+<<<<<<< HEAD
             "torch._functorch._aot_autograd.graph_capture", "aot_graphs"
         )
         with ctx():
             # This used to hit could guard on data-dependent expression Eq(10, u3) x.stride[0]==10. and x.size()=[u2, u3].
             # but not anymore since we use  contiguous_or_false .
+=======
+            "torch._functorch._aot_autograd.dispatch_and_compile_graph", "aot_graphs"
+        )
+        with ctx():
+            # This used to hit could guard on data-dependent expression Eq(10, u3) x.stride[0]==10. and x.size()=[u2, u3].
+            # but not anymore since we use  definitely_contiguous .
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # We need a way to mark strides unbacked to avoid the recompilation here.
             x = torch.randn(10, 10)
             torch._dynamo.decorators.mark_unbacked(x, 0)
@@ -3484,7 +3556,11 @@ def forward(self, arg0_1: "i64[2][1]cpu", arg1_1: "Sym(u2)", arg2_1: "Sym(u3)", 
     def test_invalid_view_unbacked_view(self):
         cnt = CompileCounterWithBackend("inductor")
 
+<<<<<<< HEAD
         # This view (u2, u3) -> (u0, u1) can't happen in general unless we know that input is contiguous or we have
+=======
+        # This view (u2, u3) -> (u0, u1) cant happen in general unless we know that input is contigous or we have
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # hints to to compute strides.
         def func(x, y):
             u0, u1 = y.tolist()
@@ -3505,6 +3581,7 @@ def forward(self, arg0_1: "i64[2][1]cpu", arg1_1: "Sym(u2)", arg2_1: "Sym(u3)", 
             # throws a data dependent error.
             compiled_func(x, torch.tensor([5, 20]))
 
+<<<<<<< HEAD
     @skipIfTorchDynamo()
     def test_unbind_not_dynamic(self):
         cnt = CompileCounter()
@@ -3685,6 +3762,8 @@ def forward(self, arg0_1: "i64[2][1]cpu", arg1_1: "Sym(u2)", arg2_1: "Sym(u3)", 
         out = torch.compile(f)(idx, x)
         self.assertEqual(out, f(idx, x))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestUnbacked)
 

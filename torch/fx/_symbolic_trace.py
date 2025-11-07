@@ -5,7 +5,10 @@ import contextlib
 import copy
 import functools
 import inspect
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import math
 import os
 import warnings
@@ -27,8 +30,11 @@ from .node import Argument, base_types, map_aggregate
 from .proxy import ParameterProxy, Proxy, Scope, ScopeContextManager, TracerBase
 
 
+<<<<<<< HEAD
 log = logging.getLogger(__name__)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 HAS_VARSTUFF = inspect.CO_VARARGS | inspect.CO_VARKEYWORDS
 
 # These need to run in global scope to handle nested calls correctly
@@ -46,6 +52,7 @@ _ConstantAttributeType: TypeAlias = Union[
 _constant_attribute_types = get_args(_ConstantAttributeType)
 
 
+<<<<<<< HEAD
 # We only want to print this once to avoid flooding logs
 @functools.lru_cache
 def is_fx_tracing_warning():
@@ -66,6 +73,12 @@ def is_fx_symbolic_tracing():
     return _is_fx_tracing_flag and not torch.compiler.is_compiling()
 
 
+=======
+def is_fx_tracing():
+    return _is_fx_tracing_flag
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @compatibility(is_backward_compatible=True)
 class ProxyableClassMeta(type):
     """
@@ -164,7 +177,11 @@ def _patch_function(fn: FunctionType, nargs: int) -> FunctionType:
             co.co_name,
             co.co_qualname,  # type: ignore[attr-defined]
             co.co_firstlineno,
+<<<<<<< HEAD
             co.co_linetable,
+=======
+            co.co_lnotab,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             co.co_exceptiontable,  # type: ignore[attr-defined]
             co.co_freevars,
             co.co_cellvars,
@@ -454,6 +471,10 @@ class Tracer(TracerBase):
             setattr(self.root, qualname, a)
 
             return self.create_node("get_attr", qualname, (), {})
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().create_arg(a)
 
     @compatibility(is_backward_compatible=True)
@@ -712,7 +733,11 @@ class Tracer(TracerBase):
             # In the case that we have pytree-flattened inputs in
             # `concrete_args`, generate a flattening wrapper around the
             # original root function and return that.
+<<<<<<< HEAD
             self.graph._codegen = _PyTreeCodeGen(  # type: ignore[has-type]
+=======
+            self.graph._codegen = _PyTreeCodeGen(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _PyTreeInfo(orig_args[:total_args], in_spec, None)
             )
 
@@ -720,7 +745,11 @@ class Tracer(TracerBase):
                 tree_args = pytree.tree_unflatten(list(args), in_spec)
                 tree_out = root_fn(*tree_args)
                 out_args, out_spec = pytree.tree_flatten(tree_out)
+<<<<<<< HEAD
                 assert isinstance(self.graph._codegen, _PyTreeCodeGen)  # type: ignore[has-type]
+=======
+                assert isinstance(self.graph._codegen, _PyTreeCodeGen)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.graph._codegen.pytree_info = (
                     self.graph._codegen.pytree_info._replace(out_spec=out_spec)
                 )

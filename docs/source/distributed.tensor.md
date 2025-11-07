@@ -179,6 +179,7 @@ specifying the {class}`DeviceMesh` and {class}`Placement` for the {class}`DTenso
 
 ```
 
+<<<<<<< HEAD
 ### Random Operations
 
 DTensor provides distributed RNG functionality to ensure that random operations on sharded tensors get unique values, and random operations on replicated tensors get the same values. This system requires that all participating
@@ -191,6 +192,8 @@ When using DTensor together with Pipeline Parallelism, ranks for each pipeline s
 
 DTensor's RNG infra is based on the philox based RNG algorithm, and supports any philox based backend (cuda, and other cuda-like devices), but unfortunately does not yet support the CPU backend.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## Debugging
 
 ```{eval-rst}

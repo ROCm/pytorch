@@ -1,7 +1,10 @@
 #undef __HIP_NO_HALF_CONVERSIONS__
 
 #include <ATen/native/hip/ck_gemm.h>
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_GEMM)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/hip/ck_gemm_template.h>
 
 #include <ck/utility/sequence.hpp>
@@ -607,4 +610,7 @@ void gemm_internal_ck<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half)) {
 }
 
 } // namespace at::native
+<<<<<<< HEAD
 #endif // USE_ROCM_CK_GEMM
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

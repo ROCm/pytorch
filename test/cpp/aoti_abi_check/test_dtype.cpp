@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+<<<<<<< HEAD
 #include <torch/headeronly/core/ScalarType.h>
 #include <torch/headeronly/util/BFloat16.h>
 #include <torch/headeronly/util/Float4_e2m1fn_x2.h>
@@ -24,6 +25,27 @@ TEST(TestDtype, TestBFloat16) {
   torch::headeronly::BFloat16 sub = -1.0f;
   torch::headeronly::BFloat16 mul = 2.0f;
   torch::headeronly::BFloat16 div = 0.5f;
+=======
+#include <c10/util/BFloat16-math.h>
+#include <c10/util/BFloat16.h>
+#include <c10/util/Float8_e4m3fn.h>
+#include <c10/util/Float8_e4m3fnuz.h>
+#include <c10/util/Float8_e5m2.h>
+#include <c10/util/Float8_e5m2fnuz.h>
+#include <c10/util/Half.h>
+#include <c10/util/complex.h>
+
+namespace torch {
+namespace aot_inductor {
+
+TEST(TestDtype, TestBFloat16) {
+  c10::BFloat16 a = 1.0f;
+  c10::BFloat16 b = 2.0f;
+  c10::BFloat16 add = 3.0f;
+  c10::BFloat16 sub = -1.0f;
+  c10::BFloat16 mul = 2.0f;
+  c10::BFloat16 div = 0.5f;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
@@ -32,12 +54,21 @@ TEST(TestDtype, TestBFloat16) {
 }
 
 TEST(TestDtype, TestFloat8_e4m3fn) {
+<<<<<<< HEAD
   torch::headeronly::Float8_e4m3fn a = 1.0f;
   torch::headeronly::Float8_e4m3fn b = 2.0f;
   torch::headeronly::Float8_e4m3fn add = 3.0f;
   torch::headeronly::Float8_e4m3fn sub = -1.0f;
   torch::headeronly::Float8_e4m3fn mul = 2.0f;
   torch::headeronly::Float8_e4m3fn div = 0.5f;
+=======
+  c10::Float8_e4m3fn a = 1.0f;
+  c10::Float8_e4m3fn b = 2.0f;
+  c10::Float8_e4m3fn add = 3.0f;
+  c10::Float8_e4m3fn sub = -1.0f;
+  c10::Float8_e4m3fn mul = 2.0f;
+  c10::Float8_e4m3fn div = 0.5f;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
@@ -46,12 +77,21 @@ TEST(TestDtype, TestFloat8_e4m3fn) {
 }
 
 TEST(TestDtype, TestFloat8_e4m3fuz) {
+<<<<<<< HEAD
   torch::headeronly::Float8_e4m3fnuz a = 1.0f;
   torch::headeronly::Float8_e4m3fnuz b = 2.0f;
   torch::headeronly::Float8_e4m3fnuz add = 3.0f;
   torch::headeronly::Float8_e4m3fnuz sub = -1.0f;
   torch::headeronly::Float8_e4m3fnuz mul = 2.0f;
   torch::headeronly::Float8_e4m3fnuz div = 0.5f;
+=======
+  c10::Float8_e4m3fnuz a = 1.0f;
+  c10::Float8_e4m3fnuz b = 2.0f;
+  c10::Float8_e4m3fnuz add = 3.0f;
+  c10::Float8_e4m3fnuz sub = -1.0f;
+  c10::Float8_e4m3fnuz mul = 2.0f;
+  c10::Float8_e4m3fnuz div = 0.5f;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
@@ -60,12 +100,21 @@ TEST(TestDtype, TestFloat8_e4m3fuz) {
 }
 
 TEST(TestDtype, TestFloat8_e5m2) {
+<<<<<<< HEAD
   torch::headeronly::Float8_e5m2 a = 1.0f;
   torch::headeronly::Float8_e5m2 b = 2.0f;
   torch::headeronly::Float8_e5m2 add = 3.0f;
   torch::headeronly::Float8_e5m2 sub = -1.0f;
   torch::headeronly::Float8_e5m2 mul = 2.0f;
   torch::headeronly::Float8_e5m2 div = 0.5f;
+=======
+  c10::Float8_e5m2 a = 1.0f;
+  c10::Float8_e5m2 b = 2.0f;
+  c10::Float8_e5m2 add = 3.0f;
+  c10::Float8_e5m2 sub = -1.0f;
+  c10::Float8_e5m2 mul = 2.0f;
+  c10::Float8_e5m2 div = 0.5f;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
@@ -74,12 +123,21 @@ TEST(TestDtype, TestFloat8_e5m2) {
 }
 
 TEST(TestDtype, TestFloat8_e5m2fnuz) {
+<<<<<<< HEAD
   torch::headeronly::Float8_e5m2fnuz a = 1.0f;
   torch::headeronly::Float8_e5m2fnuz b = 2.0f;
   torch::headeronly::Float8_e5m2fnuz add = 3.0f;
   torch::headeronly::Float8_e5m2fnuz sub = -1.0f;
   torch::headeronly::Float8_e5m2fnuz mul = 2.0f;
   torch::headeronly::Float8_e5m2fnuz div = 0.5f;
+=======
+  c10::Float8_e5m2fnuz a = 1.0f;
+  c10::Float8_e5m2fnuz b = 2.0f;
+  c10::Float8_e5m2fnuz add = 3.0f;
+  c10::Float8_e5m2fnuz sub = -1.0f;
+  c10::Float8_e5m2fnuz mul = 2.0f;
+  c10::Float8_e5m2fnuz div = 0.5f;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
@@ -87,6 +145,7 @@ TEST(TestDtype, TestFloat8_e5m2fnuz) {
   EXPECT_EQ(a / b, div);
 }
 
+<<<<<<< HEAD
 TEST(TestDtype, TestFloat8_e8m0fnu) {
   torch::headeronly::Float8_e8m0fnu a = 1.0f;
   ASSERT_FALSE(a.isnan());
@@ -104,11 +163,21 @@ TEST(TestDtype, TestHalf) {
   torch::headeronly::Half sub = -1.0f;
   torch::headeronly::Half mul = 2.0f;
   torch::headeronly::Half div = 0.5f;
+=======
+TEST(TestDtype, TestHalf) {
+  c10::Half a = 1.0f;
+  c10::Half b = 2.0f;
+  c10::Half add = 3.0f;
+  c10::Half sub = -1.0f;
+  c10::Half mul = 2.0f;
+  c10::Half div = 0.5f;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
   EXPECT_EQ(a * b, mul);
   EXPECT_EQ(a / b, div);
+<<<<<<< HEAD
   EXPECT_EQ(a += b, add);
   EXPECT_EQ(a -= b, add - b);
   EXPECT_EQ(a *= b, b);
@@ -129,6 +198,17 @@ TEST(TestDtype, TestComplexFloat) {
   torch::headeronly::complex<float> sub(std::complex<float>(-2.0f, -2.0f));
   torch::headeronly::complex<float> mul(std::complex<float>(-5.0f, 10.0f));
   torch::headeronly::complex<float> div(std::complex<float>(0.44f, 0.08f));
+=======
+}
+
+TEST(TestDtype, TestComplexFloat) {
+  c10::complex<float> a(std::complex<float>(1.0f, 2.0f));
+  c10::complex<float> b(std::complex<float>(3.0f, 4.0f));
+  c10::complex<float> add(std::complex<float>(4.0f, 6.0f));
+  c10::complex<float> sub(std::complex<float>(-2.0f, -2.0f));
+  c10::complex<float> mul(std::complex<float>(-5.0f, 10.0f));
+  c10::complex<float> div(std::complex<float>(0.44f, 0.08f));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   EXPECT_EQ(a + b, add);
   EXPECT_EQ(a - b, sub);
@@ -136,6 +216,7 @@ TEST(TestDtype, TestComplexFloat) {
   EXPECT_EQ(a / b, div);
 }
 
+<<<<<<< HEAD
 TEST(TestDtype, TestQuintsQintsAndBits) {
   // There's not much you can do with these dtypes...
   // so we'll just check that it compiles
@@ -207,3 +288,7 @@ TEST(TestDtype, TestScalarType) {
     EXPECT_EQ(static_cast<ScalarType>(i), expected_scalar_types[i]);
   }
 }
+=======
+} // namespace aot_inductor
+} // namespace torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

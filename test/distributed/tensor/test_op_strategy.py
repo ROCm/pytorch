@@ -1,5 +1,6 @@
 # Owner(s): ["oncall: distributed"]
 
+<<<<<<< HEAD
 import itertools
 import random
 from contextlib import contextmanager
@@ -26,10 +27,20 @@ from torch.distributed.tensor._op_schema import (
     OpStrategy,
     RuntimeSchemaInfo,
 )
+=======
+from itertools import chain
+
+import torch
+from torch.distributed.tensor import DeviceMesh, DTensor, Partial, Replicate, Shard
+from torch.distributed.tensor._collective_utils import redistribute_cost
+from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+from torch.distributed.tensor._op_schema import OpSchema, OpSpec, OpStrategy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._ops._einsum_strategy import (
     EinsumDims,
     gen_einsum_strategies,
 )
+<<<<<<< HEAD
 from torch.distributed.tensor._ops.utils import (
     register_op_strategy,
     replicate_op_strategy,
@@ -51,6 +62,10 @@ except ImportError:
 
 def extract_tensor_meta(t) -> TensorMeta:
     return TensorMeta(t.shape, t.stride(), t.dtype)
+=======
+from torch.testing._internal.common_utils import run_tests, TestCase
+from torch.testing._internal.distributed._tensor.common_dtensor import DTensorOpTestBase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestEinsumDims(TestCase):
@@ -103,7 +118,11 @@ class TestEinsumDims(TestCase):
         self.assertEqual(edims.lhs_out_only_dims, ["c"])
         self.assertEqual(edims.rhs_out_only_dims, [])
 
+<<<<<<< HEAD
         equation = "abd,bf->abfd"  # codespell:ignore
+=======
+        equation = "abd,bf->abfd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_dims, output_dim = EinsumDims.parse_equation(equation)
         edims = EinsumDims.parse_dims(input_dims, output_dim)
 
@@ -136,6 +155,7 @@ class TestEinsumStrategies(DTensorOpTestBase):
         all_strats = gen_einsum_strategies("bmk,bkn->bmn", mesh)
         self.assertEqual(len(all_strats.strategies), 5)
 
+<<<<<<< HEAD
     def test_bmm_diffinndim_2d_mesh(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size).reshape(2, 2))
         all_strats = gen_einsum_strategies("bmk,kn->bmn", mesh)
@@ -146,6 +166,8 @@ class TestEinsumStrategies(DTensorOpTestBase):
         all_strats = gen_einsum_strategies("bmk,k->bm", mesh)
         self.assertEqual(len(all_strats.strategies), 16)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_bmm_2d_mesh(self):
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size).reshape(2, 2))
 
@@ -169,6 +191,12 @@ class TestEinsumStrategies(DTensorOpTestBase):
 
 
 class TestCostModel(DTensorOpTestBase):
+<<<<<<< HEAD
+=======
+    def _extract_tensor_meta(self, t) -> TensorMeta:
+        return TensorMeta(t.shape, t.stride(), t.dtype)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def world_size(self) -> int:
         return 4
@@ -180,7 +208,11 @@ class TestCostModel(DTensorOpTestBase):
         partial_placement = (Partial(),)
 
         global_tensor = torch.randn(10, 10)
+<<<<<<< HEAD
         global_tensor_meta = extract_tensor_meta(global_tensor)
+=======
+        global_tensor_meta = self._extract_tensor_meta(global_tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # shard spec
         shard_spec = DTensorSpec(mesh_1d, shard_placement, global_tensor_meta)
@@ -215,9 +247,15 @@ class TestCostModel(DTensorOpTestBase):
         partial_placement = (Partial(),)
         shard1_placement = (Shard(1),)
 
+<<<<<<< HEAD
         shard0_tensor_meta = extract_tensor_meta(torch.randn(8))
         partial_tensor_meta = extract_tensor_meta(torch.randn(50, 6))
         shard1_tensor_meta = extract_tensor_meta(torch.randn(6, 8))
+=======
+        shard0_tensor_meta = self._extract_tensor_meta(torch.randn(8))
+        partial_tensor_meta = self._extract_tensor_meta(torch.randn(50, 6))
+        shard1_tensor_meta = self._extract_tensor_meta(torch.randn(6, 8))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # shard spec
         shard0_spec = DTensorSpec(mesh, shard0_placement, shard0_tensor_meta)
@@ -261,7 +299,11 @@ class TestCostModel(DTensorOpTestBase):
         partial_placement = (Partial(), Partial())
 
         global_tensor = torch.randn(8, 8)
+<<<<<<< HEAD
         global_tensor_meta = extract_tensor_meta(global_tensor)
+=======
+        global_tensor_meta = self._extract_tensor_meta(global_tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # shard spec
         shard_spec = DTensorSpec(mesh_2d, shard_placement, global_tensor_meta)
@@ -290,8 +332,13 @@ class TestCostModel(DTensorOpTestBase):
         mesh = self.build_device_mesh()
         lhs_tensor = torch.randn(6, 8)
         rhs_tensor = torch.randn(8, 12)
+<<<<<<< HEAD
         lhs_tensor_meta = extract_tensor_meta(lhs_tensor)
         rhs_tensor_meta = extract_tensor_meta(rhs_tensor)
+=======
+        lhs_tensor_meta = self._extract_tensor_meta(lhs_tensor)
+        rhs_tensor_meta = self._extract_tensor_meta(rhs_tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         mm_combs = (
             (Shard(0), Replicate()),
@@ -336,8 +383,13 @@ class TestCostModel(DTensorOpTestBase):
         mesh = self.build_device_mesh()
         lhs_tensor = torch.randn(8, 6, 8)
         rhs_tensor = torch.randn(8, 8, 12)
+<<<<<<< HEAD
         lhs_tensor_meta = extract_tensor_meta(lhs_tensor)
         rhs_tensor_meta = extract_tensor_meta(rhs_tensor)
+=======
+        lhs_tensor_meta = self._extract_tensor_meta(lhs_tensor)
+        rhs_tensor_meta = self._extract_tensor_meta(rhs_tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         bmm_combs = (
             (Shard(0), Shard(0)),
@@ -378,6 +430,7 @@ class TestCostModel(DTensorOpTestBase):
             self.assertFalse(output_sharding.needs_redistribute)
 
 
+<<<<<<< HEAD
 # -------------Test op strategy registration-------------
 # custom op without List[Tensor] as input
 # reference: https://docs.pytorch.org/docs/stable/library.html#torch.library.register_autograd
@@ -644,5 +697,7 @@ class TestStrategyHashing(DTensorTestBase):
         self.assertEqual(out1.full_tensor(), out2.full_tensor())
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

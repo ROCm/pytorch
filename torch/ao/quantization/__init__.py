@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
 
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Callable, Optional, Union
 
 import torch
@@ -33,6 +36,7 @@ from .stubs import *  # noqa: F403
 
 
 # ensure __module__ is set correctly for public APIs
+<<<<<<< HEAD
 if sys.version_info < (3, 12):
     ObserverOrFakeQuantize = Union[ObserverBase, FakeQuantizeBase]
     ObserverOrFakeQuantize.__module__ = "torch.ao.quantization"
@@ -43,6 +47,10 @@ else:
         "ObserverOrFakeQuantize", Union[ObserverBase, FakeQuantizeBase]
     )
 
+=======
+ObserverOrFakeQuantize = Union[ObserverBase, FakeQuantizeBase]
+ObserverOrFakeQuantize.__module__ = "torch.ao.quantization"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 for _f in [
     compare_results,
     extract_results_from_loggers,

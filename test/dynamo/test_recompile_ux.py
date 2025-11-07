@@ -12,11 +12,14 @@ from torch._dynamo.exc import FailOnRecompileLimitHit
 from torch.testing._internal.logging_utils import kwargs_to_settings, log_settings
 
 
+<<<<<<< HEAD
 device_type = (
     acc.type if (acc := torch.accelerator.current_accelerator(True)) else "cpu"
 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RecompileUxTests(torch._dynamo.test_case.TestCase):
     # TODO(whc) dynamo actually recompiles one more time than the cache limit
     cache_limit = 1
@@ -106,10 +109,14 @@ class RecompileUxTests(torch._dynamo.test_case.TestCase):
             .startswith("torch._dynamo hit config.recompile_limit")
         )
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not torch.cuda.is_available() and not torch.xpu.is_available(),
         "requires cuda or xpu",
     )
+=======
+    @unittest.skipIf(not torch.cuda.is_available(), "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nvfuser_guards(self):
         # we may want to model dynamo's guards sufficiently after nvfuser's ProfilingExecutor guards
         # such that we ensure dynamo is in charge of all the recompilations at the top level,
@@ -117,11 +124,19 @@ class RecompileUxTests(torch._dynamo.test_case.TestCase):
         def func(a, b, c):
             return a + b * c
 
+<<<<<<< HEAD
         a = torch.rand(3, 4, 5, device=device_type)
         b = torch.rand(3, 4, 5, device=device_type)
         b_v = torch.rand(3, 5, 4, device=device_type).view(3, 4, 5)
         b_p = torch.rand(3, 5, 4, device=device_type).permute(0, 2, 1)
         c = torch.rand(3, 4, 5, device=device_type)
+=======
+        a = torch.rand(3, 4, 5, device="cuda")
+        b = torch.rand(3, 4, 5, device="cuda")
+        b_v = torch.rand(3, 5, 4, device="cuda").view(3, 4, 5)
+        b_p = torch.rand(3, 5, 4, device="cuda").permute(0, 2, 1)
+        c = torch.rand(3, 4, 5, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compile_counter = torch._dynamo.testing.CompileCounter()
 
         with torch._dynamo.config.patch("recompile_limit", 2):

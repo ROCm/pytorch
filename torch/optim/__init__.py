@@ -8,7 +8,10 @@ future.
 
 from torch.optim import lr_scheduler as lr_scheduler, swa_utils as swa_utils
 from torch.optim._adafactor import Adafactor as Adafactor
+<<<<<<< HEAD
 from torch.optim._muon import Muon as Muon
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.optim.adadelta import Adadelta as Adadelta
 from torch.optim.adagrad import Adagrad as Adagrad
 from torch.optim.adam import Adam as Adam
@@ -26,7 +29,10 @@ from torch.optim.sparse_adam import SparseAdam as SparseAdam
 
 
 Adafactor.__module__ = "torch.optim"
+<<<<<<< HEAD
 Muon.__module__ = "torch.optim"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 del adadelta  # type: ignore[name-defined] # noqa: F821
@@ -54,7 +60,10 @@ __all__ = [
     "ASGD",
     "LBFGS",
     "lr_scheduler",
+<<<<<<< HEAD
     "Muon",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "NAdam",
     "Optimizer",
     "RAdam",

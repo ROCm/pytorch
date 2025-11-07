@@ -223,6 +223,7 @@ class LoopBody:
         )
         return new_body2
 
+<<<<<<< HEAD
     def expand_dimension_for_pointwise_node(
         self, dimension: int, new_range: int
     ) -> LoopBody:
@@ -270,6 +271,8 @@ class LoopBody:
         )
         return new_body
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reorder_iter_loops(self, new_order) -> LoopBody:
         """
         Reorder iteration loops and return a new LoopBody.

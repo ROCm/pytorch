@@ -79,7 +79,11 @@ class BackendWithCompiler : public PyTorchBackendInterface {
   // forwards everything along. In a non toy setup this could grab information
   // from that runtime that might be relevant to execute, such as build flags
   // the resolution of the devices camera, or basically any runtime specific
+<<<<<<< HEAD
   // information that wouldn't be available server side where preprocess is
+=======
+  // information that wouldnt be available server side where preprocess is
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // called.
   c10::impl::GenericDict compile(
       c10::IValue processed,

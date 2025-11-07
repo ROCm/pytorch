@@ -86,7 +86,11 @@ aotriton::TensorView<Rank> mk_aotensor(const at::Tensor& q, std::string_view ten
 {
   const auto strides = q.strides();
   int real_rank = strides.size();
+<<<<<<< HEAD
   if (real_rank != Rank) {  // Lazy conversion of tensor_name
+=======
+  if (real_rank != Rank) {  // Lazy convertion of tensor_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false,
                 std::string(tensor_name) + "'s rank should be " + std::to_string(Rank)
                 + " but is " + std::to_string(real_rank));

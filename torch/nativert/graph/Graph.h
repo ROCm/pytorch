@@ -584,8 +584,11 @@ class Graph {
   void setWeightsMeta(
       const std::unordered_map<std::string, torch::_export::TensorMeta>&
           tensorsMeta) {
+<<<<<<< HEAD
     TORCH_CHECK(!placementApplied_);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto [name, tensorMeta] : tensorsMeta) {
       weightsMeta_.emplace(name, TensorMeta{tensorMeta});
     }
@@ -607,8 +610,11 @@ class Graph {
   void setTensorValuesMeta(
       const std::unordered_map<std::string, torch::_export::TensorMeta>&
           tensorsMeta) {
+<<<<<<< HEAD
     TORCH_CHECK(!placementApplied_);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto [name, tensorMeta] : tensorsMeta) {
       tensorValuesMeta_.emplace(name, TensorMeta{tensorMeta});
     }
@@ -634,8 +640,11 @@ class Graph {
   friend std::ostream& operator<<(std::ostream& out, const Graph& g);
   GraphSignature signature_;
 
+<<<<<<< HEAD
   bool placementApplied_ = false;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // keys are parameters, buffers, tensor_constants' names
   std::unordered_map<std::string, TensorMeta> weightsMeta_;
 

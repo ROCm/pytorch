@@ -16,14 +16,22 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true
 
+<<<<<<< HEAD
 permissions:
   id-token: write
   contents: read
+=======
+permissions: read-all
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   get-default-label-prefix:
     name: get-default-label-prefix
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -32,6 +40,7 @@ jobs:
       curr_ref_type: ${{ github.ref_type }}
       opt_out_experiments: lf
 
+<<<<<<< HEAD
   nightly-dynamo-benchmarks-build:
     name: nightly-dynamo-benchmarks-build
     uses: ./.github/workflows/_linux-build.yml
@@ -39,6 +48,15 @@ jobs:
     with:
       build-environment: linux-jammy-py3.10-gcc11-build
       docker-image-name: ci-image:pytorch-linux-jammy-py3-gcc11-inductor-benchmarks
+=======
+  linux-jammy-cpu-py3_9-gcc11-nightly-dynamo-benchmarks-build:
+    name: linux-jammy-cpu-py3.9-gcc11-nightly-dynamo-benchmarks
+    uses: ./.github/workflows/_linux-build.yml
+    needs: get-default-label-prefix
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11-inductor-benchmarks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       runner_prefix: "${{ needs.get-default-label-prefix.outputs.label-type }}"
       test-matrix: |
         { include: [
@@ -48,6 +66,7 @@ jobs:
           { config: "dynamic_cpu_max_autotune_inductor_amp_freezing_torchbench", shard: 1, num_shards: 2, runner: "linux.8xlarge.amx" },
           { config: "dynamic_cpu_max_autotune_inductor_amp_freezing_torchbench", shard: 2, num_shards: 2, runner: "linux.8xlarge.amx" },
         ]}
+<<<<<<< HEAD
       build-additional-packages: "vision audio torchao"
     secrets: inherit
 
@@ -59,5 +78,17 @@ jobs:
       build-environment: linux-jammy-py3.10-gcc11-build
       docker-image: ${{ needs.nightly-dynamo-benchmarks-build.outputs.docker-image }}
       test-matrix: ${{ needs.nightly-dynamo-benchmarks-build.outputs.test-matrix }}
+=======
+    secrets: inherit
+
+  linux-jammy-cpu-py3_9-gcc11-nightly-dynamo-benchmarks-test:
+    name: linux-jammy-cpu-py3.9-gcc11-nightly-dynamo-benchmarks
+    uses: ./.github/workflows/_linux-test.yml
+    needs: linux-jammy-cpu-py3_9-gcc11-nightly-dynamo-benchmarks-build
+    with:
+      build-environment: linux-jammy-py3.9-gcc11-build
+      docker-image: ${{ needs.linux-jammy-cpu-py3_9-gcc11-nightly-dynamo-benchmarks-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-cpu-py3_9-gcc11-nightly-dynamo-benchmarks-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       timeout-minutes: 720
     secrets: inherit

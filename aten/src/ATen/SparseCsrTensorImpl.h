@@ -86,7 +86,11 @@ struct TORCH_API SparseCsrTensorImpl : public TensorImpl {
  protected:
   IntArrayRef strides_custom() const override;
   SymIntArrayRef sym_strides_custom() const override;
+<<<<<<< HEAD
   SymBool sym_is_contiguous_custom(MemoryFormat) const override;
+=======
+  bool is_contiguous_custom(MemoryFormat) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  public:
   void set_size(int64_t dim, int64_t new_size) override;

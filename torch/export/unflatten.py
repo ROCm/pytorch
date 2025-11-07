@@ -15,10 +15,17 @@ import torch
 import torch.fx._pytree as fx_pytree
 import torch.utils._pytree as pytree
 from torch._library.fake_class_registry import FakeScriptObject
+<<<<<<< HEAD
 from torch.export import ExportedProgram
 from torch.export._tree_utils import reorder_kwargs
 from torch.export.exported_program import (
     ConstantArgument,
+=======
+from torch.export._tree_utils import reorder_kwargs
+from torch.export.exported_program import (
+    ConstantArgument,
+    ExportedProgram,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ExportGraphSignature,
     InputKind,
     ModuleCallSignature,
@@ -27,7 +34,11 @@ from torch.export.exported_program import (
     SymIntArgument,
     TensorArgument,
 )
+<<<<<<< HEAD
 from torch.fx._symbolic_trace import is_fx_symbolic_tracing
+=======
+from torch.fx._symbolic_trace import is_fx_tracing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.graph_module import _get_attr, _get_attr_via_attr_list, _print_readable
 from torch.utils._pytree import GetAttrKey, SequenceKey
 
@@ -53,6 +64,7 @@ class _AttrKind(Enum):
     MODULE = "module"
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True)
 class _TensorID:
     """Custom tensor identifier containing storage, stride, and size information."""
@@ -63,6 +75,8 @@ class _TensorID:
     storage_offset: int
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 RUN_WITH_INTERPRETER = True
 
 
@@ -134,11 +148,14 @@ class _SubmoduleBase:
     _ty: Optional[str]
 
     def type_name(self) -> Optional[str]:
+<<<<<<< HEAD
         """
         Subclass of this class - InterpreterModule, InterpreterModuleDispatcher, represents
         corresponding model in eager model. To get this type information for those modules
         in eager model we need to use this method.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._ty
 
 
@@ -163,7 +180,11 @@ class InterpreterModule(_SubmoduleBase, torch.nn.Module):
 
     def forward(self, *args, **kwargs):
         assert self.graph_module is not None, "Didn't finalize this InterpreterModule"
+<<<<<<< HEAD
         if not is_fx_symbolic_tracing() and (
+=======
+        if not is_fx_tracing() and (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.compiler.is_dynamo_compiling() or not self._run_with_interpreter
         ):
             # Dynamo cannot trace through torch.fx.Interpreter, so fall back to
@@ -295,10 +316,13 @@ class FlatArgsAdapter(abc.ABC):
         """NOTE: This adapter may mutate given ``input_args_with_path``."""
         ...
 
+<<<<<<< HEAD
     def get_flat_arg_paths(self) -> list[str]:
         """Returns a list of paths that are used to access the flat args."""
         return []
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class UnflattenedModule(torch.nn.Module):
     def __init__(
@@ -310,6 +334,7 @@ class UnflattenedModule(torch.nn.Module):
         if export_module.graph_signature.backward_signature is not None:
             raise ValueError("Unflattening on JointExportModule NYI")
 
+<<<<<<< HEAD
         def _id(obj):
             """Returns _TensorID dataclass for tensors, otherwise id()."""
             if isinstance(obj, torch.Tensor):
@@ -321,6 +346,8 @@ class UnflattenedModule(torch.nn.Module):
                 )
             return id(obj)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fqn_list = [entry.fqn for entry in export_module.module_call_graph]
         assert fqn_list[0] == ""
         export_graph = deepcopy(export_module.graph)
@@ -338,7 +365,10 @@ class UnflattenedModule(torch.nn.Module):
         self._run_with_interpreter = RUN_WITH_INTERPRETER
 
         _inplace_buffer_and_input_mutations(export_graph, self.graph_signature)
+<<<<<<< HEAD
         _fix_nn_module_stacks(export_graph)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.ivals = _IVals()
         # for any intermediate value of a mutation that is read, track the mutation
@@ -365,6 +395,7 @@ class UnflattenedModule(torch.nn.Module):
         # graph's forward pass (_sink_params).
         state_dict = export_module.state_dict
         assigned_params: set[str] = set()  # tracking unused params
+<<<<<<< HEAD
         id_to_param: dict[
             Union[int, _TensorID], torch.nn.Parameter
         ] = {}  # handling weight-sharing
@@ -372,11 +403,22 @@ class UnflattenedModule(torch.nn.Module):
             param = state_dict[name]
             if _id(param) not in id_to_param:
                 id_to_param[_id(param)] = torch.nn.Parameter(
+=======
+        id_to_param: dict[int, torch.nn.Parameter] = {}  # handling weight-sharing
+        for name in self.graph_signature.parameters:  # this loop adds used params
+            param = state_dict[name]
+            if id(param) not in id_to_param:
+                id_to_param[id(param)] = torch.nn.Parameter(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     param.clone(), requires_grad=param.requires_grad
                 )
 
             _assign_attr(
+<<<<<<< HEAD
                 id_to_param[_id(param)],
+=======
+                id_to_param[id(param)],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self,
                 name,
                 attr_kind=_AttrKind.PARAMETER,
@@ -385,7 +427,11 @@ class UnflattenedModule(torch.nn.Module):
 
         non_persistent_buffers = set(self.graph_signature.non_persistent_buffers)
         assigned_buffers: set[str] = set()  # tracking unused buffers
+<<<<<<< HEAD
         id_to_buffer: dict[Union[int, _TensorID], tuple[torch.nn.Parameter, bool]] = {}
+=======
+        id_to_buffer: dict[int, tuple[torch.nn.Parameter, bool]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for name in self.graph_signature.buffers:  # this loop adds used buffers
             if name in non_persistent_buffers:
                 persistent = False
@@ -394,11 +440,19 @@ class UnflattenedModule(torch.nn.Module):
                 persistent = True
                 buffer = state_dict[name]
 
+<<<<<<< HEAD
             if _id(buffer) not in id_to_buffer:
                 id_to_buffer[_id(buffer)] = (buffer.clone(), persistent)
 
             _assign_attr(
                 id_to_buffer[_id(buffer)][0],
+=======
+            if id(buffer) not in id_to_buffer:
+                id_to_buffer[id(buffer)] = (buffer.clone(), persistent)
+
+            _assign_attr(
+                id_to_buffer[id(buffer)][0],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self,
                 name,
                 attr_kind=_AttrKind.BUFFER,
@@ -413,37 +467,59 @@ class UnflattenedModule(torch.nn.Module):
                 continue
 
             is_buffer = False
+<<<<<<< HEAD
             if _id(tensor) in id_to_buffer or not isinstance(
+=======
+            if id(tensor) in id_to_buffer or not isinstance(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 tensor, torch.nn.Parameter
             ):  # aliased buffer
                 is_buffer = True
 
             if is_buffer:
                 if (
+<<<<<<< HEAD
                     _id(tensor) not in id_to_buffer
                 ):  # this is completely unused (not weight-sharing)
                     id_to_buffer[_id(tensor)] = (
+=======
+                    id(tensor) not in id_to_buffer
+                ):  # this is completely unused (not weight-sharing)
+                    id_to_buffer[id(tensor)] = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         tensor,
                         True,
                     )  # assign to respect original model
                 _assign_attr(
+<<<<<<< HEAD
                     id_to_buffer[_id(tensor)][0],
+=======
+                    id_to_buffer[id(tensor)][0],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self,
                     name,
                     attr_kind=_AttrKind.BUFFER,
                     persistent=True,
                 )
             else:
+<<<<<<< HEAD
                 if _id(tensor) not in id_to_param:  # this is unused
                     id_to_param[_id(tensor)] = tensor
                 _assign_attr(
                     id_to_param[_id(tensor)],
+=======
+                if id(tensor) not in id_to_param:  # this is unused
+                    id_to_param[id(tensor)] = tensor
+                _assign_attr(
+                    id_to_param[id(tensor)],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self,
                     name,
                     attr_kind=_AttrKind.PARAMETER,
                 )
 
         # use id map so we don't double-clone aliased constants
+<<<<<<< HEAD
         id_to_const: dict[
             Union[int, _TensorID], Union[torch.Tensor, torch._C.ScriptObject]
         ] = {}
@@ -453,6 +529,15 @@ class UnflattenedModule(torch.nn.Module):
                     constant = constant.clone()
                 id_to_const[_id(constant)] = constant
             _constant = id_to_const[_id(constant)]
+=======
+        id_to_const: dict[int, Union[torch.Tensor, torch._C.ScriptObject]] = {}
+        for fqn, constant in export_module.constants.items():
+            if id(constant) not in id_to_const:
+                if isinstance(constant, torch.Tensor):
+                    constant = constant.clone()
+                id_to_const[id(constant)] = constant
+            _constant = id_to_const[id(constant)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _assign_attr(
                 _constant,
                 self,
@@ -462,18 +547,26 @@ class UnflattenedModule(torch.nn.Module):
 
         # This is to handle parameters/buffers that point to the same tensor
         # object id -> list of (node_name, target_name)
+<<<<<<< HEAD
         consts_map: dict[Union[int, _TensorID], list[tuple[str, str]]] = defaultdict(
             list
         )
+=======
+        consts_map: dict[int, list[tuple[str, str]]] = defaultdict(list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         consts_targets: set[str] = set()
 
         def add_to_consts_map(obj_id, node_name, target_name):
             name_list = consts_map[obj_id]
             name_list.append((node_name, target_name))
 
+<<<<<<< HEAD
         # track aliased/unused params, buffers
         # prefer using untyped_storage() over id() when it's available
         added_params_buffers: set[str] = set()
+=======
+        added_params_buffers: set[str] = set()  # track aliased/unused params, buffers
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for s in self.graph_signature.input_specs:
             if s.kind == InputKind.PARAMETER or (
                 s.kind == InputKind.BUFFER and s.persistent
@@ -481,47 +574,76 @@ class UnflattenedModule(torch.nn.Module):
                 assert hasattr(s.arg, "name")
                 assert isinstance(s.target, str)
                 add_to_consts_map(
+<<<<<<< HEAD
                     _id(export_module.state_dict[s.target]),
                     s.arg.name,
                     s.target,
+=======
+                    id(export_module.state_dict[s.target]), s.arg.name, s.target
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 consts_targets.add(s.target)
                 added_params_buffers.add(s.target)
             elif (
+<<<<<<< HEAD
                 s.kind == InputKind.BUFFER
                 and not s.persistent
+=======
+                (s.kind == InputKind.BUFFER and not s.persistent)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 or s.kind == InputKind.CONSTANT_TENSOR
                 or s.kind == InputKind.CUSTOM_OBJ
             ):
                 assert hasattr(s.arg, "name")
                 assert isinstance(s.target, str)
                 add_to_consts_map(
+<<<<<<< HEAD
                     _id(export_module.constants[s.target]),
                     s.arg.name,
                     s.target,
+=======
+                    id(export_module.constants[s.target]), s.arg.name, s.target
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 consts_targets.add(s.target)
 
         # add constants that are aliased and don't appear in graph signature
         for const_name, const in export_module.constants.items():
             if const_name not in consts_targets:
+<<<<<<< HEAD
                 const_id = _id(const)
                 assert const_id in consts_map
                 ph_name, _ = consts_map[const_id][0]
                 add_to_consts_map(const_id, ph_name, const_name)
+=======
+                assert id(const) in consts_map, (
+                    "Constants should be either aliased or appear in graph signature"
+                )
+                ph_name, _ = consts_map[id(const)][0]
+                add_to_consts_map(id(const), ph_name, const_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 added_params_buffers.add(s.target)
 
         # add aliased/unused params and buffers that don't appear in graph signature
         for fqn, tensor in export_module.state_dict.items():
             if fqn not in added_params_buffers:
+<<<<<<< HEAD
                 tensor_id = _id(tensor)
                 if tensor_id not in consts_map:
+=======
+                if id(tensor) not in consts_map:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # completely unused (no weight-sharing), ignore.
                     # this weight doesn't appear in graph module,
                     # so won't cause FQN assignment issues
                     continue
+<<<<<<< HEAD
                 ph_name, _ = consts_map[tensor_id][0]
                 add_to_consts_map(tensor_id, ph_name, fqn)
+=======
+                ph_name, _ = consts_map[id(tensor)][0]
+                add_to_consts_map(id(tensor), ph_name, fqn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # node name -> list of possible targets
         inputs_to_state: dict[str, list[str]] = {}
@@ -600,7 +722,11 @@ class UnflattenedModule(torch.nn.Module):
         )
         flat_args = [x[1] for x in flat_args_with_path]
 
+<<<<<<< HEAD
         if is_fx_symbolic_tracing():
+=======
+        if is_fx_tracing():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return flat_args
 
         if in_spec != signature.in_spec:
@@ -620,6 +746,7 @@ class UnflattenedModule(torch.nn.Module):
             from torch._export.utils import _check_input_constraints_for_graph
 
             if self.adapted is True:
+<<<<<<< HEAD
                 flat_arg_paths = (
                     self.flat_args_adapter.get_flat_arg_paths()
                     if self.flat_args_adapter
@@ -639,6 +766,14 @@ class UnflattenedModule(torch.nn.Module):
                         arg,
                     )
                     for idx, arg in enumerate(flat_args)
+=======
+                # TODO(suo): The FlatArgsAdapter returns a list of flat args,
+                # which we don't have keypaths for. For now, just create a dummy
+                # keypath to associate with the arg.
+                new_flat_args_with_path = [  # type: ignore[var-annotated]
+                    ((SequenceKey(idx=0), GetAttrKey(name="<unknown location>")), arg)
+                    for arg in flat_args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             else:
                 new_flat_args_with_path = flat_args_with_path  # type: ignore[assignment]
@@ -650,10 +785,20 @@ class UnflattenedModule(torch.nn.Module):
         return flat_args
 
     def forward(self, *args, **kwargs):
+<<<<<<< HEAD
         flat_args = self.process_forward_inputs(*args, **kwargs)
         signature = self.module_call_graph[0].signature
 
         if is_fx_symbolic_tracing():
+=======
+        flat_args = torch._dynamo.disable(
+            self.process_forward_inputs,
+            reason="do not trace into preprocessing the inputs",
+        )(*args, **kwargs)
+        signature = self.module_call_graph[0].signature
+
+        if is_fx_tracing():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return_val = torch.fx.Interpreter(self, graph=self.graph).run(
                 *flat_args, enable_io_processing=False
             )
@@ -755,7 +900,11 @@ def unflatten(
     """Unflatten an ExportedProgram, producing a module with the same module
     hierarchy as the original eager module. This can be useful if you are trying
     to use :mod:`torch.export` with another system that expects a module
+<<<<<<< HEAD
     hierarchy instead of the flat graph that :mod:`torch.export` usually produces.
+=======
+    hierachy instead of the flat graph that :mod:`torch.export` usually produces.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note:: The args/kwargs of unflattened modules will not necessarily match
         the eager module, so doing a module swap (e.g. :code:`self.submod =
@@ -772,6 +921,7 @@ def unflatten(
         hierarchy as the original eager module pre-export.
     """
     module = _remove_effect_tokens(module)
+<<<<<<< HEAD
     m = UnflattenedModule(module, flat_args_adapter)
 
     # Disable process_forward_inputs as the adapter has many
@@ -783,6 +933,9 @@ def unflatten(
     )
 
     return m
+=======
+    return UnflattenedModule(module, flat_args_adapter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _inplace_buffer_and_input_mutations(
@@ -857,6 +1010,7 @@ def _inplace_buffer_and_input_mutations(
     output_node.args = ((user_outputs),)
 
 
+<<<<<<< HEAD
 def _fix_nn_module_stacks(graph):
     # For each nn module stack in the graph, check if the fqns in it represent a stack:
     # 1. Each fqn must be a prefix of the next fqn.
@@ -896,6 +1050,8 @@ def _fix_nn_module_stacks(graph):
             )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _is_prefix(candidate, target):
     """Check whether `candidate` is a prefix of `target`."""
     return len(candidate) < len(target) and target[: len(candidate)] == candidate

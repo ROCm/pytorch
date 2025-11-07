@@ -31,12 +31,16 @@ class SparseAdam(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 1: {betas[1]}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "betas": betas,
             "eps": eps,
             "maximize": maximize,
         }
+=======
+        defaults = dict(lr=lr, betas=betas, eps=eps, maximize=maximize)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
         sparse_params = []

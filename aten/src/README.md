@@ -8,7 +8,11 @@ multiple variants of the library, summarized here:
 * THC = TorcH Cuda
 * THCS = TorcH Cuda Sparse (now defunct)
 * THNN = TorcH Neural Network (now defunct)
+<<<<<<< HEAD
 * THS = TorcH Sparse (now defunct)  <!-- codespell:ignore -->
+=======
+* THS = TorcH Sparse (now defunct)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 (You'll also see these abbreviations show up in symbol names.)
 

@@ -145,7 +145,11 @@ class _KinetoProfile:
         execution_trace_observer: Optional[_ITraceObserver] = None,
         acc_events: bool = False,
         custom_trace_id_callback: Optional[Callable[[], str]] = None,
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.activities = set(activities) if activities else supported_activities()
         self.record_shapes = record_shapes
         self.with_flops = with_flops
@@ -174,6 +178,7 @@ class _KinetoProfile:
         # user-defined metadata to be amended to the trace
         self.preset_metadata: dict[str, str] = {}
 
+<<<<<<< HEAD
     def start(self) -> None:
         self.prepare_trace()
         self.start_trace()
@@ -182,6 +187,16 @@ class _KinetoProfile:
         self.stop_trace()
 
     def prepare_trace(self) -> None:
+=======
+    def start(self):
+        self.prepare_trace()
+        self.start_trace()
+
+    def stop(self):
+        self.stop_trace()
+
+    def prepare_trace(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if hasattr(torch, "_inductor"):
             import torch._inductor.config as inductor_config
 
@@ -202,7 +217,11 @@ class _KinetoProfile:
             )
         self.profiler._prepare_trace()
 
+<<<<<<< HEAD
     def start_trace(self) -> None:
+=======
+    def start_trace(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.execution_trace_observer:
             self.execution_trace_observer.start()
         assert self.profiler is not None
@@ -248,7 +267,11 @@ class _KinetoProfile:
             for k, v in self.preset_metadata.items():
                 self.add_metadata_json(k, v)
 
+<<<<<<< HEAD
     def stop_trace(self) -> None:
+=======
+    def stop_trace(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.execution_trace_observer:
             self.execution_trace_observer.stop()
         assert self.profiler is not None
@@ -284,7 +307,11 @@ class _KinetoProfile:
 
     def toggle_collection_dynamic(
         self, enable: bool, activities: Iterable[ProfilerActivity]
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Toggle collection of activities on/off at any point of collection. Currently supports toggling Torch Ops
         (CPU) and CUDA activity supported in Kineto
 
@@ -341,7 +368,11 @@ class _KinetoProfile:
         assert self.profiler
         return self.profiler.function_events
 
+<<<<<<< HEAD
     def add_metadata(self, key: str, value: str) -> None:
+=======
+    def add_metadata(self, key: str, value: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Adds a user defined metadata with a string key and a string value
         into the trace file
@@ -349,14 +380,22 @@ class _KinetoProfile:
         wrapped_value = '"' + value.replace('"', '\\"') + '"'
         torch.autograd._add_metadata_json(key, wrapped_value)
 
+<<<<<<< HEAD
     def add_metadata_json(self, key: str, value: str) -> None:
+=======
+    def add_metadata_json(self, key: str, value: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Adds a user defined metadata with a string key and a valid json value
         into the trace file
         """
         torch.autograd._add_metadata_json(key, value)
 
+<<<<<<< HEAD
     def preset_metadata_json(self, key: str, value: str) -> None:
+=======
+    def preset_metadata_json(self, key: str, value: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Preset a user defined metadata when the profiler is not started
         and added into the trace file later.
@@ -527,6 +566,10 @@ def tensorboard_trace_handler(
     ``worker_name`` should be unique for each worker in distributed scenario,
     it will be set to '[hostname]_[pid]' by default.
     """
+<<<<<<< HEAD
+=======
+    import os
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import socket
     import time
 
@@ -623,7 +666,12 @@ class profile(_KinetoProfile):
             ]
         ) as p:
             code_to_profile()
+<<<<<<< HEAD
         print(p.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1))
+=======
+        print(p.key_averages().table(
+            sort_by="self_cuda_time_total", row_limit=-1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Using the profiler's ``schedule``, ``on_trace_ready`` and ``step`` functions:
 
@@ -633,17 +681,28 @@ class profile(_KinetoProfile):
         # on different iterations of the training loop;
         # trace_handler is called every time a new trace becomes available
         def trace_handler(prof):
+<<<<<<< HEAD
             print(
                 prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=-1)
             )
             # prof.export_chrome_trace("/tmp/test_trace_" + str(prof.step_num) + ".json")
 
 
+=======
+            print(prof.key_averages().table(
+                sort_by="self_cuda_time_total", row_limit=-1))
+            # prof.export_chrome_trace("/tmp/test_trace_" + str(prof.step_num) + ".json")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch.profiler.profile(
             activities=[
                 torch.profiler.ProfilerActivity.CPU,
                 torch.profiler.ProfilerActivity.CUDA,
             ],
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # In this example with wait=1, warmup=1, active=2, repeat=1,
             # profiler will skip the first step/iteration,
             # start warming up on the second, record
@@ -651,6 +710,7 @@ class profile(_KinetoProfile):
             # after which the trace will become available
             # and on_trace_ready (when set) is called;
             # the cycle repeats starting with the next step
+<<<<<<< HEAD
             schedule=torch.profiler.schedule(wait=1, warmup=1, active=2, repeat=1),
             on_trace_ready=trace_handler,
             # on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
@@ -660,6 +720,22 @@ class profile(_KinetoProfile):
                 code_iteration_to_profile(iter)
                 # send a signal to the profiler that the next iteration has started
                 p.step()
+=======
+
+            schedule=torch.profiler.schedule(
+                wait=1,
+                warmup=1,
+                active=2,
+                repeat=1),
+            on_trace_ready=trace_handler
+            # on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
+            # used when outputting for tensorboard
+            ) as p:
+                for iter in range(N):
+                    code_iteration_to_profile(iter)
+                    # send a signal to the profiler that the next iteration has started
+                    p.step()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     The following sample shows how to setup up an Execution Trace Observer (`execution_trace_observer`)
 
@@ -696,7 +772,11 @@ class profile(_KinetoProfile):
         # deprecated:
         use_cuda: Optional[bool] = None,
         custom_trace_id_callback: Optional[Callable[[], str]] = None,
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         activities_set = set(activities) if activities else supported_activities()
         if use_cuda is not None:
             warn(
@@ -812,7 +892,11 @@ class profile(_KinetoProfile):
         if self.execution_trace_observer:
             self.execution_trace_observer.cleanup()
 
+<<<<<<< HEAD
     def start(self) -> None:
+=======
+    def start(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._transit_action(ProfilerAction.NONE, self.current_action)
         if self.record_steps:
             self.step_rec_fn = prof.record_function(
@@ -820,12 +904,20 @@ class profile(_KinetoProfile):
             )
             self.step_rec_fn.__enter__()
 
+<<<<<<< HEAD
     def stop(self) -> None:
+=======
+    def stop(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.record_steps and self.step_rec_fn:
             self.step_rec_fn.__exit__(None, None, None)
         self._transit_action(self.current_action, None)
 
+<<<<<<< HEAD
     def step(self) -> None:
+=======
+    def step(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Signals the profiler that the next profiling step has started.
         """
@@ -847,7 +939,11 @@ class profile(_KinetoProfile):
             )
             self.step_rec_fn.__enter__()
 
+<<<<<<< HEAD
     def set_custom_trace_id_callback(self, callback) -> None:
+=======
+    def set_custom_trace_id_callback(self, callback):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Sets a callback to be called when a new trace ID is generated.
         """
@@ -861,11 +957,19 @@ class profile(_KinetoProfile):
             return None
         return self.profiler.trace_id
 
+<<<<<<< HEAD
     def _trace_ready(self) -> None:
         if self.on_trace_ready:
             self.on_trace_ready(self)
 
     def _transit_action(self, prev_action, current_action) -> None:
+=======
+    def _trace_ready(self):
+        if self.on_trace_ready:
+            self.on_trace_ready(self)
+
+    def _transit_action(self, prev_action, current_action):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         action_list = self.action_map.get((prev_action, current_action))
         if action_list:
             for action in action_list:
@@ -903,7 +1007,11 @@ class ExecutionTraceObserver(_ITraceObserver):
         self.output_file_path: str = ""
         self.output_file_path_observer: str = ""
 
+<<<<<<< HEAD
     def __del__(self) -> None:
+=======
+    def __del__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Calls unregister_callback() to make sure to finalize outputs.
         """
@@ -1015,7 +1123,11 @@ class ExecutionTraceObserver(_ITraceObserver):
                 return None
         return resource_dir
 
+<<<<<<< HEAD
     def unregister_callback(self) -> None:
+=======
+    def unregister_callback(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Removes ET observer from record function callbacks.
         """
@@ -1081,7 +1193,11 @@ class ExecutionTraceObserver(_ITraceObserver):
         """
         return self._execution_trace_running
 
+<<<<<<< HEAD
     def start(self) -> None:
+=======
+    def start(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Starts to capture.
         """
@@ -1090,7 +1206,11 @@ class ExecutionTraceObserver(_ITraceObserver):
             self._execution_trace_running = True
             self._record_pg_config()
 
+<<<<<<< HEAD
     def stop(self) -> None:
+=======
+    def stop(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Stops to capture.
         """
@@ -1098,7 +1218,11 @@ class ExecutionTraceObserver(_ITraceObserver):
             _disable_execution_trace_observer()
             self._execution_trace_running = False
 
+<<<<<<< HEAD
     def cleanup(self) -> None:
+=======
+    def cleanup(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Calls unregister_callback() to make sure to finalize outputs.
         """

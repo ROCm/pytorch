@@ -359,8 +359,13 @@ void SimpleValue::setAttr(
         throw(
             ErrorReport(loc)
             << "Assignment to attribute '" << field
+<<<<<<< HEAD
             << "' cannot be of a type that contains class " << "'"
             << classType->repr_str() << "'.\n"
+=======
+            << "' cannot be of a type that contains class "
+            << "'" << classType->repr_str() << "'.\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             << "Classes that recursively contain instances of themselves"
             << " are not yet supported");
       }
@@ -826,6 +831,7 @@ SugaredValuePtr SugaredEnumClass::iter(
   return enum_values_list_constant;
 }
 
+<<<<<<< HEAD
 std::shared_ptr<SugaredValue> TorchCheckValue::call(
     const SourceRange& loc,
     GraphFunction& m,
@@ -904,4 +910,6 @@ std::shared_ptr<SugaredValue> TorchCheckValue::call(
   return std::make_shared<NoneValue>();
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit

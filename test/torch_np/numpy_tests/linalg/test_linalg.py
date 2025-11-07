@@ -1,6 +1,12 @@
 # Owner(s): ["module: dynamo"]
+<<<<<<< HEAD
 """Test functions for linalg module"""
 
+=======
+""" Test functions for linalg module
+
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import itertools
 import os
@@ -488,7 +494,11 @@ class SolveCases(LinalgSquareTestCase, LinalgGeneralizedSquareTestCase):
     # kept apart from TestSolve for use for testing with matrices.
     def do(self, a, b, tags):
         x = linalg.solve(a, b)
+<<<<<<< HEAD
         assert_almost_equal(b, dot_generalized(a, x), single_decimal=5)
+=======
+        assert_almost_equal(b, dot_generalized(a, x))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert_(consistent_subclass(x, b))
 
 

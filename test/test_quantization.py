@@ -38,6 +38,16 @@ from quantization.core.test_workflow_module import TestDistributed  # noqa: F401
 from quantization.core.test_workflow_module import TestFusedObsFakeQuantModule  # noqa: F401
 from quantization.core.test_backend_config import TestBackendConfig  # noqa: F401
 from quantization.core.test_utils import TestUtils  # noqa: F401
+<<<<<<< HEAD
+=======
+log = logging.getLogger(__name__)
+try:
+    # This test has extra data dependencies, so in some environments, e.g. Meta internal
+    # Buck, it has its own test runner.
+    from quantization.core.test_docs import TestQuantizationDocs  # noqa: F401
+except ImportError as e:
+    log.warning(e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Eager Mode Workflow. Tests for the functionality of APIs and different features implemented
 # using eager mode.
@@ -60,7 +70,10 @@ from quantization.eager.test_equalize_eager import TestEqualizeEager  # noqa: F4
 from quantization.eager.test_bias_correction_eager import TestBiasCorrectionEager  # noqa: F401
 
 
+<<<<<<< HEAD
 log = logging.getLogger(__name__)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # FX GraphModule Graph Mode Quantization. Tests for the functionality of APIs and different features implemented
 # using fx quantization.
 try:

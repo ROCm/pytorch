@@ -13,7 +13,15 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
+<<<<<<< HEAD
 class Future(torch._C.Future, Generic[T]):
+=======
+class _PyFutureMeta(type(torch._C.Future), type(Generic)):  # type: ignore[misc, no-redef]
+    pass
+
+
+class Future(torch._C.Future, Generic[T], metaclass=_PyFutureMeta):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Wrapper around a ``torch._C.Future`` which encapsulates an asynchronous
     execution of a callable, e.g. :meth:`~torch.distributed.rpc.rpc_async`. It

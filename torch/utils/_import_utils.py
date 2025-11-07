@@ -3,6 +3,11 @@ import importlib.util
 from types import ModuleType
 from typing import Optional
 
+<<<<<<< HEAD
+=======
+import torch
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _check_module_exists(name: str) -> bool:
     r"""Returns if a top-level module with :attr:`name` exists *without**
@@ -20,7 +25,15 @@ def _check_module_exists(name: str) -> bool:
 
 @functools.lru_cache
 def dill_available() -> bool:
+<<<<<<< HEAD
     return _check_module_exists("dill")
+=======
+    return (
+        _check_module_exists("dill")
+        # dill fails to import under torchdeploy
+        and not torch._running_with_deploy()
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @functools.lru_cache

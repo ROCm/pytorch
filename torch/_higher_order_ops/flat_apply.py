@@ -108,7 +108,11 @@ def impl(func, in_spec, *flat_args):
     #
     # TODO: The following can be updated to support non-graphable outputs and pytrees.
     # For non-graphable constant outputs: the assumption would be that they are constant
+<<<<<<< HEAD
     # (every time the function runs those MUST be the same)
+=======
+    # (everytime the function runs those MUST be the same)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # For pytree outputs:
     # I'm not sure if we need to return (flat_output, spec) or just (flat_output,):
     # in the latter case the tracers need to carry out the output specs

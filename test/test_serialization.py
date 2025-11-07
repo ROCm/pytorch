@@ -61,7 +61,10 @@ from torch.testing._internal.common_utils import (
 )
 from torch.testing._internal.two_tensor import TwoTensor  # noqa: F401
 from torch.utils._import_utils import import_dill
+<<<<<<< HEAD
 from pickle import UnpicklingError
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if not IS_WINDOWS:
@@ -747,7 +750,11 @@ class SerializationMixin:
                                           'readinto() stress test')
 
     def test_serialization_filelike_uses_readinto(self):
+<<<<<<< HEAD
         # For maximum efficiency, when reading a file-like object,
+=======
+        # For maximum effiency, when reading a file-like object,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # ensure the C API calls readinto instead of read.
         a = torch.randn(5, 4)
 
@@ -1357,6 +1364,7 @@ class TestSerialization(TestCase, SerializationMixin):
                                             "file an issue with the following so that we can make `weights_only=True`"):
                     torch.load(f, weights_only=True)
 
+<<<<<<< HEAD
     def test_weights_only_blocked_func_error_msg(self):
         import datetime
         import zoneinfo
@@ -1390,6 +1398,8 @@ class TestSerialization(TestCase, SerializationMixin):
                 loaded_data = torch.load(f)
                 self.assertEqual(loaded_data, data)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize('weights_only', (False, True))
     def test_serialization_math_bits(self, weights_only):
         t = torch.randn(1, dtype=torch.cfloat)

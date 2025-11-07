@@ -21,10 +21,13 @@ bool isMTIAHooksBuilt() {
 
 } // namespace detail
 
+<<<<<<< HEAD
 bool MTIAHooksInterface::isAvailable() const {
   return detail::isMTIAHooksBuilt() && detail::getMTIAHooks().deviceCount() > 0;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 C10_DEFINE_REGISTRY(MTIAHooksRegistry, MTIAHooksInterface, MTIAHooksArgs)
 
 } // namespace at

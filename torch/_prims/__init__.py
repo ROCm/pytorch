@@ -302,7 +302,11 @@ def _make_prim(
         else:
             return _prim_impl(*args, **kwargs)
 
+<<<<<<< HEAD
     name = schema.split("(", maxsplit=1)[0]
+=======
+    name = schema.split("(")[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     schema = schema[len(name) :]
 
     # register non-functional ops with old custom ops API
@@ -2174,7 +2178,11 @@ def _resize_aten(a: Tensor, shape: ShapeType) -> Tensor:
 _resize_doc = """
   Gives a tensor with no elements a new shape, returning the modified tensor.
 
+<<<<<<< HEAD
   The tensor's strides are contiguous and its values are uninitialized.
+=======
+  The tensor's strides are contiguous and its values are unitialized.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   """
 
 # TODO: review support arbitrary resizes
@@ -2513,11 +2521,15 @@ def _full_aten(
 ) -> Tensor:
     # Note that Mypy thinks torch.full can't accept a complex fill_value
     return torch.full(
+<<<<<<< HEAD
         shape,
         fill_value,
         dtype=dtype,
         device=device,
         requires_grad=requires_grad,  # type: ignore[arg-type]
+=======
+        shape, fill_value, dtype=dtype, device=device, requires_grad=requires_grad  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -2560,11 +2572,15 @@ def _full_like_aten(
 ) -> Tensor:
     # Note that Mypy thinks torch.full can't accept a complex fill_value
     return torch.full_like(
+<<<<<<< HEAD
         a,
         fill_value,
         dtype=dtype,
         device=device,
         requires_grad=requires_grad,  # type: ignore[arg-type]
+=======
+        a, fill_value, dtype=dtype, device=device, requires_grad=requires_grad  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 

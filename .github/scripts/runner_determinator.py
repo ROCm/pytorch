@@ -262,12 +262,16 @@ def is_exception_branch(branch: str) -> bool:
     """
     Branches that get opted out of experiments by default, until they're explicitly enabled.
     """
+<<<<<<< HEAD
     return branch.split("/", maxsplit=1)[0] in {
         "main",
         "nightly",
         "release",
         "landchecks",
     }
+=======
+    return branch.split("/")[0] in {"main", "nightly", "release", "landchecks"}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def load_yaml(yaml_text: str) -> Any:

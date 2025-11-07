@@ -44,9 +44,12 @@ class Identity(Module):
         super().__init__()
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return input
 
 
@@ -115,9 +118,12 @@ class Linear(Module):
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
+<<<<<<< HEAD
         """
         Resets parameters based on their initialization used in ``__init__``.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Setting a=sqrt(5) in kaiming_uniform is the same as initializing with
         # uniform(-1/sqrt(in_features), 1/sqrt(in_features)). For details, see
         # https://github.com/pytorch/pytorch/issues/57109
@@ -128,6 +134,7 @@ class Linear(Module):
             init.uniform_(self.bias, -bound, bound)
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -137,6 +144,11 @@ class Linear(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.linear(input, self.weight, self.bias)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"in_features={self.in_features}, out_features={self.out_features}, bias={self.bias is not None}"
 
 
@@ -230,15 +242,19 @@ class Bilinear(Module):
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
+<<<<<<< HEAD
         """
         Resets parameters based on their initialization used in ``__init__``.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         bound = 1 / math.sqrt(self.weight.size(1))
         init.uniform_(self.weight, -bound, bound)
         if self.bias is not None:
             init.uniform_(self.bias, -bound, bound)
 
     def forward(self, input1: Tensor, input2: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
@@ -248,6 +264,11 @@ class Bilinear(Module):
         """
         Return the extra representation of the module.
         """
+=======
+        return F.bilinear(input1, input2, self.weight, self.bias)
+
+    def extra_repr(self) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             f"in1_features={self.in1_features}, in2_features={self.in2_features}, "
             f"out_features={self.out_features}, bias={self.bias is not None}"
@@ -300,16 +321,22 @@ class LazyLinear(LazyModuleMixin, Linear):
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def reset_parameters(self) -> None:
+<<<<<<< HEAD
         """
         Resets parameters based on their initialization used in ``__init__``.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.has_uninitialized_params() and self.in_features != 0:
             super().reset_parameters()
 
     def initialize_parameters(self, input) -> None:  # type: ignore[override]
+<<<<<<< HEAD
         """
         Infers ``in_features`` based on ``input`` and initializes parameters.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.has_uninitialized_params():
             with torch.no_grad():
                 self.in_features = input.shape[-1]

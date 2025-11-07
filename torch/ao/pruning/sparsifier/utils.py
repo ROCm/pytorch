@@ -98,7 +98,11 @@ def get_arg_info_from_tensor_fqn(model: nn.Module, tensor_fqn: str) -> dict[str,
     # string manip to split tensor_fqn into module_fqn and tensor_name
     # if tensor_fqn is 'weight' then module_fqn and tensor_name are '' and 'weight'
     # if tensor_fqn is 'linear.weight' then module_fqn and tensor_name are 'linear' and 'weight'
+<<<<<<< HEAD
     tensor_name = tensor_fqn.rsplit(".", maxsplit=1)[-1]
+=======
+    tensor_name = tensor_fqn.split(".")[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     module_fqn = tensor_fqn[: -len(tensor_name) - ("." in tensor_fqn)]
 
     module = fqn_to_module(model, module_fqn)

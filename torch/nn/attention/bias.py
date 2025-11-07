@@ -269,7 +269,11 @@ class CausalBias(torch.Tensor):
                 )[0].transpose(1, 2)
             else:
                 _raise_kernel_warnings(sdpa_params)
+<<<<<<< HEAD
                 # We can't use efficient attention the only support for lower right is via materialization
+=======
+                # We cant use efficient attention the only support for lower right is via materialization
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return F.scaled_dot_product_attention(
                     query,
                     key,

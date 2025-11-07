@@ -602,7 +602,11 @@ struct vector_args {
             _PyArg_ParseStackAndKeywords((PyObject*const*)args, nargs, kwnames.ptr(), _parser, &dummy, &dummy, &dummy, &dummy, &dummy);
 #else
             _PyArg_Parser* _parser = new _PyArg_Parser{NULL, &names_buf[0], fname_cstr, 0};
+<<<<<<< HEAD
             auto buf = std::make_unique<PyObject*[]>(names.size());
+=======
+            std::unique_ptr<PyObject*[]> buf(new PyObject*[names.size()]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _PyArg_UnpackKeywords((PyObject*const*)args, nargs, NULL, kwnames.ptr(), _parser, required, (Py_ssize_t)values.size() - kwonly, 0, &buf[0]);
 #endif
             throw exception_set();

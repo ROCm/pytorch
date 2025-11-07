@@ -22,7 +22,11 @@ jobs:
           fetch-depth: 0
       - name: update-xla-commit-hash
         continue-on-error: true
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/update-commit-hash@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/update-commit-hash@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           repo-name: xla
           branch: master

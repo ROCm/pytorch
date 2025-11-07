@@ -62,7 +62,11 @@ struct ValueMapper {
     auto new_outputs = merged_node->outputs();
     for (Value* v : new_outputs) {
       auto maybe_last_use = firstOrLastUse(v, /*find_first*/ false);
+<<<<<<< HEAD
       // if it doesn't have a use it shouldn't have been added as output
+=======
+      // if it doesnt have a use it shouldnt have been added as output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_INTERNAL_ASSERT(maybe_last_use);
       const Use last_use = *maybe_last_use;
 

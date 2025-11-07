@@ -635,7 +635,11 @@ std::string generateKernel(
   }
 
   // Includes headers
+<<<<<<< HEAD
   // Note: CUDA kernels support Halfs and random generation, CPU kernels do not
+=======
+  // Note: CUDA kernels support halfs and random generation, CPU kernels do not
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (has_half_tensor) {
     env.s("HalfHeader", cuda::half_support_literal);
   } else {

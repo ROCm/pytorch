@@ -37,7 +37,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -52,7 +56,11 @@ jobs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           fetch-depth: 1
           submodules: true
@@ -82,7 +90,11 @@ jobs:
       CUDNN_VERSION: ${{ matrix.cudnn_version }}
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
       # [see note: pytorch repo ref]
@@ -144,7 +156,11 @@ jobs:
         run: |
           make -f docker.Makefile "${BUILD_IMAGE_TYPE}-image"
       - name: Push nightly tags
+<<<<<<< HEAD
         if: ${{ github.event.ref == 'refs/heads/nightly' && matrix.image_type == 'runtime' && matrix.platform == 'linux/amd4' }}
+=======
+        if: ${{ github.event.ref == 'refs/heads/nightly' && matrix.image_type == 'runtime' && matrix.build_platforms == 'linux/amd4' }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run: |
           PYTORCH_DOCKER_TAG="${PYTORCH_VERSION}-cuda${CUDA_VERSION_SHORT}-cudnn${CUDNN_VERSION}-runtime"
           CUDA_SUFFIX="-cu${CUDA_VERSION}"
@@ -164,12 +180,20 @@ jobs:
           fi
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: always()
 
   validate:
     needs: build
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/validate-docker-images.yml@release/2.9
+=======
+    uses: pytorch/test-infra/.github/workflows/validate-docker-images.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       channel: test
       ref: main

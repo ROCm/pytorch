@@ -96,7 +96,11 @@ static bool isBefore(Node* n1, Node* n2) {
     }
   }
 
+<<<<<<< HEAD
   // Now they are the same number of blocks from the graph block,
+=======
+  // Now they are the same numer of blocks from the graph block,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // recurse upwards, checking if they are on the same block
   while (true) {
     if (n1->owningBlock() == n2->owningBlock()) {

@@ -37,7 +37,10 @@ struct TORCH_API KinetoEvent {
   bool hasConcreteInputs() const;
   const c10::ArrayRef<c10::IValue> concreteInputs() const;
   bool hasKwinputs() const;
+<<<<<<< HEAD
   bool isHiddenEvent() const;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const std::unordered_map<std::string, c10::IValue> kwinputs() const;
   uint64_t flops() const;
   int64_t sequenceNr() const;

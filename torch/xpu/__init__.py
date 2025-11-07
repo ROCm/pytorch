@@ -6,7 +6,10 @@ Intel GPU optimization.
 This package is lazily initialized, so you can always import it, and use
 :func:`is_available()` to determine if your system supports XPU.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import threading
 import traceback
 from functools import lru_cache
@@ -236,6 +239,7 @@ def get_device_capability(device: Optional[_device_t] = None) -> dict[str, Any]:
         Dict[str, Any]: the xpu capability dictionary of the device
     """
     props = get_device_properties(device)
+<<<<<<< HEAD
     # Only keep attributes that are safe for dictionary serialization.
     serializable_types = (int, float, bool, str, type(None), list, tuple, dict)
     return {
@@ -243,6 +247,17 @@ def get_device_capability(device: Optional[_device_t] = None) -> dict[str, Any]:
         for key in dir(props)
         if not key.startswith("__")
         and isinstance((value := getattr(props, key)), serializable_types)
+=======
+    # pybind service attributes are no longer needed and their presence breaks
+    # the further logic related to the serialization of the created dictionary.
+    # In particular it filters out `<bound method PyCapsule._pybind11_conduit_v1_ of _XpuDeviceProperties..>`
+    # to fix Triton tests.
+    # This field appears after updating pybind to 2.13.6.
+    return {
+        prop: getattr(props, prop)
+        for prop in dir(props)
+        if not prop.startswith(("__", "_pybind11_"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
 
@@ -291,7 +306,10 @@ class StreamContext:
             ``None``.
     .. note:: Streams are per-device.
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cur_stream: Optional["torch.xpu.Stream"]
 
     def __init__(self, stream: Optional["torch.xpu.Stream"]):
@@ -438,7 +456,11 @@ def get_gencode_flags() -> str:
     arch_list = get_arch_list()
     if len(arch_list) == 0:
         return ""
+<<<<<<< HEAD
     return f"-device {','.join(arch for arch in arch_list)}"
+=======
+    return f'-device {",".join(arch for arch in arch_list)}'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_generator(device: torch.device) -> torch._C.Generator:

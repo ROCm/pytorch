@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+<<<<<<< HEAD
 #include <c10/core/ConstantSymNodeImpl.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/SymInt.h>
 #include <c10/core/SymNodeImpl.h>
 #include <c10/macros/Macros.h>
@@ -36,6 +39,7 @@ TEST(SymIntTest, Overflows) {
 }
 #endif
 
+<<<<<<< HEAD
 namespace {
 
 // We need a SymNodeImpl that 1) has working arithmetic with
@@ -201,4 +205,6 @@ TEST(SymIntTest, MinMax) {
   test_operator<MinWrapper>();
   test_operator<MaxWrapper>();
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif

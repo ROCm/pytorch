@@ -183,9 +183,20 @@ class TritonBundler:
                     new_kernel,
                 )
             )
+<<<<<<< HEAD
 
             # Put the values back since we need it to use now
             kernel.restore_after_unpickle(old_values)
+=======
+            # Put the values back since we need it to use now
+            (
+                kernel.fn.fn,
+                kernel.fn.__globals__,
+                kernel.fn.used_global_vals,
+                kernel.fn.repr,
+                kernel.launchers,
+            ) = old_values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @classmethod
     def collect_static_autotuners(

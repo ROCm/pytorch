@@ -21,7 +21,10 @@ from torch._dynamo.testing import (
     normalize_gm,
 )
 from torch._higher_order_ops.schema import find_hop_schema
+<<<<<<< HEAD
 from torch._inductor import config as inductor_config
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.pattern_matcher import (
     CallFunctionVarArgs,
     PatternMatcherPass,
@@ -34,7 +37,11 @@ from torch.testing._internal.common_utils import (
     TestCase,
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton, requires_gpu
+=======
+from torch.testing._internal.triton_utils import requires_cuda, requires_gpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 nested_compile_region = torch.compiler.nested_compile_region
@@ -253,6 +260,13 @@ class TestInvokeSubgraphCompile(TestCase):
         y_clone = y.detach().clone().requires_grad_(True)
         backend = EagerAndRecordGraphs()
         with (
+<<<<<<< HEAD
+=======
+            mock.patch(
+                "torch._dynamo.variables.higher_order_ops.InvokeSubgraphHigherOrderVariable.supports_input_mutation",
+                True,
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.no_grad(),
         ):
             res = torch.compile(fn, backend=backend, fullgraph=True)(
@@ -329,8 +343,19 @@ class GraphModule(torch.nn.Module):
         x_clone = x.detach().clone().requires_grad_(True)
         y_clone = y.detach().clone().requires_grad_(True)
         backend = AotEagerAndRecordGraphs()
+<<<<<<< HEAD
         res = torch.compile(fn, backend=backend, fullgraph=True)(mod, x_clone, y_clone)
         res.sum().backward()
+=======
+        with mock.patch(
+            "torch._dynamo.variables.higher_order_ops.InvokeSubgraphHigherOrderVariable.supports_input_mutation",
+            True,
+        ):
+            res = torch.compile(fn, backend=backend, fullgraph=True)(
+                mod, x_clone, y_clone
+            )
+            res.sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(len(backend.fw_graphs), 1)
         self.assertEqual(len(backend.bw_graphs), 1)
         self.assertEqual(ref, res)
@@ -424,23 +449,49 @@ class GraphModule(torch.nn.Module):
 
         x_clone = x.detach().clone().requires_grad_(True)
         y_clone = y.detach().clone().requires_grad_(True)
+<<<<<<< HEAD
         with torch.no_grad():
             res = torch.compile(fn, fullgraph=True)(mod, x_clone, y_clone)
+=======
+        with mock.patch(
+            "torch._dynamo.variables.higher_order_ops.InvokeSubgraphHigherOrderVariable.supports_input_mutation",
+            True,
+        ):
+            with torch.no_grad():
+                res = torch.compile(fn, fullgraph=True)(mod, x_clone, y_clone)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ref, res)
         self.assertEqual(mod_ref.buf, mod.buf)
 
         mod = Mod()
         x_clone = x.detach().clone().requires_grad_(True)
         y_clone = y.detach().clone().requires_grad_(True)
+<<<<<<< HEAD
         with torch.inference_mode():
             res = torch.compile(fn, fullgraph=True)(mod, x_clone, y_clone)
+=======
+        with mock.patch(
+            "torch._dynamo.variables.higher_order_ops.InvokeSubgraphHigherOrderVariable.supports_input_mutation",
+            True,
+        ):
+            with torch.inference_mode():
+                res = torch.compile(fn, fullgraph=True)(mod, x_clone, y_clone)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ref, res)
         self.assertEqual(mod_ref.buf, mod.buf)
 
         mod = Mod()
         x_clone = x.detach().clone().requires_grad_(False)
         y_clone = y.detach().clone().requires_grad_(False)
+<<<<<<< HEAD
         res = torch.compile(fn, fullgraph=True)(mod, x_clone, y_clone)
+=======
+        with mock.patch(
+            "torch._dynamo.variables.higher_order_ops.InvokeSubgraphHigherOrderVariable.supports_input_mutation",
+            True,
+        ):
+            res = torch.compile(fn, fullgraph=True)(mod, x_clone, y_clone)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(ref, res)
         self.assertEqual(mod_ref.buf, mod.buf)
 
@@ -466,7 +517,15 @@ class GraphModule(torch.nn.Module):
             RuntimeError,
             "does not currently support training with in-place input or buffer mutations",
         ):
+<<<<<<< HEAD
             torch.compile(fn, backend="inductor", fullgraph=True)(mod, x, y)
+=======
+            with mock.patch(
+                "torch._dynamo.variables.higher_order_ops.InvokeSubgraphHigherOrderVariable.supports_input_mutation",
+                True,
+            ):
+                torch.compile(fn, backend="inductor", fullgraph=True)(mod, x, y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_list(self):
         @nested_compile_region
@@ -556,7 +615,11 @@ class GraphModule(torch.nn.Module):
         self.assertEqual(ref, res)
         self.assertEqual(x.grad, x_clone.grad)
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sdpa(self):
         @nested_compile_region
         def gn(q, k, v):
@@ -620,7 +683,10 @@ class GraphModule(torch.nn.Module):
         self.assertEqual(ref, res)
         res.sum().backward()
 
+<<<<<<< HEAD
     @inductor_config.patch("fx_graph_cache", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dropout_checks_joint_graph(self):
         # `dropout` tests that joint graph passes (not just partitioner) is ran
         # on the hop graphs. Inductor rng functionalization happens in the joint
@@ -677,9 +743,15 @@ class GraphModule(torch.nn.Module):
             sin: "f32[8]" = torch.ops.aten.sin.default(primals_0)
 
             inductor_seeds_default: "i64[1]" = torch.ops.prims.inductor_seeds.default(1, device(type='cpu'))
+<<<<<<< HEAD
 
             inductor_lookup_seed_default: "i64[]" = torch.ops.prims.inductor_lookup_seed.default(inductor_seeds_default, 0);  inductor_seeds_default = None
             inductor_random_default: "f32[8]" = torch.ops.prims.inductor_random.default([8], inductor_lookup_seed_default, 'rand');  inductor_lookup_seed_default = None
+=======
+            inductor_lookup_seed_default: "i64[]" = torch.ops.prims.inductor_lookup_seed.default(inductor_seeds_default, 0);  inductor_seeds_default = None
+            inductor_random_default: "f32[8]" = torch.ops.prims.inductor_random.default([8], inductor_lookup_seed_default, 'rand');  inductor_lookup_seed_default = None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gt: "b8[8]" = torch.ops.aten.gt.Scalar(inductor_random_default, 0.5);  inductor_random_default = None
             mul: "f32[8]" = torch.ops.aten.mul.Tensor(gt, sin);  sin = None
             mul_1: "f32[8]" = torch.ops.aten.mul.Tensor(mul, 2.0);  mul = None
@@ -692,7 +764,10 @@ class GraphModule(torch.nn.Module):
 """,
             )
 
+<<<<<<< HEAD
     @inductor_config.patch("fx_graph_cache", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dropout_checks_joint_graph_inference(self):
         # Checks that joint graph results in inductor seeds for just the inference graph
         @nested_compile_region
@@ -722,9 +797,15 @@ class <lambda>(torch.nn.Module):
     class repeated_subgraph0(torch.nn.Module):
         def forward(self, arg0_1: "f32[8]"):
             inductor_seeds_default: "i64[1]" = torch.ops.prims.inductor_seeds.default(1, device(type='cpu'))
+<<<<<<< HEAD
 
             inductor_lookup_seed_default: "i64[]" = torch.ops.prims.inductor_lookup_seed.default(inductor_seeds_default, 0);  inductor_seeds_default = None
             inductor_random_default: "f32[8]" = torch.ops.prims.inductor_random.default([8], inductor_lookup_seed_default, 'rand');  inductor_lookup_seed_default = None
+=======
+            inductor_lookup_seed_default: "i64[]" = torch.ops.prims.inductor_lookup_seed.default(inductor_seeds_default, 0);  inductor_seeds_default = None
+            inductor_random_default: "f32[8]" = torch.ops.prims.inductor_random.default([8], inductor_lookup_seed_default, 'rand');  inductor_lookup_seed_default = None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gt: "b8[8]" = torch.ops.aten.gt.Scalar(inductor_random_default, 0.5);  inductor_random_default = None
             sin: "f32[8]" = torch.ops.aten.sin.default(arg0_1);  arg0_1 = None
             mul: "f32[8]" = torch.ops.aten.mul.Tensor(gt, sin);  gt = sin = None
@@ -920,7 +1001,10 @@ class GraphModule(torch.nn.Module):
 """,
             )
 
+<<<<<<< HEAD
     @inductor_config.patch("fx_graph_cache", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_to_reshape(self):
         @nested_compile_region
         def gn(x):
@@ -1033,6 +1117,7 @@ class GraphModule(torch.nn.Module):
 
         opt_fn = torch.compile(fn, backend="inductor", fullgraph=True)
 
+<<<<<<< HEAD
         x_clone = x.clone()
         self.assertEqual(opt_fn(x, y), fn(x_clone, y))
 
@@ -1115,6 +1200,19 @@ class GraphModule(torch.nn.Module):
         exp_out = fn(x_clone, y)
         self.assertEqual(exp_out, out)
         self.assertEqual(x_clone, x)
+=======
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
+        ) as cm:
+            opt_fn(x, y)
+
+        cause = cm.exception.__cause__
+        self.assertIsInstance(cause, torch._dynamo.exc.Unsupported)
+        self.assertTrue(
+            "Encountered input mutation during higher order op tracing" in str(cause)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_input_mutation_inference_mode(self):
         @nested_compile_region
@@ -1133,10 +1231,23 @@ class GraphModule(torch.nn.Module):
 
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "Inplace update to inference tensor outside InferenceMode is not allowed",
         ):
             opt_fn(x, y)
 
+=======
+            "torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
+        ) as cm:
+            opt_fn(x, y)
+
+        cause = cm.exception.__cause__
+        self.assertIsInstance(cause, torch._dynamo.exc.Unsupported)
+        self.assertTrue(
+            "Encountered input mutation during higher order op tracing" in str(cause)
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_simple_module(self):
         mod = torch.nn.Linear(8, 8)
 
@@ -1195,11 +1306,25 @@ class GraphModule(torch.nn.Module):
         opt_fn = torch.compile(fn, backend="inductor", fullgraph=True)
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             torch._dynamo.exc.UncapturedHigherOrderOpError,
             "Encountered aliasing during higher order op tracing",
         ):
             opt_fn(x, y)
 
+=======
+            RuntimeError,
+            "torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
+        ) as cm:
+            opt_fn(x, y)
+
+        cause = cm.exception.__cause__
+        self.assertIsInstance(cause, torch._dynamo.exc.Unsupported)
+        self.assertTrue(
+            "Encountered aliasing during higher order op tracing" in str(cause)
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_input_input_aliasing(self):
         @nested_compile_region
         def gn(x, y):
@@ -1213,11 +1338,25 @@ class GraphModule(torch.nn.Module):
         opt_fn = torch.compile(fn, backend="inductor", fullgraph=True)
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             torch._dynamo.exc.UncapturedHigherOrderOpError,
             "Encountered aliasing during higher order op tracing",
         ):
             opt_fn(x)
 
+=======
+            RuntimeError,
+            "torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
+        ) as cm:
+            opt_fn(x)
+
+        cause = cm.exception.__cause__
+        self.assertIsInstance(cause, torch._dynamo.exc.Unsupported)
+        self.assertTrue(
+            "Encountered aliasing during higher order op tracing" in str(cause)
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_output_output_aliasing(self):
         @nested_compile_region
         def gn(x):
@@ -1232,11 +1371,25 @@ class GraphModule(torch.nn.Module):
         opt_fn = torch.compile(fn, backend="inductor", fullgraph=True)
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             torch._dynamo.exc.UncapturedHigherOrderOpError,
             "Encountered aliasing during higher order op tracing",
         ):
             opt_fn(x)
 
+=======
+            RuntimeError,
+            "torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
+        ) as cm:
+            opt_fn(x)
+
+        cause = cm.exception.__cause__
+        self.assertIsInstance(cause, torch._dynamo.exc.Unsupported)
+        self.assertTrue(
+            "Encountered aliasing during higher order op tracing" in str(cause)
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mod_attr_aliasing(self):
         class MutateParam(torch.nn.Module):
             def __init__(self):
@@ -1258,12 +1411,30 @@ class GraphModule(torch.nn.Module):
         x = torch.randn(8, requires_grad=False)
         y = torch.randn(8, requires_grad=False)
 
+<<<<<<< HEAD
         opt_fn = torch.compile(fn, backend="inductor", fullgraph=True)
 
         compiled_out = opt_fn(x, y)
         # reset constant attr
         mod.a = torch.ones(8)
         self.assertEqual(compiled_out, fn(x, y))
+=======
+        fn(x, y)
+
+        opt_fn = torch.compile(fn, backend="inductor", fullgraph=True)
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "torch.compile requires the `nested_compile_region` decorated function to be capturable into a single graph",
+        ) as cm:
+            opt_fn(x, y)
+
+        cause = cm.exception.__cause__
+        self.assertIsInstance(cause, torch._dynamo.exc.Unsupported)
+        self.assertTrue(
+            "Encountered input mutation during higher order op tracing" in str(cause)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_redundant_compile_region(self):
         @nested_compile_region
@@ -1429,7 +1600,11 @@ class GraphModule(torch.nn.Module):
 """,
             )
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_return_none(self):
         from torch.nn import functional as F
 
@@ -1498,7 +1673,11 @@ class GraphModule(torch.nn.Module):
         subgraph_0 = self.subgraph_0
         invoke_subgraph = torch.ops.higher_order.invoke_subgraph(subgraph_0, 'subgraph_0', l_x_);  subgraph_0 = l_x_ = None
         getitem: "f32[8, 8]" = invoke_subgraph[0]
+<<<<<<< HEAD
         getitem_1: "f32[8, 8]" = invoke_subgraph[1];  invoke_subgraph = None
+=======
+        getitem_1: "f32[8, 8]" = invoke_subgraph[2];  invoke_subgraph = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         add: "f32[8, 8]" = getitem + getitem_1;  getitem = getitem_1 = None
         return (add,)
@@ -1507,7 +1686,11 @@ class GraphModule(torch.nn.Module):
         def forward(self, l_x_: "f32[8, 8]"):
             child: "f32[8, 8]" = l_x_ * 2
             child_1: "f32[8, 8]" = l_x_ * 3;  l_x_ = None
+<<<<<<< HEAD
             return (child, child_1)
+=======
+            return (child, None, child_1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
             )
 
@@ -1520,16 +1703,26 @@ class GraphModule(torch.nn.Module):
 
         invoke_subgraph_2 = torch.ops.higher_order.invoke_subgraph(partitioned_fw_subgraph_0_0, 'partitioned_fw_subgraph_0_0', primals_1);  partitioned_fw_subgraph_0_0 = primals_1 = None
         getitem: "f32[8, 8]" = invoke_subgraph_2[0]
+<<<<<<< HEAD
         getitem_1: "f32[8, 8]" = invoke_subgraph_2[1];  invoke_subgraph_2 = None
 
         add: "f32[8, 8]" = torch.ops.aten.add.Tensor(getitem, getitem_1);  getitem = getitem_1 = None
+=======
+        getitem_2: "f32[8, 8]" = invoke_subgraph_2[2];  invoke_subgraph_2 = None
+
+        add: "f32[8, 8]" = torch.ops.aten.add.Tensor(getitem, getitem_2);  getitem = getitem_2 = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (add,)
 
     class partitioned_fw_subgraph_0_0(torch.nn.Module):
         def forward(self, primals_0: "f32[8, 8]"):
             mul: "f32[8, 8]" = torch.ops.aten.mul.Tensor(primals_0, 2)
             mul_1: "f32[8, 8]" = torch.ops.aten.mul.Tensor(primals_0, 3);  primals_0 = None
+<<<<<<< HEAD
             return (mul, mul_1)
+=======
+            return (mul, None, mul_1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
             )
 
@@ -1541,8 +1734,13 @@ class GraphModule(torch.nn.Module):
         partitioned_bw_subgraph_0_0 = self.partitioned_bw_subgraph_0_0
 
         invoke_subgraph_3 = torch.ops.higher_order.invoke_subgraph(partitioned_bw_subgraph_0_0, 'partitioned_bw_subgraph_0_0', tangents_1, tangents_1);  partitioned_bw_subgraph_0_0 = tangents_1 = None
+<<<<<<< HEAD
         getitem_2: "f32[8, 8]" = invoke_subgraph_3[0];  invoke_subgraph_3 = None
         return (getitem_2,)
+=======
+        getitem_3: "f32[8, 8]" = invoke_subgraph_3[0];  invoke_subgraph_3 = None
+        return (getitem_3,)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class partitioned_bw_subgraph_0_0(torch.nn.Module):
         def forward(self, tangents_0: "f32[8, 8]", tangents_1: "f32[8, 8]"):
@@ -1772,6 +1970,7 @@ class GraphModule(torch.nn.Module):
         res = torch.compile(fn, backend="inductor", fullgraph=True)(x_clone)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     @torch._inductor.config.patch(fallback_random=True)
     def test_ac_rng(self):
         def fn1(x):
@@ -1838,6 +2037,8 @@ class GraphModule(torch.nn.Module):
         )(q, k, v)
         res.sum().backward()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fake_tensor_checking(self):
         @nested_compile_region
         def gn(x):
@@ -1888,6 +2089,7 @@ class GraphModule(torch.nn.Module):
 """,
             )
 
+<<<<<<< HEAD
     def test_return_size(self):
         def run(dynamic):
             torch.compiler.reset()
@@ -1919,6 +2121,8 @@ class GraphModule(torch.nn.Module):
         run(dynamic=True)
         run(dynamic=False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_different_symint(self):
         """
         Tests check that the same subgraph called with different symints use different graphs
@@ -2123,7 +2327,11 @@ class GraphModule(torch.nn.Module):
 
         # NOTE THAT THIS TEST DOES NOT REALLY WORK
         # We wanted one invoke_subgraph called twice, but because of
+<<<<<<< HEAD
         # constant_args_idx changing in the graph, the graph equivalence fails
+=======
+        # constant_args_idx changing in the grpah, the graph equivalence fails
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not TEST_WITH_CROSSREF:
             self.assertExpectedInline(

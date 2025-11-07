@@ -26,6 +26,16 @@ on:
         default: 240
         type: number
         description: timeout for the job
+<<<<<<< HEAD
+=======
+      use_split_build:
+        description: |
+          [Experimental] Build a libtorch only wheel and build pytorch such that
+          are built from the libtorch wheel.
+        required: false
+        type: boolean
+        default: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ALPINE_IMAGE:
         required: false
         type: string
@@ -110,6 +120,10 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PYTORCH_FINAL_PACKAGE_DIR: /artifacts
       SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
+<<<<<<< HEAD
+=======
+      USE_SPLIT_BUILD: ${{ inputs.use_split_build }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     steps:
       - name: Make the env permanent during this workflow (but not the secrets)
         shell: bash
@@ -134,6 +148,10 @@ jobs:
             echo "PR_NUMBER=${{ env.PR_NUMBER }}"
             echo "PYTORCH_FINAL_PACKAGE_DIR=${{ env.PYTORCH_FINAL_PACKAGE_DIR }}"
             echo "SHA1=${{ env.SHA1 }}"
+<<<<<<< HEAD
+=======
+            echo "USE_SPLIT_BUILD=${{ env.use_split_build }}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           } >> "${GITHUB_ENV} }}"
 
       - name: List the env
@@ -142,13 +160,21 @@ jobs:
 
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
         if: inputs.build_environment != 'linux-s390x-binary-manywheel'
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           github-secret: ${{ secrets.github-token }}
 
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: ${{ inputs.build_environment == 'linux-aarch64-binary-manywheel' || inputs.build_environment == 'linux-s390x-binary-manywheel' }}
 
@@ -212,9 +238,15 @@ jobs:
       - name: Calculate docker image
         id: calculate-docker-image
         if: ${{ steps.filter.outputs.is-test-matrix-empty == 'False' && inputs.build_environment != 'linux-s390x-binary-manywheel' }}
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
         with:
           # If doing this in release/2.9 or release branch, use docker.io. Otherwise
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+        with:
+          # If doing this in release/2.8 or release branch, use docker.io. Otherwise
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           # use ECR
           docker-registry: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/') && '308535385114.dkr.ecr.us-east-1.amazonaws.com' || 'docker.io' }}
           docker-image-name: ${{ inputs.DOCKER_IMAGE }}
@@ -226,7 +258,11 @@ jobs:
 
       - name: Pull Docker image
         if: ${{ steps.filter.outputs.is-test-matrix-empty == 'False' && inputs.build_environment != 'linux-s390x-binary-manywheel' }}
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -251,6 +287,10 @@ jobs:
             -e PYTORCH_ROOT \
             -e SKIP_ALL_TESTS \
             -e PYTORCH_EXTRA_INSTALL_REQUIREMENTS \
+<<<<<<< HEAD
+=======
+            -e USE_SPLIT_BUILD \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             --tty \
             --detach \
             -v "${GITHUB_WORKSPACE}/pytorch:/pytorch" \
@@ -282,7 +322,11 @@ jobs:
 
       - name: Teardown Linux
         if: always() && inputs.build_environment != 'linux-s390x-binary-manywheel'
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Chown workspace
         if: always() && inputs.build_environment != 'linux-s390x-binary-manywheel'

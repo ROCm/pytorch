@@ -124,11 +124,19 @@ Workflow
 There are basically two steps:
 1) Set the environment variables to collect the untuned GEMM and this will generate ``tunableop_untuned0.csv``:
 
+<<<<<<< HEAD
 .. code-block:: bash
 
    export PYTORCH_TUNABLEOP_ENABLED=1
    export PYTORCH_TUNABLEOP_TUNING=0
    export PYTORCH_TUNABLEOP_RECORD_UNTUNED=1
+=======
+.. code-block:: python
+
+   PYTORCH_TUNABLEOP_ENABLED=1
+   PYTORCH_TUNABLEOP_TUNING=0
+   PYTORCH_TUNABLEOP_RECORD_UNTUNED=1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    ...
 
 2) Run a Python script that reads the ``tunableop_untuned0.csv`` and generates the ``tunableop_results0.csv``, like this:
@@ -138,9 +146,15 @@ There are basically two steps:
    import torch.cuda.tunable as tunable
    import os
 
+<<<<<<< HEAD
    os.putenv("PYTORCH_TUNABLEOP_ENABLED", "1")
    os.putenv("PYTORCH_TUNABLEOP_TUNING", "1")
    os.putenv("PYTORCH_TUNABLEOP_RECORD_UNTUNED", "0")
+=======
+   os.putenv('PYTORCH_TUNABLEOP_ENABLED', '1')
+   os.putenv('PYTORCH_TUNABLEOP_TUNING', '1')
+   os.putenv('PYTORCH_TUNABLEOP_RECORD_UNTUNED', '0')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
    tunable.tune_gemm_in_file("tunableop_untuned0.csv")
 
 
@@ -155,7 +169,11 @@ configuration on N GPUs.
 .. code-block:: python
 
    if __name__ == "__main__":
+<<<<<<< HEAD
        num_gpus = 8  # number of GPUs that will be used during the tuning process
+=======
+       num_gpus = 8 # number of GPUs that will be used during the tuning process
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        tunable.mgpu_tune_gemm_in_file("tunableop_untuned?.csv", num_gpus)
 
 Note that the usage of the ``mgpu_tune_gemm_in_file`` API is different from its single GPU counterpart
@@ -179,7 +197,10 @@ environment variable interface programmatically since the settings become fixed.
 Use the C++ or Python APIs instead.
 
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import concurrent.futures
 import glob
 import multiprocessing as mp
@@ -286,7 +307,11 @@ def set_filename(filename: str, insert_device_ordinal: bool = False) -> None:
 
     If :attr:`insert_device_ordinal` is ``True`` then the current device ordinal
     will be added to the given filename automatically. This can be used in a
+<<<<<<< HEAD
     1-process-per-gpu scenario to ensure all processes write to a separate file.
+=======
+    1-process-per-gpu cenario to ensure all processes write to a separate file.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     torch._C._cuda_tunableop_set_filename(filename, insert_device_ordinal)  # type: ignore[attr-defined]
 
@@ -591,6 +616,10 @@ def _process_single_offline_gemm(untuned_gemm_line: str, gpu_id: int) -> None:
         transA = layout[1] == "T"
         dtype = dtype_dict.get(data_type)
         if data_type == "tf32":
+<<<<<<< HEAD
+=======
+            # User must still set HIPBLASLT_ALLOW_TF32=1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.backends.cuda.matmul.allow_tf32 = True
         else:
             torch.backends.cuda.matmul.allow_tf32 = False

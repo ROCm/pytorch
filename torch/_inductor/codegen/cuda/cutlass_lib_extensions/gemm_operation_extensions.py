@@ -396,7 +396,11 @@ cute::Layout<cute::Shape<int,int,int>, {operation_name_str}_StrideNarrow>{{}}));
                 "align_a": str(operation.A.alignment),
                 "align_b": str(operation.B.alignment),
                 "align_c": str(operation.C.alignment),
+<<<<<<< HEAD
                 "align_d": str(operation.D.alignment),
+=======
+                "align_d": str(operation.C.alignment),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "transform_a": ComplexTransformTag[operation.A.complex_transform],
                 "transform_b": ComplexTransformTag[operation.B.complex_transform],
                 "math_operation": MathOperationTag[

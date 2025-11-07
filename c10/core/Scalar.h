@@ -191,17 +191,23 @@ class C10_API Scalar {
   isIntegral() const {
     return Tag::HAS_i == tag || Tag::HAS_si == tag || Tag::HAS_u == tag;
   }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isIntegral(bool includeBool) const {
     return Tag::HAS_i == tag || Tag::HAS_si == tag || Tag::HAS_u == tag ||
         (includeBool && isBoolean());
   }
 
+<<<<<<< HEAD
   // See Note [Meaning of HAS_u]
   bool isUnsigned() const {
     return Tag::HAS_u == tag || (Tag::HAS_i == tag && v.i >= 0);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isComplex() const {
     return Tag::HAS_z == tag;
   }

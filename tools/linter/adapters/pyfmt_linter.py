@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+<<<<<<< HEAD
+=======
+import fnmatch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import json
 import logging
 import os
@@ -12,6 +16,10 @@ from enum import Enum
 from pathlib import Path
 from typing import NamedTuple
 
+<<<<<<< HEAD
+=======
+import black
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import isort
 import usort
 
@@ -19,6 +27,56 @@ import usort
 IS_WINDOWS: bool = os.name == "nt"
 REPO_ROOT = Path(__file__).absolute().parents[3]
 
+<<<<<<< HEAD
+=======
+# TODO: remove this when it gets empty and remove `black` in PYFMT
+USE_BLACK_FILELIST = re.compile(
+    "|".join(
+        (
+            r"\A\Z",  # empty string
+            *map(
+                fnmatch.translate,
+                [
+                    # **
+                    # .ci/**
+                    # .github/**
+                    # benchmarks/**
+                    # functorch/**
+                    # tools/**
+                    # torchgen/**
+                    # test/**
+                    # test/[a-h]*/**
+                    # test/[i-j]*/**
+                    "test/j*/**",
+                    # test/[k-m]*/**
+                    "test/[k-m]*/**",
+                    # test/optim/**
+                    # "test/[p-z]*/**",
+                    "test/[p-z]*/**",
+                    # torch/**
+                    # torch/_[a-c]*/**
+                    "torch/_[a-c]*/**",
+                    # torch/_[e-h]*/**
+                    "torch/_[e-h]*/**",
+                    # torch/_i*/**
+                    # torch/_[j-z]*/**
+                    "torch/_[j-z]*/**",
+                    # torch/[a-c]*/**
+                    "torch/a[a-n]*/**",
+                    "torch/a[p-z]*/**",
+                    "torch/[b-c]*/**",
+                    # torch/d*/**
+                    # torch/[e-m]*/**
+                    # torch/optim/**
+                    # torch/[p-z]*/**
+                    "torch/[p-z]*/**",
+                ],
+            ),
+        )
+    )
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class LintSeverity(str, Enum):
     ERROR = "error"
@@ -78,6 +136,26 @@ def run_usort(content: str, path: Path) -> str:
     return usort.usort_string(content, path=path, config=usort_config)
 
 
+<<<<<<< HEAD
+=======
+def run_black(content: str, path: Path) -> str:
+    black_config = black.parse_pyproject_toml(black.find_pyproject_toml((str(path),)))  # type: ignore[attr-defined,arg-type]
+    # manually patch options that do not have a 1-to-1 match in Mode arguments
+    black_config["target_versions"] = {
+        black.TargetVersion[ver.upper()]  # type: ignore[attr-defined]
+        for ver in black_config.pop("target_version", [])
+    }
+    black_config["string_normalization"] = not black_config.pop(
+        "skip_string_normalization", False
+    )
+    black_mode = black.Mode(**black_config)
+    black_mode.is_pyi = path.suffix.lower() == ".pyi"
+    black_mode.is_ipynb = path.suffix.lower() == ".ipynb"
+
+    return black.format_str(content, mode=black_mode)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def run_ruff_format(content: str, path: Path) -> str:
     try:
         return subprocess.check_output(
@@ -109,7 +187,14 @@ def check_file(filename: str) -> list[LintMessage]:
         # NB: run isort first to enforce style for blank lines
         replacement = run_isort(replacement, path=path)
         replacement = run_usort(replacement, path=path)
+<<<<<<< HEAD
         replacement = run_ruff_format(replacement, path=path)
+=======
+        if USE_BLACK_FILELIST.match(path.absolute().relative_to(REPO_ROOT).as_posix()):
+            replacement = run_black(replacement, path=path)
+        else:
+            replacement = run_ruff_format(replacement, path=path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if original == replacement:
             return []

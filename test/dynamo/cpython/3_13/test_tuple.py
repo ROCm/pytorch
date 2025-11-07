@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_tuple.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -97,30 +100,49 @@ class TupleTest(seq_tests.CommonTest):
             tuple(sequence=())
 
     def test_keywords_in_subclass(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass(tuple):
                 pass
+=======
+        class subclass(tuple):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass([1, 2])
         self.assertIs(type(u), subclass)
         self.assertEqual(list(u), [1, 2])
         with self.assertRaises(TypeError):
             subclass(sequence=())
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_init(tuple):
                 def __init__(self, arg, newarg=None):
                     self.newarg = newarg
+=======
+        class subclass_with_init(tuple):
+            def __init__(self, arg, newarg=None):
+                self.newarg = newarg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_init([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_init)
         self.assertEqual(list(u), [1, 2])
         self.assertEqual(u.newarg, 3)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class subclass_with_new(tuple):
                 def __new__(cls, arg, newarg=None):
                     self = super().__new__(cls, arg)
                     self.newarg = newarg
                     return self
+=======
+        class subclass_with_new(tuple):
+            def __new__(cls, arg, newarg=None):
+                self = super().__new__(cls, arg)
+                self.newarg = newarg
+                return self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         u = subclass_with_new([1, 2], newarg=3)
         self.assertIs(type(u), subclass_with_new)
         self.assertEqual(list(u), [1, 2])
@@ -408,9 +430,14 @@ class TupleTest(seq_tests.CommonTest):
     @support.cpython_only
     def test_track_subtypes(self):
         # Tuple subtypes must always be tracked
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class MyTuple(tuple):
                 pass
+=======
+        class MyTuple(tuple):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.check_track_dynamic(MyTuple, True)
 
     @support.cpython_only
@@ -462,8 +489,12 @@ class TupleTest(seq_tests.CommonTest):
         # Issue 8847: In the PGO build, the MSVC linker's COMDAT folding
         # optimization causes failures in code that relies on distinct
         # function addresses.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class T(tuple): pass
+=======
+        class T(tuple): pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaises(TypeError):
             [3,] + T((1,2))
 

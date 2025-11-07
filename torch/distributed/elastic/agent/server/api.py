@@ -27,7 +27,10 @@ from torch.distributed.elastic.metrics import prof, put_metric
 from torch.distributed.elastic.multiprocessing import ProcessFailure, SignalException
 from torch.distributed.elastic.rendezvous import RendezvousGracefulExitError
 from torch.distributed.elastic.utils.logging import get_logger
+<<<<<<< HEAD
 from torch.numa.binding import NumaOptions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -89,7 +92,10 @@ class WorkerSpec:
     master_addr: Optional[str] = None
     local_addr: Optional[str] = None
     event_log_handler: str = "null"
+<<<<<<< HEAD
     numa_options: Optional[NumaOptions] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         assert self.local_world_size > 0

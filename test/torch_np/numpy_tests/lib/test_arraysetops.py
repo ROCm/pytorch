@@ -1,7 +1,13 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
 """Test functions for 1D array set operations."""
 
+=======
+"""Test functions for 1D array set operations.
+
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest import expectedFailure as xfail, skipIf
 
 import numpy

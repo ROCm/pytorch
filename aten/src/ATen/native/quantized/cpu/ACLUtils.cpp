@@ -81,7 +81,11 @@ DynamicQuantMatmul::DynamicQuantMatmul(
   auto src_q_tensor_info = arm_compute::TensorInfo(
       arm_compute::TensorShape(weight_dim_0, m),
       1,
+<<<<<<< HEAD
       // ACL dynamically quantized matmuls only support (signed) int8_t
+=======
+      // ACL dyanamically quantized matmuls only support (signed) int8_t
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       arm_compute::DataType::QASYMM8_SIGNED,
       // TODO: setting the initial offset value to int8_t max instead of zero,
       // because ACL currently skips MatrixBReduction calculation if the

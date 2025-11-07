@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 d704bc6e69c1a588c8edd3cbb67505d554ed65f6
+=======
+21876a4bbaf371bcb83df8e6ee4f43a92f524dfe
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

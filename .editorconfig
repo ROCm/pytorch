@@ -1,11 +1,15 @@
 root = true
 
 [*]
+<<<<<<< HEAD
 charset = utf-8
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 end_of_line = lf
 insert_final_newline = true
 
 # Python
+<<<<<<< HEAD
 [*.{py,pyi,py.in,pyi.in}]
 indent_style = space
 indent_size = 4
@@ -34,3 +38,12 @@ indent_style = tab
 indent_style = space
 indent_size = 2
 end_of_line = crlf
+=======
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Make
+[Makefile]
+indent_style = tab
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

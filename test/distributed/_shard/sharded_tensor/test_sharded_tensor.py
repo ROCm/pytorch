@@ -1733,7 +1733,11 @@ class TestShardedTensorEnumerable(ShardedTensorTestBase):
             self.assertEqual(remote_device_before.rank(), remote_device_after.rank())
             self.assertEqual(str(remote_device_after.device()), "cpu")
 
+<<<<<<< HEAD
         # ensure metadata also get changed to CPU
+=======
+        # ensure metdata also get changed to CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metas = new_st.metadata().shards_metadata
         for meta in metas:
             self.assertEqual(str(meta.placement.device()), "cpu")
@@ -1764,7 +1768,11 @@ class TestShardedTensorEnumerable(ShardedTensorTestBase):
             self.assertEqual(remote_device_before.rank(), remote_device_after.rank())
             self.assertEqual(str(remote_device_after.device()), "cpu")
 
+<<<<<<< HEAD
         # ensure metadata also get changed to CPU
+=======
+        # ensure metdata also get changed to CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metas = new_st.metadata().shards_metadata
         for meta in metas:
             self.assertEqual(str(meta.placement.device()), "cpu")
@@ -1820,7 +1828,11 @@ class TestShardedTensorEnumerable(ShardedTensorTestBase):
             self.assertEqual(str(remote_device_before.device().type), "cpu")
             self.assertEqual(str(remote_device_after.device().type), "cuda")
 
+<<<<<<< HEAD
         # ensure metadata also get changed to GPU
+=======
+        # ensure metdata also get changed to GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metas = new_st_gpu.metadata().shards_metadata
         for meta in metas:
             self.assertEqual(str(meta.placement.device().type), "cuda")

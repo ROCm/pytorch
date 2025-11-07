@@ -169,6 +169,7 @@ def _upcast_int_indices(index):
     return index
 
 
+<<<<<<< HEAD
 def _has_advanced_indexing(index):
     """Check if there's any advanced indexing"""
     return any(
@@ -289,6 +290,8 @@ def _numpy_empty_ellipsis_patch(index, tensor_ndim):
     return index, lambda x: x, lambda x: x
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Used to indicate that a parameter is unspecified (as opposed to explicitly
 # `None`)
 class _Unspecified:
@@ -588,25 +591,36 @@ class ndarray:
             index = neg_step(0, index)
         index = _util.ndarrays_to_tensors(index)
         index = _upcast_int_indices(index)
+<<<<<<< HEAD
         # Apply NumPy-compatible indexing conversion
         index = _numpy_compatible_indexing(index)
         # Apply NumPy-compatible empty ellipsis behavior
         index, maybe_squeeze, _ = _numpy_empty_ellipsis_patch(index, tensor.ndim)
         return maybe_squeeze(ndarray(tensor.__getitem__(index)))
+=======
+        return ndarray(tensor.__getitem__(index))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __setitem__(self, index, value):
         index = _util.ndarrays_to_tensors(index)
         index = _upcast_int_indices(index)
+<<<<<<< HEAD
         # Apply NumPy-compatible indexing conversion
         index = _numpy_compatible_indexing(index)
         # Apply NumPy-compatible empty ellipsis behavior
         index, _, maybe_unsqueeze = _numpy_empty_ellipsis_patch(index, self.tensor.ndim)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not _dtypes_impl.is_scalar(value):
             value = normalize_array_like(value)
             value = _util.cast_if_needed(value, self.tensor.dtype)
 
+<<<<<<< HEAD
         return self.tensor.__setitem__(index, maybe_unsqueeze(value))
+=======
+        return self.tensor.__setitem__(index, value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     take = _funcs.take
     put = _funcs.put

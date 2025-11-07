@@ -277,9 +277,15 @@ class PT2EQATTestCase(QuantizationTestCase):
 
         # Verify: conv literal args
         if expected_conv_literal_args is not None:
+<<<<<<< HEAD
             assert len(expected_conv_literal_args) == 6, (
                 "wrong num conv args, bad test setup"
             )
+=======
+            assert (
+                len(expected_conv_literal_args) == 6
+            ), "wrong num conv args, bad test setup"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(6):
                 if i + 3 < len(conv_node.args):
                     self.assertEqual(

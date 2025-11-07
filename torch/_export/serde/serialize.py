@@ -14,7 +14,11 @@ import operator
 import traceback
 import typing
 from collections import namedtuple, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Iterable, Iterator, Sequence
+=======
+from collections.abc import Iterable, Iterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
@@ -35,14 +39,20 @@ from torch.utils._sympy.numbers import int_oo
 from torch.utils._sympy.symbol import prefix_str, SymT
 from torch.utils._sympy.value_ranges import ValueRanges
 from torch.utils._traceback import CapturedTraceback
+<<<<<<< HEAD
 from torch.utils._triton import has_triton
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ..utils import remove_proxy_from_state_dict
 from .schema import (  # type: ignore[attr-defined]
     Argument,
     ArgumentKind,
     BufferMutationSpec,
+<<<<<<< HEAD
     ComplexValue,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ConstantValue,
     CustomObjArgument,
     Device,
@@ -71,7 +81,10 @@ from .schema import (  # type: ignore[attr-defined]
     OptionalTensorArgument,
     OutputSpec,
     OutputTokenSpec,
+<<<<<<< HEAD
     ParameterMutationSpec,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RangeConstraint,
     ScalarType,
     SCHEMA_VERSION,
@@ -146,8 +159,11 @@ _TORCH_TO_SERIALIZE_DTYPE = {
     torch.bfloat16: ScalarType.BFLOAT16,
     torch.float8_e4m3fn: ScalarType.FLOAT8E4M3FN,
     torch.float8_e5m2: ScalarType.FLOAT8E5M2,
+<<<<<<< HEAD
     torch.float8_e4m3fnuz: ScalarType.FLOAT8E4M3FNUZ,
     torch.float8_e5m2fnuz: ScalarType.FLOAT8E5M2FNUZ,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -227,6 +243,7 @@ class _SerializedProgram:
     example_inputs: bytes
 
 
+<<<<<<< HEAD
 class LazyMap(dict):
     """
     Dictionary class for deferred instantiation of node metadata values.
@@ -252,12 +269,15 @@ class LazyMap(dict):
         return self.map.__repr__()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def deserialize_device(d: Device) -> torch.device:
     if d.index is None:
         return torch.device(type=d.type)  # type: ignore[call-overload]
     return torch.device(type=d.type, index=d.index)
 
 
+<<<<<<< HEAD
 def deserialize_size(sizes: Sequence[SymInt]) -> tuple[int, ...]:
     for sym_int_size in sizes:
         assert sym_int_size.type == "as_int", (
@@ -283,6 +303,8 @@ def deserialize_storage_offset(offset: SymInt) -> int:
     return offset.as_int
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _print_sympy(s: Union[torch.SymInt, torch.SymBool, torch.SymFloat, sympy.Expr]):
     if isinstance(s, (torch.SymInt, torch.SymBool, torch.SymFloat)):
         s = s.node.expr
@@ -353,7 +375,11 @@ def serialize_tensor_meta(t: torch.Tensor) -> TensorMeta:
         requires_grad=t.requires_grad,
         device=Device(type=t.device.type, index=t.device.index),
         strides=[serialize_sym_int(s) for s in t.stride()],
+<<<<<<< HEAD
         storage_offset=serialize_sym_int(t.storage_offset()),
+=======
+        storage_offset=serialize_sym_int(0),  # TODO needs to be fixed.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         layout=_TORCH_TO_SERIALIZE_LAYOUT[t.layout],
     )
 
@@ -377,9 +403,15 @@ def _reconstruct_fake_tensor(
     json_tensor_meta = json.loads(serialized_tensor_meta.decode("utf-8"))
     tensor_meta = _dict_to_dataclass(TensorMeta, json_tensor_meta)
     # Find the current fake mode
+<<<<<<< HEAD
     assert _CURRENT_DESERIALIZER is not None, (
         "Need access to current deserializer state"
     )
+=======
+    assert (
+        _CURRENT_DESERIALIZER is not None
+    ), "Need access to current deserializer state"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fake_tensor = _CURRENT_DESERIALIZER.deserialize_tensor_meta(tensor_meta)
     if is_parameter:
         fake_tensor = torch.nn.Parameter(fake_tensor)  # type: ignore[assignment]
@@ -392,9 +424,15 @@ def serialize_torch_artifact(
     if artifact is None:
         return b""
 
+<<<<<<< HEAD
     assert FakeTensor not in copyreg.dispatch_table, (
         "Refusing to stomp on existing FakeTensor reducer"
     )
+=======
+    assert (
+        FakeTensor not in copyreg.dispatch_table
+    ), "Refusing to stomp on existing FakeTensor reducer"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         copyreg.pickle(FakeTensor, _reduce_fake_tensor)
         buffer = io.BytesIO()
@@ -411,7 +449,11 @@ def serialize_torch_artifact(
 
 
 def deserialize_torch_artifact(
+<<<<<<< HEAD
     serialized: Union[dict[str, Any], tuple[Any, ...], bytes],
+=======
+    serialized: Union[dict[str, Any], tuple[Any, ...], bytes]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     if isinstance(serialized, (dict, tuple)):
         return serialized
@@ -470,7 +512,11 @@ def _symbol_index(sym: sympy.Symbol, sym_type: SymT):
 
 
 def serialize_range_constraints(
+<<<<<<< HEAD
     range_constraints: dict[sympy.Symbol, ValueRanges],
+=======
+    range_constraints: dict[sympy.Symbol, ValueRanges]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> dict[str, RangeConstraint]:
     return {
         str(k): RangeConstraint(
@@ -554,9 +600,15 @@ class GraphModuleSerializer(metaclass=Final):
             graph_input = Argument.create(
                 as_custom_obj=CustomObjArgument(name=node.name, class_fqn=class_fqn)
             )
+<<<<<<< HEAD
             self.graph_state.custom_obj_values[node.name] = (
                 self.serialize_script_obj_meta(val)
             )
+=======
+            self.graph_state.custom_obj_values[
+                node.name
+            ] = self.serialize_script_obj_meta(val)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise AssertionError(f"Unimplemented graph input type: {node.meta['val']}")
         self.graph_state.inputs.append(graph_input)
@@ -672,6 +724,7 @@ class GraphModuleSerializer(metaclass=Final):
                     metadata=self.serialize_metadata(node),
                     is_hop_single_tensor_return=False,
                 )
+<<<<<<< HEAD
             elif (
                 node.target
                 is torch._higher_order_ops.triton_kernel_wrap.triton_kernel_wrapper_functional
@@ -742,6 +795,8 @@ class GraphModuleSerializer(metaclass=Final):
                     metadata=self.serialize_metadata(node),
                     is_hop_single_tensor_return=_is_hop_single_tensor_return(node),
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 ex_node = Node(
                     target=self.serialize_operator(node.target),
@@ -752,9 +807,15 @@ class GraphModuleSerializer(metaclass=Final):
                 )
         elif type(node.target) in _serialization_registry:
             # Sanity check for unhandled serialization.
+<<<<<<< HEAD
             assert type(node.target) in _serialization_registry, (
                 f"{type(node.target)} is not supported in export serialization."
             )
+=======
+            assert (
+                type(node.target) in _serialization_registry
+            ), f"{type(node.target)} is not supported in export serialization."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             handler = _serialization_registry[type(node.target)]
             namespace = handler.namespace()
@@ -982,6 +1043,7 @@ class GraphModuleSerializer(metaclass=Final):
                     return Argument.create(
                         as_graph=GraphArgument(name=arg.target, graph=graph)
                     )
+<<<<<<< HEAD
                 elif type(attr).__name__ == "LoweredBackendModule":
                     # Special handling for executorch_call_delegate HOP
                     # It's first argument is a LoweredBackendModule, for which we
@@ -991,6 +1053,8 @@ class GraphModuleSerializer(metaclass=Final):
                     assert module_name is not None, "module_name should not be None"
                     assert backend_id is not None, "backend_id should not be None"
                     return Argument.create(as_string=f"{module_name}-{backend_id}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     raise SerializeError(
                         f"Unsupported getattr attribute {arg.target} with type: {type(attr)}"
@@ -1058,10 +1122,13 @@ class GraphModuleSerializer(metaclass=Final):
             return Argument.create(as_int=arg)
         elif type(arg) is float:
             return Argument.create(as_float=arg)
+<<<<<<< HEAD
         elif type(arg) is complex:
             return Argument.create(
                 as_complex=ComplexValue(real=arg.real, imag=arg.imag)
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif arg is None:
             return Argument.create(as_none=True)
         elif isinstance(arg, (list, tuple)):
@@ -1352,6 +1419,7 @@ class GraphModuleSerializer(metaclass=Final):
                     buffer_name=spec.target,
                 )
             )
+<<<<<<< HEAD
         elif spec.kind == ep.OutputKind.PARAMETER_MUTATION:
             assert spec.target is not None
             assert isinstance(spec.arg, ep.TensorArgument)
@@ -1361,6 +1429,8 @@ class GraphModuleSerializer(metaclass=Final):
                     parameter_name=spec.target,
                 )
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif spec.kind == ep.OutputKind.GRADIENT_TO_PARAMETER:
             assert spec.target is not None
             assert isinstance(spec.arg, ep.TensorArgument)
@@ -1442,9 +1512,15 @@ class GraphModuleSerializer(metaclass=Final):
                             f"but somehow previously was found to have field names {field_names}."
                         )
                 else:
+<<<<<<< HEAD
                     self.treespec_namedtuple_fields[serialized_type_name] = (
                         NamedTupleDef(field_names=ts.context._fields)
                     )
+=======
+                    self.treespec_namedtuple_fields[
+                        serialized_type_name
+                    ] = NamedTupleDef(field_names=ts.context._fields)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             for child in ts.children_specs:
                 store_namedtuple_fields(child)
@@ -1555,7 +1631,11 @@ class GraphModuleSerializer(metaclass=Final):
                 assert isinstance(
                     return_schema.real_type, (torch.OptionalType, torch.TensorType)
                 )
+<<<<<<< HEAD
                 # When the return type is annotated as Tensor type, the op can also return an
+=======
+                # When the return type is annoated as Tensor type, the op can also return an
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # undefined Tensor which will be implicitly converted to None in Python.
                 output_arguments.append(Argument.create(as_none=True))
             elif isinstance(meta, FakeTensor):
@@ -1626,6 +1706,7 @@ class GraphModuleSerializer(metaclass=Final):
                     outputs.append(self.serialize_output(name, element_meta_val))
 
             return outputs
+<<<<<<< HEAD
         elif isinstance(meta_val, dict):
             tensor_args = []
             # use the dict key as the idx
@@ -1637,6 +1718,8 @@ class GraphModuleSerializer(metaclass=Final):
                 name = self._output_node_name_at_index(node, idx)
                 tensor_args.append(self.serialize_tensor_output(name, meta))
             return [Argument.create(as_tensors=tensor_args)]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return [self.serialize_output(node.name, meta_val)]
 
@@ -1674,9 +1757,15 @@ class GraphModuleSerializer(metaclass=Final):
 
         idx_to_name = {}
         for user in node.users:
+<<<<<<< HEAD
             assert user.target is operator.getitem, (
                 f"User node {user} of {node} is incorrect"
             )
+=======
+            assert (
+                user.target is operator.getitem
+            ), f"User node {user} of {node} is incorrect"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             idx_to_name[user.args[1]] = user.name
 
         for idx, _ in enumerate(meta_val):
@@ -1794,7 +1883,10 @@ class ExportedProgramSerializer(metaclass=Final):
             ),
             verifiers=[v.dialect for v in exported_program.verifiers],
             torch_version=torch.__version__,
+<<<<<<< HEAD
             guards_code=exported_program._guards_code,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Test canonical form is well defined.
@@ -1828,7 +1920,11 @@ class GraphModuleDeserializer(metaclass=Final):
 
     def __init__(self) -> None:
         self.serialized_name_to_node: dict[str, torch.fx.Node] = {}
+<<<<<<< HEAD
         self.serialized_name_to_meta: LazyMap = LazyMap()  # str -> MetaType
+=======
+        self.serialized_name_to_meta: dict[str, MetaType] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.graph = torch.fx.Graph()
         self.module = torch.nn.Module()
 
@@ -1844,7 +1940,11 @@ class GraphModuleDeserializer(metaclass=Final):
         self.graph = torch.fx.Graph()
         self.module = torch.nn.Module()
         self.serialized_name_to_node = {}
+<<<<<<< HEAD
         self.serialized_name_to_meta = LazyMap()
+=======
+        self.serialized_name_to_meta = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.unbacked_symbols: set[sympy.Symbol] = set()
         try:
             yield
@@ -2033,6 +2133,7 @@ class GraphModuleDeserializer(metaclass=Final):
         # Handle the tensor metas.
         for name, tensor_value in serialized_graph.tensor_values.items():
             log.debug("[deserialize_tensor_meta] %s (input): %s", name, tensor_value)
+<<<<<<< HEAD
             self.serialized_name_to_meta[name] = (
                 lambda v=tensor_value: self.deserialize_tensor_meta(v)
             )
@@ -2059,6 +2160,34 @@ class GraphModuleDeserializer(metaclass=Final):
             log.debug("[deserialize_script_obj_meta] %s", script_obj_meta)
             self.serialized_name_to_meta[name] = (
                 lambda v=script_obj_meta: self.deserialize_script_obj_meta(v)
+=======
+            meta_val = self.deserialize_tensor_meta(tensor_value)
+            log.debug("[deserialize_tensor_meta] %s (output): %s", name, meta_val)
+            self.serialized_name_to_meta[name] = meta_val
+
+        for name, sym_int_value in serialized_graph.sym_int_values.items():
+            log.debug("[deserialize_sym_int] %s (input): %s", name, sym_int_value)
+            int_val = self.deserialize_sym_int(sym_int_value)
+            log.debug("[deserialize_sym_int] %s (output): %s", name, int_val)
+            self.serialized_name_to_meta[name] = int_val
+
+        for name, sym_float_value in serialized_graph.sym_float_values.items():
+            log.debug("[deserialize_sym_float] %s (input): %s", name, sym_float_value)
+            float_val = self.deserialize_sym_float(sym_float_value)
+            log.debug("[deserialize_sym_float] %s (output): %s", name, float_val)
+            self.serialized_name_to_meta[name] = float_val
+
+        for name, sym_bool_value in serialized_graph.sym_bool_values.items():
+            log.debug("[deserialize_sym_bool] %s (input): %s", name, sym_bool_value)
+            bool_val = self.deserialize_sym_bool(sym_bool_value)
+            log.debug("[deserialize_sym_bool] %s (output): %s", name, bool_val)
+            self.serialized_name_to_meta[name] = bool_val
+
+        for name, script_obj_meta in serialized_graph.custom_obj_values.items():
+            log.debug("[deserialize_script_obj_meta] %s", script_obj_meta)
+            self.serialized_name_to_meta[name] = self.deserialize_script_obj_meta(
+                script_obj_meta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         log.debug("\n[deserialize graph nodes]")
@@ -2164,6 +2293,7 @@ class GraphModuleDeserializer(metaclass=Final):
 
             fx_node = self.graph.create_node("call_function", target, args, {}, name)
             self.deserialize_sym_op_outputs(serialized_node, fx_node)
+<<<<<<< HEAD
         elif (
             target
             is torch._higher_order_ops.triton_kernel_wrap.triton_kernel_wrapper_functional
@@ -2171,6 +2301,9 @@ class GraphModuleDeserializer(metaclass=Final):
             raise SerializeError(
                 "deserialize nyi for torch._higher_order_ops.triton_kernel_wrap.triton_kernel_wrapper_functional"
             )
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif isinstance(target, torch._ops.HigherOrderOperator):
             args, kwargs = self.deserialize_hoo_inputs(serialized_node.inputs)
             metadata = self.deserialize_metadata(serialized_node.metadata)
@@ -2222,7 +2355,11 @@ class GraphModuleDeserializer(metaclass=Final):
             _additional_msg = (
                 (
                     f"We failed to resolve {target} to an operator. "
+<<<<<<< HEAD
                     + "If it's a custom op/custom triton op, this is usually because the custom op is not registered"
+=======
+                    + "If it's a custom op/custom triton op, this is usally because the custom op is not registered"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     + " when deserializing. Please import the custom op to register it before deserializing."
                     + " Otherwise, please file an issue on github."
                 )
@@ -2243,6 +2380,7 @@ class GraphModuleDeserializer(metaclass=Final):
             fx_node.kwargs,
             fx_node.meta.get("val"),
         )
+<<<<<<< HEAD
 
         # handle ShapeEnv asserts
         if target == torch.ops.aten._assert_scalar.default:
@@ -2258,11 +2396,19 @@ class GraphModuleDeserializer(metaclass=Final):
                 self.shape_env._constrain_range_for_size(sym.node.expr)
 
         # handle nn_module_stack; serialization throws away empty dicts
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             fx_node.op not in ["placeholder", "output"]
             and "nn_module_stack" not in fx_node.meta
         ):
+<<<<<<< HEAD
             fx_node.meta["nn_module_stack"] = {}
+=======
+            fx_node.meta[
+                "nn_module_stack"
+            ] = {}  # serialization throws away empty dicts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def deserialize_input_spec(self, i: InputSpec) -> ep.InputSpec:
         log.debug("[deserialize_input_spec] %s", i)
@@ -2337,12 +2483,15 @@ class GraphModuleDeserializer(metaclass=Final):
                 arg=ep.TensorArgument(name=o.buffer_mutation.arg.name),
                 target=o.buffer_mutation.buffer_name,
             )
+<<<<<<< HEAD
         elif o.type == "parameter_mutation":
             return ep.OutputSpec(
                 kind=ep.OutputKind.PARAMETER_MUTATION,
                 arg=ep.TensorArgument(name=o.parameter_mutation.arg.name),
                 target=o.parameter_mutation.parameter_name,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif o.type == "gradient_to_parameter":
             return ep.OutputSpec(
                 kind=ep.OutputKind.GRADIENT_TO_PARAMETER,
@@ -2445,6 +2594,11 @@ class GraphModuleDeserializer(metaclass=Final):
             if symbol_name_to_range:
                 for k, vr in symbol_name_to_range.items():
                     lower = vr.lower
+<<<<<<< HEAD
+=======
+                    if vr.upper >= 2:  # max is >= 2, not sym bool range
+                        lower = max(2, lower)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.symbol_name_to_range[k] = symbolic_shapes.ValueRanges(
                         _int_to_sympy_int(lower, -int_oo), vr.upper
                     )
@@ -2596,8 +2750,11 @@ class GraphModuleDeserializer(metaclass=Final):
             return inp.as_bool
         elif typ_ == "as_string":
             return inp.as_string
+<<<<<<< HEAD
         elif typ_ == "as_complex":
             return complex(inp.as_complex.real, inp.as_complex.imag)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif typ_ == "as_sym_int":
             return self.deserialize_sym_argument(inp.as_sym_int)
         elif typ_ == "as_sym_float":
@@ -3039,7 +3196,10 @@ class ExportedProgramDeserializer(metaclass=Final):
             constants=res.constants,
             verifiers=[load_verifier(v) for v in exported_program.verifiers],
         )
+<<<<<<< HEAD
         result._guards_code = exported_program.guards_code
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.debug("\n[deserialize]: %s", result)
         return result
 
@@ -3072,7 +3232,11 @@ def _dataclass_to_dict(obj):
             return "Infinity"
         elif obj == -math.inf:
             return "-Infinity"
+<<<<<<< HEAD
         elif math.isnan(obj):
+=======
+        elif obj == math.nan:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return "NaN"
         else:
             return obj
@@ -3126,6 +3290,7 @@ def _dict_to_dataclass(cls, data):
         field_type = cls.__annotations__[_type]
         return cls.create(**{_type: _dict_to_dataclass(field_type, _value)})
     elif dataclasses.is_dataclass(cls):
+<<<<<<< HEAD
         fields = {}
         type_hints = typing.get_type_hints(cls)
         # For forward compatibility consideration, we ignore all the keys
@@ -3137,6 +3302,15 @@ def _dict_to_dataclass(cls, data):
             new_field_obj = _dict_to_dataclass(type_hints[name], data[name])
             fields[name] = new_field_obj
         return cls(**fields)  # type: ignore[operator]
+=======
+        obj = cls(**data)  # type: ignore[assignment,operator]
+        type_hints = typing.get_type_hints(cls)
+        for f in dataclasses.fields(cls):
+            name = f.name
+            new_field_obj = _dict_to_dataclass(type_hints[name], getattr(obj, name))
+            setattr(obj, name, new_field_obj)
+        return obj
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(data, list):
         if len(data) == 0:
             return data
@@ -3150,6 +3324,7 @@ def _dict_to_dataclass(cls, data):
     return data
 
 
+<<<<<<< HEAD
 def _bytes_to_dataclass(cls: Any, artifact_bytes: bytes) -> Any:
     artifact_str = artifact_bytes.decode("utf-8")
     artifact_dict = json.loads(artifact_str)
@@ -3157,6 +3332,8 @@ def _bytes_to_dataclass(cls: Any, artifact_bytes: bytes) -> Any:
     return artifact_dataclass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def deserialize(
     artifact: SerializedArtifact,
     expected_opset_version: Optional[dict[str, int]] = None,
@@ -3164,8 +3341,15 @@ def deserialize(
     _unsafe_skip_version_check=False,
 ) -> ep.ExportedProgram:
     assert isinstance(artifact.exported_program, bytes)
+<<<<<<< HEAD
     serialized_exported_program = _bytes_to_dataclass(
         ExportedProgram, artifact.exported_program
+=======
+    exported_program_str = artifact.exported_program.decode("utf-8")
+    exported_program_dict = json.loads(exported_program_str)
+    serialized_exported_program = _dict_to_dataclass(
+        ExportedProgram, exported_program_dict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     return ExportedProgramDeserializer(expected_opset_version).deserialize(
         serialized_exported_program,
@@ -3198,8 +3382,11 @@ def _canonicalize_graph(
             return None
         elif a.type == "as_strings":
             return None
+<<<<<<< HEAD
         elif a.type == "as_complex":
             return None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif a.type == "as_sym_int":
             return a.as_sym_int
         elif a.type == "as_sym_ints":
@@ -3504,7 +3691,10 @@ def canonicalize(
     range_constraints = dict(
         sorted(ep.range_constraints.items(), key=operator.itemgetter(0))
     )
+<<<<<<< HEAD
     guards_code = sorted(ep.guards_code)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     module_call_graph = sorted(ep.graph_module.module_call_graph, key=lambda x: x.fqn)
     signature = ep.graph_module.signature
     graph = ep.graph_module.graph
@@ -3536,6 +3726,7 @@ def canonicalize(
         idx, (_arg, spec) = out
         assert isinstance(spec, OutputSpec)
         if spec.type == "user_output":
+<<<<<<< HEAD
             return 4, None, idx
         elif spec.type == "loss_output":
             return 4, None, idx
@@ -3549,6 +3740,19 @@ def canonicalize(
             return 6, None, idx
         elif spec.type == "user_input_mutation":
             return 3, None, idx
+=======
+            return 3, None, idx
+        elif spec.type == "loss_output":
+            return 3, None, idx
+        elif spec.type == "buffer_mutation":
+            return 1, spec.buffer_mutation.buffer_name, idx
+        elif spec.type == "gradient_to_parameter":
+            return 4, spec.gradient_to_parameter.parameter_name, idx
+        elif spec.type == "gradient_to_user_input":
+            return 5, None, idx
+        elif spec.type == "user_input_mutation":
+            return 2, None, idx
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif spec.type == "token":
             return 0, None, idx
         else:
@@ -3661,9 +3865,12 @@ def canonicalize(
         elif spec.type == "buffer_mutation":
             t = spec.buffer_mutation.arg
             t.name = replace_table[t.name]
+<<<<<<< HEAD
         elif spec.type == "parameter_mutation":
             t = spec.parameter_mutation.arg
             t.name = replace_table[t.name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif spec.type == "gradient_to_parameter":
             t = spec.gradient_to_parameter.arg
             t.name = replace_table[t.name]
@@ -3701,7 +3908,10 @@ def canonicalize(
         schema_version=ep.schema_version,
         verifiers=ep.verifiers,
         torch_version=ep.torch_version,
+<<<<<<< HEAD
         guards_code=guards_code,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -3732,9 +3942,15 @@ def register_extension(
     extension_handler: type[ExtensionHandler],
 ):
     """Register custom de/serialization method for a node with non-standard type."""
+<<<<<<< HEAD
     assert issubclass(extension_handler, ExtensionHandler), (
         f"Expected ExtensionHandler, got {extension_handler}."
     )
+=======
+    assert issubclass(
+        extension_handler, ExtensionHandler
+    ), f"Expected ExtensionHandler, got {extension_handler}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert op_type not in _serialization_registry, f"{op_type} is already registered."
     assert isinstance(op_type, type)  # Maybe a good idea to enforce this first.
     assert not (

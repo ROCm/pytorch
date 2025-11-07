@@ -199,7 +199,11 @@ class TestTrainingAwareCallback(TestCase):
                    do not want as the config of each layer changes after
                    .step()
 
+<<<<<<< HEAD
         Hence, we need to dump and restore the state_dict() every time because we're
+=======
+        Hence, we need to dump and restore the state_dict() everytime because we're
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         copying the model after each epoch.
         Hence, it is essential to make sure that the sparsifier's state_dict() is being
         correctly dumped and restored.

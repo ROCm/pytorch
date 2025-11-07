@@ -107,7 +107,11 @@ class AdaptiveRoundingOptimizer:
         )
         if torch.cuda.is_available():
             # Somehow, we need to move the model continuously
+<<<<<<< HEAD
             # Otherwise, the model will be lowered to CPU mysteriously
+=======
+            # Otherwise, the model will be lowered to CPU misteriously
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.model = self.model.cuda()
             self.q_model = self.q_model.cuda()
         for data_ in data:

@@ -280,7 +280,11 @@ class Compare:
     https://pytorch.org/tutorials/recipes/recipes/benchmark.html
 
     Args:
+<<<<<<< HEAD
         results: List of Measurement to display.
+=======
+        results: List of Measurment to display.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     def __init__(self, results: list[common.Measurement]):
         self._results: list[common.Measurement] = []

@@ -6,6 +6,7 @@ from typing import Union
 
 import torch
 from torch._inductor import config
+<<<<<<< HEAD
 from torch._inductor.decomposition import mm
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.fx.experimental.symbolic_shapes import (
@@ -13,6 +14,8 @@ from torch.fx.experimental.symbolic_shapes import (
     ShapeEnv,
     StatelessSymbolicContext,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_cuda import SM80OrLater
 from torch.testing._internal.common_device_type import instantiate_device_type_tests
 from torch.testing._internal.common_nn import NNTestCase
@@ -85,6 +88,7 @@ def torch_baddbmm(add, b, c, alpha, beta):
     return torch.baddbmm(add, b, c, alpha=alpha, beta=beta)
 
 
+<<<<<<< HEAD
 def create_fake_tensor_with_dynamic_size(x, fake_mode):
     with fake_mode:
         dynamic_sizes = [DimDynamic.DYNAMIC for _ in range(x.dim())]
@@ -98,6 +102,8 @@ def create_fake_tensor_with_dynamic_size(x, fake_mode):
         )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # The shapes we test on
 ts_list = [
     (1, 32, 32, 1),
@@ -172,7 +178,11 @@ class TestDecomp(NNTestCase):
     @parametrize("dtype", [torch.float, torch.bfloat16, torch.int])
     def test_some(self, device, dtype):
         # this Pytorch data type is not fully supported on cuda today
+<<<<<<< HEAD
         # - unfortunately we can't skipIf because we don't see the actual params in skipIf
+=======
+        # - unfortunately we can't skipIf because we don't see the actual parms in skipIf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if device.startswith(GPU_TYPE) and dtype == torch.int:
             return
 
@@ -192,7 +202,11 @@ class TestDecomp(NNTestCase):
     @parametrize("bs", [1, 2, 4, 10])
     def test_some_batched(self, device, dtype, bs):
         # this Pytorch data type is not fully supported on cuda today
+<<<<<<< HEAD
         # - unfortunately we can't skipIf because we don't see the actual params in skipIf
+=======
+        # - unfortunately we can't skipIf because we don't see the actual parms in skipIf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if device.startswith(GPU_TYPE) and dtype == torch.int:
             return
 
@@ -207,6 +221,7 @@ class TestDecomp(NNTestCase):
             init_tensor([[[1], [2], [3], [4]]] * bs, dtype=dtype, device=device),
         )
 
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float, torch.bfloat16])
     def test_dynamic_shape_mm(self, device, dtype):
         # Test that the mm decomp does not evaluate expressions for dynamic shapes
@@ -272,6 +287,8 @@ class TestDecomp(NNTestCase):
                 self.assertTrue(r_expr_types[0] == og_t1_expr_types[0])
                 self.assertTrue(r_expr_types[1] == og_t2_expr_types[1])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 device_types = ("cpu", GPU_TYPE)
 instantiate_device_type_tests(TestDecomp, globals(), only_for=device_types)

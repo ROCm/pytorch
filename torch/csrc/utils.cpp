@@ -240,6 +240,7 @@ uint8_t storage_get(const at::Storage& self, ptrdiff_t idx) {
   return self_t[idx].item<uint8_t>();
 }
 
+<<<<<<< HEAD
 std::string uuid_to_string(const char* uuid_bytes) {
   // UUIDs are a 128-bit label. CUDA/HIP and XPU store this as char[16].
   // For string representation, the code here expands this to
@@ -268,6 +269,8 @@ std::string uuid_to_string(const char* uuid_bytes) {
       (uint8_t)uuid_bytes[15]);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template class THPPointer<THPStorage>;
 // NOLINTBEGIN(misc-use-internal-linkage)
 namespace torch::gdb {

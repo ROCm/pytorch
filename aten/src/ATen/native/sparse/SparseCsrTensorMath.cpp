@@ -127,10 +127,13 @@
 #include <ATen/ops/zeros_like.h>
 #endif
 
+<<<<<<< HEAD
 #if AT_USE_EIGEN_SPARSE()
 #include <ATen/native/sparse/eigen/SparseBlasImpl.h>
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <algorithm>
 
 namespace at {
@@ -540,12 +543,16 @@ static void addmm_out_sparse_csr_native_cpu(
   auto values = sparse.values();
 
   scalar_t cast_alpha = alpha.to<scalar_t>();
+<<<<<<< HEAD
   // If beta is zero NaN and Inf should not be propagated to the result
   if (beta.toComplexDouble() == 0.) {
     r.zero_();
   } else {
     r.mul_(beta);
   }
+=======
+  r.mul_(beta);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_INDEX_TYPES(
       col_indices.scalar_type(), "csr_mm_crow_indices", [&]() {
         auto csr_accessor = csr.accessor<index_t, 1>();
@@ -657,6 +664,7 @@ Tensor& addmm_out_sparse_compressed_cpu(
     return result;
   }
 
+<<<<<<< HEAD
 #if AT_USE_EIGEN_SPARSE()
   if ((result.layout() == kSparseCsr || result.layout() == kSparseCsc) &&
       (mat1.layout() == kSparseCsr || mat1.layout() == kSparseCsc) &&
@@ -666,6 +674,8 @@ Tensor& addmm_out_sparse_compressed_cpu(
   }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if !AT_USE_MKL_SPARSE()
   // The custom impl addmm_out_sparse_csr_native_cpu only supports CSR @
   // strided -> strided

@@ -4,7 +4,11 @@
 
 import torch
 import torch.distributed as dist
+<<<<<<< HEAD
 from torch.distributed.tensor import distribute_tensor, Replicate
+=======
+from torch.distributed.tensor import DeviceMesh, distribute_tensor, Replicate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
@@ -24,7 +28,11 @@ class DistOtherOpsTest(DTensorTestBase):
 
     @with_comms
     def test_slice(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_spec = [Replicate()]
 
         input_list = torch.rand(ITER_TIME, 1024, 10)
@@ -76,7 +84,11 @@ class DistOtherOpsTest(DTensorTestBase):
     @with_comms
     def test_bernoulli(self):
         rank = dist.get_rank()
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_spec = [Replicate()]
 
         input_list = torch.rand(ITER_TIME, 1024, 10)
@@ -138,7 +150,11 @@ class DistOtherOpsTest(DTensorTestBase):
 
     @with_comms
     def test_nll(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_spec = [Replicate()]
 
         pred_list = torch.rand(ITER_TIME, 1024, 10)

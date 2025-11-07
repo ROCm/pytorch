@@ -448,7 +448,11 @@ std::vector<Argument> ScriptTypeParser::parseArgsFromDecl(
 }
 
 std::vector<Argument> ScriptTypeParser::parseReturnFromDecl(const Decl& decl) {
+<<<<<<< HEAD
   // we represent no annotation on a return type as having no values in the
+=======
+  // we represent no annoation on a return type as having no values in the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // schema's return() list
   // in emitReturn we take the actual return value to be the value of the
   // return statement if no one was provided here

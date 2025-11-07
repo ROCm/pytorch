@@ -201,7 +201,11 @@ class DimOrder(enum.Enum):
 
 
 class Operand(NamedTuple):
+<<<<<<< HEAD
     """Representation of an NNAPI operand."""
+=======
+    """Represenation of an NNAPI operand."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # NNAPI operand type.  One of NNAPI_OperandCode.
     # TODO: Make this an enum.

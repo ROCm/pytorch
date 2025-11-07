@@ -11,7 +11,11 @@ import torch
 import torch.onnx
 from torch.nn import Module
 from torch.onnx import producer_name, producer_version
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter._globals import GLOBALS
+=======
+from torch.onnx._globals import GLOBALS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 
 
@@ -67,7 +71,10 @@ def check_onnx_opsets_operator(
             training=training,
             input_names=input_names,
             dynamic_axes=dynamic_axes,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model = onnx.load(io.BytesIO(f.getvalue()))
         check_onnx_opset_operator(model, ops[opset_version], opset_version)

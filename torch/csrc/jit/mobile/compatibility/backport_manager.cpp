@@ -125,7 +125,11 @@ void write_archive_current(
     std::string fname = tensor_dir + tensor_names[i++];
     if (use_storage_context &&
         pre_serialized_files.find(fname) != pre_serialized_files.end()) {
+<<<<<<< HEAD
       // storage has been serialized already, skip
+=======
+      // storage has been serialzed already, skip
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       continue;
     }
     writer.writeRecord(fname, writable_td.data(), writable_td.sizeInBytes());
@@ -230,7 +234,11 @@ std::stringstream update_bytecode_version(
 
  How to add backport_v{i}_to_v{i-1} ?
  There are two options:
+<<<<<<< HEAD
  1) [Format change only, recommended] Construct a reader with the
+=======
+ 1) [Format change only, recommended] Constrcut a reader with the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  input_model_stream, modify the file, and use PyTorchWriter to write it to
  output_model_stream. See backport_v5_to_v4.
 
@@ -322,7 +330,11 @@ std::stringstream backport_v5_to_v4(std::stringstream& input_model_stream) {
 
   // The export function to generate bytecode.pkl for version 4. After bytecode
   // version bump, the old export function doesn't exist anymore, so keep a copy
+<<<<<<< HEAD
   // here for backport purpose.
+=======
+  // here for backport pupose.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto writeArchiveV4 = [](PyTorchStreamWriter& writer,
                            const std::string& archive_name,
                            const c10::IValue& value) {
@@ -502,7 +514,11 @@ std::stringstream backport_v9_to_v8(std::stringstream& input_model_stream) {
       torch::jit::load(input_model_stream, std::nullopt, extra_files);
   std::stringstream intermediate_model_stream;
   // TODO(@pavithran) : Check if debug info is available and use load/save while
+<<<<<<< HEAD
   // backporting hardcode debaug info to be false until supported.
+=======
+  // backporting hardcode debaug info to be false untill supported.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool hasBytecodeDebug = false;
   {
     BytecodeEmitModeGuard argNumGuard(

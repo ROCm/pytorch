@@ -88,7 +88,11 @@ class CustomMmaBase {
       Shape::kN / WarpGemm::kN,
       Shape::kK / WarpGemm::kK>;
 
+<<<<<<< HEAD
   /// Number of warp-level GEMM operations
+=======
+  /// Number of warp-level GEMM oeprations
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static int const kWarpGemmIterations =
       (WarpGemm::kK / Operator::Policy::MmaShape::kK);
 

@@ -21,7 +21,20 @@ def _pin_memory_loop(in_queue, out_queue, device_id, done_event, device):
     torch.set_num_threads(1)
 
     torch.multiprocessing._set_thread_name("pt_data_pin")
+<<<<<<< HEAD
     torch.accelerator.set_device_index(device_id)
+=======
+
+    if device == "cuda":
+        torch.cuda.set_device(device_id)
+    elif device == "xpu":
+        torch.xpu.set_device(device_id)  # type: ignore[attr-defined]
+    elif device == torch._C._get_privateuse1_backend_name():
+        custom_device_mod = getattr(torch, torch._C._get_privateuse1_backend_name())
+        custom_device_mod.set_device(device_id)
+    elif device is None:
+        torch.accelerator.set_device_index(device_id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def do_one_step():
         try:
@@ -69,9 +82,13 @@ def pin_memory(data, device=None):
                 )
                 return clone
             else:
+<<<<<<< HEAD
                 return type(data)(
                     {k: pin_memory(sample, device) for k, sample in data.items()}
                 )  # type: ignore[call-arg]
+=======
+                return type(data)({k: pin_memory(sample, device) for k, sample in data.items()})  # type: ignore[call-arg]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except TypeError:
             # The mapping type may not support `copy()` / `update(mapping)`
             # or `__init__(iterable)`.

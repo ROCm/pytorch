@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Any, Literal, Optional
+=======
+from typing import Any, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -62,7 +66,11 @@ class Conv1d(_ConvNd, nn.Conv1d):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
         weight_qparams: Optional[dict[str, Any]] = None,
@@ -282,7 +290,11 @@ class ConvTranspose1d(_ConvTransposeNd, nn.ConvTranspose1d):
         groups: int = 1,
         bias: bool = True,
         dilation: _size_1_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
         weight_qparams: Optional[dict[str, Any]] = None,

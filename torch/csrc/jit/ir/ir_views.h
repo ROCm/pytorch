@@ -143,7 +143,11 @@ struct LoopView {
  private:
   Node* node_;
 
+<<<<<<< HEAD
   // adjust index_ordering by adding indices 0 - thorough adjust, and
+=======
+  // adjust index_ordering by adding indices 0 - thorugh adjust, and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // incrementing all existing inputs by adjust
   static std::vector<size_t> adjustIndices(
       size_t adjust,

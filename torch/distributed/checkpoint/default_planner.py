@@ -408,7 +408,11 @@ class _EmptyStateDictLoadPlanner(DefaultLoadPlanner):
             return True
 
         if key in self.keys:
+<<<<<<< HEAD
             return True
+=======
+            True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         unflattened_keys: list[str] = []
         planner_data = metadata.planner_data.get(key)
@@ -654,7 +658,11 @@ def _validate_global_plan(global_plan: list[SavePlan], metadata: Metadata) -> bo
 
         # Check whether combined chunk cover the whole tensor
         tensor_volume = reduce(operator.mul, value.size, 1)
+<<<<<<< HEAD
         if len(global_plan) > 1 and chunks_volume != tensor_volume:
+=======
+        if chunks_volume != tensor_volume:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             logger.warning(
                 """
                     key:%s invalid fill tensor-volume:

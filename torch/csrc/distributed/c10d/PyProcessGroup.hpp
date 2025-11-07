@@ -151,6 +151,7 @@ class PyProcessGroup : public ProcessGroup {
         group_desc);
   }
 
+<<<<<<< HEAD
   c10::intrusive_ptr<ProcessGroup> splitGroup(
       const std::vector<int>& ranks,
       const std::optional<std::chrono::milliseconds>& timeout,
@@ -181,6 +182,8 @@ class PyProcessGroup : public ProcessGroup {
         size);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::intrusive_ptr<Work> allgather(
       std::vector<std::vector<at::Tensor>>& outputTensors,
       std::vector<at::Tensor>& inputTensors,

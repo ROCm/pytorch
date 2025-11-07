@@ -2733,6 +2733,7 @@ class TestMoveaxis(TestCase):
         assert_raises(np.AxisError, np.moveaxis, x, 3, 0)  # 'source.*out of bounds',
         assert_raises(np.AxisError, np.moveaxis, x, -4, 0)  # 'source.*out of bounds',
         assert_raises(
+<<<<<<< HEAD
             np.AxisError,
             np.moveaxis,
             x,
@@ -2745,6 +2746,12 @@ class TestMoveaxis(TestCase):
             x,
             [0, 0],
             [0, 1],  # 'repeated axis in `source`',
+=======
+            np.AxisError, np.moveaxis, x, 0, 5  # 'destination.*out of bounds',
+        )
+        assert_raises(
+            ValueError, np.moveaxis, x, [0, 0], [0, 1]  # 'repeated axis in `source`',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         assert_raises(
             ValueError,  # 'repeated axis in `destination`',

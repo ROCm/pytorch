@@ -51,6 +51,7 @@ def my_abs(t) -> Tensor:
     return torch.ops.libtorch_agnostic.my_abs.default(t)
 
 
+<<<<<<< HEAD
 def my_is_cpu(t) -> bool:
     """
     Returns is_cpu on the input tensor.
@@ -64,6 +65,8 @@ def my_is_cpu(t) -> bool:
     return torch.ops.libtorch_agnostic.my_is_cpu.default(t)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def my_ones_like(tensor, device) -> Tensor:
     """
     Returns a new Tensor like the input tensor, but with all ones
@@ -129,6 +132,7 @@ def is_contiguous(t) -> bool:
     Returns: is_contiguous(t)
     """
     return torch.ops.libtorch_agnostic.is_contiguous.default(t)
+<<<<<<< HEAD
 
 
 def my_transpose(t, dim0, dim1) -> Tensor:
@@ -307,3 +311,5 @@ def my_new_zeros_dtype_variant(t) -> Tensor:
     Returns: New zeros tensor
     """
     return torch.ops.libtorch_agnostic.my_new_zeros_dtype_variant.default(t)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

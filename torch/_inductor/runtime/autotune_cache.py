@@ -35,7 +35,10 @@ from typing import Any, Optional, TYPE_CHECKING
 from typing_extensions import override
 
 import torch
+<<<<<<< HEAD
 from torch._dynamo.precompile_context import PrecompileContext
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.runtime.runtime_utils import cache_dir
 from torch.compiler._cache import (
     CacheArtifact,
@@ -126,7 +129,10 @@ class AutotuneCache:
     ) -> Optional[AutotuneCache]:
         cache = AutotuneCache(configs_hash)
         key = AutotuneCache._prepare_key(filename)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cache._setup_local_cache(inductor_meta, os.path.dirname(filename), key)
         cache._setup_remote_autotune_cache(inductor_meta, key)
         if cache.local_cache or cache.remote_cache:
@@ -302,10 +308,13 @@ class AutotuneCache:
             CacheArtifactManager.record_artifact(
                 AutotuneCacheArtifact.type(), autotune_artifact_key, data
             )
+<<<<<<< HEAD
             if torch._dynamo.config.caching_precompile:
                 PrecompileContext.record_artifact(
                     AutotuneCacheArtifact.type(), autotune_artifact_key, data
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if log.isEnabledFor(logging.DEBUG):
                 type_str = "coordesc" if found_by_coordesc else "heuristic"
@@ -631,10 +640,13 @@ class LocalAutotuneCache(RemoteCache[JsonDataTy]):
             CacheArtifactManager.record_artifact(
                 AutotuneCacheArtifact.type(), autotune_artifact_key, result
             )
+<<<<<<< HEAD
             if torch._dynamo.config.caching_precompile:
                 PrecompileContext.record_artifact(
                     AutotuneCacheArtifact.type(), autotune_artifact_key, result
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return result
 
     @override

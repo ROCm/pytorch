@@ -57,7 +57,17 @@ auto UndefinedGrad::apply(variable_list&& inputs) -> variable_list {
 
 auto UndefinedGradBackward::apply(variable_list&& output_grads)
     -> variable_list {
+<<<<<<< HEAD
   return tensor_list(output_grads.size());
+=======
+  tensor_list input_grads;
+  output_grads.reserve(input_grads.size());
+  for (auto& grad : output_grads) {
+    (void)grad; // Suppress unused variable warning
+    input_grads.emplace_back();
+  }
+  return input_grads;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 auto Identity::apply(variable_list&& grads) -> variable_list {

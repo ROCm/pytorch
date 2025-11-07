@@ -201,5 +201,8 @@ bool maybeThrowBackCompatKeepdimWarn(char* func);
 void storage_fill(const at::Storage& self, uint8_t value);
 void storage_set(const at::Storage& self, ptrdiff_t idx, uint8_t value);
 uint8_t storage_get(const at::Storage& self, ptrdiff_t idx);
+<<<<<<< HEAD
 
 std::string uuid_to_string(const char* uuid_bytes);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

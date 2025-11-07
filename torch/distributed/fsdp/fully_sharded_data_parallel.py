@@ -121,6 +121,12 @@ class FullyShardedDataParallel(nn.Module, _FSDPState):
     well as the ZeRO Stage 3 from `DeepSpeed <https://www.deepspeed.ai/>`_.
     FullyShardedDataParallel is commonly shortened to FSDP.
 
+<<<<<<< HEAD
+=======
+    To understand FSDP internals, refer to the
+    :ref:`fsdp_notes`.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Example::
 
         >>> # xdoctest: +SKIP("undefined variables")

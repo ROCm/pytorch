@@ -21,7 +21,10 @@ import torch.utils.cpp_extension
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_CUDNN
 from torch.testing._internal.common_utils import gradcheck, TEST_XPU
 from torch.utils.cpp_extension import (
+<<<<<<< HEAD
     _get_cuda_arch_flags,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _TORCH_PATH,
     check_compiler_is_gcc,
     CUDA_HOME,
@@ -220,12 +223,15 @@ class TestCppExtensionJIT(common.TestCase):
 
         self.assertEqual(cpu_output, mps_output.to("cpu"))
 
+<<<<<<< HEAD
         # Regression test for https://github.com/pytorch/pytorch/issues/163721
         lib = torch.mps.compile_shader("void kernel noop(device float *x) {}")
         lib.noop(mps_output)
         module.mps_add_one_new_context(mps_output)
         self.assertEqual(cpu_output + 1.0, mps_output.to("cpu"))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _run_jit_cuda_archflags(self, flags, expected):
         # Compile an extension with given `flags`
         def _check_cuobjdump_output(expected_values, is_ptx=False):
@@ -328,6 +334,7 @@ class TestCppExtensionJIT(common.TestCase):
                 [f"{capability[0]}{capability[1]}" for capability in capabilities],
                 None,
             ),
+<<<<<<< HEAD
         }
         archflags["7.5+PTX"] = (["75"], ["75"])
         major, minor = map(int, torch.version.cuda.split(".")[:2])
@@ -337,6 +344,14 @@ class TestCppExtensionJIT(common.TestCase):
             archflags["Volta"] = (["70"], ["70"])
             archflags["5.0;6.0+PTX;7.0;7.5"] = (["50", "60", "70", "75"], ["60"])
         if major < 12:
+=======
+            "Maxwell+Tegra;6.1": (["53", "61"], None),
+            "Volta": (["70"], ["70"]),
+        }
+        archflags["7.5+PTX"] = (["75"], ["75"])
+        archflags["5.0;6.0+PTX;7.0;7.5"] = (["50", "60", "70", "75"], ["60"])
+        if int(torch.version.cuda.split(".")[0]) < 12:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # CUDA 12 drops compute capability < 5.0
             archflags["Pascal 3.5"] = (["35", "60", "61"], None)
 
@@ -357,6 +372,7 @@ class TestCppExtensionJIT(common.TestCase):
                 # to avoid errors from here leaking into other tests
                 pass
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "CUDA not found")
     def test_cuda_arch_flags_non_default_gencode(self):
         user_arch_flags = ["-gencode=arch=compute_86,code=sm_86"]
@@ -386,6 +402,8 @@ class TestCppExtensionJIT(common.TestCase):
             len(empty_flags), 0, "Empty list should generate default flags"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_CUDNN, "CuDNN not found")
     @unittest.skipIf(TEST_ROCM, "Not supported on ROCm")
     def test_jit_cudnn_extension(self):
@@ -1040,7 +1058,11 @@ class TestCppExtensionJIT(common.TestCase):
         t = torch.rand(2).double()
         cpp_tensor_name = r"CPUDoubleType"
 
+<<<<<<< HEAD
         # Without error handling, the warnings cannot be caught
+=======
+        # Without error handling, the warnings cannot be catched
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warn_mod = torch.utils.cpp_extension.load_inline(
             name="warn_mod",
             cpp_sources=[source],
@@ -1074,23 +1096,39 @@ class TestCppExtensionJIT(common.TestCase):
         )
 
         with warnings.catch_warnings(record=True) as w:
+<<<<<<< HEAD
             # Caught with no error should be detected
             warn_mod.foo(t, 0)
             self.assertEqual(len(w), 1)
 
             # Caught with cpp error should also be detected
+=======
+            # Catched with no error should be detected
+            warn_mod.foo(t, 0)
+            self.assertEqual(len(w), 1)
+
+            # Catched with cpp error should also be detected
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with self.assertRaisesRegex(TypeError, t.type()):
                 warn_mod.foo(t, 1)
             self.assertEqual(len(w), 2)
 
+<<<<<<< HEAD
             # Caught with python error should also be detected
+=======
+            # Catched with python error should also be detected
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with self.assertRaisesRegex(
                 SystemError, "bad argument to internal function"
             ):
                 warn_mod.foo(t, 2)
             self.assertEqual(len(w), 3)
 
+<<<<<<< HEAD
             # Caught with pybind error should also be detected
+=======
+            # Catched with pybind error should also be detected
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Note that there is no type name translation for pybind errors
             with self.assertRaisesRegex(KeyError, cpp_tensor_name):
                 warn_mod.foo(t, 3)
@@ -1233,7 +1271,11 @@ class TestCppExtensionJIT(common.TestCase):
         #include <torch/csrc/inductor/aoti_runtime/utils.h>
         #include <torch/csrc/inductor/aoti_torch/utils.h>
         #include <torch/csrc/inductor/aoti_torch/c/shim.h>
+<<<<<<< HEAD
         #include <torch/csrc/stable/stableivalue_conversions.h>
+=======
+        #include <torch/csrc/stable/library.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         using RAIIATH = torch::aot_inductor::RAIIAtenTensorHandle;
 

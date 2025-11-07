@@ -81,9 +81,15 @@ def enable_torchbind_tracing():
         torch.ScriptMethod.__call__ = torchbind_method_redispatch  # type: ignore[method-assign]
         yield
     finally:
+<<<<<<< HEAD
         assert KNOWN_TYPES.pop() is torch.ScriptObject, (
             "Someone else messed with KNOWN_TYPES during tracing, exploding."
         )
+=======
+        assert (
+            KNOWN_TYPES.pop() is torch.ScriptObject
+        ), "Someone else messed with KNOWN_TYPES during tracing, exploding."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.ScriptMethod.__call__ = _orig_scriptmethod_call  # type: ignore[method-assign]
 
 
@@ -127,16 +133,26 @@ def inner(mode, *args, **kwargs):
 
     ret = track_tensor_tree(out, out_proxy, constant=None, tracer=mode.tracer)
     if "val" not in out_proxy.node.meta:
+<<<<<<< HEAD
         assert out is None or isinstance(out, (int, float, bool)), (
             "Currently, only these constant dtypes are supported to be returned from torchbind methods."
         )
+=======
+        assert out is None or isinstance(
+            out, (int, float, bool)
+        ), "Currently, only these constant dtypes are supported to be returned from torchbind methods."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out_proxy.node.meta["val"] = out
     return ret
 
 
 # When tracing with fake script object, the call_torchbind op will return a fake tensor
 # When tracing with real script object, the call_torchbind op may return a real tensor,
+<<<<<<< HEAD
 # we need to convert it to fake tensor manually. Dynamic shape is supported.
+=======
+# we need to convert it to fake tensor mannually. Dynamic shape is surpported.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @call_torchbind.py_impl(FakeTensorMode)
 def call_torchbind_fake(mode, *args, **kwargs):
     with mode:

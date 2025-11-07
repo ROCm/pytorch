@@ -24,6 +24,13 @@ from . import op_properties
 # use dict to avoid writing C++ bindings for set
 pointwise = dict.fromkeys(op_properties.pointwise, True)
 
+<<<<<<< HEAD
+=======
+use_c = True
+if not use_c:
+    from . import reference
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _Tensor:
     # fast path around slow wrapping/unwrapping logic for simply queries used
@@ -36,8 +43,17 @@ class _Tensor:
     def dim(self):
         return self.ndim
 
+<<<<<<< HEAD
     __torch_function__ = classmethod(_C.__torch_function__)
     expand = _C._instancemethod(_C.expand)
+=======
+    if use_c:
+        __torch_function__ = classmethod(_C.__torch_function__)
+        expand = _C._instancemethod(_C.expand)
+    else:
+        __torch_function__ = reference.__torch_function__
+        expand = reference.expand
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     index = _C._instancemethod(_C.index)
 
@@ -56,6 +72,11 @@ class Dim(_C.Dim, _Tensor):
 
 
 class Tensor(_Tensor, _C.Tensor):
+<<<<<<< HEAD
+=======
+    if not use_c:
+        from_batched = staticmethod(_C.Tensor_from_batched)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from_positional = staticmethod(_C.Tensor_from_positional)
     sum = _C._instancemethod(_C.Tensor_sum)
 
@@ -65,6 +86,7 @@ def cat(tensors, dim, new_dim):
     return stack(tensors, n, dim).index([n, dim], new_dim)
 
 
+<<<<<<< HEAD
 _wrap = _C._wrap
 
 
@@ -76,6 +98,23 @@ def _def(name, *args, **kwargs):
 t__getitem__ = _C._instancemethod(_C.__getitem__)
 stack = _C.stack
 split = _C._instancemethod(_C.split)
+=======
+if use_c:
+    _wrap = _C._wrap
+
+    def _def(name, *args, **kwargs):
+        orig = getattr(torch.Tensor, name)
+        setattr(_Tensor, name, _C._instancemethod(_wrap(orig, *args, **kwargs)))
+
+    t__getitem__ = _C._instancemethod(_C.__getitem__)
+    stack = _C.stack
+    split = _C._instancemethod(_C.split)
+else:
+    _wrap, _def = reference._wrap, reference._def
+    t__getitem__ = reference.t__getitem__
+    stack = reference.stack
+    split = reference.split
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # note: there is no python reference
 t__setitem__ = _C._instancemethod(_C.__setitem__)
@@ -91,10 +130,20 @@ torch.Tensor.split = split
 _Tensor.split = split
 torch.Tensor.expand = _C._instancemethod(_C.expand)
 torch.Tensor.index = _C._instancemethod(_C.index)
+<<<<<<< HEAD
 wrap_type(_Tensor, torch.Tensor, _Tensor.__torch_function__)
 del _Tensor.ndim
 
 _Tensor.order = _C._instancemethod(_C.order)
+=======
+wrap_type(use_c, _Tensor, torch.Tensor, _Tensor.__torch_function__)
+del _Tensor.ndim
+
+if use_c:
+    _Tensor.order = _C._instancemethod(_C.order)
+else:
+    _Tensor.order = reference.positional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _def("mean")
 _def("sum")

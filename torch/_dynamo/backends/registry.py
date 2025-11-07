@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: ignore-errors
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module implements TorchDynamo's backend registry system for managing compiler backends.
 
@@ -63,7 +68,11 @@ import logging
 import sys
 from collections.abc import Sequence
 from importlib.metadata import EntryPoint
+<<<<<<< HEAD
 from typing import Any, Callable, Optional, Protocol, Union
+=======
+from typing import Callable, Optional, Protocol
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import fx
@@ -86,7 +95,11 @@ def register_backend(
     compiler_fn: Optional[CompilerFn] = None,
     name: Optional[str] = None,
     tags: Sequence[str] = (),
+<<<<<<< HEAD
 ) -> Callable[..., Any]:
+=======
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Decorator to add a given compiler to the registry to allow calling
     `torch.compile` with string shorthand.  Note: for projects not
@@ -100,14 +113,22 @@ def register_backend(
     """
     if compiler_fn is None:
         # @register_backend(name="") syntax
+<<<<<<< HEAD
         return functools.partial(register_backend, name=name, tags=tags)  # type: ignore[return-value]
+=======
+        return functools.partial(register_backend, name=name, tags=tags)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert callable(compiler_fn)
     name = name or compiler_fn.__name__
     assert name not in _COMPILER_FNS, f"duplicate name: {name}"
     if compiler_fn not in _BACKENDS:
         _BACKENDS[name] = None
     _COMPILER_FNS[name] = compiler_fn
+<<<<<<< HEAD
     compiler_fn._tags = tuple(tags)  # type: ignore[attr-defined]
+=======
+    compiler_fn._tags = tuple(tags)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return compiler_fn
 
 
@@ -117,7 +138,11 @@ register_experimental_backend = functools.partial(
 )
 
 
+<<<<<<< HEAD
 def lookup_backend(compiler_fn: Union[str, CompilerFn]) -> CompilerFn:
+=======
+def lookup_backend(compiler_fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Expand backend strings to functions"""
     if isinstance(compiler_fn, str):
         if compiler_fn not in _BACKENDS:
@@ -129,33 +154,53 @@ def lookup_backend(compiler_fn: Union[str, CompilerFn]) -> CompilerFn:
 
         if compiler_fn not in _COMPILER_FNS:
             entry_point = _BACKENDS[compiler_fn]
+<<<<<<< HEAD
             if entry_point is not None:
                 register_backend(compiler_fn=entry_point.load(), name=compiler_fn)
+=======
+            register_backend(compiler_fn=entry_point.load(), name=compiler_fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiler_fn = _COMPILER_FNS[compiler_fn]
     return compiler_fn
 
 
+<<<<<<< HEAD
 # NOTE: can't type this due to public api mismatch; follow up with dev team
 def list_backends(exclude_tags=("debug", "experimental")) -> list[str]:  # type: ignore[no-untyped-def]
+=======
+def list_backends(exclude_tags=("debug", "experimental")) -> list[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Return valid strings that can be passed to:
 
         torch.compile(..., backend="name")
     """
     _lazy_import()
+<<<<<<< HEAD
     exclude_tags_set = set(exclude_tags or ())
+=======
+    exclude_tags = set(exclude_tags or ())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     backends = [
         name
         for name in _BACKENDS.keys()
         if name not in _COMPILER_FNS
+<<<<<<< HEAD
         or not exclude_tags_set.intersection(_COMPILER_FNS[name]._tags)  # type: ignore[attr-defined]
+=======
+        or not exclude_tags.intersection(_COMPILER_FNS[name]._tags)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
     return sorted(backends)
 
 
 @functools.cache
+<<<<<<< HEAD
 def _lazy_import() -> None:
+=======
+def _lazy_import():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .. import backends
     from ..utils import import_submodule
 
@@ -169,7 +214,11 @@ def _lazy_import() -> None:
 
 
 @functools.cache
+<<<<<<< HEAD
 def _discover_entrypoint_backends() -> None:
+=======
+def _discover_entrypoint_backends():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # importing here so it will pick up the mocked version in test_backends.py
     from importlib.metadata import entry_points
 
@@ -177,9 +226,18 @@ def _discover_entrypoint_backends() -> None:
     if sys.version_info < (3, 10):
         eps = entry_points()
         eps = eps[group_name] if group_name in eps else []
+<<<<<<< HEAD
         eps_dict = {ep.name: ep for ep in eps}
     else:
         eps = entry_points(group=group_name)
         eps_dict = {name: eps[name] for name in eps.names}
     for backend_name in eps_dict:
         _BACKENDS[backend_name] = eps_dict[backend_name]
+=======
+        eps = {ep.name: ep for ep in eps}
+    else:
+        eps = entry_points(group=group_name)
+        eps = {name: eps[name] for name in eps.names}
+    for backend_name in eps:
+        _BACKENDS[backend_name] = eps[backend_name]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

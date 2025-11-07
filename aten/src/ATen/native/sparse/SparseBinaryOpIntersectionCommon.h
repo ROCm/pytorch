@@ -51,10 +51,17 @@ ForwardIt find_bound(ForwardIt first, ForwardIt last, const T& value) {
       // Similarly, an upper bound is a value at *it with the smallest index
       // such that *it > value if such value exists, or last if does not.
       // Let is_lower = true and *it < value, then we know that *it and values
+<<<<<<< HEAD
       // preceding *it cannot contain a lower bound, so we adjust initial iterator range
       // from [first, first + count] to [first + step + 1, first + count - (step + 1)],
       // where +1 skips the element at which we have just evaluated *it < value.
       // Similar logic holds when is_lower = false.
+=======
+      // preceeding *it cannot contain a lower bound, so we adjust initial iterator range
+      // from [first, first + count] to [first + step + 1, first + count - (step + 1)],
+      // where +1 skips the element at which we have just evaluated *it < value.
+      // Samilar logic holds when is_lower = false.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (is_lower ? *it < value : value >= *it) {
         first = ++it;
         count -= step + 1;

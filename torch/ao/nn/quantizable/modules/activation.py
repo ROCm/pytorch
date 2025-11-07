@@ -214,7 +214,11 @@ class MultiheadAttention(nn.MultiheadAttention):
             fp.bias_v = nn.Parameter(self.bias_v.dequantize())
 
         # Set the linear weights
+<<<<<<< HEAD
         # Note: Because the linear layers are quantized, mypy does not know how
+=======
+        # Note: Because the linear layers are quantized, mypy does not nkow how
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # to deal with them -- might need to ignore the typing checks.
         # for the type: ignore[has-type], see https://github.com/pytorch/pytorch/issues/58969
         w, b = self.out_proj._weight_bias()  # type: ignore[operator, has-type]

@@ -121,7 +121,10 @@ class OutputKind(Enum):
     USER_OUTPUT = auto()
     LOSS_OUTPUT = auto()
     BUFFER_MUTATION = auto()
+<<<<<<< HEAD
     PARAMETER_MUTATION = auto()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     GRADIENT_TO_PARAMETER = auto()
     GRADIENT_TO_USER_INPUT = auto()
     USER_INPUT_MUTATION = auto()
@@ -164,11 +167,19 @@ class ExportBackwardSignature:
 class ExportGraphSignature:
     """
     :class:`ExportGraphSignature` models the input/output signature of Export Graph,
+<<<<<<< HEAD
     which is a fx.Graph with stronger invariants guarantees.
 
     Export Graph is functional and does not access "states" like parameters
     or buffers within the graph via ``getattr`` nodes. Instead, :func:`export`
     guarantees that parameters, buffers, and constant tensors are lifted out of
+=======
+    which is a fx.Graph with stronger invariants gurantees.
+
+    Export Graph is functional and does not access "states" like parameters
+    or buffers within the graph via ``getattr`` nodes. Instead, :func:`export`
+    gurantees that parameters, buffers, and constant tensors are lifted out of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     the graph as inputs.  Similarly, any mutations to buffers are not included
     in the graph either, instead the updated values of mutated buffers are
     modeled as additional outputs of Export Graph.
@@ -372,7 +383,11 @@ class ExportGraphSignature:
         return tuple(user_outputs)
 
     # A dictionary mapping graph input node names to parameters. If a graph input
+<<<<<<< HEAD
     # name is found in this dictionary, it is guaranteed to be a lifted parameter.
+=======
+    # name is found in this dictionary, it is guranteed to be a lifted parameter.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def inputs_to_parameters(self) -> Mapping[str, str]:
         return _immutable_dict(
@@ -384,7 +399,11 @@ class ExportGraphSignature:
         )
 
     # A dictionary mapping graph input node names to buffers. If a graph input
+<<<<<<< HEAD
     # name is found in this dictionary, it is guaranteed to be a lifted buffer.
+=======
+    # name is found in this dictionary, it is guranteed to be a lifted buffer.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def inputs_to_buffers(self) -> Mapping[str, str]:
         return _immutable_dict(
@@ -408,6 +427,7 @@ class ExportGraphSignature:
         )
 
     @property
+<<<<<<< HEAD
     def parameters_to_mutate(self) -> Mapping[str, str]:
         return _immutable_dict(
             (s.arg.name, s.target)
@@ -418,6 +438,8 @@ class ExportGraphSignature:
         )
 
     @property
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def user_inputs_to_mutate(self) -> Mapping[str, str]:
         return _immutable_dict(
             (s.arg.name, s.target)
@@ -612,7 +634,10 @@ def _convert_to_export_graph_signature(
     inputs_to_buffers = graph_signature.inputs_to_buffers
     user_outputs = set(graph_signature.user_outputs)
     buffer_mutations = graph_signature.buffers_to_mutate
+<<<<<<< HEAD
     parameter_mutations = graph_signature.parameters_to_mutate
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     user_input_mutations = graph_signature.user_inputs_to_mutate
     grad_params = (
         graph_signature.backward_signature.gradients_to_parameter  # type: ignore[union-attr]
@@ -674,21 +699,28 @@ def _convert_to_export_graph_signature(
         if not isinstance(o, TensorArgument):
             return OutputSpec(kind=OutputKind.USER_OUTPUT, arg=o, target=None)
         name = o.name
+<<<<<<< HEAD
         if idx < len(buffer_mutations) + len(parameter_mutations) + len(
             user_input_mutations
         ) + len(output_tokens):
+=======
+        if idx < len(buffer_mutations) + len(user_input_mutations) + len(output_tokens):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if name in buffer_mutations:
                 return OutputSpec(
                     kind=OutputKind.BUFFER_MUTATION,
                     arg=o,
                     target=buffer_mutations[name],  # type: ignore[index]
                 )
+<<<<<<< HEAD
             elif name in parameter_mutations:
                 return OutputSpec(
                     kind=OutputKind.PARAMETER_MUTATION,
                     arg=o,
                     target=parameter_mutations[name],  # type: ignore[index]
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif name in user_input_mutations:
                 return OutputSpec(
                     kind=OutputKind.USER_INPUT_MUTATION,

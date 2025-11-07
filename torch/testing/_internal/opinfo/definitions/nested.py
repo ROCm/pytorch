@@ -107,7 +107,10 @@ extra_op_data = {
     "flatten": ExtraOpData(is_view=True, dim_args=[["start_dim", "end_dim"]]),
     "flip": ExtraOpData(dim_args=[["dims..."]]),
     "gather": ExtraOpData(dim_args=[["dim"]]),
+<<<<<<< HEAD
     "hash_tensor": ExtraOpData(dim_args=[["dim..."]]),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "imag": ExtraOpData(is_view=True),
     "index_add": ExtraOpData(dim_args=[["dim"]]),
     "index_copy": ExtraOpData(dim_args=[["dim"]]),

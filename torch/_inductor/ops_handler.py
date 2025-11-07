@@ -31,7 +31,10 @@ ReductionType = Literal[
     "prod",
     "sum",
     "xor_sum",
+<<<<<<< HEAD
     "online_softmax_reduce",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -706,9 +709,12 @@ class OpsHandler(Generic[T]):
         """This is a fake op used in analysis but not codegen"""
         raise NotImplementedError
 
+<<<<<<< HEAD
     def device_assert_async(self, cond: T, msg: str) -> T:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _ignore_op_re = re.compile(r"_.*|paren").fullmatch
 
@@ -791,9 +797,12 @@ class DefaultHandler(OpsHandler[Any]):
             if target in OP_NAMES:
                 setattr(cls, target, impl)
 
+<<<<<<< HEAD
     def device_assert_async(self, cond, msg):
         return None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 DefaultHandler._init_cls()
 
@@ -939,9 +948,12 @@ class MockHandler(BasicMathOpsMixin, DefaultHandler):
     def indirect_indexing(index_var, size, check=True, wrap_neg=True) -> sympy.Symbol:
         return sympy_index_symbol(str(index_var))
 
+<<<<<<< HEAD
     def device_assert_async(self, cond, msg):
         return None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class KernelFormatterHandler(DefaultHandler):
     def __init__(self, parent_handler: OpsHandler[Any]):
@@ -1008,9 +1020,12 @@ class KernelFormatterHandler(DefaultHandler):
         self._output.writeline(f"return {result}")
         return self._output.getvalue()
 
+<<<<<<< HEAD
     def device_assert_async(self, cond, msg: str):
         return f"ops.device_assert_async({cond}, {msg})"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class WrapperHandler(DefaultHandler):
     def __init__(self, inner: OpsHandler[Any]):

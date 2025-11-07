@@ -144,8 +144,11 @@ void test_aoti_package_loader_multi_gpu(
     const std::string& device,
     bool use_runtime_constant_folding) {
   torch::NoGradGuard no_grad;
+<<<<<<< HEAD
   // Ensure that this test will reset the default CUDA device on exit.
   torch::DeviceGuard device_guard(c10::Device("cuda"));
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::string data_path =
       (std::filesystem::path(STRINGIZE(CMAKE_CURRENT_BINARY_DIR)) / "data.pt")
@@ -855,6 +858,7 @@ void test_aoti_free_buffer(bool use_runtime_constant_folding) {
   }
 }
 
+<<<<<<< HEAD
 #if defined(USE_CUDA) || defined(USE_ROCM)
 void test_cuda_alloc_test() {
   torch::NoGradGuard no_grad;
@@ -894,6 +898,8 @@ void test_cuda_alloc_test() {
 }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ThreadPool {
  private:
   struct Task {
@@ -1112,11 +1118,14 @@ TEST(AotInductorTest, FreeInactiveConstantBufferRuntimeConstantFoldingCuda) {
 TEST(AotInductorTest, MultiStreamTestCuda) {
   test_multi_cuda_streams("cuda");
 }
+<<<<<<< HEAD
 
 // TODO: ENABLE CUDACachingAllocator Test
 TEST(DISABLED_AotInductorTest, CudaAllocTestCuda) {
   test_cuda_alloc_test();
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 } // namespace torch::aot_inductor

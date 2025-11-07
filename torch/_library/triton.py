@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 import ast
 import contextlib
 import inspect
+=======
+import contextlib
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import threading
 from collections.abc import Generator, Iterable
 from typing import Any, Callable, Optional, Union
@@ -11,6 +15,7 @@ from .custom_ops import custom_op, CustomOpDef
 from .infer_schema import infer_schema
 
 
+<<<<<<< HEAD
 triton_ops_to_kernels: dict[str, list[object]] = {}
 
 
@@ -84,6 +89,8 @@ def get_inner_triton_kernels(fn: Callable[..., Any]) -> list[object]:
     return find_triton_kernels(fn)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @exposed_in("torch.library")
 def triton_op(
     name: str,
@@ -230,6 +237,7 @@ def triton_op(
             if custom_triton_ops_decomposition_disabled():
                 return mode.__torch_dispatch__(op, types, args, kwargs)
             else:
+<<<<<<< HEAD
                 # TODO: https://github.com/pytorch/pytorch/issues/160333
                 # We should deduplicate the unrecognized_types logic.
                 import torch._subclasses
@@ -252,6 +260,11 @@ def triton_op(
 
         triton_kernels = get_inner_triton_kernels(fn)
         triton_ops_to_kernels[name] = triton_kernels
+=======
+                with mode:
+                    return fn(*args, **kwargs)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result.register_torch_dispatch(FunctionalTensorMode, functional_decomp)
         return result
 

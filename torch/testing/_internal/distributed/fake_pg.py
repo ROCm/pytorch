@@ -11,7 +11,11 @@ class FakeStore(dist.Store):
     """
 
 
+<<<<<<< HEAD
 def _create_fake_pg(common_opts, backend_opts):
+=======
+def _create_fake_pg(prefix_store, rank, world_size, timeout):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     A fake process group (not related to FakeTensor) is a process group which
     doesn't actually do any communication, it just hallucinates some
@@ -22,6 +26,7 @@ def _create_fake_pg(common_opts, backend_opts):
     for every collective. It should be used as a convenient tool when playing
     with distributed but don't care about the actual data.
     """
+<<<<<<< HEAD
     return FakeProcessGroup(
         common_opts.group_rank, common_opts.group_size, backend_opts
     )
@@ -30,3 +35,9 @@ def _create_fake_pg(common_opts, backend_opts):
 dist.Backend.register_backend(
     "fake", _create_fake_pg, extended_api=True, devices=["cpu", "cuda", "hpu"]
 )
+=======
+    return FakeProcessGroup(rank, world_size)
+
+
+dist.Backend.register_backend("fake", _create_fake_pg, devices=["cpu", "cuda", "hpu"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

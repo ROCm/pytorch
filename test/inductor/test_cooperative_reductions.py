@@ -18,7 +18,11 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
 )
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestingHeuristics(InductorChoices):
@@ -381,5 +385,9 @@ class TestFixedConfigs(TestCase):
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
 
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON:
+=======
+    if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

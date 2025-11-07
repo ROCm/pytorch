@@ -18,7 +18,10 @@ import yaml
 
 
 REENABLE_TEST_REGEX = "(?i)(Close(d|s)?|Resolve(d|s)?|Fix(ed|es)?) (#|https://github.com/pytorch/pytorch/issues/)([0-9]+)"
+<<<<<<< HEAD
 MAIN_BRANCH = "main"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 PREFIX = "test-config/"
 
@@ -41,9 +44,15 @@ SUPPORTED_PERIODICAL_MODES: dict[str, Callable[[Optional[str]], bool]] = {
 }
 
 # The link to the published list of disabled jobs
+<<<<<<< HEAD
 DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=hjktHz2WOejHpxKpkqpDknTt5rMTM9KK"
 # and unstable jobs
 UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=wrjdvvQTJxgvMO.rGw5MEuMsj6XbjuV7"
+=======
+DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=HnkH0xQWnnsoeMsSIVf9291NE5c4jWSa"
+# and unstable jobs
+UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=iP_F8gBs60PfOMAJ8gnn1paVrzM1WYsK"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Some constants used to handle disabled and unstable jobs
 JOB_NAME_SEP = "/"
@@ -98,7 +107,11 @@ def parse_args() -> Any:
     parser.add_argument(
         "--branch",
         type=str,
+<<<<<<< HEAD
         default=MAIN_BRANCH,
+=======
+        default="main",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         help="the branch name",
     )
     return parser.parse_args()
@@ -457,7 +470,10 @@ def download_json(url: str, headers: dict[str, str], num_retries: int = 3) -> An
 
 
 def set_output(name: str, val: Any) -> None:
+<<<<<<< HEAD
     print(f"Setting output {name}={val}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if os.getenv("GITHUB_OUTPUT"):
         with open(str(os.getenv("GITHUB_OUTPUT")), "a") as env:
             print(f"{name}={val}", file=env)
@@ -497,20 +513,28 @@ def check_for_setting(labels: set[str], body: str, setting: str) -> bool:
 
 
 def perform_misc_tasks(
+<<<<<<< HEAD
     labels: set[str],
     test_matrix: dict[str, list[Any]],
     job_name: str,
     pr_body: str,
     branch: Optional[str] = None,
+=======
+    labels: set[str], test_matrix: dict[str, list[Any]], job_name: str, pr_body: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     In addition to apply the filter logic, the script also does the following
     misc tasks to set keep-going and is-unstable variables
     """
+<<<<<<< HEAD
     set_output(
         "keep-going",
         branch == MAIN_BRANCH or check_for_setting(labels, pr_body, "keep-going"),
     )
+=======
+    set_output("keep-going", check_for_setting(labels, pr_body, "keep-going"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_output(
         "ci-verbose-test-logs",
         check_for_setting(labels, pr_body, "ci-verbose-test-logs"),
@@ -633,7 +657,10 @@ def main() -> None:
         test_matrix=filtered_test_matrix,
         job_name=args.job_name,
         pr_body=pr_body if pr_body else "",
+<<<<<<< HEAD
         branch=args.branch,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     # Set the filtered test matrix as the output

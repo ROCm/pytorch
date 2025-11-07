@@ -368,6 +368,7 @@ def forward(self, x, y):
 
         self.assertTrue(torch._dynamo.utils.same(real_result, dynamo_result))
 
+<<<<<<< HEAD
     def test_immutable_list_dict(self):
         class M(torch.nn.Module):
             def forward(self, x1, x2):
@@ -387,6 +388,8 @@ def forward(self, x, y):
         res = torch.compile(ep.module(), dynamic=True, fullgraph=True)(x1, x2)
         self.assertTrue(torch._dynamo.utils.same(res, M()(x1, x2)))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dupes(self):
         inp = torch.tensor([0.1, 0.1])
 
@@ -3536,7 +3539,11 @@ class GraphModule(torch.nn.Module):
             [3, 3, 4, 5],
             [true_graph, true_graph, false_graph, false_graph],
             [true_guard_code, true_guard_code, false_guard_code, false_guard_code],
+<<<<<<< HEAD
             # Outer shape env should have no guards in it because we never specialize on the outer symbool.
+=======
+            # Outter shape env should have no guards in it because we never specialize on the outter symbool.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [[], [], [], []],
         )
 

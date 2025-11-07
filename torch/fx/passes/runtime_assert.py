@@ -337,6 +337,7 @@ def insert_deferred_runtime_asserts(
                 torch._check,
                 torch.ops.aten._assert_scalar.default,
             ):
+<<<<<<< HEAD
                 cond = node.args[0] if node.args else node.kwargs.get("cond")
                 if (
                     cond == True  # noqa: E712
@@ -344,6 +345,14 @@ def insert_deferred_runtime_asserts(
                     and assert_expr in added_asserts
                 ):
                     arg = cond
+=======
+                if (
+                    node.args[0] == True  # noqa: E712
+                    or (assert_expr := _get_sym_val(node.args[0])) in expr_to_proxy
+                    and assert_expr in added_asserts
+                ):
+                    arg = node.args[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     gm.graph.erase_node(node)
                     if isinstance(arg, fx.Node) and not arg.users:
                         gm.graph.erase_node(arg)
@@ -462,7 +471,10 @@ def insert_deferred_runtime_asserts(
                                     ),
                                     keypath[2:],
                                 )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             return go(
                                 graph.call_method(
                                     keypath[0].name, (node, keypath[1].idx)
@@ -470,6 +482,7 @@ def insert_deferred_runtime_asserts(
                                 keypath[2:],
                             )
                         elif isinstance(keypath[0], CallMethodKey):
+<<<<<<< HEAD
                             if keypath[0].name == "storage_offset":
                                 return go(
                                     graph.call_function(
@@ -479,6 +492,8 @@ def insert_deferred_runtime_asserts(
                                     keypath[1:],
                                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             return go(
                                 graph.call_method(keypath[0].name, (node,)), keypath[1:]
                             )

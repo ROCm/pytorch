@@ -53,9 +53,13 @@ class Vectorized<int64_t> : public Vectorizedi {
     return 8;
   }
   using Vectorizedi::Vectorizedi;
+<<<<<<< HEAD
   Vectorized() {
     values = _mm512_setzero_si512();
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(int64_t v) {
     values = _mm512_set1_epi64(v);
   }

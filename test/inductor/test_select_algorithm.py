@@ -1,8 +1,12 @@
 # Owner(s): ["module: inductor"]
+<<<<<<< HEAD
 import contextlib
 import functools
 import unittest.mock
 from typing import Callable
+=======
+import functools
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import torch
@@ -12,6 +16,7 @@ import torch._inductor.select_algorithm as select_algorithm
 import torch.nn.functional as F
 from torch._dynamo.testing import expectedFailureDynamicWrapper
 from torch._dynamo.utils import counters
+<<<<<<< HEAD
 from torch._inductor import config
 from torch._inductor.autotune_process import TritonBenchmarkRequest
 from torch._inductor.ir import FixedLayout
@@ -30,13 +35,24 @@ from torch.testing._internal.inductor_utils import (
     requires_gpu,
     requires_triton,
 )
+=======
+from torch._inductor.autotune_process import TritonBenchmarkRequest
+from torch._inductor.test_case import run_tests, TestCase
+from torch._inductor.utils import is_big_gpu
+from torch.testing._internal.common_utils import IS_LINUX, skipIfRocm, skipIfXpu
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 aten = torch.ops.aten
 
 
 def patches(fn):
+<<<<<<< HEAD
     def skip_cache(self, choices, name, key, benchmark, hint_override=None):
+=======
+    def skip_cache(self, choices, name, key, benchmark):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if benchmark is None:
             return {}
         return benchmark(choices)
@@ -67,8 +83,11 @@ class TestSelectAlgorithm(TestCase):
         super().setUp()
         if not is_big_gpu():
             return self.skipTest("Need a big GPU to run max_autotune=True")
+<<<<<<< HEAD
         # Clear preprocessing functions to ensure clean state
         select_algorithm.clear_preprocessing_fns()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @patches
     def test_linear_relu(self):
@@ -101,6 +120,7 @@ class TestSelectAlgorithm(TestCase):
         foo(*inps)
         self.assertEqual(counters["inductor"]["select_algorithm_autotune"], 1)
 
+<<<<<<< HEAD
     @patches
     def test_preprocessing_single_choice(self):
         # pass a list to the preprocessing function to assert that it was
@@ -132,6 +152,8 @@ class TestSelectAlgorithm(TestCase):
         # The preprocessing function should have been called
         self.assertTrue(func_called[0])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @patch.object(select_algorithm, "VERIFY", dict(atol=5e-2, rtol=5e-2))
     @patches
     def test_addmm_fp16(self):
@@ -162,6 +184,10 @@ class TestSelectAlgorithm(TestCase):
         self.assertEqual(counters["inductor"]["select_algorithm_autotune"], 1)
 
     @patches
+<<<<<<< HEAD
+=======
+    @skipIfXpu(msg="XPU has not supported _int_mm yet")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test__int_mm(self):
         @torch.compile
         def foo(a, b):
@@ -417,6 +443,7 @@ class TestSelectAlgorithm(TestCase):
         self.assertEqual(caller_str, f"TritonTemplateCaller({module_path}, extra)")
 
 
+<<<<<<< HEAD
 @contextlib.contextmanager
 def patch_lowering(lowering_overrides) -> Callable[[], None]:
     import torch._inductor.lowering as inductor_lowering
@@ -531,6 +558,8 @@ class TestTemplateRender(TestCase):
             assert hook_identifier in kernels[0]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     if IS_LINUX and HAS_GPU and is_big_gpu():
         run_tests()

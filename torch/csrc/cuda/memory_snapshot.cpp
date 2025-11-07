@@ -458,8 +458,11 @@ std::string _memory_snapshot_pickled() {
   IValue release_lock_on_malloc_s = "release_lock_on_cudamalloc";
   IValue pinned_use_host_register_s = "pinned_use_cuda_host_register";
   IValue roundup_power2_divisions_s = "roundup_power2_divisions";
+<<<<<<< HEAD
   IValue graph_capture_record_stream_reuse_s =
       "graph_capture_record_stream_reuse";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   allocator_settings.insert(
       last_allocator_settings_s,
@@ -480,9 +483,12 @@ std::string _memory_snapshot_pickled() {
   allocator_settings.insert(
       pinned_use_host_register_s,
       snapshot.config_metadata.pinned_use_host_register);
+<<<<<<< HEAD
   allocator_settings.insert(
       graph_capture_record_stream_reuse_s,
       snapshot.config_metadata.graph_capture_record_stream_reuse);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   unsigned int roundup_key = 1;
   auto roundup_settings = new_dict();
   for (const auto& v : snapshot.config_metadata.roundup_power2_divisions) {

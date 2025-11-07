@@ -109,7 +109,12 @@ class non_deterministic:
 
         # Decorate with a functional argument
         if not (
+<<<<<<< HEAD
             isinstance(args[0], type) and issubclass(args[0], IterDataPipe)  # type: ignore[arg-type]
+=======
+            isinstance(args[0], type)
+            and issubclass(args[0], IterDataPipe)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             raise TypeError(
                 f"Only `IterDataPipe` can be decorated, but {args[0].__name__} is found"

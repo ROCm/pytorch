@@ -2,6 +2,7 @@
 
 from unittest import mock
 
+<<<<<<< HEAD
 import torch
 import torch.distributed as c10d
 from torch.distributed.collective_utils import (
@@ -21,6 +22,12 @@ from torch.testing._internal.common_utils import (
     TestCase,
 )
 from torch.testing._internal.distributed.fake_pg import FakeStore
+=======
+import torch.distributed as c10d
+from torch.distributed.collective_utils import all_gather, broadcast
+from torch.testing._internal.common_distributed import MultiProcessTestCase
+from torch.testing._internal.common_utils import run_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestCollectiveUtils(MultiProcessTestCase):
@@ -131,6 +138,7 @@ class TestCollectiveUtils(MultiProcessTestCase):
         with self.assertRaisesRegex(Exception, expected_exception):
             all_gather(data_or_fn=func)
 
+<<<<<<< HEAD
     @parametrize("device", ["cpu", "cuda"])
     def test_check_rng_sync(
         self,
@@ -211,6 +219,8 @@ class TestUtils(TestCase):
 
 
 instantiate_parametrized_tests(TestCollectiveUtils)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

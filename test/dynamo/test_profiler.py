@@ -181,7 +181,11 @@ class DynamoProfilerTests(torch._dynamo.test_case.TestCase):
                 torch.randn(10, 15),
             )
 
+<<<<<<< HEAD
         annotations = [e.name for e in prof.events() if "Torch-Compiled" in e.name]
+=======
+        annotations = [e.name for e in prof.events() if "Compiled" in e.name]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             annotations,
             [

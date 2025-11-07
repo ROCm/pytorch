@@ -40,6 +40,7 @@ class DTensorSpec:
         # change (though we do not expect `mesh` or `placements` to change)
         if hasattr(self, "_hash") and attr in ("mesh", "placements", "tensor_meta"):
             self._hash = None
+<<<<<<< HEAD
         # This assert was triggered by buggy handling for dict outputs in some
         # FX passes, where you accidentally iterate over a dict and try to put
         # keys into TensorMeta.  See https://github.com/pytorch/pytorch/issues/157919
@@ -50,6 +51,8 @@ class DTensorSpec:
             # test/distributed/tensor/experimental/test_tp_transform.py::TensorParallelTest::test_tp_transform_e2e
             # but I actually can't reproduce it, maybe it is also a bug!
             assert isinstance(value, (TensorMeta, TensorMetadata)), value
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _hash_impl(self) -> int:
         # hashing and equality check for DTensorSpec are used to cache the sharding
@@ -250,7 +253,11 @@ class DTensorSpec:
                 if placement.is_shard():
                     placement = cast(Shard, placement)
                     raise RuntimeError(
+<<<<<<< HEAD
                         f"DeviceMesh dimension can't be mapped to two dimension of the same tensor: {i} and {placement.dim}"
+=======
+                        f"DeviceMesh dimension cann't be mapped to two dimension of the same tensor: {i} and {placement.dim}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 elif placement.is_partial():
                     raise RuntimeError(

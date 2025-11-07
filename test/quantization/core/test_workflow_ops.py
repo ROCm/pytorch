@@ -29,7 +29,11 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 import torch.testing._internal.hypothesis_utils as hu
 hu.assert_deadline_disabled()
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_WITH_ROCM
+=======
+from torch.testing._internal.common_cuda import TEST_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import TestCase, skipIfTorchDynamo
 
 # Reference method for fake quantize
@@ -1038,6 +1042,7 @@ class TestFakeQuantizeOps(TestCase):
                     input, scale, zero_point, axis, quant_min, quant_max
                 )
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("Not a suitable test for TorchDynamo")
     @unittest.skipIf(TEST_WITH_ROCM, "Not a suitable test for ROCM")
     @given(dtype=st.sampled_from([torch.float, torch.float64, torch.half, torch.bfloat16]),
@@ -1054,6 +1059,8 @@ class TestFakeQuantizeOps(TestCase):
         ref_result = torch.Tensor([ref_result]).to(dtype).to(device)
         self.assertEqual(result, ref_result)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestFusedObsFakeQuant(TestCase):
     @given(device=st.sampled_from(['cpu', 'cuda'] if torch.cuda.is_available() else ['cpu']),

@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+# ruff: noqa: TCH004
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module provides decorators and utilities for controlling TorchDynamo's behavior during compilation.
 """
@@ -6,12 +12,19 @@ import functools
 import inspect
 import weakref
 from dataclasses import dataclass
+<<<<<<< HEAD
 from types import TracebackType
 from typing import Any, Callable, Optional, overload, TYPE_CHECKING, TypeVar, Union
 from typing_extensions import ParamSpec
 
 import torch
 from torch.compiler import is_compiling
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar, Union
+from typing_extensions import ParamSpec
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._contextlib import _DecoratorContextManager
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 
@@ -27,10 +40,18 @@ from .eval_frame import (
 )
 from .exc import IncorrectUsage
 from .external_utils import (
+<<<<<<< HEAD
     get_nonrecursive_disable_wrapper,
     wrap_dunder_call_ctx_manager,
 )
 from .utils import _get_error_on_graph_break, _set_error_on_graph_break, is_function
+=======
+    _dynamo_config_patch_proxy_dunder_call,
+    get_nonrecursive_disable_wrapper,
+    is_compiling,
+)
+from .utils import is_function
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -54,11 +75,17 @@ else:
 
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
+<<<<<<< HEAD
 FuncType = Callable[..., Any]
 F = TypeVar("F", bound=FuncType)
 
 
 def run(fn: Optional[Callable[_P, _R]] = None) -> Any:
+=======
+
+
+def run(fn=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Don't do any dynamic compiles, just use prior optimizations"""
     if fn is not None:
         fn = innermost_fn(fn)
@@ -67,7 +94,11 @@ def run(fn: Optional[Callable[_P, _R]] = None) -> Any:
     return RunOnlyContext()
 
 
+<<<<<<< HEAD
 def disable(fn=None, recursive=True, *, reason=None, wrapping=True):  # type: ignore[no-untyped-def]
+=======
+def disable(fn=None, recursive=True, *, reason=None, wrapping=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Decorator to disable TorchDynamo
 
@@ -87,7 +118,11 @@ def disable(fn=None, recursive=True, *, reason=None, wrapping=True):  # type: ig
         return DisableContext(msg=reason, wrapping=wrapping)
     else:
 
+<<<<<<< HEAD
         def wrap(fn: Callable[_P, _R]) -> Callable[_P, _R]:
+=======
+        def wrap(fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fn = innermost_fn(fn)
             assert callable(fn)
 
@@ -106,7 +141,11 @@ _nonrecursive_disable_wrapper_code = disable(lambda: None, recursive=False).__co
 skip_code(_nonrecursive_disable_wrapper_code)
 
 
+<<<<<<< HEAD
 def skip(fn: Optional[Callable[_P, _R]] = None) -> Callable[..., Any]:
+=======
+def skip(fn=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Skip frames associated with the function code, but still process recursively
     invoked frames
@@ -116,7 +155,11 @@ def skip(fn: Optional[Callable[_P, _R]] = None) -> Callable[..., Any]:
     fn = innermost_fn(fn)
     assert callable(fn)
     skip_code(fn.__code__)
+<<<<<<< HEAD
     fn._torchdynamo_disable = True  # type: ignore[attr-defined]
+=======
+    fn._torchdynamo_disable = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return fn
 
 
@@ -134,7 +177,11 @@ class set_stance(_DecoratorContextManager):
         stance: str = "default",
         *,
         skip_guard_eval_unsafe: bool = False,
+<<<<<<< HEAD
         force_backend: Union[str, Callable[..., Any], None] = None,
+=======
+        force_backend=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         if force_backend is not None and stance != "default":
             raise RuntimeError("non-default stance cannot have force_backend set")
@@ -142,13 +189,18 @@ class set_stance(_DecoratorContextManager):
         self.stance = DynamoStance(stance, skip_guard_eval_unsafe, force_backend)
         self.prev = _set_stance(self.stance)
 
+<<<<<<< HEAD
     def __call__(self, fn: F) -> F:
+=======
+    def __call__(self, fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _set_stance(self.prev)
         wrapper = super().__call__(fn)
         # forbid wrapper in graph
         wrapper._dynamo_forbidden = True  # type: ignore[attr-defined]
         return wrapper
 
+<<<<<<< HEAD
     def __enter__(self) -> None:
         _set_stance(self.stance)
 
@@ -170,6 +222,24 @@ def assume_constant_result(fn):  # type: ignore[no-untyped-def]
 
 
 def allow_in_graph(fn):  # type: ignore[no-untyped-def]
+=======
+    def __enter__(self):
+        _set_stance(self.stance)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        _set_stance(self.prev)
+
+    def clone(self):
+        return self.__class__(self.stance.stance, force_backend=self.stance.backend)
+
+
+def assume_constant_result(fn):
+    fn._dynamo_marked_constant = True
+    return fn
+
+
+def allow_in_graph(fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Tells the compiler frontend (Dynamo) to skip symbolic introspection of the function
     and instead directly write it to the graph when encountered.
@@ -187,14 +257,22 @@ def allow_in_graph(fn):  # type: ignore[no-untyped-def]
         trace_rules._allowed_callable_ids.add(fn_id)
 
         # Avoid id reuse which creates subtle bugs.
+<<<<<<< HEAD
         def deregister() -> None:
+=======
+        def deregister():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             trace_rules._allowed_callable_ids.remove(fn_id)
 
         weakref.finalize(fn, deregister)
     return fn
 
 
+<<<<<<< HEAD
 def nonstrict_trace(traceable_fn: Callable[_P, _R]) -> Callable[_P, _R]:
+=======
+def nonstrict_trace(traceable_fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Like `allow_in_graph`, but with the following enhancements/differences:
     #
     # 1. Supports user-defined class as inputs, as long as the class has been
@@ -215,7 +293,11 @@ def nonstrict_trace(traceable_fn: Callable[_P, _R]) -> Callable[_P, _R]:
     assert callable(traceable_fn), "nonstrict_trace expects a callable"
 
     @functools.wraps(traceable_fn)
+<<<<<<< HEAD
     def wrapped(*args: _P.args, **kwargs: _P.kwargs) -> _R:
+=======
+    def wrapped(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return traceable_fn(*args, **kwargs)
 
     wrapped_id = id(wrapped)
@@ -227,7 +309,11 @@ def nonstrict_trace(traceable_fn: Callable[_P, _R]) -> Callable[_P, _R]:
     trace_rules._nonstrict_trace_callable_ids.add(wrapped_id)
 
     # Avoid id reuse which creates subtle bugs.
+<<<<<<< HEAD
     def deregister() -> None:
+=======
+    def deregister():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         trace_rules._allowed_callable_ids.remove(wrapped_id)
         trace_rules._nonstrict_trace_callable_ids.remove(wrapped_id)
 
@@ -236,8 +322,13 @@ def nonstrict_trace(traceable_fn: Callable[_P, _R]) -> Callable[_P, _R]:
     return wrapped
 
 
+<<<<<<< HEAD
 def _disallow_in_graph_helper(throw_if_not_allowed: bool) -> Callable[..., Any]:
     def inner(fn: Any) -> Any:
+=======
+def _disallow_in_graph_helper(throw_if_not_allowed):
+    def inner(fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(fn, (list, tuple)):
             return [disallow_in_graph(x) for x in fn]
         assert callable(fn), "disallow_in_graph expects a callable"
@@ -259,7 +350,11 @@ def _disallow_in_graph_helper(throw_if_not_allowed: bool) -> Callable[..., Any]:
     return inner
 
 
+<<<<<<< HEAD
 def disallow_in_graph(fn: Callable[..., Any]) -> Any:
+=======
+def disallow_in_graph(fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Customize which functions TorchDynamo will exclude in the generated
     graph and force a graph break on.
@@ -285,17 +380,29 @@ def disallow_in_graph(fn: Callable[..., Any]) -> Any:
 
 
 @_disallow_in_graph_helper(throw_if_not_allowed=False)
+<<<<<<< HEAD
 def graph_break(msg: str = "") -> None:
+=======
+def graph_break(msg=""):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Force a graph break"""
 
 
 # NOTE: primarily used for internal debugging purposes!
 @_disallow_in_graph_helper(throw_if_not_allowed=False)
+<<<<<<< HEAD
 def skip_frame(msg: str = "") -> None:
     """Force a skipped frame"""
 
 
 def forbid_in_graph(fn: Any) -> Any:
+=======
+def skip_frame(msg=""):
+    """Force a skipped frame"""
+
+
+def forbid_in_graph(fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Customize which functions TorchDynamo will assert are not present while tracing.
 
@@ -397,9 +504,13 @@ def substitute_in_graph(
             else:
                 traceable_sig = inspect.signature(traceable_fn)
 
+<<<<<<< HEAD
                 def sig_ident(
                     sig: inspect.Signature,
                 ) -> tuple[tuple[str, ...], set[str], dict[str, Any]]:
+=======
+                def sig_ident(sig):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Ignore annotations for parameters and return type
                     return (
                         tuple(
@@ -479,9 +590,13 @@ def substitute_in_graph(
         def wrapped(*args: _P.args, **kwargs: _P.kwargs) -> _R:
             return original_fn(*args, **kwargs)
 
+<<<<<<< HEAD
         def dispatch_fn(
             self: VariableBuilder, value: Callable[_P, _R]
         ) -> PolyfilledFunctionVariable:
+=======
+        def dispatch_fn(self, value: Callable[_P, _R]) -> PolyfilledFunctionVariable:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return PolyfilledFunctionVariable(
                 value,
                 source=self.source,
@@ -506,9 +621,13 @@ def substitute_in_graph(
 # Helper function to flatten a tensor subclass and apply a function to
 # all inner tensors that match the outer dim. Used to reduce duplication
 # across the various marking APIs.
+<<<<<<< HEAD
 def _apply_func_to_inner_tensors_of_same_dim(
     func: Callable[..., Any], t: object, *args: Any, **kwargs: Any
 ) -> None:
+=======
+def _apply_func_to_inner_tensors_of_same_dim(func, t, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert is_traceable_wrapper_subclass(t)
 
     attrs, _ctx = t.__tensor_flatten__()
@@ -533,12 +652,16 @@ class _DimRange:
 
 
 @forbid_in_graph
+<<<<<<< HEAD
 def mark_unbacked(
     t: Any,
     index: Union[int, list[Any], tuple[Any]],
     strict: bool = False,
     specialize_on: Optional[list[Any]] = None,
 ) -> None:
+=======
+def mark_unbacked(t, index, strict=False, specialize_on=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Mark a tensor as having an unbacked dim.  This changes the semantics of operations,
     we will always report the size does not equal zero/one, we will turn asserts
@@ -581,6 +704,7 @@ def mark_unbacked(
 
 
 @forbid_in_graph
+<<<<<<< HEAD
 def mark_dynamic(
     t: Any,
     index: Union[int, list[Any], tuple[Any]],
@@ -590,6 +714,9 @@ def mark_dynamic(
     max: Optional[int] = None,
     specialize_on: Optional[list[Any]] = None,
 ) -> None:
+=======
+def mark_dynamic(t, index, *, min=None, max=None, specialize_on=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Mark a tensor as having a dynamic dim and set corresponding min and max range for the dim.
 
@@ -638,16 +765,25 @@ def mark_dynamic(
         if not hasattr(t, "_dynamo_dynamic_indices"):
             t._dynamo_dynamic_indices = set()
             t._dynamo_dynamic_range = set()
+<<<<<<< HEAD
             t._dynamo_hint_overrides = {}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not hasattr(t, "_specialize_on"):
             t._specialize_on = {}
 
+<<<<<<< HEAD
         if hint_override:
             t._dynamo_hint_overrides[index] = hint_override
         # TODO(voz): Should we bounds check?
         t._dynamo_dynamic_indices.add(index)
         t._dynamo_dynamic_range.add(_DimRange(index, min, max))  # type: ignore[arg-type]
+=======
+        # TODO(voz): Should we bounds check?
+        t._dynamo_dynamic_indices.add(index)
+        t._dynamo_dynamic_range.add(_DimRange(index, min, max))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # FX tracers don't respect @forbid_in_graph and choke on the following error since it passes in proxies:
         # TypeError: 'Attribute' object does not support item assignment
@@ -663,7 +799,11 @@ def mark_dynamic(
 
 
 @forbid_in_graph
+<<<<<<< HEAD
 def maybe_mark_dynamic(t: Any, index: Union[int, list[Any], tuple[Any]]) -> None:
+=======
+def maybe_mark_dynamic(t, index):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Mark a tensor as having a dynamic dim, but don't enforce it (i.e., if this
     dimension ends up getting specialized, don't error).
@@ -685,9 +825,13 @@ def maybe_mark_dynamic(t: Any, index: Union[int, list[Any], tuple[Any]]) -> None
         maybe_mark_dynamic(t, i)
 
 
+<<<<<<< HEAD
 def mark_static(
     t: Any, index: Optional[Union[int, list[Any], tuple[Any]]] = None
 ) -> None:
+=======
+def mark_static(t, index=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Mark a tensor as having a static dim or mark a nn module class as static.
 
@@ -752,7 +896,11 @@ def mark_static(
 
 
 @forbid_in_graph
+<<<<<<< HEAD
 def mark_static_address(t: Any, guard: bool = True) -> None:
+=======
+def mark_static_address(t, guard=True):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Marks an input tensor whose data_ptr will not change across multiple calls
     to a dynamo-compiled function. This indicates to cudagraphs that an extra allocation
@@ -771,7 +919,11 @@ def mark_static_address(t: Any, guard: bool = True) -> None:
 # One day, Dynamo will support tracing into einops directly (no allow_in_graph needed)
 # Note that PyTorch supports multiple versions of einops, so when that day comes,
 # we still need to be really careful about version matches.
+<<<<<<< HEAD
 def _allow_in_graph_einops() -> None:
+=======
+def _allow_in_graph_einops():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import einops
 
     try:
@@ -802,15 +954,24 @@ trace_rules.add_module_init_func("einops", _allow_in_graph_einops)
 # Proxy class for torch._dynamo.config patching - so dynamo can identify context managers/decorators
 # created by patch_dynamo_config, compared to ones created by a raw torch._dynamo.config.patch.
 class DynamoConfigPatchProxy:
+<<<<<<< HEAD
     def __init__(self, config_patch: Any) -> None:
         self.config_patch = config_patch
 
     @property
     def changes(self) -> dict[str, Any]:
+=======
+    def __init__(self, config_patch):
+        self.config_patch = config_patch
+
+    @property
+    def changes(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.config_patch.changes
 
     # Decorator implementation that simply sets up `self` as a context manager.
     # Placed in external_utils so that we can trace through it.
+<<<<<<< HEAD
     __call__ = wrap_dunder_call_ctx_manager
 
     def __enter__(self) -> None:
@@ -822,6 +983,14 @@ class DynamoConfigPatchProxy:
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
+=======
+    __call__ = _dynamo_config_patch_proxy_dunder_call
+
+    def __enter__(self):
+        return self.config_patch.__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.config_patch.__exit__(exc_type, exc_val, exc_tb)
 
 
@@ -853,7 +1022,11 @@ for name in _allowed_config_patches:
 del config
 
 
+<<<<<<< HEAD
 def _patch_dynamo_config_check(changes: dict[str, Any]) -> None:
+=======
+def _patch_dynamo_config_check(changes: dict[str, Any]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for k, v in changes.items():
         if k not in _allowed_config_patches:
             raise ValueError(
@@ -897,6 +1070,7 @@ def patch_dynamo_config(
     return DynamoConfigPatchProxy(config_patch)
 
 
+<<<<<<< HEAD
 @overload
 def dont_skip_tracing(fn: None = None) -> DynamoConfigPatchProxy: ...
 
@@ -906,6 +1080,9 @@ def dont_skip_tracing(fn: Callable[_P, _R]) -> Callable[_P, _R]: ...
 
 
 def dont_skip_tracing(fn: Optional[Any] = None) -> Any:
+=======
+def dont_skip_tracing(fn=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Context manager/decorator to trace into functions intentionally marked by developers to be skipped
     when tracing.
@@ -916,6 +1093,7 @@ def dont_skip_tracing(fn: Optional[Any] = None) -> Any:
     if fn:
         return ctx(fn)
     return ctx
+<<<<<<< HEAD
 
 
 class ErrorOnGraphBreakDecoratorContextManager:
@@ -955,3 +1133,5 @@ def error_on_graph_break(
     The default value of torch.compile's `error_on_graph_break` setting is False.
     """
     return ErrorOnGraphBreakDecoratorContextManager(error_on_graph_break)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -170,7 +170,11 @@ def main(communication_file: str) -> None:
         # Runner process sent SIGINT.
         sys.exit()
 
+<<<<<<< HEAD
     except BaseException:  # noqa: B036
+=======
+    except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         trace_f = io.StringIO()
         traceback.print_exc(file=trace_f)
         result = WorkerFailure(failure_trace=trace_f.getvalue())

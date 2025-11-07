@@ -15,7 +15,11 @@ from torch._dispatch.python import enable_python_dispatcher
 from torch._export.utils import _is_cia_op
 from torch._ops import DispatchKey
 from torch.testing import make_tensor
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import SM70OrLater, tf32_off
+=======
+from torch.testing._internal.common_cuda import tf32_off
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     onlyCPU,
@@ -854,13 +858,18 @@ def forward(self, scores_1, mask_1, value_1):
             #  de-functionalise the graph, as that would break AoTAutograd
             # We run the real function *after* the decomposition to make sure that the
             # decomposition does not modify any of the inputs in-place. If it does
+<<<<<<< HEAD
             # real_out should be different than decom_out so we should catch this
+=======
+            # real_out should be differen than decom_out so we should catch this
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             real_out_unflat = func(*args, **kwargs)
             real_out = pytree.tree_leaves(real_out_unflat)
 
             assert len(real_out) == len(decomp_out)
 
             if do_relative_check:
+<<<<<<< HEAD
                 device_arg = kwargs.get("device", None)
 
                 def upcast(x):
@@ -871,6 +880,9 @@ def forward(self, scores_1, mask_1, value_1):
                     else:
                         return upcast_tensor(x, dtype=torch.float64)
 
+=======
+                upcast = partial(upcast_tensor, dtype=torch.float64)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 real_out_double, _ = tree_flatten(
                     func(*tree_map(upcast, args), **tree_map(upcast, kwargs))
                 )
@@ -1235,6 +1247,7 @@ class DecompOneOffTests(TestCase):
         for o_ref, o in zip(out_ref, out):
             self.assertEqual(o_ref.dtype, o.dtype)
 
+<<<<<<< HEAD
     @onlyCUDA
     @unittest.skipIf(not SM70OrLater, "triton")
     def test_rms_norm_decomp_cuda(self, device):
@@ -1262,6 +1275,8 @@ class DecompOneOffTests(TestCase):
             "triton_per_fused__fused_rms_norm_backward_cosh_mul" in generated_codes[1]
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(DecompOneOffTests, globals())
 

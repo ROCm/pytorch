@@ -33,12 +33,17 @@ class FileOpenerIterDataPipe(IterDataPipe[tuple[str, IOBase]]):
 
     Example:
         >>> # xdoctest: +SKIP
+<<<<<<< HEAD
         >>> from torchdata.datapipes.iter import (
         ...     FileLister,
         ...     FileOpener,
         ...     StreamReader,
         ... )
         >>> dp = FileLister(root=".").filter(lambda fname: fname.endswith(".txt"))
+=======
+        >>> from torchdata.datapipes.iter import FileLister, FileOpener, StreamReader
+        >>> dp = FileLister(root=".").filter(lambda fname: fname.endswith('.txt'))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> dp = FileOpener(dp)
         >>> dp = StreamReader(dp)
         >>> list(dp)

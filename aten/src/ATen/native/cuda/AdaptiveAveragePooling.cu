@@ -526,7 +526,11 @@ namespace {
 
 
         // we are dealing with packed tensor here. max index is the same as numel.
+<<<<<<< HEAD
         // TODO: to really support input tensor large enough to go beyond int32,
+=======
+        // TODO: to really support input tensor large enought to go beyond int32,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // we will need to restrict out shared memory usage and adjust the launch
         // config;
         AT_ASSERT(input_.numel() < std::numeric_limits<int32_t>::max());
@@ -681,7 +685,11 @@ namespace {
           const dim3 grid(grid_x, grid_y, grid_z);
 
           // we are dealing with packed tensor here. max index is the same as numel.
+<<<<<<< HEAD
           // TODO: to really support input tensor large enough to go beyond int32,
+=======
+          // TODO: to really support input tensor large enought to go beyond int32,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           // we will need to restrict out shared memory usage and adjust the launch
           // config;
           AT_ASSERT(input.numel() < std::numeric_limits<int32_t>::max());

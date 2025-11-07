@@ -372,7 +372,11 @@ class TestFFTThreadSafe(TestCase):
             assert_allclose(
                 q.get(timeout=5),
                 expected,
+<<<<<<< HEAD
                 atol=2e-14,
+=======
+                atol=2e-14
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # msg="Function returned wrong value in multithreaded context",
             )
 

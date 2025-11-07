@@ -196,6 +196,7 @@ static void removeProfileNodesAndSpecializeTypes(Block* b) {
       if (it->input()->type()->kind() == c10::TypeKind::TensorType) {
         input_tensor_type = it->input()->type()->expect<TensorType>();
       } else {
+<<<<<<< HEAD
         auto element_type = it->input()
                               ->type();
         if (element_type->cast<OptionalType>()) {
@@ -210,6 +211,13 @@ static void removeProfileNodesAndSpecializeTypes(Block* b) {
           element_type->expect<NoneType>();
         }
 
+=======
+        input_tensor_type = it->input()
+                                ->type()
+                                ->expectRef<OptionalType>()
+                                .getElementType()
+                                ->expect<TensorType>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_is_optional = true;
       }
 
@@ -405,7 +413,11 @@ void insertTypeGuard(
 
 namespace {
 bool has_unsupported_pin_memory(const Node* node) {
+<<<<<<< HEAD
   // can't support non-constant pin_memory or pin_memory = True
+=======
+  // cant support non-constant pin_memory or pin_memory = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (auto maybe_index = node->schema().argumentIndexWithName("pin_memory")) {
     int index = *maybe_index;
     auto inp = node->input(index);

@@ -395,7 +395,11 @@ class CommDebugMode(TorchDispatchMode):
         json_dict: dict[str, Any] = {}
         add_json_information(json_dict, "Global")
 
+<<<<<<< HEAD
         # converts dictionary into json file
+=======
+        # converts dictonary into json file
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with open(file_name, "w") as json_file:
             json.dump(json_dict, json_file, indent=4)
 

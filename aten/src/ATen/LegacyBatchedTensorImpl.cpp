@@ -84,7 +84,11 @@ IntArrayRef BatchedTensorImpl::strides_custom() const {
 
 // TODO: implement proper contiguity on batched tensor, then put
 // sizes_strides_policy back to Default
+<<<<<<< HEAD
 c10::SymBool BatchedTensorImpl::sym_is_contiguous_custom(at::MemoryFormat memory_format) const {
+=======
+bool BatchedTensorImpl::is_contiguous_custom(at::MemoryFormat memory_format) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(memory_format == MemoryFormat::Contiguous,
       "NYI: querying is_contiguous inside of vmap for memory_format ",
       "other than torch.contiguous_format");

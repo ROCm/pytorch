@@ -64,6 +64,7 @@ Below you can find a small example showcasing this::
 TensorFloat-32 (TF32) on Ampere (and later) devices
 ---------------------------------------------------
 
+<<<<<<< HEAD
 After Pytorch 2.9, we provide a new sets of APIs to control the TF32 behavior in a more fine-grained way, and
 suggest to use the new APIs for better control.
 We can set float32 precision per backend and per operators. We can also override the global setting for a specific operator.
@@ -107,6 +108,8 @@ We suggest to use the new settings for better control. And we do not support to 
   Old settings with `allow_tf32` as follows is going to be deprecated. We suggest to use the above new settings for
   better control. And we do not support to use mix of old and new settings.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Starting in PyTorch 1.7, there is a new flag called `allow_tf32`. This flag
 defaults to True in PyTorch 1.7 to PyTorch 1.11, and False in PyTorch 1.12 and later.
 This flag controls whether PyTorch is allowed to use the TensorFloat32 (TF32) tensor cores,
@@ -128,7 +131,11 @@ matmuls and convolutions are controlled separately, and their corresponding flag
   # The flag below controls whether to allow TF32 on cuDNN. This flag defaults to True.
   torch.backends.cudnn.allow_tf32 = True
 
+<<<<<<< HEAD
 The precision of matmuls can also be set more broadly (limited not just to CUDA) via :meth:`~torch.set_float32_matmul_precision`.
+=======
+The precision of matmuls can also be set more broadly (limited not just to CUDA) via :meth:`~torch.set_float_32_matmul_precision`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Note that besides matmuls and convolutions themselves, functions and nn modules that internally uses
 matmuls or convolutions are also affected. These include `nn.Linear`, `nn.Conv*`, cdist, tensordot,
 affine grid and grid sample, adaptive log softmax, GRU and LSTM.
@@ -608,6 +615,7 @@ Available options:
   for processing events. This avoids any slow path associated with querying/processing of
   events in the fast allocation path. This feature is disabled by default.
 
+<<<<<<< HEAD
 * ``graph_capture_record_stream_reuse`` (experimental, default: `False`)
   If set to `True`, the CUDA caching allocator will attempt to reclaim device memory during
   CUDA Graph capture by using the graph topology (instead of CUDA events) to determine
@@ -616,6 +624,8 @@ Available options:
   reaches joined frontiers. Note: Enabling this option can significantly increase the time spent
   capturing the graph.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. note::
 
     Some stats reported by the
@@ -904,6 +914,7 @@ APIs can be used for debugging purposes:
     https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/bufferreg.html#memory-allocator
 
 
+<<<<<<< HEAD
 Tuning NVLink Performance with Custom Memory Allocator on H100/H200 GPUs
 ------------------------------------------------------------------------
 In rare cases, performance of NVLink on H100/H200 GPUs can be influenced by the physical memory
@@ -1028,6 +1039,8 @@ functions are:
   }
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 cuBLAS workspaces
 -----------------
 

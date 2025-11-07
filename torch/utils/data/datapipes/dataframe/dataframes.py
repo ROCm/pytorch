@@ -51,7 +51,11 @@ class DataFrameTracedOps(DFIterDataPipe):
             yield self.output_var.apply_ops(item)
 
 
+<<<<<<< HEAD
 #  TODO(VitalyFedyunin): Extract this list from the DFIterDataPipe registered functions
+=======
+#  TODO(VitalyFedyunin): Extract this list from the DFIterDataPipe registred functions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DATAPIPES_OPS = [
     "_dataframes_as_tuples",
     "groupby",
@@ -201,7 +205,11 @@ class CaptureLikeMock:
     def __init__(self, name):
         import unittest.mock as mock
 
+<<<<<<< HEAD
         # TODO(VitalyFedyunin): Do not use private function here, copy own implementation instead.
+=======
+        # TODO(VitalyFedyunin): Do not use provate function here, copy own implementation instead.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         get_target, attribute = mock._get_target(name)  # type: ignore[attr-defined]
         self.get_target = get_target
         self.attribute = attribute

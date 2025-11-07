@@ -20,9 +20,12 @@ class ExprPrinter(StrPrinter):
     def _print_Mul(self, expr: sympy.Expr) -> str:
         return self.stringify(expr.args, "*", precedence(expr))
 
+<<<<<<< HEAD
     def _print_Not(self, expr: sympy.Expr) -> str:
         return f"not ({self._print(expr.args[0])})"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _print_Add(self, expr: sympy.Expr, order: Optional[str] = None) -> str:
         return self.stringify(expr.args, " + ", precedence(expr))
 

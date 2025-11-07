@@ -20,10 +20,16 @@ from torch._inductor import config
 from torch._inductor.codegen.common import register_backend_for_device
 from torch._inductor.codegen.cpp import CppScheduling
 from torch._inductor.codegen.triton import TritonScheduling
+<<<<<<< HEAD
 from torch._inductor.codegen.wrapper import PythonWrapperCodegen
 from torch._inductor.codegen.wrapper_fxir import FxConverter, WrapperFxCodegen
 from torch._inductor.test_case import TestCase as InductorTestCase
 from torch.export import Dim
+=======
+from torch._inductor.codegen.wrapper_fxir import FxConverter, WrapperFxCodegen
+from torch._inductor.select_algorithm import extern_kernels
+from torch._inductor.test_case import TestCase as InductorTestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
@@ -36,6 +42,7 @@ from torch.testing._internal.inductor_utils import (
 )
 
 
+<<<<<<< HEAD
 if HAS_GPU:
     import triton
     import triton.language as tl
@@ -43,6 +50,8 @@ if HAS_GPU:
     from torch.testing._internal.triton_utils import add_kernel_2d_autotuned
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @requires_gpu()
 @config.patch(
     compile_threads=1,
@@ -159,11 +168,16 @@ class FxirTestCase(InductorTestCase):
         (gm,) = self._compile_and_check(foo, args, expected_num_triton_kernels=1)
 
         # Check for the extern kernel
+<<<<<<< HEAD
         num_extern = self._count_ops(gm, torch.ops.aten.addmm.out)
+=======
+        num_extern = self._count_ops(gm, extern_kernels.addmm)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(num_extern, 1)
 
     def test_fallback(self):
         """
+<<<<<<< HEAD
         Test a program that calls aten fallbacks.
         """
 
@@ -173,6 +187,17 @@ class FxirTestCase(InductorTestCase):
             return torch.addbmm(x, batch1, batch2)
 
         args = (torch.randn(3, 4, device=self.device),)
+=======
+        Test a program that calls an aten fallback.
+        """
+
+        length = 8
+
+        def foo(x):
+            return x + torch.randn(1, device=self.device)
+
+        args = (torch.randn(length, device=self.device),)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Since the program has a random output, just check metadata.
         # Don't check for an exact value.
@@ -181,10 +206,15 @@ class FxirTestCase(InductorTestCase):
         )
 
         # Check for the fallback kernel.
+<<<<<<< HEAD
         num_fallback = self._count_ops(
             gm, torch.ops.aten.randint.low_out
         ) + self._count_ops(gm, torch.ops.aten.addbmm.default)
         self.assertEqual(num_fallback, 2)
+=======
+        num_fallback = self._count_ops(gm, torch.ops.aten.randint.low_out)
+        self.assertEqual(num_fallback, 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_cat_inputs(self):
         """
@@ -403,6 +433,7 @@ class FxirTestCase(InductorTestCase):
             ]
             self.assertEqual(placeholder.meta["val"], symbol)
 
+<<<<<<< HEAD
     @parametrize(
         "shape",
         [
@@ -527,6 +558,8 @@ class FxirTestCase(InductorTestCase):
             self.assertEqual(grid[1], 1)
             self.assertEqual(grid[2], 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch({"trace.enabled": True})
     @unittest.mock.patch("torch._inductor.debug.DebugFormatter.output_code")
     def test_debug(self, mock_output_code):
@@ -635,6 +668,7 @@ class FxirTestCase(InductorTestCase):
             op="call_function", target=torch.empty_strided
         )
         (shape, stride) = empty_strided.args
+<<<<<<< HEAD
         if use_dynamic_shapes:
             self.assertEqual(type(shape[0]), torch.fx.Node)
 
@@ -820,6 +854,10 @@ class AOTFxirTestCase(InductorTestCase):
 
         # Now the backend should have been called.
         self.assertTrue(called)
+=======
+        output_is_symbolic = any(isinstance(dim, torch.SymInt) for dim in shape)
+        self.assertEqual(output_is_symbolic, use_dynamic_shapes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

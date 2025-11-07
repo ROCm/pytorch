@@ -12,9 +12,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true
 
+<<<<<<< HEAD
 permissions:
   id-token: write
   contents: read
+=======
+permissions: read-all
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   # There must be at least one job here to satisfy GitHub action workflow syntax
@@ -46,13 +50,18 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
+<<<<<<< HEAD
 
   linux-jammy-py3_9-clang9-xla-build:
     name: linux-jammy-py3_9-clang9-xla
@@ -77,3 +86,5 @@ jobs:
       docker-image: ${{ needs.linux-jammy-py3_9-clang9-xla-build.outputs.docker-image }}
       test-matrix: ${{ needs.linux-jammy-py3_9-clang9-xla-build.outputs.test-matrix }}
     secrets: inherit
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

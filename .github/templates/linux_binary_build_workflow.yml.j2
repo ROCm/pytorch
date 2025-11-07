@@ -56,7 +56,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -77,9 +81,12 @@ jobs:
       runs_on: linux.s390x
       ALPINE_IMAGE: "docker.io/s390x/alpine"
       timeout-minutes: 420
+<<<<<<< HEAD
       {%- elif config["gpu_arch_type"] == "rocm" %}
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       timeout-minutes: 300
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {%- elif "conda" in build_environment and config["gpu_arch_type"] == "cuda" %}
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       runs_on: linux.24xlarge.ephemeral
@@ -117,12 +124,21 @@ jobs:
       ALPINE_IMAGE: "docker.io/s390x/alpine"
       {%- elif config["gpu_arch_type"] == "rocm" %}
       runs_on: linux.rocm.gpu
+<<<<<<< HEAD
       {%- elif config["gpu_arch_type"] == "cuda" and config["gpu_arch_version"] in ["12.6"] %}
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       runs_on: linux.4xlarge.nvidia.gpu  # 12.6 build can use maxwell (sm_50) runner
       {%- elif config["gpu_arch_type"] == "cuda" %}
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       runs_on: linux.g4dn.4xlarge.nvidia.gpu # 12.8+ builds need sm_70+ runner
+=======
+      {%- elif config["gpu_arch_type"] == "cuda" and config["gpu_arch_version"] in ["12.8", "12.9"] %}
+      runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+      runs_on: linux.g4dn.4xlarge.nvidia.gpu  # 12.8 and 12.9 build need sm_70+ runner
+      {%- elif config["gpu_arch_type"] == "cuda" %}
+      runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+      runs_on: linux.4xlarge.nvidia.gpu # for other cuda versions, we use 4xlarge runner
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {%- else %}
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
       runs_on: linux.4xlarge
@@ -138,7 +154,11 @@ jobs:
       contents: read
     steps:
       - name: Setup XPU
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/setup-xpu@release/2.9
+=======
+        uses: ./.github/actions/setup-xpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: configure aws credentials
         id: aws_creds
         uses: aws-actions/configure-aws-credentials@v4
@@ -156,7 +176,11 @@ jobs:
       !{{ common.checkout(deep_clone=False, directory="pytorch", checkout_pr_head=False) }}
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-registry: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/') && '308535385114.dkr.ecr.us-east-1.amazonaws.com' || 'docker.io' }}
           docker-image-name: !{{ config["container_image"] }}
@@ -164,7 +188,11 @@ jobs:
           docker-build-dir: .ci/docker
           working-directory: pytorch
       - name: Pull Docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
       - name: Test Pytorch binary
@@ -199,7 +227,11 @@ jobs:
           role-duration-seconds: 18000
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-registry: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/') && '308535385114.dkr.ecr.us-east-1.amazonaws.com' || 'docker.io' }}
           docker-image-name: !{{ config["container_image"] }}
@@ -207,7 +239,11 @@ jobs:
           docker-build-dir: .ci/docker
           working-directory: pytorch
       - name: Pull Docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
       - name: Test Pytorch binary

@@ -2,6 +2,7 @@
 #include <ATen/Config.h>
 #include <ATen/cuda/CUDAConfig.h>
 
+<<<<<<< HEAD
 #if AT_CUDNN_ENABLED()
 #include <cudnn_frontend.h>
 #endif
@@ -9,6 +10,11 @@
 #if defined(USE_ROCM) || !AT_CUDNN_ENABLED() ||         \
     (defined(CUDNN_VERSION) && CUDNN_VERSION < 8900) || \
     (defined(CUDNN_FRONTEND_VERSION) && CUDNN_FRONTEND_VERSION < 10100)
+=======
+#if defined(USE_ROCM) || !AT_CUDNN_ENABLED() || \
+    (defined(CUDNN_VERSION) && CUDNN_VERSION < 8900)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at {
 namespace native {
 
@@ -88,6 +94,7 @@ void run_cudnn_SDP_bprop(
       false, "PyTorch was not compiled with cuDNN Flash Attention enabled!");
 }
 
+<<<<<<< HEAD
 void run_cudnn_SDP_bprop_nestedtensor(
     int64_t b,
     int64_t h_q,
@@ -119,6 +126,8 @@ void run_cudnn_SDP_bprop_nestedtensor(
       false, "PyTorch was not compiled with cuDNN Flash Attention enabled!");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace native
 } // namespace at
 
@@ -130,6 +139,10 @@ void run_cudnn_SDP_bprop_nestedtensor(
 #include <ATen/native/transformers/sdp_utils.h>
 
 #include <ATen/cuda/Exceptions.h>
+<<<<<<< HEAD
+=======
+#include <cudnn_frontend.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/TensorUtils.h>
 #include <ATen/native/utils/ParamsHash.h>
@@ -145,6 +158,7 @@ namespace native {
 #include <cudnn_frontend.h>
 
 namespace fe = cudnn_frontend;
+<<<<<<< HEAD
 
 constexpr uint8_t MAX_MHA_DIM = 4;
 
@@ -197,6 +211,44 @@ int roundup_power2(int dim) {
   dim++;
   return dim;
 }
+=======
+using graph_and_tensors = std::tuple<
+    std::shared_ptr<fe::graph::Graph>,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Q,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // K,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // V,
+    std::optional<std::shared_ptr<fe::graph::Tensor_attributes>>, // Bias
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Attn_scale,
+    // TODO(eqy): additional options
+    // std::shared_ptr<fe::graph::Tensor_attributes>, // SEQ_LEN_Q,
+    // std::shared_ptr<fe::graph::Tensor_attributes>, // SEQ_LEN_KV,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Seed,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Offset,
+    // std::shared_ptr<fe::graph::Tensor_attributes>, // Dropout_mask,
+    // std::shared_ptr<fe::graph::Tensor_attributes>, // Dropout_scale
+    std::shared_ptr<fe::graph::Tensor_attributes>, // O
+    std::shared_ptr<fe::graph::Tensor_attributes> // Stats
+    >;
+
+using graph_and_tensors_backward = std::tuple<
+    std::shared_ptr<fe::graph::Graph>,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Q,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // K,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // V,
+    std::optional<std::shared_ptr<fe::graph::Tensor_attributes>>, // Bias,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Attn_scale,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Seed,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // Offset,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // O,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // dO,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // stats,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // dQ,
+    std::shared_ptr<fe::graph::Tensor_attributes>, // dK,,
+    std::shared_ptr<fe::graph::Tensor_attributes> // dV,
+    >;
+
+#define MAX_MHA_DIM 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 struct MHAParams {
   c10::DeviceIndex device_id;
@@ -221,7 +273,10 @@ struct MHAParams {
   // might be redundant if we take 0 dim/stride
   // as signaling no-bias
   bool has_attn_bias;
+<<<<<<< HEAD
   bool use_ragged;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 void setMHAParams(
@@ -238,8 +293,12 @@ void setMHAParams(
     const std::optional<Tensor>& attn_bias,
     double dropout_probability,
     bool is_causal,
+<<<<<<< HEAD
     bool return_softmaxstats,
     bool is_nested) {
+=======
+    bool return_softmaxstats) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   memset(&params, 0, sizeof(MHAParams));
   params.device_id = at::cuda::current_device();
   params.dataType = fe::DataType_t::HALF;
@@ -256,6 +315,7 @@ void setMHAParams(
   params.is_causal = is_causal;
   params.return_softmaxstats = return_softmaxstats;
   params.has_attn_bias = attn_bias.has_value();
+<<<<<<< HEAD
   // Expect 4D dense tensor, 3D nested case (THD)
   TORCH_INTERNAL_ASSERT(
       q.sizes().size() == (uint8_t)(MAX_MHA_DIM - (uint8_t)is_nested),
@@ -274,6 +334,25 @@ void setMHAParams(
       "V tensor has unexpected number of dims, please report a bug to PyTorch.");
   TORCH_INTERNAL_ASSERT(
       v.strides().size() == (uint8_t)(MAX_MHA_DIM - (uint8_t)is_nested),
+=======
+  TORCH_INTERNAL_ASSERT(
+      q.sizes().size() == MAX_MHA_DIM,
+      "Q tensor has unexpected number of dims, please report a bug to PyTorch.");
+  TORCH_INTERNAL_ASSERT(
+      q.strides().size() == MAX_MHA_DIM,
+      "Q tensor has unexpected number of dims, please report a bug to PyTorch.");
+  TORCH_INTERNAL_ASSERT(
+      k.sizes().size() == MAX_MHA_DIM,
+      "K tensor has unexpected number of dims, please report a bug to PyTorch.");
+  TORCH_INTERNAL_ASSERT(
+      k.strides().size() == MAX_MHA_DIM,
+      "K tensor has unexpected number of dims, please report a bug to PyTorch.");
+  TORCH_INTERNAL_ASSERT(
+      v.sizes().size() == MAX_MHA_DIM,
+      "V tensor has unexpected number of dims, please report a bug to PyTorch.");
+  TORCH_INTERNAL_ASSERT(
+      v.strides().size() == MAX_MHA_DIM,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "V tensor has unexpected number of dims, please report a bug to PyTorch.");
   std::copy(q.sizes().begin(), q.sizes().end(), params.q_dim.begin());
   std::copy(q.strides().begin(), q.strides().end(), params.q_stride.begin());
@@ -281,6 +360,7 @@ void setMHAParams(
   std::copy(k.strides().begin(), k.strides().end(), params.k_stride.begin());
   std::copy(v.sizes().begin(), v.sizes().end(), params.v_dim.begin());
   std::copy(v.strides().begin(), v.strides().end(), params.v_stride.begin());
+<<<<<<< HEAD
   bool use_ragged = use_ragged_in_dense(q, k, v, q, params.has_attn_bias);
   params.use_ragged = use_ragged;
   if (use_ragged) {
@@ -295,6 +375,8 @@ void setMHAParams(
     params.k_dim[2] = roundup_power2(params.k_dim[2]);
     params.v_dim[2] = roundup_power2(params.v_dim[2]);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // uninit is OK as the struct is memset 0'd
   if (params.has_attn_bias) {
     std::copy(
@@ -322,8 +404,12 @@ struct MHACacheKeyWrapper : ParamsWrapper<MHAParams> {
       const std::optional<Tensor>& attn_bias,
       double dropout_probability,
       bool is_causal,
+<<<<<<< HEAD
       bool return_softmaxstats,
       bool is_nested) {
+=======
+      bool return_softmaxstats) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     setMHAParams(
         this->pod,
         b,
@@ -338,21 +424,29 @@ struct MHACacheKeyWrapper : ParamsWrapper<MHAParams> {
         attn_bias,
         dropout_probability,
         is_causal,
+<<<<<<< HEAD
         return_softmaxstats,
         is_nested);
+=======
+        return_softmaxstats);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
 template <typename T, typename KeyType>
 struct MHAGraphCache {
   std::unordered_map<KeyType, T, ParamsWrapperHash<KeyType>> engine_cache;
+<<<<<<< HEAD
   int count = 0;
   int hits = 0;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // no mutexes here as caches are now thread local for v8, can also return a
   // pointer to the Execution Plan if we know it will not be invalidated by
   // another thread
   T* find(const KeyType& key) {
+<<<<<<< HEAD
     static bool flag =
         c10::utils::check_env("TORCH_CUDNN_SDPA_CACHE_DEBUG") == true;
     if (flag && count) {
@@ -364,11 +458,16 @@ struct MHAGraphCache {
           "%");
     }
     count++;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto it = engine_cache.find(key);
     if (it == engine_cache.end()) {
       return nullptr;
     }
+<<<<<<< HEAD
     hits++;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return &(it->second);
   }
 
@@ -381,6 +480,7 @@ struct MHAGraphCache {
 // @eqy: use thread local caches as cuDNN Execution Plans are not guaranteed to
 // be thread safe across all engines see Limitations in
 // https://docs.nvidia.com/deeplearning/cudnn/backend/latest/release-notes.html
+<<<<<<< HEAD
 // We also leak the caches to workaround potential teardown race issues.
 
 auto& getMHAGraphCache_() {
@@ -420,6 +520,13 @@ enum UIDS {
   RAG_LSE_OFF
 };
 
+=======
+thread_local MHAGraphCache<graph_and_tensors, MHACacheKeyWrapper> mhagraphcache;
+thread_local MHAGraphCache<graph_and_tensors_backward, MHACacheKeyWrapper>
+    mhagraphbackwardcache;
+
+namespace {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // analogous to the same function in Descriptors.h for cuDNN Convolutions...
 auto fixSizeOneDimStrideSDPA(
     const IntArrayRef sizes,
@@ -437,10 +544,16 @@ auto fixSizeOneDimStrideSDPA(
   }
   return strides;
 }
+<<<<<<< HEAD
 
 } // namespace
 
 auto build_graph(
+=======
+} // namespace
+
+auto build_graph_and_tensors(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t b,
     int64_t h,
     int64_t s_q,
@@ -473,16 +586,39 @@ auto build_graph(
       .set_compute_data_type(fe::DataType_t::FLOAT);
   auto attn_scale =
       mha_graph->tensor(fe::graph::Tensor_attributes()
+<<<<<<< HEAD
                             .set_uid(SCALE)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             .set_name("Attn_scale")
                             .set_dim({1, 1, 1, 1})
                             .set_stride({1, 1, 1, 1})
                             .set_is_pass_by_value(true)
                             .set_data_type(fe::DataType_t::FLOAT));
+<<<<<<< HEAD
+=======
+  auto seed = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                    .set_name("Seed")
+                                    .set_dim({1, 1, 1, 1})
+                                    .set_stride({1, 1, 1, 1})
+                                    .set_data_type(
+                                        dropoutseed.dtype() == kInt
+                                            ? fe::DataType_t::INT32
+                                            : fe::DataType_t::INT64));
+  auto offset = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                      .set_name("Offset")
+                                      .set_dim({1, 1, 1, 1})
+                                      .set_stride({1, 1, 1, 1})
+                                      .set_data_type(
+                                          dropoutoffset.dtype() == kInt
+                                              ? fe::DataType_t::INT32
+                                              : fe::DataType_t::INT64));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto scaled_dot_product_flash_attention_options =
       fe::graph::SDPA_attributes()
           .set_name("CUDNN_SDPA")
           .set_is_inference(return_softmaxstats == false)
+<<<<<<< HEAD
           // TODO(eqy): switch to this API once cuDNN FE is upgraded
           // .set_generate_stats(return_softmaxstats)
           .set_causal_mask(is_causal)
@@ -534,17 +670,41 @@ auto build_graph(
       fe::graph::Tensor_attributes().set_uid(K).set_name("K"));
   auto V_ = mha_graph->tensor(
       fe::graph::Tensor_attributes().set_uid(V).set_name("V"));
+=======
+          .set_causal_mask(is_causal)
+          .set_attn_scale(attn_scale)
+          .set_dropout(dropout_probability, seed, offset);
+  auto Q = mha_graph->tensor(
+      fe::graph::Tensor_attributes()
+          .set_name("Q")
+          .set_dim(q.sizes().vec())
+          .set_stride(fixSizeOneDimStrideSDPA(q.sizes(), q.strides().vec())));
+  auto K = mha_graph->tensor(
+      fe::graph::Tensor_attributes()
+          .set_name("K")
+          .set_dim(k.sizes().vec())
+          .set_stride(fixSizeOneDimStrideSDPA(k.sizes(), k.strides().vec())));
+  auto V = mha_graph->tensor(
+      fe::graph::Tensor_attributes()
+          .set_name("V")
+          .set_dim(v.sizes().vec())
+          .set_stride(fixSizeOneDimStrideSDPA(v.sizes(), v.strides().vec())));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<std::shared_ptr<fe::graph::Tensor_attributes>> bias;
   if (attn_bias.has_value()) {
     bias =
         mha_graph->tensor(fe::graph::Tensor_attributes()
+<<<<<<< HEAD
                               .set_uid(BIAS)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                               .set_name("bias")
                               .set_dim(attn_bias.value().sizes().vec())
                               .set_stride(attn_bias.value().strides().vec()));
     scaled_dot_product_flash_attention_options.set_bias(bias.value());
   }
 
+<<<<<<< HEAD
   auto [O_, Stats] =
       mha_graph->sdpa(Q_, K_, V_, scaled_dot_product_flash_attention_options);
   O_->set_uid(O).set_output(true);
@@ -631,6 +791,14 @@ auto build_graph(
     if (Stats) {
       Stats->set_dim(softmaxstats.sizes().vec());
     }
+=======
+  auto [O, Stats] =
+      mha_graph->sdpa(Q, K, V, scaled_dot_product_flash_attention_options);
+  O->set_output(true).set_dim(o.sizes().vec()).set_stride(o.strides().vec());
+
+  if (Stats) {
+    Stats->set_output(true).set_data_type(fe::DataType_t::FLOAT);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
@@ -640,10 +808,27 @@ auto build_graph(
   AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
 
+<<<<<<< HEAD
   return mha_graph;
 }
 
 auto build_graph_nestedtensor(
+=======
+  return std::make_tuple(
+      std::move(mha_graph),
+      std::move(Q),
+      std::move(K),
+      std::move(V),
+      std::move(bias),
+      std::move(attn_scale),
+      std::move(seed),
+      std::move(offset),
+      std::move(O),
+      std::move(Stats));
+}
+
+auto build_graph_and_tensors_nestedtensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t b,
     int64_t h_q,
     int64_t h_k,
@@ -680,12 +865,16 @@ auto build_graph_nestedtensor(
       .set_compute_data_type(fe::DataType_t::FLOAT);
   auto attn_scale =
       mha_graph->tensor(fe::graph::Tensor_attributes()
+<<<<<<< HEAD
                             .set_uid(SCALE)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             .set_name("Attn_scale")
                             .set_dim({1, 1, 1, 1})
                             .set_stride({1, 1, 1, 1})
                             .set_is_pass_by_value(true)
                             .set_data_type(fe::DataType_t::FLOAT));
+<<<<<<< HEAD
   auto SEQ_LEN_Q_ =
       mha_graph->tensor(fe::graph::Tensor_attributes()
                             .set_uid(SEQ_LEN_Q)
@@ -696,6 +885,25 @@ auto build_graph_nestedtensor(
   auto SEQ_LEN_KV_ =
       mha_graph->tensor(fe::graph::Tensor_attributes()
                             .set_uid(SEQ_LEN_KV)
+=======
+  auto seed = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                    .set_name("Seed")
+                                    .set_dim({1, 1, 1, 1})
+                                    .set_stride({1, 1, 1, 1})
+                                    .set_data_type(fe::DataType_t::INT32));
+  auto offset = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                      .set_name("Offset")
+                                      .set_dim({1, 1, 1, 1})
+                                      .set_stride({1, 1, 1, 1})
+                                      .set_data_type(fe::DataType_t::INT32));
+  auto SEQ_LEN_Q = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                         .set_name("Seq_q")
+                                         .set_dim({b, 1, 1, 1})
+                                         .set_stride({1, 1, 1, 1})
+                                         .set_data_type(fe::DataType_t::INT32));
+  auto SEQ_LEN_KV =
+      mha_graph->tensor(fe::graph::Tensor_attributes()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             .set_name("Seq_kv")
                             .set_dim({b, 1, 1, 1})
                             .set_stride({1, 1, 1, 1})
@@ -705,6 +913,7 @@ auto build_graph_nestedtensor(
       fe::graph::SDPA_attributes()
           .set_name("CUDNN_SDPA_NESTEDTENSOR")
           .set_is_inference(return_softmaxstats == false)
+<<<<<<< HEAD
           // TODO(eqy): switch to this API once cuDNN FE is upgraded
           // .set_generate_stats(return_softmaxstats)
           .set_causal_mask(is_causal)
@@ -734,10 +943,19 @@ auto build_graph_nestedtensor(
     scaled_dot_product_flash_attention_options.set_dropout(
         dropout_probability, seed, offset);
   }
+=======
+          .set_causal_mask(is_causal)
+          .set_attn_scale(attn_scale)
+          .set_dropout(dropout_probability, seed, offset)
+          .set_seq_len_q(SEQ_LEN_Q)
+          .set_seq_len_kv(SEQ_LEN_KV)
+          .set_padding_mask(true);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We hardcode BSHD to cuDNN even though the underlying layout is THD
   auto q_strides = q.strides();
   auto k_strides = k.strides();
   auto v_strides = v.strides();
+<<<<<<< HEAD
   // NB: cuDNN API shape is transposed: we pass it nominally as HTD
   constexpr int strideidx0 = 1;
   constexpr int strideidx1 = 0;
@@ -769,6 +987,35 @@ auto build_graph_nestedtensor(
                                        v_strides[strideidx0],
                                        v_strides[strideidx1],
                                        v_strides[strideidx2]}));
+=======
+  constexpr int strideidx0 = 1;
+  constexpr int strideidx1 = 0;
+  constexpr int strideidx2 = 2;
+  auto Q = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("Q")
+                                 .set_dim({b, h_q, s_q, d_qk})
+                                 .set_stride(
+                                     {INT_MAX,
+                                      q_strides[strideidx0],
+                                      q_strides[strideidx1],
+                                      q_strides[strideidx2]}));
+  auto K = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("K")
+                                 .set_dim({b, h_k, s_kv, d_qk})
+                                 .set_stride(
+                                     {INT_MAX,
+                                      k_strides[strideidx0],
+                                      k_strides[strideidx1],
+                                      k_strides[strideidx2]}));
+  auto V = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("V")
+                                 .set_dim({b, h_v, s_kv, d_v})
+                                 .set_stride(
+                                     {INT_MAX,
+                                      v_strides[strideidx0],
+                                      v_strides[strideidx1],
+                                      v_strides[strideidx2]}));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<std::shared_ptr<fe::graph::Tensor_attributes>> bias;
   if (attn_bias.has_value()) {
     TORCH_CHECK(
@@ -776,12 +1023,16 @@ auto build_graph_nestedtensor(
         "attn_bias not yet supportd with cuDNN Attention and NestedTensor");
     bias =
         mha_graph->tensor(fe::graph::Tensor_attributes()
+<<<<<<< HEAD
                               .set_uid(BIAS)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                               .set_name("bias")
                               .set_dim(attn_bias.value().sizes().vec())
                               .set_stride(attn_bias.value().strides().vec()));
     scaled_dot_product_flash_attention_options.set_bias(bias.value());
   }
+<<<<<<< HEAD
   auto RAG_Q_OFF_ =
       mha_graph->tensor(fe::graph::Tensor_attributes()
                             .set_uid(RAG_Q_OFF)
@@ -818,6 +1069,41 @@ auto build_graph_nestedtensor(
   auto o_strides = o.strides();
   O_->set_output(true)
       .set_uid(O)
+=======
+  auto RAG_Q_OFF = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                         .set_name("cum_seq_q")
+                                         .set_dim({b + 1, 1, 1, 1})
+                                         .set_stride({1, 1, 1, 1})
+                                         .set_data_type(fe::DataType_t::INT32));
+  auto RAG_K_OFF = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                         .set_name("cum_seq_k")
+                                         .set_dim({b + 1, 1, 1, 1})
+                                         .set_stride({1, 1, 1, 1})
+                                         .set_data_type(fe::DataType_t::INT32));
+  auto RAG_V_OFF = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                         .set_name("cum_seq_v")
+                                         .set_dim({b + 1, 1, 1, 1})
+                                         .set_stride({1, 1, 1, 1})
+                                         .set_data_type(fe::DataType_t::INT32));
+  auto RAG_O_OFF = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                         .set_name("cum_seq_o")
+                                         .set_dim({b + 1, 1, 1, 1})
+                                         .set_stride({1, 1, 1, 1})
+                                         .set_data_type(fe::DataType_t::INT32));
+  // auto RAG_STATS_OFF = mha_graph->tensor(fe::graph::Tensor_attributes()
+  //                                     .set_name("cum_seq_stats")
+  //                                     .set_dim({b + 1, 1, 1, 1})
+  //                                     .set_stride({1, 1, 1, 1})
+  //                                     .set_data_type(fe::DataType_t::INT32));
+  auto RAG_STATS_OFF = nullptr;
+  Q->set_ragged_offset(RAG_Q_OFF);
+  K->set_ragged_offset(RAG_K_OFF);
+  V->set_ragged_offset(RAG_V_OFF);
+  auto [O, Stats] =
+      mha_graph->sdpa(Q, K, V, scaled_dot_product_flash_attention_options);
+  auto o_strides = o.strides();
+  O->set_output(true)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .set_dim({b, h_q, s_q, d_v})
       .set_stride(
           {INT_MAX,
@@ -825,6 +1111,7 @@ auto build_graph_nestedtensor(
            o_strides[strideidx1],
            o_strides[strideidx2]});
 
+<<<<<<< HEAD
   O_->set_ragged_offset(RAG_O_OFF_);
   if (Stats) {
     auto RAG_STATS_OFF =
@@ -839,6 +1126,18 @@ auto build_graph_nestedtensor(
         .set_data_type(fe::DataType_t::FLOAT)
         .set_dim({b, h_q, s_q, 1})
         .set_stride({h_q * s_q, 1, h_q, 1});
+=======
+  O->set_ragged_offset(RAG_O_OFF);
+  if (Stats) {
+    TORCH_CHECK(
+        false,
+        "cuDNN SDPA Nested Tensor does not yet handle backwards/logsumexp computation");
+    // TODO(eqy): fix  when stats (backward) support is added
+    Stats->set_output(true)
+        .set_data_type(fe::DataType_t::FLOAT)
+        .set_dim({b, h_q, s_q, 1})
+        .set_stride({h_q * s_q * d_v, d_v, s_q * d_v, 1});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Stats->set_ragged_offset(RAG_STATS_OFF);
   }
   AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
@@ -847,10 +1146,34 @@ auto build_graph_nestedtensor(
       mha_graph->create_execution_plans({fe::HeurMode_t::A}));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
+<<<<<<< HEAD
   return mha_graph;
 }
 
 auto build_graph_backward(
+=======
+  return std::make_tuple(
+      std::move(mha_graph),
+      std::move(Q),
+      std::move(K),
+      std::move(V),
+      std::move(bias),
+      std::move(attn_scale),
+      std::move(seed),
+      std::move(offset),
+      std::move(O),
+      std::move(Stats),
+      std::move(RAG_Q_OFF),
+      std::move(RAG_K_OFF),
+      std::move(RAG_V_OFF),
+      std::move(RAG_O_OFF),
+      std::move(RAG_STATS_OFF),
+      std::move(SEQ_LEN_Q),
+      std::move(SEQ_LEN_KV));
+}
+
+auto build_graph_and_tensors_backward(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t b,
     int64_t h,
     int64_t s_q,
@@ -886,7 +1209,10 @@ auto build_graph_backward(
       .set_compute_data_type(fe::DataType_t::FLOAT);
   auto attn_scale =
       mha_graph->tensor(fe::graph::Tensor_attributes()
+<<<<<<< HEAD
                             .set_uid(SCALE)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             .set_name("Attn_scale")
                             .set_dim({1, 1, 1, 1})
                             .set_stride({1, 1, 1, 1})
@@ -896,6 +1222,7 @@ auto build_graph_backward(
                                    .set_name("CUDNN_SDPA_BACKWARD")
                                    .set_causal_mask(is_causal)
                                    .set_attn_scale(attn_scale);
+<<<<<<< HEAD
   if (use_ragged_in_dense(q, k, v, o, attn_bias.has_value())) {
     auto SEQ_LEN_Q_ =
         mha_graph->tensor(fe::graph::Tensor_attributes()
@@ -922,16 +1249,34 @@ auto build_graph_backward(
       fe::graph::Tensor_attributes().set_uid(K).set_name("K"));
   auto V_ = mha_graph->tensor(
       fe::graph::Tensor_attributes().set_uid(V).set_name("V"));
+=======
+  auto Q = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("Q")
+                                 .set_dim(q.sizes().vec())
+                                 .set_stride(q.strides().vec()));
+  auto K = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("K")
+                                 .set_dim(k.sizes().vec())
+                                 .set_stride(k.strides().vec()));
+  auto V = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("V")
+                                 .set_dim(v.sizes().vec())
+                                 .set_stride(v.strides().vec()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<std::shared_ptr<fe::graph::Tensor_attributes>> bias;
   if (attn_bias.has_value()) {
     bias =
         mha_graph->tensor(fe::graph::Tensor_attributes()
+<<<<<<< HEAD
                               .set_uid(BIAS)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                               .set_name("bias")
                               .set_dim(attn_bias.value().sizes().vec())
                               .set_stride(attn_bias.value().strides().vec()));
     sdpa_backward_options.set_bias(bias.value());
   }
+<<<<<<< HEAD
   if (dropout_probability != 0.0f) {
     auto seed = mha_graph->tensor(fe::graph::Tensor_attributes()
                                       .set_uid(SEED)
@@ -1298,13 +1643,72 @@ auto build_graph_backward_nestedtensor(
            v_strides[strideidx1],
            v_strides[strideidx2]});
 
+=======
+  auto Seed = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                    .set_name("Seed")
+                                    .set_dim({1, 1, 1, 1})
+                                    .set_stride({1, 1, 1, 1})
+                                    .set_data_type(
+                                        dropoutseed.dtype() == kInt
+                                            ? fe::DataType_t::INT32
+                                            : fe::DataType_t::INT64));
+
+  auto Offset = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                      .set_name("Offset")
+                                      .set_dim({1, 1, 1, 1})
+                                      .set_stride({1, 1, 1, 1})
+                                      .set_data_type(
+                                          dropoutoffset.dtype() == kInt
+                                              ? fe::DataType_t::INT32
+                                              : fe::DataType_t::INT64));
+
+  auto O = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                 .set_name("O")
+                                 .set_dim(o.sizes().vec())
+                                 .set_stride(o.strides().vec()));
+  auto STATS = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                     .set_name("Stats")
+                                     .set_dim(softmaxstats.sizes().vec())
+                                     .set_stride(softmaxstats.strides().vec())
+                                     .set_data_type(fe::DataType_t::FLOAT));
+  auto DO = mha_graph->tensor(fe::graph::Tensor_attributes()
+                                  .set_name("DO")
+                                  .set_dim(dO.sizes().vec())
+                                  .set_stride(dO.strides().vec()));
+  if (dropout_probability != 0.0f) {
+    sdpa_backward_options.set_dropout(dropout_probability, Seed, Offset);
+  }
+  auto [DQ, DK, DV] =
+      mha_graph->sdpa_backward(Q, K, V, O, DO, STATS, sdpa_backward_options);
+  DQ->set_output(true).set_dim(dQ.sizes().vec()).set_stride(dQ.strides().vec());
+  DK->set_output(true).set_dim(dK.sizes().vec()).set_stride(dK.strides().vec());
+  DV->set_output(true).set_dim(dV.sizes().vec()).set_stride(dV.strides().vec());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
   AT_CUDNN_FRONTEND_CHECK(mha_graph->build_operation_graph(handle));
   AT_CUDNN_FRONTEND_CHECK(
       mha_graph->create_execution_plans({fe::HeurMode_t::A}));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
+<<<<<<< HEAD
   return mha_graph;
+=======
+  return std::make_tuple(
+      std::move(mha_graph),
+      std::move(Q),
+      std::move(K),
+      std::move(V),
+      std::move(bias),
+      std::move(attn_scale),
+      std::move(Seed),
+      std::move(Offset),
+      std::move(O),
+      std::move(DO),
+      std::move(STATS),
+      std::move(DQ),
+      std::move(DK),
+      std::move(DV));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void run_cudnn_SDP_fprop(
@@ -1326,6 +1730,7 @@ void run_cudnn_SDP_fprop(
     Tensor& o,
     Tensor& dropoutseed,
     Tensor& dropoutoffset) {
+<<<<<<< HEAD
   // do nothing if we got 0-element tensors
   if (!q.numel() || !k.numel() || !v.numel()) {
     return;
@@ -1367,6 +1772,8 @@ void run_cudnn_SDP_fprop(
     }
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto dprops = at::cuda::getCurrentDeviceProperties();
   auto _dropoutseed = dropoutseed;
   auto _dropoutoffset = dropoutoffset;
@@ -1377,10 +1784,28 @@ void run_cudnn_SDP_fprop(
   }
 
   cudnnHandle_t handle = getCudnnHandle();
+<<<<<<< HEAD
 
   // NB: The key initialization will round up sequence length, stride data etc.
   // if use_ragged_in_dense is enabled (to allow multiple sequence lenghths to
   // reuse the same cached value/graph)
+=======
+  if (!o.defined()) {
+    // q is passed to us in BHSD dim order
+    alloc_with_matching_layout(q, o, {b, h, s_q, d_v});
+  }
+
+  if (return_softmaxstats && !softmaxstats.defined()) {
+    // TODO(eqy): verify that this is correct
+    softmaxstats = at::empty({b, h, s_q}, q.options().dtype(kFloat));
+  }
+
+  // do nothing if we got 0-element tensors
+  if (!q.numel() || !k.numel() || !v.numel()) {
+    return;
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto key = MHACacheKeyWrapper(
       b,
       h,
@@ -1394,6 +1819,7 @@ void run_cudnn_SDP_fprop(
       attn_bias,
       dropout_probability,
       is_causal,
+<<<<<<< HEAD
       return_softmaxstats,
       false);
   auto graph_ptr = getMHAGraphCache_().find(key);
@@ -1402,6 +1828,15 @@ void run_cudnn_SDP_fprop(
     mha_graph = *graph_ptr;
   } else {
     mha_graph = build_graph(
+=======
+      return_softmaxstats);
+  auto graph_and_tensors_ptr = mhagraphcache.find(key);
+  graph_and_tensors graph_and_tensors_values;
+  if (graph_and_tensors_ptr) {
+    graph_and_tensors_values = *graph_and_tensors_ptr;
+  } else {
+    graph_and_tensors_values = build_graph_and_tensors(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b,
         h,
         s_q,
@@ -1422,6 +1857,7 @@ void run_cudnn_SDP_fprop(
         _dropoutoffset,
         handle);
   }
+<<<<<<< HEAD
   std::unordered_map<int64_t, void*> variant_pack = {
       {Q, q.data_ptr()},
       {K, k.data_ptr()},
@@ -1448,13 +1884,35 @@ void run_cudnn_SDP_fprop(
     if (return_softmaxstats) {
       variant_pack[RAG_LSE_OFF] = rag_off_lse.data_ptr();
     }
+=======
+  auto [mha_graph, Q, K, V, bias, attn_scale, seed, offset, O, Stats] =
+      graph_and_tensors_values;
+  std::unordered_map<std::shared_ptr<fe::graph::Tensor_attributes>, void*>
+      variant_pack = {
+          {Q, q.data_ptr()},
+          {K, k.data_ptr()},
+          {V, v.data_ptr()},
+          {attn_scale, &scaling_factor},
+          {seed, _dropoutseed.data_ptr()},
+          {offset, _dropoutoffset.data_ptr()},
+          {O, o.data_ptr()}};
+  if (return_softmaxstats) {
+    variant_pack[Stats] = softmaxstats.data_ptr();
+  }
+  if (attn_bias.has_value()) {
+    variant_pack[bias.value()] = attn_bias.value().data_ptr();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   auto workspace_size = mha_graph->get_workspace_size();
   auto workspace_ptr =
       c10::cuda::CUDACachingAllocator::get()->allocate(workspace_size);
   TORCH_CHECK(
       mha_graph->execute(handle, variant_pack, workspace_ptr.get()).is_good());
+<<<<<<< HEAD
   getMHAGraphCache_().update(key, mha_graph);
+=======
+  mhagraphcache.update(key, graph_and_tensors_values);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void run_cudnn_SDP_fprop_nestedtensor(
@@ -1493,6 +1951,7 @@ void run_cudnn_SDP_fprop_nestedtensor(
   if (return_softmaxstats && !softmaxstats.defined()) {
     softmaxstats = at::empty({q.size(0), h_q, 1}, q.options().dtype(kFloat));
   }
+<<<<<<< HEAD
 
   auto key = MHACacheKeyWrapper(
       b,
@@ -1565,6 +2024,74 @@ void run_cudnn_SDP_fprop_nestedtensor(
   if (dropout_probability != 0.0f) {
     variant_pack[SEED] = dropoutseed.data_ptr();
     variant_pack[OFFSET] = dropoutoffset.data_ptr();
+=======
+  auto
+      [mha_graph,
+       Q,
+       K,
+       V,
+       bias,
+       attn_scale,
+       seed,
+       offset,
+       O,
+       Stats,
+       RAG_Q_OFF,
+       RAG_K_OFF,
+       RAG_V_OFF,
+       RAG_O_OFF,
+       RAG_STATS_OFF,
+       SEQ_LEN_Q,
+       SEQ_LEN_KV] =
+          build_graph_and_tensors_nestedtensor(
+              b,
+              h_q,
+              h_k,
+              h_v,
+              s_q,
+              s_kv,
+              d_qk,
+              d_v,
+              scaling_factor,
+              return_softmaxstats,
+              is_causal,
+              dropout_probability,
+              cum_seqlen_q,
+              cum_seqlen_kv,
+              q,
+              k,
+              v,
+              attn_bias,
+              softmaxstats,
+              o,
+              dropoutseed,
+              dropoutoffset,
+              handle);
+  auto seqlen_q = at::diff(cum_seqlen_q, 1, 0);
+  auto seqlen_kv = at::diff(cum_seqlen_kv, 1, 0);
+  auto rag_q_off = cum_seqlen_q.mul(h_q * d_qk);
+  auto rag_k_off = cum_seqlen_kv.mul(h_k * d_qk);
+  auto rag_v_off = cum_seqlen_kv.mul(h_v * d_v);
+  auto rag_stats_off = cum_seqlen_q.mul(h_q);
+  std::unordered_map<std::shared_ptr<fe::graph::Tensor_attributes>, void*>
+      variant_pack = {
+          {Q, q.data_ptr()},
+          {K, k.data_ptr()},
+          {V, v.data_ptr()},
+          {attn_scale, &scaling_factor},
+          {seed, dropoutseed.data_ptr()},
+          {offset, dropoutoffset.data_ptr()},
+          {O, o.data_ptr()},
+          {RAG_Q_OFF, rag_q_off.data_ptr()},
+          {RAG_O_OFF, rag_q_off.data_ptr()},
+          {RAG_K_OFF, rag_k_off.data_ptr()},
+          {RAG_V_OFF, rag_v_off.data_ptr()},
+          {SEQ_LEN_Q, seqlen_q.data_ptr()},
+          {SEQ_LEN_KV, seqlen_kv.data_ptr()}};
+  if (return_softmaxstats) {
+    variant_pack[Stats] = softmaxstats.data_ptr();
+    variant_pack[RAG_STATS_OFF] = cum_seqlen_q.data_ptr();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (attn_bias.has_value()) {
     TORCH_CHECK("bias not supported with nestedtensor");
@@ -1603,9 +2130,12 @@ void run_cudnn_SDP_bprop(
       !softmaxstats.numel()) {
     return;
   }
+<<<<<<< HEAD
   Tensor seqlen_q, seqlen_kv;
   Tensor rag_off_q, rag_off_k, rag_off_v, rag_off_o, rag_off_lse;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto dprops = at::cuda::getCurrentDeviceProperties();
   auto _dropoutseed = dropoutseed;
   auto _dropoutoffset = dropoutoffset;
@@ -1632,6 +2162,7 @@ void run_cudnn_SDP_bprop(
       "with matching strides...");
 #else
   const auto innermost_dO_stride = dO.strides()[dO.strides().size() - 1];
+<<<<<<< HEAD
   if (innermost_dO_stride != 1 ||
       use_ragged_in_dense(q, k, v, o, attn_bias.has_value())) {
     permute_to_matching_layout(o, dO_);
@@ -1654,6 +2185,12 @@ void run_cudnn_SDP_bprop(
     rag_off_lse = cum_seqlen_q.mul(softmaxstats.stride(-2));
   }
 
+=======
+  if (innermost_dO_stride != 1) {
+    permute_to_matching_layout(o, dO_);
+  }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cudnnHandle_t handle = getCudnnHandle();
   auto key = MHACacheKeyWrapper(
       b,
@@ -1668,6 +2205,7 @@ void run_cudnn_SDP_bprop(
       attn_bias,
       dropout_probability,
       is_causal,
+<<<<<<< HEAD
       true,
       false);
   auto graph_backward_ptr = getMHAGraphBackwardCache_().find(key);
@@ -1676,6 +2214,15 @@ void run_cudnn_SDP_bprop(
     mha_graph = *graph_backward_ptr;
   } else {
     mha_graph = build_graph_backward(
+=======
+      true);
+  auto graph_and_tensors_backward_ptr = mhagraphbackwardcache.find(key);
+  graph_and_tensors_backward graph_and_tensors_backward_values;
+  if (graph_and_tensors_backward_ptr) {
+    graph_and_tensors_backward_values = *graph_and_tensors_backward_ptr;
+  } else {
+    graph_and_tensors_backward_values = build_graph_and_tensors_backward(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b,
         h,
         s_q,
@@ -1699,6 +2246,7 @@ void run_cudnn_SDP_bprop(
         _dropoutoffset,
         handle);
   }
+<<<<<<< HEAD
   std::unordered_map<int64_t, void*> variant_pack = {
       // inputs
       {Q, q.data_ptr()},
@@ -1872,12 +2420,54 @@ void run_cudnn_SDP_bprop_nestedtensor(
       !attn_bias.has_value(),
       "attn_bias not yet supportd with cuDNN Attention and NestedTensor");
 
+=======
+  auto
+      [mha_graph,
+       Q,
+       K,
+       V,
+       bias,
+       attn_scale,
+       Seed,
+       Offset,
+       O,
+       Do,
+       Stats,
+       Dq,
+       Dk,
+       Dv] = graph_and_tensors_backward_values;
+  std::unordered_map<std::shared_ptr<fe::graph::Tensor_attributes>, void*>
+      variant_pack = {// inputs
+                      {Q, q.data_ptr()},
+                      {K, k.data_ptr()},
+                      {V, v.data_ptr()},
+                      {O, o.data_ptr()},
+                      {Do, dO_.data_ptr()},
+                      {Stats, softmaxstats.data_ptr()},
+                      // outputs
+                      {Dq, dQ.data_ptr()},
+                      {Dk, dK.data_ptr()},
+                      {Dv, dV.data_ptr()},
+                      // pass by value
+                      {attn_scale, &scaling_factor}};
+  if (dropout_probability != 0.0f) {
+    variant_pack[Seed] = _dropoutseed.data_ptr();
+    variant_pack[Offset] = _dropoutoffset.data_ptr();
+  }
+  if (attn_bias.has_value()) {
+    variant_pack[bias.value()] = attn_bias.value().data_ptr();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto workspace_size = mha_graph->get_workspace_size();
   auto workspace_ptr =
       c10::cuda::CUDACachingAllocator::get()->allocate(workspace_size);
   TORCH_CHECK(!workspace_size || workspace_ptr.get());
   TORCH_CHECK(
       mha_graph->execute(handle, variant_pack, workspace_ptr.get()).is_good());
+<<<<<<< HEAD
+=======
+  mhagraphbackwardcache.update(key, graph_and_tensors_backward_values);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace native

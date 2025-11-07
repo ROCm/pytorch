@@ -394,8 +394,16 @@ op_db: list[OpInfo] = [
         skips=(
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+<<<<<<< HEAD
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -407,8 +415,16 @@ op_db: list[OpInfo] = [
         skips=(
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+<<<<<<< HEAD
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -418,10 +434,20 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -431,10 +457,20 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -459,8 +495,16 @@ op_db: list[OpInfo] = [
         skips=(
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+<<<<<<< HEAD
             # Greatest absolute difference: inf
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -472,8 +516,16 @@ op_db: list[OpInfo] = [
         skips=(
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+<<<<<<< HEAD
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -483,10 +535,25 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -580,10 +647,25 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -593,10 +675,25 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -606,10 +703,25 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,
@@ -619,10 +731,25 @@ op_db: list[OpInfo] = [
         dtypes=all_types_and(torch.bool),
         promotes_int_to_float=True,
         skips=(
+<<<<<<< HEAD
             DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
             DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
             # Greatest absolute difference: nan
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_compare_cpu"),
+=======
+            DecorateInfo(
+                unittest.skip(
+                    "Skipping - testing takes an unreasonably long time, #79528"
+                )
+            ),
+            DecorateInfo(unittest.skip("Skipped!"), "TestCudaFuserOpInfo"),
+            DecorateInfo(unittest.skip("Skipped!"), "TestNNCOpInfo"),
+            DecorateInfo(
+                unittest.skip("testing takes an unreasonably long time, #79528"),
+                "TestCommon",
+                "test_compare_cpu",
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         supports_one_python_scalar=True,
         supports_autograd=False,

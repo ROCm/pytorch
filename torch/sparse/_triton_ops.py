@@ -296,11 +296,19 @@ def scatter_mm(blocks, others, indices_data, *, accumulators=None):
         for b in range(nbatches):
             for i, r in enumerate(r_offsets):
                 r0, r1 = divmod(r, N)
+<<<<<<< HEAD
                 acc = accumulators[b, r0 : r0 + Ms, r1 : r1 + Ns]
                 for g in range(c_indices[i], c_indices[i + 1]):
                     p = p_offsets[g]
                     q0, q1 = divmod(q_offsets[g], N)
                     acc += blocks[p] @ others[b, q0 : q0 + Ks, q1 : q1 + Ns]
+=======
+                acc = accumulators[b, r0:r0 + Ms, r1:r1 + Ns]
+                for g in range(c_indices[i], c_indices[i+1]):
+                    p = p_offsets[g]
+                    q0, q1 = divmod(q_offsets[g], N)
+                    acc += blocks[p] @ others[b, q0:q0 + Ks, q1:q1 + Ns]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       where ``Ns = N // meta['SPLIT_N']``, and ``M`` and ``K`` are
       integer multiples of ``Ms`` and ``Ks``, respectively.
@@ -320,11 +328,19 @@ def scatter_mm(blocks, others, indices_data, *, accumulators=None):
                 n = (r % N) // Ns
                 r0, r1 = divmod(r, N)
                 c0, c1 = c_indices[m], c_indices[m + 1]
+<<<<<<< HEAD
                 acc = accumulators[b, r0 : r0 + Ms, r1 : r1 + Ns]
                 for i, p in enumerate(range(c0, c1)):
                     q = q_offsets[n * c1 + (SPLIT_N - n) * c0 + i]
                     q0, q1 = divmod(q, N)
                     acc += blocks[p] @ others[b, q0 : q0 + Ks, q1 : q1 + Ns]
+=======
+                acc = accumulators[b, r0:r0 + Ms, r1:r1 + Ns]
+                for i, p in enumerate(range(c0, c1)):
+                    q = q_offsets[n * c1 + (SPLIT_N - n) * c0 + i]
+                    q0, q1 = divmod(q, N)
+                    acc += blocks[p] @ others[b, q0:q0 + Ks, q1:q1 + Ns]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       where ``Ns = N // meta['SPLIT_N']``, and ``M`` and ``K`` are
       integer multiples of ``Ms`` and ``Ks``, respectively.

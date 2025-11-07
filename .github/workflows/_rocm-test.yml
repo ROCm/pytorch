@@ -81,13 +81,18 @@ jobs:
     steps:
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: true
 
       - name: Setup ROCm
         uses: ./.github/actions/setup-rocm
 
+<<<<<<< HEAD
       - name: Runner check GPU count (distributed jobs)
         if: ${{ contains(matrix.config, 'distributed') }}
         shell: bash
@@ -98,6 +103,8 @@ jobs:
             exit 1
           fi
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       - name: configure aws credentials
         id: aws_creds
         uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
@@ -113,12 +120,20 @@ jobs:
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image-name: ${{ inputs.docker-image }}
 
       - name: Pull docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -142,7 +157,11 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
+<<<<<<< HEAD
           python3 -m pip install psutil==5.9.8 dataclasses_json==0.6.7
+=======
+          python3 -m pip install psutil==5.9.1 dataclasses_json==0.6.7
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           python3 -m tools.stats.monitor --log-interval "$MONITOR_LOG_INTERVAL" --data-collect-interval "$MONITOR_DATA_COLLECT_INTERVAL" > usage_log.txt 2>&1 &
           echo "monitor-script-pid=${!}" >> "${GITHUB_OUTPUT}"
 
@@ -279,8 +298,13 @@ jobs:
           # copy test results back to the mounted workspace, needed sudo, resulting permissions were correct
           docker exec -t "${{ env.CONTAINER_NAME }}" sh -c "cd ../pytorch && sudo cp -R test/test-reports ../workspace/test"
 
+<<<<<<< HEAD
       - name: Change permissions (only needed for kubernetes runners for now)
         if: ${{ always() && steps.test.conclusion && (contains(matrix.runner, 'gfx942') || contains(matrix.runner, 'mi355')) }}
+=======
+      - name: Change permissions (only needed for MI300 runners for now)
+        if: ${{ always() && steps.test.conclusion && contains(matrix.runner, 'mi300') }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run: |
           docker exec -t "${{ env.CONTAINER_NAME }}" sh -c "sudo chown -R 1001:1001 test"
 
@@ -330,7 +354,11 @@ jobs:
           aws-region: us-east-1
 
       - name: Upload the benchmark results
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           benchmark-results-dir: test/test-reports
           dry-run: false

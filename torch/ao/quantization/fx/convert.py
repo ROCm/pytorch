@@ -94,7 +94,10 @@ def _replace_observer_with_quantize_dequantize_node_decomposed(
     modules: dict[str, torch.nn.Module],
     node_name_to_scope: dict[str, tuple[str, type]],
     node_name_to_qconfig: dict[str, QConfigAny],
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """Replace activation_post_process module call node with quantize and
     dequantize node working with decomposed Tensor
@@ -211,11 +214,15 @@ def _replace_observer_with_quantize_dequantize_node_decomposed(
                     # sure that the default overload can be used.
                     # TODO: maybe need more complex attr name here
                     qparam_node = create_getattr_from_value(
+<<<<<<< HEAD
                         model,
                         graph,
                         module_path + prefix + key,
                         value_or_node,
                         model_device,
+=======
+                        model, graph, module_path + prefix + key, value_or_node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     quantize_op_inputs.append(qparam_node)
                 else:
@@ -367,7 +374,10 @@ def _replace_observer_with_quantize_dequantize_node(
     modules: dict[str, torch.nn.Module],
     node_name_to_scope: dict[str, tuple[str, type]],
     node_name_to_qconfig: dict[str, QConfigAny],
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """Replace activation_post_process module call node with quantize and
     dequantize node
@@ -448,11 +458,15 @@ def _replace_observer_with_quantize_dequantize_node(
                     # For scale and zero_point values we register them as buffers in the root module.
                     # TODO: maybe need more complex attr name here
                     qparam_node = create_getattr_from_value(
+<<<<<<< HEAD
                         model,
                         graph,
                         module_path + prefix + key,
                         value_or_node,
                         model_device,
+=======
+                        model, graph, module_path + prefix + key, value_or_node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     quantize_op_inputs.append(qparam_node)
                 else:
@@ -750,7 +764,10 @@ def convert_weighted_module(
     backend_config: BackendConfig,
     is_decomposed: bool = False,
     is_reference: bool = False,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """Convert a weighted module to reference quantized module in the model
     If the QConfig of a QAT module is not set, the module will still be converted to
@@ -839,10 +856,14 @@ def convert_weighted_module(
         is_ptq = weight_post_process is None
         if is_ptq:
             weight_post_process = qconfig.weight()  # type: ignore[union-attr, operator]
+<<<<<<< HEAD
             if model_device is not None:
                 device = model_device
             else:
                 device = assert_and_get_unique_device(float_module)
+=======
+            device = assert_and_get_unique_device(float_module)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if device:
                 weight_post_process.to(device)
 
@@ -1158,7 +1179,10 @@ def convert(
     qat_module_classes = get_qat_module_classes(backend_config)
     fused_module_classes = get_fused_module_classes(backend_config)
     statically_quantized_custom_module_nodes: set[Node] = set()
+<<<<<<< HEAD
     model_device = assert_and_get_unique_device(model)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for node in list(model.graph.nodes):
         if node.op == "placeholder":
@@ -1212,7 +1236,10 @@ def convert(
                             modules,
                             node_name_to_scope,
                             node_name_to_qconfig,
+<<<<<<< HEAD
                             model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                     else:
                         _replace_observer_with_quantize_dequantize_node(
@@ -1221,7 +1248,10 @@ def convert(
                             modules,
                             node_name_to_scope,
                             node_name_to_qconfig,
+<<<<<<< HEAD
                             model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
             elif isinstance(mod, DeQuantStub):
                 _replace_observer_or_dequant_stub_with_dequantize_node(
@@ -1251,7 +1281,10 @@ def convert(
                     backend_config,
                     is_decomposed,
                     is_reference,
+<<<<<<< HEAD
                     model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             elif type_before_parametrizations(mod) in custom_module_classes:
                 convert_custom_module(

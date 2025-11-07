@@ -190,7 +190,11 @@ def get_new_attr_name_with_prefix(prefix: str) -> Callable:
 
 
 def collect_producer_nodes(node: Node) -> Optional[list[Node]]:
+<<<<<<< HEAD
     r"""Starting from a target node, trace back until we hit input or
+=======
+    r"""Starting from a target node, trace back until we hit inpu or
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     getattr node. This is used to extract the chain of operators
     starting from getattr to the target node, for example
     def forward(self, x):
@@ -254,11 +258,15 @@ def assert_and_get_unique_device(module: torch.nn.Module) -> Any:
 
 
 def create_getattr_from_value(
+<<<<<<< HEAD
     module: torch.nn.Module,
     graph: Graph,
     prefix: str,
     value: Any,
     device: Optional[torch.device] = None,
+=======
+    module: torch.nn.Module, graph: Graph, prefix: str, value: Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Node:
     """
     Given a value of any type, creates a getattr node corresponding to the value and
@@ -266,8 +274,12 @@ def create_getattr_from_value(
     """
     get_new_attr_name = get_new_attr_name_with_prefix(prefix)
     attr_name = get_new_attr_name(module)
+<<<<<<< HEAD
     if device is None:
         device = assert_and_get_unique_device(module)
+=======
+    device = assert_and_get_unique_device(module)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_value = (
         value.detach().clone()
         if isinstance(value, torch.Tensor)

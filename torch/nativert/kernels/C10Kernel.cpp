@@ -13,9 +13,16 @@ namespace torch::nativert {
 
 C10Kernel::C10Kernel(
     const Node* node,
+<<<<<<< HEAD
     OpKernelKind kind,
     AliasingSpec&& aliasingSpec)
     : OpKernel(node, kind),
+=======
+    c10::Device device,
+    OpKernelKind kind,
+    AliasingSpec&& aliasingSpec)
+    : OpKernel(node, device, kind),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       op_(getOperatorForTarget(node->target(), node)),
       schema_(op_.schema(), std::move(aliasingSpec), kind_),
       arguments_(prefillStackWithStaticArgs(node, op_.schema())) {}
@@ -48,10 +55,15 @@ void C10Kernel::computeInternal(ExecutionFrame& executionFrame) const {
   // these are named I don't think it will ever happen in practice. We need to
   // enforce it though.
   const auto& outputValues = node_->outputs();
+<<<<<<< HEAD
   TORCH_CHECK(
       outputValues.size() == stack.size(),
       "Output size mismatch for ",
       node_->toString());
+=======
+  TORCH_CHECK_EQ(outputValues.size(), stack.size())
+      << "Output size mismatch for " << node_->toString();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto&& [i, actualOutput] : c10::enumerate(stack)) {
     executionFrame.setIValue(outputValues[i]->id(), std::move(actualOutput));
   }

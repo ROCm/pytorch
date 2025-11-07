@@ -220,6 +220,7 @@ class TestStateDictUtils(DTensorTestBase):
             self.assertEqual(cpu_state_dict["step"], 7)
             self.assertEqual(cpu_state_dict["nested"], {"list": [1, 2, 3, 4]})
 
+<<<<<<< HEAD
         def _verify_weakref_finalize(cpu_state_dict):
             import gc
 
@@ -227,6 +228,8 @@ class TestStateDictUtils(DTensorTestBase):
             del cpu_state_dict
             gc.collect()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cpu_state_dict = _create_cpu_state_dict(state_dict)
         _verify(cpu_state_dict)
         cpu_state_dict = _create_cpu_state_dict(state_dict, pin_memory=True)
@@ -237,7 +240,10 @@ class TestStateDictUtils(DTensorTestBase):
             state_dict, share_memory=True, pin_memory=True
         )
         _verify(cpu_state_dict)
+<<<<<<< HEAD
         _verify_weakref_finalize(cpu_state_dict)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_if_lt_x_gpu(2)

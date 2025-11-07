@@ -3,7 +3,10 @@
 """
 Test the scalar constructors, which also do type-coercion
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 from unittest import skipIf as skipif
 

@@ -605,9 +605,15 @@ class PackageExporter:
             dependencies (bool, optional): If ``True``, we scan the source for dependencies.
         """
 
+<<<<<<< HEAD
         assert (pickle_protocol == 4) or (pickle_protocol == 3), (
             "torch.package only supports pickle protocols 3 and 4"
         )
+=======
+        assert (pickle_protocol == 4) or (
+            pickle_protocol == 3
+        ), "torch.package only supports pickle protocols 3 and 4"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         filename = self._filename(package, resource)
         # Write the pickle data for `obj`

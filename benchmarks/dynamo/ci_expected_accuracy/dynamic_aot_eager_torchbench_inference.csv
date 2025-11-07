@@ -106,7 +106,11 @@ dlrm,pass,0
 
 
 
+<<<<<<< HEAD
 doctr_det_predictor,pass,3
+=======
+doctr_det_predictor,pass,4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -146,7 +150,11 @@ hf_Bert_large,pass,0
 
 
 
+<<<<<<< HEAD
 hf_BigBird,pass,0
+=======
+hf_BigBird,fail_to_run,0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -162,7 +170,11 @@ hf_GPT2_large,pass_due_to_skip,0
 
 
 
+<<<<<<< HEAD
 hf_Reformer,pass,8
+=======
+hf_Reformer,pass,5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -178,7 +190,11 @@ hf_T5_base,eager_fail_to_run,0
 
 
 
+<<<<<<< HEAD
 hf_T5_generate,pass,11
+=======
+hf_T5_generate,pass,5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

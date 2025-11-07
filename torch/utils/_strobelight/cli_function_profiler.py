@@ -58,7 +58,11 @@ class StrobelightCLIFunctionProfiler:
 
     StrobelightCLIFunctionProfiler can be used to profile a python function and
     generate a strobelight link with the results. It works on meta servers but
+<<<<<<< HEAD
     does not requires an fbcode target.
+=======
+    does not requries an fbcode target.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     When stop_at_error is false(default), error during profiling does not prevent
     the work function from running.
 
@@ -301,7 +305,11 @@ def strobelight(
         profiler = StrobelightCLIFunctionProfiler(**kwargs)
 
     def strobelight_inner(
+<<<<<<< HEAD
         work_function: Callable[_P, _R],
+=======
+        work_function: Callable[_P, _R]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Callable[_P, Optional[_R]]:
         @functools.wraps(work_function)
         def wrapper_function(*args: _P.args, **kwargs: _P.kwargs) -> Optional[_R]:

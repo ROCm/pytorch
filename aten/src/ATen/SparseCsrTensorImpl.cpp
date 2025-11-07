@@ -252,7 +252,14 @@ void SparseCsrTensorImpl::set_stride(int64_t dim, int64_t new_stride) {
 void SparseCsrTensorImpl::set_storage_offset(int64_t storage_offset) {
   TORCH_CHECK(false, "Sparse ", at::sparse_csr::layoutToString(layout_, /*upper=*/true), " tensors do not have set_storage_offset.");
 }
+<<<<<<< HEAD
 c10::SymBool SparseCsrTensorImpl::sym_is_contiguous_custom(MemoryFormat) const {
   TORCH_CHECK(false, "Sparse ", at::sparse_csr::layoutToString(layout_, /*upper=*/true), " tensors do not have is_contiguous");
 }
+=======
+bool SparseCsrTensorImpl::is_contiguous_custom(MemoryFormat) const {
+  TORCH_CHECK(false, "Sparse ", at::sparse_csr::layoutToString(layout_, /*upper=*/true), " tensors do not have is_contiguous");
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at

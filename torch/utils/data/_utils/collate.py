@@ -44,7 +44,11 @@ def default_convert(data):
         >>> default_convert(np.array([0, 1]))
         tensor([0, 1])
         >>> # Example with NamedTuple
+<<<<<<< HEAD
         >>> Point = namedtuple("Point", ["x", "y"])
+=======
+        >>> Point = namedtuple('Point', ['x', 'y'])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> default_convert(Point(0, 0))
         Point(x=0, y=0)
         >>> default_convert(Point(np.array(0), np.array(0)))
@@ -366,6 +370,7 @@ def default_collate(batch):
         >>> default_collate([0, 1, 2, 3])
         tensor([0, 1, 2, 3])
         >>> # Example with a batch of `str`s:
+<<<<<<< HEAD
         >>> default_collate(["a", "b", "c"])
         ['a', 'b', 'c']
         >>> # Example with `Map` inside the batch:
@@ -373,6 +378,15 @@ def default_collate(batch):
         {'A': tensor([  0, 100]), 'B': tensor([  1, 100])}
         >>> # Example with `NamedTuple` inside the batch:
         >>> Point = namedtuple("Point", ["x", "y"])
+=======
+        >>> default_collate(['a', 'b', 'c'])
+        ['a', 'b', 'c']
+        >>> # Example with `Map` inside the batch:
+        >>> default_collate([{'A': 0, 'B': 1}, {'A': 100, 'B': 100}])
+        {'A': tensor([  0, 100]), 'B': tensor([  1, 100])}
+        >>> # Example with `NamedTuple` inside the batch:
+        >>> Point = namedtuple('Point', ['x', 'y'])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> default_collate([Point(0, 0), Point(1, 1)])
         Point(x=tensor([0, 1]), y=tensor([0, 1]))
         >>> # Example with `Tuple` inside the batch:

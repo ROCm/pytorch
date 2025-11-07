@@ -47,6 +47,7 @@ class Adafactor(Optimizer):
             raise ValueError(f"Clipping threshold d should be >= 1 but is: {d}")
         if not 0.0 <= weight_decay:
             raise ValueError(f"weight_decay should be >= 0 but is: {weight_decay}")
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "beta2_decay": beta2_decay,
@@ -56,6 +57,17 @@ class Adafactor(Optimizer):
             "foreach": foreach,
             "maximize": maximize,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            beta2_decay=beta2_decay,
+            eps=eps,
+            d=d,
+            weight_decay=weight_decay,
+            foreach=foreach,
+            maximize=maximize,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -315,9 +327,12 @@ Adafactor.__doc__ = (
                 &\hspace{5mm}U_t \leftarrow \frac{G_t}{\sqrt{\widehat{V}_t}}                                            \\
             \end{aligned}
 
+<<<<<<< HEAD
         You may note that Noam Shazeer and Mitchell Stern describe using the sum of squared gradients,
         while this implementation uses the mean instead. This choice is mathematically equivalent and
         allows for greater numerical stability for large sums.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. _Adafactor\: Adaptive Learning Rates with Sublinear Memory Cost:
         https://arxiv.org/pdf/1804.04235

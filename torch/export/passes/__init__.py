@@ -52,6 +52,7 @@ def move_to_device_pass(
         if isinstance(v, torch.Tensor):
             ep._constants[k] = v.to(_get_new_device(v.device, location))
 
+<<<<<<< HEAD
     # move example_inputs if they exist
     if ep.example_inputs is not None:
         args, kwargs = ep.example_inputs
@@ -91,6 +92,21 @@ def move_to_device_pass(
                     else v,
                     node.meta.get("val"),
                 )
+=======
+    for node in ep.graph.nodes:
+        # move all the nodes kwargs with burnt-in device
+        if "device" in node.kwargs:
+            kwargs = node.kwargs.copy()
+            kwargs["device"] = _get_new_device(kwargs["device"], location)
+            node.kwargs = kwargs
+        # move all the tensor metadata
+        node.meta["val"] = pytree.tree_map(
+            lambda v: v.to(_get_new_device(v.device, location))
+            if isinstance(v, torch.Tensor)
+            else v,
+            node.meta.get("val"),
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     ep.validate()
     return ep

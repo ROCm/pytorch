@@ -1,6 +1,7 @@
 # mypy: allow-untyped-defs
 import argparse
 import copy
+<<<<<<< HEAD
 import json
 import logging
 import os
@@ -11,6 +12,15 @@ from typing import Any, Literal, NamedTuple, Optional
 
 import torch
 from torch._logging import trace_structured
+=======
+import logging
+from collections import defaultdict
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
+from typing import Any, NamedTuple, Optional
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx._compatibility import compatibility
 from torch.fx.node import map_arg
 from torch.fx.passes.graph_manipulation import get_size_of_node
@@ -35,8 +45,11 @@ __all__ = [
     "Subgraph",
     "SplitResult",
     "generate_inputs_for_submodules",
+<<<<<<< HEAD
     "NodeEvent",
     "NodeEventTracker",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +57,7 @@ DEFAULT_MIN_ACC_MODULE_SIZE = 1
 DEFAULT_SKIP_FUSION = False
 DEFAULT_ALLOW_NON_TENSOR = False
 
+<<<<<<< HEAD
 # ENV var and constants for node tracker
 
 TRACKER_DUMP_PATH = "_fx_net_tracker"
@@ -73,6 +87,8 @@ TRACKER_MODE: Literal["0", "1", "2", "3"] = os.environ.get(
     ENV_FX_NET_ACC_SPLITTER_TRACKER_MODE, "0"
 )  # type: ignore[assignment]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _SplitterSettingBase:
     def __init__(
@@ -134,6 +150,7 @@ class _SplitterSettingBase:
 
 
 @compatibility(is_backward_compatible=False)
+<<<<<<< HEAD
 class NodeEvent:
     """
     An event in graph split that happened on a node.
@@ -273,6 +290,8 @@ class NodeEventTracker:
 
 
 @compatibility(is_backward_compatible=False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FxNetAccNodesFinder:
     """
     Finds a set of nodes that can be supported on ACC, excluding nodes that have non-tensor
@@ -298,8 +317,11 @@ class FxNetAccNodesFinder:
         self.allow_non_tensor = allow_non_tensor
         self.acc_nodes: NodeSet = set()
 
+<<<<<<< HEAD
         self.tracker = NodeEventTracker(int(TRACKER_MODE), DUMP_PREFIX)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reduce_acc_nodes_non_tensor_input_helper(self, cpu_worklist: NodeList):
         """
         Transitively excludes nodes from ACC supported set.
@@ -314,9 +336,13 @@ class FxNetAccNodesFinder:
             for user in node.users:
                 if user in self.acc_nodes:
                     self.acc_nodes.remove(user)
+<<<<<<< HEAD
                     self.tracker.add(user, "acc_del|user_of_new_cpu_node", node)
                     if not is_node_output_tensor(user):
                         self.tracker.add(user, "new_cpu_node|non_tensor_output")
+=======
+                    if not is_node_output_tensor(user):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         cpu_worklist.append(user)
 
     def reduce_acc_nodes_non_tensor_input(self):
@@ -333,7 +359,10 @@ class FxNetAccNodesFinder:
                 continue
             if is_node_output_tensor(node):
                 continue
+<<<<<<< HEAD
             self.tracker.add(node, "new_cpu_node|callable_non_tensor_input")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             non_tensor_cpu_nodes.append(node)
 
         self.reduce_acc_nodes_non_tensor_input_helper(non_tensor_cpu_nodes)
@@ -352,9 +381,12 @@ class FxNetAccNodesFinder:
                 for user in acc_node.users:
                     if user not in self.acc_nodes:
                         new_cpu_nodes.append(acc_node)
+<<<<<<< HEAD
                         self.tracker.add(
                             acc_node, "acc_del|non_tensor_output_with_cpu_user", user
                         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         break
 
             if not new_cpu_nodes:
@@ -367,6 +399,7 @@ class FxNetAccNodesFinder:
 
     def __call__(self) -> NodeSet:
         submodules = dict(self.module.named_modules())
+<<<<<<< HEAD
         self.acc_nodes = set()
         for n in self.module.graph.nodes:
             if n.op not in CALLABLE_NODE_OPS:
@@ -378,11 +411,23 @@ class FxNetAccNodesFinder:
 
             self.tracker.add(n, "init_acc|callable_and_operator_supported")
             self.acc_nodes.add(n)
+=======
+        self.acc_nodes = {
+            n
+            for n in self.module.graph.nodes
+            if n.op in CALLABLE_NODE_OPS
+            and self.operator_support.is_node_supported(submodules, n)
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not self.allow_non_tensor:
             self.reduce_acc_nodes_non_tensor_input()
             self.reduce_acc_nodes_non_tensor_output()
+<<<<<<< HEAD
         self.tracker.dump()
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.acc_nodes
 
 
@@ -408,7 +453,11 @@ class SplitResult(NamedTuple):
         split_module: root module after splitting.
         submodule_inputs: a dict that maps submodule name to its inputs.
         non_acc_submodule_prefix: the prefix for non acc submodules. For
+<<<<<<< HEAD
             acc submodule the prefix is always "_run_on_acc_".
+=======
+            acc submodule the prefix is alwasy "_run_on_acc_".
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     split_module: torch.fx.GraphModule
@@ -447,8 +496,12 @@ def generate_inputs_for_submodules(
 
     for name, mod in model.named_modules():
         if name in target_submodules:
+<<<<<<< HEAD
             if not isinstance(mod, torch.jit.ScriptModule):
                 handles.append(mod.register_forward_pre_hook(pre_forward))
+=======
+            handles.append(mod.register_forward_pre_hook(pre_forward))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def clean_up_handles():
         for h in handles:
@@ -905,7 +958,11 @@ class _SplitterBase:
         """
         # Dict that maps node to its users and ignore users that
         # are in the subgraph that has greater tag
+<<<<<<< HEAD
         deps = self.find_reverse_deps(tag_id=int(tag.rsplit("_", maxsplit=1)[-1]))
+=======
+        deps = self.find_reverse_deps(tag_id=int(tag.split("_")[-1]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.update_reverse_deps_for_fusions(deps)
 
         # Parent nodes of the subgraph

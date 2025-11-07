@@ -247,7 +247,11 @@ TORCH_PRECOMPUTE_META_FUNC(cat)(const ITensorListRef& tensors, int64_t dim) {
   // Checking names before the actual dimensions.
   auto maybe_outnames = namedinference::compute_cat_outnames(materialized);
 
+<<<<<<< HEAD
   TORCH_CHECK_VALUE(
+=======
+  TORCH_CHECK(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       !materialized.empty(),
       "torch.cat(): expected a non-empty list of Tensors");
 
@@ -274,7 +278,11 @@ TORCH_PRECOMPUTE_META_FUNC(cat)(const ITensorListRef& tensors, int64_t dim) {
   // when computing the actual output dtype and the flags.
   if (is_out_defined) {
     // Check for type promotion, if the output tensor is defined.
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
+=======
+    TORCH_CHECK(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         canCast(out_dtype, result.scalar_type()),
         "torch.cat(): input types can't be cast to the desired output type ",
         result.scalar_type());
@@ -293,7 +301,11 @@ TORCH_PRECOMPUTE_META_FUNC(cat)(const ITensorListRef& tensors, int64_t dim) {
   // are compatible, i.e. we can execute `cat` on them.
   bool found_valid_tensor = valid < materialized.size();
   if (found_valid_tensor) {
+<<<<<<< HEAD
     TORCH_CHECK_INDEX(
+=======
+    TORCH_CHECK(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim <= materialized[valid].get().dim(),
         "torch.cat(): dimension ",
         dim,
@@ -384,7 +396,11 @@ Tensor& set_storage_cpu_(
   result.unsafeGetTensorImpl()->set_storage_offset(storage_offset);
   at::OptionalIntArrayRef stride_opt =
       stride.data() != nullptr ? at::OptionalIntArrayRef(stride) : std::nullopt;
+<<<<<<< HEAD
   // We can reuse this kernel for the meta device.
+=======
+  // We can re-use this kernel for the meta device.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We just need to make sure we don't actually try to resize the (null)
   // storage.
   at::native::resize_impl_cpu_(
@@ -459,7 +475,12 @@ Tensor& set_storage_meta__symint(
                 size, stride, itemsize, std::move(storage_offset));
 
       if (new_size_bytes.has_hint() && storage.sym_nbytes().has_hint() &&
+<<<<<<< HEAD
           (new_size_bytes > storage.sym_nbytes())) {
+=======
+          TORCH_GUARD_SIZE_OBLIVIOUS(
+              new_size_bytes.sym_gt(storage.sym_nbytes()))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         storage.set_nbytes(std::move(new_size_bytes));
       }
     }
@@ -505,7 +526,11 @@ Tensor& set_cpu_(Tensor& result) {
   return result;
 }
 
+<<<<<<< HEAD
 // We can't reuse the cpu kernel here because we don't want to use the cpu
+=======
+// We can't re-use the cpu kernel here because we don't want to use the cpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // allocator.
 Tensor& set_meta_(Tensor& result) {
   caffe2::TypeMeta dtype = result.dtype();
@@ -1408,6 +1433,12 @@ Tensor as_strided_tensorimpl(
     IntArrayRef size,
     IntArrayRef stride,
     std::optional<int64_t> storage_offset_) {
+<<<<<<< HEAD
+=======
+  TORCH_INTERNAL_ASSERT(
+      !self.is_mps(),
+      "as_strided_tensorimpl does not work with MPS; call self.as_strided(...) instead");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto storage_offset = storage_offset_.value_or(self.storage_offset());
   auto result = at::detail::make_tensor<TensorImpl>(
       c10::TensorImpl::VIEW,
@@ -1904,7 +1935,11 @@ Tensor repeat(const Tensor& self, IntArrayRef repeats) {
 }
 
 Tensor tile_symint(const Tensor& self, SymIntArrayRef reps) {
+<<<<<<< HEAD
   // If self.size() > len(reps), reps is promoted to self.size() by prepending
+=======
+  // If self.size() > len(reps), reps is promoted to self.size() by pre-pending
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // 1’s to it to keep the same behaviour as `numpy.tile`.
   // Thus for a tensor of shape (2, 3, 4, 5), a dims of (2, 2) is treated
   // as (1, 1, 2, 2).
@@ -1995,18 +2030,32 @@ Tensor reshape_symint(const Tensor& self, c10::SymIntArrayRef proposed_shape) {
     TORCH_CHECK(false, "reshape is not implemented for sparse tensors");
   }
 
+<<<<<<< HEAD
   if (self.is_contiguous_or_false() && !self.is_mkldnn()) {
     return self.view_symint(proposed_shape);
   }
 
   auto sym_numel = self.sym_numel();
+=======
+  auto sym_sizes = self.sym_sizes();
+  auto sym_strides = self.sym_strides();
+  auto sym_numel = self.sym_numel();
+  if (definitely_contiguous(sym_sizes, sym_strides, sym_numel) &&
+      !self.is_mkldnn()) {
+    return self.view_symint(proposed_shape);
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::SymDimVector shape = infer_size_dv(proposed_shape, sym_numel);
 
   if (self.is_mkldnn()) {
     return at::_mkldnn_reshape(self, C10_AS_INTARRAYREF_SLOW(shape));
   }
+<<<<<<< HEAD
   auto sym_sizes = self.sym_sizes();
   auto sym_strides = self.sym_strides();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // `computeStride` returns the proper strides to use if this
   // `reshape` can be just a view.
@@ -2428,7 +2477,11 @@ Tensor index_select_sparse_cpu(
     const auto dim_indices = indices[dim].contiguous();
 
     // If nnz is smaller than size, then either indices[dim] or index gets
+<<<<<<< HEAD
     // sorted, then this is followed by a binary search to find intersections.
+=======
+    // sorted, then this is followed by a binary search to find interesections.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const auto get_selected_indices_small_nnz_large_size =
         [&]() -> std::tuple<Tensor, Tensor> {
       const auto grain_size = at::internal::GRAIN_SIZE;
@@ -3934,7 +3987,11 @@ Tensor squeeze_qtensor(const Tensor& self, c10::OptionalIntArrayRef dims) {
         quantizer->scalar_type());
   }
   // TODO: quantized Tensor support for SymInt needs to be added but basic
+<<<<<<< HEAD
   // building blocks are missing for now.
+=======
+  // building blocs are missing for now.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto result = make_qtensor(
       self,
       C10_AS_INTARRAYREF_SLOW(sizes),

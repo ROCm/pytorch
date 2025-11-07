@@ -16,5 +16,8 @@ The MTIA backend is implemented out of the tree, only interfaces are be defined 
     :nosignatures:
 
     memory_stats
+<<<<<<< HEAD
     memory_allocated
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```

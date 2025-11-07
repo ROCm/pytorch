@@ -240,6 +240,7 @@ Tensor _pad_enum_symint(const Tensor &self, c10::SymIntArrayRef pad, int64_t mod
       default: {}
     }
   }
+<<<<<<< HEAD
 
   std::ostringstream error_msg;
   error_msg << "Padding size " << pad.size() << " is not supported for " << input_dim << "D input tensor.\n";
@@ -249,6 +250,10 @@ Tensor _pad_enum_symint(const Tensor &self, c10::SymIntArrayRef pad, int64_t mod
   error_msg << "  - 4D or 5D input: padding size = 6 (pads last 3 dimensions)";
 
   C10_THROW_ERROR(NotImplementedError, error_msg.str());
+=======
+  C10_THROW_ERROR(NotImplementedError,
+      "Only 2D, 3D, 4D, 5D padding with non-constant padding are supported for now");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor pad_symint(const Tensor &self, c10::SymIntArrayRef pad, std::string_view mode, std::optional<double> value) {

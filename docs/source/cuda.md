@@ -269,6 +269,13 @@ See the docs for {class}`~torch.cuda.gds.GdsFile` for an example of how to use t
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
+=======
+.. py:module:: torch.cuda.error
+```
+
+```{eval-rst}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.cuda.gds
 ```
 

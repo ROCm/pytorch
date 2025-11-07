@@ -29,7 +29,10 @@
 #include <c10/util/irange.h>
 
 #include <c10/core/Layout.h>
+<<<<<<< HEAD
 #include <fmt/format.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 using namespace at;
 using namespace torch::autograd::utils;
@@ -61,6 +64,7 @@ Py_ssize_t THPVariable_length(PyObject* self) {
 // and tuples of those types. We also handle bools as if they were a
 // Variable[ByteTensor].
 
+<<<<<<< HEAD
 // We only go one deep, because that's all torchdim needs (it supports
 // a tuple/list of FCDs which triggers a split behavior, but you can
 // only do it at the top level) and it's all the dispatcher will do
@@ -88,6 +92,8 @@ static bool sequence_has_torch_function(PyObject* seq) {
   return false;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static int64_t count_specified_dimensions(PyObject* index) {
   // Count the number of indexed dimensions (everything but ellipsis and None)
   // -1 is a sentinel for __torch_function__
@@ -95,10 +101,15 @@ static int64_t count_specified_dimensions(PyObject* index) {
   auto size = PyTuple_GET_SIZE(index);
   for (Py_ssize_t i = 0; i < size; i++) {
     PyObject* obj = PyTuple_GET_ITEM(index, i);
+<<<<<<< HEAD
     if (check_has_torch_function(obj)) {
       return -1;
     }
 
+=======
+    if (check_has_torch_function(obj))
+      return -1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (THPVariable_Check(obj)) {
       const auto& var = THPVariable_Unpack(obj);
       const auto& var_scalar_type = var.scalar_type();
@@ -107,6 +118,7 @@ static int64_t count_specified_dimensions(PyObject* index) {
       } else {
         count++;
       }
+<<<<<<< HEAD
     } else {
       // Check sequences for __torch_function__ (top-level only)
       if (PySequence_Check(obj)) {
@@ -118,6 +130,12 @@ static int64_t count_specified_dimensions(PyObject* index) {
           obj != Py_False) {
         count++;
       }
+=======
+    } else if (
+        obj != Py_None && obj != Py_Ellipsis && obj != Py_True &&
+        obj != Py_False) {
+      count++;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   return count;
@@ -160,12 +178,19 @@ inline Variable valueToTensor(
   } else if (torch::is_symbool(value)) {
     scalar = Scalar(py::cast<c10::SymBool>(py::handle(value)));
   } else {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         "can't assign a ",
         Py_TYPE(value)->tp_name,
         " to a ",
         torch::utils::options_to_string(options));
+=======
+    throw TypeError(
+        "can't assign a %s to a %s",
+        Py_TYPE(value)->tp_name,
+        torch::utils::options_to_string(options).c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   // lift_fresh is supposed to be used in situations where you are guaranteed to
   // get a plain Tensor which is not true for cpu device but not for non cpu
@@ -434,7 +459,11 @@ PyObject* THPVariable_getitem(PyObject* self, PyObject* index) {
   variable_list variableIndices;
   int64_t specified_dims = count_specified_dimensions(holder.get());
   if (specified_dims == -1) {
+<<<<<<< HEAD
     return handle_torch_function_indexing(self, index);
+=======
+    return handle_torch_function_indexing(self, holder.get());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   Variable sliced = applySlicing(
       self_,
@@ -482,7 +511,11 @@ static void dispatch_set_item(
 int THPVariable_setitem(PyObject* self, PyObject* index, PyObject* py_value) {
   HANDLE_TH_ERRORS
   if (py_value == nullptr) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(false, "Tensor does not support deleting items");
+=======
+    throw TypeError("Tensor does not support deleting items");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if ((check_has_torch_function(self)) ||
       (check_has_torch_function(py_value))) {
@@ -495,7 +528,11 @@ int THPVariable_setitem(PyObject* self, PyObject* index, PyObject* py_value) {
   if (self_.layout() == kSparse || self_.layout() == kSparseCsr ||
       self_.layout() == kSparseCsc || self_.layout() == kSparseBsr ||
       self_.layout() == kSparseBsc) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(false, "Cannot assign to a sparse tensor");
+=======
+    throw TypeError("Cannot assign to a sparse tensor");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   OptionalDeviceGuard device_guard(device_of(self_));
   at::Device self_device = self_.device();

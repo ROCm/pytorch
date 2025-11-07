@@ -4,6 +4,7 @@ The various dataclasses, Enums, namedtuples etc used in AOTAutograd. This includ
 input/output types, metadata, config, function signatures etc.
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import collections
@@ -48,6 +49,33 @@ if TYPE_CHECKING:
     from .graph_capture_wrappers import JointFnHandle
 
 
+=======
+import collections
+import dataclasses
+import functools
+import itertools
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, NewType, Optional, Union
+
+import torch
+import torch.utils._pytree as pytree
+from torch._guards import Source
+from torch._ops import OpOverload
+from torch._subclasses import FakeTensor
+from torch._subclasses.fake_tensor import is_fake
+from torch.utils._python_dispatch import is_traceable_wrapper_subclass
+
+from .. import config
+from .functional_utils import (
+    _check_if_mutation_can_be_in_graph,
+    FunctionalTensorMetadataEq,
+)
+from .utils import strict_zip
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 zip = strict_zip
 
 
@@ -113,6 +141,7 @@ class OutputAliasInfo:
     dynamic_dims: Optional[set[int]]
     # requires_grad
     requires_grad: bool
+<<<<<<< HEAD
     # Sequence of ViewMeta objects.
     #
     # Provides us the means to re-run view functions on other tensors.
@@ -121,6 +150,17 @@ class OutputAliasInfo:
     # we compare the ViewMeta elements appropriately, i.e. their type and
     # the elements returned by the `as_tuple()` call.
     view_meta_sequence: Optional[ViewMetaSequence] = None
+=======
+    # FunctionalTensorWrapper that represents this output.
+    #
+    # Provides us the means to replay views from it.
+    #
+    # We need to wrap the actual FunctionalTensorWrapper with this class so that
+    # we only compare the tensor's metadata. That's because with the transformations
+    # of the model throughout AOTAutograd, the sequence of ViewMeta and the base
+    # tensor might change.
+    functional_tensor: Optional[FunctionalTensorMetadataEq] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class MutationType(Enum):
@@ -184,7 +224,11 @@ class MemoryFormatMeta:
     memory_format: Optional[torch.memory_format] = None
 
     @staticmethod
+<<<<<<< HEAD
     def from_tensor(t: torch.Tensor) -> Optional[MemoryFormatMeta]:
+=======
+    def from_tensor(t: torch.Tensor) -> Optional["MemoryFormatMeta"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We only memorize expected memory format for
         # 1. Traceable wrapper subclasses
         # We can not create restrided subclass tensor, as torch.empty_strided works only with dense tensors.
@@ -242,7 +286,11 @@ class SubclassCreationMeta:
     # arg_count is inclusive of the arg_counts of any
     # inner tensor subclasses: If I have a TwoTensor and
     # both of its inner elements are TwoTensors, then the
+<<<<<<< HEAD
     # arg_count of the outer-most subclass will be 4
+=======
+    # arg_count of the outer-most sublass will be 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_count: int
     # Mark where or not symints were included. This flag is only used in one assertion
     # in "wrap_tensor_subclasses"
@@ -250,7 +298,11 @@ class SubclassCreationMeta:
     # meta and attrs are produced by the subclass's __tensor_flatten__.
     # We need to keep them around along with outer_size / outer_stride to plumb them
     # into __tensor_unflatten__
+<<<<<<< HEAD
     attrs: dict[str, Union[SubclassCreationMeta, PlainTensorMeta]]
+=======
+    attrs: dict[str, Union["SubclassCreationMeta", PlainTensorMeta]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     outer_size: Iterable[Union[None, int, torch.SymInt]]
     outer_stride: Iterable[Union[None, int, torch.SymInt]]
     meta: Any
@@ -402,12 +454,18 @@ class ViewAndMutationMeta:
     # metadata pass of the user's forward function.
     # Their only use today is to pass them as a best-guess for tangents when tracing the joint.
     # Stashing them as part of our "metadata" makes it simpler if we want to run our analysis
+<<<<<<< HEAD
     # pass once, and reuse the output throughout AOTAutograd
     traced_tangents: list[Any]
 
     # TODO doc
     traced_tangents_descs: list[AOTInput]
 
+=======
+    # pass once, and re-use the output throughout AOTAutograd
+    traced_tangents: list[Any]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Each of these is a list telling us about subclasses for the inputs/outputs/grad_outs
     # They are used throughout AOTDispatch to tell us how to generate a list of subclass tensors,
     # Given a (potentially larger) list of plain torch tensors.
@@ -660,6 +718,20 @@ class ViewAndMutationMeta:
         self.traced_tangent_metas = [extract_metadata(t) for t in self.traced_tangents]
         # Clear traced tangents at runtime
         self.traced_tangents = []
+<<<<<<< HEAD
+=======
+        new_output_info = []
+        for out in self.output_info:
+            if config.view_replay_for_aliased_outputs:
+                new_out = out
+            else:
+                # If we're not using view_replay, remove the functional tensor.
+                # Functional tensors are unfortunately not serializable,
+                # so doing this is required for AOTAutograd caching.
+                new_out = dataclasses.replace(out, functional_tensor=None)
+            new_output_info.append(new_out)
+        self.output_info = new_output_info
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for inp_meta in self.subclass_inp_meta:
             if isinstance(inp_meta, SubclassCreationMeta):
                 inp_meta.make_runtime_safe()
@@ -699,7 +771,11 @@ class ViewAndMutationMeta:
             and len(self.traced_tangents) == len(other.traced_tangents)
             and all(
                 x.shape == y.shape and x.dtype == y.dtype
+<<<<<<< HEAD
                 for x, y in zip(self.traced_tangents, other.traced_tangents)
+=======
+                for x, y, in zip(self.traced_tangents, other.traced_tangents)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             and self.num_backward_tokens == other.num_backward_tokens
         )
@@ -736,9 +812,15 @@ class SubclassMeta:
     # in case we made incorrect assumptions about the subclass-ness of our grad_outputs
     #
     # Optional field because we don't compute for inference graphs
+<<<<<<< HEAD
     grad_input_metas: Optional[list[Union[PlainTensorMeta, SubclassCreationMeta]]] = (
         None
     )
+=======
+    grad_input_metas: Optional[
+        list[Union[PlainTensorMeta, SubclassCreationMeta]]
+    ] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(self) -> None:
         # The fields in this class get set after its construction.
@@ -813,7 +895,10 @@ class GraphSignature:
     # "graph outputs that correspond to updated buffers"
     # to the FQN names of those mutated buffers.
     buffers_to_mutate: dict[GraphOutputName, FQN]
+<<<<<<< HEAD
     parameters_to_mutate: dict[GraphOutputName, FQN]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     user_inputs_to_mutate: dict[GraphOutputName, GraphInputName]
 
     in_spec: pytree.TreeSpec
@@ -837,10 +922,16 @@ class GraphSignature:
         named_buffers: list[str],
         num_user_inputs: int,
         num_user_outputs: int,
+<<<<<<< HEAD
         trace_joint: bool,
         loss_index: Optional[int],
         backward_signature: Optional[BackwardSignature],
     ) -> GraphSignature:
+=======
+        loss_index: Optional[int],
+        backward_signature: Optional[BackwardSignature],
+    ) -> "GraphSignature":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph_inputs = graph_input_names
         graph_outputs = graph_output_names
         parameters = list(named_parameters)
@@ -883,9 +974,14 @@ class GraphSignature:
         mutations = []
         for idx, input_info in enumerate(view_mutation_metadata.input_info):
             if input_info.mutates_data:
+<<<<<<< HEAD
                 if trace_joint:
                     # Only buffers can be mutated, not parameters
                     assert idx >= len(parameters)
+=======
+                # Only buffers can be mutated, not parameters
+                assert idx >= len(parameters)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mutations.append(names[idx + num_tokens])
 
         assert len(mutations) == view_mutation_metadata.num_mutated_inp_runtime_indices
@@ -898,16 +994,24 @@ class GraphSignature:
 
         user_inputs_to_mutate = {}
         buffers_to_mutate = {}
+<<<<<<< HEAD
         parameters_to_mutate = {}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for output_name, mutation_name in outputs_to_mutations.items():
             if mutation_name in user_inputs:
                 user_inputs_to_mutate[output_name] = mutation_name
             else:
+<<<<<<< HEAD
                 assert mutation_name in buffers or mutation_name in parameters
                 if mutation_name in buffers:
                     buffers_to_mutate[output_name] = mutation_name
                 else:
                     parameters_to_mutate[output_name] = mutation_name
+=======
+                assert mutation_name in buffers
+                buffers_to_mutate[output_name] = mutation_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         start, stop = stop, stop + num_user_outputs
         user_outputs = graph_outputs[start:stop]
@@ -928,7 +1032,10 @@ class GraphSignature:
             inputs_to_parameters=inputs_to_parameters,  # type: ignore[arg-type]
             user_inputs_to_mutate=user_inputs_to_mutate,
             buffers_to_mutate=buffers_to_mutate,  # type: ignore[arg-type]
+<<<<<<< HEAD
             parameters_to_mutate=parameters_to_mutate,  # type: ignore[arg-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             in_spec=in_spec,
             out_spec=out_spec,
             backward_signature=backward_signature,
@@ -974,16 +1081,20 @@ class AOTConfig:
     # Used only by standalone_compile.
     ignore_shape_env: bool = False
     precompile_backend_id: Optional[str] = None
+<<<<<<< HEAD
     force_non_lazy_backward_lowering: bool = False
     # This config makes sure to check certain things like
     # mutating input with req_grad in export joint tracing.
     export_trace_joint: bool = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         if self.pre_dispatch:
             assert self.is_export, "Can only have pre_dispatch IR for export."
 
 
+<<<<<<< HEAD
 # TODO: types here
 # plain_tensor_trace_fn, when it is joint, has tuple structure on the trace
 # info too!
@@ -1297,3 +1408,9 @@ class JointWithDescriptors:
     @graph_module.setter
     def graph_module(self, value):
         self._aot_graph_capture.graph_module = value
+=======
+SubclassTracingInfo = collections.namedtuple(
+    "SubclassTracingInfo",
+    ["plain_tensor_trace_fn", "plain_tensor_args", "maybe_subclass_meta"],
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

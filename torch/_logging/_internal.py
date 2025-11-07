@@ -1,5 +1,8 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import contextlib
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import hashlib
 import importlib.util
@@ -13,7 +16,10 @@ import re
 import sys
 import tempfile
 import time
+<<<<<<< HEAD
 import warnings
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Callable, Generic, Optional, Union
@@ -726,6 +732,7 @@ Valid settings:
     return msg
 
 
+<<<<<<< HEAD
 def process_env_var_string_for_windows(env_var_str: str) -> str:
     """
     When we setup logging config as guide: https://docs.pytorch.org/docs/stable/logging.html
@@ -769,6 +776,10 @@ def process_env_var_string_for_windows(env_var_str: str) -> str:
 def _parse_log_settings(settings):
     settings = process_env_var_string_for_windows(settings)
 
+=======
+@functools.lru_cache
+def _parse_log_settings(settings):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if settings == "":
         return {}
 
@@ -1199,6 +1210,7 @@ def warning_once(logger_obj, *args, **kwargs) -> None:
     logger_obj.warning(*args, **kwargs)
 
 
+<<<<<<< HEAD
 def safe_grad_filter(message, category, filename, lineno, file=None, line=None) -> bool:
     return "The .grad attribute of a Tensor" not in str(message)
 
@@ -1238,6 +1250,8 @@ def hide_warnings(filter_fn=lambda *args, **kwargs: True):
         warnings.showwarning = prior
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LazyString(Generic[_P]):
     def __init__(
         self, func: Callable[_P, str], *args: _P.args, **kwargs: _P.kwargs
@@ -1289,7 +1303,10 @@ def trace_structured_artifact(
     name: str,  # this will go in metadata
     encoding: str,
     payload_fn: Callable[[], Optional[Union[str, object]]] = lambda: None,
+<<<<<<< HEAD
     compile_id: Optional[CompileId] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     trace_structured(
         "artifact",
@@ -1298,7 +1315,10 @@ def trace_structured_artifact(
             "encoding": encoding,
         },
         payload_fn=payload_fn,
+<<<<<<< HEAD
         compile_id=compile_id,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -1321,12 +1341,17 @@ def trace_structured(
     payload is an arbitrary string, which can be arbitrarily long (but expected to have
     newlines so no lines are too long)
     """
+<<<<<<< HEAD
     assert name not in [
+=======
+    assert "name" not in [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "rank",
         "compiled_autograd_id",
         "frame_id",
         "frame_compile_id",
         "attempt",
+<<<<<<< HEAD
         "severity",
         "timestamp",
         "pathname",
@@ -1338,6 +1363,15 @@ def trace_structured(
     assert callable(payload_fn), (
         f"payload_fn should be callable, but got {type(payload_fn)}"
     )
+=======
+    ]
+    assert callable(
+        metadata_fn
+    ), f"metadata_fn should be callable, but got {type(metadata_fn)}"
+    assert callable(
+        payload_fn
+    ), f"payload_fn should be callable, but got {type(payload_fn)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # trace_log never propagates and is ALWAYS DEBUG, so also check that there
     # are handlers instead of checking the log level
     if trace_log.handlers:

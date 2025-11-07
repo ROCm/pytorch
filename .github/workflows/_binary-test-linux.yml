@@ -64,6 +64,16 @@ on:
         required: true
         type: string
         description: Hardware to run this job on. Valid values are linux.4xlarge, linux.4xlarge.nvidia.gpu, linux.arm64.2xlarge, and linux.rocm.gpu
+<<<<<<< HEAD
+=======
+      use_split_build:
+        description: |
+          [Experimental] Build a libtorch only wheel and build pytorch such that
+          are built from the libtorch wheel.
+        required: false
+        type: boolean
+        default: false
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets:
       github-token:
         required: true
@@ -97,6 +107,10 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PYTORCH_FINAL_PACKAGE_DIR: /artifacts
       SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
+<<<<<<< HEAD
+=======
+      USE_SPLIT_BUILD: ${{ inputs.use_split_build }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     steps:
       - name: Make the env permanent during this workflow (but not the secrets)
         shell: bash
@@ -121,18 +135,30 @@ jobs:
             echo "PR_NUMBER=${{ env.PR_NUMBER }}"
             echo "PYTORCH_FINAL_PACKAGE_DIR=${{ env.PYTORCH_FINAL_PACKAGE_DIR }}"
             echo "SHA1=${{ env.SHA1 }}"
+<<<<<<< HEAD
+=======
+            echo "USE_SPLIT_BUILD=${{ env.USE_SPLIT_BUILD }}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           } >> "${GITHUB_ENV} }}"
 
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
         if: inputs.build_environment != 'linux-s390x-binary-manywheel'
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           github-secret: ${{ secrets.github-token }}
 
         # Setup the environment
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.9
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           no-sudo: ${{ inputs.build_environment == 'linux-aarch64-binary-manywheel' || inputs.build_environment == 'linux-s390x-binary-manywheel' }}
 
@@ -185,7 +211,11 @@ jobs:
           path: "${{ runner.temp }}/artifacts/"
 
       - name: Install nvidia driver, nvidia-docker runtime, set GPU_FLAG
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: ${{ inputs.GPU_ARCH_TYPE == 'cuda' && steps.filter.outputs.is-test-matrix-empty == 'False' }}
 
       - name: configure aws credentials
@@ -200,7 +230,11 @@ jobs:
       - name: Calculate docker image
         id: calculate-docker-image
         if: ${{ steps.filter.outputs.is-test-matrix-empty == 'False' && inputs.build_environment != 'linux-s390x-binary-manywheel' }}
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-registry: ${{ startsWith(github.event.ref, 'refs/tags/ciflow/') && '308535385114.dkr.ecr.us-east-1.amazonaws.com' || 'docker.io' }}
           docker-image-name: ${{ inputs.DOCKER_IMAGE }}
@@ -210,7 +244,11 @@ jobs:
 
       - name: Pull Docker image
         if: ${{ steps.filter.outputs.is-test-matrix-empty == 'False' && inputs.build_environment != 'linux-s390x-binary-manywheel' }}
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -222,7 +260,11 @@ jobs:
 
       - name: Teardown Linux
         if: always() && inputs.build_environment != 'linux-s390x-binary-manywheel'
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Chown workspace
         if: always() && inputs.build_environment != 'linux-s390x-binary-manywheel'

@@ -39,7 +39,10 @@ r"""An enum-like class that contains the different backends for scaled dot produ
         - FLASH_ATTENTION: The flash attention backend for scaled dot product attention.
         - EFFICIENT_ATTENTION: The efficient attention backend for scaled dot product attention.
         - CUDNN_ATTENTION: The cuDNN backend for scaled dot product attention.
+<<<<<<< HEAD
         - OVERRIDEABLE: The overridable backend for extension.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     See :func:`torch.nn.attention.sdpa_kernel` for more details.
 
@@ -68,7 +71,10 @@ _backend_names = {
     "flash": "FLASH_ATTENTION",
     "mem_efficient": "EFFICIENT_ATTENTION",
     "math": "MATH",
+<<<<<<< HEAD
     "overrideable": "OVERRIDEABLE",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -79,7 +85,11 @@ def _backend_from_string(name: str):
 def _cur_sdpa_kernel_backends(with_priority: bool = False):
     backends = []
     for name, val in _backend_names.items():
+<<<<<<< HEAD
         if getattr(torch._C, f"_get_{name}_sdp_enabled")():
+=======
+        if getattr(torch.backends.cuda, f"{name}_sdp_enabled")():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             backends.append(getattr(SDPBackend, val))
     if with_priority:
         curr_priority = torch._C._get_sdp_priority_order()
@@ -92,7 +102,11 @@ def _cur_sdpa_kernel_backends(with_priority: bool = False):
 def _sdpa_kernel(backends: Iterable, set_priority: bool = False):
     for name, val in _backend_names.items():
         enabled = getattr(SDPBackend, val) in backends
+<<<<<<< HEAD
         getattr(torch._C, f"_set_sdp_use_{name}")(enabled)
+=======
+        getattr(torch.backends.cuda, f"enable_{name}_sdp")(enabled)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if set_priority:
         # backends should be a unique list
         user_priority = [int(backend) for backend in backends]

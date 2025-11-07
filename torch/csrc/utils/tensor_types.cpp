@@ -39,8 +39,11 @@ const char* backend_to_string(const at::Backend& backend) {
       return "torch.cuda.sparse";
     case at::Backend::SparseXPU:
       return "torch.xpu.sparse";
+<<<<<<< HEAD
     case at::Backend::SparseMPS:
       return "torch.mps.sparse";
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case at::Backend::QuantizedCPU:
       return "torch.quantized";
     case at::Backend::HPU:

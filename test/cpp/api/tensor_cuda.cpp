@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <ATen/ATen.h>
+<<<<<<< HEAD
 #include <ATen/Context.h>
 #include <torch/torch.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <cmath>
 
@@ -126,6 +129,7 @@ TEST(TensorTest, MagmaInitializesCorrectly_CUDA) {
     at::inverse(tensor);
   }
 }
+<<<<<<< HEAD
 
 #ifdef USE_CUDA
 #include <ATen/cuda/CUDAConfig.h>
@@ -186,3 +190,5 @@ TEST(CuDNNBatchNormTest, OutVariantMatchesFunctional) {
 }
 #endif // AT_CUDNN_ENABLED()
 #endif // USE_CUDA
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

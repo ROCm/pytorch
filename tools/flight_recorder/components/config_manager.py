@@ -67,7 +67,10 @@ class JobConfig:
         )
         self.parser.add_argument("-j", "--just_print_entries", action="store_true")
         self.parser.add_argument("-v", "--verbose", action="store_true")
+<<<<<<< HEAD
         self.parser.add_argument("--print_stack_trace", action="store_true")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def parse_args(
         self: "JobConfig", args: Optional[Sequence[str]]

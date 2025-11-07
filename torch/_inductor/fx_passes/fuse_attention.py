@@ -18,6 +18,10 @@ from ..pattern_matcher import (
 log = logging.getLogger(__name__)
 aten = torch.ops.aten
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _scaled_dot_product_attention = aten.scaled_dot_product_attention
 
 
@@ -581,6 +585,7 @@ def _sfdp_replacement_20(query, key, value, attn_mask, dropout_p):
     )
 
 
+<<<<<<< HEAD
 def _sfdp_pattern_24(query, key, value, attention_mask):
     """
     this pattern is for MBartForCausalLM/PLBartForCausalLM.
@@ -617,6 +622,8 @@ def _sfdp_replacement_24(query, key, value, attention_mask):
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _sfdp_pattern_21(query, key, value, attn_mask):
     # for T5 with inplace add
     query = query.permute([0, 2, 1, 3])
@@ -1038,6 +1045,7 @@ def _get_sfdp_patterns():
                 {},
                 _sfdp_params_check,
             ),
+<<<<<<< HEAD
             (
                 _sfdp_pattern_24,
                 _sfdp_replacement_24,
@@ -1045,6 +1053,8 @@ def _get_sfdp_patterns():
                 {},
                 _sfdp_extra_check,
             ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         mask_fp32_patterns = ["pattern_16"]
         if dtype == torch.half:

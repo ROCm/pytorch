@@ -936,10 +936,13 @@ bool KinetoEvent::hasKwinputs() const {
   return !kwinputs_.empty();
 }
 
+<<<<<<< HEAD
 bool KinetoEvent::isHiddenEvent() const {
   return result_ && result_->hidden_;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const std::unordered_map<std::string, c10::IValue> KinetoEvent::kwinputs()
     const {
   return kwinputs_;

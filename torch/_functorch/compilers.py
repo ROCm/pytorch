@@ -31,7 +31,11 @@ from .partitioners import (
 log = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 # These canonicalization are needed here (and not decompositions), as the ops
+=======
+# These canonicalizations are needed here (and not decompositions), as the ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # we're trying to canonicalize to CompositeImplicitAutograd.
 def _canonicalize(fx_g):
     for node in fx_g.graph.find_nodes(
@@ -150,6 +154,7 @@ class DebugInterpreter(fx.Interpreter):
         def check(nv, rv, desc):
             assert callable(desc)
             assert nv.dtype == rv.dtype, f"{desc()}: {nv.dtype} != {rv.dtype}"
+<<<<<<< HEAD
             assert subst_symint_tuple(nv.size()) == rv.size(), (
                 f"{desc()}: {nv.size()} aka {subst_symint_tuple(nv.size())} != {rv.size()}"
             )
@@ -157,6 +162,15 @@ class DebugInterpreter(fx.Interpreter):
             assert same_strides, (
                 f"{desc()}: {nv.stride()} aka {subst_symint_tuple(nv.stride())} != {rv.stride()}"
             )
+=======
+            assert (
+                subst_symint_tuple(nv.size()) == rv.size()
+            ), f"{desc()}: {nv.size()} aka {subst_symint_tuple(nv.size())} != {rv.size()}"
+            same_strides = check_significant_strides(nv, rv)
+            assert (
+                same_strides
+            ), f"{desc()}: {nv.stride()} aka {subst_symint_tuple(nv.stride())} != {rv.stride()}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         r = super().run_node(n)
         if "val" in n.meta:
@@ -249,7 +263,11 @@ def memory_efficient_fusion(
 
     Args:
         fn (Union[Callable, nn.Module]): A Python function or a ``nn.Module``
+<<<<<<< HEAD
             that takes one or more arguments. Must return one or more Tensors.
+=======
+            that takes one ore more arguments. Must return one or more Tensors.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         **kwargs: Any other overrides you want to make to the settings
 
     Returns:

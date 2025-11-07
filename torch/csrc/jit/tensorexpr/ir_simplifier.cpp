@@ -930,7 +930,11 @@ ExprPtr PolynomialTransformer::mutate(const MulPtr& v) {
     variable = lhs_new;
   }
 
+<<<<<<< HEAD
   // Handle special case mul by 1 since that's safe for floating point, even if
+=======
+  // Handle special case mul by 1 since thats safe for floating point, even if
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // it's Nan/Inf.
   if (scalar && immediateEquals(scalar, 1)) {
     auto c = alloc<Cast>(v->dtype(), variable);
@@ -1105,8 +1109,13 @@ ExprPtr PolynomialTransformer::mutate(const DivPtr& v) {
     return lhs_new;
   }
 
+<<<<<<< HEAD
   // If numerator and denominator are equal the result is 1.
   // Unless the denominator could be zero.
+=======
+  // If numberator and denominator are equal the result is 1.
+  // Unless the demoninator could be zero.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // if (hasher_.hash(lhs_new) == hasher_.hash(rhs_new)) {
   //   return getImmediateByType(v->dtype(), 1);
   // }
@@ -1745,7 +1754,11 @@ ExprPtr TermExpander::mutate(const TermPtr& v) {
   std::vector<ExprPtr> vars;
   std::vector<ExprPtr> multilaneVars;
 
+<<<<<<< HEAD
   // Assume we can reorder here because we won't merge floating terms.
+=======
+  // Assume we can reorder here because we wont merge floating terms.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ExprPtr lastNode{nullptr};
   for (const auto& var : v->variables()) {
     ExprPtr node = var->accept_mutator(this);
@@ -1830,7 +1843,11 @@ static ExprPtr polyGCD(const PolynomialPtr& poly) {
   ExprPtr scalar = poly->scalar();
   const std::vector<TermPtr>& variables = poly->variables();
 
+<<<<<<< HEAD
   // We only want to factorize if we're saving complete operations, i.e. no
+=======
+  // We ony want to factorize if we're saving complete operations, i.e. no
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // value in factorizing 6x + 4y into 2 * (3x + 2y) since we don't save work.
   int opsSaved = 1; // default to saving the scalar.
   long GCD = std::abs(immediateAs<long>(scalar));
@@ -2088,7 +2105,11 @@ static ExprPtr simplifyRoundModPattern(const PolynomialPtr& poly) {
 
         // TODO: for now don't attempt partial factorization of this
         // optimization. E.g. it's possible to do: 2 * (x/y) * y + (x%y) => x +
+<<<<<<< HEAD
         // (x/y) * y but unsure that's actually much better, particularly with
+=======
+        // (x/y) * y but unsure thats actually much better, particularly with
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // CSE.
         if (!immediateEquals(
                 evaluateOp(alloc<Sub>(r->scalar(), m->scalar())), 0)) {

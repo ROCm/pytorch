@@ -27,6 +27,7 @@ import torch
 import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncCompile pools
 from torch._dynamo.device_interface import get_interface_for_device
 from torch._dynamo.testing import rand_strided
+<<<<<<< HEAD
 from torch._dynamo.utils import (
     counters,
     dynamo_timed,
@@ -35,6 +36,9 @@ from torch._dynamo.utils import (
     preserve_rng_state,
 )
 from torch._inductor.await_utils import await_sync
+=======
+from torch._dynamo.utils import counters, dynamo_timed, identity, preserve_rng_state
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.utils import clear_on_fresh_cache
 from torch.utils._filelock import FileLock
 from torch.utils._ordered_set import OrderedSet
@@ -61,14 +65,20 @@ from .codegen.subgraph import SubgraphChoiceCaller
 from .codegen.triton import (
     gen_common_triton_imports,
     texpr,
+<<<<<<< HEAD
     TMACompatibilityChecker,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TritonKernel,
     TritonScheduling,
 )
 from .codegen.triton_utils import config_of, equal_1_arg_indices, signature_to_meta
 from .codegen.wrapper import pexpr
 from .exc import CUDACompileError
+<<<<<<< HEAD
 from .fx_utils import count_flops_fx
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .ir import ChoiceCaller, PrimitiveInfoType
 from .ops_handler import StoreMode
 from .runtime.benchmarking import benchmarker
@@ -174,6 +184,7 @@ class PartialRender:
     of replacements after the initial render.
     """
 
+<<<<<<< HEAD
     HookFn = Callable[[], str]
 
     def __init__(
@@ -207,6 +218,14 @@ class PartialRender:
 
         NOTE: Will **error** if the hook has already been finalized.
         """
+=======
+    def __init__(self, code, replacement_hooks) -> None:
+        super().__init__()
+        self.code = code
+        self.replacement_hooks = replacement_hooks
+
+    def finalize_hook(self, hook_key: str, strict=True) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if hook_key not in self.replacement_hooks:
             if strict:
                 raise RuntimeError(
@@ -214,6 +233,7 @@ class PartialRender:
                 )
             else:
                 return
+<<<<<<< HEAD
 
         hook = self.replacement_hooks[hook_key]
         assert hook is not None, f"Hook key {hook_key} can only be called once"
@@ -243,6 +263,17 @@ class PartialRender:
         """
         for key in self.replacement_hooks:
             self.finalize_hook(key)
+=======
+        assert self.replacement_hooks[hook_key] is not None, (
+            "hook_key can only be called once"
+        )
+        self.code = self.code.replace(hook_key, self.replacement_hooks[hook_key]())
+        self.replacement_hooks[hook_key] = None
+
+    def finalize_all(self) -> str:
+        for key, fn in self.replacement_hooks.items():
+            self.code = self.code.replace(key, fn())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.code
 
 
@@ -263,7 +294,11 @@ class SubgraphInfo:
 
     # only copied over if not None
     range_trees: Optional[list["IterationRangesRoot"]] = None
+<<<<<<< HEAD
     numels: Optional[dict[str, sympy.Expr]] = None
+=======
+    numels = None  # type: ignore[var-annotated]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         self.only_copy_if_non_none_fields = ("range_trees", "numels")
@@ -295,8 +330,12 @@ class ModificationWrapper(V.WrapperHandler):  # type: ignore[name-defined]
         if name not in self.fixed_inputs:
             index_str = self._process_indexing(index)
             var = self._add_kernel_input(name)
+<<<<<<< HEAD
             buffer = V.graph.get_buffer(name)
             var_dtype = buffer.dtype
+=======
+            var_dtype = V.graph.get_buffer(name).dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             line = f"tl.load({var} + {index_str})"
 
             if (
@@ -306,6 +345,7 @@ class ModificationWrapper(V.WrapperHandler):  # type: ignore[name-defined]
                 line += ".to(tl.float32)"
                 var_dtype = torch.float32
 
+<<<<<<< HEAD
             out = self.kernel.cse.generate(
                 self.kernel.compute, line, dtype=var_dtype, shape=()
             )
@@ -316,6 +356,13 @@ class ModificationWrapper(V.WrapperHandler):  # type: ignore[name-defined]
             f"({self.fixed_inputs[name]})",
             dtype=torch.float32,
             shape=(),
+=======
+            out = self.kernel.cse.generate(self.kernel.compute, line, dtype=var_dtype)
+            return out
+
+        return self.kernel.cse.generate(
+            self.kernel.compute, f"({self.fixed_inputs[name]})", dtype=torch.float32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def indirect_indexing(self, index_var: str, size, check, wrap_neg=True):
@@ -354,6 +401,7 @@ RecordedEventsType = list[tuple[str, list[Any], dict[str, Any]]]
 
 
 class TritonTemplateKernel(TritonKernel):
+<<<<<<< HEAD
     """
     A specialized kernel class for Triton templates that handles code generation
     for templated Triton kernels.
@@ -363,6 +411,8 @@ class TritonTemplateKernel(TritonKernel):
     arguments, and prologue/epilogue fusion.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         kernel_name,
@@ -383,7 +433,10 @@ class TritonTemplateKernel(TritonKernel):
         subgraphs: Optional[list[ir.ComputedBuffer]] = None,
         workspace_arg: Optional[WorkspaceArg] = None,
         prologue_loads_all_inputs=False,
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         numel = sympy_product(output_node.get_size())
         super().__init__(
@@ -392,7 +445,10 @@ class TritonTemplateKernel(TritonKernel):
                 "r0_": sympy.S.One,
             },
             features=SIMDKernelFeatures([], numel),
+<<<<<<< HEAD
             hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.input_nodes = input_nodes
         self.output_node = output_node
@@ -465,9 +521,12 @@ class TritonTemplateKernel(TritonKernel):
         # by adding all inputs.
         self.prologue_loads_all_inputs = prologue_loads_all_inputs
 
+<<<<<<< HEAD
         # Extra functions to be exposed during partial template rendering.
         self.extra_template_env_fns: list[Callable[..., Any]] = []
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def input_dependent_preserved_state(self) -> str:
         # Not adding self.args.output_buffers on purpose. But we do not need to reproduce it on a cache hit.
         # (never accessed).
@@ -557,12 +616,17 @@ class TritonTemplateKernel(TritonKernel):
         ninplace_args = len(unique(self.args.inplace_buffers.values()))
         num_bytes = []
         for i, inp in enumerate(itertools.chain(self.input_nodes, (self.output_node,))):
+<<<<<<< HEAD
             size = V.graph.sizevars.size_hints(inp.get_size(), fallback=0)
+=======
+            size = V.graph.sizevars.size_hints(inp.get_size())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             numel = functools.reduce(operator.mul, size, 1)
             dtype_size = get_dtype_size(inp.get_dtype())
             num_bytes.append(numel * dtype_size * (1 + int(i < ninplace_args)))
         return sum(num_bytes)
 
+<<<<<<< HEAD
     def estimate_flops(self) -> int:
         for node in self.input_nodes:
             for fx_node in node._current_origins:
@@ -571,6 +635,8 @@ class TritonTemplateKernel(TritonKernel):
                     return V.graph.sizevars.size_hint(f, fallback=0)
         return 0
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def jit_lines(self):
         if self.use_jit:
             return "@triton.jit"
@@ -603,17 +669,24 @@ class TritonTemplateKernel(TritonKernel):
 
         inductor_meta = {
             "kernel_name": str(Placeholder.DESCRIPTIVE_NAME),
+<<<<<<< HEAD
             **self.inductor_meta_common(),
+=======
+            **TritonKernel.inductor_meta_common(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **FixedGrid.setup_grid_as_args(),
         }
         if config.profile_bandwidth or config.benchmark_kernel:
             num_gb = self.estimate_kernel_num_bytes() / 1e9
             inductor_meta["kernel_num_gb"] = num_gb
+<<<<<<< HEAD
         if config.benchmark_kernel:
             flops = self.estimate_flops()
             inductor_meta["kernel_flop"] = flops
 
         inductor_meta["config_args"] = self.meta
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         template_args = f"""
             num_stages={self.num_stages},
@@ -641,7 +714,12 @@ class TritonTemplateKernel(TritonKernel):
             arg_defs, *_ = self.args.python_argdefs()
             return f"{', '.join(x.full_name() for x in arg_defs)}"
 
+<<<<<<< HEAD
         return self._register_hook("<ARGDEFS>", hook, allow_overwriting=True)
+=======
+        self.render_hooks["<ARGDEFS>"] = hook
+        return "<ARGDEFS>"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def gen_defines(self):
         return self.defines
@@ -719,7 +797,13 @@ class TritonTemplateKernel(TritonKernel):
                 code.splice(renames.getvalue())
             return code.getvalue()
 
+<<<<<<< HEAD
         return self._register_hook("<DEF_KERNEL>", hook)
+=======
+        assert "<DEF_KERNEL>" not in self.render_hooks
+        self.render_hooks["<DEF_KERNEL>"] = hook
+        return "<DEF_KERNEL>"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def size(self, name: str, index: int):
         """
@@ -1012,7 +1096,13 @@ class TritonTemplateKernel(TritonKernel):
 
                 return textwrap.indent(self.body.getvalue(), " " * indent_width).strip()
 
+<<<<<<< HEAD
         return self._register_hook(hook_key, hook)
+=======
+        assert hook_key not in self.render_hooks
+        self.render_hooks[hook_key] = hook
+        return hook_key
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def store_output(
         self,
@@ -1020,7 +1110,10 @@ class TritonTemplateKernel(TritonKernel):
         val: str,
         mask: Optional[str] = None,
         indent_width: int = 4,
+<<<<<<< HEAD
         val_shape: Optional[list[str]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """Stores the final output and appends any epilogue fusions if the buffer hasn't been optimized away.
 
@@ -1071,9 +1164,13 @@ class TritonTemplateKernel(TritonKernel):
                 if "ACC_TYPE" in self.meta
                 else torch.float32
             )
+<<<<<<< HEAD
             epilogue_args = [
                 V.kernel.cse.namedvar(val, dtype=acc_dtype, shape=val_shape)
             ]
+=======
+            epilogue_args = [V.kernel.cse.namedvar(val, dtype=acc_dtype)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for input_node in itertools.chain(
                 self.input_nodes[: self.prefix_args],
                 self.input_nodes[len(self.input_nodes) - self.suffix_args :],
@@ -1097,6 +1194,7 @@ class TritonTemplateKernel(TritonKernel):
 
             return textwrap.indent(self.body.getvalue(), " " * indent_width).strip()
 
+<<<<<<< HEAD
         return self._register_hook("<STORE_OUTPUT>", hook)
 
     def _register_hook(
@@ -1141,6 +1239,11 @@ class TritonTemplateKernel(TritonKernel):
           function.
         """
         self.extra_template_env_fns.extend(fns)
+=======
+        assert "<STORE_OUTPUT>" not in self.render_hooks
+        self.render_hooks["<STORE_OUTPUT>"] = hook
+        return "<STORE_OUTPUT>"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def render(self, template, kwargs, record_input_dependent_tracked_event=False):
         if record_input_dependent_tracked_event:
@@ -1160,7 +1263,10 @@ class TritonTemplateKernel(TritonKernel):
                 self.modification,
                 self.gen_argdefs,
                 self.gen_defines,
+<<<<<<< HEAD
                 *self.extra_template_env_fns,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
         }
         return PartialRender(
@@ -1192,7 +1298,10 @@ class TritonTemplateKernel(TritonKernel):
         copy_shape=None,
         override_mask=None,
         block_ptr=False,
+<<<<<<< HEAD
         tma_compatibility_checker: Optional[TMACompatibilityChecker] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Override the default indexing to use our custom mask and force
@@ -1206,12 +1315,16 @@ class TritonTemplateKernel(TritonKernel):
             copy_shape=self.template_out,
             override_mask=self.template_mask,
             block_ptr=block_ptr,
+<<<<<<< HEAD
             tma_compatibility_checker=tma_compatibility_checker,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def codegen_range_tree(self):
         pass  # ignore default codegen
 
+<<<<<<< HEAD
     def additional_call_args_and_types(self):
         if isinstance(self.grid_fn, SymbolicGridFn):
             grid_args = self.grid_fn.sympy_call(*self.call_sizes, self.meta)
@@ -1223,15 +1336,26 @@ class TritonTemplateKernel(TritonKernel):
             return (grid_args, map(type, grid_args))
         return ((), ())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def call_kernel(self, name: str, node: Optional[ir.IRNode] = None):
         wrapper = V.graph.wrapper_code
         _, call_args, _, arg_types = self.args.python_argdefs()
 
+<<<<<<< HEAD
         additional_call_args, additional_arg_types = (
             self.additional_call_args_and_types()
         )
 
         if not additional_call_args:
+=======
+        grid_args = ()
+        if isinstance(self.grid_fn, SymbolicGridFn):
+            grid_args = self.grid_fn.sympy_call(*self.call_sizes, self.meta)
+        elif all(isinstance(x, (int, sympy.Integer)) for x in self.call_sizes):
+            grid_args = self.grid_fn(*map(int, self.call_sizes), self.meta)
+        else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert not V.graph.cpp_wrapper, "cpp_wrapper requires SymbolicGridFn"
             wrapper.add_import_once(f"import {self.grid_fn.__module__}")
             meta = wrapper.add_meta_once(self.meta)
@@ -1240,9 +1364,15 @@ class TritonTemplateKernel(TritonKernel):
                 f"*{fn_name}({', '.join(map(pexpr, self.call_sizes))}, {meta})"
             )
             arg_types.append(None)
+<<<<<<< HEAD
 
         call_args.extend(additional_call_args)
         arg_types.extend(additional_arg_types)
+=======
+        assert len(grid_args) in (0, 3), "grid_fn should return 3 values"
+        call_args.extend(grid_args)
+        arg_types.extend(map(type, grid_args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.workspace_arg is not None:
             wrapper.generate_workspace_allocation(self.workspace_arg)
@@ -1317,7 +1447,11 @@ class GeneratedCodeCache:
         input_nodes: tuple[ir.IRNode],
         num_stages: int,
         num_warps: int,
+<<<<<<< HEAD
         call_sizes: Sequence[sympy.core.symbol.Symbol],
+=======
+        call_sizes: list[sympy.core.symbol.Symbol],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prefix_args: int,
         suffix_args: int,
         epilogue_fn: Optional[Callable[..., Any]],
@@ -1328,7 +1462,10 @@ class GeneratedCodeCache:
         num_consumer_groups: int,
         num_buffers_warp_spec: int,
         kwargs: dict[str, Any],
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Optional[str]:
         def layout_key(layout: ir.Layout) -> str:
             assert not isinstance(layout, ir.FlexibleLayout)
@@ -1379,7 +1516,10 @@ class GeneratedCodeCache:
                 "num_buffers_warp_spec": num_buffers_warp_spec,
                 "epilogue_fn_hash": epilogue_fn_hash,
                 "kwargs": kwargs,
+<<<<<<< HEAD
                 "hint_override": hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         )
 
@@ -1443,11 +1583,14 @@ class TritonTemplate(KernelTemplate):
     # was not used are the same.
     test_cache = False
 
+<<<<<<< HEAD
     @property
     def uid(self) -> str:
         # unique by prefixing with triton
         return f"triton::{self.name}"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def maybe_append_choice(
         self, choices: list[Any], **kwargs: Any
     ) -> Optional[NotImplementedError]:
@@ -1460,9 +1603,13 @@ class TritonTemplate(KernelTemplate):
         """
 
         try:
+<<<<<<< HEAD
             choice = self.generate(generate_with_caching=True, **kwargs)
             if choice is not None:
                 choices.append(choice)
+=======
+            choices.append(self.generate(generate_with_caching=True, **kwargs))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
         except NotImplementedError as e:
             log.info(
@@ -1479,7 +1626,11 @@ class TritonTemplate(KernelTemplate):
         input_nodes: tuple[ir.IRNode],
         num_stages: int,
         num_warps: int,
+<<<<<<< HEAD
         call_sizes: Sequence[sympy.core.symbol.Symbol],
+=======
+        call_sizes: list[sympy.core.symbol.Symbol],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prefix_args: int,
         suffix_args: int,
         epilogue_fn: Optional[Callable[..., Any]],
@@ -1491,7 +1642,10 @@ class TritonTemplate(KernelTemplate):
         layout: ir.Layout,
         kwargs: dict[str, Any],
         generate_with_caching,
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Optional[GenerateAndLoadResult]:
         """Generate the python code and load it into the current process"""
         caching_enabled = (
@@ -1523,12 +1677,17 @@ class TritonTemplate(KernelTemplate):
 
         for name, val in kwargs.items():
             defines.write(f"{name} : tl.constexpr = {val}\n")
+<<<<<<< HEAD
+=======
+        defines = defines.getvalue()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         fake_out = ir.Buffer(name="buf_out", layout=layout)
         kernel_name = f"triton_{self.name}"
 
         numel = sympy_product(layout.size)
         buffers = itertools.chain(input_nodes, (fake_out,))
+<<<<<<< HEAD
 
         if TritonScheduling.can_use_32bit_indexing(numel, buffers):
             index_dtype = "tl.int32"
@@ -1538,6 +1697,12 @@ class TritonTemplate(KernelTemplate):
         # Add index dtype to defines so it's available in the template
         defines.write(f"INDEX_DTYPE : tl.constexpr = {index_dtype}\n")
         defines = defines.getvalue()
+=======
+        if not TritonScheduling.can_use_32bit_indexing(numel, buffers):
+            raise NotImplementedError(
+                "64-bit indexing is not yet implemented for triton templates"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kernel_options = {
             "input_nodes": input_nodes,
@@ -1568,7 +1733,10 @@ class TritonTemplate(KernelTemplate):
                 output_node=fake_out,
                 workspace_arg=workspace_arg,
                 use_jit=False,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 **kernel_options,
             )
 
@@ -1685,10 +1853,16 @@ class TritonTemplate(KernelTemplate):
         epilogue_fn_hash: Optional[str] = None,
         subgraphs: Optional[list[ir.Buffer]] = None,
         mutated_inputs: Optional[list[ir.IRNode]] = None,
+<<<<<<< HEAD
         call_sizes: Optional[Sequence[sympy.core.symbol.Symbol]] = None,
         workspace_arg: Optional[WorkspaceArg] = None,
         generate_with_caching=False,
         hint_override: Optional[int] = None,
+=======
+        call_sizes: Optional[list[sympy.core.symbol.Symbol]] = None,
+        workspace_arg: Optional[WorkspaceArg] = None,
+        generate_with_caching=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         **kwargs,
     ):
         """This function generates a TritonTemplateCaller
@@ -1733,7 +1907,10 @@ class TritonTemplate(KernelTemplate):
             layout,
             kwargs,
             generate_with_caching and self._cache_codegen_enabled_for_template,
+<<<<<<< HEAD
             hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # May happen as result of dev by 0.
@@ -1755,7 +1932,10 @@ class TritonTemplate(KernelTemplate):
         extra_args = V.graph.sizevars.size_hints(
             map(sympy.expand, result.kernel_args_sizevars_keys),
             fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
             hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         kernel_hash_name = f"triton_{self.name}_{next(self.index_counter)}"
@@ -1779,14 +1959,21 @@ class TritonTemplate(KernelTemplate):
 
         options = result.kernel_options
 
+<<<<<<< HEAD
         def make_kernel_render(out_node, hint_override: Optional[int] = None):
+=======
+        def make_kernel_render(out_node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert result is not None
             kernel = self.kernel_type(
                 kernel_name=str(Placeholder.KERNEL_NAME),
                 output_node=out_node,
                 workspace_arg=workspace_arg,
                 use_jit=False,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 **options,
             )
             render = functools.partial(
@@ -1802,7 +1989,10 @@ class TritonTemplate(KernelTemplate):
             *V.graph.sizevars.size_hints(
                 call_sizes,
                 fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             kwargs,
         )
@@ -1854,7 +2044,10 @@ class TritonTemplate(KernelTemplate):
             mutated_inputs=mutated_inputs,
             workspace_arg=workspace_arg,
             allowed_prologue_inps=result.prologue_supported_inputs,
+<<<<<<< HEAD
             hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -1914,6 +2107,7 @@ class ExternKernelChoice:
             self, input_nodes, layout, kwargs, has_out_variant=self.has_out_variant
         )
 
+<<<<<<< HEAD
     @property
     def uid(self) -> str:
         # unique by prefixing with aten
@@ -1944,6 +2138,8 @@ class ExternKernelChoice:
         choices.append(self.bind(input_nodes=input_nodes, layout=layout, **kwargs))
         return None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TritonTemplateCaller(ir.TritonTemplateCallerBase):
     def __init__(
@@ -1960,7 +2156,10 @@ class TritonTemplateCaller(ir.TritonTemplateCallerBase):
         mutated_inputs=None,
         workspace_arg: Optional[WorkspaceArg] = None,
         allowed_prologue_inps: Optional[OrderedSet[str]] = None,
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         super().__init__(name, input_nodes, layout, description)
         self.make_kernel_render = make_kernel_render
@@ -1980,7 +2179,10 @@ class TritonTemplateCaller(ir.TritonTemplateCallerBase):
         self.allowed_prologue_inps = (
             allowed_prologue_inps if allowed_prologue_inps is not None else OrderedSet()
         )
+<<<<<<< HEAD
         self.hint_override = hint_override
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def benchmark(self, *args, out):
         assert self.bmreq is not None
@@ -2097,7 +2299,11 @@ class ExternKernelCaller(ChoiceCaller):
             assert self.choice.op_overload is not None, (
                 "Please provide an op_overload to use ir.FallbackKernel"
             )
+<<<<<<< HEAD
             inner: ir.IRNode = ir.FallbackKernel.create(
+=======
+            inner = ir.FallbackKernel.create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.choice.op_overload, *self.input_nodes, **self.kwargs
             )
         elif self.choice.kernel_creator is not None:
@@ -2303,6 +2509,7 @@ FeedbackFunction = Callable[
     None,
 ]
 
+<<<<<<< HEAD
 # Args to PreprocessingFunctions
 # choices: list of ChoiceCaller objects to preprocess
 # Returns: modified list of ChoiceCaller objects
@@ -2336,6 +2543,8 @@ def filter_choices_by_desc_regex(choices: list[ChoiceCaller]) -> list[ChoiceCall
         ]
     return choices
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class AlgorithmSelectorCache(PersistentCache):
     """
@@ -2356,6 +2565,7 @@ class AlgorithmSelectorCache(PersistentCache):
         # first to benchmark it. share a single precompilation function for all lowerings
         # of a particular key
         self.precompile_cache: dict[str, Callable[[], None]] = {}
+<<<<<<< HEAD
         # cache for prescreening results to ensure deterministic candidate selection
         self.prescreening_cache: dict[str, OrderedSet[str]] = {}
         # list of callbacks that are called after benchmarking
@@ -2375,6 +2585,15 @@ class AlgorithmSelectorCache(PersistentCache):
         self.add_preprocessing_fn(filter_choices_by_name_regex)
         self.add_preprocessing_fn(filter_choices_by_desc_regex)
 
+=======
+        # list of callbacks that are called after benchmarking
+        self.feedback_saver_fns: list[FeedbackFunction] = []
+        # cache for prescreening results to ensure deterministic candidate selection
+        self.prescreening_cache: dict[str, OrderedSet[str]] = {}
+
+        clear_on_fresh_cache(self)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def cache_clear(self) -> None:
         self.precompile_cache.clear()
         self.prescreening_cache.clear()
@@ -2393,6 +2612,7 @@ class AlgorithmSelectorCache(PersistentCache):
         input_gen_fns: Optional[dict[int, Callable[[ir.Buffer], torch.Tensor]]] = None,
         precompilation_timeout_seconds: int = 60 * 60,
         return_multi_template=False,
+<<<<<<< HEAD
         best_config_future=None,
     ):
         from .codegen.cuda.cuda_kernel import CUDATemplateCaller
@@ -2401,6 +2621,11 @@ class AlgorithmSelectorCache(PersistentCache):
         for preprocessing_fn in self.preprocessing_fns:
             choices = preprocessing_fn(choices)
 
+=======
+    ):
+        from .codegen.cuda.cuda_kernel import CUDATemplateCaller
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Templates selected with input_gen_fns require specific input data to avoid IMA
         # Passing custom input gen fns to benchmark_fusion NYI, so skip deferred template selection
         # TODO(jgong5): support multi-template on CPU
@@ -2409,6 +2634,28 @@ class AlgorithmSelectorCache(PersistentCache):
 
         # TODO - assert that we have not mutating kernels here
 
+<<<<<<< HEAD
+=======
+        if config.test_configs.autotune_choice_name_regex is not None:
+            choices = [
+                c
+                for c in choices
+                if re.search(
+                    config.test_configs.autotune_choice_name_regex,
+                    c.name,
+                )
+            ]
+        if config.test_configs.autotune_choice_desc_regex is not None:
+            choices = [
+                c
+                for c in choices
+                if re.search(
+                    config.test_configs.autotune_choice_desc_regex,
+                    c.description,
+                )
+            ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if mm_file_name := get_mm_log_filename():
             M, K = input_nodes[-2].get_size()[:2]
             N = input_nodes[-1].get_size()[-1]
@@ -2431,6 +2678,7 @@ class AlgorithmSelectorCache(PersistentCache):
                 # CUDATemplateCaller still needs to go through autotuning process to retrieve workspace size.
                 return choices[0].output_node()
 
+<<<<<<< HEAD
         inputs_key = create_inputs_key(input_nodes)
 
         # TODO(nmacchioni): remove this hacky way to tell if we ran benchmarking
@@ -2451,12 +2699,22 @@ class AlgorithmSelectorCache(PersistentCache):
             return benchmark_fn(choices)
 
         def autotune(choices, hint_override: Optional[int] = None):
+=======
+        @functools.cache
+        def make_benchmark_fn():
+            return self.make_benchmark_fn(choices, input_nodes, layout, input_gen_fns)
+
+        inputs_key = create_inputs_key(input_nodes)
+
+        def autotune(choices):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             log.debug("Starting autotuning")
 
             with dynamo_timed(
                 f"{name}_template_autotuning",
                 log_pt2_compile_event=True,
                 dynamo_compile_column_us="compile_time_autotune_time_us",
+<<<<<<< HEAD
                 metadata=_autotune_metadata(input_nodes),
             ):
                 benchmark_results = benchmark(choices, hint_override=hint_override)
@@ -2465,12 +2723,34 @@ class AlgorithmSelectorCache(PersistentCache):
                         f"{name}_template_autotuning", benchmark_results
                     )
                 return benchmark_results
+=======
+                metadata={
+                    "autotune_strides": ", ".join(
+                        [str(n.get_stride()) for n in input_nodes]
+                    ),
+                    "autotune_dtypes": ", ".join(
+                        [str(n.get_dtype()) for n in input_nodes]
+                    ),
+                    "autotune_shape": ", ".join(
+                        ["x".join(map(str, n.get_size())) for n in input_nodes]
+                    ),
+                    "autotune_offset": ", ".join(
+                        [str(n.get_layout().offset) for n in input_nodes]
+                    ),
+                },
+            ):
+                return make_benchmark_fn()(choices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if config.autotune_in_subproc:
             # Initialize the suprocess pool so it will warmup early.
             torch._inductor.autotune_process.get_tuning_process_pool()
 
+<<<<<<< HEAD
         def do_autotuning(choices, precompile_fn, hint_override: Optional[int] = None):
+=======
+        def do_autotuning(choices, precompile_fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             precompile_start_ts = time.time()
             with dynamo_timed(
                 f"{name}_template_precompiling",
@@ -2491,8 +2771,12 @@ class AlgorithmSelectorCache(PersistentCache):
                     candidates,
                     name,
                     inputs_key,
+<<<<<<< HEAD
                     lambda choices: autotune(choices, hint_override=hint_override),
                     hint_override=hint_override,
+=======
+                    autotune,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 choices = self.prune_choices_postscreen(
                     choices, timings, name, inputs_key, self.prescreening_cache
@@ -2501,6 +2785,7 @@ class AlgorithmSelectorCache(PersistentCache):
                 log.debug("Prescreening elapsed time: %.02fs", prescreening_elapse)
 
             autotune_start_ts = time.time()
+<<<<<<< HEAD
 
             if best_config_future is not None:
                 best_config = await_sync(best_config_future)
@@ -2530,12 +2815,18 @@ class AlgorithmSelectorCache(PersistentCache):
                 ]
                 log.info("Filtered to %d choices based on best_config", len(choices))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             timings = self.lookup(
                 choices,
                 name,
                 inputs_key,
+<<<<<<< HEAD
                 lambda choices: autotune(choices, hint_override=hint_override),
                 hint_override=hint_override,
+=======
+                autotune,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             autotune_elapse = time.time() - autotune_start_ts
@@ -2546,8 +2837,16 @@ class AlgorithmSelectorCache(PersistentCache):
             ):
                 raise NoValidChoicesError
 
+<<<<<<< HEAD
             if (
                 has_autotuned
+=======
+            if make_benchmark_fn.cache_info().currsize:
+                counters["inductor"]["select_algorithm_autotune"] += 1
+
+            if (
+                make_benchmark_fn.cache_info().currsize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 or log.getEffectiveLevel() == logging.DEBUG
                 or config.trace.log_autotuning_results
             ):
@@ -2558,7 +2857,10 @@ class AlgorithmSelectorCache(PersistentCache):
                     autotune_elapse,
                     precompile_elapse,
                     prescreening_elapse,
+<<<<<<< HEAD
                     hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             def profiler_bench_function():
@@ -2570,7 +2872,13 @@ class AlgorithmSelectorCache(PersistentCache):
                     profile_bandwidth_with_do_bench_using_profiling=True,
                     autotune_in_subproc=False,
                 ):
+<<<<<<< HEAD
                     return benchmark(choices)
+=======
+                    return self.make_benchmark_fn(
+                        choices, input_nodes, layout, input_gen_fns
+                    )(choices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             for feedback_fn in self.feedback_saver_fns:
                 # re-benchmarking the same choices with profiler is a bit expensive, so pass it in as a thunk.
@@ -2593,6 +2901,7 @@ class AlgorithmSelectorCache(PersistentCache):
 
         if return_multi_template and (config.max_autotune or config.max_autotune_gemm):
 
+<<<<<<< HEAD
             def get_timings(hint_override: Optional[int] = None):
                 filtered_choices = [
                     c
@@ -2603,6 +2912,10 @@ class AlgorithmSelectorCache(PersistentCache):
                 timings = do_autotuning(
                     filtered_choices, precompile_fn, hint_override=hint_override
                 )
+=======
+            def get_timings():
+                timings = do_autotuning(choices, precompile_fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 min_extern_choice = float("inf")
                 for choice, timing in timings.items():
                     if isinstance(choice, ExternKernelCaller):
@@ -2621,7 +2934,11 @@ class AlgorithmSelectorCache(PersistentCache):
 
             # We take the union of allowed prologue inputs from all choices,
             # and, within benchmark fusion, don't allow prologue fusion for
+<<<<<<< HEAD
             # choices which don't support the whole union.
+=======
+            # choices which dont support the whole union.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             allowed_prologue_inps: OrderedSet[str] = OrderedSet()
             for c in choices:
                 if isinstance(c, TritonTemplateCaller):
@@ -2716,6 +3033,14 @@ class AlgorithmSelectorCache(PersistentCache):
             log.debug("Found all %d timings in cache, returning no_op", len(timings))
             return no_op
 
+<<<<<<< HEAD
+=======
+        if config.search_autotune_cache and not (
+            config.max_autotune or config.max_autotune_gemm
+        ):
+            return no_op
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         precompile_key = create_precompile_key(name, inputs_key, choices)
         if precompile_func := self.precompile_cache.get(precompile_key):
             log.debug("Precompile function found in cache, returning it")
@@ -2793,16 +3118,22 @@ class AlgorithmSelectorCache(PersistentCache):
         def wait_on_futures():
             log.debug("Waiting on futures")
             counters["inductor"]["select_algorithm_precompile"] += 1
+<<<<<<< HEAD
             exceptions: list[tuple[ChoiceCaller, BaseException]] = []
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for future in as_completed(
                 futures,
                 timeout=precompilation_timeout_seconds,
             ):
                 if e := future.exception():
+<<<<<<< HEAD
                     counters["inductor"][
                         "select_algorithm_num_precompilation_exceptions"
                     ] += 1
                     exceptions.append((futures[future], e))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     from torch._inductor.codegen.cuda.cuda_kernel import (
                         CUDATemplateCaller,
                     )
@@ -2814,6 +3145,7 @@ class AlgorithmSelectorCache(PersistentCache):
                             "Exception %s for benchmark choice %s",
                             e,
                             futures[future],
+<<<<<<< HEAD
                             exc_info=e,
                         )
                     else:
@@ -2822,6 +3154,13 @@ class AlgorithmSelectorCache(PersistentCache):
                             e,
                             futures[future],
                             exc_info=e,
+=======
+                            exc_info=True,
+                        )
+                    else:
+                        log.error(
+                            "Exception %s for benchmark choice %s", e, futures[future]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                 else:
                     counters["inductor"]["select_algorithm_num_precompiles"] += 1
@@ -2830,8 +3169,11 @@ class AlgorithmSelectorCache(PersistentCache):
                         futures.get(future),
                         elapsed_times.get(future),
                     )
+<<<<<<< HEAD
             if exceptions:
                 _log_autotune_exceptions(exceptions)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             executor.shutdown(wait=True)
 
@@ -2846,7 +3188,10 @@ class AlgorithmSelectorCache(PersistentCache):
         input_nodes: list[ir.IRNode],
         layout: ir.Layout,
         input_gen_fns: Optional[dict[int, Callable[[ir.Buffer], torch.Tensor]]],
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> AutotuneArgs:
         """
         Factory method to create AutotuneArgs from a list of ChoiceCallers.
@@ -2856,9 +3201,13 @@ class AlgorithmSelectorCache(PersistentCache):
 
         # de-duplicate args
         unique_example_inputs = {
+<<<<<<< HEAD
             x.get_name(): input_gen_fns.get(
                 i, lambda x: cls.benchmark_example_value(x, hint_override=hint_override)
             )(x)
+=======
+            x.get_name(): input_gen_fns.get(i, cls.benchmark_example_value)(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i, x in enumerate(input_nodes)
         }
         example_inputs = list(unique_example_inputs.values())
@@ -2871,23 +3220,36 @@ class AlgorithmSelectorCache(PersistentCache):
                     V.graph.sizevars.size_hints(
                         input_node.get_size(),
                         fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                         hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     V.graph.sizevars.size_hints(
                         input_node.get_stride(),
                         fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                         hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     V.graph.sizevars.size_hint(
                         input_node.get_layout().offset,
                         fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                         hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                 )
             )
             for input_node in input_nodes
         ]
+<<<<<<< HEAD
         out = cls.benchmark_example_value(layout, hint_override=hint_override)
+=======
+        out = cls.benchmark_example_value(layout)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out_extern = torch.as_strided(
             out, out.size(), out.stride(), V.graph.sizevars.size_hint(layout.offset)
         )
@@ -2910,11 +3272,19 @@ class AlgorithmSelectorCache(PersistentCache):
     ) -> float:
         is_extern = isinstance(choice, (ExternKernelCaller, SubgraphChoiceCaller))
         benchmark_tensors = autotune_args.get_benchmark_tensors(is_extern)
+<<<<<<< HEAD
         inputs, output = benchmark_tensors.unpack()
         output.zero_()
         result = choice.benchmark(*inputs, out=output)
         device_type = next(
             (tensor.device.type for tensor in inputs if is_gpu(tensor.device.type)),
+=======
+        inpts, output = benchmark_tensors.unpack()
+        output.zero_()
+        result = choice.benchmark(*inpts, out=output)
+        device_type = next(
+            (tensor.device.type for tensor in inpts if is_gpu(tensor.device.type)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "cuda",
         )
         device_interface = get_interface_for_device(device_type)
@@ -2996,11 +3366,16 @@ class AlgorithmSelectorCache(PersistentCache):
         input_nodes: list[ir.IRNode],
         layout: ir.Layout,
         input_gen_fns: Optional[dict[int, Callable[[ir.Buffer], torch.Tensor]]],
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
     ) -> dict[ChoiceCaller, float]:
         inputs = cls.get_inputs(
             choices, input_nodes, layout, input_gen_fns, hint_override=hint_override
         )
+=======
+    ) -> dict[ChoiceCaller, float]:
+        inputs = cls.get_inputs(choices, input_nodes, layout, input_gen_fns)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls.benchmark_choices(choices, inputs)
 
     @classmethod
@@ -3010,7 +3385,10 @@ class AlgorithmSelectorCache(PersistentCache):
         input_nodes: list[ir.IRNode],
         layout: ir.Layout,
         input_gen_fns: Optional[dict[int, Callable[[ir.Buffer], torch.Tensor]]],
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         from . import autotune_process
 
@@ -3020,7 +3398,11 @@ class AlgorithmSelectorCache(PersistentCache):
         triton = [c for c in choices if not isinstance(c, ExternKernelCaller)]
 
         timings = cls.benchmark_in_current_process(
+<<<<<<< HEAD
             extern, input_nodes, layout, input_gen_fns, hint_override=hint_override
+=======
+            extern, input_nodes, layout, input_gen_fns
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         timings.update(autotune_process.benchmark_in_sub_process(triton))  # type: ignore[arg-type]
         return timings
@@ -3032,7 +3414,10 @@ class AlgorithmSelectorCache(PersistentCache):
         input_nodes: list[ir.IRNode],
         layout: ir.Layout,
         input_gen_fns: Optional[dict[int, Callable[[ir.Buffer], torch.Tensor]]],
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         if DEBUG:
             print(f"{len(choices)} tuning requests:")
@@ -3043,7 +3428,10 @@ class AlgorithmSelectorCache(PersistentCache):
                 input_nodes=input_nodes,
                 layout=layout,
                 input_gen_fns=input_gen_fns,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             return functools.partial(
@@ -3051,7 +3439,10 @@ class AlgorithmSelectorCache(PersistentCache):
                 input_nodes=input_nodes,
                 layout=layout,
                 input_gen_fns=input_gen_fns,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     @staticmethod
@@ -3210,7 +3601,10 @@ class AlgorithmSelectorCache(PersistentCache):
         elapse: float,
         precompile_elapse: float,
         prescreening_elapse: Optional[float] = None,
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         V.debug.log_autotuning_results(
             name, input_nodes, timings, elapse, precompile_elapse
@@ -3225,7 +3619,10 @@ class AlgorithmSelectorCache(PersistentCache):
                         V.graph.sizevars.size_hints(
                             n.get_size(),
                             fallback=config.unbacked_symint_fallback,  # type: ignore[arg-type]
+<<<<<<< HEAD
                             hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         ),
                     )
                 )
@@ -3313,7 +3710,11 @@ class AlgorithmSelectorCache(PersistentCache):
         )
 
     @staticmethod
+<<<<<<< HEAD
     def benchmark_example_value(node, hint_override: Optional[int] = None):
+=======
+    def benchmark_example_value(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Convert an ir.Buffer into a concrete torch.Tensor we can use for
         benchmarking.
@@ -3332,12 +3733,18 @@ class AlgorithmSelectorCache(PersistentCache):
             V.graph.sizevars.size_hints(
                 node.get_size(),
                 fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             V.graph.sizevars.size_hints(
                 node.get_stride(),
                 fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             node.get_device(),
             node.get_dtype(),
@@ -3345,7 +3752,10 @@ class AlgorithmSelectorCache(PersistentCache):
             V.graph.sizevars.size_hints(
                 V.graph.get_allocation_size(node),
                 fallback=config.unbacked_symint_fallback,
+<<<<<<< HEAD
                 hint_override=hint_override,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
         )
 
@@ -3400,6 +3810,7 @@ class AlgorithmSelectorCache(PersistentCache):
     def add_feedback_saver(self, fn: FeedbackFunction):
         self.feedback_saver_fns.append(fn)
 
+<<<<<<< HEAD
     def clear_feedback_savers(self):
         self.feedback_saver_fns = []
 
@@ -3417,10 +3828,13 @@ class AlgorithmSelectorCache(PersistentCache):
         if not clear_defaults:
             self._register_default_preprocessing_fns()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _ALGORITHM_SELECTOR_CACHE: Optional[AlgorithmSelectorCache] = None
 
 
+<<<<<<< HEAD
 def get_algorithm_selector_cache() -> AlgorithmSelectorCache:
     """Get the global algorithm selector cache, creating it if it doesn't exist."""
     global _ALGORITHM_SELECTOR_CACHE
@@ -3431,6 +3845,12 @@ def get_algorithm_selector_cache() -> AlgorithmSelectorCache:
 
 def autotune_select_algorithm(*args, **kwargs):
     cache = get_algorithm_selector_cache()
+=======
+def autotune_select_algorithm(*args, **kwargs):
+    global _ALGORITHM_SELECTOR_CACHE
+    if _ALGORITHM_SELECTOR_CACHE is None:
+        _ALGORITHM_SELECTOR_CACHE = AlgorithmSelectorCache()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if "return_multi_template" not in kwargs:
         kwargs["return_multi_template"] = (
@@ -3440,12 +3860,17 @@ def autotune_select_algorithm(*args, **kwargs):
     if "precompilation_timeout_seconds" not in kwargs:
         kwargs["precompilation_timeout_seconds"] = config.precompilation_timeout_seconds
 
+<<<<<<< HEAD
     return cache(*args, **kwargs)
+=======
+    return _ALGORITHM_SELECTOR_CACHE(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def add_feedback_saver(
     fn: FeedbackFunction,
 ):
+<<<<<<< HEAD
     cache = get_algorithm_selector_cache()
     cache.add_feedback_saver(fn)
 
@@ -3489,6 +3914,12 @@ def clear_preprocessing_fns(clear_defaults: bool = False):
     """
     cache = get_algorithm_selector_cache()
     cache.clear_preprocessing_fns(clear_defaults)
+=======
+    global _ALGORITHM_SELECTOR_CACHE
+    if _ALGORITHM_SELECTOR_CACHE is None:
+        _ALGORITHM_SELECTOR_CACHE = AlgorithmSelectorCache()
+    _ALGORITHM_SELECTOR_CACHE.add_feedback_saver(fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def realize_inputs(*args):
@@ -3527,6 +3958,7 @@ class SymbolicGridFn:
         return self.fn(*args, **kwargs, **self.kwargs_sym)
 
 
+<<<<<<< HEAD
 def _autotune_metadata(input_nodes):
     """Helper function to extract autotune metadata from input nodes."""
     return {
@@ -3667,5 +4099,7 @@ def _log_autotune_exceptions(
         pass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # ensure lowering is imported so that `extern_kernels.*` is populated
 from . import lowering  # noqa: F401

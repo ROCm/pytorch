@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.intersphinx",
 ] + (["breathe", "exhale"] if run_doxygen else [])
 
+<<<<<<< HEAD
 intersphinx_mapping = {"pytorch": ("https://docs.pytorch.org/docs/main", None)}
 
 # Configure Sphinx warnings and error handling
@@ -68,6 +69,9 @@ try:
         collections.MutableMapping = MutableMapping
 except ImportError:
     pass
+=======
+intersphinx_mapping = {"pytorch": ("https://pytorch.org/docs/main", None)}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Setup absolute paths for communicating with breathe / exhale where
 # items are expected / should be trimmed by.
@@ -128,6 +132,7 @@ exhale_args = {
         Welcome to the developer reference for the PyTorch C++ API.
     """
     ),
+<<<<<<< HEAD
     ############################################################################
     # Duplicate handling and error management.                                 #
     ############################################################################
@@ -143,6 +148,8 @@ exhale_args = {
         "variable",
     },
     "fullToctreeMaxDepth": 2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 # Tell sphinx what the primary language being documented is.
@@ -216,7 +223,10 @@ html_theme = "pytorch_sphinx_theme2"
 #
 html_theme_options = {
     "canonical_url": "https://pytorch.org/docs/stable/",
+<<<<<<< HEAD
     "analytics_id": "GTM-T8XT4PS",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "collapse_navigation": False,
     "logo": {"text": "Home"},
     "icon_links": [

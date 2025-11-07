@@ -211,7 +211,11 @@ class TestSACILP(TestCase):
 
 
 class TestOptimalCheckpointingPolicy(TestCase):
+<<<<<<< HEAD
     # tests are adapted from tests in xformers
+=======
+    # tests are adpated from tests in xformers
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # https://github.com/facebookresearch/xformers/blob/c6c0ac31f1b08542a0bc27278c6ed10f825f6963/tests/test_checkpoint.py#L222
     def setUp(self):
         super().setUp()

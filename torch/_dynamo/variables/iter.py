@@ -16,8 +16,14 @@ handling of iterator operations during code transformation and optimization.
 """
 
 import itertools
+<<<<<<< HEAD
 import sys
 from typing import TYPE_CHECKING, Union
+=======
+import operator
+import sys
+from typing import Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .. import graph_break_hints, polyfills, variables
 from ..bytecode_transformation import create_call_function, create_instruction
@@ -59,6 +65,7 @@ class ItertoolsVariable(VariableTracker):
     ) -> "VariableTracker":
         # See also: module `torch._dynamo.polyfills.itertools`
 
+<<<<<<< HEAD
         if self.value is itertools.product:
             if any(kw != "repeat" for kw in kwargs.keys()):
                 unimplemented_v2(
@@ -78,6 +85,88 @@ class ItertoolsVariable(VariableTracker):
                 variables.TupleVariable(list(item))
                 for item in itertools.product(*seqs, repeat=r)
             ]
+=======
+        if (
+            self.value is itertools.product
+            and not kwargs
+            and all(arg.has_unpack_var_sequence(tx) for arg in args)
+        ):
+            seqs = [arg.unpack_var_sequence(tx) for arg in args]
+            items = [
+                variables.TupleVariable(list(item)) for item in itertools.product(*seqs)
+            ]
+            return variables.ListIteratorVariable(
+                items, mutation_type=ValueMutationNew()
+            )
+        elif self.value is itertools.accumulate:
+            from .builtin import BuiltinVariable
+
+            if any(key not in ["initial", "func"] for key in kwargs.keys()):
+                unimplemented_v2(
+                    gb_type="Unsupported kwargs for itertools.accumulate",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation=f"Expected kwargs: 'initial', 'func', but got "
+                    f"{','.join(set(kwargs.keys()) - {'initial', 'func'})}",
+                    hints=[*graph_break_hints.USER_ERROR],
+                )
+
+            if len(args) in [1, 2] and args[0].has_unpack_var_sequence(tx):
+                seq = args[0].unpack_var_sequence(tx)
+
+                if "func" in kwargs and len(args) == 1:
+                    func = kwargs["func"].call_function
+                elif len(args) == 2:
+                    func = args[1].call_function
+                elif len(args) == 1:
+                    # Default to operator.add
+                    func = BuiltinVariable(operator.add).call_function
+                else:
+                    unimplemented_v2(
+                        gb_type="Unsupported `func` in itertools.accumulate",
+                        context=f"call_function {self} {args} {kwargs}",
+                        explanation="Dynamo does not know how to get the "
+                        "function to use for itertools.accumulate. "
+                        "itertools.accumulate expects the `func` as the second "
+                        "argument or as a keyword argument.",
+                        hints=[*graph_break_hints.USER_ERROR],
+                    )
+            else:
+                unimplemented_v2(
+                    gb_type="Unsupported arguments for itertools.accumulate",
+                    context=f"call_function {self} {args} {kwargs}",
+                    explanation="Dynamo does not know how to trace "
+                    f"itertools.accumulate with args: {args} and kwargs: {kwargs}. "
+                    "itertools.accumulate expects an iterable, an optional "
+                    "binary function for accumulation, and an optional initial "
+                    "value to set the starting state.",
+                    hints=[
+                        "Make sure the arguments to itertools.accumulate are correct.",
+                        *graph_break_hints.SUPPORTABLE,
+                    ],
+                )
+
+            items = []
+            acc = kwargs.get("initial")
+            if acc is not None:
+                items.append(acc)
+            for item in seq:
+                if acc is None:
+                    acc = item
+                else:
+                    try:
+                        acc = func(tx, [acc, item], {})
+                    except Exception as e:
+                        unimplemented_v2(
+                            gb_type="Unexpected failure during itertools.accumulate() iteration",
+                            context=f"call_function {self} {args} {kwargs}",
+                            explanation="Unexpected failure in invoking function during accumulate. "
+                            f"Failed running func {func}({item}{acc})",
+                            hints=[*graph_break_hints.DIFFICULT],
+                            from_exc=e,
+                        )
+                items.append(acc)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return variables.ListIteratorVariable(
                 items, mutation_type=ValueMutationNew()
             )
@@ -190,6 +279,7 @@ class ItertoolsVariable(VariableTracker):
             return variables.CountIteratorVariable(
                 *args, mutation_type=ValueMutationNew()
             )
+<<<<<<< HEAD
         elif (
             self.value is itertools.permutations
             and (len(args) == 1 or (len(args) == 2 and args[1].is_python_constant()))
@@ -207,6 +297,11 @@ class ItertoolsVariable(VariableTracker):
             ]
             return variables.ListIteratorVariable(
                 items, mutation_type=ValueMutationNew()
+=======
+        elif self.value is itertools.cycle:
+            return variables.CycleIteratorVariable(
+                *args, mutation_type=ValueMutationNew()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             return super().call_function(tx, args, kwargs)
@@ -247,6 +342,7 @@ class IteratorVariable(VariableTracker):
         return True
 
 
+<<<<<<< HEAD
 class ObjectIteratorVariable(IteratorVariable):
     """
     VariableTracker for iter(obj) that implements the iterator protocol (i.e.,
@@ -279,6 +375,8 @@ class ObjectIteratorVariable(IteratorVariable):
             raise
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RepeatIteratorVariable(IteratorVariable):
     def __init__(self, item: VariableTracker, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -332,6 +430,57 @@ class CountIteratorVariable(IteratorVariable):
         codegen.extend_output(create_call_function(2, False))
 
 
+<<<<<<< HEAD
+=======
+class CycleIteratorVariable(IteratorVariable):
+    def __init__(
+        self,
+        iterator: IteratorVariable,
+        saved: Optional[list[VariableTracker]] = None,
+        saved_index: int = 0,
+        item: Optional[VariableTracker] = None,
+        **kwargs,
+    ) -> None:
+        if saved is None:
+            saved = []
+        super().__init__(**kwargs)
+        self.iterator = iterator
+        self.saved = saved
+        self.saved_index = saved_index
+        self.item = item
+
+    def next_variable(self, tx):
+        assert self.is_mutable()
+
+        if self.iterator is not None:
+            try:
+                new_item = self.iterator.next_variable(tx)
+                if len(self.saved) > MAX_ITERATOR_LIMIT:
+                    unimplemented_v2(
+                        gb_type="input iterator to itertools.cycle has too many items",
+                        context=f"next({self})",
+                        explanation=f"Has reached internal Dynamo max iterator limit: {MAX_ITERATOR_LIMIT}",
+                        hints=[],
+                    )
+                tx.output.side_effects.mutation(self)
+                self.saved.append(new_item)
+                self.item = new_item
+                if self.item is None:
+                    return self.next_variable(tx)
+                return self.item
+            except ObservedUserStopIteration:
+                handle_observed_exception(tx)
+                self.iterator = None
+                return self.next_variable(tx)
+        elif len(self.saved) > 0:
+            tx.output.side_effects.mutation(self)
+            self.saved_index = (self.saved_index + 1) % len(self.saved)
+            return self.item
+        else:
+            raise_observed_exception(StopIteration, tx)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ZipVariable(IteratorVariable):
     """
     Represents zip(*iterables)
@@ -345,7 +494,11 @@ class ZipVariable(IteratorVariable):
 
     def __init__(
         self,
+<<<<<<< HEAD
         iterables: list[VariableTracker],
+=======
+        iterables: list[Union[list[VariableTracker], VariableTracker]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         strict: bool = False,
         **kwargs,
     ) -> None:
@@ -379,10 +532,13 @@ class ZipVariable(IteratorVariable):
 
     def next_variable(self, tx):
         assert self.is_mutable()
+<<<<<<< HEAD
 
         if len(self.iterables) == 0:
             raise_observed_exception(StopIteration, tx)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         old_index = self.index
         args = []
 
@@ -546,10 +702,14 @@ class FilterVariable(IteratorVariable):
         while True:
             item = _next()
             self.index += 1
+<<<<<<< HEAD
             if isinstance(self.fn, ConstantVariable) and self.fn.value is None:
                 res = item
             else:
                 res = self.fn.call_function(tx, [item], {})
+=======
+            res = self.fn.call_function(tx, [item], {})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pred_res = variables.UserFunctionVariable(
                 polyfills.predicate
             ).call_function(tx, [res], {})

@@ -3,7 +3,11 @@
 #  CUB_INCLUDE_DIRS - the CUB include directory
 
 find_path(CUB_INCLUDE_DIR
+<<<<<<< HEAD
         HINTS "${CUDAToolkit_INCLUDE_DIRS}"
+=======
+        HINTS "${CUDA_TOOLKIT_INCLUDE}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         NAMES cub/cub.cuh
         DOC "The directory where CUB includes reside"
 )

@@ -78,7 +78,11 @@ def _topological_sort_passes(
     if len(constraints) == 0:
         return passes
 
+<<<<<<< HEAD
     # Construct a graph mapping nodes to a list of their users
+=======
+    # Contruct a graph mapping nodes to a list of their users
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     graph: dict[Callable, list[Callable]] = {p: [] for p in passes}
     indegree_map: dict[Callable, int] = dict.fromkeys(passes, 0)
     candidates: Queue = Queue()

@@ -97,7 +97,10 @@ _SKIP_PYTHON_BINDINGS = [
     "is_sparse_csr",
     "size",
     "stride",
+<<<<<<< HEAD
     "sym_is_contiguous",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "sym_size",
     "sym_stride",
     "sym_storage_offset",

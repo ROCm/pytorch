@@ -1,4 +1,8 @@
 #pragma once
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // DO NOT DEFINE STATIC DATA IN THIS HEADER!
 // See Note [Do not compile initializers with AVX]
 
@@ -30,9 +34,13 @@ class Vectorized<float> {
   static constexpr size_type size() {
     return 8;
   }
+<<<<<<< HEAD
   Vectorized() {
     values = _mm256_setzero_ps();
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(__m256 v) : values(v) {}
   Vectorized(float val) {
     values = _mm256_set1_ps(val);
@@ -257,6 +265,7 @@ class Vectorized<float> {
   Vectorized<float> expm1() const {
     return Vectorized<float>(Sleef_expm1f8_u10(values));
   }
+<<<<<<< HEAD
   Vectorized<float> fexp_u20() const {
     const __m256 vec_c0 = _mm256_set1_ps(0.00010703434948458272f);
     const __m256 vec_c1 = _mm256_set1_ps(0.30354260500649682f);
@@ -314,6 +323,8 @@ class Vectorized<float> {
     return result;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<float> exp_u20() const {
     // A faster version of exp with ULP=20
     const __m256 vec_factorial_1 =
@@ -697,6 +708,7 @@ Vectorized<float> inline fmadd(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<float> inline fnmadd(
     const Vectorized<float>& a,
     const Vectorized<float>& b,
@@ -705,6 +717,8 @@ Vectorized<float> inline fnmadd(
 }
 
 template <>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<float> inline fmsub(
     const Vectorized<float>& a,
     const Vectorized<float>& b,
@@ -712,6 +726,7 @@ Vectorized<float> inline fmsub(
   return _mm256_fmsub_ps(a, b, c);
 }
 
+<<<<<<< HEAD
 template <>
 Vectorized<float> inline fnmsub(
     const Vectorized<float>& a,
@@ -720,6 +735,8 @@ Vectorized<float> inline fnmsub(
   return _mm256_fnmsub_ps(a, b, c);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // TODO: rewrite with ATEN vectorized (need to add unpack and shuffle)
 // Used by Inductor CPP codegen for micro gemm
 inline void transpose_block(at::vec::VectorizedN<float, 8>& input) {

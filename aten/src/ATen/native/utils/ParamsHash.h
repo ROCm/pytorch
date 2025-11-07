@@ -41,7 +41,11 @@ struct ParamsEqual {
 };
 
 // Provide explicit byte-for-byte constructors to avoid uwittingly leaving
+<<<<<<< HEAD
 // padding bytes uninitialized (e.g., when passing Params by value)
+=======
+// padding bytes unitialized (e.g., when passing Params by value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T>
 struct ParamsWrapper {
   T pod;

@@ -53,7 +53,11 @@ typedef struct VISIBILITY_HIDDEN CacheEntry {
   // diff guard root guard manager if exists
   void* diff_guard_root_mgr{nullptr};
   // backend used to create this cache entry
+<<<<<<< HEAD
   py::object backend;
+=======
+  PyObject* backend{nullptr};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Reference to owning ExtraState
   ExtraState* _owner{nullptr};
   // Reference to this CacheEntry's location in owner's linked list

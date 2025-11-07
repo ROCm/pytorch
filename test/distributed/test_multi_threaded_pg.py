@@ -25,8 +25,11 @@ from torch.testing._internal.common_distributed import (
 from torch.testing._internal.common_utils import IS_SANDCASTLE, run_tests, TestCase
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DEFAULT_WORLD_SIZE = 4
 
 
@@ -332,7 +335,11 @@ class TestCollectivesWithBaseClass(MultiThreadedTestCase):
                 return grad_output * result
 
         x = torch.tensor(
+<<<<<<< HEAD
             [dist.get_rank()], dtype=torch.float, device=device_type, requires_grad=True
+=======
+            [dist.get_rank()], dtype=torch.float, device="cuda", requires_grad=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         x = MyFunc.apply(x)
         x.sum().backward()

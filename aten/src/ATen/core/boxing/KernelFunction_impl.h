@@ -15,7 +15,11 @@ std::enable_if_t<
         std::is_base_of_v<Base, Child>,
     std::unique_ptr<Base>>
 make_unique_base(Args&&... args) {
+<<<<<<< HEAD
   return std::make_unique<Child>(std::forward<Args>(args)...);
+=======
+  return std::unique_ptr<Base>(new Child(std::forward<Args>(args)...));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 } // namespace detail
 

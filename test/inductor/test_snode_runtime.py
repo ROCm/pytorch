@@ -56,7 +56,11 @@ class TestCase(InductorTestCase):
 
     """
     Helper methods to compare runtime estimate against 0. Since this estimate is hardware dependent,
+<<<<<<< HEAD
     stronger comparisons may fail depending on the host's specs.
+=======
+    stronger comparisons may fail dependending on the host's specs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     atol/rtol must be provided explicitly with each call, since precision/rel_tol overrides are not always utilized
     """

@@ -65,7 +65,10 @@ from .exc import (
     MissingOperatorWithDecomp,
     MissingOperatorWithoutDecomp,
 )
+<<<<<<< HEAD
 from .fx_utils import count_flops_fx
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .ir import (
     Constant,
     DonatedBuffer,
@@ -75,7 +78,10 @@ from .ir import (
     InputBuffer,
     Pointwise,
     Reduction,
+<<<<<<< HEAD
     ShapeAsConstantBuffer,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     StorageBox,
     TensorBox,
     TorchBindObject,
@@ -123,7 +129,10 @@ if TYPE_CHECKING:
     from torch.fx.graph import Graph
 
     from .codegen.wrapper import PythonWrapperCodegen
+<<<<<<< HEAD
     from .dependencies import Dep
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .scheduler import BaseSchedulerNode
 
     CompiledModule = Union[ModuleType, FileBackedGraphModule]
@@ -312,7 +321,10 @@ class GraphLowering(torch.fx.Interpreter):
         const_module: Optional[GraphLowering] = None,
         name: Optional[str] = None,
         inputs_to_check: Optional[Sequence[int]] = None,
+<<<<<<< HEAD
         fx_wrapper: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         super().__init__(gm)
         self.example_inputs = example_inputs
@@ -342,7 +354,10 @@ class GraphLowering(torch.fx.Interpreter):
             shape_env.deferred_runtime_asserts.copy()
         )
         self.bound_unbacked_symbols = OrderedSet[sympy.Symbol]()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.sizevars = SizeVarAllocator(shape_env)
         self.graph_input_names: list[str] = []
         self.graph_inputs: dict[str, Union[TensorBox, TorchBindObject, sympy.Expr]] = {}
@@ -393,6 +408,11 @@ class GraphLowering(torch.fx.Interpreter):
         self.inplaced_to_remove: OrderedSet[str] = OrderedSet()
         self.device_ops: DeviceOpOverrides = None  # type: ignore[assignment]
         self.wrapper_code: PythonWrapperCodegen = None  # type: ignore[assignment]
+<<<<<<< HEAD
+=======
+        # See `ProxyExecutor Design Note` in ir.py for more details
+        self.extern_kernel_nodes: list[ir.ExternKernelNode] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         from torch._inductor.extern_node_serializer import extern_node_json_serializer
 
@@ -412,7 +432,10 @@ class GraphLowering(torch.fx.Interpreter):
         self.creation_time = time.time()
         self.name = name  # type: ignore[assignment]
         self.cpp_wrapper = cpp_wrapper
+<<<<<<< HEAD
         self.fx_wrapper = fx_wrapper
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # record multi_kernel choice for cpp_wrapper so the second pass knows
         # which sub-kernel is picked. Copy cpp_wrapper to another variable
@@ -487,9 +510,12 @@ class GraphLowering(torch.fx.Interpreter):
 
         self.bw_donated_idxs = get_donated_idxs()
 
+<<<<<<< HEAD
         # Cache for dep size hints to avoid expensive recomputation
         self.dep_size_hint_cache: dict[Dep, int] = {}
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def freeze_runtime_asserts(self) -> None:
         self._shape_env.freeze_runtime_asserts()
 
@@ -575,6 +601,7 @@ class GraphLowering(torch.fx.Interpreter):
         assert isinstance(feature, BackendFeature), feature
         return feature in self.get_backend_features(get_device_type(device))
 
+<<<<<<< HEAD
     def get_dep_size_hint(self, dep: Dep) -> int:
         """
         Get the size hint for a dependency with caching to avoid expensive recomputation.
@@ -592,6 +619,8 @@ class GraphLowering(torch.fx.Interpreter):
             self.dep_size_hint_cache[dep] = res
         return self.dep_size_hint_cache[dep]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_current_device_or_throw(self) -> torch.device:
         if device := self.current_device:
             return device
@@ -682,6 +711,7 @@ class GraphLowering(torch.fx.Interpreter):
 
         # only grouped convolutions benchmarked as slower in conv samples for inference only
         if is_inference:
+<<<<<<< HEAD
             flop_counts: dict[str, float] = defaultdict(float)
             for node in conv_nodes:
                 counted_flops = count_flops_fx(node)
@@ -700,6 +730,34 @@ class GraphLowering(torch.fx.Interpreter):
                 flop_counts[node_type] += counted_flops
             else:
                 log.debug("Conv inputs meta not found")
+=======
+            from torch.utils.flop_counter import FlopCounterMode
+
+            flop_counts: dict[str, float] = defaultdict(float)
+            for node in conv_nodes:
+                success, args, kwargs = torch._inductor.fx_utils.get_fake_args_kwargs(
+                    node
+                )
+
+                if success:
+                    with FlopCounterMode(display=False) as flop_counter_mode:
+                        with V.fake_mode:
+                            node.target(*args, **kwargs)
+
+                    counted_flops = flop_counter_mode.get_total_flops()
+                    if is_grouped(node):
+                        node_type = "grouped"
+                    elif is_small_channel(node):
+                        node_type = "small"
+                    elif is_in_out_channel(node):
+                        node_type = "in_out"
+                    else:
+                        node_type = "default"
+
+                    flop_counts[node_type] += counted_flops
+                else:
+                    log.debug("Conv inputs meta not found")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # average benchmarked channels last speedup / slowdown, < 1 is speedup.
             # taken from the set of convolution inputs in benchmarks/dynamo/microbenchmarks/operator_inp_logs/torchbench_train/
@@ -1046,7 +1104,11 @@ class GraphLowering(torch.fx.Interpreter):
 
     def add_tensor_constant(
         self, data: Tensor, name: Optional[str] = None
+<<<<<<< HEAD
     ) -> Union[TensorBox, ir.ShapeAsConstantBuffer]:
+=======
+    ) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_name = self.allocate_non_dup_const_name(name, data)
         return TensorBox.create(
             ir.ConstantBuffer(
@@ -1112,11 +1174,18 @@ class GraphLowering(torch.fx.Interpreter):
             return None
         # See note: Note: [Generator arguments in AOTDispatcher]
         elif isinstance(example, torch.Generator):
+<<<<<<< HEAD
             assert len(V.graph.current_node.users) == 1 and next(
                 iter(V.graph.current_node.users)
             ).target in (
                 torch._prims.rng_prims.graphsafe_run_with_rng_state,
                 torch.ops.higher_order.invoke_subgraph,
+=======
+            assert (
+                len(V.graph.current_node.users) == 1
+                and next(iter(V.graph.current_node.users)).target
+                is torch._prims.rng_prims.graphsafe_run_with_rng_state
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             gen = ir.GeneratorState(name=target, device=example.device)
             self.graph_inputs[target] = gen  # type: ignore[assignment]
@@ -1156,7 +1225,11 @@ class GraphLowering(torch.fx.Interpreter):
 
         self.graph_inputs[target] = tensor
         self.graph_input_names.append(target)
+<<<<<<< HEAD
         self.graph_inputs_original[target] = tensor.data.data  # type: ignore[union-attr]
+=======
+        self.graph_inputs_original[target] = tensor.data.data
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.current_node.users:  # cudagraphs should work with an unused CPU input
             self.add_device_info(example.device)
 
@@ -1206,9 +1279,13 @@ class GraphLowering(torch.fx.Interpreter):
                     error.operator_str(target, args, kwargs),
                 )
 
+<<<<<<< HEAD
                 tag: Optional[torch._C.Tag] = get_layout_constraint_tag(
                     target, with_default=False
                 )
+=======
+                tag = get_layout_constraint_tag(target, with_default=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if (
                     tag is None
                     and torch._library.utils.is_builtin(target)
@@ -1225,10 +1302,15 @@ class GraphLowering(torch.fx.Interpreter):
                     # and identify them one by one.
                     decided_constraint = require_contiguous  # type: ignore[assignment]
                 else:
+<<<<<<< HEAD
                     default_tag: torch._C.Tag = get_layout_constraint_tag(
                         target, with_default=True
                     )
                     decided_constraint = tag_to_layout_constraint(default_tag)
+=======
+                    tag = get_layout_constraint_tag(target, with_default=True)
+                    decided_constraint = tag_to_layout_constraint(tag)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 make_fallback(target, layout_constraint=decided_constraint)
 
@@ -1302,9 +1384,13 @@ class GraphLowering(torch.fx.Interpreter):
         target: str,  # type: ignore[override]
         args: tuple[()],  # type: ignore[override]
         kwargs: dict[str, object],
+<<<<<<< HEAD
     ) -> Union[
         Constant, TensorBox, ShapeAsConstantBuffer, ir.Subgraph, TorchBindObject
     ]:
+=======
+    ) -> Union[Constant, TensorBox, ir.Subgraph, TorchBindObject]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # this is a constant
         value = getattr_recursive(self.module, target)  # type: ignore[arg-type]
 
@@ -1565,10 +1651,15 @@ class GraphLowering(torch.fx.Interpreter):
         ):
             if (
                 n.op == "call_function"
+<<<<<<< HEAD
                 # this path only for built-in operators
                 and n.target
                 and isinstance(n.target, torch._ops.OpOverload)
                 and torch._library.utils.is_builtin(n.target)
+=======
+                and n.target
+                not in (operator.getitem, torch._higher_order_ops.invoke_subgraph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and (
                     fallback_node_due_to_unsupported_type(n)
                     or CompilerBisector.disable_subsystem(
@@ -1829,7 +1920,11 @@ class GraphLowering(torch.fx.Interpreter):
 
         shape_env = V.graph.sizevars.shape_env
 
+<<<<<<< HEAD
         # An input can be unbacked symint i.e.: when mark_unabcked is used.
+=======
+        # An input can an unbacked symint i.e.: when mark_unabcked is used.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # in that case add it to new_unbacked_defs.
         if (
             n.op == "placeholder"
@@ -1896,7 +1991,10 @@ class GraphLowering(torch.fx.Interpreter):
             V.fake_mode.shape_env.unbacked_renamings.get(s, s)
             for s in unbacked_bindings.keys()
         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert new_unbacked_defs >= renamed_unbacked_bindings, (
             f"failed {new_unbacked_defs} >= {renamed_unbacked_bindings} (inductor >= fx)\n"
             f"fx node is: {n.format_node()}\n"
@@ -2019,7 +2117,11 @@ class GraphLowering(torch.fx.Interpreter):
 
         self.device_ops = get_device_op_overrides(self.device_type)
         wrapper_code_gen_cls = get_wrapper_codegen_for_device(
+<<<<<<< HEAD
             self.device_type, self.cpp_wrapper, self.fx_wrapper
+=======
+            self.device_type, self.cpp_wrapper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         assert wrapper_code_gen_cls is not None, (
             f"Device {self.device_type} not supported"

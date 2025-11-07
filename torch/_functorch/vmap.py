@@ -9,18 +9,31 @@
 import contextlib
 import functools
 import itertools
+<<<<<<< HEAD
+=======
+import os
+import threading
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from functools import partial
 from typing import Any, Callable, Optional, Union
 
 import torch
 from torch import Tensor
+<<<<<<< HEAD
 from torch._C._functorch import is_batchedtensor
 from torch._functorch.predispatch import (
+=======
+from torch._C._functorch import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _add_batch_dim,
     _remove_batch_dim,
     _vmap_decrement_nesting,
     _vmap_increment_nesting,
+<<<<<<< HEAD
     lazy_load_decompositions,
+=======
+    is_batchedtensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.utils._pytree import (
     _broadcast_to_and_flatten,
@@ -257,6 +270,60 @@ def _get_name(func: Callable):
     return repr(func)
 
 
+<<<<<<< HEAD
+=======
+DECOMPOSITIONS_LOADED = False
+DECOMPOSITIONS_LOCK = threading.Lock()
+VMAP_DECOMPOSITIONS_LIB = None
+
+
+# torch.package, Python 3.11, and torch.jit-less environments are unhappy with
+# decompositions. Only load them when needed if possible.
+def lazy_load_decompositions():
+    global DECOMPOSITIONS_LOADED
+    if DECOMPOSITIONS_LOADED:
+        return
+
+    with DECOMPOSITIONS_LOCK:
+        if DECOMPOSITIONS_LOADED:
+            return
+
+        if not (os.environ.get("PYTORCH_JIT", "1") == "1" and __debug__):
+            DECOMPOSITIONS_LOADED = True
+            return
+
+        # use an alternate way to register an operator into the decomposition table
+        # _register_jit_decomposition doesn't work for some operators, e.g. addr,
+        #  because the Tensor types generated cannot be unioned by torchscript
+        # decomp should be type OpOverload
+        global VMAP_DECOMPOSITIONS_LIB
+        VMAP_DECOMPOSITIONS_LIB = torch.library.Library(
+            "aten", "IMPL", "FuncTorchBatched"
+        )
+
+        from torch._decomp import decomposition_table
+
+        def _register_python_decomposition_vmap(decomp):
+            if decomp in decomposition_table:
+                VMAP_DECOMPOSITIONS_LIB.impl(decomp, decomposition_table[decomp])
+            else:
+                raise RuntimeError(f"could not find decomposition for {decomp}")
+
+        _register_python_decomposition_vmap(torch.ops.aten.mse_loss_backward.default)
+        _register_python_decomposition_vmap(
+            torch.ops.aten.smooth_l1_loss_backward.default
+        )
+        _register_python_decomposition_vmap(torch.ops.aten.huber_loss_backward.default)
+        _register_python_decomposition_vmap(torch.ops.aten.nll_loss_forward.default)
+        _register_python_decomposition_vmap(torch.ops.aten.nll_loss2d_forward.default)
+        _register_python_decomposition_vmap(torch.ops.aten.nll_loss_backward.default)
+        _register_python_decomposition_vmap(torch.ops.aten.nll_loss2d_backward.default)
+        _register_python_decomposition_vmap(torch.ops.aten.addr.default)
+
+        DECOMPOSITIONS_LOADED = True
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def vmap_impl(func, in_dims, out_dims, randomness, chunk_size, *args, **kwargs):
     lazy_load_decompositions()
     _check_out_dims_is_int_or_int_pytree(out_dims, func)

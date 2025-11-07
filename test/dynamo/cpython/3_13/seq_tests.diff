@@ -1,17 +1,27 @@
 diff --git a/test/dynamo/cpython/3_13/seq_tests.py b/test/dynamo/cpython/3_13/seq_tests.py
+<<<<<<< HEAD
 index 719c9434a16..290e57c04a0 100644
 --- a/test/dynamo/cpython/3_13/seq_tests.py
 +++ b/test/dynamo/cpython/3_13/seq_tests.py
 @@ -1,3 +1,57 @@
+=======
+index 719c9434a16..4325892276d 100644
+--- a/test/dynamo/cpython/3_13/seq_tests.py
++++ b/test/dynamo/cpython/3_13/seq_tests.py
+@@ -1,3 +1,54 @@
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +# ======= BEGIN Dynamo patch =======
 +# Owner(s): ["module: dynamo"]
 +
 +# ruff: noqa
 +# flake8: noqa
 +
+<<<<<<< HEAD
 +# Test copied from
 +# https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/seq_tests.py
 +
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +import sys
 +import torch
 +import torch._dynamo.test_case
@@ -60,14 +70,22 @@ index 719c9434a16..290e57c04a0 100644
  """
  Tests common to tuple, list and UserList.UserList
  """
+<<<<<<< HEAD
 @@ -95,7 +149,7 @@ class LyingList(list):
      def __iter__(self):
          yield 1
 
+=======
+@@ -95,7 +146,7 @@ class LyingList(list):
+     def __iter__(self):
+         yield 1
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class CommonTest(unittest.TestCase):
 +class CommonTest(__TestCase):
      # The type to be tested
      type2test = None
+<<<<<<< HEAD
 
 @@ -115,13 +169,14 @@ class CommonTest(unittest.TestCase):
          uu2 = self.type2test(u2)
@@ -181,3 +199,6 @@ index 719c9434a16..290e57c04a0 100644
 
          a = self.type2test([0, 1, 2, 3])
          self.assertRaises(BadExc, a.index, BadCmp())
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

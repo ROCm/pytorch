@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 #include <c10/metal/common.h>
 #include <metal_simdgroup>
 #include <metal_stdlib>
 using namespace metal;
 using c10::metal::simdgroup_size;
+=======
+#include <metal_simdgroup>
+#include <metal_stdlib>
+using namespace metal;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <typename T>
 kernel void layer_norm_single_row(
@@ -20,6 +26,10 @@ kernel void layer_norm_single_row(
     uint tid [[thread_position_in_threadgroup]],
     uint simd_lane_id [[thread_index_in_simdgroup]],
     uint simdgroup_id [[simdgroup_index_in_threadgroup]]) {
+<<<<<<< HEAD
+=======
+  constexpr int SIMD_SIZE = 32;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   constexpr int N_READS = 4;
 
   // each threadgroup handles one full “row” of length axis_size
@@ -53,8 +63,13 @@ kernel void layer_norm_single_row(
   }
 
   // threadgroup‐wide reduction
+<<<<<<< HEAD
   threadgroup float local_sums[simdgroup_size];
   threadgroup float local_sums_sq[simdgroup_size];
+=======
+  threadgroup float local_sums[SIMD_SIZE];
+  threadgroup float local_sums_sq[SIMD_SIZE];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   threadgroup float tg_mean[1];
   threadgroup float tg_inv_std[1];
 
@@ -143,6 +158,10 @@ kernel void layer_norm_looped(
     uint lsize [[threads_per_threadgroup]],
     uint simd_lane_id [[thread_index_in_simdgroup]],
     uint simdgroup_id [[simdgroup_index_in_threadgroup]]) {
+<<<<<<< HEAD
+=======
+  constexpr int SIMD_SIZE = 32;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   constexpr int N_READS = 4;
 
   uint row_offset = tg_id * axis_size;
@@ -178,8 +197,13 @@ kernel void layer_norm_looped(
   partial_sum = simd_sum(partial_sum);
   partial_sum_sq = simd_sum(partial_sum_sq);
 
+<<<<<<< HEAD
   threadgroup float local_sums[simdgroup_size];
   threadgroup float local_sums_sq[simdgroup_size];
+=======
+  threadgroup float local_sums[SIMD_SIZE];
+  threadgroup float local_sums_sq[SIMD_SIZE];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   threadgroup float tg_mean[1];
   threadgroup float tg_inv_std[1];
 
@@ -288,6 +312,13 @@ kernel void layer_norm_looped(
 #define instantiate_layer_norm(DTYPE) \
   instantiate_layer_norm_single_row(DTYPE) instantiate_layer_norm_looped(DTYPE)
 
+<<<<<<< HEAD
 instantiate_layer_norm(float);
 instantiate_layer_norm(half);
 instantiate_layer_norm(bfloat);
+=======
+instantiate_layer_norm(float) instantiate_layer_norm(half)
+#if __METAL_VERSION__ >= 310
+    instantiate_layer_norm(bfloat)
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

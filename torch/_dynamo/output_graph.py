@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Core graph building functionality for PyTorch's Dynamo system. This module contains
 the essential components for constructing and managing FX graphs during compilation:
@@ -30,6 +35,7 @@ import operator
 import re
 import sys
 import traceback
+<<<<<<< HEAD
 import warnings
 import weakref
 from collections.abc import Generator, Sequence
@@ -37,6 +43,11 @@ from dataclasses import dataclass, field as dc_field
 from types import CodeType
 from typing import Any, Callable, cast, Optional, TYPE_CHECKING, Union
 from typing_extensions import ParamSpec, TypeVar
+=======
+import weakref
+from dataclasses import dataclass, field as dc_field
+from typing import Any, Callable, cast, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -58,7 +69,10 @@ from torch._guards import (
 )
 from torch._subclasses.fake_tensor import FakeTensor
 from torch._utils_internal import signpost_event
+<<<<<<< HEAD
 from torch.export.dynamic_shapes import _ConstraintTarget
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx._lazy_graph_module import _make_graph_module  # type: ignore[attr-defined]
 from torch.fx.experimental._backward_state import BackwardState
 from torch.fx.experimental.symbolic_shapes import (
@@ -68,7 +82,10 @@ from torch.fx.experimental.symbolic_shapes import (
     ShapeEnv,
     Specialization,
 )
+<<<<<<< HEAD
 from torch.fx.node import Target
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.passes.runtime_assert import insert_deferred_runtime_asserts
 from torch.multiprocessing.reductions import StorageWeakRef
 from torch.utils._ordered_set import OrderedSet
@@ -77,6 +94,7 @@ from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 from . import config, exc, logging as torchdynamo_logging, variables
 from .backends.registry import CompiledFn, CompilerFn
 from .bytecode_transformation import (
+<<<<<<< HEAD
     create_binary_slice,
     create_call_function,
     create_dup_top,
@@ -84,6 +102,11 @@ from .bytecode_transformation import (
     create_load_const,
     create_rot_n,
     create_swap,
+=======
+    create_call_function,
+    create_instruction,
+    create_load_const,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Instruction,
     unique_id,
 )
@@ -102,9 +125,14 @@ from .graph_deduplication import apply_graph_deduplication
 from .graph_region_tracker import GraphRegionTracker
 from .guards import GuardBuilder, install_guard
 from .mutation_guard import is_dynamic_nn_module
+<<<<<<< HEAD
 from .side_effects import AttributeMutationExisting, SideEffects, ValueMutationExisting
 from .source import (
     _get_source_debug_name,
+=======
+from .side_effects import AttributeMutationExisting, SideEffects
+from .source import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     AttrSource,
     BackwardStateSource,
     ConstantSource,
@@ -150,7 +178,11 @@ from .variables.builder import (
 )
 from .variables.ctx_manager import ContextWrappingVariable
 from .variables.lists import BaseListVariable
+<<<<<<< HEAD
 from .variables.misc import NullVariable
+=======
+from .variables.misc import CellVariable, NullVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .variables.nn_module import NNModuleVariable
 from .variables.tensor import (
     NumpyNdarrayVariable,
@@ -159,6 +191,7 @@ from .variables.tensor import (
     UnspecializedPythonVariable,
 )
 from .variables.torch_function import TensorWithTFOverrideVariable
+<<<<<<< HEAD
 from .variables.user_defined import UserDefinedDictVariable
 
 
@@ -166,6 +199,14 @@ if TYPE_CHECKING:
     from torch._dynamo.package import CompilePackage
     from torch._dynamo.symbolic_convert import InstructionTranslatorBase
 
+=======
+
+
+if TYPE_CHECKING:
+    from torch._dynamo.symbolic_convert import InstructionTranslatorBase
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 graph_tabular_log = torch._logging.getArtifactLogger(__name__, "graph")
 graph_code_log = torch._logging.getArtifactLogger(__name__, "graph_code")
@@ -197,31 +238,54 @@ class MutationInfo:
 
 
 class VariableTrackerCache:
+<<<<<<< HEAD
     def __init__(self) -> None:
         self.cache: dict[VariableTrackerCacheKey, VariableTracker] = {}
 
     def lookup(self, value: Any, source: Source) -> Optional[VariableTracker]:
+=======
+    def __init__(self):
+        self.cache = {}
+
+    def lookup(self, value, source):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         key = VariableTrackerCacheKey(id(value), source)
         if key not in self.cache:
             return None
         return self.cache[key]
 
+<<<<<<< HEAD
     def add(self, value: Any, source: Source, vt: VariableTracker) -> None:
         key = VariableTrackerCacheKey(id(value), source)
         self.cache[key] = vt
 
     def clone(self) -> "VariableTrackerCache":
+=======
+    def add(self, value, source, vt):
+        key = VariableTrackerCacheKey(id(value), source)
+        self.cache[key] = vt
+
+    def clone(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Needed for copy and restore graph state
         new_cache = VariableTrackerCache()
         new_cache.cache.update(self.cache)
         return new_cache
 
+<<<<<<< HEAD
     def clear(self) -> None:
+=======
+    def clear(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.cache.clear()
 
 
 @functools.cache
+<<<<<<< HEAD
 def _step_logger() -> Any:
+=======
+def _step_logger():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torchdynamo_logging.get_step_logger(log)
 
 
@@ -232,16 +296,28 @@ class GraphCompileReason:
     reason: str
     user_stack: list[traceback.FrameSummary]
 
+<<<<<<< HEAD
     # Indicates if this was a graph break reason due to graph break.
     graph_break: bool = True
 
     def __post_init__(self) -> None:
+=======
+    # Indicates if this was a graph compile reason due to graph break.
+    graph_break: bool = True
+
+    def __post_init__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.graph_break:
             graph_break_reasons.append(self)
 
 
+<<<<<<< HEAD
 def _get_gen_rand_values_fn(random_calls: Any) -> Callable[[], list[Any]]:
     def _gen_rand_values() -> list[Any]:
+=======
+def _get_gen_rand_values_fn(random_calls):
+    def _gen_rand_values():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [fn(*args, **kwargs) for fn, args, kwargs in random_calls]
 
     return _gen_rand_values
@@ -258,18 +334,29 @@ class FakeRootModule(torch.nn.Module):
     def __repr__(self) -> str:
         return "FakeRootModule(...)"
 
+<<<<<<< HEAD
     def add_nn_modules(self, nn_modules: dict[str, torch.nn.Module]) -> None:
+=======
+    def add_nn_modules(self, nn_modules: dict[str, torch.nn.Module]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for k, v in nn_modules.items():
             setattr(self, k, v)
 
 
 class WrapperBackend:
+<<<<<<< HEAD
     def __init__(self, backend: CompilerFn) -> None:
         self.backend: CompilerFn = backend
 
     def __call__(
         self, gm: torch.fx.GraphModule, example_inputs: list[torch.Tensor]
     ) -> CompiledFn:
+=======
+    def __init__(self, backend: CompilerFn):
+        self.backend: CompilerFn = backend
+
+    def __call__(self, gm: torch.fx.GraphModule, example_inputs: list[torch.Tensor]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.restore = checkpoint_params(gm)
         self.gm = gm
         copy_gm = copy.deepcopy(self.gm)
@@ -322,6 +409,7 @@ class OutputGraphGuardsState:
     dual_level: int
     functorch_layers: list[torch._functorch.pyfunctorch.FuncTorchInterpreter]
     current_device: Optional[torch.device]
+<<<<<<< HEAD
     global_state_guard: torch._C._dynamo.guards.GlobalStateGuard
     _guards: torch._guards.GuardsSet
     _aotautograd_guards: list[torch._guards.GuardEnvExpr]
@@ -343,6 +431,25 @@ class OutputGraphGuardsState:
 
     @property
     def aotautograd_guards(self) -> list[torch._guards.GuardEnvExpr]:
+=======
+
+    export: bool = False
+    export_constraints: bool = False
+
+    _guards: Optional[torch._guards.GuardsSet] = None
+    _aotautograd_guards: Optional[list[torch._guards.GuardEnvExpr]] = None
+
+    @property
+    def shape_env(self):
+        raise AssertionError(f"shape_env shouldn't be accessed from {type(self)}")
+
+    @property
+    def guards(self):
+        return self._guards
+
+    @property
+    def aotautograd_guards(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._aotautograd_guards
 
 
@@ -352,10 +459,13 @@ class StackLocalsMetadata:
     Stores metadata for a frame's stack and locals for the purposes of building resume functions
     """
 
+<<<<<<< HEAD
     num_stack: int = 0  # number of stack elements, minus removed NULLs
     locals_names: dict[str, int] = dc_field(
         default_factory=dict
     )  # order of locals codegen'd to the stack
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stack_null_idxes: list[int] = dc_field(default_factory=list)
     locals_null_keys: list[str] = dc_field(default_factory=list)
     stack_ctx_args: list[tuple[int, tuple[Any, ...]]] = dc_field(default_factory=list)
@@ -363,6 +473,7 @@ class StackLocalsMetadata:
     locals_ctx_args: list[tuple[str, tuple[Any, ...]]] = dc_field(default_factory=list)
 
 
+<<<<<<< HEAD
 # TODO we should expand this to make it work for atribtrary in/out
 @dataclass
 class ExportMetaData:
@@ -401,6 +512,8 @@ def get_builtins_dict(global_scope: Scope) -> dict[str, Any]:
     return f_builtins
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class OutputGraph(OutputGraphGuardsState):
     """
     Wrapper class to hold outputs of InstructionTranslator.  Mainly the
@@ -418,6 +531,7 @@ class OutputGraph(OutputGraphGuardsState):
         self,
         code_options: dict[str, Any],
         compiler_fn: Optional[CompilerFn],
+<<<<<<< HEAD
         root_tx: "InstructionTranslatorBase",
         export: bool,
         export_constraints: Sequence[_ConstraintTarget],
@@ -428,6 +542,18 @@ class OutputGraph(OutputGraphGuardsState):
         torch_function_mode_stack: list[torch.overrides.TorchFunctionMode],
         package: Optional["CompilePackage"],
     ) -> None:
+=======
+        root_tx,
+        export: bool,
+        export_constraints,
+        frame_state,
+        local_scope: Scope,
+        global_scope: Scope,
+        f_code,
+        torch_function_mode_stack,
+        package,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             local_scope,
             global_scope,
@@ -437,19 +563,26 @@ class OutputGraph(OutputGraphGuardsState):
             dual_level=torch.autograd.forward_ad._current_level,
             functorch_layers=torch._functorch.pyfunctorch.retrieve_all_functorch_interpreters(),
             current_device=torch.utils._device.CURRENT_DEVICE,
+<<<<<<< HEAD
             # initial_global_state is only None during NopTest.
             global_state_guard=torch._dynamo.convert_frame.initial_global_state
             or torch._C._dynamo.guards.GlobalStateGuard(),
             # These are set by @property instead, just initialize them as blank
             _guards=torch._guards.GuardsSet(),
             _aotautograd_guards=[],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.tracers = [SubgraphTracer(self, is_export=export)]
         # Map from graph input's `Source` to its `VariableTracker` to
         # de-duplicate graph inputs by source and reuse the tracker
         self.input_source_to_var: dict[Source, VariableTracker] = {}
         self.export = export
+<<<<<<< HEAD
         self.export_constraints = export_constraints  # type: ignore[assignment]
+=======
+        self.export_constraints = export_constraints
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.frame_state = frame_state
         self.cleanup_hooks: list[Callable[[], Any]] = []
         # compile_id is an id number for the current torch.compile
@@ -486,6 +619,10 @@ class OutputGraph(OutputGraphGuardsState):
             allow_scalar_outputs=config.capture_scalar_outputs,
             allow_dynamic_output_shape_ops=config.capture_dynamic_output_shape_ops,
             prefer_deferred_runtime_asserts_over_guards=config.prefer_deferred_runtime_asserts_over_guards,
+<<<<<<< HEAD
+=======
+            allow_complex_guards_as_runtime_asserts=config.allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             co_fields=self.co_fields,
         )
 
@@ -613,12 +750,16 @@ class OutputGraph(OutputGraphGuardsState):
             self.maybe_install_saved_tensors_hooks_subgraphs()
         )
 
+<<<<<<< HEAD
         # mangled alias -> module fqn name
         self.import_sources: dict[str, str] = {}
 
         self.export_metadata = ExportMetaData()
 
     def mark_bytecode_tracing_start(self) -> None:
+=======
+    def mark_bytecode_tracing_start(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.compiler_trace_stack.enter_context(
             dynamo_timed(
                 "bytecode_tracing",
@@ -626,6 +767,7 @@ class OutputGraph(OutputGraphGuardsState):
             )
         )
 
+<<<<<<< HEAD
     def mark_bytecode_tracing_stop(self) -> None:
         self.compiler_trace_stack.close()
 
@@ -636,12 +778,41 @@ class OutputGraph(OutputGraphGuardsState):
     def add_backward_state_hook(
         self, hook: VariableTracker, prefix: str = "hook"
     ) -> tuple[str, torch.fx.Proxy]:
+=======
+    def mark_bytecode_tracing_stop(self):
+        self.compiler_trace_stack.close()
+
+    def install_builtins_dict_in_fglobals(self):
+        # f_globals["__builtins__"] can be a dict or a module. This is an
+        # implementation detail -
+        # https://docs.python.org/3/library/builtins.html.
+
+        # This makes guarding on any builtin messy because the guard check_fn
+        # has to check if the __builtins__ is a module or dict, and then access
+        # by either using getattr or getitem respectively.
+
+        # To solve this problem, we insert a new entry in f_globals which points
+        # to the builtins __dict__ and then we guard any builtin on this dict.
+        # To avoid any collision with the pre-existing keys, we use the
+        # install_global to give us a unique dict key.
+
+        f_builtins = self.global_scope["__builtins__"]
+        if not isinstance(f_builtins, dict):
+            f_builtins = f_builtins.__dict__
+        return self.install_global("__builtins_dict__", f_builtins)
+
+    def add_backward_state_hook(self, hook: VariableTracker, prefix="hook"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name = f"{prefix}{len(self.backward_state)}"
         assert name not in self.backward_state
         self.backward_state[name] = hook
         return name, self.get_backward_state_proxy()
 
+<<<<<<< HEAD
     def get_backward_state_proxy(self) -> torch.fx.Proxy:
+=======
+    def get_backward_state_proxy(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.backward_state_proxy is None:
             if self.export:
                 unimplemented_v2(
@@ -662,7 +833,11 @@ class OutputGraph(OutputGraphGuardsState):
         return self.backward_state_proxy
 
     # This gets its own helper function so guards DEBUG logs are more informative
+<<<<<<< HEAD
     def init_ambient_guards(self) -> None:
+=======
+    def init_ambient_guards(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Register a SHAPE_ENV guard to make sure we setup shape guards
         # that show up in ShapeEnv
         self.guards.add(ShapeEnvSource().make_guard(GuardBuilder.SHAPE_ENV))
@@ -720,8 +895,12 @@ class OutputGraph(OutputGraphGuardsState):
         assert unpack_subgraph_name == "saved_tensors_hooks_unpack_0"
         return [pack_subgraph_name, unpack_subgraph_name]
 
+<<<<<<< HEAD
     def dump_guards_state(self) -> OutputGraphGuardsState:
         # Dump a serializable version of self without extras
+=======
+    def dump_guards_state(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return OutputGraphGuardsState(
             local_scope=self.local_scope,
             global_scope=self.global_scope,
@@ -731,18 +910,27 @@ class OutputGraph(OutputGraphGuardsState):
             dual_level=self.dual_level,
             functorch_layers=self.functorch_layers,
             current_device=self.current_device,
+<<<<<<< HEAD
             global_state_guard=self.global_state_guard,
             name_of_builtins_dict_key_in_fglobals=self.name_of_builtins_dict_key_in_fglobals,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             export=self.export,
             export_constraints=self.export_constraints,
             _guards=self.guards,
             _aotautograd_guards=self.aotautograd_guards,
+<<<<<<< HEAD
             skip_guards_check=self.skip_guards_check,
         )
 
     def synthetic_graph_input(
         self, fn: Callable[..., Any], args: tuple[Any, ...]
     ) -> VariableTracker:
+=======
+        )
+
+    def synthetic_graph_input(self, fn, args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         call fn(*args) before the graph runs and turn the result into a fake input.
         """
@@ -768,15 +956,23 @@ class OutputGraph(OutputGraphGuardsState):
         )
         return result
 
+<<<<<<< HEAD
     def add_cleanup_hook(self, fn: Callable[[], Any]) -> None:
         self.cleanup_hooks.append(fn)
 
     def call_cleanup_hooks(self) -> None:
+=======
+    def add_cleanup_hook(self, fn: Callable[[], Any]):
+        self.cleanup_hooks.append(fn)
+
+    def call_cleanup_hooks(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for hook in reversed(self.cleanup_hooks):
             hook()
         self.cleanup_hooks.clear()
 
     @property
+<<<<<<< HEAD
     def root_tracer(self) -> "SubgraphTracer":
         return self.tracers[0]
 
@@ -785,15 +981,30 @@ class OutputGraph(OutputGraphGuardsState):
         return self.tracers[-1]
 
     def is_root_tracer(self) -> bool:
+=======
+    def root_tracer(self):
+        return self.tracers[0]
+
+    @property
+    def current_tracer(self):
+        return self.tracers[-1]
+
+    def is_root_tracer(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Helper to tell if we are inside the higher order operator tracing.
         return len(self.tracers) == 1
 
     @property
+<<<<<<< HEAD
     def graph(self) -> torch.fx.Graph:
+=======
+    def graph(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.current_tracer.graph
 
     # TODO(rzou): can delete after we refactor speculate_subgraph to use nested GraphTracer.
     @graph.setter
+<<<<<<< HEAD
     def graph(self, value: torch.fx.Graph) -> None:
         self.current_tracer.graph = value
 
@@ -807,6 +1018,21 @@ class OutputGraph(OutputGraphGuardsState):
 
     @property
     def bound_symbols(self) -> dict[sympy.Symbol, Union[torch.fx.Proxy, "LazyProxy"]]:
+=======
+    def graph(self, value):
+        self.current_tracer.graph = value
+
+    @property
+    def input_name_to_proxy(self):
+        return self.current_tracer.input_name_to_proxy
+
+    @property
+    def real_value_cache(self):
+        return self.current_tracer.real_value_cache
+
+    @property
+    def bound_symbols(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.current_tracer.bound_symbols
 
     # If you are here, and you're looking for create_graph_input,
@@ -815,6 +1041,7 @@ class OutputGraph(OutputGraphGuardsState):
     # - self.root_tracer.create_graph_input
     # See NOTE [HigherOrderOperator tracing design] for more context.
 
+<<<<<<< HEAD
     def create_proxy(self, *args: Any, **kwargs: Any) -> torch.fx.Proxy:
         return self.current_tracer.create_proxy(*args, **kwargs)
 
@@ -828,6 +1055,19 @@ class OutputGraph(OutputGraphGuardsState):
     def subtracer(
         self, source_target: Optional[Target], prior_tracer: "SubgraphTracer"
     ) -> Generator[fx.Tracer, None, None]:
+=======
+    def create_proxy(self, *args, **kwargs):
+        return self.current_tracer.create_proxy(*args, **kwargs)
+
+    def create_node(self, *args, **kwargs):
+        return self.current_tracer.create_node(*args, **kwargs)
+
+    def remove_node(self, *args, **kwargs):
+        return self.current_tracer.remove_node(*args, **kwargs)
+
+    @contextlib.contextmanager
+    def subtracer(self, source_target, prior_tracer):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_scope_ctx = enter_new_scope()
         try:
             if prior_tracer:
@@ -851,6 +1091,7 @@ class OutputGraph(OutputGraphGuardsState):
             self.tracers.pop()
 
     @property
+<<<<<<< HEAD
     def output(self) -> "OutputGraph":
         return self
 
@@ -863,6 +1104,17 @@ class OutputGraph(OutputGraphGuardsState):
     def shape_env(self) -> ShapeEnv:
         assert self.tracing_context.fake_mode is not None
         assert self.tracing_context.fake_mode.shape_env is not None
+=======
+    def output(self):
+        return self
+
+    @property
+    def fake_mode(self):
+        return self.tracing_context.fake_mode
+
+    @property
+    def shape_env(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.tracing_context.fake_mode.shape_env
 
     @property
@@ -874,12 +1126,19 @@ class OutputGraph(OutputGraphGuardsState):
         return self.tracing_context.module_context.nn_modules
 
     @property
+<<<<<<< HEAD
     def aotautograd_guards(self) -> list[torch._guards.GuardEnvExpr]:
         return self.tracing_context.guards_context.aotautograd_guards
 
     def save_global_state(
         self, out: Optional[dict[str, tuple[Callable[..., Any], bool]]] = None
     ) -> None:
+=======
+    def aotautograd_guards(self):
+        return self.tracing_context.guards_context.aotautograd_guards
+
+    def save_global_state(self, out=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Saves to out if it is provided. Else saves to the tracing context's global_state.
         """
@@ -915,6 +1174,7 @@ class OutputGraph(OutputGraphGuardsState):
             torch.is_autocast_cache_enabled(),
         )
 
+<<<<<<< HEAD
     def push_tx(self, tx: "InstructionTranslatorBase") -> None:
         self._current_tx.append(tx)
 
@@ -935,6 +1195,25 @@ class OutputGraph(OutputGraphGuardsState):
         return len([x for x in self.graph.nodes if x.op == "output"]) > 0
 
     def get_submodule(self, keys: str) -> Union[torch.nn.Module, Any]:
+=======
+    def push_tx(self, tx):
+        self._current_tx.append(tx)
+
+    def pop_tx(self):
+        return self._current_tx.pop()
+
+    @property
+    def current_tx(self):
+        return self.root_tx if not self._current_tx else self._current_tx[-1]
+
+    def count_calls(self):
+        return count_calls(self.graph)
+
+    def is_empty_graph(self):
+        return len(list(self.graph.nodes)) == 0
+
+    def get_submodule(self, keys):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert keys
         obj: Union[torch.nn.Module, dict[str, torch.nn.Module]] = self.nn_modules
         for k in keys.split("."):
@@ -944,7 +1223,11 @@ class OutputGraph(OutputGraphGuardsState):
                 obj = getattr(obj, k)
         return obj
 
+<<<<<<< HEAD
     def new_var(self, name: str = "tmp") -> str:
+=======
+    def new_var(self, name="tmp"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         existing = set(self.code_options["co_varnames"])
         # In common case, this will be O(1)
         while True:
@@ -953,13 +1236,21 @@ class OutputGraph(OutputGraphGuardsState):
                 self.code_options["co_varnames"] += (var,)
                 return var
 
+<<<<<<< HEAD
     def update_co_names(self, name: str) -> None:
+=======
+    def update_co_names(self, name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Ensure self.code_options.co_names contains name"""
         if name not in self.code_options["co_names"]:
             self.code_options["co_names"] += (name,)
 
     @staticmethod
+<<<<<<< HEAD
     def module_key_name(*names: Any) -> str:
+=======
+    def module_key_name(*names):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # create a new unique name
         name = "_".join(map(str, names))
         # Strip the guard lookup L/G access
@@ -988,9 +1279,15 @@ class OutputGraph(OutputGraphGuardsState):
     def register_attr_or_module(
         self,
         target: Union[torch.nn.Module, torch.Tensor, Any],
+<<<<<<< HEAD
         *names: Any,
         **options: Any,
     ) -> VariableTracker:
+=======
+        *names,
+        **options,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_dynamic_nn_module(target, self.export):
             # Instead of returning UnspecializedNNModuleVariable, call
             # VariableTracker.build so that it is tracked for mutation.
@@ -1017,13 +1314,20 @@ class OutputGraph(OutputGraphGuardsState):
                 # are registered as get_attr nodes in the root graph.
                 tracer = self.root_tracer
 
+<<<<<<< HEAD
             def wrap_name(module_key: str) -> VariableTracker:
+=======
+            def wrap_name(module_key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert self.param_name_to_source is not None
                 self.param_name_to_source[module_key] = source
 
                 # Check if the attr has already been registered. This can happen
                 # when two different sources point to the same tensor.
+<<<<<<< HEAD
                 assert self.root_tx is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if target in self.root_tx.output.side_effects:
                     return self.root_tx.output.side_effects[target]
 
@@ -1045,8 +1349,13 @@ class OutputGraph(OutputGraphGuardsState):
                 # different sources pointing to the same tensor object.
                 vt = self.root_tx.output.side_effects.track_object_existing(target, vt)
 
+<<<<<<< HEAD
                 assert "tensor_dict" not in vt.as_proxy().node.meta
                 vt.as_proxy().node.meta["tensor_dict"] = _extract_tensor_dict(target)
+=======
+                assert "tensor_dict" not in vt.proxy.node.meta
+                vt.proxy.node.meta["tensor_dict"] = _extract_tensor_dict(target)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 return vt
 
@@ -1056,7 +1365,11 @@ class OutputGraph(OutputGraphGuardsState):
             if source:
                 install_guard(source.make_guard(GuardBuilder.NN_MODULE))
 
+<<<<<<< HEAD
                 def wrap_name(module_key: str) -> VariableTracker:
+=======
+                def wrap_name(module_key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return NNModuleVariable(type(target), module_key, target, **options)
 
             else:
@@ -1064,7 +1377,11 @@ class OutputGraph(OutputGraphGuardsState):
                 # from higher order ops. NNModuleVariable tracker can't be
                 # sourceless, so let's return a unspecializedNNModule variable
                 # tracker.
+<<<<<<< HEAD
                 def wrap_name(module_key: str) -> VariableTracker:
+=======
+                def wrap_name(module_key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return variables.UnspecializedNNModuleVariable(target, **options)
 
         elif isinstance(target, (torch.SymInt, torch.SymFloat)):
@@ -1075,7 +1392,11 @@ class OutputGraph(OutputGraphGuardsState):
             # own storage
             # alas, this is like this for now
 
+<<<<<<< HEAD
             def wrap_name(module_key: str) -> VariableTracker:
+=======
+            def wrap_name(module_key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return SymNodeVariable.create(
                     self,
                     self.create_proxy("get_attr", module_key, (), {}),
@@ -1086,7 +1407,11 @@ class OutputGraph(OutputGraphGuardsState):
             # HACKY CODE REGION END
         else:
 
+<<<<<<< HEAD
             def wrap_name(module_key: str) -> VariableTracker:
+=======
+            def wrap_name(module_key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.output.update_co_names(module_key)
                 self.global_scope[module_key] = target
                 return VariableTracker.build(
@@ -1105,7 +1430,11 @@ class OutputGraph(OutputGraphGuardsState):
         self.nn_modules[name] = target
         if isinstance(target, torch.nn.Module):
 
+<<<<<<< HEAD
             def register_leaf_name(leaf_name: str) -> None:
+=======
+            def register_leaf_name(leaf_name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert self.param_name_to_source is not None
                 new_source = ParamBufferSource(source, leaf_name)
                 new_name = f"{name}.{leaf_name}"
@@ -1126,9 +1455,13 @@ class OutputGraph(OutputGraphGuardsState):
 
         return wrap_name(name)
 
+<<<<<<< HEAD
     def handle_aliases_for_stolen_lists(
         self, tx: "InstructionTranslatorBase"
     ) -> tuple[list[Instruction], dict[Source, Source]]:
+=======
+    def handle_aliases_for_stolen_lists(self, tx):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # If list inputs are stolen, but still needed after the function call, create aliases to keep them alive
         maybe_gm = self.local_scope.get("self")
         stolen_list_names = get_locals_to_steal(maybe_gm)
@@ -1214,9 +1547,13 @@ class OutputGraph(OutputGraphGuardsState):
         # other parts of Dynamo like guards.
         return alias_insts, overridden_sources
 
+<<<<<<< HEAD
     def _get_stack_values_to_restore(
         self, tx: "InstructionTranslatorBase", stack_pops: int
     ) -> tuple[list[VariableTracker], StackLocalsMetadata]:
+=======
+    def _get_stack_values_to_restore(self, tx, stack_pops):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Gets the stack + locals values belonging to tx that need to be restored.
 
@@ -1228,6 +1565,10 @@ class OutputGraph(OutputGraphGuardsState):
 
         Returns:
             - stack_values: stack and locals values that need to be restored
+<<<<<<< HEAD
+=======
+            - restore_vars: names of locals corresponding to the locals part of `stack_values`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             - meta: locations of NULLs and ContextWrappingVariables in the stack/locals
                 (ignores the top `stack_pops` values on the stack)
         """
@@ -1256,10 +1597,16 @@ class OutputGraph(OutputGraphGuardsState):
                 meta.stack_ctx_args.append((len(stack_values) - 1, target_values))
                 meta.stack_ctx_idxes_orig.append(i)
 
+<<<<<<< HEAD
         meta.num_stack = len(stack_values)
 
         cell_and_freevars = set(tx.cellvars() + tx.freevars())
 
+=======
+        # Add all the local vars to the "stack" so restore at the end
+        restore_vars: list[str] = []
+        val_to_names: dict[VariableTracker, list[str]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NB: Typically (i.e., for graph compile from RETURN_VALUE),
         # symbolic_locals will be empty at this point, as prune_dead_locals
         # will clear out all of symbolic_locals because RETURN_VALUE is the
@@ -1274,6 +1621,7 @@ class OutputGraph(OutputGraphGuardsState):
             # This will in turn result in spurious variables showing up in the graph.
             # This was very tricky to debug. For an example, dump the graph at call_user_compiler
             # while running test_subgraphs.py
+<<<<<<< HEAD
             # Do not include top-frame unmodified locals here - otherwise, the compiled graph may
             # erroneously include them as part of the return. We manually codegen them afterward.
             if (
@@ -1288,6 +1636,14 @@ class OutputGraph(OutputGraphGuardsState):
             # Do not load variable if it is NULL.
             if sys.version_info >= (3, 12):
                 # NOTE: do not use isinstance, since it realizes lazy VT's
+=======
+            if isinstance(v.source, LocalSource) and v.source.local_name == k:
+                continue  # no need to restore initial state
+            if isinstance(v, CellVariable) and v.local_name == k:
+                continue  # no need to restore initial state
+            # Do not load variable if it is NULL.
+            if sys.version_info >= (3, 12):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Continuation function will load the NULL for v.
                 if type.__instancecheck__(NullVariable, v):
                     meta.locals_null_keys.append(k)
@@ -1295,23 +1651,43 @@ class OutputGraph(OutputGraphGuardsState):
             else:
                 # A variable should never be NULL in < 3.12
                 assert not type.__instancecheck__(NullVariable, v)
+<<<<<<< HEAD
             meta.locals_names[k] = len(meta.locals_names)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(v, ContextWrappingVariable):
                 target_values = (
                     () if v.target_values is None else tuple(v.target_values)
                 )
                 meta.locals_ctx_args.append((k, target_values))
+<<<<<<< HEAD
             stack_values.append(v)
 
         return stack_values, meta
+=======
+            if v not in val_to_names:
+                val_to_names[v] = []
+            val_to_names[v].append(k)
+        for v in val_to_names.keys():
+            restore_vars.extend(val_to_names[v])
+            stack_values.extend([v] * len(val_to_names[v]))
+
+        return stack_values, restore_vars, meta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def compile_subgraph(
         self,
         tx: "InstructionTranslatorBase",
         reason: GraphCompileReason,
+<<<<<<< HEAD
         partial_convert: bool = False,
         stack_pops: int = 0,
     ) -> list[StackLocalsMetadata]:
+=======
+        partial_convert=False,
+        stack_pops=0,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Compiles the current subgraph, with inputs w.r.t. self.root_tx, and codegens:
             - Call the compiled subgraph
@@ -1329,9 +1705,15 @@ class OutputGraph(OutputGraphGuardsState):
 
         assert self.root_tx is not None
 
+<<<<<<< HEAD
         if not config.nested_graph_breaks:
             # expect to only compile 1 frame
             assert self.root_tx is tx
+=======
+        # FIXME temporary assert to make sure we're not accidentally compiling nested graph breaks
+        # before we're done the full implementation
+        assert self.root_tx is tx
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # bytecode tracing has finished. Pop the context manager for dynamo_timed
         self.mark_bytecode_tracing_stop()
@@ -1345,16 +1727,29 @@ class OutputGraph(OutputGraphGuardsState):
         # prefix instructions (Python 3.11+)
         prefix_insts: list[Instruction] = []
         if sys.version_info >= (3, 11):
+<<<<<<< HEAD
             for inst in self.root_tx.prefix_insts:
                 if inst.opname == "COPY_FREE_VARS":
                     prefix_insts.append(
                         create_instruction(
                             "COPY_FREE_VARS",
                             arg=len(self.root_tx.code_options["co_freevars"]),
+=======
+            for inst in tx.prefix_insts:
+                if inst.opname == "MAKE_CELL":
+                    prefix_insts.append(
+                        create_instruction("MAKE_CELL", argval=inst.argval)
+                    )
+                elif inst.opname == "COPY_FREE_VARS":
+                    prefix_insts.append(
+                        create_instruction(
+                            "COPY_FREE_VARS", arg=len(tx.code_options["co_freevars"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                     )
                 else:
                     prefix_insts.append(copy.copy(inst))
+<<<<<<< HEAD
 
         # stack values and restore vars for each frame are pushed in reverse order
         # i.e. last element corresponds to root frame (1),
@@ -1381,6 +1776,8 @@ class OutputGraph(OutputGraphGuardsState):
         # "Garbage collect the heap".
         self.side_effects.prune_dead_object_new(tx)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.add_output_instructions(prefix_insts)
 
         assert not (self.pregraph_bytecode and self.export), (
@@ -1393,8 +1790,37 @@ class OutputGraph(OutputGraphGuardsState):
         )
         self.add_output_instructions(alias_insts)
 
+<<<<<<< HEAD
         self.cleanup_graph()
 
+=======
+        # Exit from all context manager variables to make sure global state is restored
+        for block in reversed(self.root_tx.block_stack):
+            block.exit(self.root_tx, is_graph_break=reason.graph_break)
+
+        self.cleanup_graph()
+
+        # stack values and restore vars for each frame are pushed in reverse order
+        # i.e. last element corresponds to root frame, first element corresponds to current frame
+        all_stack_values = []
+        all_restore_vars = []
+        all_stack_locals_metas = []
+        cur_tx: Optional[InstructionTranslatorBase] = tx
+        while True:
+            assert cur_tx is not None
+            # this should have been checked by the caller
+            assert all(block.can_restore() for block in cur_tx.block_stack)
+            stack_values, restore_vars, meta = self._get_stack_values_to_restore(
+                cur_tx, stack_pops
+            )
+            all_stack_values.append(stack_values)
+            all_restore_vars.append(restore_vars)
+            all_stack_locals_metas.append(meta)
+            if cur_tx is self.root_tx:
+                break
+            cur_tx = tx.parent
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Use nn.Module "proxies" in the constructed GraphModule so that
         # the resulting GM does not hold additional strong references to the original modules.
         # This prevents a strong ref cycle where Dynamo created code holds on to references
@@ -1429,6 +1855,7 @@ class OutputGraph(OutputGraphGuardsState):
             )
             self.add_output_instructions(random_calls_instructions)
 
+<<<<<<< HEAD
         # Codegen stack convention before the unsupported instruction
         # NOTE: in these comment blocks, "locals" EXCLUDE free and cell vars.
         # NOTE: stack and locals must be codegen'd BEFORE the unsupported instruction, since the latter
@@ -1453,6 +1880,15 @@ class OutputGraph(OutputGraphGuardsState):
         if (
             self.root_tx is tx  # single frame
             and stack_values_flat
+=======
+        # call compiled fx graph
+        graph_output_var = None
+        stored_graph_output_var = False
+        root_stack_values = all_stack_values[-1]
+        if (
+            self.root_tx is tx
+            and root_stack_values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and all(
                 not isinstance(
                     v,
@@ -1463,10 +1899,17 @@ class OutputGraph(OutputGraphGuardsState):
                     ),
                 )
                 and not (isinstance(v, SymNodeVariable) and v.python_type() is float)
+<<<<<<< HEAD
                 for v in stack_values_flat
             )
             and all(isinstance(x, TensorVariable) for x in stack_values_flat)
             and len(set(stack_values_flat)) == len(stack_values_flat)
+=======
+                for v in root_stack_values
+            )
+            and all(isinstance(x, TensorVariable) for x in root_stack_values)
+            and len(set(root_stack_values)) == len(root_stack_values)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and self.side_effects.is_empty()
             and not tx.debug_locals
             and not self.backward_state
@@ -1475,6 +1918,7 @@ class OutputGraph(OutputGraphGuardsState):
         ):
             # optimization to generate better code in a common case
             self.add_output_instructions(
+<<<<<<< HEAD
                 [
                     # load in reverse since UNPACK_SEQUENCE will reverse
                     *self.compile_and_call_fx_graph(
@@ -1488,6 +1932,19 @@ class OutputGraph(OutputGraphGuardsState):
             graph_output_var = self.new_var("graph_out")
             # load stack values in a flat manner - we will codegen bytecode to place them correctly
             # according to our convention above
+=======
+                self.compile_and_call_fx_graph(
+                    tx, list(reversed(root_stack_values)), root
+                )
+                + [create_instruction("UNPACK_SEQUENCE", arg=len(root_stack_values))]
+            )
+        else:
+            graph_output_var = self.new_var("graph_out")
+            # load stack values in a flat manner for now - will likely change later.
+            stack_values_flat = [
+                val for vals in reversed(all_stack_values) for val in vals
+            ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pass1 = PyCodegen(
                 self.root_tx,
                 root,
@@ -1514,6 +1971,7 @@ class OutputGraph(OutputGraphGuardsState):
             )
             self.codegen_suffix(tx, stack_values_flat, pass2)
 
+<<<<<<< HEAD
             if (
                 torch._dynamo.config.log_graph_in_out_metadata
                 and stack_values_flat
@@ -1562,6 +2020,8 @@ class OutputGraph(OutputGraphGuardsState):
 
                     self.export_metadata.out_spec = out_spec.as_python_constant()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output = []
             if count_calls(self.graph) != 0 or len(pass2.graph_outputs) != 0:
                 output.extend(
@@ -1579,6 +2039,7 @@ class OutputGraph(OutputGraphGuardsState):
                 self.run_compiler_collective()
             self.add_output_instructions(output + pass2.get_instructions())
 
+<<<<<<< HEAD
         # store all stack and locals for each frame
         # current state of the stack:
         # *(frame N stack), *(frame N locals),
@@ -1721,6 +2182,28 @@ class OutputGraph(OutputGraphGuardsState):
         stack_values: list[VariableTracker],
         cg: PyCodegen,
     ) -> None:
+=======
+        # restore all the live local vars of the root
+        local_restore_cg = PyCodegen(
+            self.root_tx, overridden_sources=overridden_sources
+        )
+        # TODO this local restoration should be removed when fully implementing nested graph breaks
+        self.add_output_instructions(
+            [
+                local_restore_cg.create_store(var)
+                for var in reversed(all_restore_vars[-1])
+            ]
+        )
+
+        if graph_output_var and stored_graph_output_var:
+            self.add_output_instructions(
+                [local_restore_cg.create_delete(graph_output_var)]
+            )
+
+        return all_stack_locals_metas
+
+    def codegen_suffix(self, tx, stack_values, cg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NOTE: `codegen_save_tempvars` must run first to update `source` fields
         # for variables with `AttributeMutationNew`, as they don't implement
         # `reconstruct` themselves.
@@ -1729,7 +2212,10 @@ class OutputGraph(OutputGraphGuardsState):
             assert not self.export
             for name, val in self.backward_state.items():
                 cg(val)
+<<<<<<< HEAD
                 assert self.backward_state_var is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cg.append_output(cg.create_load(self.backward_state_var))
                 cg.store_attr(name)
         self.side_effects.codegen_hooks(cg)
@@ -1745,7 +2231,11 @@ class OutputGraph(OutputGraphGuardsState):
         cg.restore_stack(stack_values, value_from_source=not tx.export)
         self.side_effects.codegen_update_mutated(cg)
 
+<<<<<<< HEAD
     def cleanup_graph(self) -> None:
+=======
+    def cleanup_graph(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Remove "creation_timestamp" from node meta
 
@@ -1775,6 +2265,7 @@ class OutputGraph(OutputGraphGuardsState):
                     self.graph.erase_node(node1)
                     self.graph.erase_node(node2)
 
+<<<<<<< HEAD
     def bypass_package(self, reason: str = "", **kwargs: Any) -> None:
         """
         Do not save this output graph to the CompilePackage
@@ -1803,6 +2294,10 @@ class OutputGraph(OutputGraphGuardsState):
 
     def get_graph_sizes_structured(self) -> dict[str, list[Union[int, str]]]:
         ret: dict[str, list[Union[int, str]]] = {}
+=======
+    def get_graph_sizes_structured(self):
+        ret = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in self.graph.nodes:
             example_value = node.meta.get("example_value", None)
             if isinstance(example_value, torch._subclasses.FakeTensor):
@@ -1810,7 +2305,11 @@ class OutputGraph(OutputGraphGuardsState):
                 ret[node.name] = [s if isinstance(s, int) else repr(s) for s in size]
         return ret
 
+<<<<<<< HEAD
     def get_graph_sizes(self, name: str) -> str:
+=======
+    def get_graph_sizes(self, name: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph_sizes_str = "TRACED GRAPH TENSOR SIZES\n"
         graph_sizes_str += f"===== {name} =====\n"
         for node in self.graph.nodes:
@@ -1836,7 +2335,11 @@ class OutputGraph(OutputGraphGuardsState):
         return graph_sizes_str
 
     @contextlib.contextmanager
+<<<<<<< HEAD
     def restore_global_state(self) -> Any:
+=======
+    def restore_global_state(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Momentarily restores the global state to what it was prior to tracing the current output
         """
@@ -1853,7 +2356,11 @@ class OutputGraph(OutputGraphGuardsState):
                 GlobalContextCheckpointState(current_global_state)
             )
 
+<<<<<<< HEAD
     def run_compiler_collective(self) -> None:
+=======
+    def run_compiler_collective(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tx = self.root_tx
         assert tx is not None
         if (ds := tx.distributed_state) is not None and ds.all_states is None:
@@ -1877,7 +2384,11 @@ class OutputGraph(OutputGraphGuardsState):
                 ),
                 dynamo_timed("compiler_collective", log_pt2_compile_event=True),
             ):
+<<<<<<< HEAD
                 all_states: list[Any] = [None] * compile_pg.size()
+=======
+                all_states = [None] * compile_pg.size()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dist.all_gather_object(all_states, ds.local_state, group=compile_pg)
                 ds.all_states = all_states
             # Clear speculation log, because are tracing may diverge due to
@@ -1885,12 +2396,16 @@ class OutputGraph(OutputGraphGuardsState):
             tx.speculation_log.clear()
             raise exc.CompileCollectiveRestartAnalysis
 
+<<<<<<< HEAD
     def compile_and_call_fx_graph(
         self,
         tx: "InstructionTranslatorBase",
         rv: list[VariableTracker],
         root: FakeRootModule,
     ) -> list[Instruction]:
+=======
+    def compile_and_call_fx_graph(self, tx, rv, root):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Generate code from self.graph and return the Instruction()s to
         call that generated code.
@@ -1904,8 +2419,11 @@ class OutputGraph(OutputGraphGuardsState):
             assert self.should_exit
 
             self.run_compiler_collective()
+<<<<<<< HEAD
             if count_calls(self.graph) == 0 and len(rv) == 0:
                 return []
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             name = unique_id("__compiled_fn", with_uuid=True)
 
@@ -1919,7 +2437,11 @@ class OutputGraph(OutputGraphGuardsState):
                 {},
             )
             sub_gms = self.dedup_pass()
+<<<<<<< HEAD
             root.add_nn_modules(sub_gms)  # type: ignore[arg-type]
+=======
+            root.add_nn_modules(sub_gms)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.current_tracer._maybe_preserve_original_meta(tx, output_node)
             if not config.do_not_emit_runtime_asserts:
@@ -1959,6 +2481,7 @@ class OutputGraph(OutputGraphGuardsState):
             for register_finalizer in self.register_finalizer_fns:
                 register_finalizer(gm)
 
+<<<<<<< HEAD
             if next(gm.parameters(), None) is not None:
                 # If dynamo produces a graph with parameters, skip package stuff
                 # Bypass output graph
@@ -1973,12 +2496,18 @@ class OutputGraph(OutputGraphGuardsState):
             if self.package is not None:
                 gm._backend_id = name
 
+=======
+            gm._backend_id = name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gm.compile_subgraph_reason = self.compile_subgraph_reason
             gm.meta["dynamo_flat_name_to_original_fqn"] = (
                 self.dynamo_flat_name_to_original_fqn.copy()
             )
             gm.meta["dynamo_compile_id"] = self.dynamo_compile_id
+<<<<<<< HEAD
             gm.meta["backend_id"] = name
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             graph_code_log.debug(
                 "%s",
@@ -1995,7 +2524,10 @@ class OutputGraph(OutputGraphGuardsState):
             )
             self.call_cleanup_hooks()
             old_fake_mode = self.tracing_context.fake_mode
+<<<<<<< HEAD
             assert old_fake_mode is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not self.export:
                 import torch._functorch.config as _config
 
@@ -2043,7 +2575,10 @@ class OutputGraph(OutputGraphGuardsState):
             )
 
             counters["stats"]["unique_graphs"] += 1
+<<<<<<< HEAD
             assert old_fake_mode.shape_env is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if specializations := old_fake_mode.shape_env.specializations:
                 specialization_guards = []
                 specialization_cache: dict[Specialization, Callable[[Any], Any]] = {}
@@ -2051,10 +2586,14 @@ class OutputGraph(OutputGraphGuardsState):
                 for specialization in specializations:
                     source_index = sources.index(specialization.source)
                     check_fn_source = inspect.getsource(specialization.check_fn).strip()
+<<<<<<< HEAD
                     # Required because the LABDA_GUARD API requires a root guard manager
                     unused_root_guard_manager = RootGuardManager()
                     check_fn = guards.LAMBDA_GUARD(  # type: ignore[attr-defined]
                         unused_root_guard_manager,
+=======
+                    check_fn = guards.LAMBDA_GUARD(  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         specialization.check_fn,
                         [check_fn_source],
                     )
@@ -2076,8 +2615,13 @@ class OutputGraph(OutputGraphGuardsState):
                         )
                     )
 
+<<<<<<< HEAD
                 @torch._dynamo.disable(reason="do not trace Dynamo-compiled graph")  # type: ignore[misc]
                 def specialized_dispatch(*args: Any, **kwargs: Any) -> Any:
+=======
+                @torch._dynamo.disable(reason="do not trace Dynamo-compiled graph")
+                def specialized_dispatch(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for check_fn, specialization in specialization_guards:
                         if check_fn(args):
                             if specialization in specialization_cache:
@@ -2107,10 +2651,13 @@ class OutputGraph(OutputGraphGuardsState):
 
             assert self.root_tx is not None
             cg = PyCodegen(self.root_tx)
+<<<<<<< HEAD
 
             for idx, arg in enumerate(self.graphargs):
                 self.export_metadata.graph_input_idx_to_local_source[idx] = arg.source
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cg.make_call_generated_code(name)
             return cg.get_instructions()
 
@@ -2210,16 +2757,27 @@ class OutputGraph(OutputGraphGuardsState):
 
         return compiled_fn
 
+<<<<<<< HEAD
     def dedup_pass(self) -> dict[str, torch.fx.GraphModule]:
+=======
+    def dedup_pass(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch._dynamo.config.use_graph_deduplication:
             return apply_graph_deduplication(self)
         else:
             return {}
 
+<<<<<<< HEAD
     def install_subgraph(self, name: str, sub_gm: torch.fx.GraphModule) -> str:
         next_name = get_unique_name_wrt(name, self.nn_modules, requires_suffix=True)
         sub_gm.__name__ = next_name  # type: ignore[assignment]
         sub_gm.torchdynamo_force_dynamic = False  # type: ignore[assignment]
+=======
+    def install_subgraph(self, name, sub_gm):
+        next_name = get_unique_name_wrt(name, self.nn_modules, requires_suffix=True)
+        sub_gm.__name__ = next_name
+        sub_gm.torchdynamo_force_dynamic = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This graph module is not present in the user space, so it can't be
         # accessed by a source. Set source=None.
         self.register_attr_or_module(sub_gm, next_name, source=None)
@@ -2248,7 +2806,11 @@ class OutputGraph(OutputGraphGuardsState):
         assert self.should_exit
 
         # Miniature DCE pass, but only for obviously trivial operations
+<<<<<<< HEAD
         def is_static_true(b_node: fx.node.Argument) -> bool:
+=======
+        def is_static_true(b_node: fx.node.Argument):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if b_node is True:
                 return True
             if not isinstance(b_node, fx.Node):
@@ -2267,7 +2829,11 @@ class OutputGraph(OutputGraphGuardsState):
             # doesn't have unbacked inputs, since it's all in the ShapeEnv
             return False
 
+<<<<<<< HEAD
         def is_symnode_arg(a: fx.node.Argument) -> bool:
+=======
+        def is_symnode_arg(a: fx.node.Argument):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch.fx.experimental.sym_node import SymTypes
 
             if isinstance(a, (int, float, bool)):
@@ -2279,7 +2845,11 @@ class OutputGraph(OutputGraphGuardsState):
         # NB: We assume that you cannot do mutations on int/float/bool,
         # because they are immutable types, and therefore is always safe to
         # DCE.
+<<<<<<< HEAD
         def is_symnode_compute_node(node: fx.Node) -> bool:
+=======
+        def is_symnode_compute_node(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch.fx.experimental.sym_node import SymTypes
 
             if node.op != "call_function":
@@ -2313,7 +2883,11 @@ class OutputGraph(OutputGraphGuardsState):
                 ):
                     self.remove_node(node)
 
+<<<<<<< HEAD
         def placeholder_binds_symbol(node: fx.Node) -> Optional[sympy.Symbol]:
+=======
+        def placeholder_binds_symbol(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arg = node.meta["grapharg"]
             example = arg.example
             if isinstance(example, torch.SymInt) and isinstance(
@@ -2322,7 +2896,11 @@ class OutputGraph(OutputGraphGuardsState):
                 return example.node.expr
             return None
 
+<<<<<<< HEAD
         def remove_unused(node: fx.Node) -> None:
+=======
+        def remove_unused(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             log.debug("REMOVE UNUSED GRAPHARG %s", node.meta["grapharg"].source.name())
             # I'm not really sure why you need to delete these from the
             # node since the node is going to get removed
@@ -2332,9 +2910,13 @@ class OutputGraph(OutputGraphGuardsState):
 
         used_symbols: set[sympy.Symbol] = set()
 
+<<<<<<< HEAD
         def update_used_symbols(
             used_symbols: set[sympy.Symbol], fake: Union[torch.SymInt, torch.Tensor]
         ) -> None:
+=======
+        def update_used_symbols(used_symbols, fake: Union[torch.SymInt, torch.Tensor]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             used_symbols |= free_symbols(fake)
 
         recheck_placeholders = []
@@ -2428,7 +3010,11 @@ class OutputGraph(OutputGraphGuardsState):
         self.output_instructions.extend(prefix)
         self.should_exit = True
 
+<<<<<<< HEAD
     def install_global_unsafe(self, name: str, value: Any) -> None:
+=======
+    def install_global_unsafe(self, name, value) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         WARNING: prefer the safer `install_global_by_id/install_global`.
         torch.compile instances should be independent of each other;
@@ -2440,7 +3026,11 @@ class OutputGraph(OutputGraphGuardsState):
         self.installed_globals.add(name)
         self.cleanups.append(CleanupHook.create(self.global_scope, name, value))
 
+<<<<<<< HEAD
     def install_global_by_id(self, prefix: str, value: Any) -> str:
+=======
+    def install_global_by_id(self, prefix, value) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Installs a global if it hasn't been installed already.
         This is determined by (prefix, id(value)) pair.
@@ -2455,7 +3045,11 @@ class OutputGraph(OutputGraphGuardsState):
         self.install_global_unsafe(name, value)
         return name
 
+<<<<<<< HEAD
     def install_global(self, prefix: str, value: Any) -> str:
+=======
+    def install_global(self, prefix, value) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Installs a global, generating a unique name for it.
 
@@ -2469,7 +3063,11 @@ class OutputGraph(OutputGraphGuardsState):
     def cleanup(self) -> None:
         # There is a reference cycle between tracer and OutputGraph, causing
         # some of the tensor objects to be held alive for longer than necessary.
+<<<<<<< HEAD
         self.root_tx = None  # type: ignore[assignment]
+=======
+        self.root_tx = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.nn_modules.clear()
         self.param_name_to_source = None
 
@@ -2492,7 +3090,11 @@ class OutputGraph(OutputGraphGuardsState):
     ) -> None:
         self.register_finalizer_fns.append(register_finalizer)
 
+<<<<<<< HEAD
     def example_value_from_input_node(self, node: torch.fx.Node) -> Any:
+=======
+    def example_value_from_input_node(self, node: torch.fx.Node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Extract the non-fake example tensor"""
         if node.op == "placeholder":
             return node.meta["grapharg"].example
@@ -2500,6 +3102,7 @@ class OutputGraph(OutputGraphGuardsState):
         return self.nn_modules[node.target]  # type: ignore[index]
 
 
+<<<<<<< HEAD
 class DynamoTracerOutput:
     error_on_graph_break: bool
     is_tracing_resume_prologue: bool
@@ -2516,6 +3119,8 @@ class DynamoTracerOutput:
             self.output_graph = tracer.output
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 err_epilogue = (
     "With the current config, we will graph break "
     "(and fall back to eager-mode PyTorch) on all ops "
@@ -2525,6 +3130,7 @@ err_epilogue = (
 )
 
 
+<<<<<<< HEAD
 def check_pt2_compliant_op(
     output_graph: OutputGraph, kind: str, target: Any, args: Any, kwargs: Any
 ) -> None:
@@ -2532,11 +3138,22 @@ def check_pt2_compliant_op(
         return
 
     def encountered_compliant_op(target: torch._ops.OpOverload) -> None:
+=======
+def check_pt2_compliant_op(output_graph, kind, target, args, kwargs):
+    if kind != "call_function":
+        return
+
+    def encountered_compliant_op(target):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if target.namespace in {"prim", "prims", "aten"}:
             return
         output_graph.compliant_custom_ops.add(target)
 
+<<<<<<< HEAD
     def encountered_non_compliant_op(target: torch._ops.OpOverload, msg: str) -> None:
+=======
+    def encountered_non_compliant_op(target, msg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         output_graph.non_compliant_ops.add(target)
         if config.only_allow_pt2_compliant_ops:
             unimplemented_v2(
@@ -2602,6 +3219,7 @@ def check_pt2_compliant_op(
 
 _compile_id_counter = itertools.count()
 
+<<<<<<< HEAD
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -2614,12 +3232,21 @@ class LazyProxy:
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
+=======
+
+class LazyProxy:
+    def __init__(self, tracer, fn, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.tracer = tracer
         self.fn = fn
         self.args = args
         self.kwargs = kwargs
 
+<<<<<<< HEAD
     def __call__(self) -> Any:
+=======
+    def __call__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.fn(*self.args, **self.kwargs)
 
 
@@ -2631,6 +3258,7 @@ class SubgraphTracer(fx.Tracer):
     compiling and executing the graph.
     """
 
+<<<<<<< HEAD
     def __init__(
         self,
         output_graph: "OutputGraph",
@@ -2638,6 +3266,9 @@ class SubgraphTracer(fx.Tracer):
         is_export: bool = False,
         source_target: Optional[Target] = None,
     ) -> None:
+=======
+    def __init__(self, output_graph, parent=None, is_export=False, source_target=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.output_graph = weakref.proxy(output_graph)
         self.graph = torch.fx.Graph()
@@ -2667,14 +3298,22 @@ class SubgraphTracer(fx.Tracer):
         # need to keep track of what free variables were lifted so we can
         # rewrite the HigherOrderOperator call using the traced body_fn.
         # Dicts maintain the order of args for the HigherOrderOperator call.
+<<<<<<< HEAD
         self.lifted_freevars: dict[fx.Proxy, fx.Proxy] = {}
+=======
+        self.lifted_freevars = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # map basic symbols (unbacked and unbacked) to their bound proxies.
         # There are only two cases where bound_symbols will be recorded:
         # 1. when we create_graph_input for a backed SymInt that's basic symbol
+<<<<<<< HEAD
         # 2. when we track_produced_symints for intermediate results
         # bound_symbols always map the symbol to the proxy whose
         # tracer is the current tracer that's readily accessible in current tracer's graph.
+=======
+        # 2. when we track_unbacked_symbols for intermediate results that contain unbacked symints.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.bound_symbols: dict[sympy.Symbol, Union[torch.fx.Proxy, LazyProxy]] = {}
 
         self.prev_inst = None
@@ -2698,15 +3337,25 @@ class SubgraphTracer(fx.Tracer):
         self.debug_level: int = parent.debug_level + 1 if parent is not None else 0
 
         self._cur_code = None
+<<<<<<< HEAD
         self._orig_gm_meta: Optional[list[Any]] = None
         self._orig_gm_lineno_map: Optional[dict[int, Optional[int]]] = None
         self._orig_gm_firstlineno: Optional[int] = None
+=======
+        self._orig_gm_meta = None
+        self._orig_gm_lineno_map = None
+        self._orig_gm_firstlineno = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Each SubgraphTracer is associated with a source target, which indicates
         # which operator this subgraph is attached to. We compute a source_fn_stack
         # based on the source target. For the root tracer, it's set to [].
         # This is useful for debugging and transforming the exported graph.
         if self.parent is None:
+<<<<<<< HEAD
             self.source_fn_stack: list[Any] = []
+=======
+            self.source_fn_stack = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             self.source_fn_stack = self.parent.source_fn_stack + [
                 (self.graph._target_to_str(source_target), source_target)
@@ -2723,9 +3372,13 @@ class SubgraphTracer(fx.Tracer):
             )
 
     # preserve original meta if it is available
+<<<<<<< HEAD
     def _maybe_preserve_original_meta(
         self, tx: "InstructionTranslatorBase", node: fx.Node
     ) -> None:
+=======
+    def _maybe_preserve_original_meta(self, tx, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             self._orig_gm_meta
             and self._orig_gm_lineno_map
@@ -2747,6 +3400,7 @@ class SubgraphTracer(fx.Tracer):
 
     def create_proxy(
         self,
+<<<<<<< HEAD
         kind: str,
         target: Any,
         args: Any,
@@ -2755,6 +3409,16 @@ class SubgraphTracer(fx.Tracer):
         type_expr: Optional[Any] = None,
         proxy_factory_fn: Optional[Callable[[fx.Node], fx.Proxy]] = None,
     ) -> fx.Proxy:
+=======
+        kind,
+        target,
+        args,
+        kwargs,
+        name=None,
+        type_expr=None,
+        proxy_factory_fn=None,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NOTE: [Nested SubgraphTracer and free_variable handling]
         # --------------------------------------------------------
         # Read NOTE [HigherOrderOperator tracing design] first.
@@ -2798,6 +3462,7 @@ class SubgraphTracer(fx.Tracer):
             args, kwargs = pytree.tree_unflatten(new_flat_args, tree_spec)
 
         rv = super().create_proxy(
+<<<<<<< HEAD
             kind,
             target,
             args,
@@ -2805,6 +3470,9 @@ class SubgraphTracer(fx.Tracer):
             name,
             type_expr,
             proxy_factory_fn,  # type: ignore[arg-type]
+=======
+            kind, target, args, kwargs, name, type_expr, proxy_factory_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # append stack trace to fx node
@@ -2825,7 +3493,11 @@ class SubgraphTracer(fx.Tracer):
                 tx_code = tx.f_code
                 header = tx.get_line_of_code_header(lineno=cur_inst.positions.lineno)
 
+<<<<<<< HEAD
                 def get_trace_call_log_str() -> str:
+=======
+                def get_trace_call_log_str():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     line = get_instruction_source_311(tx_code, cur_inst).rstrip()
                     return f"TRACE FX call {rv.node.name} from {header}\n{line}"
 
@@ -2935,6 +3607,7 @@ class SubgraphTracer(fx.Tracer):
         return rv
 
     def create_node(
+<<<<<<< HEAD
         self,
         op: str,
         target: Target,
@@ -2943,6 +3616,10 @@ class SubgraphTracer(fx.Tracer):
         name: Optional[str] = None,
         type_expr: Optional[Any] = None,
     ) -> fx.Node:
+=======
+        self, op, target, args=None, kwargs=None, name=None, type_expr=None
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         check_pt2_compliant_op(self.output_graph, op, target, args, kwargs)
         if self.parent is not None:
             flat_args = pytree.arg_tree_leaves(*args, **kwargs)
@@ -2960,7 +3637,11 @@ class SubgraphTracer(fx.Tracer):
 
     # Note: we did not override erase_node since
     # we call self.graph.erase_node elsewhere
+<<<<<<< HEAD
     def remove_node(self, node: fx.Node) -> None:
+=======
+    def remove_node(self, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(node.users) > 0:
             user_graph_nodes: list[torch.fx.Node] = []
             for user in node.users.keys():
@@ -2983,6 +3664,7 @@ class SubgraphTracer(fx.Tracer):
     # Remove this if https://github.com/pytorch/pytorch/issues/99007 gets
     # fixed.
     def create_graph_input(
+<<<<<<< HEAD
         self,
         name: str,
         type_expr: Any,
@@ -2990,6 +3672,10 @@ class SubgraphTracer(fx.Tracer):
         before: bool = False,
         source: Optional[Source] = None,
     ) -> fx.Proxy:
+=======
+        self, name, type_expr, example_value, before=False, source=None
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(example_value, torch.Tensor):
             self._input_versions_at_beginning.append(example_value._version)
         log.debug(
@@ -3015,7 +3701,10 @@ class SubgraphTracer(fx.Tracer):
         # So we are a bit more strict about what sources can become inputs
         # in export
         if self.is_export and self.parent is None:
+<<<<<<< HEAD
             assert source is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not is_from_local_source(source, only_allow_input=True):
                 self.output_graph.source_to_user_stacks.setdefault(source, []).append(
                     TracingContext.extract_stack()
@@ -3050,6 +3739,7 @@ class SubgraphTracer(fx.Tracer):
             self._used_names.add(name)
 
             # NOTE: [Auto lift basic free symbols when create_graph_input]
+<<<<<<< HEAD
             # There are two sources of basic symbols:
             #
             # - They can come from inputs, e.g. when an input tensor is specified as dynamic. We handle
@@ -3078,6 +3768,29 @@ class SubgraphTracer(fx.Tracer):
             # immediately after they're created at wrap_fx_proxy with track_produced_symints. Notice
             # that for basic symbols that're already tracked by create_graph_input, we won't track it again.
             #
+=======
+            # Whenever we call create_graph_input, we try to also lift the basic symbols in example values
+            # as graph input.
+            # This applies to both top-level graph and subgraphs in higher order ops.
+            # It has several cases:
+            #  1. When create_graph_input for a tensor that has symbolic shapes,
+            #     we look for basic symbols in its size and stride, we check if the symbol is bound
+            #     in current graph (i.e. bound_symbols), it it's not bound, we'll create a placeholder
+            #     for it then recursively check its parent, creates ph if not bound.
+            #     Every tracer maintains a mapping (i.e. lifted_freevars)
+            #     that maps from parent proxy to proxy in current tracer for the symbol.
+            #  2. When create_graph_input for a tensor with unbacked symbolic shapes,
+            #     Backed symbols all come from inputs's symbolic shape. But unbacked symbols
+            #     can be created while tracing. So we use track_unbacked_symbols will intercept
+            #     at wrap_fx_proxy, and try to bind the unbacked symbols immediately after they're
+            #     created.
+            #  3. subgraph will also lifted basic symbols in compound exprs of tensor shape.
+            #     For example, if an input to subgraph takes size [s1+s2//8], we'll look for the
+            #     the free symbols in the sizes and lift as inputs similar to 1 in _lift_symbols_in_symint)
+            #  4. When create_graph_input for a SymInt, if the symint is a basic symbol, we'll track it
+            #     in bound_symbols so that we don't lift the same basic symbol twice. When the symint is a
+            #     compound expr, we'll just create the proxy for the compouned expr but not lift its basic symbols.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Also see NOTE: [Export inputs must be explicitly passed in]
             is_strict_export = self.is_export
             is_non_strict_export = torch.compiler.is_compiling()
@@ -3105,9 +3818,13 @@ class SubgraphTracer(fx.Tracer):
             return proxy
 
     # See NOTE: [Nested SubgraphTracer and free_variable handling] for more details
+<<<<<<< HEAD
     def lift_tracked_freevar_to_input(
         self, proxy: fx.Proxy
     ) -> Union[LazyProxy, fx.Proxy]:
+=======
+    def lift_tracked_freevar_to_input(self, proxy):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # You're doing something wrong if we are the root SubgraphTracer because
         # Dynamo adds tensors to graph inputs before creating a proxy for them.
         assert self.parent is not None, (
@@ -3147,7 +3864,11 @@ class SubgraphTracer(fx.Tracer):
         self.lifted_freevars[proxy] = new_proxy
         return new_proxy
 
+<<<<<<< HEAD
     def maybe_lift_tracked_freevar_to_input(self, arg: Any) -> Any:
+=======
+    def maybe_lift_tracked_freevar_to_input(self, arg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         If arg is a free variable, then lift it to be an input.
         Returns the new lifted arg (if arg was a freevar), else the
@@ -3173,6 +3894,7 @@ class SubgraphTracer(fx.Tracer):
 
     # See NOTE: [Auto lift basic free symbols when create_graph_input] for overall design
     # You MUST call this API every time when creating a proxy in wrap_fx_proxy for a call
+<<<<<<< HEAD
     # that produced symints or tensors with unbacked symint shapes.
     # This function is used to track the symints with its proxies created during
     # dynamo tracing so that subgraph knows how to bind a symbol input with parent's proxy.
@@ -3182,6 +3904,16 @@ class SubgraphTracer(fx.Tracer):
     def track_produced_symints(
         self, example_value: Any, e_proxy: Union[LazyProxy, torch.fx.Proxy]
     ) -> None:
+=======
+    # that produced unbacked symints or tensors with unbacked symint shapes.
+    # This function is used to track the unbacked symints with its proxies created during
+    # dynamo tracing so that subgraph knows how to bind a symbol input with parent's proxy.
+    # LazyProxy are created for tensor shapes that're unbacked so that we don't create proxies
+    # for symbols that're not going to be used.
+    def track_unbacked_symbols(
+        self, example_value, e_proxy: Union[LazyProxy, torch.fx.Proxy]
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # When binding the symbols in an exmaple_value, we bind the symbols
         # to the proxy's associated Tracer instead of current tracer.
         # This is because:
@@ -3198,12 +3930,17 @@ class SubgraphTracer(fx.Tracer):
         tracer = e_proxy.tracer
         assert isinstance(tracer, SubgraphTracer)
 
+<<<<<<< HEAD
         def need_bind(s: Any) -> bool:
+=======
+        def need_bind(s) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch.fx.experimental.symbolic_shapes import is_symbolic
 
             return (
                 is_symbolic(s)
                 and isinstance(s.node.expr, sympy.Symbol)
+<<<<<<< HEAD
                 and s.node.expr not in self.bound_symbols
             )
 
@@ -3218,12 +3955,26 @@ class SubgraphTracer(fx.Tracer):
                 proxy = tracer.create_proxy(*args, **kwargs)
                 set_example_value(proxy.node, example_value)
                 return proxy
+=======
+                and s.node.shape_env.is_unbacked_symint(s.node.expr)
+                and s.node.expr not in self.bound_symbols
+            )
+
+        def _proxy_with_example_value(example_value, *args, **kwargs):
+            proxy = tracer.create_proxy(*args, **kwargs)
+            set_example_value(proxy.node, example_value)
+            return proxy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if isinstance(example_value, torch.Tensor):
             for i, s in enumerate(example_value.size()):
                 if need_bind(s):
                     log.debug(
+<<<<<<< HEAD
                         "track_produced_symints %s for %s.size()[%s] at debug_level %s",
+=======
+                        "_track_unbacked_symbols %s for %s.size()[%s] at debug_level %s",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         s,
                         e_proxy,
                         i,
@@ -3239,6 +3990,7 @@ class SubgraphTracer(fx.Tracer):
                         {},
                         type_expr=type(s),
                     )
+<<<<<<< HEAD
                     self.track_produced_symints(s, lazy_proxy)
 
             storage_offset = example_value.storage_offset()
@@ -3260,12 +4012,19 @@ class SubgraphTracer(fx.Tracer):
                     type_expr=type(storage_offset),
                 )
                 self.track_produced_symints(storage_offset, lazy_proxy)
+=======
+                    self.track_unbacked_symbols(s, lazy_proxy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if example_value.layout is torch.strided:
                 for i, s in enumerate(example_value.stride()):
                     if need_bind(s):
                         log.debug(
+<<<<<<< HEAD
                             "track_produced_symints %s for %s.stride()[%s] at debug_level %s",
+=======
+                            "_track_unbacked_symbols %s for %s.stride()[%s] at debug_level %s",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             s,
                             e_proxy,
                             i,
@@ -3281,6 +4040,7 @@ class SubgraphTracer(fx.Tracer):
                             {},
                             type_expr=type(s),
                         )
+<<<<<<< HEAD
                         self.track_produced_symints(s, lazy_proxy)
 
             elif example_value.layout is torch.sparse_coo:
@@ -3292,12 +4052,31 @@ class SubgraphTracer(fx.Tracer):
             elif example_value.layout in {torch.sparse_csc, torch.sparse_bsc}:
                 self.track_produced_symints(example_value.ccol_indices(), e_proxy)
                 self.track_produced_symints(example_value.row_indices(), e_proxy)
+=======
+                        self.track_unbacked_symbols(s, lazy_proxy)
+
+            elif example_value.layout is torch.sparse_coo:
+                self.track_unbacked_symbols(example_value._indices(), e_proxy)
+                self.track_unbacked_symbols(example_value._values(), e_proxy)
+            elif example_value.layout in {torch.sparse_csr, torch.sparse_bsr}:
+                self.track_unbacked_symbols(example_value.crow_indices(), e_proxy)
+                self.track_unbacked_symbols(example_value.col_indices(), e_proxy)
+            elif example_value.layout in {torch.sparse_csc, torch.sparse_bsc}:
+                self.track_unbacked_symbols(example_value.ccol_indices(), e_proxy)
+                self.track_unbacked_symbols(example_value.row_indices(), e_proxy)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if is_traceable_wrapper_subclass(example_value):
                 attrs, ctx = example_value.__tensor_flatten__()
                 for attr in attrs:
                     inner_t = getattr(example_value, attr)
+<<<<<<< HEAD
                     self.track_produced_symints(inner_t, getattr(e_proxy, attr))
         elif isinstance(example_value, torch.SymInt):
+=======
+                    self.track_unbacked_symbols(inner_t, getattr(e_proxy, attr))
+        elif isinstance(example_value, torch.SymInt):
+            # Only bind unbacked symbols. backed symbols are lifted as inputs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if need_bind(example_value):
                 expr = example_value.node.expr
                 tracer.bound_symbols[expr] = e_proxy
@@ -3305,7 +4084,11 @@ class SubgraphTracer(fx.Tracer):
     # See Note [Auto lift basic free symbols when create_graph_input]
     def _lift_basic_symbols(
         self, example_value: Union[torch.SymInt, torch.Tensor], src: Optional[Source]
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # The before arg is for inserting symints in the sizes/strides of a tensor
         # before the tensor. This ordering ensures that when we look at the tensor's
         # symbols, they're already lifted/tracked. E.g. this assumption is used
@@ -3329,7 +4112,11 @@ class SubgraphTracer(fx.Tracer):
                 self.parent._lift_basic_symbols(s, source)
                 for s0 in self_to_be_bound:
                     parent_proxy = self.parent.bound_symbols[s0]
+<<<<<<< HEAD
                     example_val = parent_proxy.node.meta["example_value"]  # type: ignore[union-attr]
+=======
+                    example_val = parent_proxy.node.meta["example_value"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     assert isinstance(example_val, torch.SymInt)
                     ph = self.create_graph_input(
                         str(s0),
@@ -3344,7 +4131,11 @@ class SubgraphTracer(fx.Tracer):
                         source.name() if source is not None else "subgraph inputs",
                         self.debug_level,
                     )
+<<<<<<< HEAD
                     self.lifted_freevars[parent_proxy] = ph  # type: ignore[index]
+=======
+                    self.lifted_freevars[parent_proxy] = ph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # For root_tracer:
             else:
                 assert len(self_to_be_bound) == 1, (
@@ -3454,7 +4245,11 @@ class SubgraphTracer(fx.Tracer):
         # Sort the symbols so that we can have a deterministic lifting order
         return sorted(to_be_bound, key=lambda s: s.name)
 
+<<<<<<< HEAD
     def has_input_mutation(self) -> MutationInfo:
+=======
+    def has_input_mutation(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input_versions_at_beginning = self._input_versions_at_beginning
         input_nodes = []
 
@@ -3483,7 +4278,11 @@ class SubgraphTracer(fx.Tracer):
 
         return MutationInfo(False, "")
 
+<<<<<<< HEAD
     def has_aliasing(self) -> AliasingInfo:
+=======
+    def has_aliasing(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._higher_order_ops.utils import _collect_fake_inputs
 
         input_storages: dict[StorageWeakRef, torch.fx.Node] = dict()

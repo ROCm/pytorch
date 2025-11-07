@@ -83,6 +83,7 @@ ${Functions_declarations}
 // Special C++ only overloads for std()-like functions (See gh-40287)
 // These are needed because int -> bool conversion takes precedence over int -> IntArrayRef
 // So, for example std(0) would select the std(unbiased=False) overload
+<<<<<<< HEAD
 inline Tensor var(const Tensor& self, int dim) {
   return at::var(self, IntArrayRef{dim});
 }
@@ -93,6 +94,18 @@ inline Tensor std(const Tensor& self, int dim) {
   return at::std(self, IntArrayRef{dim});
 }
 inline std::tuple<Tensor, Tensor> std_mean(const Tensor& self, int dim) {
+=======
+TORCH_API inline Tensor var(const Tensor& self, int dim) {
+  return at::var(self, IntArrayRef{dim});
+}
+TORCH_API inline std::tuple<Tensor, Tensor> var_mean(const Tensor& self, int dim) {
+  return at::var_mean(self, IntArrayRef{dim});
+}
+TORCH_API inline Tensor std(const Tensor& self, int dim) {
+  return at::std(self, IntArrayRef{dim});
+}
+TORCH_API inline std::tuple<Tensor, Tensor> std_mean(const Tensor& self, int dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return at::std_mean(self, IntArrayRef{dim});
 }
 

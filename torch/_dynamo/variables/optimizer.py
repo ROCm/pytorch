@@ -239,6 +239,17 @@ class OptimizerVariable(UserDefinedObjectVariable):
         self.grad_to_source = {}
         self.tensor_to_source = {}
 
+<<<<<<< HEAD
+=======
+        # Tracing the _init_group is expensive. But we still have to insert the
+        # necessary guards for _init_group. So, we manually handle insertion of
+        # guards. We also want to mark all the tensors inside the state dict to
+        # be static address.
+
+        # Mark all the tensors in the state dict to be static address. This has
+        # to be done first because the variable builder relies on the static
+        # address annotation.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def mark_static(x):
             mark_static_address(x)
 

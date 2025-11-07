@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 r"""Contains definitions of the methods used by the _BaseDataLoaderIter workers.
+=======
+r""""Contains definitions of the methods used by the _BaseDataLoaderIter workers.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 These **needs** to be in global scope since Py2 doesn't support serializing
 static methods.

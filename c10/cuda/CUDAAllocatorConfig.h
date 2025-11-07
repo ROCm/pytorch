@@ -53,10 +53,13 @@ class C10_CUDA_API CUDAAllocatorConfig {
     return instance().m_release_lock_on_cudamalloc;
   }
 
+<<<<<<< HEAD
   static bool graph_capture_record_stream_reuse() {
     return instance().m_graph_capture_record_stream_reuse;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /** Pinned memory allocator settings */
   static bool pinned_use_cuda_host_register() {
     return instance().m_pinned_use_cuda_host_register;
@@ -146,9 +149,12 @@ class C10_CUDA_API CUDAAllocatorConfig {
   size_t parsePinnedUseBackgroundThreads(
       const std::vector<std::string>& config,
       size_t i);
+<<<<<<< HEAD
   size_t parseGraphCaptureRecordStreamReuse(
       const std::vector<std::string>& config,
       size_t i);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::atomic<size_t> m_max_split_size;
   std::atomic<size_t> m_max_non_split_rounding_size;
@@ -160,7 +166,10 @@ class C10_CUDA_API CUDAAllocatorConfig {
       m_expandable_segments_handle_type;
   std::atomic<bool> m_release_lock_on_cudamalloc;
   std::atomic<bool> m_pinned_use_cuda_host_register;
+<<<<<<< HEAD
   std::atomic<bool> m_graph_capture_record_stream_reuse;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::atomic<bool> m_pinned_use_background_threads;
   std::string m_last_allocator_settings;
   std::mutex m_last_allocator_settings_mutex;

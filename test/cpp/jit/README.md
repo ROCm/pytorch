@@ -36,7 +36,11 @@ The following commands assume you are in PyTorch root.
 
 ```bash
 # ... Build PyTorch from source, e.g.
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (re)build just the binary
 ninja -C build bin/test_jit
 # run tests

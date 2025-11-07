@@ -109,7 +109,11 @@ class QConfigMultiMapping:
                         target_qconfigs_dict[key] = None
                 break
 
+<<<<<<< HEAD
             # insert copies of this new QConfigMapping until all entries
+=======
+            # insert copies of this new QConfigMapping until all entires
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # in qconfig_list can fit among the QConfigMappings
             while len(qconfig_list) > len(self.qconfig_mappings_list):
                 self.qconfig_mappings_list.append(copy.deepcopy(new_qconfig_mapping))

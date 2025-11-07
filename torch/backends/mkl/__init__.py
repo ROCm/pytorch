@@ -30,7 +30,10 @@ class verbose:
     .. code-block:: python
 
         import torch
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model(data)
         with torch.backends.mkl.verbose(torch.backends.mkl.VERBOSE_ON):
             model(data)
@@ -48,9 +51,15 @@ class verbose:
         if self.enable == VERBOSE_OFF:
             return
         st = torch._C._verbose.mkl_set_verbose(self.enable)
+<<<<<<< HEAD
         assert st, (
             "Failed to set MKL into verbose mode. Please consider to disable this verbose scope."
         )
+=======
+        assert (
+            st
+        ), "Failed to set MKL into verbose mode. Please consider to disable this verbose scope."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_ordered_dict.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -170,6 +173,7 @@ class OrderedDictTests:
 
     def test_init_calls(self):
         calls = []
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Spam:
                 def keys(self):
@@ -178,6 +182,15 @@ class OrderedDictTests:
                 def items(self):
                     calls.append('items')
                     return ()
+=======
+        class Spam:
+            def keys(self):
+                calls.append('keys')
+                return ()
+            def items(self):
+                calls.append('items')
+                return ()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.OrderedDict(Spam())
         self.assertEqual(calls, ['keys'])
@@ -187,10 +200,16 @@ class OrderedDictTests:
         # a consistent internal state is created in __new__
         # rather than __init__.
         OrderedDict = self.OrderedDict
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class ODNI(OrderedDict):
                 def __init__(*args, **kwargs):
                     pass
+=======
+        class ODNI(OrderedDict):
+            def __init__(*args, **kwargs):
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         od = ODNI()
         od['a'] = 1  # This used to fail because __init__ was bypassed
 
@@ -326,10 +345,16 @@ class OrderedDictTests:
         self.assertEqual(od.pop(k, 12345), 12345)
 
         # make sure pop still works when __missing__ is defined
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Missing(OrderedDict):
                 def __missing__(self, key):
                     return 0
+=======
+        class Missing(OrderedDict):
+            def __missing__(self, key):
+                return 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = Missing(a=1)
         self.assertEqual(m.pop('b', 5), 5)
         self.assertEqual(m.pop('a', 6), 1)
@@ -476,10 +501,16 @@ class OrderedDictTests:
         self.assertEqual(od.setdefault('g', default=9), 9)
 
         # make sure setdefault still works when __missing__ is defined
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Missing(OrderedDict):
                 def __missing__(self, key):
                     return 0
+=======
+        class Missing(OrderedDict):
+            def __missing__(self, key):
+                return 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(Missing().setdefault(5, 9), 9)
 
     def test_reinsert(self):
@@ -545,10 +576,16 @@ class OrderedDictTests:
     def test_override_update(self):
         OrderedDict = self.OrderedDict
         # Verify that subclasses can override update() without breaking __init__()
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class MyOD(OrderedDict):
                 def update(self, *args, **kwds):
                     raise Exception()
+=======
+        class MyOD(OrderedDict):
+            def update(self, *args, **kwds):
+                raise Exception()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         items = [('a', 1), ('c', 3), ('b', 2)]
         self.assertEqual(list(MyOD(items).items()), items)
 
@@ -569,10 +606,16 @@ class OrderedDictTests:
         # should not crash Python.
         OrderedDict = self.OrderedDict
         deleted = []
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class MyOD(OrderedDict):
                 def __del__(self):
                     deleted.append(self.i)
+=======
+        class MyOD(OrderedDict):
+            def __del__(self):
+                deleted.append(self.i)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         obj = None
         for i in range(100):
             obj = MyOD([(None, obj)])
@@ -584,6 +627,7 @@ class OrderedDictTests:
     def test_delitem_hash_collision(self):
         OrderedDict = self.OrderedDict
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key:
                 def __init__(self, hash):
@@ -598,6 +642,21 @@ class OrderedDictTests:
                         return False
                 def __repr__(self):
                     return self.value
+=======
+        class Key:
+            def __init__(self, hash):
+                self._hash = hash
+                self.value = str(id(self))
+            def __hash__(self):
+                return self._hash
+            def __eq__(self, other):
+                try:
+                    return self.value == other.value
+                except AttributeError:
+                    return False
+            def __repr__(self):
+                return self.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def blocking_hash(hash):
             # See the collision-handling in lookdict (in Objects/dictobject.c).
@@ -624,10 +683,16 @@ class OrderedDictTests:
     def test_issue24347(self):
         OrderedDict = self.OrderedDict
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key:
                 def __hash__(self):
                     return randrange(100000)
+=======
+        class Key:
+            def __hash__(self):
+                return randrange(100000)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         od = OrderedDict()
         for i in range(100):
@@ -647,10 +712,16 @@ class OrderedDictTests:
     def test_issue24348(self):
         OrderedDict = self.OrderedDict
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key:
                 def __hash__(self):
                     return 1
+=======
+        class Key:
+            def __hash__(self):
+                return 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         od = OrderedDict()
         od[Key()] = 0
@@ -832,10 +903,16 @@ class PurePythonOrderedDictTests(OrderedDictTests, __TestCase):
     OrderedDict = py_coll.OrderedDict
 
     def test_issue119004_attribute_error(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key(_TriggerSideEffectOnEqual):
                 def side_effect(self):
                     del dict1[TODEL]
+=======
+        class Key(_TriggerSideEffectOnEqual):
+            def side_effect(self):
+                del dict1[TODEL]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         TODEL = Key()
         dict1 = self.OrderedDict(dict.fromkeys((0, TODEL, 4.2)))
@@ -875,10 +952,16 @@ class CPythonOrderedDictSideEffects:
         self.assertRaisesRegex(RuntimeError, msg, operator.eq, dict1, dict2)
 
     def test_issue119004_change_size_by_clear(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key(_TriggerSideEffectOnEqual):
                 def side_effect(self):
                     dict1.clear()
+=======
+        class Key(_TriggerSideEffectOnEqual):
+            def side_effect(self):
+                dict1.clear()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dict1 = self.OrderedDict(dict.fromkeys((0, Key(), 4.2)))
         dict2 = self.OrderedDict(dict.fromkeys((0, Key(), 4.2)))
@@ -888,10 +971,16 @@ class CPythonOrderedDictSideEffects:
         self.assertDictEqual(dict2, dict.fromkeys((0, Key(), 4.2)))
 
     def test_issue119004_change_size_by_delete_key(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key(_TriggerSideEffectOnEqual):
                 def side_effect(self):
                     del dict1[TODEL]
+=======
+        class Key(_TriggerSideEffectOnEqual):
+            def side_effect(self):
+                del dict1[TODEL]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         TODEL = Key()
         dict1 = self.OrderedDict(dict.fromkeys((0, TODEL, 4.2)))
@@ -902,11 +991,18 @@ class CPythonOrderedDictSideEffects:
         self.assertDictEqual(dict2, dict.fromkeys((0, Key(), 4.2)))
 
     def test_issue119004_change_linked_list_by_clear(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key(_TriggerSideEffectOnEqual):
                 def side_effect(self):
                     dict1.clear()
                     dict1['a'] = dict1['b'] = 'c'
+=======
+        class Key(_TriggerSideEffectOnEqual):
+            def side_effect(self):
+                dict1.clear()
+                dict1['a'] = dict1['b'] = 'c'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dict1 = self.OrderedDict(dict.fromkeys((0, Key(), 4.2)))
         dict2 = self.OrderedDict(dict.fromkeys((0, Key(), 4.2)))
@@ -916,11 +1012,18 @@ class CPythonOrderedDictSideEffects:
         self.assertDictEqual(dict2, dict.fromkeys((0, Key(), 4.2)))
 
     def test_issue119004_change_linked_list_by_delete_key(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key(_TriggerSideEffectOnEqual):
                 def side_effect(self):
                     del dict1[TODEL]
                     dict1['a'] = 'c'
+=======
+        class Key(_TriggerSideEffectOnEqual):
+            def side_effect(self):
+                del dict1[TODEL]
+                dict1['a'] = 'c'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         TODEL = Key()
         dict1 = self.OrderedDict(dict.fromkeys((0, TODEL, 4.2)))
@@ -931,11 +1034,18 @@ class CPythonOrderedDictSideEffects:
         self.assertDictEqual(dict2, dict.fromkeys((0, Key(), 4.2)))
 
     def test_issue119004_change_size_by_delete_key_in_dict_eq(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Key(_TriggerSideEffectOnEqual):
                 trigger = 0
                 def side_effect(self):
                     del dict1[TODEL]
+=======
+        class Key(_TriggerSideEffectOnEqual):
+            trigger = 0
+            def side_effect(self):
+                del dict1[TODEL]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         TODEL = Key()
         dict1 = self.OrderedDict(dict.fromkeys((0, TODEL, 4.2)))

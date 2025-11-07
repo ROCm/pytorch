@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 """
 The following example demonstrates how to train a ConvNeXt model
+<<<<<<< HEAD
 with intermediate activations sharded across multiple GPUs via DTensor
+=======
+with intermediate activations sharded across mutliple GPUs via DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 To run the example, use the following command:
 torchrun --standalone --nnodes=1 --nproc-per-node=4 convnext_example.py

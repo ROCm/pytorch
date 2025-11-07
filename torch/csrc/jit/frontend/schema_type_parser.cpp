@@ -33,7 +33,10 @@ using c10::StorageType;
 using c10::StreamObjType;
 using c10::StringType;
 using c10::Symbol;
+<<<<<<< HEAD
 using c10::SymBoolType;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using c10::SymIntType;
 using c10::TensorType;
 using c10::TupleType;
@@ -67,7 +70,10 @@ TypePtr SchemaTypeParser::parseBaseType() {
       {"int", c10::TypeFactory::get<IntType>()},
       {"SymInt", c10::TypeFactory::get<SymIntType>()},
       {"bool", c10::TypeFactory::get<BoolType>()},
+<<<<<<< HEAD
       {"SymBool", c10::TypeFactory::get<SymBoolType>()},
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {"None", c10::TypeFactory::get<NoneType>()},
       {"NoneType", c10::TypeFactory::get<NoneType>()},
       {"Capsule", c10::TypeFactory::get<CapsuleType>()},

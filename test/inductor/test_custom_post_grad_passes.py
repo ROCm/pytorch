@@ -66,6 +66,7 @@ def change_cos_pass(graph):
             node.target = aten.sin.default
 
 
+<<<<<<< HEAD
 class ChangeCosCustomPass(CustomGraphPass):
     def __init__(self) -> None:
         super().__init__()
@@ -77,6 +78,8 @@ class ChangeCosCustomPass(CustomGraphPass):
         return get_hash_for_files((__file__,))
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestPostGradCustomPrePostPass(TestCustomPassBase):
     #  mkldnn fusion's pattern_matcher
     # (torch/_inductor/fx_passes/mkldnn_fusion.py),
@@ -145,7 +148,11 @@ class TestPostGradCustomPrePostPass(TestCustomPassBase):
             return x1.relu()
 
     def test_custom_joint_pass_pre(self):
+<<<<<<< HEAD
         with config.patch(joint_custom_pre_pass=ChangeCosCustomPass()):
+=======
+        with config.patch(joint_custom_pre_pass=change_cos_pass):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def g(x):
                 return x.sin().sin().sin()
@@ -157,7 +164,11 @@ class TestPostGradCustomPrePostPass(TestCustomPassBase):
             torch.testing.assert_close(torch.compile(f)(x), g(x))
 
     def test_custom_joint_pass_post(self):
+<<<<<<< HEAD
         with config.patch(joint_custom_post_pass=ChangeCosCustomPass()):
+=======
+        with config.patch(joint_custom_post_pass=change_cos_pass):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def g(x):
                 return x.sin().sin().sin()

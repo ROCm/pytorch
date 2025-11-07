@@ -1531,7 +1531,11 @@ class TestTensorCreation(TestCase):
         expected = torch.empty(0, 5, dtype=a.dtype, device=device)
         self.assertEqual(c, expected)
 
+<<<<<<< HEAD
         # test empty input
+=======
+        # test empty imput
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         a = torch.empty(0, device=device)
         c1 = torch.combinations(a)
         c2 = torch.combinations(a, with_replacement=True)
@@ -1965,11 +1969,14 @@ class TestTensorCreation(TestCase):
         expected = torch.tensor([[0., 0.], [0., 0.]], device=device, dtype=torch.complex32)
         self.assertEqual(complexHalfTensor, expected)
 
+<<<<<<< HEAD
     def test_zeros_bounds_checking(self, device):
         # Test negative large integer
         with self.assertRaisesRegex(RuntimeError, r"zeros: Dimension size must be non-negative."):
             torch.zeros(-6744789213055875072, device=device)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: this test should be updated
     def test_zeros_out(self, device):
         shape = (3, 4)

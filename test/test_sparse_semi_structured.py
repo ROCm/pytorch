@@ -714,18 +714,28 @@ class TestSparseSemiStructuredTraining(TestCase):
         max_diff = (ref_gemm - pack_gemm).abs().argmax()
         torch.testing.assert_close(
             ref_gemm, pack_gemm,
+<<<<<<< HEAD
             **atol_rtol_kw[dtype],
             msg=f"packed is wrong at pos: ({max_diff // N}, {max_diff % N})",
         )
+=======
+            **atol_rtol_kw[dtype]
+        ), f"packed is wrong at pos: ({max_diff // N}, {max_diff % N})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test A.t@B
         pack_gemm = torch._sparse_semi_structured_linear(b.t(), packed_t, meta_t)
         max_diff = (ref_gemm - pack_gemm).abs().argmax()
 
         torch.testing.assert_close(
             ref_gemm, pack_gemm,
+<<<<<<< HEAD
             **atol_rtol_kw[dtype],
             msg=f"packed_t is wrong at pos: ({max_diff // N}, {max_diff % N})",
         )
+=======
+            **atol_rtol_kw[dtype]
+        ), f"packed_t is wrong at pos: ({max_diff // N}, {max_diff % N})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @training_dtypes
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")

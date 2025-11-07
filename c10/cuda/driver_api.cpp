@@ -38,6 +38,7 @@ DriverAPI create_driver_api() {
     C10_NVML_DRIVER_API(LOOKUP_NVML_ENTRY)
 #undef LOOKUP_NVML_ENTRY
   }
+<<<<<<< HEAD
 
   if (handle_1) {
 #define LOOKUP_NVML_ENTRY_OPTIONAL(name) \
@@ -45,6 +46,8 @@ DriverAPI create_driver_api() {
     C10_NVML_DRIVER_API_OPTIONAL(LOOKUP_NVML_ENTRY_OPTIONAL)
 #undef LOOKUP_NVML_ENTRY_OPTIONAL
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return r;
 }
 
@@ -61,14 +64,20 @@ void* get_symbol(const char* name, int version) {
   }
 #endif
 
+<<<<<<< HEAD
   // As of CUDA 13, this API is deprecated.
 #if defined(CUDA_VERSION) && (CUDA_VERSION < 13000)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // This fallback to the old API to try getting the symbol again.
   if (auto st = cudaGetDriverEntryPoint(name, &out, cudaEnableDefault, &qres);
       st == cudaSuccess && qres == cudaDriverEntryPointSuccess && out) {
     return out;
   }
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // If the symbol cannot be resolved, report and return nullptr;
   // the caller is responsible for checking the pointer.

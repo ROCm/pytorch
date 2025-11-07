@@ -82,11 +82,17 @@ static PyObject* THPGenerator_setState(PyObject* _self, PyObject* _new_state) {
 
   HANDLE_TH_ERRORS
   if (!THPVariable_Check(_new_state)) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
             "expected a torch.ByteTensor, but got {}",
             Py_TYPE(_new_state)->tp_name));
+=======
+    throw torch::TypeError(
+        "expected a torch.ByteTensor, but got %s",
+        Py_TYPE(_new_state)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   auto self = (THPGenerator*)_self;
   auto& gen = self->cdata;
@@ -382,10 +388,15 @@ PyObject* THPGenerator_Wrap(const Generator& gen) {
 
 at::Generator THPGenerator_Unwrap(PyObject* state) {
   if (!Py_IS_TYPE(state, &THPGeneratorType)) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
             "expected a Generator, but got {}", Py_TYPE(state)->tp_name));
+=======
+    throw torch::TypeError(
+        "expected a Generator, but got %s", Py_TYPE(state)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return reinterpret_cast<THPGenerator*>(state)->cdata;
 }

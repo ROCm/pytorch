@@ -158,7 +158,10 @@ TORCH_LIBRARY_IMPL(aten, FuncTorchBatchedDecomposition, m) {
   OP_DECOMPOSE(kron);
   OP_DECOMPOSE(l1_loss);
   m.impl("layer_norm", native::layer_norm_symint);
+<<<<<<< HEAD
   m.impl("_fused_rms_norm", native::rms_norm_composite);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   OP_DECOMPOSE2(ldexp, Tensor);
   OP_DECOMPOSE2(less_equal, Tensor );
   OP_DECOMPOSE2(less, Tensor );

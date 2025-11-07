@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 (torch.compiler_aot_inductor)=
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # AOTInductor: Ahead-Of-Time Compilation for Torch.Export-ed Models
 
 ```{warning}
@@ -27,7 +30,11 @@ relies on.
 
 We will then use {func}`torch._inductor.aoti_compile_and_package` to compile the
 exported program using TorchInductor, and save the compiled artifacts into one
+<<<<<<< HEAD
 package. The package is in the format of a {ref}`PT2 Archive Spec <export.pt2_archive>`.
+=======
+package.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ```{note}
 If you have a CUDA-enabled device on your machine and you installed PyTorch with CUDA support,
@@ -202,7 +209,10 @@ Below are some useful tools for debugging AOT Inductor.
 
 logging
 torch.compiler_aot_inductor_minifier
+<<<<<<< HEAD
 torch.compiler_aot_inductor_debugging_guide
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ```
 
 To enable runtime checks on inputs, set the environment variable `AOTI_RUNTIME_CHECK_INPUTS` to 1. This will raise a `RuntimeError` if the inputs to the compiled model differ in size, data type, or strides from those used during export.

@@ -1,7 +1,10 @@
 # mypy: allow-untyped-defs
 import functools
 from collections import deque
+<<<<<<< HEAD
 from typing import Union
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.utils._ordered_set import OrderedSet
@@ -13,7 +16,10 @@ from ..ir import (
     FixedLayout,
     FlexibleLayout,
     InputBuffer,
+<<<<<<< HEAD
     ShapeAsConstantBuffer,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     StorageBox,
     Subgraph,
     TensorBox,
@@ -495,12 +501,19 @@ def build_subgraph_buffer(
                     "The output node for B2B-GEMM's subgraph must be a StorageBox, but got: ",
                     type(output_buffer),
                 )
+<<<<<<< HEAD
                 device = output_buffer.data.get_device()
                 assert device is not None
                 subgraph_buffer = ComputedBuffer(
                     name=None,
                     layout=FlexibleLayout(
                         device=device,
+=======
+                subgraph_buffer = ComputedBuffer(
+                    name=None,
+                    layout=FlexibleLayout(
+                        device=output_buffer.data.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         dtype=output_buffer.data.get_dtype(),
                         size=output_buffer.data.get_size(),
                     ),
@@ -516,7 +529,11 @@ def build_subgraph_buffer(
 
 def create_placeholder(
     name: str, dtype: torch.dtype, device: torch.device
+<<<<<<< HEAD
 ) -> Union[TensorBox, ShapeAsConstantBuffer]:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Creates a placeholder input buffers for producing subgraph_output
     """
@@ -542,11 +559,16 @@ def tuned_b2b_gemm(
         A.get_dtype(),
         [A.shape[0], C.shape[1]],  # type: ignore[index]
     )
+<<<<<<< HEAD
     placeholders = [
         create_placeholder("inner_mm", A.get_dtype(), A.get_device_or_error())
     ]
     subgraph_buffer = build_subgraph_buffer(
         placeholders,  # type: ignore[arg-type, list-item]
+=======
+    subgraph_buffer = build_subgraph_buffer(
+        [create_placeholder("inner_mm", A.get_dtype(), A.get_device_or_error())],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         subgraph,
     )
     choices: list[TritonTemplateCaller] = []

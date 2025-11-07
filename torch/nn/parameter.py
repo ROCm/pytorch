@@ -1,10 +1,14 @@
 from collections import OrderedDict
+<<<<<<< HEAD
 from typing import Any
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._C import _disabled_torch_function_impl
 
 
+<<<<<<< HEAD
 __all__ = [
     "Parameter",
     "UninitializedParameter",
@@ -15,6 +19,8 @@ __all__ = [
 ]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Metaclass to combine _TensorMeta and the instance check override for Parameter.
 class _ParameterMeta(torch._C._TensorMeta):
     # Make `isinstance(t, Parameter)` return True for custom tensor instances that have the _is_param flag.
@@ -185,6 +191,7 @@ class UninitializedTensorMixin:
         )
 
 
+<<<<<<< HEAD
 def is_lazy(param: Any) -> bool:
     """
     Returns whether ``param`` is an ``UninitializedParameter`` or ``UninitializedBuffer``.
@@ -192,6 +199,9 @@ def is_lazy(param: Any) -> bool:
     Args:
         param (Any): the input to check.
     """
+=======
+def is_lazy(param):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return isinstance(param, UninitializedTensorMixin)
 
 

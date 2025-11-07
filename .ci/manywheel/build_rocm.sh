@@ -194,7 +194,11 @@ ROCBLAS_LIB_SRC=$ROCM_HOME/lib/rocblas/library
 ROCBLAS_LIB_DST=lib/rocblas/library
 ROCBLAS_ARCH_SPECIFIC_FILES=$(ls $ROCBLAS_LIB_SRC | grep -E $ARCH)
 ROCBLAS_OTHER_FILES=$(ls $ROCBLAS_LIB_SRC | grep -v gfx)
+<<<<<<< HEAD
 ROCBLAS_LIB_FILES=($ROCBLAS_ARCH_SPECIFIC_FILES $ROCBLAS_OTHER_FILES)
+=======
+ROCBLAS_LIB_FILES=($ROCBLAS_ARCH_SPECIFIC_FILES $OTHER_FILES)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # hipblaslt library files
 HIPBLASLT_LIB_SRC=$ROCM_HOME/lib/hipblaslt/library

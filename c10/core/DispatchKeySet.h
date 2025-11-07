@@ -634,7 +634,11 @@ class DispatchKeySet final {
 C10_API std::string toString(DispatchKeySet);
 C10_API std::ostream& operator<<(std::ostream&, DispatchKeySet);
 
+<<<<<<< HEAD
 inline int getDispatchTableIndexForDispatchKey(DispatchKey k) {
+=======
+C10_API inline int getDispatchTableIndexForDispatchKey(DispatchKey k) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return DispatchKeySet(k).getDispatchTableIndexForDispatchKeySet();
 }
 

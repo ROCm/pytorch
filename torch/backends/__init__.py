@@ -1,10 +1,16 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import sys
 import types
 from contextlib import contextmanager
 
 import torch
 
+=======
+import types
+from contextlib import contextmanager
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # The idea for this parameter is that we forbid bare assignment
 # to torch.backends.<cudnn|mkldnn>.enabled and friends when running our
@@ -60,6 +66,7 @@ class PropModule(types.ModuleType):
         return self.m.__getattribute__(attr)
 
 
+<<<<<<< HEAD
 class _FP32Precision:
     def __init__(self, backend, op):
         self.backend = backend
@@ -124,6 +131,8 @@ class GenericModule(PropModule):
 
 sys.modules[__name__] = GenericModule(sys.modules[__name__], __name__)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.backends import (
     cpu as cpu,
     cuda as cuda,
@@ -131,12 +140,18 @@ from torch.backends import (
     cusparselt as cusparselt,
     kleidiai as kleidiai,
     mha as mha,
+<<<<<<< HEAD
     miopen as miopen,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mkl as mkl,
     mkldnn as mkldnn,
     mps as mps,
     nnpack as nnpack,
     openmp as openmp,
+<<<<<<< HEAD
     opt_einsum as opt_einsum,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     quantized as quantized,
 )

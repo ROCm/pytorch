@@ -35,6 +35,7 @@ static inline void atomic_add_helper(
     device ::metal::atomic<uint>* data,
     long offset,
     T value) {
+<<<<<<< HEAD
   constexpr auto elem_per_enum = sizeof(uint) / sizeof(T);
   auto ptr = data + (offset / elem_per_enum);
   auto old = ::metal::atomic_load_explicit(ptr, ::metal::memory_order_relaxed);
@@ -45,6 +46,17 @@ static inline void atomic_add_helper(
   do {
     val.i = old;
     val.t[offset & (elem_per_enum - 1)] += value;
+=======
+  auto ptr = data + (offset >> 1);
+  auto old = ::metal::atomic_load_explicit(ptr, ::metal::memory_order_relaxed);
+  union {
+    uint i;
+    T t[2];
+  } val;
+  do {
+    val.i = old;
+    val.t[offset & 1] += value;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } while (!::metal::atomic_compare_exchange_weak_explicit(
       ptr,
       &old,
@@ -57,6 +69,7 @@ template <>
 struct AtomicType<half> {
   using type = ::metal::atomic<uint>;
   static inline void atomic_add(device type* data, long offset, half value) {
+<<<<<<< HEAD
     atomic_add_helper(data, offset, value);
   }
 };
@@ -85,6 +98,13 @@ struct AtomicType<uchar> {
   }
 };
 
+=======
+    atomic_add_helper<half>(data, offset, value);
+  }
+};
+
+#if __METAL_VERSION__ >= 310
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 struct AtomicType<bfloat> {
   using type = ::metal::atomic<uint>;
@@ -92,6 +112,10 @@ struct AtomicType<bfloat> {
     atomic_add_helper<bfloat>(data, offset, value);
   }
 };
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Metal supports atomic_store_explicit for bools, but
 // sizeof(::metal::atomic_bool) is 4 Therefore it could not be used to
@@ -124,6 +148,7 @@ struct AtomicType<bool> {
   }
 };
 
+<<<<<<< HEAD
 // ComplexHalf atomic op
 template <>
 struct AtomicType<half2> {
@@ -173,5 +198,7 @@ struct AtomicType<float2> {
   }
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace metal
 } // namespace c10

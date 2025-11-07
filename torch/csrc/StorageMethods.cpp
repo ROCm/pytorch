@@ -390,7 +390,14 @@ static PyObject* THPStorage_fromFile(
     storage->set_nbytes(actual_nbytes);
   }
 
+<<<<<<< HEAD
   return THPStorage_NewWithStorage(THPStorageClass, std::move(storage));
+=======
+  return THPStorage_NewWithStorage(
+      THPStorageClass,
+      std::move(storage),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 

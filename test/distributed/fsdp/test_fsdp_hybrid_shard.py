@@ -49,8 +49,11 @@ if TEST_WITH_DEV_DBG_ASAN:
     )
     sys.exit(0)
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @contextlib.contextmanager
 def patch_allreduce(new_allreduce):
@@ -99,7 +102,11 @@ class ShardingStrategyMode(Enum):
 class TestFSDPHybridShard(FSDPTest):
     @property
     def world_size(self):
+<<<<<<< HEAD
         return max(torch.accelerator.device_count(), 2)
+=======
+        return max(torch.cuda.device_count(), 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def process_group(self):
@@ -107,7 +114,11 @@ class TestFSDPHybridShard(FSDPTest):
 
     @skip_if_lt_x_gpu(2)
     def test_raises_manual_wrap_hybrid_shard_when_none_policy(self):
+<<<<<<< HEAD
         model = MyModel().to(device_type)
+=======
+        model = MyModel().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         err_ctx = self.assertRaisesRegex(
             ValueError,
             "requires explicit specification of process group or device_mesh.",
@@ -121,8 +132,13 @@ class TestFSDPHybridShard(FSDPTest):
 
     @skip_if_lt_x_gpu(4)
     def test_hsdp_save_load_state_dict(self):
+<<<<<<< HEAD
         model = MyModel().to(device_type)
         num_node_devices = torch.accelerator.device_count()
+=======
+        model = MyModel().cuda()
+        num_node_devices = torch.cuda.device_count()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_rank_lists = (
             list(range(0, num_node_devices // 2)),
             list(range(num_node_devices // 2, num_node_devices)),
@@ -163,7 +179,11 @@ class TestFSDPHybridShard(FSDPTest):
             msd = model.state_dict()
             osd = FSDP.optim_state_dict(model, optim)
 
+<<<<<<< HEAD
         load_model = fsdp_ctor(MyModel().to(device_type))
+=======
+        load_model = fsdp_ctor(MyModel().cuda())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         load_optim = torch.optim.AdamW(load_model.parameters())
         with FSDP.state_dict_type(load_model, StateDictType.SHARDED_STATE_DICT):
             load_model.load_state_dict(msd)
@@ -172,8 +192,13 @@ class TestFSDPHybridShard(FSDPTest):
 
     @skip_if_lt_x_gpu(4)
     def test_hsdp_sync_module_state(self):
+<<<<<<< HEAD
         model = MyModel().to(device_type)
         num_node_devices = torch.accelerator.device_count()
+=======
+        model = MyModel().cuda()
+        num_node_devices = torch.cuda.device_count()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_rank_lists = (
             list(range(0, num_node_devices // 2)),
             list(range(num_node_devices // 2, num_node_devices)),
@@ -216,7 +241,11 @@ class TestFSDPHybridShard(FSDPTest):
     @skip_if_lt_x_gpu(2)
     def test_invalid_pg_specification_raises(self):
         pol = ModuleWrapPolicy({nn.Linear})
+<<<<<<< HEAD
         model = MyModel().to(device_type)
+=======
+        model = MyModel().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(
             ValueError, "Expected process_group to be passed in"
         ):
@@ -262,7 +291,11 @@ class TestFSDPHybridShard(FSDPTest):
         use_device_mesh: bool,
     ):
         if use_device_mesh:
+<<<<<<< HEAD
             device_mesh = init_device_mesh(device_type, (1, self.world_size))
+=======
+            device_mesh = init_device_mesh("cuda", (1, self.world_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             device_mesh = None
         hsdp_model = self._init_hsdp_model(
@@ -318,7 +351,11 @@ class TestFSDPHybridShard(FSDPTest):
             patch_allreduce(patched_allreduce),
             patch_reduce_scatter(patched_reduce_scatter),
         ):
+<<<<<<< HEAD
             inp = hsdp_model.get_input(device=torch.accelerator.current_device_index())
+=======
+            inp = hsdp_model.get_input(device=torch.cuda.current_device())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             out = hsdp_model(inp[0], inp[1])
             loss = hsdp_model.get_loss(inp, out)
             loss.backward()
@@ -367,7 +404,11 @@ class TestFSDPHybridShard(FSDPTest):
         hsdp_optim = torch.optim.Adam(hsdp_model.parameters(), lr=1e-2)
         torch.manual_seed(global_pg.rank() + 1)
         for _ in range(5):
+<<<<<<< HEAD
             inp = fsdp_model.module.get_input(torch.device(device_type))
+=======
+            inp = fsdp_model.module.get_input(torch.device("cuda"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             losses: list[torch.Tensor] = []
             for model, optim in ((fsdp_model, fsdp_optim), (hsdp_model, hsdp_optim)):
                 optim.zero_grad()
@@ -383,7 +424,11 @@ class TestFSDPHybridShard(FSDPTest):
         )
         hsdp_kwargs = {
             "auto_wrap_policy": auto_wrap_policy,
+<<<<<<< HEAD
             "device_id": torch.accelerator.current_device_index(),
+=======
+            "device_id": torch.cuda.current_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "use_orig_params": use_orig_params,
         }
         fsdp_model = TransformerWithSharedParams.init(
@@ -410,7 +455,11 @@ class TestFSDPHybridShard(FSDPTest):
             {TransformerEncoderLayer, TransformerDecoderLayer},
         )
         hsdp_kwargs = {
+<<<<<<< HEAD
             "device_id": torch.accelerator.current_device_index(),
+=======
+            "device_id": torch.cuda.current_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "auto_wrap_policy": auto_wrap_policy,
             "sharding_strategy": hsdp_sharding_strategy,
             "use_orig_params": use_orig_params,
@@ -437,7 +486,11 @@ class TestFSDPHybridShard(FSDPTest):
             # Use `FULL_SHARD` for the embedding and output projection
             hsdp_model = FSDP(
                 model,
+<<<<<<< HEAD
                 device_id=torch.accelerator.current_device_index(),
+=======
+                device_id=torch.cuda.current_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 sharding_strategy=ShardingStrategy.FULL_SHARD,
                 use_orig_params=use_orig_params,
             )

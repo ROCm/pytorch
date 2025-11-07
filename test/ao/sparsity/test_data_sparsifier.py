@@ -265,7 +265,11 @@ class _BaseDataSparsiferTestCase(TestCase):
 class _NormDataSparsifierTestCase(_BaseDataSparsiferTestCase):
     r"""This helper test class takes in any supported type of and runs some tests.
     This inherits the TestBaseDataSparsifierRuner wherein some functions are
+<<<<<<< HEAD
     over-ridden to take accommodate the specific sparsifier.
+=======
+    over-ridden to take accomodate the specific sparsifier.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TODO: Change the structure by creating a separate test case class for each
           member function
     """
@@ -770,7 +774,11 @@ class TestQuantizationUtils(TestCase):
 
         # higher threshold as quantization occurs before sparsity
         threshold = (
+<<<<<<< HEAD
             1  # zero points seem to have higher magnitude with sparsity occurring after
+=======
+            1  # zero points seem to have higher magnitude with sparsity occuring after
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         sl_emb1 = (torch.abs(dequant_emb1) < threshold).float().mean()

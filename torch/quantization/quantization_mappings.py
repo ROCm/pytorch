@@ -6,7 +6,10 @@ If you are adding a new entry/functionality, please, add it to the
 `torch/ao/quantization/quantization_mappings.py`, while adding an import statement
 here.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization.quantization_mappings import (
     _get_special_act_post_process,
     _has_special_act_post_process,

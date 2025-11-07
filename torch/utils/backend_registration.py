@@ -106,7 +106,11 @@ def _normalization_device(
     elif isinstance(device, str):
         device = torch.device(device)
 
+<<<<<<< HEAD
     # variable device can only be torch.device type or int type
+=======
+    # variable devcie can only be torch.device type or int type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(device, torch.device):
         if device.type != custom_backend_name:
             raise RuntimeError(f"Invalid device, must be {custom_backend_name} device")
@@ -426,9 +430,15 @@ def _get_custom_mod_func(func_name: str):
     it is marked as private. It is a convenience function for backend implementers to
     more easily call the hooks into their backend extensions.
     """
+<<<<<<< HEAD
     assert isinstance(func_name, str), (
         f"func_name must be `str`, but got `{type(func_name)}`."
     )
+=======
+    assert isinstance(
+        func_name, str
+    ), f"func_name must be `str`, but got `{type(func_name)}`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     backend_name = _get_privateuse1_backend_name()
     custom_device_mod = getattr(torch, backend_name, None)  # type: ignore[arg-type]
     function = getattr(custom_device_mod, func_name, None)  # type: ignore[arg-type]

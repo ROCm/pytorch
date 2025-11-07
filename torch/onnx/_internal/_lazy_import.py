@@ -30,7 +30,11 @@ if TYPE_CHECKING:
     import onnx
     import onnx_ir  # type: ignore[import-untyped]
     import onnxscript
+<<<<<<< HEAD
     import onnxscript._framework_apis.torch_2_9 as onnxscript_apis
+=======
+    import onnxscript._framework_apis.torch_2_8 as onnxscript_apis
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     onnxscript_ir = onnx_ir
 
@@ -38,4 +42,8 @@ else:
     onnx = _LazyModule("onnx")
     onnxscript = _LazyModule("onnxscript")
     onnxscript_ir = _LazyModule("onnx_ir")
+<<<<<<< HEAD
     onnxscript_apis = _LazyModule("onnxscript._framework_apis.torch_2_9")
+=======
+    onnxscript_apis = _LazyModule("onnxscript._framework_apis.torch_2_8")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -349,6 +349,29 @@ class Vectorized<int16_t> {
 };
 
 template <>
+<<<<<<< HEAD
+=======
+Vectorized<int16_t> inline operator<<(
+    const Vectorized<int16_t>& a,
+    const Vectorized<int16_t>& b) {
+  vuint16 shift_vec0 = reinterpret_cast<vuint16>(b.vec0());
+  vuint16 shift_vec1 = reinterpret_cast<vuint16>(b.vec1());
+  return Vectorized<int16_t>{
+      vec_sl(a.vec0(), shift_vec0), vec_sl(a.vec1(), shift_vec1)};
+}
+
+template <>
+Vectorized<int16_t> inline operator>>(
+    const Vectorized<int16_t>& a,
+    const Vectorized<int16_t>& b) {
+  vuint16 shift_vec0 = reinterpret_cast<vuint16>(b.vec0());
+  vuint16 shift_vec1 = reinterpret_cast<vuint16>(b.vec1());
+  return Vectorized<int16_t>{
+      vec_sr(a.vec0(), shift_vec0), vec_sr(a.vec1(), shift_vec1)};
+}
+
+template <>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<int16_t> inline maximum(
     const Vectorized<int16_t>& a,
     const Vectorized<int16_t>& b) {
@@ -362,8 +385,11 @@ Vectorized<int16_t> inline minimum(
   return a.minimum(b);
 }
 
+<<<<<<< HEAD
 DEFINE_SHIFT_FUNCS(int16_t)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <>
 Vectorized<int16_t> C10_ALWAYS_INLINE
 operator+(const Vectorized<int16_t>& a, const Vectorized<int16_t>& b) {

@@ -213,6 +213,7 @@ def get_model_info(
                 path_prefix = prefix
             elif prefix != path_prefix:
                 raise Exception(f"Mismatched prefixes: {path_prefix} != {prefix}")  # noqa: TRY002
+<<<<<<< HEAD
             zip_files.append(
                 {
                     "filename": zi.filename,
@@ -221,6 +222,15 @@ def get_model_info(
                     "file_size": zi.file_size,
                 }
             )
+=======
+            zip_files.append(dict(
+                filename=zi.filename,
+                compression=zi.compress_type,
+                compressed_size=zi.compress_size,
+                file_size=zi.file_size,
+            ))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert path_prefix is not None
         version = zf.read(path_prefix + "/version").decode("utf-8").strip()
 
@@ -233,14 +243,24 @@ def get_model_info(
         model_data = get_pickle("data")
         constants = get_pickle("constants")
 
+<<<<<<< HEAD
         # Intern strings that are likely to be reused.
         # Pickle automatically detects shared structure,
         # so reused strings are stored efficiently.
+=======
+        # Intern strings that are likely to be re-used.
+        # Pickle automatically detects shared structure,
+        # so re-used strings are stored efficiently.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # However, JSON has no way of representing this,
         # so we have to do it manually.
         interned_strings : dict[str, int] = {}
 
+<<<<<<< HEAD
         def intern(s):
+=======
+        def ist(s):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if s not in interned_strings:
                 interned_strings[s] = len(interned_strings)
             return interned_strings[s]
@@ -294,7 +314,11 @@ def get_model_info(
                     s_start = 0
                     s_end = 0
                 text = raw_code[start:end]
+<<<<<<< HEAD
                 code_parts.append([text.decode("utf-8"), intern(s_file), s_line, intern(s_text), s_start, s_end])
+=======
+                code_parts.append([text.decode("utf-8"), ist(s_file), s_line, ist(s_text), s_start, s_end])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             code_files[zi.filename] = code_parts
 
         extra_files_json_pattern = re.compile(re.escape(path_prefix) + "/extra/.*\\.json")
@@ -333,6 +357,7 @@ def get_model_info(
                 continue
             extra_pickles[zi.filename] = contents
 
+<<<<<<< HEAD
     return {
         "model": {
             "title": title,
@@ -347,6 +372,20 @@ def get_model_info(
             "extra_pickles": extra_pickles,
         }
     }
+=======
+    return {"model": dict(
+        title=title,
+        file_size=file_size,
+        version=version,
+        zip_files=zip_files,
+        interned_strings=list(interned_strings),
+        code_files=code_files,
+        model_data=model_data,
+        constants=constants,
+        extra_files_jsons=extra_files_jsons,
+        extra_pickles=extra_pickles,
+    )}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_inline_skeleton():

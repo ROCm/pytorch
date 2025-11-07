@@ -44,11 +44,16 @@ class TestFlattenParams(FSDPTest):
         return 1
 
     def _get_default_config(self):
+<<<<<<< HEAD
         device_type = (
             acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
         )
         return {
             "device": torch.device(device_type),
+=======
+        return {
+            "device": torch.device("cuda"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "sharding_strategy": HandleShardingStrategy.FULL_SHARD,
             "offload_params": False,
             "mp_param_dtype": None,
@@ -650,6 +655,7 @@ class TestFlattenParams(FSDPTest):
             ),
         )
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(1)
     def test_writeback_orig_params_no_shard(self):
         class EmbeddingModel(nn.Module):
@@ -680,6 +686,8 @@ class TestFlattenParams(FSDPTest):
             out = fsdp_model(x)
         self.assertEqual(out.shape, torch.Size([]))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(TestFlattenParams)
 

@@ -39,6 +39,7 @@ finally:
     from timm.models import create_model
 
 TIMM_MODELS = {}
+<<<<<<< HEAD
 
 # Run only this selected group of models, leave this empty to run everything
 TORCHBENCH_ONLY_MODELS = [
@@ -46,13 +47,20 @@ TORCHBENCH_ONLY_MODELS = [
 ]
 
 filename = os.path.join(os.path.dirname(__file__), "timm_models_list.txt")
+=======
+filename = os.path.join(os.path.dirname(__file__), "timm_models_list.txt")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 with open(filename) as fh:
     lines = fh.readlines()
     lines = [line.rstrip() for line in lines]
     for line in lines:
         model_name, batch_size = line.split(" ")
+<<<<<<< HEAD
         if TORCHBENCH_ONLY_MODELS and model_name not in TORCHBENCH_ONLY_MODELS:
             continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         TIMM_MODELS[model_name] = int(batch_size)
 
 
@@ -238,6 +246,7 @@ class TimmRunner(BenchmarkRunner):
         return self._config["skip"]
 
     @property
+<<<<<<< HEAD
     def skip_models_for_cpu(self):
         return self._skip["device"]["cpu"]
 
@@ -246,6 +255,8 @@ class TimmRunner(BenchmarkRunner):
         return self._skip["device"]["cpu_aarch64"]
 
     @property
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def skip_models(self):
         return self._skip["all"]
 

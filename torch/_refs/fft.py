@@ -313,8 +313,12 @@ def _canonicalize_fft_shape_and_dim_args(
 
         # Translate any -1 values in shape to the default length
         ret_shape = tuple(
+<<<<<<< HEAD
             s if s != -1 else input_sizes[d]
             for (s, d) in zip(shape, ret_dims)  # type: ignore[possibly-undefined]
+=======
+            s if s != -1 else input_sizes[d] for (s, d) in zip(shape, ret_dims)  # type: ignore[possibly-undefined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     elif dim is None:
         # No shape, no dim

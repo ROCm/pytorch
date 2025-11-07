@@ -93,7 +93,11 @@ void create_general_description_(cusparseMatDescr_t& description_) {
 }
 
 // csrMatrixRef is used to have a representation of a raw CSR matrix representation
+<<<<<<< HEAD
 // coming from `sparse_sparse_matmul_cuda_kernel` function.
+=======
+// comming from `sparse_sparse_matmul_cuda_kernel` function.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Moreover this implements a RAII guard for a cusparse descriptor
 template<class scalar_t>
 struct csrMatrixRef {

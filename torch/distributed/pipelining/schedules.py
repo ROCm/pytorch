@@ -9,7 +9,10 @@ import re
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict
 from enum import Enum
+<<<<<<< HEAD
 from functools import lru_cache
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Callable, NamedTuple, Optional, Union
 
 import torch
@@ -19,7 +22,11 @@ from torch.distributed.fsdp import FSDPModule, UnshardHandle
 from torch.nn.modules.loss import _Loss
 from torch.profiler import record_function
 
+<<<<<<< HEAD
 from ._utils import generate_rank_to_stage_mapping, generate_stage_to_rank_mapping
+=======
+from ._utils import generate_stage_to_rank_mapping
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .microbatch import merge_chunks, split_args_kwargs_into_chunks, TensorChunkSpec
 from .stage import _PipelineStageBase
 
@@ -34,7 +41,10 @@ __all__ = [
     "ScheduleLoopedBFS",
     "ScheduleInterleavedZeroBubble",
     "ScheduleZBVZeroBubble",
+<<<<<<< HEAD
     "ScheduleDualPipeV",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 logger = logging.getLogger(__name__)
@@ -52,7 +62,10 @@ class _ComputationType(Enum):
     SEND_B = 8
     RECV_B = 9
     FULL_BACKWARD = 10
+<<<<<<< HEAD
     OVERLAP_F_B = 11
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __str__(self):
         str_map = {
@@ -66,7 +79,10 @@ class _ComputationType(Enum):
             _ComputationType.SEND_B: "SEND_B",
             _ComputationType.RECV_B: "RECV_B",
             _ComputationType.FULL_BACKWARD: "B",
+<<<<<<< HEAD
             _ComputationType.OVERLAP_F_B: "OVERLAP_F_B",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         return str_map[self]
 
@@ -92,8 +108,11 @@ class _ComputationType(Enum):
             return _ComputationType.RECV_B
         elif action == "B":
             return _ComputationType.FULL_BACKWARD
+<<<<<<< HEAD
         elif action == "OVERLAP_F_B":
             return _ComputationType.OVERLAP_F_B
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise RuntimeError(f"Invalid computation type {action}")
 
@@ -108,7 +127,10 @@ RECV_F = _ComputationType.RECV_F
 SEND_B = _ComputationType.SEND_B
 RECV_B = _ComputationType.RECV_B
 FULL_BACKWARD = _ComputationType.FULL_BACKWARD
+<<<<<<< HEAD
 OVERLAP_F_B = _ComputationType.OVERLAP_F_B
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Convenience shorthand for compute actions only since they are used in 'simple schedule format'
 F = FORWARD
@@ -126,6 +148,7 @@ class _Action(NamedTuple):
     stage_index: int
     computation_type: _ComputationType
     microbatch_index: Optional[int] = None
+<<<<<<< HEAD
     sub_actions: Optional[tuple["_Action", ...]] = None
 
     def __str__(self):
@@ -152,6 +175,15 @@ class _Action(NamedTuple):
             BACKWARD_WEIGHT,
             OVERLAP_F_B,
         )
+=======
+
+    def __repr__(self):
+        repr = str(self.stage_index)
+        repr += str(self.computation_type)
+        if self.microbatch_index is not None:
+            repr += str(self.microbatch_index)
+        return repr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def from_str(action_string: str):
@@ -162,6 +194,7 @@ class _Action(NamedTuple):
             e.g. `2F0`, `1UNSHARD`, `3SEND_F1`
         """
         action_string = action_string.strip()
+<<<<<<< HEAD
         if action_string == "":
             return None
 
@@ -194,6 +227,8 @@ class _Action(NamedTuple):
             )
 
         # Handle regular single action format
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if match := _action_regex.match(action_string):
             stage_index, computation_type, microbatch_index = match.groups()
             return _Action(
@@ -208,11 +243,14 @@ class _Action(NamedTuple):
         )
 
 
+<<<<<<< HEAD
 @lru_cache
 def _get_profiler_function_name(action: _Action) -> str:
     return f"PP:{str(action)}"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _format_pipeline_order(
     pipeline_order: dict[int, list[Optional[_Action]]],
     error_step_number: Optional[int] = None,
@@ -311,13 +349,21 @@ class _PipelineSchedule(ABC):
         logger.info("Using %s", self.__class__.__name__)
 
     def _maybe_compute_loss(self, stage, output, target_mbs, mb_index):
+<<<<<<< HEAD
         if stage.is_last and self._loss_fn is not None:
+=======
+        if stage.is_last and self._has_backward:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             loss = self._compute_loss(output, target_mbs[mb_index])  # type: ignore[index]
             self._internal_losses.append(loss)
 
     def _maybe_get_loss(self, stage, mb_index):
         valid_index = 0 <= mb_index < len(self._internal_losses)
+<<<<<<< HEAD
         if stage.is_last and self._loss_fn is not None and valid_index:
+=======
+        if stage.is_last and self._has_backward and valid_index:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self._internal_losses[mb_index]
         elif len(self._internal_losses) != 0 and not valid_index:
             raise RuntimeError(
@@ -382,6 +428,7 @@ class _PipelineSchedule(ABC):
         """
         raise NotImplementedError
 
+<<<<<<< HEAD
     def eval(self, *args, target=None, losses: Optional[list] = None, **kwargs):
         """
         Run one iteration of the pipeline schedule with *whole-batch* input.
@@ -402,6 +449,8 @@ class _PipelineSchedule(ABC):
             # Restore the original state
             self._has_backward = original_has_backward
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _check_inputs(
         self,
         arg_mbs: Optional[list] = None,
@@ -558,6 +607,11 @@ class PipelineScheduleSingle(_PipelineSchedule):
         # Self attributes
         self._stage = stage
         self._num_stages = stage.num_stages
+<<<<<<< HEAD
+=======
+        # Set the same has_backward flag for stage object
+        self._stage.has_backward = self._has_backward
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._stage_initialized = False
 
         if n_microbatches < self._num_stages:
@@ -571,6 +625,7 @@ or equal to the number of stages ({self._num_stages})."
         )
 
     def _initialize_stage(self, args, kwargs):
+<<<<<<< HEAD
         # Prepare the communication needed for the pipeline schedule execution
         # This is needed because during execution we always perform a series of batch P2P ops
         # The first call of the batched P2P needs to involve the global group
@@ -578,6 +633,8 @@ or equal to the number of stages ({self._num_stages})."
         all_ops.extend(self._stage._get_init_p2p_neighbors_ops())
         _wait_batch_p2p(_batch_p2p(all_ops))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._stage._prepare_forward_infra(self._n_microbatches, args, kwargs)
         if self._has_backward:
             self._stage._prepare_backward_infra(self._n_microbatches)
@@ -594,6 +651,7 @@ or equal to the number of stages ({self._num_stages})."
         target: target for the loss function.
         losses: a list to store the losses for each microbatch.
         """
+<<<<<<< HEAD
         if self._has_backward and not torch.is_grad_enabled():
             raise RuntimeError(
                 "step() requires gradients to be enabled for backward computation; "
@@ -603,6 +661,8 @@ or equal to the number of stages ({self._num_stages})."
 
         # Set the same has_backward flag for stage object
         self._stage.has_backward = self._has_backward
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Clean per iteration
         self._stage.clear_runtime_states()
@@ -747,6 +807,13 @@ class ScheduleGPipe(PipelineScheduleSingle):
         for work in fwd_sends_to_wait:
             _wait_batch_p2p(work)
 
+<<<<<<< HEAD
+=======
+        # No loss function, no need to run backward
+        if not self._has_backward:
+            return
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Run backward
         # Delay send waits
         bwd_sends_to_wait: list[list[dist.Work]] = []
@@ -774,13 +841,22 @@ class ScheduleGPipe(PipelineScheduleSingle):
             grad_scale_factor=self._n_microbatches if self.scale_grads else 1
         )
 
+<<<<<<< HEAD
+=======
+        # Return losses if there is a container passed in
+        self._update_losses(self._stage, losses)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Wait for all backward sends to finish
         for work in bwd_sends_to_wait:
             _wait_batch_p2p(work)
 
+<<<<<<< HEAD
         # Update losses if there is a container passed in
         self._update_losses(self._stage, losses)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _get_pipeline_order(self) -> Optional[dict[int, list[Optional[_Action]]]]:
         """
         Returns the pipeline order for GPipe schedule.
@@ -1033,7 +1109,11 @@ def _add_unshard_reshard(
     compute_actions: list[Optional[_Action]],
     max_active_stages: int = 3,
 ) -> list[_Action]:
+<<<<<<< HEAD
     """Given a basic schedule involving only compute actions (F,B,W,OVERLAP_F_B), add UNSHARD/RESHARD actions for FSDP.
+=======
+    """Given a basic schedule involving only compute actions (F,B,W), add UNSHARD/RESHARD actions for FSDP.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     UNSHARD refers to fetching the full contents of an FSDP-sharded layer, requiring an all-gather operation.
     RESHARD does the opposite, releasing memory (but doing no communication)
@@ -1053,6 +1133,7 @@ def _add_unshard_reshard(
         ret: list[int] = []
 
         for a in next_actions:
+<<<<<<< HEAD
             if a is not None:
                 # Handle OVERLAP_F_B actions by checking their sub_actions
                 if a.computation_type == OVERLAP_F_B and a.sub_actions is not None:
@@ -1071,6 +1152,13 @@ def _add_unshard_reshard(
                         ret.append(a.stage_index)
                         if len(ret) == count:
                             break
+=======
+            if a is not None and a.stage_index not in seen:
+                seen.add(a.stage_index)
+                ret.append(a.stage_index)
+                if len(ret) == count:
+                    break
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ret
 
     active_stages: set[int] = set()
@@ -1127,6 +1215,7 @@ def _merge_bw(
         if action is None:
             continue
 
+<<<<<<< HEAD
         # Remove any None actions and find the next non-None action
         while len(compute_actions) and compute_actions[0] is None:
             compute_actions.pop(0)
@@ -1134,6 +1223,12 @@ def _merge_bw(
         # Get the next action if it exists
         next_action = compute_actions[0] if len(compute_actions) > 0 else None
 
+=======
+        while len(compute_actions) and (next_action := compute_actions[0]) is None:
+            # remove any None actions between 'action' and 'next_action'
+            compute_actions.pop(0)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             action.computation_type == BACKWARD_INPUT
             and next_action is not None
@@ -1155,9 +1250,12 @@ def _add_send_recv(
     stage_to_rank: Callable[[int], int],
     num_stages: int,
 ) -> dict[int, list[_Action]]:
+<<<<<<< HEAD
     """
     Transforms a compute-only schedule into a complete schedule with communication actions.
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     comm_actions: dict[int, list[_Action]] = {rank: [] for rank in compute_actions}
     prev_actions: dict[int, set[_Action]] = {rank: set() for rank in compute_actions}
 
@@ -1226,6 +1324,7 @@ def _add_send_recv(
         else:
             return True
 
+<<<<<<< HEAD
     # TODO: For now we are splitting OVERLAP_F_B into replacing it to
     # its forward and backward components
     # We need to figure out how to do the communication
@@ -1239,6 +1338,8 @@ def _add_send_recv(
                 new_actions.append(action)
         compute_actions[rank] = new_actions
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     while compute_actions:
         progress = False
         # go in order of ranks even if dict keys aren't ordered
@@ -1295,6 +1396,7 @@ def _validate_schedule(
         for stage_id in range(num_stages)
     }
     stage_index_to_rank_mapping = {}
+<<<<<<< HEAD
 
     def _process_action(action: _Action, rank: int, step: int):
         """Process a single action and update stage_actions and stage_index_to_rank_mapping"""
@@ -1371,6 +1473,42 @@ def _validate_schedule(
             else:
                 # Process the main action normally
                 _process_action(action, rank, step)
+=======
+    for rank in actions:
+        for action in actions[rank]:
+            if action is None:
+                continue
+            assert isinstance(action, _Action), (
+                f"Got an invalid action: {action}, expected instance of _Action"
+            )
+            s_id = action.stage_index
+            ctype = action.computation_type
+            mb_id = action.microbatch_index
+            if ctype == F:
+                stage_actions[s_id][F].add(mb_id)
+            elif ctype == B:
+                assert mb_id in stage_actions[s_id][F], (
+                    f"Running Full Backward for stage {s_id}, microbatch {mb_id} without first running Forward"
+                )
+                stage_actions[s_id][B].add(mb_id)
+            elif ctype == I:
+                assert mb_id in stage_actions[s_id][F], (
+                    f"Running Backward Input for stage {s_id}, microbatch {mb_id} without first running Forward"
+                )
+                stage_actions[s_id][I].add(mb_id)
+            elif ctype == W:
+                assert mb_id in stage_actions[s_id][I], (
+                    f"Running Backward Weight for stage {s_id}, microbatch {mb_id} without first running Backward Input"
+                )
+                stage_actions[s_id][W].add(mb_id)
+            if s_id not in stage_index_to_rank_mapping:
+                stage_index_to_rank_mapping[s_id] = rank
+            else:
+                existing_rank = stage_index_to_rank_mapping[s_id]
+                assert rank == existing_rank, (
+                    f"Stage {s_id} is assigned to both rank {rank} and rank {existing_rank}"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for s_id in stage_actions:
         f_mb = len(stage_actions[s_id][F])
@@ -1382,11 +1520,14 @@ def _validate_schedule(
             f"Got {f_mb} {F} microbatches for stage {s_id}, expected {num_microbatches}"
         )
 
+<<<<<<< HEAD
         assert i_mb == w_mb, (
             f"Invalid backward microbatches for stage {s_id}: I and W must have equal counts, \
             but got I={i_mb}, W={w_mb}"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert b_mb + (i_mb + w_mb) // 2 == num_microbatches, (
             f"Invalid backward microbatches for stage {s_id}: expected {num_microbatches} total backwards, \
             but got B={b_mb}, I={i_mb}, W={w_mb}"
@@ -1436,6 +1577,12 @@ class PipelineScheduleMulti(_PipelineSchedule):
         for stage in self._stages:
             stage.stage_index_to_group_rank = self.stage_index_to_group_rank
 
+<<<<<<< HEAD
+=======
+        # Set the same has_backward flag for stage object
+        for stage in self._stages:
+            stage.has_backward = self._has_backward
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._stages_initialized = False
 
         # avoid putting a reference to 'self' inside the lambda, it creates a ref cycle
@@ -1452,6 +1599,7 @@ class PipelineScheduleMulti(_PipelineSchedule):
             )
 
     def _initialize_stages(self, args: tuple[Any, ...], kwargs):
+<<<<<<< HEAD
         # Prepare the communication needed for the pipeline schedule execution
         # This is needed because during execution we always perform a series of batch P2P ops
         # The first call of the batched P2P needs to involve the global group
@@ -1460,6 +1608,8 @@ class PipelineScheduleMulti(_PipelineSchedule):
             all_ops.extend(stage._get_init_p2p_neighbors_ops())
         _wait_batch_p2p(_batch_p2p(all_ops))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # may be 'none' value (if this stage sends its output shapes to the next stage via P2P)
         # or real value (if this stage and next stage are on the same device)
         next_stage_args: tuple[Any, ...] = tuple()
@@ -1526,6 +1676,7 @@ class PipelineScheduleMulti(_PipelineSchedule):
         target: target for the loss function.
         losses: a list to store the losses for each microbatch.
         """
+<<<<<<< HEAD
         if self._has_backward and not torch.is_grad_enabled():
             raise RuntimeError(
                 "step() requires gradients to be enabled for backward computation; "
@@ -1537,6 +1688,8 @@ class PipelineScheduleMulti(_PipelineSchedule):
         for stage in self._stages:
             stage.has_backward = self._has_backward
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Clean per iteration
         for stage in self._stages:
             stage.clear_runtime_states()
@@ -1730,11 +1883,18 @@ class PipelineScheduleMulti(_PipelineSchedule):
                 _wait_batch_p2p(_batch_p2p(ops))
             except Exception as e:
                 logger.error(
+<<<<<<< HEAD
                     "[Rank %s] pipeline schedule %s caught the following exception '%s' \
 at time_step %s when running action %s",
                     self.rank,
                     self.__class__.__name__,
                     str(e),
+=======
+                    "[Rank %s] pipeline schedule %s caught the following exception \
+                     at time_step %s when running action %s",
+                    self.rank,
+                    self.__class__.__name__,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     time_step,
                     action,
                 )
@@ -1757,7 +1917,11 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
     subclassed and the subclass can be responsible for creating a schedule IR.
     """
 
+<<<<<<< HEAD
     def _prepare_schedule_with_comms(
+=======
+    def _load_actions(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         actions: dict[int, list[Optional[_Action]]],
         format: str = "compute_only",
@@ -1778,6 +1942,7 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
                     self.pipeline_order_with_comms[rank].append(action)
             # TODO what level of validation should we offer for compute+comms schedule?
         elif format == "compute_only":
+<<<<<<< HEAD
             # Validate that the schedule does not have comms already added to it
             for rank, action_list in actions.items():
                 for i, action in enumerate(action_list):
@@ -1789,6 +1954,8 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
                             f"should not be present when format='compute_only'."
                         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Perform schedule lowering
             for rank in actions:
                 self.pipeline_order_with_comms[rank] = _add_unshard_reshard(
@@ -1813,13 +1980,18 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
             # this will populate self.pipeline_order
             super()._load_csv(filename)
             # this will populate self.pipeline_order_with_comms
+<<<<<<< HEAD
             self._prepare_schedule_with_comms(self.pipeline_order)
+=======
+            self._load_actions(self.pipeline_order)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif format == "compute_comms":
             actions = {}
             with open(filename, newline="") as csvfile:
                 reader = csv.reader(csvfile)
                 for rank, row in enumerate(reader):
                     actions[rank] = [_Action.from_str(s) for s in row]
+<<<<<<< HEAD
                 self._prepare_schedule_with_comms(actions, format=format)
         else:
             raise NotImplementedError(f"{format=} is not implemented")
@@ -1842,6 +2014,23 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
                 writer = csv.writer(csvfile)
                 for rank in self.pipeline_order_with_comms:
                     writer.writerow(self.pipeline_order_with_comms[rank])
+=======
+                self._load_actions(actions, format=format)
+        else:
+            raise NotImplementedError(f"{format=} is not implemented")
+
+    def _dump_csv(self, filename: str):
+        """Dump a CSV representation of the compute + comms schedule into a file with the provided filename."""
+        # TODO should there be an option to dump the compute_only schedule from PipelineScheduleRuntime? It's possible
+        # that it does not exist if it was created from a compute_comms schedule.
+        assert self.pipeline_order_with_comms is not None, (
+            "Must initialize compute_comms schedule before dump_csv"
+        )
+        with open(filename, "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            for rank in self.pipeline_order_with_comms:
+                writer.writerow(self.pipeline_order_with_comms[rank])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _simulate(self):
         return _simulate_comms_compute(
@@ -1874,7 +2063,11 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
         }
 
         assert self.pipeline_order_with_comms is not None, (
+<<<<<<< HEAD
             "Must call _prepare_schedule_with_comms() before calling _step_microbatches()"
+=======
+            "Must call _load_actions() before calling _step_microbatches()"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # recv ops indexed by (stage_idx, mb_idx) need to be waited on before use
@@ -1925,6 +2118,7 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
                     action,
                 )
 
+<<<<<<< HEAD
                 with record_function(_get_profiler_function_name(action)):
                     # TODO(whc) it's not actually safe to use _batch_p2p here in the uncommon case the model has skip-connections,
                     # since we do not want to batch up ops between more than a pair of ranks.  _sorted_batch_p2p would be
@@ -2074,6 +2268,150 @@ class _PipelineScheduleRuntime(PipelineScheduleMulti):
                         )
                     else:
                         raise ValueError(f"{action=} is unknown or unsupported")
+=======
+                # TODO(whc) it's not actually safe to use _batch_p2p here in the uncommon case the model has skip-connections,
+                # since we do not want to batch up ops between more than a pair of ranks.  _sorted_batch_p2p would be
+                # safe to use instead.
+                # However, I was wondering if I should avoid calling batched operators at all in the case that there is
+                # only one operator per batch.  I could iterate through the 'fwd_send_ops' one by one and run them.
+                if comp_type == SEND_F:
+                    send_ops.append(_batch_p2p(stage.get_fwd_send_ops(mb_index)))
+                elif comp_type == SEND_B:
+                    send_ops.append(_batch_p2p(stage.get_bwd_send_ops(mb_index)))
+                elif comp_type == RECV_F:
+                    assert (
+                        stage_idx,
+                        mb_index,
+                    ) not in fwd_recv_ops, (
+                        "Recv twice for {stage_idx=} {mb_index=} without executing forward"
+                    )
+                    fwd_recv_ops[(stage_idx, mb_index)] = _batch_p2p(
+                        stage.get_fwd_recv_ops(mb_index)
+                    )
+                elif comp_type == RECV_B:
+                    assert (
+                        stage_idx,
+                        mb_index,
+                    ) not in bwd_recv_ops, (
+                        "Recv twice for {stage_idx=} {mb_index=} without executing backward"
+                    )
+                    bwd_recv_ops[(stage_idx, mb_index)] = _batch_p2p(
+                        stage.get_bwd_recv_ops(mb_index)
+                    )
+                elif comp_type == UNSHARD:
+                    if stage_uses_fsdp:
+                        assert (
+                            stage_idx not in unsharded_stages
+                            and stage_idx not in unshard_ops
+                        ), f"Unsharding the same {stage_idx=} twice"
+                        unshard_ops[stage_idx] = stage.submod.unshard(async_op=True)  # type: ignore[operator]
+                elif comp_type == RESHARD:
+                    if stage_uses_fsdp:
+                        assert stage_idx in unsharded_stages, (
+                            f"Resharding {stage_idx=} without unsharding"
+                        )
+                        assert stage_idx not in unshard_ops, (
+                            f"Resharding {stage_idx=} before finishing unshard"
+                        )
+                        stage.submod.reshard()  # type: ignore[operator]
+                elif comp_type == FORWARD:
+                    if stage_uses_fsdp:
+                        _assert_unsharded(stage_idx)
+
+                    if (
+                        not stage.is_first
+                        # no recv op expected for V-schedule special case (see [Note: V-schedule special case])
+                        and not is_prev_stage_on_this_rank
+                    ):
+                        assert (
+                            stage_idx,
+                            mb_index,
+                        ) in fwd_recv_ops, f"Computing {action=} before receiving input"
+                        _wait_batch_p2p(fwd_recv_ops.pop((stage_idx, mb_index)))
+
+                    output = stage.forward_one_chunk(
+                        mb_index, arg_mbs[mb_index], kwarg_mbs[mb_index]
+                    )
+                    self._maybe_compute_loss(stage, output, target_mbs, mb_index)
+
+                    # SEND/RECV op are avoided for special case with 2 adjacent stages on same rank
+                    # see [Note: V-schedule special case]
+                    if is_next_stage_on_this_rank:
+                        stage_index_to_stage[stage_idx + 1].set_local_fwd_input(
+                            output, mb_index
+                        )
+
+                elif comp_type == FULL_BACKWARD:
+                    if stage_uses_fsdp:
+                        _assert_unsharded(stage_idx)
+
+                    if (
+                        not stage.is_last
+                        # no recv op expected for V-schedule special case (see [Note: V-schedule special case])
+                        and not is_next_stage_on_this_rank
+                    ):
+                        assert (
+                            stage_idx,
+                            mb_index,
+                        ) in bwd_recv_ops, (
+                            f"Attempted to run compute {action=} before receiving input"
+                        )
+                        _wait_batch_p2p(bwd_recv_ops.pop((stage_idx, mb_index)))
+                    loss = self._maybe_get_loss(stage, mb_index)
+                    backward_counter[stage_idx] += 1
+                    last_backward = backward_counter[stage_idx] == self._n_microbatches
+                    grad_scale_factor = self._n_microbatches if self.scale_grads else 1
+                    stage.backward_one_chunk(
+                        mb_index,
+                        loss=loss,
+                        full_backward=True,
+                        last_backward=last_backward,
+                    )
+                    if last_backward:
+                        stage.scale_grads(grad_scale_factor)
+                    # SEND/RECV op are avoided for special case with 2 adjacent stages on same rank
+                    # see [Note: V-schedule special case]
+                    if is_prev_stage_on_this_rank:
+                        stage_index_to_stage[stage_idx - 1].set_local_bwd_input(
+                            stage.get_local_bwd_output(mb_index), mb_index
+                        )
+                elif comp_type == BACKWARD_INPUT:
+                    if stage_uses_fsdp:
+                        _assert_unsharded(stage_idx)
+
+                    if not stage.is_last and not is_next_stage_on_this_rank:
+                        assert (
+                            stage_idx,
+                            mb_index,
+                        ) in bwd_recv_ops, (
+                            f"Attempted to run compute {action=} before receiving input"
+                        )
+                        _wait_batch_p2p(bwd_recv_ops.pop((stage_idx, mb_index)))
+                    loss = self._maybe_get_loss(stage, mb_index)
+                    stage.backward_one_chunk(
+                        mb_index,
+                        loss=loss,
+                        full_backward=False,
+                        last_backward=False,
+                    )
+                    # SEND/RECV op are avoided for special case with 2 adjacent stages on same rank
+                    # see [Note: V-schedule special case]
+                    if is_prev_stage_on_this_rank:
+                        stage_index_to_stage[stage_idx - 1].set_local_bwd_input(
+                            stage.get_local_bwd_output(mb_index), mb_index
+                        )
+                elif comp_type == BACKWARD_WEIGHT:
+                    if stage_uses_fsdp:
+                        _assert_unsharded(stage_idx)
+                    backward_counter[stage_idx] += 1
+                    stage.backward_weight_one_chunk(
+                        mb_index,
+                        last_backward=backward_counter[stage_idx]
+                        == self._n_microbatches,
+                    )
+                else:
+                    raise ValueError(f"{action=} is unknown or unsupported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             except Exception as e:
                 logger.error(
                     "_PipelineScheduleRuntime caught exception at step %s when running action %s.  Full Schedule:",
@@ -2585,7 +2923,11 @@ stage modules that have used torch.compile"
                 if actions[rank][timestamp] is not None:
                     temp_action = actions[rank][timestamp]
                     assert temp_action is not None
+<<<<<<< HEAD
                     stage_index, op, microbatch, _ = temp_action
+=======
+                    stage_index, op, microbatch = temp_action
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if not need_bubble(
                         stage_index, op, microbatch, num_stages_global, seen_ops
                     ):
@@ -2792,6 +3134,7 @@ class ScheduleZBVZeroBubble(PipelineScheduleMulti):
         return rank_ops
 
 
+<<<<<<< HEAD
 class ScheduleDualPipeV(_PipelineScheduleRuntime):
     """
     The DualPipeV schedule. A more efficient schedule variant based on the
@@ -3013,6 +3356,8 @@ class ScheduleDualPipeV(_PipelineScheduleRuntime):
         return actions
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_schedule_class(schedule_name: str):
     """
     Maps a schedule name (case insensitive) to its corresponding class object.
@@ -3029,7 +3374,10 @@ def get_schedule_class(schedule_name: str):
         "PipelineScheduleSingle": PipelineScheduleSingle,
         "PipelineScheduleMulti": PipelineScheduleMulti,
         "ZBVZeroBubble": ScheduleZBVZeroBubble,
+<<<<<<< HEAD
         "DualPipeV": ScheduleDualPipeV,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     lowercase_keys = {k.lower(): k for k in schedule_map.keys()}
     lowercase_schedule_name = schedule_name.lower()

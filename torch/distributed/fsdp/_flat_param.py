@@ -2294,9 +2294,14 @@ class FlatParamHandle:
                 flat_param._params[i] = param
             if needs_param_writeback:
                 expected_shape = torch.Size([numel_in_shard])
+<<<<<<< HEAD
                 src = param if self.uses_sharded_strategy else param.view(-1)
                 self._writeback_tensor(
                     src, flat_param, i, expected_shape, offset_in_shard, True
+=======
+                self._writeback_tensor(
+                    param, flat_param, i, expected_shape, offset_in_shard, True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 wroteback = True
 
@@ -2328,6 +2333,7 @@ class FlatParamHandle:
                     if flat_param_grad is None:
                         flat_param_grad = torch.zeros_like(flat_param)
                     expected_shape = torch.Size([numel_in_shard])
+<<<<<<< HEAD
                     src = (
                         param.grad
                         if self.uses_sharded_strategy
@@ -2335,6 +2341,10 @@ class FlatParamHandle:
                     )
                     self._writeback_tensor(
                         src,
+=======
+                    self._writeback_tensor(
+                        param.grad,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         flat_param_grad,
                         i,
                         expected_shape,

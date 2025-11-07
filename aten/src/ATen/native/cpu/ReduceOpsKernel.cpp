@@ -425,6 +425,7 @@ static void argmin_kernel_impl(TensorIterator &iter) {
   });
 }
 
+<<<<<<< HEAD
 template <typename scalar_t, typename acc_t = uint64_t, typename out_t = acc_t>
 struct XorSumOps {
   inline C10_DEVICE acc_t reduce(acc_t acc, scalar_t data, int64_t /*idx*/) const {
@@ -468,6 +469,8 @@ static void xor_sum_kernel_impl(TensorIterator& iter) {
       });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }  // anonymous namespace
 
 REGISTER_DISPATCH(std_var_stub, &std_var_kernel_impl)
@@ -482,7 +485,10 @@ REGISTER_DISPATCH(min_values_stub, &min_values_kernel_impl)
 REGISTER_DISPATCH(max_values_stub, &max_values_kernel_impl)
 REGISTER_DISPATCH(argmax_stub, &argmax_kernel_impl)
 REGISTER_DISPATCH(argmin_stub, &argmin_kernel_impl)
+<<<<<<< HEAD
 REGISTER_DISPATCH(xor_sum_stub, &xor_sum_kernel_impl)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 REGISTER_DISPATCH(cumprod_stub, &cumprod_cpu_kernel)
 REGISTER_DISPATCH(cumsum_stub, &cumsum_cpu_kernel)

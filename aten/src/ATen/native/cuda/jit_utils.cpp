@@ -45,7 +45,11 @@ namespace at::cuda::jit {
 // Copied from aten/src/ATen/cuda/llvm_basic.cpp, then modified as above.
 // If not compiling for ROCm, return the original get_traits_string().
 std::string get_traits_string_but_hiprtc_safe() {
+<<<<<<< HEAD
 #if defined(USE_ROCM) && HIP_VERSION_MAJOR < 7
+=======
+#if defined(USE_ROCM) && ROCM_VERSION < 70000
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return R"ESCAPE(
 namespace std {
 

@@ -220,6 +220,7 @@ class Vectorized<c10::Half> : public Vectorized16<
       std::memcpy(ptr, tmp_values, count * sizeof(float16_t));
     }
   }
+<<<<<<< HEAD
   int zero_mask() const {
 #ifdef __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
     uint16x8_t is_zero_vec = vceqzq_f16(values);
@@ -246,6 +247,10 @@ class Vectorized<c10::Half> : public Vectorized16<
     return mask;
 #endif // __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
   }
+=======
+  // For boolean version where we want to if any 1/all zero
+  // etc. can be done faster in a different way.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<c10::Half> isnan() const {
 #ifdef __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
     return vreinterpretq_f16_u16(vmvnq_u16(vceqq_f16(values, values)));
@@ -622,6 +627,7 @@ Vectorized<c10::Half> inline fmadd(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<c10::Half> inline fnmadd(
     const Vectorized<c10::Half>& a,
     const Vectorized<c10::Half>& b,
@@ -634,6 +640,8 @@ Vectorized<c10::Half> inline fnmadd(
 }
 
 template <>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<c10::Half> inline fmsub(
     const Vectorized<c10::Half>& a,
     const Vectorized<c10::Half>& b,
@@ -644,6 +652,7 @@ Vectorized<c10::Half> inline fmsub(
   return a * b - c;
 #endif
 }
+<<<<<<< HEAD
 
 template <>
 Vectorized<c10::Half> inline fnmsub(
@@ -656,6 +665,8 @@ Vectorized<c10::Half> inline fnmsub(
   return -a * b - c;
 #endif
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // !defined(C10_MOBILE) && defined(__aarch64__)
 
 } // namespace CPU_CAPABILITY

@@ -13,11 +13,17 @@ import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncComp
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch._inductor.graph import GraphLowering
 from torch._inductor.compile_fx import shape_env_from_inputs
+<<<<<<< HEAD
 from torch._inductor.utils import OrderedSet
 from torch._inductor.codecache import CppCodeCache
 from torch._inductor.custom_graph_pass import CustomGraphModulePass
 from torch._inductor.codegen.common import (
     get_custom_backend_config_for_device,
+=======
+from torch._inductor.codecache import CppCodeCache
+from torch._inductor.custom_graph_pass import CustomGraphModulePass
+from torch._inductor.codegen.common import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_custom_backend_pass_for_device,
     get_scheduling_for_device,
     get_wrapper_codegen_for_device,
@@ -29,7 +35,10 @@ from torch._inductor.utils import get_gpu_shared_memory, is_big_gpu
 from torch._inductor.utils import GPU_TYPES, get_gpu_type, is_gpu
 from torch.utils._helion import has_helion
 from torch.utils._triton import has_triton
+<<<<<<< HEAD
 from torch.utils._config_module import ConfigModule
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_device_type import (
     get_desired_device_type_test_bases,
 )
@@ -70,6 +79,7 @@ else:
     TRITON_HAS_CPU = False
 
 
+<<<<<<< HEAD
 HAS_CUDA_AND_TRITON = torch.cuda.is_available() and HAS_TRITON
 
 HAS_XPU_AND_TRITON = torch.xpu.is_available() and HAS_TRITON
@@ -77,6 +87,15 @@ HAS_XPU_AND_TRITON = torch.xpu.is_available() and HAS_TRITON
 HAS_MPS = torch.mps.is_available()
 
 HAS_GPU = HAS_CUDA_AND_TRITON or HAS_XPU_AND_TRITON
+=======
+HAS_CUDA = torch.cuda.is_available() and HAS_TRITON
+
+HAS_XPU = torch.xpu.is_available() and HAS_TRITON
+
+HAS_MPS = torch.mps.is_available()
+
+HAS_GPU = HAS_CUDA or HAS_XPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 GPU_TYPE = get_gpu_type()
 
@@ -164,16 +183,28 @@ skipXPUIf = functools.partial(skipDeviceIf, device="xpu")
 skipCPUIf = functools.partial(skipDeviceIf, device="cpu")
 
 IS_A100 = LazyVal(
+<<<<<<< HEAD
     lambda: HAS_CUDA_AND_TRITON
+=======
+    lambda: HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     and get_gpu_shared_memory() == 166912
 )
 
 IS_H100 = LazyVal(
+<<<<<<< HEAD
     lambda: HAS_CUDA_AND_TRITON
     and get_gpu_shared_memory() == 232448
 )
 
 IS_BIG_GPU = LazyVal(lambda: HAS_CUDA_AND_TRITON and is_big_gpu())
+=======
+    lambda: HAS_CUDA
+    and get_gpu_shared_memory() == 232448
+)
+
+IS_BIG_GPU = LazyVal(lambda: HAS_CUDA and is_big_gpu())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def dummy_graph() -> GraphLowering:
     """
@@ -307,6 +338,7 @@ def _quantize_rowwise(x: Tensor, float8_dtype: torch.dtype):
     inverse_scale = scale.reciprocal()
     return x_fp8, inverse_scale
 
+<<<<<<< HEAD
 class MockGraphHandler(GraphLowering):
     """Minimal mock graph handler for testing virtualized context."""
 
@@ -325,12 +357,18 @@ class MockGraphHandler(GraphLowering):
         """Return default dtype for any buffer (for testing)."""
         return torch.float32
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @contextlib.contextmanager
 def patch_inductor_backend(
     device: str,
     python_wrapper_codegen: PythonWrapperCodegen = None,
+<<<<<<< HEAD
     custom_pass: CustomGraphModulePass = None,
     custom_backend_config: ConfigModule = None
+=======
+    custom_pass: CustomGraphModulePass = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Patch the inductor backend for a specific device.
@@ -342,9 +380,13 @@ def patch_inductor_backend(
     original_scheduling = get_scheduling_for_device(device)
     original_python_wrapper = get_wrapper_codegen_for_device(device, False)
     original_cpp_wrapper = get_wrapper_codegen_for_device(device, True)
+<<<<<<< HEAD
     original_fx_wrapper = get_wrapper_codegen_for_device(device, fx_wrapper=True)
     original_custom_pass = get_custom_backend_pass_for_device(device)
     original_custom_backend_config = get_custom_backend_config_for_device(device)
+=======
+    original_custom_pass = get_custom_backend_pass_for_device(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     try:
         # Register modified backend for the device
@@ -353,9 +395,13 @@ def patch_inductor_backend(
             original_scheduling,
             python_wrapper_codegen if python_wrapper_codegen is not None else original_python_wrapper,
             original_cpp_wrapper,
+<<<<<<< HEAD
             original_fx_wrapper,
             custom_pass if custom_pass is not None else original_custom_pass,
             custom_backend_config if custom_backend_config is not None else original_custom_backend_config
+=======
+            custom_pass if custom_pass is not None else original_custom_pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         yield
     finally:
@@ -365,7 +411,11 @@ def patch_inductor_backend(
             original_scheduling,
             original_python_wrapper,
             original_cpp_wrapper,
+<<<<<<< HEAD
             original_fx_wrapper,
             original_custom_pass,
             original_custom_backend_config
+=======
+            original_custom_pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )

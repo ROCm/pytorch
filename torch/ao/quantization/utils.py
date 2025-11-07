@@ -4,7 +4,10 @@ Utils shared by different modes of quantization (eager/graph)
 """
 
 import functools
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from collections import OrderedDict
 from inspect import getfullargspec, signature
@@ -16,6 +19,7 @@ from torch.fx import Node
 from torch.nn.utils.parametrize import is_parametrized
 
 
+<<<<<<< HEAD
 if sys.version_info < (3, 12):
     NodePattern = Union[tuple[Node, Node], tuple[Node, tuple[Node, Node]], Any]
     NodePattern.__module__ = "torch.ao.quantization.utils"
@@ -26,6 +30,10 @@ else:
         "NodePattern", Union[tuple[Node, Node], tuple[Node, tuple[Node, Node]], Any]
     )
 
+=======
+NodePattern = Union[tuple[Node, Node], tuple[Node, tuple[Node, Node]], Any]
+NodePattern.__module__ = "torch.ao.quantization.utils"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # This is the Quantizer class instance from torch/quantization/fx/quantize.py.
 # Define separately to prevent circular imports.
@@ -37,6 +45,7 @@ QuantizerCls = Any
 # Type for fusion patterns, it can be more complicated than the following actually,
 # see pattern.md for docs
 # TODO: not sure if typing supports recursive data types
+<<<<<<< HEAD
 
 if sys.version_info < (3, 12):
     Pattern = Union[
@@ -58,6 +67,12 @@ else:
             Any,
         ],
     )
+=======
+Pattern = Union[
+    Callable, tuple[Callable, Callable], tuple[Callable, tuple[Callable, Callable]], Any
+]
+Pattern.__module__ = "torch.ao.quantization.utils"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # TODO: maybe rename this to MatchInputNode
@@ -642,7 +657,11 @@ def validate_qmin_qmax(quant_min: int, quant_max: int) -> None:
 
 # Functionally equivalent to '_calculate_qparams' in observer.py. Observers must be torchscriptable however and qscheme
 # as far as I can tell is not allowed to passed as a parameter in torchscript functions. This makes refactoring observer
+<<<<<<< HEAD
 # to use this utility a massive pain and very gross. For now Im opting just to duplicate as this code seems unlikely to change
+=======
+# to use this utility a massive pain and very gross. For now Im opting just to duplicate as this code seems unlikey to change
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (last update over 1 year ago) and when torchscript is fully deprecated we can refactor. TODO(jakeszwe, jerryzh168)
 def determine_qparams(
     min_val: torch.Tensor,

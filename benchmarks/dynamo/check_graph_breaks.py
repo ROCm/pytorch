@@ -13,7 +13,10 @@ flaky_models = {
     "gluon_inception_v3",
     "detectron2_maskrcnn_r_101_c4",
     "XGLMForCausalLM",  # discovered in https://github.com/pytorch/pytorch/pull/128148
+<<<<<<< HEAD
     "detectron2_fcos_r_50_fpn",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 

@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
 import logging
+<<<<<<< HEAD
+=======
+from typing import cast
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -113,12 +117,19 @@ def realize_as_comm_buffer(
 def _get_data(x: ir.TensorBox) -> ir.IRNode:
     if isinstance(x.data, ir.BaseView):
         # TensorBox -> *View -> StorageBox -> IRNode
+<<<<<<< HEAD
         node = x.data.unwrap_view()
         assert isinstance(node, (ir.BaseView, ir.MutableBox))
         return node.data
     elif isinstance(x.data, ir.StorageBox):
         # TensorBox -> StorageBox -> IRNode
         return x.data.data
+=======
+        return x.data.unwrap_view().data
+    elif isinstance(x.data, ir.StorageBox):
+        # TensorBox -> StorageBox -> IRNode
+        return cast(ir.Buffer, x.data.data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         raise AssertionError(
             "Expect the data attr of a `TensorBox` to be either "
@@ -209,6 +220,7 @@ def register_comm_lowerings():
             inp.realize()
             V.graph.no_fuse_buffer_names.add(inp.get_name())
         inp = ir.ExternKernel.require_contiguous(inp)
+<<<<<<< HEAD
         # Because we are lowering as inplace c10d.all_reduce_, we should generate
         # _AllReduce_Kernel instead of _AllReduceKernel.
         ir._AllReduce_Kernel.create_inplace(
@@ -218,6 +230,12 @@ def register_comm_lowerings():
             group_name,  # type: ignore[arg-type]
         )
         return inp  # type: ignore[return-value]
+=======
+        ir._CollectiveKernel.create_inplace(
+            c10d.all_reduce_.default, inp, reduce_op, group_name
+        )
+        return inp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @register_comm_lowering(c10d.all_reduce_)  # type: ignore[misc]
     def _all_reduce_(
@@ -233,6 +251,7 @@ def register_comm_lowerings():
 
         # Lower as c10d.all_reduce_
         inp = ir.ExternKernel.require_contiguous(inp)
+<<<<<<< HEAD
         ir._AllReduce_Kernel.create_inplace(
             c10d.all_reduce_.default,
             inp,  # type: ignore[arg-type]
@@ -240,6 +259,12 @@ def register_comm_lowerings():
             group_name,  # type: ignore[arg-type]
         )
         return inp  # type: ignore[return-value]
+=======
+        ir._CollectiveKernel.create_inplace(
+            c10d.all_reduce_.default, inp, reduce_op, group_name
+        )
+        return inp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @register_comm_lowering(c10d.all_reduce_coalesced)
     def _all_reduce_coalesced(inputs, reduce_op, group_name):
@@ -262,6 +287,7 @@ def register_comm_lowerings():
         )
         return inputs
 
+<<<<<<< HEAD
     def _create_out_of_place(kernel, inputs, *args) -> ir.IRNode:
         node = ir._CollectiveKernel.create_out_of_place(kernel, inputs, *args)
         assert isinstance(node, ir.IRNode)
@@ -274,6 +300,17 @@ def register_comm_lowerings():
             inp,
             group_size,
             group_name,
+=======
+    @register_comm_lowering(c10d.all_gather_into_tensor)
+    def _all_gather_into_tensor(inp, group_size, group_name):
+        return ir.TensorBox.create(
+            ir._CollectiveKernel.create_out_of_place(
+                c10d.all_gather_into_tensor.default,
+                inp,
+                group_size,
+                group_name,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @register_comm_lowering(c10d.all_gather_into_tensor_coalesced)
@@ -301,12 +338,23 @@ def register_comm_lowerings():
 
     @register_comm_lowering(c10d.reduce_scatter_tensor)
     def _reduce_scatter_tensor(inp, reduce_op, group_size, group_name):
+<<<<<<< HEAD
         return _create_out_of_place(
             c10d.reduce_scatter_tensor.default,
             inp,
             reduce_op,
             group_size,
             group_name,
+=======
+        return ir.TensorBox.create(
+            ir._CollectiveKernel.create_out_of_place(
+                c10d.reduce_scatter_tensor.default,
+                inp,
+                reduce_op,
+                group_size,
+                group_name,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @register_comm_lowering(c10d.reduce_scatter_tensor_coalesced)
@@ -324,12 +372,23 @@ def register_comm_lowerings():
 
     @register_comm_lowering(c10d.all_to_all_single)
     def _all_to_all_single(inp, output_split_sizes, input_split_sizes, group_name):
+<<<<<<< HEAD
         return _create_out_of_place(
             c10d.all_to_all_single.default,
             inp,
             output_split_sizes,
             input_split_sizes,
             group_name,
+=======
+        return ir.TensorBox.create(
+            ir._CollectiveKernel.create_out_of_place(
+                c10d.all_to_all_single.default,
+                inp,
+                output_split_sizes,
+                input_split_sizes,
+                group_name,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @register_comm_lowering(c10d.broadcast)
@@ -349,12 +408,23 @@ def register_comm_lowerings():
 
     @register_comm_lowering(torch.ops._dtensor.shard_dim_alltoall)
     def _shard_dim_alltoall(inp, gather_dim, shard_dim, group_name):
+<<<<<<< HEAD
         return _create_out_of_place(
             torch.ops._dtensor.shard_dim_alltoall.default,
             inp,
             gather_dim,
             shard_dim,
             group_name,
+=======
+        return ir.TensorBox.create(
+            ir._CollectiveKernel.create_out_of_place(
+                torch.ops._dtensor.shard_dim_alltoall.default,
+                inp,
+                gather_dim,
+                shard_dim,
+                group_name,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @register_comm_lowering(c10d.wait_tensor)

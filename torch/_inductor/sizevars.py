@@ -8,11 +8,15 @@ from typing import Any, Callable, cast, Optional, Union
 import sympy
 from sympy import Expr
 
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import (
     free_symbols,
     has_free_unbacked_symbols,
     ShapeEnv,
 )
+=======
+from torch.fx.experimental.symbolic_shapes import has_free_unbacked_symbols, ShapeEnv
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.functions import FloorDiv, ModularIndexing
 from torch.utils._sympy.symbol import symbol_is_type, SymT
@@ -59,6 +63,7 @@ def statically_known_true(
 # lifting and in some cases we should be directly passing through to ShapeEnv,
 # but there is some extra inductor logic that needs to be handled here
 class SizeVarAllocator:
+<<<<<<< HEAD
     """
     A class that manages symbolic size variables and their relationships.
 
@@ -68,6 +73,8 @@ class SizeVarAllocator:
     calculations for tensor operations.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, shape_env=None) -> None:
         super().__init__()
         if shape_env is None:
@@ -319,7 +326,11 @@ class SizeVarAllocator:
     # Note - [On Statically Known]
     # The statically_known_* family of functions below NEVER guard, they could return True if the
     # asked questions can be answered without guarding otherwise they return False.
+<<<<<<< HEAD
     # Those are similar to statically_known_true in symbolic_shapes.py but operate on sympy
+=======
+    # Those are similar to statically_known_true in symbolic_shapes but operate on sympy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # expressions instead of symnodes.
     def statically_known_true(self, expr: Union[sympy.Basic, bool]) -> bool:
         """
@@ -336,9 +347,13 @@ class SizeVarAllocator:
         """
         return self.statically_known_true(sympy.Eq(left, right))  # type: ignore[arg-type]
 
+<<<<<<< HEAD
     def statically_known_list_equals(
         self, left: Sequence[Expr], right: Sequence[Expr]
     ) -> bool:
+=======
+    def statically_known_list_equals(self, left: list[Expr], right: list[Expr]) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns a bool indicating if it is sound to optimize as if left and right lists are equal.
         """
@@ -380,16 +395,23 @@ class SizeVarAllocator:
         """
         Return a bool indicating if it is sound to optimize for the numerator being a multiple of the denominator.
         """
+<<<<<<< HEAD
         # The reason we skip compute here is to avoid the cost of trying to eval this symbolically.
         # see https://github.com/sympy/sympy/issues/28200
+=======
+        # The reason we skip unbacked here is that we want to avoid the cost of trying to eval this symbolically.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if has_free_unbacked_symbols(numerator) or has_free_unbacked_symbols(
             denominator
         ):
             return False
+<<<<<<< HEAD
 
         if len(free_symbols(numerator)) > 20:
             return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expr = sympy.Eq(numerator % denominator, 0)
         return self.statically_known_true(expr)  # type: ignore[arg-type]
 
@@ -399,6 +421,7 @@ class SizeVarAllocator:
         """
         return isinstance(expr, sympy.Integer) and is_power_of_2(int(expr))
 
+<<<<<<< HEAD
     # The expect/check functions require you to ALREADY KNOW that a particular
     # condition holds. They are similar to expect_true in symbolic_shapes.py and
     # torch.check but operates on sympy expressions instead of symnodes.
@@ -449,6 +472,64 @@ class SizeVarAllocator:
 
     # Similar to the functions guard_or_false/guard_or_true in symbolic_shapes.py
     # but operates on sympy expressions instead of symnodes. see Note [guard_or_].
+=======
+    # The guard functions require you to ALREADY KNOW that a particular
+    # condition holds.  If you don't know (you want to guard on an expression
+    # being a particular value, and then get access to that value), use
+    # the evaluate functions.
+
+    def guard_equals(self, left: Expr, right: Expr) -> Expr:
+        if isinstance(left, Expr):
+            left = sympy_subs(left, self.inv_precomputed_replacements)  # type: ignore[arg-type]
+        if isinstance(right, Expr):
+            right = sympy_subs(right, self.inv_precomputed_replacements)  # type: ignore[arg-type]
+
+        expr = sympy.Eq(left, right)
+        static_expr = self.shape_env._maybe_evaluate_static(expr)
+
+        if static_expr is not None:
+            assert bool(static_expr)
+            return left
+
+        assert self.shape_env.guard_or_defer_runtime_assert(expr, "guard_equals")
+        return left
+
+    def guard_leq(self, left: Expr, right: Expr) -> None:
+        return self.guard_lt(left, right + 1)
+
+    def guard_lt(self, left: Expr, right: Expr) -> None:
+        expr = sympy.Lt(left, right)
+        static_expr = self.shape_env._maybe_evaluate_static(expr)
+
+        if static_expr is not None:
+            assert bool(static_expr)
+            return
+
+        assert self.shape_env.guard_or_defer_runtime_assert(expr, "guard_lt")
+
+    def guarded_order(self, seq):
+        """
+        Return the order of a sequence as a permutation of range(len(seq)) and guard on that order not changing.
+        """
+        seq = [*map(self.remove_precomputed_replacements, seq)]
+        seq = [
+            (self.size_hint_or_throw(var), orig_idx, var)
+            for orig_idx, var in enumerate(seq)
+        ]
+        seq.sort()
+        order = [-1] * len(seq)
+        last_var = None
+        for new_index, (_, orig_index, var) in enumerate(seq):
+            order[orig_index] = new_index
+            if last_var is not None:
+                self.guard_leq(last_var, var)
+            last_var = var
+        return order
+
+    # Similar to the functions guard_or_false/guard_or_true in symbolic_shapes but operates on sympy
+    # expressions instead of symnodes. see Note [guard_or_].
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def guard_or_false(self, left):
         return self.evaluate_expr(left, fallback_value=False)
 
@@ -476,6 +557,7 @@ class SizeVarAllocator:
             fallback_value=fallback_value,
         )
 
+<<<<<<< HEAD
     def is_size_one_or_false(self, size: Expr) -> bool:
         """Return True if size equals 1.
 
@@ -483,6 +565,8 @@ class SizeVarAllocator:
         """
         return self.guard_or_false(sympy.Eq(size, 1))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def evaluate_min(self, left: Expr, right: Expr) -> Expr:
         """return the smaller of left and right, and guard on that choice"""
         if isinstance(left, Expr):
@@ -506,10 +590,17 @@ class SizeVarAllocator:
                 f"evaluate_min({left}, {right}) with unbacked symints"
             ) from None
         if lv <= rv:
+<<<<<<< HEAD
             self.check_leq(left, right)
             return left
         else:
             self.check_leq(right, left)
+=======
+            self.guard_leq(left, right)
+            return left
+        else:
+            self.guard_leq(right, left)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return right
 
     def evaluate_max(self, left: Expr, right: Expr) -> Expr:
@@ -519,6 +610,7 @@ class SizeVarAllocator:
         min_val = self.evaluate_min(left, right)
         return right if min_val is left else left
 
+<<<<<<< HEAD
     def guard_int(self, expr: Union[Expr, int]) -> int:
         """
         Similar to guard_int in symbolic_shapes.py, except this function works with SymPy
@@ -537,15 +629,30 @@ class SizeVarAllocator:
         Apply guard_int on a sequence of inputs.
         """
         return [self.guard_int(x) for x in left]
+=======
+    def evaluate_static_shape(self, left: Union[Expr, int]) -> int:
+        if isinstance(left, int):
+            return left
+        right = self.size_hint_or_throw(left)
+        self.guard_equals(left, sympy.Integer(right))
+        return int(right)
+
+    def evaluate_static_shapes(self, left: Sequence[Union[Expr, int]]) -> list[int]:
+        return [self.evaluate_static_shape(x) for x in left]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def remove_precomputed_replacements(self, expr: Expr) -> Expr:
         if any(symbol_is_type(s, SymT.PRECOMPUTED_SIZE) for s in expr.free_symbols):  # type: ignore[attr-defined]
             return sympy_subs(expr, self.inv_precomputed_replacements)  # type: ignore[arg-type]
         return expr
 
+<<<<<<< HEAD
     def symbolic_hint(
         self, expr: Union[Expr, int], hint_override: Optional[int] = None
     ) -> Union[Expr, int]:
+=======
+    def symbolic_hint(self, expr: Union[Expr, int]) -> Union[Expr, int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(expr, int):
             return expr
         # Substitute all hints into expr, but leave unbacked symints alone
@@ -559,14 +666,18 @@ class SizeVarAllocator:
                 return int(expr)  # type: ignore[return-value]
             except TypeError:
                 return expr  # inf/nan/I
+<<<<<<< HEAD
 
         if hint_override:
             return hint_override
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expr = self.remove_precomputed_replacements(expr)
         return sympy_subs(expr, self.var_to_val)
 
     def size_hint(
+<<<<<<< HEAD
         self,
         expr: Union[Expr, int],
         *,
@@ -574,6 +685,11 @@ class SizeVarAllocator:
         hint_override: Optional[int] = None,
     ) -> int:
         out = self.symbolic_hint(expr, hint_override=hint_override)
+=======
+        self, expr: Union[Expr, int], *, fallback: Optional[int] = None
+    ) -> int:
+        out = self.symbolic_hint(expr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(out, (int, sympy.Integer)) and fallback is not None:
             # Use the provided heuristic fallback hint
             unbacked_sym_vrs = {
@@ -594,7 +710,10 @@ class SizeVarAllocator:
             raise
 
     def size_hint_or_throw(self, expr: Union[Expr, int]) -> int:
+<<<<<<< HEAD
         # Like size_hint but there's no fallback for unbacked symints, so it throws.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out = self.symbolic_hint(expr)
         try:
             return int(out)
@@ -607,6 +726,7 @@ class SizeVarAllocator:
         exprs: Iterable[Union[Expr, int]],
         *,
         fallback: Optional[int] = None,
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
     ) -> tuple[int, ...]:
         return tuple(
@@ -620,6 +740,10 @@ class SizeVarAllocator:
     ) -> tuple[int, ...]:
         # Like size_hints but there's no fallback for unbacked symints, so it throws.
         return tuple(self.size_hint_or_throw(x) for x in exprs)
+=======
+    ) -> tuple[int, ...]:
+        return tuple(self.size_hint(x, fallback=fallback) for x in exprs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _lru_cache(self, fn, maxsize=None):
         """
@@ -759,7 +883,11 @@ class SizeVarAllocator:
         }
         return expr.subs(size_dict)
 
+<<<<<<< HEAD
     def offset_var(self, index: Expr, vars: Sequence[sympy.Symbol]) -> Expr:
+=======
+    def offset_var(self, index: Expr, vars: list[sympy.Symbol]) -> Expr:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Extract offset part of an indexing expression"""
         index = self.simplify(index)
         return sympy_subs(index, {v: sympy.S.Zero for v in vars if v != 0})

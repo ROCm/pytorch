@@ -1,5 +1,8 @@
 #include <torch/csrc/distributed/c10d/FlightRecorderDetail.hpp>
+<<<<<<< HEAD
 #include <fstream>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10d {
 
@@ -40,7 +43,11 @@ DebugInfoWriter& DebugInfoWriter::getWriter(int rank) {
     auto cacheDirPath = std::filesystem::path(homeDir + "/.cache/torch");
     // Create the .cache directory if it doesn't exist
     std::filesystem::create_directories(cacheDirPath);
+<<<<<<< HEAD
     auto defaultLocation = cacheDirPath / "comm_lib_trace_rank_";
+=======
+    auto defaultLocation = cacheDirPath / "nccl_trace_rank_";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // For internal bc compatibility, we keep the old the ENV check.
     std::string fileNamePrefix = getCvarString(

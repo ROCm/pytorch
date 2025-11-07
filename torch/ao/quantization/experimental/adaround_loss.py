@@ -54,7 +54,11 @@ class AdaptiveRoundingLoss(torch.nn.Module):
                 1 + np.cos(rel_iter * np.pi)
             )
 
+<<<<<<< HEAD
             # A rectified sigmoid for soft-quantization as formulated [23] in https://arxiv.org/pdf/2004.10568.pdf
+=======
+            # A rectified sigmoid for soft-quantization as formualted [23] in https://arxiv.org/pdf/2004.10568.pdf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             h_alpha = torch.clamp(
                 torch.sigmoid(V) * (ADAROUND_ZETA - ADAROUND_GAMMA) + ADAROUND_GAMMA,
                 min=0,

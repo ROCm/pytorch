@@ -469,6 +469,7 @@ Tensor _weight_int4pack_mm_xpu(
 
   return C;
 }
+<<<<<<< HEAD
 
 Tensor& _int_mm_out_xpu(
     const Tensor& self,
@@ -559,4 +560,6 @@ Tensor _int_mm_xpu(const Tensor& self, const Tensor& mat2) {
       at::empty({self.size(0), mat2.size(1)}, self.options().dtype(at::kInt));
   return _int_mm_out_xpu(self, mat2, result);
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

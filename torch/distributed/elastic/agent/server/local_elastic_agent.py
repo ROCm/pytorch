@@ -353,7 +353,10 @@ class LocalElasticAgent(SimpleElasticAgent):
             logs_specs=self._logs_specs,
             log_line_prefixes=log_line_prefixes,
             start_method=self._start_method,
+<<<<<<< HEAD
             numa_options=spec.numa_options,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         return self._pcontext.pids()

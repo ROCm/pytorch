@@ -68,6 +68,26 @@ inline bool isUnsupportedFloat8(at::ScalarType t) {
   );
 }
 
+<<<<<<< HEAD
+=======
+bool complexViewAsRealAllowed(const ReduceOp& reduceOp) {
+  switch (reduceOp) {
+    // NOLINTNEXTLINE(bugprone-branch-clone)
+    case ReduceOp::SUM:
+      return true;
+    case ReduceOp::AVG:
+      return true;
+    case ReduceOp::PREMUL_SUM:
+      return true;
+    case ReduceOp::UNUSED:
+      return true;
+    default:
+      return false;
+  }
+  return false;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef ENABLE_NCCL_PREMUL_SUM_SUPPORT
 template <typename T, ncclDataType_t dataType>
 ncclRedOpRAII unpackPreMulSum(
@@ -122,14 +142,21 @@ ncclRedOpRAII getNcclReduceOp(
           return unpackPreMulSum<at::Half, ncclHalf>(reduceOp, comm);
         case ncclFloat:
           return unpackPreMulSum<float, ncclFloat>(reduceOp, comm);
+<<<<<<< HEAD
         case ncclBfloat16:
           return unpackPreMulSum<float, ncclBfloat16>(reduceOp, comm);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         case ncclDouble:
           return unpackPreMulSum<double, ncclDouble>(reduceOp, comm);
         default:
           C10_THROW_ERROR(
+<<<<<<< HEAD
               TypeError,
               "PreMulSum Data type must be half, float, bfloat16 or double");
+=======
+              TypeError, "PreMulSum Data type must be half, float, or double");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           return ncclRedOp_t{};
       }
 #else
@@ -203,6 +230,20 @@ void syncStream(
   ncclEvent.block(ncclStream);
 }
 
+<<<<<<< HEAD
+=======
+// Given a ncclUniqueId, convert it to a string representation that can be put
+// in the store.
+std::string buildNcclUniqueIdStr(const ncclUniqueId& ncclID) {
+  const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&ncclID);
+  std::ostringstream oss;
+  for (const auto i : c10::irange(NCCL_UNIQUE_ID_BYTES)) {
+    oss << std::hex << static_cast<int>(bytes[i]);
+  }
+  return oss.str();
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::string getNcclAbortedCommStoreKey(const std::string& ncclIdStr) {
   return std::string(kNCCLAbortedCommStoreKey) + ":" + ncclIdStr;
 }
@@ -274,12 +315,17 @@ bool shouldAllCommunicatorsRegisterAllTensors() {
 // - This map has also to be maintained as global variable since the register
 //   hooks are called outside the scope of any PG, thus we need traverse
 //   communicators in all PGs.
+<<<<<<< HEAD
 
 // MemPoolSet has ids of mempools used with this communicator, and whether they
 // were registered with window APIs or not
 using MemPoolSet = std::unordered_set<
     std::tuple<c10::cuda::MempoolId_t, bool>,
     c10::hash<std::tuple<c10::cuda::MempoolId_t, bool>>>;
+=======
+using MemPoolSet = std::
+    unordered_set<c10::cuda::MempoolId_t, c10::hash<c10::cuda::MempoolId_t>>;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::unordered_map<std::shared_ptr<NCCLComm>, MemPoolSet>
     ncclCommMemPoolMap;
 static std::mutex ncclCommMemPoolMapMutex;
@@ -297,6 +343,7 @@ static void cacheAllocatorRegisterHook(
   std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
   for (auto& [ncclComm, memPools] : ncclCommMemPoolMap) {
     if (te.device_ == ncclComm->getDeviceIndex()) {
+<<<<<<< HEAD
       bool symm = false;
       bool should_register = shouldAllCommunicatorsRegisterAllTensors();
       auto it =
@@ -314,6 +361,12 @@ static void cacheAllocatorRegisterHook(
             te.size_,
             /*errorOnRereg*/ false,
             /*window*/ symm);
+=======
+      if (shouldAllCommunicatorsRegisterAllTensors() ||
+          memPools.find(te.mempool_) != memPools.end()) {
+        // NOLINTNEXTLINE(performance-no-int-to-ptr)
+        ncclComm->registerSegment(reinterpret_cast<void*>(te.addr_), te.size_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -330,6 +383,7 @@ static void cacheAllocatorDeregisterHook(
   std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
   for (auto& [ncclComm, memPools] : ncclCommMemPoolMap) {
     if (te.device_ == ncclComm->getDeviceIndex()) {
+<<<<<<< HEAD
       bool symm = false;
       bool should_register = shouldAllCommunicatorsRegisterAllTensors();
       auto it =
@@ -343,6 +397,12 @@ static void cacheAllocatorDeregisterHook(
       if (should_register) {
         // NOLINTNEXTLINE(performance-no-int-to-ptr)
         ncclComm->deregisterSegment(reinterpret_cast<void*>(te.addr_), symm);
+=======
+      if (shouldAllCommunicatorsRegisterAllTensors() ||
+          memPools.find(te.mempool_) != memPools.end()) {
+        // NOLINTNEXTLINE(performance-no-int-to-ptr)
+        ncclComm->deregisterSegment(reinterpret_cast<void*>(te.addr_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -383,7 +443,12 @@ static std::
     }
   }
   for (auto& ncclComm : allNCCLComms) {
+<<<<<<< HEAD
     ncclDumpMap[ncclComm->getUniqueHash()] = ncclComm->ncclCommDump();
+=======
+    std::string ncclUniqueIDStr = buildNcclUniqueIdStr(ncclComm->getNcclId());
+    ncclDumpMap[ncclUniqueIDStr] = ncclComm->ncclCommDump();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return ncclDumpMap;
 #else
@@ -528,9 +593,17 @@ ProcessGroupNCCL::WorkNCCL::WorkNCCL(
   // DEFAULT_FLAGS = cudaEventDisableTiming.
   if (cudaEventCacheEnabled) {
     ncclStartEvent_ = enableTiming
+<<<<<<< HEAD
         ? CUDAEventCache::get(device.index())->create(enableTiming)
         : nullptr;
     ncclEndEvent_ = CUDAEventCache::get(device.index())->create(enableTiming);
+=======
+        ? ProcessGroupNCCL::CUDAEventCache::get(device.index())
+              ->create(enableTiming)
+        : nullptr;
+    ncclEndEvent_ = ProcessGroupNCCL::CUDAEventCache::get(device.index())
+                        ->create(enableTiming);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     ncclStartEvent_ = enableTiming
         ? std::make_shared<at::cuda::CUDAEvent>(cudaEventDefault)
@@ -867,6 +940,64 @@ void ProcessGroupNCCL::WorkNCCL::abort() {
   }
 }
 
+<<<<<<< HEAD
+=======
+ProcessGroupNCCL::CUDAEventCache::CUDAEventCache() = default;
+
+// CUDA event is used to record the start/end of one Work.
+// Instead of let the CUDA event gets destroyed, we now reuse it after the Work
+// has been erased from workMetaList_.
+// This is to avoid the potential deadlock caused by CudaEventDestroy.
+std::shared_ptr<at::cuda::CUDAEvent> ProcessGroupNCCL::CUDAEventCache::create(
+    bool timing) {
+  // Register the deleter as a callback when the WorkNCCL object is destroyed.
+  // Each deleter keeps a ref count to the cache object, so that even when
+  // the thread that creates the cache is gone, the cache object won't be
+  // destroyed until all the events in the cache are destroyed (ref number drops
+  // to zero).
+  auto deleter = [cache = shared_from_this(),
+                  timing](at::cuda::CUDAEvent* event) {
+    std::lock_guard<std::mutex> lock(cache->cacheMutex_);
+    // We put the event back to the cache deque once the WorkNCCL object is
+    // destroyed.
+    cache->eventsArray_[timing ? 1 : 0].push_back(event);
+  };
+  at::cuda::CUDAEvent* event = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(cacheMutex_);
+    auto& events = eventsArray_[timing ? 1 : 0];
+    // If we still have events in the cache, we reuse it. Otherwise, we create a
+    // new one.
+    if (!events.empty()) {
+      event = events.front();
+      events.pop_front();
+    } else {
+      event = new at::cuda::CUDAEvent(
+          timing ? cudaEventDefault : cudaEventDisableTiming);
+    }
+  }
+  return std::shared_ptr<at::cuda::CUDAEvent>(event, std::move(deleter));
+}
+
+std::shared_ptr<ProcessGroupNCCL::CUDAEventCache> ProcessGroupNCCL::
+    CUDAEventCache::get(at::DeviceIndex device) {
+  // A per-thread singleton of device-to-CUDAEventCache map.
+  // Map is needed because events cannot be reused across devices.
+  // Per-thread ownership is needed to support multi-threaded case (instead of
+  // multi-process case).
+  static thread_local std::
+      map<at::DeviceIndex, std::shared_ptr<ProcessGroupNCCL::CUDAEventCache>>
+          cacheDeviceMap;
+  // Check if device has already been in the map, if not, add a new entry
+  auto it = cacheDeviceMap.find(device);
+  if (it == cacheDeviceMap.end()) {
+    cacheDeviceMap.emplace(
+        device, std::make_shared<ProcessGroupNCCL::CUDAEventCache>());
+  }
+  return cacheDeviceMap[device];
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static std::atomic<size_t> process_group_id = 0;
 
 constexpr const char* MULTI_DEVICE_ERROR_MSG =
@@ -924,8 +1055,11 @@ ProcessGroupNCCL::ProcessGroupNCCL(
     TORCH_WARN_ONCE(
         "TORCH_NCCL_AVOID_RECORD_STREAMS is the default now, this environment variable is thus deprecated.");
   }
+<<<<<<< HEAD
   showSerializationWarning_ =
       getCvarBool(TORCH_NCCL_SHOW_EAGER_INIT_P2P_SERIALIZATION_WARNING, true);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (blockingWait_) {
     LOG(INFO)
@@ -977,9 +1111,14 @@ ProcessGroupNCCL::ProcessGroupNCCL(
   const std::string OFF = "OFF";
   std::string torch_distributed_debug =
       getCvarString({"TORCH_DISTRIBUTED_DEBUG"}, OFF.c_str());
+<<<<<<< HEAD
   LOG(INFO) << logPrefix()
             << "ProcessGroupNCCL initialization options: " << "size: " << size
             << ", global rank: " << globalRank()
+=======
+  LOG(INFO) << logPrefix() << "ProcessGroupNCCL initialization options: "
+            << "size: " << size << ", global rank: " << globalRank()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             << ", TIMEOUT(ms): " << options_->timeout.count()
             << ", USE_HIGH_PRIORITY_STREAM: "
             << options_->is_high_priority_stream
@@ -1021,7 +1160,10 @@ void ProcessGroupNCCL::eagerConnectSingleDevice(at::Device device) {
   LOG(INFO) << logPrefix() << "Eagerly connecting nccl backend with device "
             << device;
   initNCCLComm(key, device, OpType::ALLREDUCE);
+<<<<<<< HEAD
   eagerInit_ = true;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool ProcessGroupNCCL::useNonblocking() {
@@ -1075,7 +1217,16 @@ void ProcessGroupNCCL::performNocolorSplit(at::Device device) {
     LOG(ERROR) << logPrefix()
                << "No parent communicator exists for nocolor split";
   }
+<<<<<<< HEAD
   NCCLComm::split(comm.get(), NCCL_SPLIT_NOCOLOR, rank_, options_->config);
+=======
+  NCCLComm::split(
+      comm.get(),
+      NCCL_SPLIT_NOCOLOR,
+      rank_,
+      options_->config,
+      options_->global_ranks_in_group);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // NCCL_HAS_COMM_SPLIT
 }
 
@@ -1099,14 +1250,21 @@ ErrorType ProcessGroupNCCL::getError() {
   return error_;
 }
 
+<<<<<<< HEAD
 void ProcessGroupNCCL::registerMemPool(c10::cuda::MemPool* pool, bool symm) {
   const auto key = std::to_string(pool->device());
+=======
+void ProcessGroupNCCL::registerMemPool(c10::cuda::MemPool* pool) {
+  const auto key = std::to_string(pool->device());
+  auto device = at::Device(at::DeviceType::CUDA, pool->device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   LOG(INFO) << logPrefix()
             << "Performing NCCL user buffer registration for all buffers in "
             << "MemPool: " << pool->id() << ", device index: " << key
             << ", i am " << this;
   auto ncclComm = getNCCLComm(key);
   if (ncclComm == nullptr) {
+<<<<<<< HEAD
     C10_THROW_ERROR(
         DistBackendError,
         "NCCL communicator has not been initialized before mem pool creation. You can pass `device_id` to init_process_group -- one way of eager initialization -- to work around this issue");
@@ -1115,11 +1273,35 @@ void ProcessGroupNCCL::registerMemPool(c10::cuda::MemPool* pool, bool symm) {
     std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
     auto iter = ncclCommMemPoolMap.find(ncclComm);
     iter->second.insert(std::make_tuple(pool->id(), symm));
+=======
+    // HACK: currently we are using this function for NVLS
+    // reductions, and that's why using OpType::ALLREDUCE.
+    // If we end up using this API for zero-copy P2P, we might
+    // need to refactor and account for different OpType.
+    ncclComm = initNCCLComm(key, device, OpType::ALLREDUCE);
+  }
+  TORCH_INTERNAL_ASSERT(ncclComm != nullptr);
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    auto iter = ncclCommMemPoolMap.find(ncclComm);
+    iter->second.insert(pool->id());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   // We must ensure we're listening for allocator trace events in order to
   // register future segments allocated in this pool (this call is idempotent).
   attachAllocatorHooks();
   auto snapshot = c10::cuda::CUDACachingAllocator::snapshot(pool->id());
+<<<<<<< HEAD
+=======
+  // TODO:
+  // if(pool->is_symmetric()) {
+  //   Allgather to verify len(mempool.snapshot.segments) matches across GPUs
+  //   Allgather to verify mempool.alloc_request_counter matches across GPUs
+  //   add alloc_request_counter per mempool (How many allocations a mempool has
+  //   served during its lifetime) this should guarantee pool is used in a
+  //   symmetric/SPMD manner
+  // }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& segmentInfo : snapshot.segments) {
     TORCH_INTERNAL_ASSERT(
         segmentInfo.device == pool->device(),
@@ -1129,18 +1311,28 @@ void ProcessGroupNCCL::registerMemPool(c10::cuda::MemPool* pool, bool symm) {
         reinterpret_cast<void*>(segmentInfo.address),
         segmentInfo.total_size,
         /*errorOnRereg=*/false, // ignores reregistration error
+<<<<<<< HEAD
         /*window*/ symm); // whether to use NCCL symmetric memory
+=======
+        /*window=*/pool->is_symmetric()); // whether to use NCCL symmetric
+                                          // memory
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
 void ProcessGroupNCCL::deregisterMemPool(c10::cuda::MemPool* pool) {
   const auto key = std::to_string(pool->device());
+<<<<<<< HEAD
+=======
+  auto device = at::Device(at::DeviceType::CUDA, pool->device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   LOG(INFO) << logPrefix()
             << "Performing NCCL user buffer deregistration for all buffers in "
             << "MemPool: " << pool->id() << ", device index: " << key
             << ", i am " << this;
   auto ncclComm = getNCCLComm(key);
   if (ncclComm == nullptr) {
+<<<<<<< HEAD
     C10_THROW_ERROR(
         DistBackendError,
         "NCCL communicator has not been initialized before mem pool creation. You can pass `device_id` to init_process_group -- one way of eager initialization -- to work around this issue");
@@ -1158,6 +1350,19 @@ void ProcessGroupNCCL::deregisterMemPool(c10::cuda::MemPool* pool) {
         "Trying to unregister not previously registered pool");
     symm = std::get<1>(*mempool_it);
     iter->second.erase(mempool_it);
+=======
+    // HACK: currently we are using this function for NVLS
+    // reductions, and that's why using OpType::ALLREDUCE.
+    // If we end up using this API for zero-copy P2P, we might
+    // need to refactor and account for different OpType.
+    ncclComm = initNCCLComm(key, device, OpType::ALLREDUCE);
+  }
+  TORCH_INTERNAL_ASSERT(ncclComm != nullptr);
+  {
+    std::lock_guard<std::mutex> lock(ncclCommMemPoolMapMutex);
+    auto iter = ncclCommMemPoolMap.find(ncclComm);
+    iter->second.erase(pool->id());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   auto snapshot = c10::cuda::CUDACachingAllocator::snapshot(pool->id());
   for (const auto& segmentInfo : snapshot.segments) {
@@ -1166,7 +1371,11 @@ void ProcessGroupNCCL::deregisterMemPool(c10::cuda::MemPool* pool) {
         "Mismatch between CUDA memory segment device and pool's device");
     // NOLINTNEXTLINE(performance-no-int-to-ptr)
     ncclComm->deregisterSegment(
+<<<<<<< HEAD
         reinterpret_cast<void*>(segmentInfo.address), symm);
+=======
+        reinterpret_cast<void*>(segmentInfo.address), pool->is_symmetric());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -1256,6 +1465,7 @@ void ProcessGroupNCCL::enableCollectivesTiming() {
   enableTiming_.store(true);
 }
 
+<<<<<<< HEAD
 c10::intrusive_ptr<Backend> ProcessGroupNCCL::split(
     const c10::intrusive_ptr<Store>& store,
     const std::vector<int>& ranks,
@@ -1308,6 +1518,8 @@ c10::intrusive_ptr<Backend> ProcessGroupNCCL::merge(
   return c10::static_intrusive_pointer_cast<Backend>(pg);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool ProcessGroupNCCL::waitForFutureOrTimeout(
     std::future<bool>& fut,
     const std::chrono::milliseconds& timeOutMilSec,
@@ -1703,8 +1915,11 @@ void ProcessGroupNCCL::HeartbeatMonitor::join() {
 
 void ProcessGroupNCCL::HeartbeatMonitor::runLoop() {
   c10::setThreadName("pt_nccl_heartbt");
+<<<<<<< HEAD
   STATIC_SCOPED_WAIT_COUNTER(
       pytorch.ProcessGroupNCCL__HeartbeatMonitor__runLoop);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   uint64_t heartBeatCounter = 0ULL;
   std::string errorMsg;
@@ -2032,7 +2247,10 @@ void ProcessGroupNCCL::Watchdog::join() {
 
 void ProcessGroupNCCL::Watchdog::run() {
   c10::setThreadName("pt_nccl_watchdg");
+<<<<<<< HEAD
   STATIC_SCOPED_WAIT_COUNTER(pytorch.ProcessGroupNCCL__Watchdog__run);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   try {
     VLOG(2) << pg_->logPrefix() << "Process group watchdog thread started!";
@@ -2286,10 +2504,13 @@ void ProcessGroupNCCL::Watchdog::runLoop() {
       // Work status logging for desync debug
       desyncDebugger_.logWorkStart(work);
 
+<<<<<<< HEAD
       // allow watchdog to do an event query on a side thread
       at::cuda::CUDAGuard device_guard(work.ncclEndEvent_->device_index());
       at::cuda::CUDAStreamCaptureModeGuard g{cudaStreamCaptureModeThreadLocal};
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // a work could be started but not completed, so we should not update
       // lastStartedSeq and lastStartedOpName if the work state is checked
       // multiple times after the start
@@ -2301,6 +2522,13 @@ void ProcessGroupNCCL::Watchdog::runLoop() {
         pg_->pgStatus_->lastStartedNumelOut = work.numelOut_;
       }
 
+<<<<<<< HEAD
+=======
+      // allow watchdog to do an event query on a side thread
+      at::cuda::CUDAGuard device_guard(work.ncclEndEvent_->device_index());
+      at::cuda::CUDAStreamCaptureModeGuard g{cudaStreamCaptureModeThreadLocal};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Clean up completed work
       if (work.isCompleted()) {
         // In case user didn't call `work.wait()` with async collectives,
@@ -3011,7 +3239,15 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
         LOG(INFO) << logPrefix() << "Splitting NCCL communicator from "
                   << parentComm->repr();
         ncclComm = NCCLComm::split(
+<<<<<<< HEAD
             parentComm.get(), options_->split_color, rank, options_->config);
+=======
+            parentComm.get(),
+            options_->split_color,
+            rank,
+            options_->config,
+            options_->global_ranks_in_group);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -3217,6 +3453,7 @@ void check_gpu_single_tensor(
   if (!tensor.is_cuda() || tensor.is_sparse()) {
     C10_THROW_ERROR(ValueError, "Tensors must be CUDA and dense");
   }
+<<<<<<< HEAD
   // Check memory format
   if (!tensor.is_contiguous(tensor.suggest_memory_format())) {
     // P2P is a bit relaxed, supporting transfer of a transposed tensor
@@ -3226,6 +3463,11 @@ void check_gpu_single_tensor(
         C10_THROW_ERROR(
             ValueError, "Tensors for P2P must be non-overlapping and dense");
       }
+=======
+  // Skip the following requirements for P2P operations
+  if (!tensor.is_contiguous(tensor.suggest_memory_format())) {
+    if (p2p) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_WARN_ONCE(
           "Detected non-contiguous tensor in P2P operations. It is user "
           "responsibility to guarantee that source and destination tensors have "
@@ -3948,6 +4190,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
   at::cuda::OptionalCUDAGuard gpuGuard(device);
 
   std::string key;
+<<<<<<< HEAD
   int p2pRank = -1, p2pTargetRank = -1;
   bool isSendRecvSelf = rank_ == peer;
   // For batch_isend_irecv, ncclGroupStart() would be called upfront
@@ -4014,6 +4257,25 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
     p2pRank = rank_ <= peer ? 0 : 1;
     p2pTargetRank = isSendRecvSelf ? 0 : 1 - p2pRank;
     ncclComm = getNCCLComm(key);
+=======
+  int p2pRank = 0, p2pTargetRank = 0;
+  bool isSendRecvSelf = false;
+  // For batch_isend_irecv, ncclGroupStart() would be called upfront
+  bool batchP2P = ncclActiveGroupCounter_ > 0;
+  if (batchP2P) {
+    // For batch P2P, we need to treat it like a collective when selecting
+    // communicator, because other ranks can call into this batch other than my
+    // rank and my peer
+    key = getKeyFromDevice(device);
+    p2pRank = rank_;
+    p2pTargetRank = peer;
+  } else {
+    // For single P2P, preserve the old two-rank behavior (to avoid perf diff)
+    key = getKeySendRecv(rank_, peer);
+    p2pRank = rank_ <= peer ? 0 : 1;
+    isSendRecvSelf = rank_ == peer;
+    p2pTargetRank = isSendRecvSelf ? 0 : 1 - p2pRank;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (!coalescing_state_) {
       // Bump P2P sequence number.
@@ -4025,6 +4287,7 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
   // coalesced or individual
   op_id_++;
 
+<<<<<<< HEAD
   if (ncclComm == nullptr) {
     // ncclComm should never be a nullptr in eager init mode.
     // For lazy init mode, isSendRecvSelf is only valid for non-batch
@@ -4032,6 +4295,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::pointToPoint(
     // argument to be false.
     ncclComm =
         initNCCLComm(key, device, opType, p2pRank, isSendRecvSelf && !batchP2P);
+=======
+  std::shared_ptr<NCCLComm> ncclComm = getNCCLComm(key);
+  if (ncclComm == nullptr) {
+    ncclComm = initNCCLComm(key, device, opType, p2pRank, isSendRecvSelf);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (coalescing_state_ & CoalActive) {
@@ -4392,7 +4660,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce(
   auto tensor = tensors.back();
   if (tensor.is_complex()) {
     TORCH_CHECK(
+<<<<<<< HEAD
         c10d::isComplexViewAsRealAllowed(opts.reduceOp),
+=======
+        complexViewAsRealAllowed(opts.reduceOp),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "all_reduce does not support",
         opts.reduceOp,
         "on complex tensors");
@@ -4586,7 +4858,11 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::reduce(
   auto tensor = tensors.back();
   if (tensor.is_complex()) {
     TORCH_CHECK(
+<<<<<<< HEAD
         c10d::isComplexViewAsRealAllowed(opts.reduceOp),
+=======
+        complexViewAsRealAllowed(opts.reduceOp),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "reduce does not support",
         opts.reduceOp,
         "on complex tensors");
@@ -5064,12 +5340,23 @@ c10::DeviceIndex ProcessGroupNCCL::guessDeviceId() const {
   // offset wrt the device id if intra-node GPUs are sharded into multiple
   // dimensions.
   int devIdx = globalRank() % localDeviceCount_;
+<<<<<<< HEAD
   if (devIdx == 0) { // only log on first rank of each node
     LOG(WARNING) << c10::str(
         "Guessing device ID based on global rank. ",
         "This can cause a hang if rank to GPU mapping is heterogeneous. ",
         "You can specify device_id in init_process_group()");
   }
+=======
+  LOG(WARNING)
+      << logPrefix()
+      << c10::str(
+             " using GPU ",
+             devIdx,
+             " as device used by this process is currently unknown. ",
+             "This can potentially cause a hang if this rank to GPU mapping is incorrect. ",
+             "You can specify device_id in init_process_group() to force use of a particular device.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return static_cast<c10::DeviceIndex>(devIdx);
 }
 
@@ -5436,7 +5723,10 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::gather(
 
   TORCH_CHECK(inputTensors.size() == 1, MULTI_DEVICE_ERROR_MSG);
   auto inputTensor = inputTensors.back();
+<<<<<<< HEAD
   check_gpu_single_tensor(inputTensor);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::vector<at::Tensor> outputs;
 
@@ -5758,7 +6048,11 @@ at::Tensor ProcessGroupNCCL::allocateTensor(
     // Pool is created
     memPool_ = std::make_unique<c10::cuda::MemPool>(allocator);
     // Register so that we call ncclCommRegister on all new allocations
+<<<<<<< HEAD
     registerMemPool(memPool_.get(), /*symmetric*/ false);
+=======
+    registerMemPool(memPool_.get());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LOG(INFO) << logPrefix() << "Created memory pool";
   }
 

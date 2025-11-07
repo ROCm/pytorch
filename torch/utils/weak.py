@@ -3,6 +3,11 @@ from __future__ import annotations
 
 import collections.abc as _collections_abc
 import weakref
+<<<<<<< HEAD
+=======
+
+from _weakrefset import _IterationGuard  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Mapping, MutableMapping
 from weakref import ref
 
@@ -20,6 +25,7 @@ __all__ = [
 ]
 
 
+<<<<<<< HEAD
 # TODO: make weakref properly thread safe following
 # https://github.com/python/cpython/pull/125325
 class _IterationGuard:
@@ -47,6 +53,8 @@ class _IterationGuard:
                 w._commit_removals()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This file defines a variant of WeakKeyDictionary that overrides the hashing
 # behavior of the key to use object identity, rather than the builtin
 # __eq__/__hash__ functions.  This is useful for Tensor weak keys, as their

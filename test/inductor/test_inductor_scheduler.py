@@ -1,12 +1,20 @@
 # Owner(s): ["module: inductor"]
 
+<<<<<<< HEAD
 from unittest import skipIf
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch._inductor.metrics as metrics
 import torch.utils.flop_counter
 from torch._dynamo.utils import counters
+<<<<<<< HEAD
 from torch._inductor.utils import fresh_inductor_cache
+=======
+from torch._inductor.ir import FixedLayout
+from torch._inductor.utils import fresh_cache
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_cuda import SM70OrLater
 from torch.testing._internal.common_device_type import (
     dtypes,
@@ -14,7 +22,10 @@ from torch.testing._internal.common_device_type import (
     skipCUDAIf,
 )
 from torch.testing._internal.common_utils import parametrize, run_tests, TestCase
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import IS_BIG_GPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def FlopCounterMode(*args, **kwargs):
@@ -79,7 +90,11 @@ class TestScheduler(TestCase):
         for op, example_inputs, kwargs in tc:
             comp = torch.compile(op)
             torch._dynamo.reset()
+<<<<<<< HEAD
             with fresh_inductor_cache():
+=======
+            with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 comp(*example_inputs, **kwargs)
             self.assertEqual(metrics.num_bytes_accessed, 0)
             self.assertEqual(any(m[1] for m in metrics.node_runtimes), False)
@@ -89,16 +104,55 @@ class TestScheduler(TestCase):
 
     @dtypes(torch.float, torch.float16)
     @skipCUDAIf(not SM70OrLater, "GPU capability is < SM70")
+<<<<<<< HEAD
+=======
+    def test_get_estimated_runtime_logging(self, device, dtype):
+        if device == "cpu":
+            return
+        tc = _test_cases(device, dtype)
+        expected_metrics = [
+            # num_bytes_accessed, number of nonzero node_runtimes
+            (74 * dtype.itemsize, 1),
+            (60 * dtype.itemsize, 1),
+            (222 * dtype.itemsize, 4),
+            (77 * dtype.itemsize, 2),
+        ]
+        tc_plus_metrics = zip(tc, expected_metrics)
+
+        metrics.reset()
+        torch._logging.set_logs(inductor_metrics=True)
+        for test_case, met in tc_plus_metrics:
+            op, example_inputs, kwargs = test_case
+            enba, enr = met
+
+            comp = torch.compile(op)
+            torch._dynamo.reset()
+            with fresh_cache():
+                comp(*example_inputs, **kwargs)
+            self.assertEqual(enba, metrics.num_bytes_accessed)
+            nonzero_node_runtimes = sum(1 for x in metrics.node_runtimes if x[1] != 0)
+            self.assertEqual(enr, nonzero_node_runtimes)
+            metrics.reset()
+        torch._logging.set_logs()
+
+    @dtypes(torch.float, torch.float16)
+    @skipCUDAIf(not SM70OrLater, "GPU capability is < SM70")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "options",
         [
             {
                 "max_autotune": True,
                 "max_autotune_gemm_backends": "TRITON",
+<<<<<<< HEAD
+=======
+                "force_disable_caches": True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
             {
                 "max_autotune": True,
                 "max_autotune_gemm_backends": "TRITON,ATEN",
+<<<<<<< HEAD
             },
         ],
     )
@@ -107,15 +161,38 @@ class TestScheduler(TestCase):
     def test_flop_counter_op(self, device, dtype, options):
         if device == "cpu":
             return
+=======
+                "force_disable_caches": True,
+            },
+        ],
+    )
+    def test_flop_counter_op(self, device, dtype, options):
+        if device == "cpu":
+            return
+        if (
+            options["max_autotune_gemm_backends"] == "TRITON"
+            and torch.cuda.is_available()
+            and not torch._inductor.utils.use_triton_template(
+                FixedLayout(torch.device("cuda"), torch.float16, [400, 800])
+            )
+        ):
+            return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         tc = _test_cases(device, dtype)
 
         torch._logging.set_logs(inductor_metrics=True)
         for op, example_inputs, kwargs in tc:
             comp = torch.compile(op, options=options)
+<<<<<<< HEAD
             # next two lines are required, otherwise the flops will be cached from previous runs of this function.
             torch._dynamo.reset()
             with fresh_inductor_cache():
+=======
+            # next two lines are required, otherwise the flops will be cached from pervious runs of this function.
+            torch._dynamo.reset()
+            with fresh_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # actually run to set the counters
                 comp(*example_inputs, **kwargs)
                 with FlopCounterMode() as mode:

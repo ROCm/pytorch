@@ -279,12 +279,19 @@ class Work:
     def is_success(self) -> bool: ...
     def exception(self) -> Any: ...
     def wait(self, timeout: timedelta = ...) -> bool: ...
+<<<<<<< HEAD
     def block_current_stream(self) -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_future(self) -> Future: ...
     def source_rank(self) -> int: ...
     def _source_rank(self) -> int: ...
     def result(self) -> list[Tensor]: ...
+<<<<<<< HEAD
     def synchronize(self) -> None: ...
+=======
+    def synchronize(self): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def boxed(self) -> ScriptObject: ...
     @staticmethod
     def unbox(obj: ScriptObject) -> Work: ...
@@ -298,8 +305,11 @@ class Backend:
         def _timeout(self) -> timedelta: ...
         @_timeout.setter
         def _timeout(self, val: timedelta) -> None: ...
+<<<<<<< HEAD
         global_ranks_in_group: list[int]
         group_name: str
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -312,12 +322,18 @@ class Backend:
     def supports_coalescing(self) -> bool: ...
     @property
     def supports_time_estimate(self) -> bool: ...
+<<<<<<< HEAD
     def set_timeout(self, timeout: timedelta) -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def options(self) -> Options: ...
     def rank(self) -> int: ...
     def size(self) -> int: ...
+<<<<<<< HEAD
     def name(self) -> str: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def abort(self) -> None: ...
     def shutdown(self) -> None: ...
     def eager_connect_single_device(self, device: torch.device | None) -> None: ...
@@ -353,6 +369,7 @@ class ProcessGroup:
     ) -> None: ...
     def rank(self) -> int: ...
     def size(self) -> int: ...
+<<<<<<< HEAD
     def get_group_store(self) -> Store: ...
     def split_group(
         self,
@@ -372,6 +389,9 @@ class ProcessGroup:
     ) -> ProcessGroup: ...
     def abort(self) -> None: ...
     def set_timeout(self, timeout: timedelta) -> None: ...
+=======
+    def abort(self) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def shutdown(self) -> None: ...
     @overload
     def broadcast(
@@ -384,7 +404,10 @@ class ProcessGroup:
         self,
         tensor: Tensor,
         root: int,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     @overload
     def allreduce(
@@ -397,14 +420,20 @@ class ProcessGroup:
         self,
         tensors: list[Tensor],
         op=...,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     @overload
     def allreduce(
         self,
         tensor: Tensor,
         op=...,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     def allreduce_coalesced(
         self,
@@ -429,7 +458,10 @@ class ProcessGroup:
         tensor: Tensor,
         root: int,
         op=...,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     @overload
     def allgather(
@@ -443,7 +475,10 @@ class ProcessGroup:
         self,
         output_tensors: list[Tensor],
         input_tensor: Tensor,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     def _allgather_base(
         self,
@@ -476,7 +511,10 @@ class ProcessGroup:
         output_tensors: list[Tensor],
         input_tensor: Tensor,
         root: int,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     @overload
     def scatter(
@@ -491,7 +529,10 @@ class ProcessGroup:
         output_tensor: Tensor,
         input_tensors: list[Tensor],
         root: int,
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     @overload
     def reduce_scatter(
@@ -505,8 +546,11 @@ class ProcessGroup:
         self,
         output_tensors: Tensor,
         input_tensor: list[Tensor],
+<<<<<<< HEAD
         op=...,
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     def _reduce_scatter_base(
         self,
@@ -530,7 +574,10 @@ class ProcessGroup:
         input: Tensor,
         output_split_sizes: list[int],
         input_split_sizes: list[int],
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     @overload
     def alltoall(
@@ -544,7 +591,10 @@ class ProcessGroup:
         self,
         output: list[Tensor],
         input: list[Tensor],
+<<<<<<< HEAD
         timeout: timedelta | None = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Work: ...
     def send(
         self,
@@ -559,10 +609,14 @@ class ProcessGroup:
         tag: int,
     ) -> Work: ...
     def recv_anysource(self, tensors: list[Tensor], tag: int) -> Work: ...
+<<<<<<< HEAD
     @overload
     def barrier(self, opts=...) -> Work: ...
     @overload
     def barrier(self, timeout: timedelta | None = None) -> Work: ...
+=======
+    def barrier(self, opts=...) -> Work: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def boxed(self) -> ScriptObject: ...
     @staticmethod
     def unbox(obj: ScriptObject) -> ProcessGroup: ...
@@ -610,6 +664,11 @@ class ProcessGroupGloo(Backend):
     class Options(Backend.Options):
         devices: list[ProcessGroupGloo.Device]
         threads: int
+<<<<<<< HEAD
+=======
+        global_ranks_in_group: list[int]
+        group_name: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def __init__(self): ...
 
@@ -644,13 +703,21 @@ class ProcessGroupNCCL(Backend):
         cga_cluster_size: int
         min_ctas: int
         max_ctas: int
+<<<<<<< HEAD
         def unsafe_get_ptr(self) -> int: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class Options(Backend.Options):
         config: ProcessGroupNCCL.NCCLConfig
         is_high_priority_stream: bool
         split_from: ProcessGroupNCCL
         split_color: int
+<<<<<<< HEAD
+=======
+        global_ranks_in_group: list[int]
+        group_name: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def __init__(self, is_high_priority_stream: bool = False): ...
 
@@ -734,7 +801,11 @@ def _allow_inflight_collective_as_graph_input() -> bool: ...
 def _unregister_all_process_groups() -> None: ...
 def _unregister_process_group(group_name: str) -> None: ...
 
+<<<<<<< HEAD
 # Initializes the device state in CUmodule so that it’s able to perform NVSHMEM
+=======
+# Intializes the device state in CUmodule so that it’s able to perform NVSHMEM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # operations.  CUmodule is a pointer to a CUDA module, carried by a int64 in
 # Python. At C++ interface, it is converted to a uintptr_t.
 def _nvshmemx_cumodule_init(module: int) -> None: ...
@@ -764,6 +835,7 @@ class _SymmetricMemory:
         device_type: DeviceType,
         device_idx: int,
     ) -> bool: ...
+<<<<<<< HEAD
     # Set Symmetric Memory allocation backend.
     @staticmethod
     def set_backend(name: str) -> None: ...
@@ -771,6 +843,8 @@ class _SymmetricMemory:
     def get_backend(device: torch.device) -> Optional[str]: ...
     @staticmethod
     def get_mempool_allocator(device: torch.device) -> Any: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def rank(self) -> int: ...
     @property
@@ -806,12 +880,15 @@ class _SymmetricMemory:
         channel: int = 0,
         timeout_ms: int = 0,
     ) -> None: ...
+<<<<<<< HEAD
     def get_remote_tensor(
         self,
         peer: int,
         sizes: torch.types._size,
         dtype: torch.dtype,
     ) -> torch.Tensor: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @staticmethod
     def memset32(
         tensor: torch.Tensor, offset: int, val: int, count: int = 1
@@ -836,14 +913,18 @@ class _SymmetricMemory:
     def signal_pad_size(self) -> int: ...
 
 class ProcessGroupXCCL(Backend):
+<<<<<<< HEAD
     class Options(Backend.Options):
         def __init__(self): ...
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         store: Store,
         rank: int,
         size: int,
+<<<<<<< HEAD
         options: Options,
     ) -> None: ...
     @property
@@ -851,3 +932,6 @@ class ProcessGroupXCCL(Backend):
 
 def _set_process_group(pg: ProcessGroup) -> None: ...
 def _current_process_group() -> ProcessGroup: ...
+=======
+    ): ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

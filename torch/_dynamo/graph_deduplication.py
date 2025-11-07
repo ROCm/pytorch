@@ -9,7 +9,11 @@ structures across different parts of the network.
 
 import logging
 import operator
+<<<<<<< HEAD
 from collections import defaultdict, deque
+=======
+from collections import defaultdict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Generator, Iterable
 from typing import Optional
 
@@ -80,8 +84,11 @@ when they are created in output_graph.
         (
             subgraph,
             external_node_usages,
+<<<<<<< HEAD
             node_usage_to_tuple_elems,
             ind_to_tuple_spec,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) = _create_subgraph(region, inds_with_external_users)
 
         # Ignore regions with no args for now, could they possibly be evaluated at compile time?
@@ -102,8 +109,11 @@ when they are created in output_graph.
                 region,
                 get_subgraph_node,
                 external_node_usages,
+<<<<<<< HEAD
                 node_usage_to_tuple_elems,
                 ind_to_tuple_spec,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inds_with_external_users,
                 subgraph_name,
                 node_to_additional_deps,
@@ -126,18 +136,26 @@ def _replace_region_with_subgraph(
     region: Region,
     get_subgraph_node: Node,
     external_node_usages: Iterable[OrderedSet[UsageIndex]],
+<<<<<<< HEAD
     node_usage_to_tuple_elems: dict[UsageIndex, OrderedSet[int]],
     ind_to_tuple_spec: dict[int, dict[tuple[int, ...], int]],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     inds_with_external_users: list[int],
     subgraph_name: str,
     node_to_additional_deps: dict[Node, OrderedSet[Node]],
     node_to_mutated_arg_positions: dict[Node, OrderedSet[int]],
 ) -> None:
     sub_args = []
+<<<<<<< HEAD
     flattened_getitem_nodes: OrderedSet[Node] = OrderedSet()
     for usages in external_node_usages:
         usage = next(iter(usages))
         node_ind, usage_ind = usage
+=======
+    for usages in external_node_usages:
+        node_ind, usage_ind = next(iter(usages))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         node = region[node_ind]
         flattened_args_kwargs = _get_flat_args(node, {})
         for user_ind, node_usage_ind in usages:
@@ -148,19 +166,27 @@ def _replace_region_with_subgraph(
                         "NYI: Failed to substitute region %s due to mutation", region
                     )
                     return
+<<<<<<< HEAD
         if usage in node_usage_to_tuple_elems:
             tuple_elems = [region[i] for i in node_usage_to_tuple_elems[usage]]
             flattened_getitem_nodes.update(tuple_elems)
             sub_args.extend(tuple_elems)
         else:
             sub_args.append(flattened_args_kwargs[usage_ind])
+=======
+        sub_args.append(flattened_args_kwargs[usage_ind])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Input/Output aliasing not supported in HOPs today
     # Note: we should use the nodes in the original graph (the region here)
     # because we use the original traced example values for this check
+<<<<<<< HEAD
     if _has_aliasing(
         region, sub_args, inds_with_external_users, flattened_getitem_nodes
     ):
+=======
+    if _has_aliasing(region, sub_args, inds_with_external_users):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
 
     invoke_args = (get_subgraph_node, subgraph_name, *sub_args)
@@ -171,6 +197,7 @@ def _replace_region_with_subgraph(
         invoke_args,  # type: ignore[arg-type]
         {},
     )
+<<<<<<< HEAD
 
     ind = 0
     flattened_output_nodes: OrderedSet[Node] = OrderedSet()
@@ -200,6 +227,18 @@ def _replace_region_with_subgraph(
         if node not in flattened_output_nodes:
             graph.erase_node(node)
 
+=======
+    for ind, external_user_ind in enumerate(inds_with_external_users):
+        node = region[external_user_ind]
+        subgraph_output = graph.create_node(
+            "call_function", operator.getitem, (invoke_subgraph_node, ind), {}
+        )
+        node.replace_all_uses_with(subgraph_output, propagate_meta=True)
+
+    # Erase in reverse topological order
+    for node in reversed(region):
+        graph.erase_node(node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Remove any nodes with additional deps
         # This is safe; we've guaranteed that there is
         # no input mutation, so all additional deps
@@ -254,6 +293,7 @@ def _get_inds_with_external_users(region: Region, inds_unique: set[int]) -> None
                     inds_unique.add(ind)
 
 
+<<<<<<< HEAD
 def _create_subgraph(
     region: Region,
     inds_with_external_users: list[int],
@@ -291,6 +331,17 @@ def _create_subgraph(
             placeholder = subgraph.placeholder(f"subgraph_input_{node.name}")
             region_to_subgraph_node[node] = placeholder
 
+=======
+def _copy_nodes_and_remap_inputs(
+    subgraph: torch.fx.Graph, region: Region
+) -> list[OrderedSet[UsageIndex]]:
+    external_input_to_usages = _get_external_inputs(region)
+    external_node_usages = list[OrderedSet[UsageIndex]]()
+    region_to_subgraph_node = {}
+    for node, usage_indices in external_input_to_usages.items():
+        placeholder = subgraph.placeholder(f"subgraph_input_{node.name}")
+        region_to_subgraph_node[node] = placeholder
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         external_node_usages.append(usage_indices)
 
     def map_arg(node: Node) -> Node:
@@ -299,6 +350,7 @@ def _create_subgraph(
         else:
             return node
 
+<<<<<<< HEAD
     def copy_to_subgraph(node: Node) -> Node:
         subgraph_node = subgraph.node_copy(node, lambda old: map_arg(old))
         region_to_subgraph_node[node] = subgraph_node
@@ -322,6 +374,31 @@ def _create_subgraph(
     subgraph.output(tuple(output_list))
 
     return subgraph, external_node_usages, node_usage_to_tuple_elems, ind_to_tuple_spec
+=======
+    for node in region:
+        subgraph_node = subgraph.node_copy(node, lambda old: map_arg(old))
+        region_to_subgraph_node[node] = subgraph_node
+
+    return external_node_usages
+
+
+def _create_subgraph_outputs(
+    subgraph: torch.fx.Graph, inds_to_output: list[int]
+) -> None:
+    node_list = [n for n in subgraph.nodes if n.op not in ("placeholder", "output")]
+    out_tup = tuple(node_list[ind] for ind in inds_to_output)
+    subgraph.output(out_tup)
+
+
+def _create_subgraph(
+    region: Region,
+    inds_with_external_users: list[int],
+) -> tuple[torch.fx.Graph, list[OrderedSet[UsageIndex]]]:
+    subgraph: torch.fx.Graph = torch.fx.Graph()
+    external_node_usages = _copy_nodes_and_remap_inputs(subgraph, region)
+    _create_subgraph_outputs(subgraph, inds_with_external_users)
+    return subgraph, external_node_usages
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _stable_topological_sort(
@@ -446,6 +523,7 @@ def _add_mutation_dependencies(
 
 
 def _has_aliasing(
+<<<<<<< HEAD
     region: Region,
     inputs: list[Node],
     inds_with_external_users: list[int],
@@ -455,6 +533,13 @@ def _has_aliasing(
     for node in inputs:
         if node in flattened_getitem_nodes:
             continue
+=======
+    region: Region, inputs: list[Node], inds_with_external_users: list[int]
+) -> bool:
+    input_storages: dict[StorageWeakRef, Node] = dict()
+
+    for node in inputs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         example_value = node.meta["example_value"]
         if isinstance(example_value, torch.Tensor):
             storage = StorageWeakRef(example_value._typed_storage())
@@ -468,11 +553,18 @@ def _has_aliasing(
                 )
                 return True
             input_storages[storage] = node
+<<<<<<< HEAD
     output_storages: dict[StorageWeakRef, Node] = dict()
     for i in inds_with_external_users:
         out_node = region[i]
         if out_node in flattened_getitem_nodes:
             continue
+=======
+
+    output_storages: dict[StorageWeakRef, Node] = dict()
+    for i in inds_with_external_users:
+        out_node = region[i]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if out_node:
             example_value = out_node.meta["example_value"]
             assert not isinstance(example_value, list)
@@ -488,6 +580,10 @@ def _has_aliasing(
                     )
                     return True
                 output_storages[storage] = out_node
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     intersected_storages = input_storages.keys() & output_storages.keys()
     if len(intersected_storages) > 0:
         # input-output aliasing
@@ -501,6 +597,7 @@ def _has_aliasing(
             aliased,
         )
         return True
+<<<<<<< HEAD
     return False
 
 
@@ -589,3 +686,7 @@ def _replace_tuple_outputs(
     graph.erase_node(node)
     erased_nodes.add(node)
     return erased_nodes
+=======
+
+    return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

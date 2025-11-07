@@ -4,6 +4,10 @@ from typing import Optional
 
 import torch
 
+<<<<<<< HEAD
+=======
+from ...utils import triton_version_uses_attrs_dict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..common import (
     DeviceOpOverrides,
     register_device_op_overrides,
@@ -332,6 +336,7 @@ class CUDADeviceOpOverrides(DeviceOpOverrides):
     def cpp_device_ptr(self) -> str:
         return "CUdeviceptr"
 
+<<<<<<< HEAD
     def cpp_scratch(
         self, idx: int, workspace: TritonScratchWorkspace, prefix: Optional[str] = None
     ) -> Optional[tuple[list[str], str]]:
@@ -359,6 +364,36 @@ class CUDADeviceOpOverrides(DeviceOpOverrides):
             )
         else:
             return [f"CUdeviceptr {var_name} = 0;"], var_name
+=======
+    def cpp_global_scratch(
+        self, idx: int, workspace: TritonScratchWorkspace
+    ) -> Optional[tuple[list[str], str]]:
+        if triton_version_uses_attrs_dict():
+            var_name = f"global_scratch_{idx}"
+            if workspace.size > 0:
+                size_array = f"int64_t {var_name}_size[] = {{{workspace.size}}};"
+                stride_array = f"int64_t {var_name}_stride[] = {{1}};"
+                device_type = "cached_torch_device_type_cuda"
+                device_idx = "device_idx_"
+
+                return (
+                    [
+                        f"{size_array}",
+                        f"{stride_array}",
+                        f"AtenTensorHandle {var_name}_handle;",
+                        (
+                            f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_empty_strided(1, {var_name}_size, {var_name}_stride, "
+                            f"{workspace.generate_dtype_str()}, {device_type}, {device_idx}, &{var_name}_handle));"
+                        ),
+                        f"RAIIAtenTensorHandle {var_name}_tensor({var_name}_handle);",
+                        f"CUdeviceptr {var_name} = reinterpret_cast<CUdeviceptr>({var_name}_tensor.data_ptr());",
+                    ],
+                    var_name,
+                )
+            else:
+                return [f"CUdeviceptr {var_name} = 0;"], var_name
+        return None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 register_device_op_overrides("cuda", CUDADeviceOpOverrides())

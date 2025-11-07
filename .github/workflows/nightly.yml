@@ -19,7 +19,11 @@ concurrency:
 jobs:
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -42,8 +46,13 @@ jobs:
     needs: get-label-type
     with:
       runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
+<<<<<<< HEAD
       build-environment: linux-jammy-py3.10-gcc11
       docker-image-name: ci-image:pytorch-linux-jammy-py3.10-gcc11
+=======
+      build-environment: linux-jammy-py3.9-gcc11
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-gcc11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit
 
   docs-push:
@@ -54,7 +63,11 @@ jobs:
       - get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-jammy-py3.10-gcc11
+=======
+      build-environment: linux-jammy-py3.9-gcc11
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       docker-image: ${{ needs.docs-build.outputs.docker-image }}
       push: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || startsWith(github.event.ref, 'refs/tags/v') }}
       run-doxygen: true
@@ -75,24 +88,38 @@ jobs:
             repo-owner: pytorch
             branch: main
             pin-folder: .github/ci_commit_pins
+<<<<<<< HEAD
           # executorch jobs are disabled since it needs some manual work for the hash update
           # - repo-name: executorch
           #   repo-owner: pytorch
           #   branch: main
           #   pin-folder: .ci/docker/ci_commit_pins
+=======
+          - repo-name: executorch
+            repo-owner: pytorch
+            branch: main
+            pin-folder: .ci/docker/ci_commit_pins
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           - repo-name: triton
             repo-owner: triton-lang
             branch: main
             pin-folder: .ci/docker/ci_commit_pins
+<<<<<<< HEAD
           - repo-name: vllm
             repo-owner: vllm-project
             branch: main
             pin-folder: .github/ci_commit_pins
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Allow this to be triggered on either a schedule or on workflow_dispatch to allow for easier testing
     if: github.repository_owner == 'pytorch' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     steps:
       - name: "${{ matrix.repo-owner }}/${{ matrix.repo-name }} update-commit-hash"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/update-commit-hash@release/2.9
+=======
+        uses: pytorch/test-infra/.github/actions/update-commit-hash@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           repo-owner: ${{ matrix.repo-owner }}
           repo-name: ${{ matrix.repo-name }}

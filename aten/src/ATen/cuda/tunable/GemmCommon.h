@@ -29,8 +29,11 @@
 
 namespace at::cuda::tunable {
 
+<<<<<<< HEAD
 using at::cuda::blas::ScalingType;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enum class BlasOp {
   N = 0,
   T = 1
@@ -162,7 +165,11 @@ inline std::string ComputeTypeFor() {
 // ROCBLAS and hipBLASLt.
 template <>
 inline std::string ComputeTypeFor<float>() {
+<<<<<<< HEAD
   if (at::globalContext().float32Precision("cuda", "matmul") != "tf32") {
+=======
+  if (!at::globalContext().allowTF32CuBLAS()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return "f32_r";
   } else {
     return "xf32_r";
@@ -600,8 +607,12 @@ struct ScaledGemmParams : OpParams {
     //
     // In TunableOp, we must distinguish in param signature these two cases: with and without a bias vector.
     return fmt::sprintf("%c%c_%ld_%ld_%ld_ld_%ld_%ld_%ld_rw_%d_bias_%s",
+<<<<<<< HEAD
       transa, transb, m, n, k, lda, ldb, ldc,
       a_scaling_type == ScalingType::RowWise && b_scaling_type == ScalingType::RowWise,
+=======
+      transa, transb, m, n, k, lda, ldb, ldc, use_rowwise,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       bias_ptr == nullptr ? "None" : at::toString(bias_dtype));
   }
 
@@ -676,13 +687,19 @@ struct ScaledGemmParams : OpParams {
   int64_t lda{};
   ScalarType a_dtype{};
   ScalarType a_scale_dtype{};
+<<<<<<< HEAD
   ScalingType a_scaling_type{};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const void* b{};
   const void* b_scale_ptr{};
   int64_t ldb{};
   ScalarType b_dtype{};
   ScalarType b_scale_dtype{};
+<<<<<<< HEAD
   ScalingType b_scaling_type{};
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const void* bias_ptr{};
   ScalarType bias_dtype{};
   void* c{};
@@ -691,6 +708,10 @@ struct ScaledGemmParams : OpParams {
   ScalarType c_dtype{};
   void* amax_ptr{};
   bool use_fast_accum{};
+<<<<<<< HEAD
+=======
+  bool use_rowwise{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 private:
   bool duplicate_inputs_{false};
 };

@@ -77,7 +77,11 @@ def quux(a):
 # dictionary are function names in the torch API and the values are
 # function implementations. Implementations are added to
 # HANDLED_FUNCTION_DIAGONAL by decorating a python function with
+<<<<<<< HEAD
 # implements_diagonal. See the overrides immediately below the definition
+=======
+# implements_diagonal. See the overrides immediately below the defintion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # of DiagonalTensor for usage examples.
 HANDLED_FUNCTIONS_DIAGONAL = {}
 
@@ -133,7 +137,11 @@ class DiagonalTensor:
         https://numpy.org/devdocs/user/basics.dispatch.html
     """
     # This is defined as a class attribute so that SubDiagonalTensor
+<<<<<<< HEAD
     # below which subclasses DiagonalTensor can reuse DiagonalTensor's
+=======
+    # below which subclasses DiagonalTensor can re-use DiagonalTensor's
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # __torch_function__ implementation.
     handled_functions = HANDLED_FUNCTIONS_DIAGONAL
 
@@ -615,6 +623,7 @@ class TestTorchFunctionOverride(TestCase):
 
         self.assertEqual(NothingImplemented() ** RPowOnly(), -1)
 
+<<<<<<< HEAD
     def test_torch_function_in_lists(self):
         """Test that __torch_function__ is called for objects inside lists"""
 
@@ -880,6 +889,8 @@ class TestTorchFunctionOverride(TestCase):
         self.assertNotIn('size', called_functions,
                          "size should not be called - we should use getitem, not convert to advanced indexing")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def generate_tensor_like_override_tests(cls):
     from torch.testing._internal.generated.annotated_fn_args import annotated_args
@@ -1400,6 +1411,7 @@ class TestResolveName(TestCase):
                 )
 
 class TestTorchFunctionWarning(TestCase):
+<<<<<<< HEAD
     def test_torch_function_standalone_class(self):
         class StandaloneTorchFunctionClass:
             @classmethod
@@ -1425,6 +1437,31 @@ class TestTorchFunctionWarning(TestCase):
         result2 = torch.abs(b)
         self.assertEqual(result1, torch.tensor(99.0))
         self.assertEqual(result2, torch.tensor(99.0))
+=======
+    def test_warn_on_invalid_torch_function_standalone_class(self):
+        class StandaloneTorchFunctionClass:
+            def __torch_function__(self, *args, **kwargs):
+                pass
+        a = StandaloneTorchFunctionClass()
+        with self.assertWarnsRegex(DeprecationWarning, "as a plain method is deprecated"):
+            # Function that handles torch_function on the python side
+            torch.nn.functional.dropout(a)
+        with self.assertWarnsRegex(UserWarning, "as a plain method is deprecated"):
+            # Function that handles torch_function in C++
+            torch.abs(a)
+
+    def test_warn_on_invalid_torch_function_tensor_subclass(self):
+        class TensorSubclassTorchFunctionClass(torch.Tensor):
+            def __torch_function__(self, *args, **kwargs):
+                pass
+        b = TensorSubclassTorchFunctionClass()
+        with self.assertWarnsRegex(DeprecationWarning, "as a plain method is deprecated"):
+            # Function that handles torch_function on the python side
+            torch.nn.functional.dropout(b)
+        with self.assertWarnsRegex(UserWarning, "as a plain method is deprecated"):
+            # Function that handles torch_function in C++
+            torch.abs(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestDisabledUserWarnings(TestCase):
     def test_no_implicit_user_warning_for_deprecated_functions(self):

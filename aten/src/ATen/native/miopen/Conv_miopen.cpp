@@ -855,7 +855,12 @@ void raw_miopen_convolution_forward_out_32bit(
       benchmark,
       deterministic);
 
+<<<<<<< HEAD
   if (at::globalContext().immediateMiopen()) {
+=======
+  if (deterministic && !benchmark) {
+      // immediate mode is triggered for the specific combination of benchmark=off deterministic=on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       uint64_t solution_id;
       Workspace workspace = chooseSolution<miopenConvFwdAlgorithm_t>(args, &solution_id);
 
@@ -1144,7 +1149,12 @@ void raw_miopen_convolution_backward_input_out_32bit(
       benchmark,
       deterministic);
 
+<<<<<<< HEAD
   if (at::globalContext().immediateMiopen()) {
+=======
+  if (deterministic && !benchmark) {
+      // immediate mode is triggered for the specific combination of benchmark=off deterministic=on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       uint64_t solution_id;
       Workspace workspace = chooseSolution<miopenConvBwdDataAlgorithm_t>(args, &solution_id);
 
@@ -1318,7 +1328,12 @@ void raw_miopen_convolution_backward_weight_out_32bit(
       benchmark,
       deterministic);
 
+<<<<<<< HEAD
   if (at::globalContext().immediateMiopen()) {
+=======
+  if (deterministic && !benchmark) {
+      // immediate mode is triggered for the specific combination of benchmark=off deterministic=on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       uint64_t solution_id;
       Workspace workspace = chooseSolution<miopenConvBwdWeightsAlgorithm_t>(args, &solution_id);
 

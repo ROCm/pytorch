@@ -64,10 +64,13 @@ class C10_API SizesAndStrides {
                   storageBytes(size_)));
   }
 
+<<<<<<< HEAD
   bool operator!=(const SizesAndStrides& other) const {
     return !(*this == other);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SizesAndStrides& operator=(const SizesAndStrides& rhs) {
     if (this == &rhs) {
       return *this;

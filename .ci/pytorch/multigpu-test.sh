@@ -45,7 +45,10 @@ if [[ "${SHARD_NUMBER:-2}" == "2" ]]; then
     # DTensor tests
     time python test/run_test.py --verbose -i distributed/tensor/test_random_ops
     time python test/run_test.py --verbose -i distributed/tensor/test_dtensor_compile
+<<<<<<< HEAD
     time python test/run_test.py --verbose -i distributed/tensor/test_utils.py
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # DeviceMesh test
     time python test/run_test.py --verbose -i distributed/test_device_mesh

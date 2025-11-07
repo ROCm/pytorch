@@ -1,5 +1,6 @@
 #pragma once
 
+<<<<<<< HEAD
 // See https://github.com/pytorch/pytorch/issues/161660
 // This compile flag is intended to be passed in to CppExtensions that rely on
 // the stable ABI via the `extra_compile_args` argument. This is a stopgap
@@ -13,6 +14,8 @@
     "TensorBase.h should not be included when TORCH_STABLE_ONLY compile flag is passed"
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/Device.h>
 #include <c10/core/Layout.h>
 #include <c10/core/MemoryFormat.h>
@@ -137,7 +140,11 @@ class TORCH_API TensorBase {
   }
 
   TensorBase contiguous(MemoryFormat memory_format=MemoryFormat::Contiguous) const {
+<<<<<<< HEAD
     if (is_contiguous_or_false(memory_format)) {
+=======
+    if (is_contiguous(memory_format)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return *this;
     } else {
       return __dispatch_contiguous(memory_format);
@@ -278,6 +285,7 @@ class TORCH_API TensorBase {
     return impl_->is_contiguous(memory_format);
   }
 
+<<<<<<< HEAD
   // Like is_contiguous, but more dynamic shape-friendly. May return a symbolic representation of
   // contiguity instead of SymTrue SymFalse, when results are data-dependent.
   c10::SymBool sym_is_contiguous(at::MemoryFormat memory_format=at::MemoryFormat::Contiguous) const {
@@ -297,6 +305,8 @@ class TORCH_API TensorBase {
     return impl_->is_contiguous(memory_format);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_non_overlapping_and_dense() const {
     return impl_->is_non_overlapping_and_dense();
   }

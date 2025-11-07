@@ -1,7 +1,10 @@
 """
 Utilities for converting data types into structured JSON for dumping.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import inspect
 import os
 import traceback

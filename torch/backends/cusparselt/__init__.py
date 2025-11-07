@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Optional
 
 import torch
@@ -19,7 +23,11 @@ __MAX_ALG_ID: Optional[int] = None
 
 if _cusparselt is not None:
 
+<<<<<<< HEAD
     def _init() -> bool:
+=======
+    def _init():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         global __cusparselt_version
         global __MAX_ALG_ID
         if __cusparselt_version is None:
@@ -34,7 +42,11 @@ if _cusparselt is not None:
 
 else:
 
+<<<<<<< HEAD
     def _init() -> bool:
+=======
+    def _init():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
 

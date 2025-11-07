@@ -1,6 +1,7 @@
 .. role:: hidden
     :class: hidden-section
 
+<<<<<<< HEAD
 .. toctree::
    :maxdepth: 2
    :hidden:
@@ -10,6 +11,12 @@
 torch.nn
 ===================================
 .. automodule:: torch.nn
+=======
+torch.nn
+===================================
+.. automodule:: torch.nn
+.. automodule:: torch.nn.modules
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 These are the basic building blocks for graphs:
 
@@ -480,8 +487,11 @@ for more information on how to implement your own parametrizations.
     parametrize.remove_parametrizations
     parametrize.cached
     parametrize.is_parametrized
+<<<<<<< HEAD
     parametrize.transfer_parametrizations_and_params
     parametrize.type_before_parametrizations
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. autosummary::
     :toctree: generated
@@ -512,17 +522,25 @@ Utility functions in other modules
     nn.utils.rnn.pack_sequence
     nn.utils.rnn.unpack_sequence
     nn.utils.rnn.unpad_sequence
+<<<<<<< HEAD
     nn.utils.rnn.invert_permutation
     nn.parameter.is_lazy
     nn.factory_kwargs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. autosummary::
     :toctree: generated
     :nosignatures:
     :template: classtemplate.rst
 
+<<<<<<< HEAD
     nn.modules.flatten.Flatten
     nn.modules.flatten.Unflatten
+=======
+    nn.Flatten
+    nn.Unflatten
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Quantized Functions
 --------------------
@@ -541,6 +559,21 @@ Lazy Modules Initialization
 
     nn.modules.lazy.LazyModuleMixin
 
+<<<<<<< HEAD
+=======
+Aliases
+_______
+
+The following are aliases to their counterparts in ``torch.nn``:
+
+.. currentmodule:: torch
+.. autosummary::
+    :toctree: generated
+    :nosignatures:
+    :template: classtemplate.rst
+
+    nn.modules.normalization.RMSNorm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. This module needs to be documented. Adding here in the meantime
 .. for tracking purposes

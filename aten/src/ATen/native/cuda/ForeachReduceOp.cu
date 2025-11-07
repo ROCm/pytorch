@@ -53,7 +53,11 @@ template <
     int res_arg_index = 0>
 struct LpMaxFunctor {
   __device__ __forceinline__ void operator()(
+<<<<<<< HEAD
       int64_t chunk_size,
+=======
+      int chunk_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TensorListMetadata<depth>& tl,
       T* output_per_tensor_ptr,
       const int max_chunks_per_tensor) {
@@ -243,7 +247,11 @@ template <
 struct LpNormFunctor {
   using out_opmath_t = typename at::opmath_type<out_t>;
   __device__ __forceinline__ void operator()(
+<<<<<<< HEAD
       int64_t chunk_size,
+=======
+      int chunk_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TensorListMetadata<depth>& tl,
       out_opmath_t* output_per_tensor_ptr,
       const int max_chunks_per_tensor) {

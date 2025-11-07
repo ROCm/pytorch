@@ -12,7 +12,11 @@ _cache_sentinel = object()
 
 
 def cache_method(
+<<<<<<< HEAD
     f: Callable[Concatenate[_C, _P], _T],
+=======
+    f: Callable[Concatenate[_C, _P], _T]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[Concatenate[_C, _P], _T]:
     """
     Like `@functools.cache` but for methods.

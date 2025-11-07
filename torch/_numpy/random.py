@@ -7,7 +7,10 @@ NumPy has strict guarantees on reproducibility etc; here we don't give any.
 Q: default dtype is float64 in numpy
 
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import functools

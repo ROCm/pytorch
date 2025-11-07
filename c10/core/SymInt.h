@@ -7,7 +7,10 @@
 #include <c10/util/Exception.h>
 #include <c10/util/Optional.h>
 
+<<<<<<< HEAD
 #include <algorithm>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <cstdint>
 #include <iterator>
 #include <numeric>
@@ -178,6 +181,7 @@ class C10_API SymInt {
 #endif
   }
 
+<<<<<<< HEAD
   SymInt operator+(const SymInt& sci) const {
     if (auto ma = maybe_as_int()) {
       if (auto mb = sci.maybe_as_int()) {
@@ -308,6 +312,25 @@ class C10_API SymInt {
     }
     return sym_ge_slow_path(sci);
   }
+=======
+  SymInt operator+(const SymInt& sci) const;
+  SymInt operator-(const SymInt& sci) const;
+  SymInt operator*(const SymInt& sci) const;
+  SymInt operator/(const SymInt& sci) const;
+  SymInt operator%(const SymInt& sci) const;
+  void operator*=(const SymInt& sci);
+  void operator+=(const SymInt& sci);
+  void operator/=(const SymInt& sci);
+
+  SymInt clone() const;
+
+  SymBool sym_eq(const SymInt&) const;
+  SymBool sym_ne(const SymInt&) const;
+  SymBool sym_lt(const SymInt&) const;
+  SymBool sym_le(const SymInt&) const;
+  SymBool sym_gt(const SymInt&) const;
+  SymBool sym_ge(const SymInt&) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool operator==(const SymInt& o) const {
     return sym_eq(o).guard_bool(__FILE__, __LINE__);
@@ -328,6 +351,7 @@ class C10_API SymInt {
     return sym_ge(o).guard_bool(__FILE__, __LINE__);
   }
 
+<<<<<<< HEAD
   SymInt min(const SymInt& sci) const {
     if (auto ma = maybe_as_int()) {
       if (auto mb = sci.maybe_as_int()) {
@@ -345,6 +369,10 @@ class C10_API SymInt {
     }
     return max_slow_path(sci);
   }
+=======
+  SymInt min(const SymInt& sci) const;
+  SymInt max(const SymInt& sci) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // If both are symbolic, this checks if
   // they share the same node.
@@ -368,7 +396,15 @@ class C10_API SymInt {
     if (!is_heap_allocated()) {
       return data_;
     }
+<<<<<<< HEAD
     return maybe_as_int_slow_path();
+=======
+    auto* node = toSymNodeImplUnowned();
+    if (auto c = node->constant_int()) {
+      return c;
+    }
+    return node->maybe_as_int();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Return whether the integer is directly coercible to a SymInt
@@ -389,6 +425,7 @@ class C10_API SymInt {
 
  private:
   void promote_to_negative();
+<<<<<<< HEAD
   SymInt operator_add_slow_path(const SymInt& sci) const;
   SymInt operator_sub_slow_path(const SymInt& sci) const;
   SymInt operator_mul_slow_path(const SymInt& sci) const;
@@ -408,6 +445,8 @@ class C10_API SymInt {
   SymInt max_slow_path(const SymInt& sci) const;
 
   std::optional<int64_t> maybe_as_int_slow_path() const;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Constraints on the internal representation:
   //

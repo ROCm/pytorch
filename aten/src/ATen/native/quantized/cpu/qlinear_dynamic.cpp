@@ -888,7 +888,11 @@ class QLinearUnpackedDynamicFp16 final {
   static at::Tensor run(
       at::Tensor input,
       const at::Tensor& weight,
+<<<<<<< HEAD
       const std::optional<at::Tensor>& bias) {
+=======
+      const at::Tensor& bias) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // We make a strong guarantee that models using these operators will have
     // the same numerics across different machines. Therefore, we do not provide
     // a fallback path and rather fail loudly if we cannot run FBGEMM.
@@ -908,7 +912,11 @@ class QLinearUnpackedDynamicFp16 final {
   static at::Tensor meta(
       at::Tensor input,
       const at::Tensor& weight,
+<<<<<<< HEAD
       const std::optional<at::Tensor>& bias) {
+=======
+      const at::Tensor& bias) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // We make a strong guarantee that models using these operators will have
     // the same numerics across different machines. Therefore, we do not provide
     // a fallback path and rather fail loudly if we cannot run FBGEMM.
@@ -929,7 +937,11 @@ class QLinearUnpackedDynamicFp16 final {
   static at::Tensor run(
       at::Tensor /* input */,
       const at::Tensor& weight,
+<<<<<<< HEAD
       const std::optional<at::Tensor>& bias) {
+=======
+      const at::Tensor& bias) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // We make a strong guarantee that models using these operators will have
     // the same numerics across different machines. Therefore, we do not provide
     // a fallback path and rather fail loudly if we cannot run FBGEMM.
@@ -940,7 +952,11 @@ class QLinearUnpackedDynamicFp16 final {
   static at::Tensor meta(
       at::Tensor /* input */,
       const at::Tensor& weight,
+<<<<<<< HEAD
       const std::optional<at::Tensor>& bias) {
+=======
+      const at::Tensor& bias) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(
         false, "This PyTorch installation was not built with FBGEMM operators");
   }

@@ -4,37 +4,56 @@ import logging
 import operator
 import textwrap
 from collections import Counter
+<<<<<<< HEAD
 from collections.abc import Sequence
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any, Callable, Optional, Union
 
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch._export.passes._node_metadata_hook import (
     _node_metadata_hook,
     _set_node_metadata_hook,
 )
 from torch._export.utils import _detect_fake_mode_from_gm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.triton_kernel_wrap import (
     TraceableTritonKernelWrapper,
     tracing_triton_hopifier_singleton,
     triton_kernel_wrapper_mutation,
 )
+<<<<<<< HEAD
 from torch._inductor.codecache import LambdaFuture, PyCodeCache
 from torch._inductor.runtime.triton_heuristics import CachingAutotuner
 from torch._inductor.select_algorithm import extern_kernels  # noqa: F401
 from torch._inductor.utils import convert_shape_to_symint, sympy_product
+=======
+from torch._inductor.codecache import PyCodeCache
+from torch._inductor.runtime.triton_heuristics import CachingAutotuner
+from torch._inductor.select_algorithm import extern_kernels  # noqa: F401
+from torch._inductor.utils import sympy_product
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.virtualized import V
 from torch._library.triton import wrap_triton
 from torch.fx import GraphModule
 from torch.utils import _pytree as pytree
 from torch.utils._sympy.functions import FloorDiv
+<<<<<<< HEAD
 from torch.utils._sympy.interp import _run_sympy_handler, sympy_interp
 from torch.utils._sympy.reference import OptimizedPythonReferenceAnalysis
 
 from .. import config, ir
 from ..runtime.triton_compat import Config
 from ..utils import LineContext
+=======
+
+from .. import config, ir
+from ..utils import convert_shape_to_symint, convert_to_symint, LineContext
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .common import (
     CodegenSymbol,
     FileBackedGraphModule,
@@ -101,6 +120,7 @@ class TritonKernel:
     wrapped: TraceableTritonKernelWrapper
 
 
+<<<<<<< HEAD
 def replace_floor_div(expr: sympy.Expr) -> sympy.Expr:
     """
     Replace sympy.floor with FloorDiv.
@@ -133,6 +153,8 @@ def replace_floor_div(expr: sympy.Expr) -> sympy.Expr:
         return sympy.floor(expr)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class WrapperFxCodegen(PythonWrapperCodegen):
     """
     Backend to generate wrapper code as an FX IR graph.
@@ -197,8 +219,11 @@ class FxConverter:
         ] = {}  # Symbol table for codegen.
         self.kernels: dict[str, TritonKernel] = {}  # Table to store Triton kernels.
         self._unique_symbol_ids: Counter[str] = Counter()
+<<<<<<< HEAD
         self.tracer = torch.fx.proxy.GraphAppendingTracer(graph)
         self.expr_to_proxy: dict[sympy.Expr, torch.fx.Proxy] = {}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _import_kernel(self, code: str, kernel_name: str) -> CachingAutotuner:
         """
@@ -208,9 +233,12 @@ class FxConverter:
         mod = PyCodeCache.load(module_code)
         kernel = getattr(mod, kernel_name)
 
+<<<<<<< HEAD
         if isinstance(kernel, LambdaFuture):
             kernel = kernel.result()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(kernel, CachingAutotuner):
             raise NotImplementedError(
                 textwrap.dedent(f"""
@@ -236,6 +264,17 @@ class FxConverter:
                 device=device,
             )
 
+<<<<<<< HEAD
+=======
+    def _create_meta_from_buffer(
+        self, node: torch.fx.Node, buffer: CodegenBuffer
+    ) -> None:
+        name = buffer.get_name()
+        assert name
+        node.name = name
+        node.meta["val"] = buffer.get_example()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _create_as_strided(
         self,
         input_node: torch.fx.Node,
@@ -247,9 +286,15 @@ class FxConverter:
             torch.as_strided,
             args=(
                 input_node,
+<<<<<<< HEAD
                 self._generate_sym_nodes(size),
                 self._generate_sym_nodes(stride),
                 self._generate_sym_node(offset),
+=======
+                convert_shape_to_symint(size),
+                convert_shape_to_symint(stride),
+                convert_to_symint(offset),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
         )
 
@@ -298,6 +343,7 @@ class FxConverter:
         """
         Converts graph inputs to FX placeholders.
         """
+<<<<<<< HEAD
 
         for node in V.graph.module.graph.find_nodes(op="placeholder"):  # type: ignore[operator, union-attr]
             name = node.name
@@ -368,6 +414,18 @@ class FxConverter:
             node.meta["val"] = value
             setattr(self.gm, name, value)
             self.buffer_to_node[name] = node
+=======
+        for name, ir_node in V.graph.graph_inputs.items():
+            # Introduce a new symbol for constant inputs.
+            buffer = (
+                SymbolBuffer(sympy.Symbol(name, is_integer=True))
+                if isinstance(ir_node, (int, float, sympy.Integer, sympy.Float))
+                else self._get_buffer(ir_node)
+            )
+            node = self.gm.graph.placeholder(buffer.get_name())
+            self._create_meta_from_buffer(node, buffer)
+            self._record_allocation(buffer, node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _generate_buffer(self, node: ir.IRNode) -> Optional[torch.fx.Node]:
         """
@@ -380,7 +438,11 @@ class FxConverter:
                 return node
             elif isinstance(node, ir.NoneAsConstantBuffer):
                 return None
+<<<<<<< HEAD
             elif isinstance(node, ir.MutableBox):
+=======
+            elif isinstance(node, ir.StorageBox):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return generate_to_buffer(node.data)
             elif isinstance(node, ir.ReinterpretView):
                 # We need to introduce a new symbol if the output is a ReinterpretView.
@@ -429,6 +491,7 @@ class FxConverter:
         Main entrypoint for FX codegen.
         """
         self._generate_graph_inputs()
+<<<<<<< HEAD
         self._generate_graph_constants()
 
         fake_mode = _detect_fake_mode_from_gm(self.gm)
@@ -457,11 +520,33 @@ class FxConverter:
                         """
                         )
                     )
+=======
+
+        # Generate FX IR from Wrapper IR lines.
+        for line in self.lines:
+            if isinstance(line, WrapperLine):
+                line.codegen_fx(self)(line)
+            elif isinstance(line, LineContext):
+                # Ignore line context in FX IR.
+                pass
+            else:
+                raise NotImplementedError(
+                    textwrap.dedent(
+                        f"""
+                    Found line of unrecognized type '{type(line)}':
+                        '{line}'
+
+                    FX conversion only supports Wrapper IR lines.
+                    """
+                    )
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._generate_output()
         self.gm.recompile()
         return self.gm
 
+<<<<<<< HEAD
     def _sympy_interp(self, expr: sympy.Expr) -> torch.fx.Proxy:
         # hash cons
         if expr in self.expr_to_proxy:
@@ -512,6 +597,8 @@ class FxConverter:
     ) -> list[Union[int, torch.fx.Node]]:
         return [self._generate_sym_node(s) for s in shape]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _generate_allocate(self, line: WrapperLine) -> None:
         assert isinstance(line, AllocateLine)
         buffer = line.node
@@ -520,8 +607,13 @@ class FxConverter:
 
         device = buffer.get_device()
         dtype = buffer.get_dtype()
+<<<<<<< HEAD
         shape = self._generate_sym_nodes(buffer.get_size())
         stride = self._generate_sym_nodes(buffer.get_stride())
+=======
+        shape = convert_shape_to_symint(buffer.get_size())
+        stride = convert_shape_to_symint(buffer.get_stride())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         node = self.gm.graph.call_function(
             torch.empty_strided,
@@ -530,6 +622,10 @@ class FxConverter:
         )
         assert name
         node.name = name
+<<<<<<< HEAD
+=======
+        self._create_meta_from_buffer(node, buffer)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._record_allocation(buffer, node)
 
     def _generate_comment(self, line: WrapperLine) -> None:
@@ -600,6 +696,10 @@ class FxConverter:
         # Map ReinterpretView to as_strided.
         result_node = self._create_as_strided(input_node, size, stride, offset)
         result_node.name = name
+<<<<<<< HEAD
+=======
+        result_node.meta["val"] = layout.get_example()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._record_allocation(result_buffer, result_node)
 
     def _generate_reuse(self, line: WrapperLine) -> None:
@@ -622,6 +722,10 @@ class FxConverter:
             or old.get_offset() != offset
         ):
             result_node = self._create_as_strided(old_node, size, stride, offset)
+<<<<<<< HEAD
+=======
+            self._create_meta_from_buffer(result_node, new)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._record_allocation(new, result_node)
 
@@ -636,6 +740,7 @@ class FxConverter:
     def _generate_multi_output(self, line: WrapperLine) -> None:
         assert isinstance(line, MultiOutputLine)
 
+<<<<<<< HEAD
         arg_node = self.buffer_to_node[line.arg_name]
 
         # For non-tuple / non-list outputs, map the
@@ -644,12 +749,20 @@ class FxConverter:
             self.buffer_to_node[line.result_name] = arg_node
             return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Extract the index for tuple access.
         inds = line.indices[0][1:]
         assert len(inds) == 1, f"Cannot convert {inds} to an index."
         idx = inds[0]
 
+<<<<<<< HEAD
         node = self.gm.graph.call_function(operator.getitem, args=(arg_node, idx))
+=======
+        arg_node = self.buffer_to_node[line.arg_name]
+        node = self.gm.graph.call_function(operator.getitem, args=(arg_node, idx))
+        node.meta["val"] = arg_node.meta["val"][idx]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         node.name = line.result_name
         self.buffer_to_node[line.result_name] = node
 
@@ -672,10 +785,13 @@ class FxConverter:
         call_args = self._lookup_args(line.call_args)
         kernel = self.kernels[line.kernel_name]
         tuner = kernel.tuner
+<<<<<<< HEAD
         # Use python_slow mode instead of python mode to avoid
         # the round to neginf behaviour, which is not the convention
         # in other languages.
         tuner.grid_mode = "python_slow"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Optionally autotune the kernels.
         # The FX backend currently only supports compile-time tuning.
@@ -713,6 +829,7 @@ class FxConverter:
                 kernel_name,
             )
 
+<<<<<<< HEAD
         triton_meta = tuner.triton_meta
         signature = triton_meta["signature"]
 
@@ -761,6 +878,46 @@ class FxConverter:
         call_kwargs = {
             name: self._generate_sym_node(val) for name, val in call_kwargs.items()
         }
+=======
+        kernel_config = tuner.compile_results[0].config
+        call_args, grid = tuner._interpret_args_grid(call_args, kernel_config)
+        call_kwargs = dict(zip(tuner.triton_meta["signature"], call_args))
+        call_kwargs.update(kernel_config.kwargs)
+
+        def replace_floor_div(expr: sympy.Expr) -> sympy.Expr:
+            """
+            Converts floor(x / c) to x // c.
+            """
+            if isinstance(expr, sympy.core.mul.Mul) and isinstance(
+                expr.args[0], sympy.Rational
+            ):
+                # Only the first argument of a Mul can be a Rational.
+                frac = expr.args[0]
+                numerator = sympy_product(expr.args[1:]) * frac.numerator
+                denominator = frac.denominator
+
+                # Sanity check the results.
+                new_expr = numerator / denominator
+                assert V.graph.sizevars.statically_known_equals(new_expr, expr), (
+                    f"Unsound replacement: '{new_expr}' != '{expr}'"
+                )
+
+                return FloorDiv(numerator, denominator)
+            else:
+                return sympy.floor(expr)
+
+        def expr_to_symint(expr: Union[int, sympy.Expr]) -> Union[int, sympy.Expr]:
+            return (
+                convert_to_symint(expr.replace(sympy.floor, replace_floor_div))
+                if isinstance(expr, sympy.Expr)
+                else expr
+            )
+
+        # Convert sympy expressions to symints.
+        # Use FloorDiv over sympy.floor, so we can get nicer Python code from FX.
+        wrapper_grid = [tuple(expr_to_symint(dim) for dim in grid)]
+        call_kwargs = {name: expr_to_symint(val) for name, val in call_kwargs.items()}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Store non-graphable kwargs in the side table.
         (
@@ -801,7 +958,10 @@ class FxConverter:
         """
 
         # Get FX nodes corresponding to the call args.
+<<<<<<< HEAD
         assert ir.is_node_sequence(kernel.inputs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor_nodes = tuple(self._generate_buffer(arg) for arg in kernel.inputs)
         args = tensor_nodes + tuple(kernel.constant_args)
 
@@ -818,11 +978,22 @@ class FxConverter:
         else:
             raise NotImplementedError(f"Unrecognized output layout: {kernel.layout}")
 
+<<<<<<< HEAD
         fx_node = self.gm.graph.call_function(
             kernel.op_overload,  # type: ignore[arg-type]
             args=args,
             kwargs=kwargs,
         )
+=======
+        # Look up the kernel function from its name.
+        kernel_name = kernel.get_kernel_name()
+        module_name, kernel_name = kernel_name.split(".", 1)
+        op = globals()[module_name]  # E.g. extern_kernels, aten, etc.
+        for subname in kernel_name.split("."):
+            op = getattr(op, subname)  # E.g. extern_kernels.addmm
+
+        fx_node = self.gm.graph.call_function(op, args=args, kwargs=kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Assign the result to the given name.
         if result_buffer:
@@ -832,6 +1003,17 @@ class FxConverter:
             fx_node.name = result_buffer
             self.buffer_to_node[result_buffer] = fx_node
 
+<<<<<<< HEAD
+=======
+            arg_tensors = [
+                arg.meta["val"] if isinstance(arg, torch.fx.Node) else arg
+                for arg in args
+            ]
+
+            # Run the operation to propagate metadata.
+            fx_node.meta["val"] = op(*arg_tensors, **kwargs)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _generate_kernel_call(self, line: WrapperLine) -> None:
         assert isinstance(line, KernelCallLine)
         if not line.triton:
@@ -854,8 +1036,12 @@ class FxConverter:
 
     def _generate_symbolic_call_arg(self, line: WrapperLine) -> None:
         assert isinstance(line, SymbolicCallArgLine)
+<<<<<<< HEAD
         # Store the arg: expr mapping for later use.
         arg = line.arg
 
         inner_expr_proxy = self._sympy_interp(arg.inner_expr)
         self.expr_to_proxy[arg.inner] = inner_expr_proxy
+=======
+        # No need for an FX node, as we will pass the arg to kernels via a SymInt.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

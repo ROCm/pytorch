@@ -27,7 +27,10 @@ from .ctx_manager import (
     DisabledSavedTensorsHooksVariable,
     DualLevelContextManager,
     DynamoConfigPatchVariable,
+<<<<<<< HEAD
     ErrorOnGraphBreakVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FSDPParamGroupUseTrainingStateVariable,
     GradIncrementNestingCtxManagerVariable,
     GradInplaceRequiresGradCtxManagerVariable,
@@ -75,16 +78,26 @@ from .functions import (
 from .higher_order_ops import (
     FunctionalCallVariable,
     FunctorchHigherOrderVariable,
+<<<<<<< HEAD
     ReparametrizeModuleCallVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TorchHigherOrderOperatorVariable,
 )
 from .iter import (
     CountIteratorVariable,
+<<<<<<< HEAD
+=======
+    CycleIteratorVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FilterVariable,
     IteratorVariable,
     ItertoolsVariable,
     MapVariable,
+<<<<<<< HEAD
     ObjectIteratorVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     RepeatIteratorVariable,
     ZipVariable,
 )
@@ -140,7 +153,10 @@ from .tensor import (
 )
 from .torch import TorchCtxManagerClassVariable, TorchInGraphFunctionVariable
 from .user_defined import (
+<<<<<<< HEAD
     FrozenDataClassVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MutableMappingVariable,
     RemovableHandleVariable,
     UserDefinedClassVariable,
@@ -149,7 +165,10 @@ from .user_defined import (
     UserDefinedExceptionObjectVariable,
     UserDefinedListVariable,
     UserDefinedObjectVariable,
+<<<<<<< HEAD
     UserDefinedSetVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     UserDefinedTupleVariable,
 )
 
@@ -168,6 +187,10 @@ __all__ = [
     "CreateTMADescriptorExperimentalVariable",
     "CreateTMADescriptorStableVariable",
     "CUDADeviceVariable",
+<<<<<<< HEAD
+=======
+    "CycleIteratorVariable",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "DataPtrVariable",
     "DefaultDictVariable",
     "DeletedVariable",
@@ -200,7 +223,10 @@ __all__ = [
     "RemovableHandleVariable",
     "RepeatIteratorVariable",
     "SDPAParamsVariable",
+<<<<<<< HEAD
     "ErrorOnGraphBreakVariable",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "SkipFunctionVariable",
     "SliceVariable",
     "StringFormatVariable",

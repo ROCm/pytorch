@@ -29,7 +29,10 @@ from torch._dynamo.device_interface import get_interface_for_device
 from torch._dynamo.testing import normalize_gm
 from torch._dynamo.utils import counters
 from torch._inductor import config as inductor_config
+<<<<<<< HEAD
 from torch._inductor.cpp_builder import is_msvc_cl
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.test_case import run_tests, TestCase
 from torch.nn.attention.flex_attention import flex_attention
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -41,12 +44,16 @@ from torch.testing._internal.common_device_type import (
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     IS_S390X,
+<<<<<<< HEAD
     IS_WINDOWS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parametrize,
     scoped_load_inline,
     skipIfWindows,
 )
 from torch.testing._internal.hop_db import hop_db
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CPU,
@@ -55,6 +62,10 @@ from torch.testing._internal.inductor_utils import (
 )
 from torch.testing._internal.logging_utils import logs_to_string
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
+=======
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CPU, HAS_CUDA, HAS_GPU
+from torch.testing._internal.logging_utils import logs_to_string
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._python_dispatch import TorchDispatchMode
 
 
@@ -172,6 +183,7 @@ class TestCompiledAutograd(TestCase):
         except subprocess.CalledProcessError as e:
             self.fail(f"Subprocess exited with return code: {e.returncode}")
 
+<<<<<<< HEAD
     def test_hipify_not_loaded_with_import_torch(self):
         script = """
 import torch
@@ -186,6 +198,8 @@ assert globals().get("hipify", False) is False
 """
         self.run_as_subprocess(script)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_flaky_segfault(self):
         script = """
 import torch
@@ -215,6 +229,7 @@ main()
         for _ in range(3):
             self.run_as_subprocess(script)
 
+<<<<<<< HEAD
     def gen_cache_miss_log_prefix(self):
         if IS_WINDOWS:
             if is_msvc_cl():
@@ -227,6 +242,8 @@ main()
         else:
             return "Cache miss due to new autograd node: "
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reset(self):
         compiled_autograd.compiled_autograd_enabled = True
         torch._C._dynamo.compiled_autograd.set_autograd_compiler(lambda: None, True)
@@ -1042,8 +1059,13 @@ main()
         # Freeze compiled autograd graph
         compiler = torch._dynamo.compiled_autograd.AutogradCompilerInstance(compiler_fn)
         param = torch.ones(100)
+<<<<<<< HEAD
         active = torch.ones(100) * 2
         inputs = [param, active]
+=======
+        activ = torch.ones(100) * 2
+        inputs = [param, activ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _, proxies, _, _ = compiler.begin_capture(
             inputs=inputs,
             sizes=[],
@@ -1094,7 +1116,11 @@ main()
         try:
             runtime_wrapper(
                 compiled_fn=compiled_fn,
+<<<<<<< HEAD
                 inputs=[param, active],
+=======
+                inputs=[param, activ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 sizes=(),
                 scalars=(),
                 hooks=[],
@@ -3009,7 +3035,11 @@ main()
                 b = MyFunc.apply(a)
                 b.sum().backward()
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @unittest.skipIf(not HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cudagraphs_cpu_division(self):
         from torch._dynamo.testing import reduce_to_scalar_loss
 
@@ -3049,7 +3079,11 @@ main()
 
         self.assertEqual(counters["inductor"]["cudagraph_skips"], 1)
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @unittest.skipIf(not HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cudagraphs_sdpa(self):
         query = torch.rand(
             32, 8, 128, 64, dtype=torch.float16, device="cuda", requires_grad=True
@@ -3071,7 +3105,11 @@ main()
             2 if inductor_config.cpp_wrapper else 0,
         )
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @unittest.skipIf(not HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cudagraphs_cpu_scalar_used_in_python_custom_op(self):
         class MyFn(torch.autograd.Function):
             @staticmethod
@@ -3099,6 +3137,7 @@ main()
         self.assertEqual(counters["compiled_autograd"]["captures"], 1)
         # Compiled autograd lifts custom autograd.Function bwd instead of tracing it.
         # Must skip since we do not know if the cpu scalar will be used only in ATen/prim ops.
+<<<<<<< HEAD
         if inductor_config.graph_partition:
             # instead of skipping cudagraph, graph partition splits off cpu inputs/outputs and ops
             # and cudagraphify the remaining computation. So there is no cudagraph skip.
@@ -3112,6 +3151,12 @@ main()
 
     @scoped_load_inline
     @requires_cuda_and_triton
+=======
+        self.assertEqual(counters["inductor"]["cudagraph_skips"], 1)
+
+    @scoped_load_inline
+    @unittest.skipIf(not HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cudagraphs_cpu_scalar_used_in_cpp_custom_op(self, load_inline):
         cpp_source = """
 struct CustomOpAutogradFunction : public torch::autograd::Function<CustomOpAutogradFunction> {
@@ -3173,6 +3218,7 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
         # into it. We must skip since we do not know if the cpu scalar will be used only in ATen/prim ops.
         # In the future, we can consider having a cpu scalar movement pass sometime after we trace
         # into the custom C++ autograd::Function (like in AOTDispatcher)
+<<<<<<< HEAD
         if inductor_config.graph_partition:
             # instead of skipping cudagraph, graph partition splits off cpu inputs/outputs and ops
             # and cudagraphify the remaining computation. So there is no cudagraph skip.
@@ -3185,6 +3231,11 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
         self.assertEqual(
             counters["inductor"]["cudagraph_skips"],
             expected_cudagraph_skips,
+=======
+        self.assertEqual(
+            counters["inductor"]["cudagraph_skips"],
+            2 if inductor_config.cpp_wrapper else 1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_logs(self):
@@ -3198,7 +3249,11 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
         self.assertEqual(counters["compiled_autograd"]["compiles"], 1)
         assert "torch::autograd::AccumulateGrad (NodeCall" in logs.getvalue()
         assert (
+<<<<<<< HEAD
             self.gen_cache_miss_log_prefix() + "torch::autograd::GraphRoot"
+=======
+            "Cache miss due to new autograd node: torch::autograd::GraphRoot"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             not in logs.getvalue()
         )
 
@@ -3405,6 +3460,10 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
             sum(1 for e in expected_logs if e in logs.getvalue()), len(expected_logs)
         )
 
+<<<<<<< HEAD
+=======
+    @skipIfWindows(msg="AssertionError: Scalars are not equal!")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_verbose_logs_cpp(self):
         torch._logging.set_logs(compiled_autograd_verbose=True)
 
@@ -3432,9 +3491,14 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
             self.check_output_and_recompiles(fn)
 
         patterns1 = [
+<<<<<<< HEAD
             r".*"
             + self.gen_cache_miss_log_prefix()
             + r"torch::autograd::GraphRoot \(NodeCall 0\) with key size (\d+), previous key sizes=\[\]\n",
+=======
+            r".*Cache miss due to new autograd node: torch::autograd::GraphRoot \(NodeCall 0\) with key size (\d+), "
+            r"previous key sizes=\[\]\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         all_logs = logs.getvalue()
@@ -3447,7 +3511,10 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
         )  # for a single match: matches1=['match'], for multiple matches: matches1=[('match1', 'match2')]...
         self.assertEqual(len(matches1), len(patterns1))
 
+<<<<<<< HEAD
     @skipIfWindows(msg="node name demangling inconsistent on windows")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_verbose_logs_dynamic_shapes(self):
         logs, ctx = logs_to_string(
             torch._dynamo.compiled_autograd.__name__, "compiled_autograd_verbose"
@@ -3472,8 +3539,12 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
 
         actual_logs = logs.getvalue()
         expected_logs = [
+<<<<<<< HEAD
             self.gen_cache_miss_log_prefix()
             + "torch::autograd::GraphRoot (NodeCall 0) with key size 39, previous key sizes=[]",
+=======
+            "Cache miss due to new autograd node: torch::autograd::GraphRoot (NodeCall 0) with key size 39, previous key sizes=[]",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         for expected in expected_logs:
             self.assertTrue(expected in actual_logs)
@@ -3504,7 +3575,11 @@ TORCH_LIBRARY(test_cudagraphs_cpu_scalar_used_in_cpp_custom_op, m) {
                 fn()
 
         unexpected_logs = [
+<<<<<<< HEAD
             self.gen_cache_miss_log_prefix() + "torch::autograd::GraphRoot (NodeCall 0)"
+=======
+            "Cache miss due to new autograd node: torch::autograd::GraphRoot (NodeCall 0)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         self.assertEqual(sum(1 for e in unexpected_logs if e in logs.getvalue()), 0)
@@ -3748,7 +3823,11 @@ class CompiledAutograd0(torch.nn.Module):
         self.assertTrue(isinstance(view_nodes[0].args[1][0], torch.fx.Node))
         self.assertTrue(isinstance(view_nodes[1].args[1][0], torch.fx.Node))
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @unittest.skipIf(not HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_flex_attention(self):
         def _squared(score, b, h, m, n):
             """Joint graph needed for correctness"""
@@ -3916,7 +3995,11 @@ class CompiledAutograd0(torch.nn.Module):
                 compiler_fn=make_compiler_fn(backend="ca_eager", gm_hook=check),
             )
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @unittest.skipIf(not HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cpu_offloading(self):
         def fn():
             def pack(x):
@@ -5084,7 +5167,11 @@ def wrap_test_class(orig_cls):
             dct[name] = unittest.expectedFailure
         elif name.startswith("test_"):
             backend = lookup_backend(name)
+<<<<<<< HEAD
             if not HAS_CUDA_AND_TRITON and backend == "inductor":
+=======
+            if not HAS_CUDA and backend == "inductor":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             ctxs = [
                 compiled_autograd._enable(
@@ -5197,7 +5284,10 @@ known_graph_breaks_tests = {
     "test_nested_checkpoint_set_early_stop",  # dynamo disable
     "test_nested_checkpoint_two_children_early_stop_False",  # dynamo disable
     "test_nested_checkpoint_two_children_early_stop_True",  # dynamo disable
+<<<<<<< HEAD
     "test_custom_autograd_ac_early_stop",  # marked as skipped
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "test_dropout",  # dynamo disable
     "test_dropout_inductor",  # dynamo disable
     "test_function_with_kwargs",  # dynamo disable
@@ -5322,7 +5412,11 @@ xfail_divergence_from_eager = {
 
 skipped_tests = set()
 
+<<<<<<< HEAD
 if not HAS_CUDA_AND_TRITON:
+=======
+if not HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Found Tesla M60 which is too old to be supported by the triton GPU compiler
     skipped_tests.add("test_type_conversions")
 
@@ -5348,7 +5442,11 @@ ActivationCheckpointingTestsWithCompiledAutograd = wrap_test_class(
     test_higher_order_ops.ActivationCheckpointingTests
 )
 
+<<<<<<< HEAD
 if torch.distributed.is_available() and HAS_CUDA_AND_TRITON:
+=======
+if torch.distributed.is_available() and HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     test_dtensor = load_test_module("distributed/tensor/test_dtensor_compile")
     TestDTensorCompileWithCompiledAutograd = wrap_test_class(
         test_dtensor.TestDTensorCompile

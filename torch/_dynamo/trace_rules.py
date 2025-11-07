@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Tracing rules and policies for TorchDynamo compilation decisions.
 
@@ -21,6 +26,10 @@ compilation boundaries and optimize PyTorch programs effectively.
 
 import abc
 import builtins
+<<<<<<< HEAD
+=======
+import collections
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copy
 import dataclasses
 import functools
@@ -34,6 +43,10 @@ import re
 import sys
 import traceback
 import types
+<<<<<<< HEAD
+=======
+import typing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 from collections import defaultdict
 from pathlib import Path
@@ -48,6 +61,7 @@ from torch.utils import _config_module
 
 from . import config
 from .resume_execution import TORCH_DYNAMO_RESUME_IN_PREFIX
+<<<<<<< HEAD
 from .utils import (
     getfile,
     hashable,
@@ -55,6 +69,9 @@ from .utils import (
     NP_SUPPORTED_MODULES,
     unwrap_if_wrapper,
 )
+=======
+from .utils import getfile, hashable, NP_SUPPORTED_MODULES, unwrap_if_wrapper
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .variables import (
     BuiltinVariable,
     FunctionalCallVariable,
@@ -63,13 +80,19 @@ from .variables import (
     LocalGeneratorObjectVariable,
     NestedUserFunctionVariable,
     PolyfilledFunctionVariable,
+<<<<<<< HEAD
     ReparametrizeModuleCallVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SkipFunctionVariable,
     TorchInGraphFunctionVariable,
     UserFunctionVariable,
     UserMethodVariable,
 )
+<<<<<<< HEAD
 from .variables.base import VariableTracker
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 np: Optional[types.ModuleType] = None
@@ -79,6 +102,13 @@ except ModuleNotFoundError:
     pass
 
 
+<<<<<<< HEAD
+=======
+if typing.TYPE_CHECKING:
+    from .variables.base import VariableTracker
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 A note on skip/inline rules:
 
@@ -146,6 +176,7 @@ If you are removing an existing torch level API:
 
 
 """
+<<<<<<< HEAD
 manual_torch_name_rule_map: dict[
     str,
     Union[
@@ -154,6 +185,9 @@ manual_torch_name_rule_map: dict[
         type[UserFunctionVariable],
     ],
 ] = {
+=======
+manual_torch_name_rule_map: dict[str, Any] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch.onnx.is_in_onnx_export": TorchInGraphFunctionVariable,
     "torch.onnx.operators.shape_as_tensor": TorchInGraphFunctionVariable,
     "torch.overrides.is_tensor_like": TorchInGraphFunctionVariable,
@@ -171,7 +205,10 @@ manual_torch_name_rule_map: dict[
     "torch.distributed.distributed_c10d.get_process_group_ranks": TorchInGraphFunctionVariable,
     "torch._utils.is_compiling": TorchInGraphFunctionVariable,
     "torch.fx._symbolic_trace.is_fx_tracing": TorchInGraphFunctionVariable,
+<<<<<<< HEAD
     "torch.fx._symbolic_trace.is_fx_symbolic_tracing": TorchInGraphFunctionVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch._dynamo.external_utils.is_compiling": TorchInGraphFunctionVariable,
     "torch._dynamo.utils._disable_side_effect_safety_checks_for_current_subtracer": UserFunctionVariable,
     "torch.compiler.is_compiling": TorchInGraphFunctionVariable,
@@ -208,10 +245,13 @@ manual_torch_name_rule_map: dict[
     "torch.fx.node.map_aggregate": UserFunctionVariable,
     "torch.fx.node.map_arg": UserFunctionVariable,
     "torch.fx.immutable_collections._no_mutation": UserFunctionVariable,
+<<<<<<< HEAD
     "torch.fx.immutable_collections._immutable_list_flatten": UserFunctionVariable,
     "torch.fx.immutable_collections._immutable_list_unflatten": UserFunctionVariable,
     "torch.fx.immutable_collections._immutable_dict_flatten": UserFunctionVariable,
     "torch.fx.immutable_collections._immutable_dict_unflatten": UserFunctionVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # symbol operators implemented in Python
     "torch.sym_not": TorchInGraphFunctionVariable,
     "torch.sym_float": TorchInGraphFunctionVariable,
@@ -245,8 +285,11 @@ manual_torch_name_rule_map: dict[
     "torch._C.set_autocast_xla_dtype": SkipFunctionVariable,
     "torch._C.set_autocast_xla_enabled": SkipFunctionVariable,
     "torch.resize_as_": SkipFunctionVariable,
+<<<<<<< HEAD
     "torch._functorch.predispatch._add_batch_dim": TorchInGraphFunctionVariable,
     "torch._functorch.predispatch._remove_batch_dim": TorchInGraphFunctionVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch.resize_as_sparse_": SkipFunctionVariable,
     "torch.get_default_device": TorchInGraphFunctionVariable,
     # functorch/vmap
@@ -317,7 +360,10 @@ manual_torch_name_rule_map: dict[
     # functional_call
     "torch._functorch.functional_call.functional_call": FunctionalCallVariable,
     "torch.nn.utils.stateless._groupby_tensor": TorchInGraphFunctionVariable,
+<<<<<<< HEAD
     "torch.nn.utils.stateless._reparametrize_module": ReparametrizeModuleCallVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # functorch/deprecated
     "torch._functorch.deprecated.jvp": UserFunctionVariable,
     "torch._functorch.deprecated.hessian": UserFunctionVariable,
@@ -327,6 +373,11 @@ manual_torch_name_rule_map: dict[
     "torch._functorch.deprecated.grad_and_value": UserFunctionVariable,
     "torch._functorch.deprecated.vjp": UserFunctionVariable,
     # functorch/C++ bindings
+<<<<<<< HEAD
+=======
+    "torch._C._functorch._add_batch_dim": TorchInGraphFunctionVariable,
+    "torch._C._functorch._remove_batch_dim": TorchInGraphFunctionVariable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch._C._functorch._wrap_for_grad": TorchInGraphFunctionVariable,
     "torch._C._functorch._unwrap_for_grad": TorchInGraphFunctionVariable,
     "torch._C._functorch._unwrap_batched": TorchInGraphFunctionVariable,
@@ -335,8 +386,11 @@ manual_torch_name_rule_map: dict[
     "torch._C._functorch.is_batchedtensor": TorchInGraphFunctionVariable,
     "torch._C._functorch.peek_interpreter_stack": TorchInGraphFunctionVariable,
     "torch._C._functorch.unwrap_if_dead": TorchInGraphFunctionVariable,
+<<<<<<< HEAD
     "torch._functorch.predispatch._vmap_increment_nesting": TorchInGraphFunctionVariable,
     "torch._functorch.predispatch._vmap_decrement_nesting": TorchInGraphFunctionVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # everything else
     "torch._functorch.pyfunctorch.coerce_cinterpreter": TorchInGraphFunctionVariable,
     "torch._higher_order_ops.triton_kernel_wrap.do_prune_configs": UserFunctionVariable,
@@ -349,7 +403,10 @@ manual_torch_name_rule_map: dict[
     "torch._dynamo.mark_static": UserFunctionVariable,
     "torch._dynamo.nonstrict_trace": UserFunctionVariable,
     "torch._dynamo.patch_dynamo_config": UserFunctionVariable,
+<<<<<<< HEAD
     "torch._dynamo.error_on_graph_break": UserFunctionVariable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch.fx.experimental.symbolic_shapes.guard_size_oblivious": TorchInGraphFunctionVariable,
     "torch.fx.experimental.symbolic_shapes.guard_or_true": TorchInGraphFunctionVariable,
     "torch.fx.experimental.symbolic_shapes.guard_or_false": TorchInGraphFunctionVariable,
@@ -586,6 +643,10 @@ torch_c_binding_in_graph_functions = dict.fromkeys(
         "torch._C._dispatch_has_kernel",
         "torch._C._dispatch_is_alias_key",
         "torch._C._dispatch_is_included_in_alias",
+<<<<<<< HEAD
+=======
+        "torch._C._dispatch_is_main_interpreter",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch._C._dispatch_isTensorSubclassLike",
         "torch._C._dispatch_key_for_device",
         "torch._C._dispatch_key_name",
@@ -661,7 +722,10 @@ torch_c_binding_in_graph_functions = dict.fromkeys(
         "torch._C._get_cublas_allow_tf32",
         "torch._C._get_cudnn_allow_tf32",
         "torch._C._get_cudnn_benchmark",
+<<<<<<< HEAD
         "torch._C._get_miopen_immediate",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch._C._get_cudnn_deterministic",
         "torch._C._get_cudnn_enabled",
         "torch._C._get_custom_class_python_wrapper",
@@ -1947,7 +2011,10 @@ torch_c_binding_in_graph_functions = dict.fromkeys(
         "torch.geqrf",
         "torch.ger",
         "torch.get_device",
+<<<<<<< HEAD
         "torch.get_device_module",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch.gradient",
         "torch.greater_equal",
         "torch.greater",
@@ -1961,7 +2028,10 @@ torch_c_binding_in_graph_functions = dict.fromkeys(
         "torch.hamming_window",
         "torch.hann_window",
         "torch.hardshrink",
+<<<<<<< HEAD
         "torch.hash_tensor",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch.heaviside",
         "torch.hinge_embedding_loss",
         "torch.histc",
@@ -2368,11 +2438,15 @@ torch_non_c_binding_in_graph_functions = dict.fromkeys(
         "torch._functorch.utils.enable_single_level_autograd_function",
         "torch._functorch.utils.exposed_in",
         "torch._functorch.utils.unwrap_dead_wrappers",
+<<<<<<< HEAD
         "torch._functorch.predispatch.lazy_load_decompositions",
         "torch._functorch.predispatch._vmap_increment_nesting",
         "torch._functorch.predispatch._vmap_decrement_nesting",
         "torch._functorch.predispatch._add_batch_dim",
         "torch._functorch.predispatch._remove_batch_dim",
+=======
+        "torch._functorch.vmap.lazy_load_decompositions",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch._guards.compile_context",
         "torch._guards.detect_fake_mode",
         "torch._guards.tracing",
@@ -2417,6 +2491,10 @@ torch_non_c_binding_in_graph_functions = dict.fromkeys(
         "torch._lowrank.svd_lowrank",
         "torch._preload_cuda_deps",
         "torch._register_device_module",
+<<<<<<< HEAD
+=======
+        "torch._running_with_deploy",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch._utils._dummy_type",
         "torch._utils._flatten_dense_tensors",
         "torch._utils._unflatten_dense_tensors",
@@ -2690,6 +2768,10 @@ torch_non_c_binding_in_graph_functions = dict.fromkeys(
         "torch.cuda.set_stream",
         "torch.cuda.set_sync_debug_mode",
         "torch.cuda.stream",
+<<<<<<< HEAD
+=======
+        "torch.cuda.synchronize",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch.cuda.temperature",
         "torch.cuda.utilization",
         "torch.einsum",
@@ -2968,7 +3050,10 @@ torch_non_c_binding_in_graph_functions = dict.fromkeys(
         "torch.xpu.random.seed_all",
         "torch.xpu.random.seed",
         "torch.xpu.set_stream",
+<<<<<<< HEAD
         "torch.xpu.stream",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "torch.xpu.synchronize",
     ],
     TorchInGraphFunctionVariable,
@@ -2995,6 +3080,7 @@ def get_torch_obj_rule_map() -> dict[Any, type["VariableTracker"]]:
             if ".py#" not in k:
                 obj = load_object(k)
             else:
+<<<<<<< HEAD
                 torch_dir = _module_dir(torch)
                 if torch_dir is None:
                     continue
@@ -3002,6 +3088,10 @@ def get_torch_obj_rule_map() -> dict[Any, type["VariableTracker"]]:
             if obj is not None:
                 if is_lru_cache_wrapped_function(obj):
                     obj = obj.__wrapped__
+=======
+                obj = _module_dir(torch) + k[len("torch/") :]
+            if obj is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if obj in d and d[obj] != v:
                     raise AssertionError(
                         f"Duplicate torch object {obj} with different rules: {v}, {d[obj]}"
@@ -3011,7 +3101,11 @@ def get_torch_obj_rule_map() -> dict[Any, type["VariableTracker"]]:
     return d
 
 
+<<<<<<< HEAD
 def _load_obj_from_str(fully_qualified_name: str) -> Any:
+=======
+def _load_obj_from_str(fully_qualified_name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     module, obj_name = fully_qualified_name.rsplit(".", maxsplit=1)
     return getattr(importlib.import_module(module), obj_name)
 
@@ -3021,7 +3115,11 @@ Load string represented torch objects.
 """
 
 
+<<<<<<< HEAD
 def load_object(name: str) -> Any:
+=======
+def load_object(name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         x = name.split("#")
         if len(x) == 2:
@@ -3042,7 +3140,11 @@ Get all torch.Tensor methods which are allowed to be in graph functions.
 
 
 @functools.cache
+<<<<<<< HEAD
 def get_tensor_method() -> frozenset[Any]:
+=======
+def get_tensor_method():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     disallowed_tensor_methods = {"__new__", "_make_wrapper_subclass", "_make_subclass"}
     s = set()
     for name in dir(torch.Tensor):
@@ -3071,7 +3173,11 @@ Return if a torch object is ATen op or torch.Tensor method.
 """
 
 
+<<<<<<< HEAD
 def is_aten_op_or_tensor_method(obj: Any) -> bool:
+=======
+def is_aten_op_or_tensor_method(obj):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return obj in get_tensor_method() or isinstance(
         obj,
         (torch._ops.OpOverloadPacket, torch._ops.OpOverload),
@@ -3107,16 +3213,28 @@ class FunctionIdSet:
                 self.function_ids = value
         return self.function_ids
 
+<<<<<<< HEAD
     def get_name(self, idx: int, default: str) -> str:
+=======
+    def get_name(self, idx: int, default: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self()  # lazy init
         assert self.function_names is not None
         return self.function_names.get(idx, default)
 
+<<<<<<< HEAD
     def add(self, idx: int) -> None:
         function_ids = self()  # lazy init
         function_ids.add(idx)
 
     def remove(self, idx: int) -> None:
+=======
+    def add(self, idx: int):
+        function_ids = self()  # lazy init
+        function_ids.add(idx)
+
+    def remove(self, idx: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         function_ids = self()
         if idx in function_ids:
             function_ids.remove(idx)
@@ -3184,7 +3302,11 @@ def _numpy_function_ids() -> dict[int, str]:
         "sample",
     }
 
+<<<<<<< HEAD
     def is_supported(k: str, v: Any, mod: Any) -> bool:
+=======
+    def is_supported(k, v, mod):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not callable(v):
             return False
         if not getattr(v, "__module__", None):
@@ -3243,53 +3365,93 @@ def _maybe_init_lazy_module(obj: object) -> None:
             fn()
 
 
+<<<<<<< HEAD
 def is_callable_allowed(obj: Any) -> bool:
+=======
+def is_callable_allowed(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _maybe_init_lazy_module(obj)
     return id(obj) in _allowed_callable_ids
 
 
+<<<<<<< HEAD
 def is_nonstrict_trace_callable(obj: Any) -> bool:
+=======
+def is_nonstrict_trace_callable(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _maybe_init_lazy_module(obj)
     return id(obj) in _nonstrict_trace_callable_ids
 
 
+<<<<<<< HEAD
 def is_callable_disallowed(obj: Any) -> bool:
+=======
+def is_callable_disallowed(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _maybe_init_lazy_module(obj)
     return id(obj) in _disallowed_callable_ids
 
 
+<<<<<<< HEAD
 def is_forbidden(obj: Any) -> bool:
+=======
+def is_forbidden(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _maybe_init_lazy_module(obj)
     return inspect.getattr_static(obj, "_dynamo_forbidden", False)
 
 
+<<<<<<< HEAD
 def is_builtin_callable(obj: Any) -> bool:
+=======
+def is_builtin_callable(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # See also torch/_dynamo/polyfills/loader.py, which removes items in _builtin_function_ids
     return id(obj) in _builtin_function_ids
 
 
+<<<<<<< HEAD
 def is_builtin_constant(obj: Any) -> bool:
     return id(obj) in _builtin_constant_ids
 
 
 def is_polyfilled_callable(obj: Any) -> bool:
+=======
+def is_builtin_constant(obj) -> bool:
+    return id(obj) in _builtin_constant_ids
+
+
+def is_polyfilled_callable(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # See also @torch._dynamo.decorators.substitute_in_graph(...), which adds items in _polyfilled_function_ids
     return id(obj) in _polyfilled_function_ids
 
 
+<<<<<<< HEAD
 def is_numpy(obj: Any) -> bool:
+=======
+def is_numpy(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if np is None:
         return False
     return isinstance(obj, (np.ndarray, np.generic)) or id(obj) in _numpy_function_ids
 
 
+<<<<<<< HEAD
 def is_numpy_dtype(obj: Any) -> bool:
+=======
+def is_numpy_dtype(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if np is None:
         return False
     return isinstance(obj, np.dtype)
 
 
+<<<<<<< HEAD
 def is_numpy_type_info(obj: Any) -> bool:
+=======
+def is_numpy_type_info(obj) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if np is None:
         return False
     return isinstance(obj, (np.finfo, np.iinfo))
@@ -3297,6 +3459,10 @@ def is_numpy_type_info(obj: Any) -> bool:
 
 BUILTIN_SKIPLIST = (
     abc,
+<<<<<<< HEAD
+=======
+    collections,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     copy,
     random,
     traceback,
@@ -3326,7 +3492,11 @@ THIRDPARTY_SKIPLIST = (
 )
 
 
+<<<<<<< HEAD
 def _as_posix_path(path: str) -> str:
+=======
+def _as_posix_path(path):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     posix_path = Path(os.path.normpath(path)).as_posix()
     # os.path.normpath and pathlib.Path remove trailing slash, so we need to add it back
     if path.endswith((os.path.sep, "/")):
@@ -3334,13 +3504,21 @@ def _as_posix_path(path: str) -> str:
     return posix_path
 
 
+<<<<<<< HEAD
 def _strip_init_py(s: str) -> str:
+=======
+def _strip_init_py(s):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     suffix = "__init__.py"
     s = s.removesuffix(suffix)
     return _as_posix_path(s)
 
 
+<<<<<<< HEAD
 def _module_dir(m: types.ModuleType) -> Optional[str]:
+=======
+def _module_dir(m: types.ModuleType):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Protect against a module not exporting __file__ - this can happen for
     # frozen modules, for example.
     file = getattr(m, "__file__", None)
@@ -3403,7 +3581,10 @@ MOD_INLINELIST = [
     "torch._dynamo.compiled_autograd",
     "torch._dynamo.comptime",
     "torch._dynamo.polyfills",
+<<<<<<< HEAD
     "torch._dynamo.test_case",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch._functorch._aot_autograd.subclass_parametrization",
     "torch._functorch.autograd_function",
     "torch._functorch.eager_transforms",
@@ -3478,6 +3659,10 @@ MOD_SKIPLIST = [
     "torch._custom_op",
     "torch._custom_ops",
     "torch._decomp",
+<<<<<<< HEAD
+=======
+    "torch._deploy",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch._dispatch",
     "torch._dynamo",
     "torch._export",
@@ -3562,36 +3747,54 @@ MOD_SKIPLIST = set(MOD_SKIPLIST)
 
 
 @functools.cache
+<<<<<<< HEAD
 def get_legacy_mod_inlinelist() -> set[str]:
     torch_dir = _module_dir(torch)
     if torch_dir is None:
         return set()
     inlinelist = {
         _as_posix_path(torch_dir + m[len("torch.") :].replace(".", "/"))
+=======
+def get_legacy_mod_inlinelist():
+    inlinelist = {
+        _as_posix_path(_module_dir(torch) + m[len("torch.") :].replace(".", "/"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for m in LEGACY_MOD_INLINELIST
     }
     return inlinelist
 
 
 @functools.cache
+<<<<<<< HEAD
 def get_mod_inlinelist() -> set[str]:
     torch_dir = _module_dir(torch)
     if torch_dir is None:
         return set()
     inlinelist = {
         _as_posix_path(torch_dir + m[len("torch.") :].replace(".", "/"))
+=======
+def get_mod_inlinelist():
+    inlinelist = {
+        _as_posix_path(_module_dir(torch) + m[len("torch.") :].replace(".", "/"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for m in MOD_INLINELIST
     }
     return inlinelist
 
 
 @functools.cache
+<<<<<<< HEAD
 def get_mod_skiplist() -> set[str]:
     torch_dir = _module_dir(torch)
     if torch_dir is None:
         return set()
     skiplist = {
         _as_posix_path(torch_dir + m[len("torch.") :].replace(".", "/"))
+=======
+def get_mod_skiplist():
+    skiplist = {
+        _as_posix_path(_module_dir(torch) + m[len("torch.") :].replace(".", "/"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for m in MOD_SKIPLIST
     }
     return skiplist
@@ -3648,14 +3851,22 @@ FBCODE_INLINE_FILES_IN_SKIPPED_DIRS_RE = re.compile(
 FORCE_SKIP_FILES = {f"{_module_dir(torch)}optim/lr_scheduler.py"}
 
 
+<<<<<<< HEAD
 def _recompile_re() -> None:
+=======
+def _recompile_re():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global SKIP_DIRS_RE
     SKIP_DIRS_RE = re.compile(
         rf"^[^\s<]*({'|'.join(re.escape(_as_posix_path(d)) for d in SKIP_DIRS)})"
     )
 
 
+<<<<<<< HEAD
 def add(import_name: str) -> None:
+=======
+def add(import_name: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(import_name, types.ModuleType):
         return add(import_name.__name__)
     assert isinstance(import_name, str)
@@ -3677,7 +3888,11 @@ class SkipResult:
     reason: Optional[str]
 
 
+<<<<<<< HEAD
 def check_file(filename: Optional[str], is_inlined_call: bool = False) -> SkipResult:
+=======
+def check_file(filename, is_inlined_call=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Should skip this file?"""
     if filename is None:
         return SkipResult(True, "filename is None")
@@ -3715,10 +3930,15 @@ def check_file(filename: Optional[str], is_inlined_call: bool = False) -> SkipRe
     ):
         return SkipResult(True, "FBCODE_SKIP_TORCHREC_DIRS")
 
+<<<<<<< HEAD
     unittest_dir = _module_dir(unittest)
     if (
         unittest_dir is not None
         and filename.startswith(unittest_dir)
+=======
+    if (
+        filename.startswith(_module_dir(unittest))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         and not torch._dynamo.config.enable_trace_unittest
     ):
         return SkipResult(True, "unittest")
@@ -3773,7 +3993,11 @@ we don't want to inline the lower level function call (e.g, f3) by default.
 """
 
 
+<<<<<<< HEAD
 def check_verbose(obj: Any, is_inlined_call: bool = False) -> SkipResult:
+=======
+def check_verbose(obj, is_inlined_call=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(
         obj,
         (
@@ -3792,6 +4016,7 @@ def check_verbose(obj: Any, is_inlined_call: bool = False) -> SkipResult:
     elif isinstance(obj, types.CodeType):
         fi = FunctionInfo(None, obj.co_name, obj.co_filename, obj)
     elif isinstance(obj, (types.FunctionType, types.MethodType)):
+<<<<<<< HEAD
         filename = getfile(obj)
         assert filename is not None
         fi = FunctionInfo(
@@ -3804,11 +4029,24 @@ def check_verbose(obj: Any, is_inlined_call: bool = False) -> SkipResult:
         filename = getfile(obj)
         assert filename is not None
         fi = FunctionInfo(obj, None, filename, None)
+=======
+        fi = FunctionInfo(
+            obj,
+            obj.__name__,
+            getfile(obj),
+            obj.__code__,  # type: ignore[union-attr] # FIXME Add MethodType.__code__ to typeshed
+        )
+    else:
+        fi = FunctionInfo(obj, None, getfile(obj), None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Consulte the central trace rules defined in torch._dynamo.trace_rules.
     reasons: set[str] = set()
     rule = lookup_inner(fi.py_obj, fi.name, fi.filename, is_inlined_call, reasons)
+<<<<<<< HEAD
     assert rule is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if issubclass(
         rule,
         (
@@ -3834,7 +4072,11 @@ def check_verbose(obj: Any, is_inlined_call: bool = False) -> SkipResult:
         )
 
 
+<<<<<<< HEAD
 def check(obj: Any, is_inlined_call: bool = False) -> bool:
+=======
+def check(obj, is_inlined_call=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return check_verbose(obj, is_inlined_call).skipped
 
 
@@ -3845,23 +4087,38 @@ for _name in THIRDPARTY_SKIPLIST:
 _recompile_re()
 
 
+<<<<<<< HEAD
 def is_torch_inline_allowed(filename: str) -> bool:
+=======
+def is_torch_inline_allowed(filename):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return any(filename.startswith(d) for d in get_mod_inlinelist())
 
 
 @functools.cache
+<<<<<<< HEAD
 def dynamo_dir() -> Optional[str]:
+=======
+def dynamo_dir():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import torch._dynamo
 
     return _module_dir(torch._dynamo)
 
 
+<<<<<<< HEAD
 def is_torch(filename: str) -> bool:
     dynamo_path = dynamo_dir()
     if dynamo_path is not None and filename.startswith(dynamo_path):
         return False
     torch_path = _module_dir(torch)
     return torch_path is not None and filename.startswith(torch_path)
+=======
+def is_torch(filename):
+    if filename.startswith(dynamo_dir()):
+        return False
+    return filename.startswith(_module_dir(torch))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 """
@@ -3869,7 +4126,11 @@ Main entry point for looking up the trace rule (the Dynamo variable) for a given
 """
 
 
+<<<<<<< HEAD
 def lookup_callable(obj: Callable[..., Any]) -> Optional[type[VariableTracker]]:
+=======
+def lookup_callable(obj):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not hashable(obj):
         return None
     # Custom allow/disallow in graph takes precedence over the general lookup.
@@ -3890,18 +4151,31 @@ E.g, the lookup result of `torch.sin` is `TorchInGraphFunctionVariable`.
 """
 
 
+<<<<<<< HEAD
 def lookup(obj: Any) -> Optional[type[VariableTracker]]:
+=======
+def lookup(obj):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return lookup_inner(obj)
 
 
 # also takes config.dont_skip_tracing into account
 def lookup_inner(
+<<<<<<< HEAD
     obj: Any,
     name: Optional[str] = None,
     filename: Optional[str] = None,
     is_direct_call: bool = True,
     reasons: Union[None, set[str]] = None,
 ) -> Optional[type[VariableTracker]]:
+=======
+    obj,
+    name=None,
+    filename=None,
+    is_direct_call=True,
+    reasons: Union[None, set[str]] = None,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     result = _lookup_inner(
         obj,
         name=name,
@@ -3916,6 +4190,7 @@ def lookup_inner(
     if config.dont_skip_tracing and result is SkipFunctionVariable:
         if filename is None:
             filename = getfile(obj)
+<<<<<<< HEAD
         assert filename is not None
         filename = _as_posix_path(filename)
         torch_dir = _module_dir(torch)
@@ -3925,6 +4200,14 @@ def lookup_inner(
                 "test_dont_skip_tracing_functions.py"
             ):
                 return SkipFunctionVariable
+=======
+        filename = _as_posix_path(filename)
+        dynamo_path = _as_posix_path(_module_dir(torch)) + "_dynamo"
+        if filename.startswith(dynamo_path) and not filename.endswith(
+            "test_dont_skip_tracing_functions.py"
+        ):
+            return SkipFunctionVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if reasons is not None:
             reasons.add(
                 "Attempted skip but we are ignoring skips due to torch._dynamo.config.dont_skip_tracing"
@@ -3934,12 +4217,21 @@ def lookup_inner(
 
 
 def _lookup_inner(
+<<<<<<< HEAD
     obj: Any,
     name: Optional[str] = None,
     filename: Optional[str] = None,
     is_direct_call: bool = True,
     reasons: Optional[set[str]] = None,
 ) -> Optional[type[VariableTracker]]:
+=======
+    obj,
+    name=None,
+    filename=None,
+    is_direct_call=True,
+    reasons: Union[None, set[str]] = None,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Step 1: lookup obj's tracing rule in `torch_name_rule_map`.
     # The rules defined in `torch_name_rule_map` mainly includes two parts:
     # - Manually defined rules for any functions.
@@ -4013,7 +4305,11 @@ def _lookup_inner(
         filename = getfile(obj)
 
     skip_result = check_file(filename, is_direct_call)
+<<<<<<< HEAD
     if reasons is not None and skip_result.reason is not None:
+=======
+    if reasons is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reasons.add(skip_result.reason)
     if skip_result.skipped:
         return SkipFunctionVariable
@@ -4021,7 +4317,11 @@ def _lookup_inner(
         return UserFunctionVariable
 
 
+<<<<<<< HEAD
 def clear_lru_cache() -> None:
+=======
+def clear_lru_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch._dynamo.trace_rules.get_torch_obj_rule_map.cache_clear()
     torch._dynamo.trace_rules.get_tensor_method.cache_clear()
     torch._dynamo.trace_rules.get_legacy_mod_inlinelist.cache_clear()

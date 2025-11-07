@@ -1,12 +1,18 @@
 # mypy: allow-untyped-defs
 import functools
 import itertools
+<<<<<<< HEAD
 from typing import Any, Callable
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._prims_common as utils
 import torch.utils._pytree as pytree
 from torch._C import DispatchKey
+<<<<<<< HEAD
 from torch._higher_order_ops.utils import (
     _maybe_compile_and_run_fn,
     check_input_alias_and_mutation_return_outputs,
@@ -16,11 +22,21 @@ from torch._higher_order_ops.utils import (
     first_slice_copy_with_grad,
     get_tensor_mask,
     mask_list,
+=======
+from torch._higher_order_ops.cond import create_bw_fn
+from torch._higher_order_ops.utils import (
+    _maybe_compile_and_run_fn,
+    check_meta_consistency,
+    first_slice_copy,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     materialize_as_graph,
     reenter_make_fx,
     save_tensors_and_symints_for_backward,
     saved_tensors_and_symints,
+<<<<<<< HEAD
     split_into_chunks,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     unique_graph_id,
     validate_subgraph_args_types,
 )
@@ -40,9 +56,15 @@ aten = torch._ops.ops.aten
 def wrap_combine_fn_flat(
     *args, combine_fn, spec_init, spec_xs, num_init_leaves, num_inp_leaves
 ):
+<<<<<<< HEAD
     assert len(args) == (num_init_leaves + num_inp_leaves), (
         f"Combin_fn received wrong number of arguments, expected {num_init_leaves + num_inp_leaves}, but got {len(args)}"
     )
+=======
+    assert len(args) == (
+        num_init_leaves + num_inp_leaves
+    ), f"Combin_fn received wrong number of arguments, expected {num_init_leaves + num_inp_leaves}, but got {len(args)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     carry = pytree.tree_unflatten(args[:num_init_leaves], spec_init)
     xs = pytree.tree_unflatten(args[num_init_leaves:], spec_xs)
     return combine_fn(carry, xs)
@@ -63,6 +85,53 @@ def stack_y(y: torch.Tensor, scan_length: int) -> torch.Tensor:
     )
 
 
+<<<<<<< HEAD
+=======
+# NOTE: These functions can be reused in associative_scan and eventually moved to
+# torch._higher_order_ops.utils
+def get_tensor_mask(tensor_list: list[Any]) -> list[bool]:
+    # Returns a mask whether a list element is a tensor or not
+    return [True if isinstance(v, torch.Tensor) else False for v in tensor_list]
+
+
+def mask_list(
+    mask: list[bool], inp: list[Any], other: Optional[list[Any]] = None
+) -> list[Any]:
+    # Masks elements on an `inp` list.
+    # If other is None, then the elements of the `inp` list where the mask is False are removed
+    # If other is not None, then the elements of the `inp` list where the mask is False are
+    # replaced with the elements of the `other` list
+    assert len(mask) == len(
+        inp
+    ), "The length of the mask needs to be identical to the length of the input"
+    if other is not None:
+        assert len(inp) == len(
+            other
+        ), "If an input and an other list is provided, they need to have the same length"
+        return [i if m else o for m, i, o in zip(mask, inp, other)]
+    else:
+        return [i for m, i in zip(mask, inp) if m]
+
+
+def first_slice_copy_with_grad(li: list[Any]) -> list[Any]:
+    # First_slice_copy does not keep the original requires_grad flag,
+    # but we need it for materialize_as_graph
+    # in order to compute the correct gradients
+    # The reason why first_slice_copy doesn't keep requires_grad flag is
+    # because it's called in torch.autograd.Function.backward/forward.
+    slc = [first_slice_copy(x).requires_grad_(x.requires_grad) for x in li]
+    return slc
+
+
+def split_into_chunks(iterable: Sequence[Any], chunk_sizes: list[int]) -> list[Any]:
+    it = iter(iterable)
+    assert sum(chunk_sizes) == len(
+        iterable
+    ), "the sum of all chunks needs to match the length of the iterable."
+    return [list(itertools.islice(it, size)) for size in chunk_sizes]
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def call_operator(operator, *args):
     return pytree.tree_leaves(operator(*args))
 
@@ -95,7 +164,11 @@ def scan(
             and the second output  of ``combine_fn`` represents a slice of the output.
             This function must be pure, i.e., no lifted arguments are supported at the moment
             and may not have any side effects.
+<<<<<<< HEAD
         init (torch.Tensor or pytree with tensor leaves): The initial scan carry, a tensor, or nested pytree of tensors.
+=======
+        init (torch.Tensor or pytree with tensor leaves): The inital scan carry, a tensor, or nested pytree of tensors.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             The ``init`` is expected to have the same pytree structure as the first output element (i.e. carry)
             of ``combine_fn``.
         xs (torch.Tensor or pytree with tensor leaves): The input tensor, or nested pytree of tensors.
@@ -114,7 +187,11 @@ def scan(
         - The combine_fn shouldn't have any aliasing between input-input, input-output, and output-output. E.g. return a view
             or the same tensor as input is not supported. As a workaround, can clone the output to avoid aliasing.
 
+<<<<<<< HEAD
         - The combine_fn shouldn't mutate any inputs. We'll remove the mutation restriction for inference soon. Please file an issue
+=======
+        - The combine_fn shoudn't mutate any inputs. We'll remove the mutation restriction for inference soon. Please file an issue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if you input mutation support for training is needed.
 
         - The combine_fn's init carry should match the next_carry in pytree structure and in tensor metadata.
@@ -126,7 +203,10 @@ def scan(
             # clone the output to avoid output-output aliasing
             return next_carry, y.clone()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         i0 = torch.zeros(1)
         xs = torch.arange(5)
         # returns torch.tensor([10.]), torch.tensor([[0], [1.], [3.], [6.], [10.]])
@@ -223,9 +303,15 @@ class ScanOp(HigherOrderOperator):
         # the additional_inputs being a list. See https://github.com/pytorch/pytorch/issues/145785
         # Once this issue is resolved, the assertion should only allow tuples
         # and the tuple cast should be removed
+<<<<<<< HEAD
         assert isinstance(additional_inputs, (tuple, list)), (
             "additional_inputs must be a tuple."
         )
+=======
+        assert isinstance(
+            additional_inputs, (tuple, list)
+        ), "additional_inputs must be a tuple."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         additional_inputs = (
             tuple(additional_inputs)
             if isinstance(additional_inputs, list)
@@ -234,6 +320,7 @@ class ScanOp(HigherOrderOperator):
         validate_subgraph_args_types(additional_inputs)
         return super().__call__(combine_fn, init, xs, additional_inputs)
 
+<<<<<<< HEAD
     def gen_schema(self, combine_fn, init, xs, additional_inputs):
         from torch._higher_order_ops.schema import HopSchemaGenerator
         from torch._higher_order_ops.utils import materialize_as_graph
@@ -284,6 +371,8 @@ class ScanOp(HigherOrderOperator):
         schema_gen.add_schema_tree_spec(combine_fn, init, xs, additional_inputs)
         return schema_gen.gen_schema()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 scan_op = ScanOp()
 
@@ -595,9 +684,15 @@ class ScanAutogradOp(torch.autograd.Function):
             carry, y = _extract_carry_and_out(combine_fn(*args), num_leaves_init)
             return [
                 *carry,
+<<<<<<< HEAD
                 # We additionally checkpoint all the intermediate carry outputs for backward.
                 *[
                     n_c.detach().clone() if isinstance(n_c, torch.Tensor) else n_c
+=======
+                # We additionally checkpoint all the intemediate carry outputs for backward.
+                *[
+                    n_c.clone().detach() if isinstance(n_c, torch.Tensor) else n_c
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for n_c in carry
                 ],
                 *y,
@@ -803,7 +898,11 @@ class ScanAutogradOp(torch.autograd.Function):
         # Prepare the bwd_init
         bwd_init = [*initial_g_additional_inputs, *g_c_T]
 
+<<<<<<< HEAD
         # 5.) Perform the backward scan:
+=======
+        # 5.) Perform the backwrad scan:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # The ``combine_fn_bw_wrapped`` receives the
         # initial_g_additional_inputs and the last carry as the ``bwd_init`` and the
         # gradients of the outputs (g_ys), as well as the fw_carries and the fw_xs of the forward as the ``bwd_xs``

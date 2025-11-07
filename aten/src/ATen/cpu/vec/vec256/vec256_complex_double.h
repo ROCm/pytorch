@@ -34,9 +34,13 @@ class Vectorized<c10::complex<double>> {
   static constexpr size_type size() {
     return 2;
   }
+<<<<<<< HEAD
   Vectorized() {
     values = _mm256_setzero_pd();
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(__m256d v) : values(v) {}
   Vectorized(c10::complex<double> val) {
     double real_value = val.real();

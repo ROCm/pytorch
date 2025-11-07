@@ -150,7 +150,11 @@ def run_frozen_optimizations(
         None
 
     Note:
+<<<<<<< HEAD
         In rare occasions, this can result in slower execution.
+=======
+        In rare occassions, this can result in slower execution.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Example (Freezing a module with Conv->Batchnorm)
     .. code-block:: python

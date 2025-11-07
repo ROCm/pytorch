@@ -131,7 +131,11 @@ class CppTemplate(KernelTemplate):
             "win32",
         ]
         if enable_kernel_profile:
+<<<<<<< HEAD
             res.writelines(["#include <torch/csrc/inductor/aoti_runtime/utils.h>"])
+=======
+            res.writelines(["#include <ATen/record_function.h>"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return res
 
     def render(self, **kwargs) -> str:

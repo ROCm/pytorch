@@ -87,6 +87,10 @@ Tensor& random_mps_impl(Tensor& self,
           case kFloat:
             return MPSDataTypeFloat32;
           case kBFloat16: {
+<<<<<<< HEAD
+=======
+            checkSupportsBFloat16();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return MPSDataTypeBFloat16;
           }
           default:
@@ -417,9 +421,14 @@ Tensor& exponential_mps_(Tensor& self, double lambda, std::optional<Generator> g
     MPSGraphTensor* logTensor = [mpsGraph logarithmWithTensor:subtractTensor name:nil];
     return [mpsGraph divisionWithPrimaryTensor:logTensor secondaryTensor:minusLambdaTensor name:nil];
   };
+<<<<<<< HEAD
   auto eps = std::numeric_limits<float>::epsilon();
   return mps::random_mps_impl<double>(self,
                                       eps,
+=======
+  return mps::random_mps_impl<double>(self,
+                                      0.0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                       1.0,
                                       std::nullopt,
                                       std::nullopt,

@@ -358,7 +358,11 @@ class UniformQuantizationObserverBase(ObserverBase):
         # Functionally equivalent to 'determine_qparams' in utils.py. Observers must be torchscriptable however and qscheme
         # as far as I can tell is not allowed to passed as a parameter in torchscript functions. This makes refactoring observer
         # to use this utility a massive pain and very gross. For now Im opting just to duplicate as this code
+<<<<<<< HEAD
         # seems unlikely to change (last update over 1 year ago) and when torchscript is fully deprecated we can refactor.
+=======
+        # seems unlikey to change (last update over 1 year ago) and when torchscript is fully deprecated we can refactor.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO(jakeszwe, jerryzh168)
         if not check_min_max_valid(min_val, max_val):
             return torch.tensor([1.0], device=min_val.device.type), torch.tensor(
@@ -1241,7 +1245,11 @@ class HistogramObserver(UniformQuantizationObserverBase):
         # If the orig hist only has one value (i.e., the min and max are the same)
         # we can just add it into new histogram
         if orig_min == orig_max:
+<<<<<<< HEAD
             bin_value = torch.sum(orig_hist)
+=======
+            bin_value = torch.sum(update_hist)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             transformed_orig_hist = (
                 torch.histc(orig_min, bins=self.bins, min=update_min, max=update_max)  # type: ignore[arg-type]
                 * bin_value
@@ -1866,7 +1874,11 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
         Converts the observer node in the graph into its quantized representation
 
         Args:
+<<<<<<< HEAD
             model: graph module to convert the observer node in
+=======
+            model: graph module to conver the observer node in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             observer_node: the observer node to convert
         """
         from torch.ao.quantization.fx.utils import create_getattr_from_value
@@ -1902,6 +1914,7 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
             else:
                 scale, zero_point = self.calculate_qparams()
                 scale_node = create_getattr_from_value(
+<<<<<<< HEAD
                     model,
                     model.graph,
                     "_scale",
@@ -1914,6 +1927,12 @@ class AffineQuantizedObserverBase(ABC, torch.nn.Module):
                     "_zero_point",
                     zero_point,
                     zero_point.device if isinstance(zero_point, torch.Tensor) else None,
+=======
+                    model, model.graph, "_scale", scale
+                )
+                zero_point_node = create_getattr_from_value(
+                    model, model.graph, "_zero_point", zero_point
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             q_node = model.graph.call_function(

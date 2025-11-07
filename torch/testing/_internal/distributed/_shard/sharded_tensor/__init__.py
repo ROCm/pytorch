@@ -22,7 +22,11 @@ class ShardedTensorTestBase(MultiProcessTestCase):
         return TEST_GPU_NUM
 
     def init_pg(self, backend="nccl"):
+<<<<<<< HEAD
         if backend not in ["nccl", "gloo", "mpi", "hccl"]:
+=======
+        if backend not in ["nccl", "gloo", "mpi"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(f"Backend {backend} not supported!")
 
         dist.init_process_group(

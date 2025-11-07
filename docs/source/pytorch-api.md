@@ -1,4 +1,5 @@
 (pytorch_api)=
+<<<<<<< HEAD
 # Reference API
 
 ```{toctree}
@@ -6,11 +7,17 @@
 
 C++ <https://docs.pytorch.org/cppdocs/>
 ```
+=======
+# Python API
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ```{toctree}
 :glob:
 :maxdepth: 1
+<<<<<<< HEAD
 :caption: Python API
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 torch
 nn

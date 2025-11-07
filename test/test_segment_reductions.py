@@ -558,7 +558,11 @@ class TestSegmentReductions(TestCase):
         lengths = torch.tensor([0, 2, 3, 0], device=device, dtype=length_type)
         data = torch.arange(6, dtype=torch.float, device=device)
 
+<<<<<<< HEAD
         # test for error on 1-D lengths
+=======
+        # test for error on 1-D lenghts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(RuntimeError, "Expected all rows of lengths along axis"):
             torch._segment_reduce(data, 'sum', lengths=lengths, axis=0, unsafe=False)
 

@@ -388,7 +388,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCase):
 
         ref1 = fn(x, s1, s1)
         res1 = opt_fn(x, s1, s1)
+<<<<<<< HEAD
         # We have a re-compilation because of changing inputs
+=======
+        # We have a re-compilation because of chaning inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(cnts.frame_count, 2)
         self.assertEqual(ref1, res1)
 
@@ -403,7 +407,11 @@ class CtxManagerTests(torch._dynamo.test_case.TestCase):
 
         ref0 = fn(x, s0, s1)
         res0 = opt_fn(x, s0, s1)
+<<<<<<< HEAD
         # We have a re-compilation because of changing inputs
+=======
+        # We have a re-compilation because of chaning inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(cnts.frame_count, 2)
         self.assertEqual(ref0, res0)
 
@@ -1742,6 +1750,7 @@ class GraphModule(torch.nn.Module):
         opt_f = torch.compile(f, backend="eager")
         opt_f(torch.randn(2, 2))
 
+<<<<<<< HEAD
     # Regression test to make sure dynamo won't crash on these kwargs.
     def test_sdpa_kernel_ctx_manager_kwargs(self):
         backends = [torch.nn.attention.SDPBackend.MATH]
@@ -1819,6 +1828,8 @@ class GraphModule(torch.nn.Module):
         opt_f = torch.compile(f, backend="eager")
         opt_f(torch.randn(2, 2))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torch_profiler_use_after_with_block(self):
         counters.clear()
 

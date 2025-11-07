@@ -1,5 +1,6 @@
 #pragma once
 
+<<<<<<< HEAD
 #include <cstdint>
 
 namespace c10d::symmetric_memory {
@@ -13,6 +14,11 @@ constexpr int symm_max_nblocks = 32;
 // channels. Each signal is 32 bits, which is the minimum unit for atomic cas.
 constexpr size_t signal_pad_size =
     symm_max_nblocks * max_cuda_p2p_domain_size * sizeof(uint32_t);
+=======
+namespace c10d::symmetric_memory {
+
+constexpr size_t signal_pad_size = 2048;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
 using HandleType = CUmemGenericAllocationHandle;

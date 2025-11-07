@@ -129,6 +129,9 @@
 [submodule "third_party/flash-attention"]
 	path = third_party/flash-attention
 	url = https://github.com/Dao-AILab/flash-attention.git
+<<<<<<< HEAD
 [submodule "third_party/aiter"]
 	path = third_party/aiter
 	url = https://github.com/ROCm/aiter.git
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

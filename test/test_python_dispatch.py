@@ -1,6 +1,10 @@
 # Owner(s): ["module: __torch_dispatch__"]
 # ruff: noqa: F841
 
+<<<<<<< HEAD
+=======
+import logging
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import pickle
 import sys
 import tempfile
@@ -155,7 +159,11 @@ class TestPythonRegistration(TestCase):
                 # New dispatcher call should hit the first callback again
                 self.assertFalse(first_called)
                 a, b = args
+<<<<<<< HEAD
                 # Make a subtraction here instead of add !
+=======
+                # Make a substraction here instead of add !
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 c = a - b
                 self.assertTrue(first_called)
                 return c
@@ -587,6 +595,7 @@ class TestPythonRegistration(TestCase):
             with self.assertRaisesRegex(ValueError, "reserved namespace"):
                 my_lib1 = Library("prim", kind)  # noqa: TOR901
 
+<<<<<<< HEAD
     def test_dispatcher_error_filenames(self) -> None:
         # Test that dispatcher errors report correct Python filenames and line numbers
         # when defining duplicate libraries (which triggers the filename tracking)
@@ -628,6 +637,8 @@ class TestPythonRegistration(TestCase):
         self.assertIn("FIRST_LIB_MARKER", first_line)
         self.assertIn("SECOND_LIB_MARKER", second_line)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_returning_symint(self) -> None:
         shape_env = ShapeEnv()
         fake_tensor_mode = FakeTensorMode(shape_env=shape_env)
@@ -781,8 +792,14 @@ $4: f32[1] = torch._ops.aten._foobar.default($0, False, arg3=False)""",
 $0: f32[2, 2] = input('x')
 $1: f64[2, 2] = torch._ops.aten._to_copy.default($0, dtype=torch.float64)
 $2: f64[2, 2] = torch._ops.aten.cumprod.default($0, 0, dtype=torch.float64)
+<<<<<<< HEAD
 $3: f32[2] = torch._ops.aten.select.int($0, 1, 1)
 $4: f32[2] = torch._ops.aten.clone.default($3, memory_format=torch.contiguous_format)""",
+=======
+$3: f32[2, 2] = torch._ops.aten.slice.Tensor($0, 0, 0, 9223372036854775807)
+$4: f32[2] = torch._ops.aten.select.int($3, 1, 1)
+$5: f32[2] = torch._ops.aten.clone.default($4, memory_format=torch.contiguous_format)""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_optional_tensor_list(self) -> None:
@@ -1758,6 +1775,52 @@ $0: f32[] = torch._ops.aten.empty.memory_format([], device=device(type='cpu'), p
                 self.assertEqual(s.device_index, 2)
                 self.assertEqual(s.device_type, 3)
 
+<<<<<<< HEAD
+=======
+    def test_subclass_autograd_device_check(self) -> None:
+        class NonWrapperSubclass(torch.Tensor):
+            elem: torch.Tensor
+
+            __slots__ = ["elem"]
+
+            @staticmethod
+            def __new__(cls, elem, *args, **kwargs):
+                # Wrong device here!
+                r = torch.Tensor._make_subclass(
+                    cls, elem.to("meta"), elem.requires_grad
+                )
+                # ...the real tensor is held as an element on the tensor.
+                r.elem = elem
+                return r
+
+            @classmethod
+            def __torch_dispatch__(cls, func, types, args=(), kwargs=None):
+                def unwrap(e):
+                    return e.elem if isinstance(e, NonWrapperSubclass) else e
+
+                def wrap(e):
+                    return NonWrapperSubclass(e) if isinstance(e, torch.Tensor) else e
+
+                rs = tree_map(
+                    wrap, func(*tree_map(unwrap, args), **tree_map(unwrap, kwargs))
+                )
+                logging.getLogger("NonWrapperSubclass").info(
+                    f"{func.__module__}.{func.__name__}",  # noqa: G004
+                    args,
+                    kwargs,
+                    rs,
+                )
+                return rs
+
+        x = NonWrapperSubclass(torch.tensor([3.0, 4.0], requires_grad=True))
+        y = torch.randn(2, requires_grad=True)
+        z = x * y
+        self.assertIsInstance(z, NonWrapperSubclass)
+        z.sum().backward(torch.tensor(1))
+        self.assertEqual(x.grad, y)
+        self.assertEqual(y.grad, x)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_none_wrapping(self):
         # A Tensor subclass that returns None when doing add
         # See LoggingTensor above for more details on the subclass
@@ -1999,8 +2062,11 @@ $0: f32[] = torch._ops.aten.empty.memory_format([], device=device(type='cpu'), p
                 def __torch_dispatch__(cls, func, types, args, kwargs):
                     if func.overloadpacket == torch.ops.aten.is_contiguous:
                         return contiguous_data.is_contiguous()
+<<<<<<< HEAD
                     if func.overloadpacket == torch.ops.aten.sym_is_contiguous:
                         return torch.ops.aten.sym_is_contiguous(contiguous_data)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return NotImplemented
 
             class ExampleTensor3(torch.Tensor):
@@ -2014,8 +2080,11 @@ $0: f32[] = torch._ops.aten.empty.memory_format([], device=device(type='cpu'), p
                 def __torch_dispatch__(cls, func, types, args, kwargs):
                     if func.overloadpacket == torch.ops.aten.is_contiguous:
                         return not_contiguous_data.is_contiguous()
+<<<<<<< HEAD
                     if func.overloadpacket == torch.ops.aten.sym_is_contiguous:
                         return torch.ops.aten.sym_is_contiguous(not_contiguous_data)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return NotImplemented
 
             err_msg = "Multiple dispatch failed for 'torch.ops.aten.is_contiguous'"
@@ -2048,7 +2117,10 @@ $0: f32[] = torch._ops.aten.empty.memory_format([], device=device(type='cpu'), p
             @classmethod
             def __torch_dispatch__(cls, func, types, args, kwargs):
                 if func in [
+<<<<<<< HEAD
                     torch.ops.aten.sym_is_contiguous.default,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch.ops.aten.is_contiguous.default,
                     torch.ops.aten.is_contiguous.memory_format,
                     torch.ops.aten.is_strides_like_format.default,
@@ -2482,6 +2554,7 @@ def forward(self, x_1):
         self.assertEqual(res, t.a)
         self.assertIs(type(res), torch.Tensor)
 
+<<<<<<< HEAD
     def test_custom_dispatch_mode_supports_higher_order_operators(self):
         class Mode(TorchDispatchMode):
             supports_higher_order_operators = True
@@ -2528,6 +2601,8 @@ def forward(self, x_1):
             self.assertEqual(m.last_args[1], uarg)
         self.assertTrue((a == uarg).all().item())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestPythonDispatcher(TestCase):
     def test_basic(self):

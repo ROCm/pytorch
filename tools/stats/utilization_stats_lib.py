@@ -5,7 +5,11 @@ from typing import Optional
 from dataclasses_json import DataClassJsonMixin
 
 
+<<<<<<< HEAD
 _DATA_MODEL_VERSION = 1.5
+=======
+_DATA_MODEL_VERSION = 1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # data model for test log usage
@@ -13,7 +17,10 @@ _DATA_MODEL_VERSION = 1.5
 class UtilizationStats:
     avg: Optional[float] = None
     max: Optional[float] = None
+<<<<<<< HEAD
     raw: Optional[list[float]] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -37,9 +44,12 @@ class GpuUsage(DataClassJsonMixin):
     uuid: Optional[str] = None
     util_percent: Optional[UtilizationStats] = None
     mem_util_percent: Optional[UtilizationStats] = None
+<<<<<<< HEAD
     allocated_mem_percent: Optional[UtilizationStats] = None
     allocated_mem_value: Optional[UtilizationStats] = None
     total_mem_value: Optional[float] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass

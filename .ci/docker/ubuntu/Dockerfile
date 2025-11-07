@@ -66,7 +66,10 @@ ENV NCCL_LIB_DIR="/usr/local/cuda/lib64/"
 # (optional) Install UCC
 ARG UCX_COMMIT
 ARG UCC_COMMIT
+<<<<<<< HEAD
 ARG CUDA_VERSION
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ENV UCX_COMMIT $UCX_COMMIT
 ENV UCC_COMMIT $UCC_COMMIT
 ENV UCX_HOME /usr
@@ -97,11 +100,18 @@ RUN rm install_openssl.sh
 ARG INDUCTOR_BENCHMARKS
 COPY ./common/install_inductor_benchmark_deps.sh install_inductor_benchmark_deps.sh
 COPY ./common/common_utils.sh common_utils.sh
+<<<<<<< HEAD
 COPY ci_commit_pins/huggingface-requirements.txt huggingface-requirements.txt
 COPY ci_commit_pins/timm.txt timm.txt
 COPY ci_commit_pins/torchbench.txt torchbench.txt
 RUN if [ -n "${INDUCTOR_BENCHMARKS}" ]; then bash ./install_inductor_benchmark_deps.sh; fi
 RUN rm install_inductor_benchmark_deps.sh common_utils.sh timm.txt huggingface-requirements.txt torchbench.txt
+=======
+COPY ci_commit_pins/huggingface.txt huggingface.txt
+COPY ci_commit_pins/timm.txt timm.txt
+RUN if [ -n "${INDUCTOR_BENCHMARKS}" ]; then bash ./install_inductor_benchmark_deps.sh; fi
+RUN rm install_inductor_benchmark_deps.sh common_utils.sh timm.txt huggingface.txt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ARG TRITON
 ARG TRITON_CPU
@@ -182,6 +192,10 @@ COPY --from=pytorch/llvm:9.0.1 /opt/llvm /opt/llvm
 RUN if [ -n "${SKIP_LLVM_SRC_BUILD_INSTALL}" ]; then set -eu; rm -rf /opt/llvm; fi
 
 # AWS specific CUDA build guidance
+<<<<<<< HEAD
+=======
+ENV TORCH_CUDA_ARCH_LIST Maxwell
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ENV TORCH_NVCC_FLAGS "-Xfatbin -compress-all"
 ENV CUDA_PATH /usr/local/cuda
 

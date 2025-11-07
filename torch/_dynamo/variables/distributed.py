@@ -266,10 +266,13 @@ class DeviceMeshVariable(DistributedVariable):
             return ConstantVariable.create(self.value.size(*const_args, **const_kwargs))
         if name == "get_coordinate":
             return ConstantVariable.create(self.value.get_coordinate())
+<<<<<<< HEAD
         if name == "get_rank":
             return ConstantVariable.create(self.value.get_rank())
         if name == "get_local_rank":
             return ConstantVariable.create(self.value.get_local_rank())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name == "get_group":
             const_args = [x.as_python_constant() for x in args]
             const_kwargs = {k: v.as_python_constant() for k, v in kwargs.items()}

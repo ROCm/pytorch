@@ -2,6 +2,10 @@
 #include <c10/util/Logging.h>
 
 #include <torch/nativert/executor/ExecutionFrame.h>
+<<<<<<< HEAD
+=======
+#include <torch/nativert/executor/ExecutionPlanner.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::nativert {
 
@@ -10,6 +14,7 @@ ExecutionFrame::ExecutionFrame(const Graph& graph)
       allValues_(graph.numValues()),
       persistent_(graph.numValues()),
       moveable_output_mask_(graph.userOutputs().size()) {
+<<<<<<< HEAD
   updatePersistentValues(/* weights = nullptr */);
   updateMovableOutputs();
 }
@@ -68,15 +73,29 @@ void ExecutionFrame::setWeights(const Weights& weights) {
 
   std::unordered_map<std::string, ValueId> foldedConstIds;
   for (const Node& node : graph.nodes()) {
+=======
+  // load constant SymInts into execution frame
+  for (const auto& [valueId, constSymintValue] :
+       graph_.getConstantSymIntValues()) {
+    setPersistentIValue(valueId, constSymintValue);
+  }
+
+  for (const Node& node : graph_.nodes()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (node.target() == "torch.ops.higher_order.run_const_graph") {
       const auto& const_graph =
           std::get<std::unique_ptr<Graph>>(node.attributes().at(0).value);
       for (size_t i = 0; i < node.outputs().size(); ++i) {
+<<<<<<< HEAD
         foldedConstIds[std::string{const_graph->outputs().at(i)->name()}] =
+=======
+        foldedConstIds_[std::string{const_graph->outputs().at(i)->name()}] =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             node.outputs()[i]->id();
       }
     }
   }
+<<<<<<< HEAD
   for (const auto& [name, tensor] : weights->getFoldedConsts()) {
     persistentValues.emplace_back(foldedConstIds.at(name), tensor);
   }
@@ -97,6 +116,40 @@ void ExecutionFrame::updatePersistentValues(const Weights* weights) {
     auto&& [value, iv] = *it;
     setPersistentIValue(value, std::move(iv));
   }
+=======
+}
+
+ExecutionFrame::ExecutionFrame(const Graph& graph, const Weights& weights)
+    : ExecutionFrame(graph) {
+  setWeights(weights);
+}
+
+void ExecutionFrame::setWeights(const Weights& weights) {
+  weightVersion_ = weights.version();
+
+  const auto& inputsToWeights = graph_.signature().inputsToWeights();
+  for (const auto& [inputName, weightName] : inputsToWeights) {
+    const Value* value = graph_.getValue(inputName);
+    setPersistentIValue(value->id(), weights.at(weightName));
+  }
+
+  const auto& inputsToCustomObjs = graph_.signature().inputsToCustomObjs();
+  for (const auto& [inputName, customObjName] : inputsToCustomObjs) {
+    const Value* value = graph_.getValue(inputName);
+    setPersistentIValue(value->id(), weights.getCustomObj(customObjName));
+  }
+
+  for (const auto& [value, tensor] : weights.getFoldedConsts()) {
+    setPersistentIValue(foldedConstIds_.at(value), tensor);
+  }
+
+  for (const auto& [n, iv] : weights.getConstFoldedValues()) {
+    const Value* v = graph_.getValue(n);
+    setPersistentIValue(v->id(), iv);
+  }
+
+  updateMovableOutputs();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void ExecutionFrame::updateMovableOutputs() {

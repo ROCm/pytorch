@@ -5,7 +5,11 @@ from __future__ import annotations
 
 __all__ = ["assert_onnx_program"]
 
+<<<<<<< HEAD
 from typing import Any, Literal, TYPE_CHECKING
+=======
+from typing import Any, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.utils import _pytree
@@ -23,7 +27,10 @@ def assert_onnx_program(
     args: tuple[Any, ...] | None = None,
     kwargs: dict[str, Any] | None = None,
     strategy: str | None = "TorchExportNonStrictStrategy",
+<<<<<<< HEAD
     backend: Literal["onnxruntime", "reference"] = "onnxruntime",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """Assert that the ONNX model produces the same output as the PyTorch ExportedProgram.
 
@@ -38,8 +45,11 @@ def assert_onnx_program(
         strategy: Assert the capture strategy used to export the program. Values can be
             class names like "TorchExportNonStrictStrategy".
             If None, the strategy is not asserted.
+<<<<<<< HEAD
         backend: The backend to use for evaluating the ONNX program.
             Supported values are "onnxruntime" and "reference".
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     if strategy is not None:
         if program._capture_strategy != strategy:
@@ -71,15 +81,19 @@ def assert_onnx_program(
     # ONNX outputs are always real, so we need to convert torch complex outputs to real representations
     torch_outputs_adapted = []
     for output in torch_outputs:
+<<<<<<< HEAD
         # ONNX graph does not support None outputs, so we skip them
         if output is None:
             continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not isinstance(output, torch.Tensor):
             torch_outputs_adapted.append(torch.tensor(output))
         elif torch.is_complex(output):
             torch_outputs_adapted.append(torch.view_as_real(output))
         else:
             torch_outputs_adapted.append(output)
+<<<<<<< HEAD
 
     # Obtain the ONNX outputs using the specified backend
     if backend == "onnxruntime":
@@ -91,6 +105,9 @@ def assert_onnx_program(
             f"Unsupported backend '{backend}'. Supported backends are 'onnxruntime' and 'reference'."
         )
 
+=======
+    onnx_outputs = program(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO(justinchuby): Include output names in the error message
     torch.testing.assert_close(
         tuple(onnx_outputs),

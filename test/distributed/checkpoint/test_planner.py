@@ -24,7 +24,10 @@ from torch.distributed.checkpoint.default_planner import (
     DefaultLoadPlanner,
     DefaultSavePlanner,
 )
+<<<<<<< HEAD
 from torch.distributed.checkpoint.filesystem import CURRENT_DCP_VERSION
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint.metadata import (
     BytesStorageMetadata,
     ChunkStorageMetadata,
@@ -594,6 +597,7 @@ class TestLoadPlanner(TestCase):
                 planner=DefaultLoadPlanner(),
             )
 
+<<<<<<< HEAD
     @with_temp_dir
     def test_version_key_in_planner_data(self):
         original_module = nn.Linear(2, 2)
@@ -610,6 +614,8 @@ class TestLoadPlanner(TestCase):
 
         self.assertEqual(planner.metadata.version, CURRENT_DCP_VERSION)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

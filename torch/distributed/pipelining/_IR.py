@@ -681,7 +681,11 @@ class Pipe(torch.nn.Module):
         ``output_loss_value_spec={'loss': True, 'model_out': False}``
         """
 
+<<<<<<< HEAD
         traced = exported_program.module(check_guards=False)
+=======
+        traced = exported_program.module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if split_policy is not None:
             logger.info("Auto-splitting model")

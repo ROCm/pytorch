@@ -297,7 +297,11 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
                         # Weights are promoted in the JIT mode
                         num_args = len(V.graph.graph_inputs) + len(V.graph.constants)
                         # release GIL to support multiple instances inference (in different threads of the same process)
+<<<<<<< HEAD
                         self.prefix.splice("py::gil_scoped_release_simple release;")
+=======
+                        self.prefix.splice("py::gil_scoped_release release;")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                     self.prefix.splice(
                         f"""
@@ -409,7 +413,10 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
             output_buffer = V.graph.graph_outputs[idx]
             if isinstance(output_buffer, ir.BaseView):
                 output_storage = output_buffer.unwrap_view()
+<<<<<<< HEAD
                 assert isinstance(output_storage, (ir.BaseView, ir.MutableBox))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(output_storage.data, ir.ConstantBuffer):
                     is_constant_buffer = True
 
@@ -565,6 +572,7 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
             buffer.get_size(),
             buffer.get_stride(),
             buffer if self.can_stack_allocate_buffer(buffer) else None,
+<<<<<<< HEAD
             buffer.get_is_pinned(),
         )
 
@@ -577,6 +585,12 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
         stride,
         buffer_if_can_stack_allocate=None,
         is_pinned=False,
+=======
+        )
+
+    def make_allocation(
+        self, name, device, dtype, shape, stride, buffer_if_can_stack_allocate=None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         orig_stride = stride
         device_str = self.codegen_device(device)
@@ -623,9 +637,14 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
         ]
 
         self.wrapper_call.writeline(f"AtenTensorHandle {name}_handle;")
+<<<<<<< HEAD
         pinned_str = "_pinned" if is_pinned else ""
         self.wrapper_call.writeline(
             f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_empty_strided{pinned_str}({', '.join(args)}));"
+=======
+        self.wrapper_call.writeline(
+            f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_empty_strided({', '.join(args)}));"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         return f"RAIIAtenTensorHandle {name}({name}_handle);"
@@ -771,7 +790,11 @@ class CppWrapperCpuArrayRef(CppWrapperCpu):
             buf_name, python_kernel_name, get_args, op_overload, raw_args, outputs
         )
 
+<<<<<<< HEAD
     def codegen_device_copy(self, src, dst, non_blocking: Union[bool, str]):
+=======
+    def codegen_device_copy(self, src, dst, non_blocking: bool):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # aoti_torch_tensor_copy_ takes AtenTensorHandle as input,
         # while stack-allocation results in ArrayRefTensor
         # so disable stack allocation here

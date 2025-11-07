@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import copy
 import logging
 import pickle
@@ -5,6 +6,11 @@ from abc import abstractmethod
 from collections import defaultdict
 from itertools import chain
 from typing import Any, Callable, Generic, Optional, TypeVar, Union
+=======
+from abc import abstractmethod
+from collections import defaultdict
+from typing import Any, Generic, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import override
 
 from torch.compiler._cache import (
@@ -24,7 +30,10 @@ Classes and implementations related to precompile
 """
 
 T = TypeVar("T")
+<<<<<<< HEAD
 logger = logging.getLogger(__name__)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class PrecompileCacheArtifact(CacheArtifact, Generic[T]):
@@ -65,6 +74,7 @@ class PrecompileCacheArtifact(CacheArtifact, Generic[T]):
         ...
 
 
+<<<<<<< HEAD
 class EditablePrecompileCacheArtifact(Generic[T]):
     """
     A PrecompileCacheArtifact whose content isn't encoded until we call PrecompileContext.serialize()
@@ -95,6 +105,8 @@ class EditablePrecompileCacheArtifact(Generic[T]):
         self.content = edit_fn(self.content)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class PrecompileContext(CacheArtifactManager):
     """
     PrecompileContext is a special CacheArtifactManager for handling precompilation
@@ -104,8 +116,12 @@ class PrecompileContext(CacheArtifactManager):
 
     The following artifact types are supported by PrecompileContext:
      - BundledAOTAutogradCacheArtifact
+<<<<<<< HEAD
      - DynamoCodeStateArtifact
      - AutotuneCacheArtifact (regular autotune results, same as Megacache)
+=======
+     - CodeStateArtifact (from torch._dynamo.package once available)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     # Protected by the compile_lock
@@ -113,9 +129,13 @@ class PrecompileContext(CacheArtifactManager):
     # This allows us to implement serialize_by_key easily.
     # On call to `serialize()`, all cache artifacts in _new_cache_artifacts_by_key
     # are transferred to _new_cache_artifacts before serialization.
+<<<<<<< HEAD
     _new_cache_artifacts_by_key: dict[
         str, Union[EditablePrecompileCacheArtifact[object], CacheArtifact]
     ] = {}
+=======
+    _new_cache_artifacts_by_key: dict[str, CacheArtifact] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _new_cache_artifacts: CacheArtifactsResult = defaultdict(list)
     # Keep a separate seen artifacts list to make avoid unnecessary duplicates
     # This list will not be cleared between serialize() calls
@@ -140,12 +160,16 @@ class PrecompileContext(CacheArtifactManager):
         artifact_type: str,
         key: str,
         content: Any,
+<<<<<<< HEAD
         editable: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         """
         Called from each caching operation to record the artifact in this
         "mega" list
         """
+<<<<<<< HEAD
         artifact: Union[EditablePrecompileCacheArtifact[object], CacheArtifact]
         if editable:
             artifact = EditablePrecompileCacheArtifact(artifact_type, content, key)
@@ -161,6 +185,19 @@ class PrecompileContext(CacheArtifactManager):
             cls._seen_artifacts.add(artifact)
 
         cls._new_cache_artifacts_by_key[key] = artifact
+=======
+        artifact = CacheArtifactFactory.encode_create(artifact_type, key, content)
+        # TODO: although this covers completely same artifacts, it's possible
+        # with AOTAutogradCacheEntries to have multiple artifacts whose keys
+        # (i.e. backend_ids) are different, but whose contents are equal.
+        # In those cases, it would be much better if we only serialize once instead
+        # of N times.
+        if artifact in cls._seen_artifacts:
+            return
+
+        cls._new_cache_artifacts_by_key[key] = artifact
+        cls._seen_artifacts.add(artifact)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @classmethod
     def _save_artifacts_by_type(cls) -> None:
@@ -169,12 +206,16 @@ class PrecompileContext(CacheArtifactManager):
         by artifact type. This function transfers artifacts from _new_cache_artifacts_by_key to _new_cache_artifacts
         """
         for artifact in cls._new_cache_artifacts_by_key.values():
+<<<<<<< HEAD
             if isinstance(artifact, EditablePrecompileCacheArtifact):
                 artifact = artifact.real_encode()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cls._new_cache_artifacts[artifact.__class__.type()].append(artifact)
         cls._new_cache_artifacts_by_key.clear()
 
     @classmethod
+<<<<<<< HEAD
     def edit_artifact(cls, key: str, edit_fn: Callable[..., Any]) -> None:
         """
         Edit the content of an existing artifact
@@ -189,25 +230,35 @@ class PrecompileContext(CacheArtifactManager):
         artifact.edit_contents(edit_fn)
 
     @classmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def serialize_artifact_by_key(cls, key: str) -> Optional[CacheArtifact]:
         """
         Serialize all artifacts with the given key returned in a list.
         """
+<<<<<<< HEAD
         result = cls._new_cache_artifacts_by_key.get(key, None)
         if isinstance(result, EditablePrecompileCacheArtifact):
             result = result.real_encode()
         return result
+=======
+        return cls._new_cache_artifacts_by_key.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @classmethod
     def serialize(cls) -> Optional[tuple[bytes, CacheInfo]]:
         cls._save_artifacts_by_type()
+<<<<<<< HEAD
         # No need to serialize if there are no new dynamo compiles
         if "precompile_dynamo" not in cls._new_cache_artifacts:
             return None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().serialize()
 
     @staticmethod
     def populate_caches(artifacts: CacheArtifactsResult) -> CacheInfo:
+<<<<<<< HEAD
         PrecompileContext._ensure_cache_artifacts_registered()
 
         artifacts_by_key = {}
@@ -240,6 +291,12 @@ class PrecompileContext(CacheArtifactManager):
     @classmethod
     def _ensure_cache_artifacts_registered(cls) -> None:
         from torch._dynamo.package import _DynamoCacheArtifact  # noqa: F401
+=======
+        raise NotImplementedError("TODO")
+
+    @classmethod
+    def _ensure_cache_artifacts_registered(cls) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._functorch._aot_autograd.autograd_cache import (  # noqa: F401
             BundledAOTAutogradCacheArtifact,
         )

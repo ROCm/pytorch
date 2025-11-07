@@ -37,7 +37,11 @@ class DTensorConstructorTest(DTensorTestBase):
 
     def _run_init_op(self, init_op, dist_init_op, eq_op, *args, **kwargs):
         # 1d mesh test
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements_list = [[Shard(0)], [Shard(1)], [Shard(2)], [Replicate()]]
 
         # even sharding
@@ -131,8 +135,13 @@ class DTensorConstructorTest(DTensorTestBase):
 
     @with_comms
     def test_zeros_full_mesh(self):
+<<<<<<< HEAD
         # construct a gpu device 1d mesh
         mesh = self.build_device_mesh()
+=======
+        # construct a cuda device 1d mesh
+        mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
         size = [32, 3]
         dist_tensor = zeros(size, device_mesh=mesh, placements=placements)
@@ -157,7 +166,11 @@ class DTensorConstructorTest(DTensorTestBase):
             self.assertEqual(local_tensor.size(), torch.Size([7, 3]))
             self.assertEqual(torch.zeros(7, 3), local_tensor)
 
+<<<<<<< HEAD
         # construct a gpu device mesh with 2d: shard, replicate
+=======
+        # construct a cuda device mesh with 2d: shard, replicate
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mesh = DeviceMesh(self.device_type, torch.arange(self.world_size).reshape(2, 2))
         placements = [Shard(0), Replicate()]
         size = [32, 4]
@@ -168,7 +181,11 @@ class DTensorConstructorTest(DTensorTestBase):
         self.assertEqual(local_tensor.size(), torch.Size([16, 4]))
         self.assertEqual(local_tensor, torch.zeros([16, 4]))
 
+<<<<<<< HEAD
         # construct a gpu device mesh with 2d: shard, shard
+=======
+        # construct a cuda device mesh with 2d: shard, shard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0), Shard(1)]
         size = [32, 4]
         dist_tensor = zeros(size, device_mesh=mesh, placements=placements)
@@ -197,7 +214,11 @@ class DTensorConstructorTest(DTensorTestBase):
     @with_comms
     def test_zeros_submesh(self):
         # default world_size is 4
+<<<<<<< HEAD
         # construct a gpu device 1d mesh, with no sub pg initialized
+=======
+        # construct a cuda device 1d mesh, with no sub pg initialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sub_mesh_list = [0, 3]
         mesh = DeviceMesh(self.device_type, sub_mesh_list)
         placements = [Shard(0)]
@@ -213,7 +234,11 @@ class DTensorConstructorTest(DTensorTestBase):
             self.assertEqual(local_tensor.size(), torch.Size([0]))
             self.assertEqual(local_tensor, torch.zeros(0))
 
+<<<<<<< HEAD
         # construct a gpu device 1d mesh: unevenly, with subpg initialized
+=======
+        # construct a cuda device 1d mesh: unevenly, with subpg initialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sub_mesh_list = [0, 1, 3]
         mesh = DeviceMesh(self.device_type, sub_mesh_list)
         placements = [Shard(0)]
@@ -233,7 +258,11 @@ class DTensorConstructorTest(DTensorTestBase):
             self.assertEqual(local_tensor.size(), torch.Size([0]))
             self.assertEqual(local_tensor, torch.tensor([]))
 
+<<<<<<< HEAD
         # construct a gpu device 2d mesh, with no subpg initialized
+=======
+        # construct a cuda device 2d mesh, with no subpg initialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sub_mesh_list = [[0], [3]]
         mesh = DeviceMesh(self.device_type, sub_mesh_list)
         placements = [Shard(0), Shard(1)]

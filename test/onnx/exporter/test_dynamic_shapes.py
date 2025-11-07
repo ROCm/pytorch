@@ -199,7 +199,10 @@ class TestDynamicShapes(common_utils.TestCase):
                 filename,
                 dynamic_axes=dynamic_axes,
                 input_names=input_names,
+<<<<<<< HEAD
                 dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             onnx_model = onnx.load(filename)
 

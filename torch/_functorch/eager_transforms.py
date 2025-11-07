@@ -233,7 +233,11 @@ def vjp(func: Callable, *primals, has_aux: bool = False):
         >>> x = torch.randn([5])
         >>> f = lambda x: x.sin().sum()
         >>> (_, vjpfunc) = torch.func.vjp(f, x)
+<<<<<<< HEAD
         >>> grad = vjpfunc(torch.tensor(1.0))[0]
+=======
+        >>> grad = vjpfunc(torch.tensor(1.))[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> assert torch.allclose(grad, torch.func.grad(f)(x))
 
     However, :func:`vjp` can support functions with multiple outputs by
@@ -248,9 +252,15 @@ def vjp(func: Callable, *primals, has_aux: bool = False):
     :func:`vjp` can even support outputs being Python structs
 
         >>> x = torch.randn([5])
+<<<<<<< HEAD
         >>> f = lambda x: {"first": x.sin(), "second": x.cos()}
         >>> (_, vjpfunc) = torch.func.vjp(f, x)
         >>> cotangents = {"first": torch.ones([5]), "second": torch.ones([5])}
+=======
+        >>> f = lambda x: {'first': x.sin(), 'second': x.cos()}
+        >>> (_, vjpfunc) = torch.func.vjp(f, x)
+        >>> cotangents = {'first': torch.ones([5]), 'second': torch.ones([5])}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> vjps = vjpfunc(cotangents)
         >>> assert torch.allclose(vjps[0], x.cos() + -x.sin())
 
@@ -274,7 +284,11 @@ def vjp(func: Callable, *primals, has_aux: bool = False):
         >>>
         >>> (_, vjpfunc) = torch.func.vjp(f, x)
         >>> vjps = vjpfunc(torch.ones_like(x))
+<<<<<<< HEAD
         >>> assert torch.allclose(vjps[0], torch.full(x.shape, 4.0))
+=======
+        >>> assert torch.allclose(vjps[0], torch.full(x.shape, 4.))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note::
         Using PyTorch ``torch.no_grad`` together with ``vjp``.
@@ -930,7 +944,12 @@ def assert_output_is_tensor_or_tensors(output: Any, api: str) -> None:
         return
     if not isinstance(output, tuple):
         raise RuntimeError(
+<<<<<<< HEAD
             f"{api}: Expected output of f to be a Tensor or Tensors, got {type(output)}"
+=======
+            f"{api}: Expected output of f to be a Tensor or Tensors, got "
+            f"{type(output)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     if len(output) == 0:
         raise RuntimeError(
@@ -1022,10 +1041,17 @@ def jvp(
 
         >>> from torch.func import jvp
         >>> x = torch.randn([])
+<<<<<<< HEAD
         >>> f = lambda x: x * torch.tensor([1.0, 2.0, 3])
         >>> value, grad = jvp(f, (x,), (torch.tensor(1.0),))
         >>> assert torch.allclose(value, f(x))
         >>> assert torch.allclose(grad, torch.tensor([1.0, 2, 3]))
+=======
+        >>> f = lambda x: x * torch.tensor([1., 2., 3])
+        >>> value, grad = jvp(f, (x,), (torch.tensor(1.),))
+        >>> assert torch.allclose(value, f(x))
+        >>> assert torch.allclose(grad, torch.tensor([1., 2, 3]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     :func:`jvp` can support functions with multiple inputs by passing in the
     tangents for each of the inputs

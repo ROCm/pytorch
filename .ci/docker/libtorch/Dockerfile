@@ -69,6 +69,7 @@ RUN bash ./install_cuda.sh 12.9
 RUN bash ./install_magma.sh 12.9
 RUN ln -sf /usr/local/cuda-12.9 /usr/local/cuda
 
+<<<<<<< HEAD
 FROM cuda as cuda13.0
 RUN bash ./install_cuda.sh 13.0
 RUN bash ./install_magma.sh 13.0
@@ -82,6 +83,8 @@ RUN apt-get update -y && \
     cp /usr/lib/x86_64-linux-gnu/libibverbs.so* /usr/local/cuda/lib64/ && \
     cp /usr/lib/x86_64-linux-gnu/libnl* /usr/local/cuda/lib64/
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 FROM cpu as rocm
 ARG ROCM_VERSION
 ARG PYTORCH_ROCM_ARCH

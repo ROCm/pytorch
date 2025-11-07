@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from __future__ import annotations
 
 import gc
@@ -12,10 +13,18 @@ from torch import Tensor
 if TYPE_CHECKING:
     # importing _POOL_HANDLE at runtime toplevel causes an import cycle
     from torch.cuda import _POOL_HANDLE
+=======
+# mypy: allow-untyped-defs
+import gc
+import typing
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .._utils import _dummy_type
 
 
+<<<<<<< HEAD
 __all__ = [
     "is_current_stream_capturing",
     "graph_pool_handle",
@@ -29,6 +38,8 @@ _R = TypeVar("_R")
 _P = ParamSpec("_P")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if not hasattr(torch._C, "_CudaStreamBase"):
     # Define dummy base classes
     torch._C.__dict__["_CUDAGraph"] = _dummy_type("_CUDAGraph")
@@ -44,7 +55,11 @@ from torch._C import (  # noqa: F401
 )
 
 
+<<<<<<< HEAD
 def is_current_stream_capturing() -> bool:
+=======
+def is_current_stream_capturing():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return True if CUDA graph capture is underway on the current CUDA stream, False otherwise.
 
     If a CUDA context does not exist on the current device, returns False without initializing the context.
@@ -53,7 +68,11 @@ def is_current_stream_capturing() -> bool:
 
 
 # Python shim helps Sphinx process docstrings more reliably.
+<<<<<<< HEAD
 def graph_pool_handle() -> _POOL_HANDLE:
+=======
+def graph_pool_handle():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Return an opaque token representing the id of a graph memory pool.
 
     See :ref:`Graph memory management<graph-memory-management>`.
@@ -61,7 +80,11 @@ def graph_pool_handle() -> _POOL_HANDLE:
     .. warning::
         This API is in beta and may change in future releases.
     """
+<<<<<<< HEAD
     return torch.cuda._POOL_HANDLE(_graph_pool_handle())
+=======
+    return _graph_pool_handle()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Python shim helps Sphinx process docstrings more reliably.
@@ -73,11 +96,19 @@ class CUDAGraph(torch._C._CUDAGraph):
             cudaGraphExec_t will be instantiated on GPU at the end of
             ``capture_end`` and the underlying cudaGraph_t will be
             destroyed. Users who want to query or otherwise modify the
+<<<<<<< HEAD
             underlying cudaGraph_t before instantiation can set
             ``keep_graph=True`` and access it via ``raw_cuda_graph`` after
             ``capture_end``. Note that the cudaGraphExec_t will not be
             instantiated at the end of ``capture_end`` in this
             case. Instead, it will be instantiated via an explicit called
+=======
+            underlying cudaGraph_t before instantiatiation can set
+            ``keep_graph=True`` and access it via ``raw_cuda_graph`` after
+            ``capture_end``. Note that the cudaGraphExec_t will not be
+            instantiated at the end of ``capture_end`` in this
+            case. Instead, it wil be instantiated via an explicit called
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             to ``instantiate`` or automatically on the first call to
             ``replay`` if ``instantiate`` was not already called. Calling
             ``instantiate`` manually before ``replay`` is recommended to
@@ -92,12 +123,19 @@ class CUDAGraph(torch._C._CUDAGraph):
 
     """
 
+<<<<<<< HEAD
     def __new__(cls, keep_graph: bool = False) -> Self:
         return super().__new__(cls, keep_graph)
 
     def capture_begin(
         self, pool: Optional[_POOL_HANDLE] = None, capture_error_mode: str = "global"
     ) -> None:
+=======
+    def __new__(cls, keep_graph=False):
+        return super().__new__(cls, keep_graph)
+
+    def capture_begin(self, pool=None, capture_error_mode="global"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Begin capturing CUDA work on the current stream.
 
         Typically, you shouldn't call ``capture_begin`` yourself.
@@ -116,7 +154,11 @@ class CUDAGraph(torch._C._CUDAGraph):
         """  # noqa: B950
         super().capture_begin(pool=pool, capture_error_mode=capture_error_mode)
 
+<<<<<<< HEAD
     def capture_end(self) -> None:
+=======
+    def capture_end(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""End CUDA graph capture on the current stream.
 
         After ``capture_end``, ``replay`` may be called on this instance.
@@ -127,7 +169,11 @@ class CUDAGraph(torch._C._CUDAGraph):
         """
         super().capture_end()
 
+<<<<<<< HEAD
     def instantiate(self) -> None:
+=======
+    def instantiate(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Instantiate the CUDA graph. Will be called by
         ``capture_end`` if ``keep_graph=False``, or by ``replay`` if
         ``keep_graph=True`` and ``instantiate`` has not already been
@@ -136,6 +182,7 @@ class CUDAGraph(torch._C._CUDAGraph):
         """
         super().instantiate()
 
+<<<<<<< HEAD
     def replay(self) -> None:
         r"""Replay the CUDA work captured by this graph."""
         super().replay()
@@ -145,6 +192,17 @@ class CUDAGraph(torch._C._CUDAGraph):
         super().reset()
 
     def pool(self) -> _POOL_HANDLE:
+=======
+    def replay(self):
+        r"""Replay the CUDA work captured by this graph."""
+        super().replay()
+
+    def reset(self):
+        r"""Delete the graph currently held by this instance."""
+        super().reset()
+
+    def pool(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Return an opaque token representing the id of this graph's memory pool.
 
         This id can optionally be passed to another graph's ``capture_begin``,
@@ -152,11 +210,19 @@ class CUDAGraph(torch._C._CUDAGraph):
         """
         return super().pool()
 
+<<<<<<< HEAD
     def enable_debug_mode(self) -> None:
         r"""Enable debugging mode for CUDAGraph.debug_dump."""
         return super().enable_debug_mode()
 
     def debug_dump(self, debug_path: str) -> None:
+=======
+    def enable_debug_mode(self):
+        r"""Enable debugging mode for CUDAGraph.debug_dump."""
+        return super().enable_debug_mode()
+
+    def debug_dump(self, debug_path):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""
         Arguments:
             debug_path (required): Path to dump the graph to.
@@ -166,13 +232,18 @@ class CUDAGraph(torch._C._CUDAGraph):
         """
         return super().debug_dump(debug_path)
 
+<<<<<<< HEAD
     def raw_cuda_graph(self) -> int:
+=======
+    def raw_cuda_graph(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r"""Returns the underlying cudaGraph_t. ``keep_graph`` must be True.
 
         See the following for APIs for how to manipulate this object: `Graph Managmement <https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__GRAPH.html>`_ and `cuda-python Graph Management bindings <https://nvidia.github.io/cuda-python/cuda-bindings/latest/module/runtime.html#graph-management>`_
         """  # noqa: B950
         return super().raw_cuda_graph()
 
+<<<<<<< HEAD
     def raw_cuda_graph_exec(self) -> int:
         r"""Returns the underlying cudaGraphExec_t. ``instantiate`` must have been called if ``keep_graph`` is True, or ``capture_end`` must have been called if ``keep_graph`` is False. If you call ``instantiate()`` after ``raw_cuda_graph_exec()``, the previously returned cudaGraphExec_t will be destroyed. It is your responsibility not to use this object after destruction.
 
@@ -180,6 +251,8 @@ class CUDAGraph(torch._C._CUDAGraph):
         """  # noqa: B950
         return super().raw_cuda_graph_exec()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class graph:
     r"""Context-manager that captures CUDA work into a :class:`torch.cuda.CUDAGraph` object for later replay.
@@ -211,6 +284,7 @@ class graph:
         https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__STREAM.html#group__CUDART__STREAM_1g9d0535d93a214cbf126835257b16ba85
     """  # noqa: B950
 
+<<<<<<< HEAD
     default_capture_stream: Optional[torch.cuda.Stream] = None
 
     def __init__(
@@ -218,6 +292,15 @@ class graph:
         cuda_graph: CUDAGraph,
         pool: Optional[_POOL_HANDLE] = None,
         stream: Optional[torch.cuda.Stream] = None,
+=======
+    default_capture_stream: typing.Optional["torch.cuda.Stream"] = None
+
+    def __init__(
+        self,
+        cuda_graph,
+        pool=None,
+        stream=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         capture_error_mode: str = "global",
     ):
         # Lazy-init of default_capture_stream helps avoid circular-import errors.
@@ -226,9 +309,13 @@ class graph:
         if self.__class__.default_capture_stream is None:
             self.__class__.default_capture_stream = torch.cuda.Stream()
 
+<<<<<<< HEAD
         self.pool: Union[tuple[()], tuple[_POOL_HANDLE]] = (
             () if pool is None else (pool,)
         )
+=======
+        self.pool = () if pool is None else (pool,)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.capture_stream = (
             stream if stream is not None else self.__class__.default_capture_stream
         )
@@ -237,6 +324,7 @@ class graph:
         self.cuda_graph = cuda_graph
         self.capture_error_mode = capture_error_mode
 
+<<<<<<< HEAD
     def __enter__(self) -> None:
         # Free as much memory as we can for the graph
         torch.cuda.synchronize()
@@ -249,6 +337,12 @@ class graph:
             # when a dead python cycle is holding onto CUDA memory.
             gc.collect()
 
+=======
+    def __enter__(self):
+        # Free as much memory as we can for the graph
+        torch.cuda.synchronize()
+        gc.collect()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.cuda.empty_cache()
 
         # Stackoverflow seems comfortable with this pattern
@@ -256,6 +350,7 @@ class graph:
         self.stream_ctx.__enter__()
 
         self.cuda_graph.capture_begin(
+<<<<<<< HEAD
             # type: ignore[misc]
             *self.pool,
             capture_error_mode=self.capture_error_mode,
@@ -297,6 +392,20 @@ def make_graphed_callables(
     allow_unused_input: bool = False,
     pool: Optional[_POOL_HANDLE] = None,
 ) -> Union[_ModuleOrCallable, tuple[_ModuleOrCallable, ...]]:
+=======
+            *self.pool, capture_error_mode=self.capture_error_mode
+        )
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.cuda_graph.capture_end()
+        self.stream_ctx.__exit__(exc_type, exc_value, traceback)
+        # returning None should propagate exceptions from either capture_end or stream_ctx.__exit__()
+
+
+def make_graphed_callables(
+    callables, sample_args, num_warmup_iters=3, allow_unused_input=False, pool=None
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""Accept callables (functions or :class:`nn.Module<torch.nn.Module>`\ s) and returns graphed versions.
 
     Each graphed callable's forward pass runs its source callable's
@@ -370,6 +479,7 @@ def make_graphed_callables(
 
     just_one_callable = False
 
+<<<<<<< HEAD
     _sample_args: tuple[tuple[Tensor, ...], ...]
     if not isinstance(callables, tuple):
         just_one_callable = True
@@ -381,6 +491,16 @@ def make_graphed_callables(
     flatten_sample_args = []
 
     for c, args in zip(callables, _sample_args):
+=======
+    if not isinstance(callables, tuple):
+        just_one_callable = True
+        callables = (callables,)
+        sample_args = (sample_args,)
+
+    flatten_sample_args = []
+
+    for c, args in zip(callables, sample_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(c, torch.nn.Module):
             assert (
                 len(c._backward_hooks) == 0
@@ -425,7 +545,11 @@ def make_graphed_callables(
     torch.cuda.synchronize()
     with torch.cuda.stream(torch.cuda.Stream()):
         for func, args, static_input_surface in zip(
+<<<<<<< HEAD
             callables, _sample_args, per_callable_static_input_surfaces
+=======
+            callables, sample_args, per_callable_static_input_surfaces
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             grad_inputs, outputs, outputs_grad = None, None, None
             for _ in range(num_warmup_iters):
@@ -455,11 +579,19 @@ def make_graphed_callables(
     # Capture forward graphs
     per_callable_static_outputs = []
     per_callable_output_unflatten_spec = []
+<<<<<<< HEAD
     for func, args, fwd_graph in zip(callables, _sample_args, fwd_graphs):
         with torch.cuda.graph(fwd_graph, pool=mempool):
             func_outputs = func(*args)
 
         flatten_outputs, spec = torch.utils._pytree.tree_flatten(func_outputs)
+=======
+    for func, args, fwd_graph in zip(callables, sample_args, fwd_graphs):
+        with torch.cuda.graph(fwd_graph, pool=mempool):
+            outputs = func(*args)
+
+        flatten_outputs, spec = torch.utils._pytree.tree_flatten(outputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         per_callable_static_outputs.append(tuple(flatten_outputs))
         per_callable_output_unflatten_spec.append(spec)
 
@@ -511,6 +643,7 @@ def make_graphed_callables(
     # Now for every per_callable list, per_callable_*[i] holds the stuff for the ith callable.
 
     def make_graphed_autograd_function(
+<<<<<<< HEAD
         fwd_graph: CUDAGraph,
         bwd_graph: CUDAGraph,
         module_params: tuple[torch.nn.Parameter, ...],
@@ -524,6 +657,21 @@ def make_graphed_callables(
         class Graphed(torch.autograd.Function):
             @staticmethod
             def forward(ctx: object, *inputs: Tensor) -> tuple[Tensor, ...]:
+=======
+        fwd_graph,
+        bwd_graph,
+        module_params,
+        len_user_args,
+        output_unflatten_spec,
+        static_input_surface,
+        static_outputs,
+        static_grad_outputs,
+        static_grad_inputs,
+    ):
+        class Graphed(torch.autograd.Function):
+            @staticmethod
+            def forward(ctx, *inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # At this stage, only the user args may (potentially) be new tensors.
                 for i in range(len_user_args):
                     if static_input_surface[i].data_ptr() != inputs[i].data_ptr():
@@ -534,7 +682,11 @@ def make_graphed_callables(
 
             @staticmethod
             @torch.autograd.function.once_differentiable
+<<<<<<< HEAD
             def backward(ctx: object, *grads: Tensor) -> tuple[Tensor, ...]:
+=======
+            def backward(ctx, *grads):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(grads) == len(static_grad_outputs)
                 for g, grad in zip(static_grad_outputs, grads):
                     if g is not None:
@@ -550,7 +702,11 @@ def make_graphed_callables(
                     b.detach() if b is not None else b for b in static_grad_inputs
                 )
 
+<<<<<<< HEAD
         def functionalized(*user_args: object) -> object:
+=======
+        def functionalized(*user_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Runs the autograd function with inputs == all inputs to the graph that might require grad
             # (explicit user args + module parameters)
             # Assumes module params didn't change since capture.
@@ -561,7 +717,11 @@ def make_graphed_callables(
         return functionalized
 
     # Put together the final graphed callables
+<<<<<<< HEAD
     ret: list[_ModuleOrCallable] = []
+=======
+    ret = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for i, func in enumerate(callables):
         graphed = make_graphed_autograd_function(
             fwd_graphs[i],
@@ -577,6 +737,7 @@ def make_graphed_callables(
 
         if isinstance(func, torch.nn.Module):
 
+<<<<<<< HEAD
             def make_graphed_forward(
                 func: torch.nn.Module,
                 graph_training_state: bool,
@@ -596,6 +757,20 @@ def make_graphed_callables(
             func.forward = make_graphed_forward(
                 func, func.training, graphed, func.forward
             )
+=======
+            def make_graphed_forward(func, graph_training_state, graphed, orig_fwd):
+                def new_fwd(*user_args):
+                    # If the module's training-or-eval state matches what we graphed,
+                    # run the graph, otherwise run the original forward method
+                    if func.training == graph_training_state:
+                        return graphed(*user_args)
+                    else:
+                        return orig_fwd(*user_args)
+
+                return new_fwd
+
+            func.forward = make_graphed_forward(func, func.training, graphed, func.forward)  # type: ignore[assignment]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ret.append(func)
         else:
             ret.append(graphed)

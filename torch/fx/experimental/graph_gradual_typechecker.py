@@ -82,7 +82,11 @@ def expand_to_tensor_dim(t, n):
 def broadcast_types(t1, t2):
     """
     Applies broadcasting to both given types such that they
+<<<<<<< HEAD
     become consistent with each other and returns two new
+=======
+    become consistent with eachother and returns two new
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     resulting types
     """
 
@@ -846,7 +850,11 @@ def flatten_refinement_rule(n: Node):
 @register_algebraic_expressions_inference_rule(Conv2d)
 def conv_rule(n: Node, module_instance):
     """
+<<<<<<< HEAD
     Represents the output in terms of an algrbraic expression w.r.t
+=======
+    Represents the outout in terms of an algrbraic expression w.r.t
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     the input when possible
     """
     assert isinstance(n.args[0], Node)

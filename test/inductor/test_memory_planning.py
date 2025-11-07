@@ -24,6 +24,7 @@ from torch._inductor.utils import run_and_get_cpp_code
 from torch.export import Dim
 
 
+<<<<<<< HEAD
 try:
     from .test_aot_inductor import AOTIRunnerUtil
 except ImportError:
@@ -32,6 +33,8 @@ except ImportError:
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @requires_gpu()
 @config.patch(memory_planning=True)
 class TestMemoryPlanning(TestCase):
@@ -84,6 +87,16 @@ class TestMemoryPlanning(TestCase):
 
     @skipIfXpu(msg="aoti doesn't work on XPU")
     def test_aoti(self):
+<<<<<<< HEAD
+=======
+        try:
+            from .test_aot_inductor import AOTIRunnerUtil
+        except ImportError:
+            from test_aot_inductor import (  # @manual=fbcode//caffe2/test/inductor:test_aot_inductor-library
+                AOTIRunnerUtil,
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f, args = self._generate(device=GPU_TYPE)
         dim0_x = Dim("dim0_x", min=1, max=2048)
         dynamic_shapes = ({0: dim0_x}, None, None)
@@ -104,6 +117,7 @@ class TestMemoryPlanning(TestCase):
         ).check_next("aoti_torch__alloc_from_pool(pool1, 0").run(code)
         self.assertTrue(same(f(*args), result))
 
+<<<<<<< HEAD
     @config.patch({"triton.autotune_at_compile_time": False})
     def test_unbacked_symint(self):
         # when allocation's size has unbacked symints
@@ -152,6 +166,8 @@ class TestMemoryPlanning(TestCase):
             "AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch__alloc_from_pool(pool0, 0, cached_torch_dtype_float32, 3, int_array_4, int_array_5, &tmp_tensor_handle_1));"  # noqa: B950
         ).check("RAIIAtenTensorHandle(tmp_tensor_handle_1);").run(code)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     if HAS_GPU:

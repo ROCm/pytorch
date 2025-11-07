@@ -156,7 +156,11 @@ void cpu_padding(
   int64_t offset_h = ndim >= 2 ? p.offsets[ndim - 2] : 0;
   int64_t offset_w = p.offsets[ndim - 1];
 
+<<<<<<< HEAD
   // do vectorized copy when output is overlapped with input on W,
+=======
+  // do vectorized copy whe output is overlapped with input on W,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // only applies to positive padding
   auto loop = [=](scalar_t* out, const scalar_t* in, bool positive_padding) {
     if (positive_padding) {

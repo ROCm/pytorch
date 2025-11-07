@@ -82,8 +82,12 @@ struct TORCH_API BatchedTensorImpl : public c10::TensorImpl {
   IntArrayRef strides_custom() const override;
   // Override a bunch of methods inherited from TensorImpl to return error
   // messages.
+<<<<<<< HEAD
   c10::SymBool sym_is_contiguous_custom(
       at::MemoryFormat memory_format) const override;
+=======
+  bool is_contiguous_custom(at::MemoryFormat memory_format) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set_size(int64_t dim, int64_t new_size) override;
   void set_stride(int64_t dim, int64_t new_stride) override;
   void set_storage_offset(int64_t storage_offset) override;

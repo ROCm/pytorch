@@ -6,7 +6,11 @@ import math
 import warnings
 from collections.abc import Iterable
 from copy import deepcopy
+<<<<<<< HEAD
 from typing import Any, Callable, cast, Literal, Optional, Union
+=======
+from typing import Any, Callable, Literal, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -69,9 +73,13 @@ def get_swa_multi_avg_fn():
             averaged_param_list[0]
         ):
             torch._foreach_lerp_(
+<<<<<<< HEAD
                 averaged_param_list,
                 current_param_list,
                 cast(float, 1 / (num_averaged + 1)),
+=======
+                averaged_param_list, current_param_list, 1 / (num_averaged + 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             diffs = torch._foreach_sub(current_param_list, averaged_param_list)
@@ -259,12 +267,19 @@ class AveragedModel(Module):
         )
         self_param_detached: list[Optional[Tensor]] = []
         model_param_detached: list[Optional[Tensor]] = []
+<<<<<<< HEAD
         copy_param = bool(self.n_averaged == 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for p_averaged, p_model in zip(self_param, model_param):
             p_model_ = p_model.detach().to(p_averaged.device)
             self_param_detached.append(p_averaged.detach())
             model_param_detached.append(p_model_)
+<<<<<<< HEAD
             if copy_param:
+=======
+            if self.n_averaged == 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 p_averaged.detach().copy_(p_model_)
 
         if self.n_averaged > 0:

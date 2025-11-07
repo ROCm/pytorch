@@ -140,6 +140,7 @@ class RendezvousParametersTest(TestCase):
                 self.assertFalse(params.get_as_bool("dummy_param"))
 
     def test_get_as_bool_raises_error_if_value_is_invalid(self) -> None:
+<<<<<<< HEAD
         for value in [
             "01",
             "Flse",  # codespell:ignore
@@ -151,6 +152,9 @@ class RendezvousParametersTest(TestCase):
             2,
             -1,
         ]:
+=======
+        for value in ["01", "Flse", "Ture", "g", "4", "_", "truefalse", 2, -1]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with self.subTest(value=value):
                 self._kwargs["dummy_param"] = value
 

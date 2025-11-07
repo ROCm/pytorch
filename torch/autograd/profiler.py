@@ -95,7 +95,10 @@ def _run_on_profiler_stop():
 @dataclass
 class _ProfilerStats:
     "Profiler timing and stats used by developers to catch issues/regressions"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     profiling_window_duration_sec: float = 0
     number_of_events: int = 0
     profiler_prepare_call_duration_us: int = 0
@@ -108,9 +111,12 @@ class _ProfilerStats:
 class profile:
     """Context manager that manages autograd profiler state and holds a summary of results.
 
+<<<<<<< HEAD
     .. note::
         This is the backend, most people should use :mod:`torch.profiler` instead.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Under the hood it just records events of functions being executed in C++ and
     exposes those events to Python. You can wrap any code into it and it will
     only report runtime of PyTorch functions.
@@ -255,9 +261,15 @@ class profile:
         self.custom_trace_id_callback = custom_trace_id_callback
         self.trace_id = ""
         if not self.use_cpu:
+<<<<<<< HEAD
             assert use_kineto, (
                 "Device-only events supported only with Kineto (use_kineto=True)"
             )
+=======
+            assert (
+                use_kineto
+            ), "Device-only events supported only with Kineto (use_kineto=True)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.use_device is not None:
             VALID_DEVICE_OPTIONS = ["cuda", "xpu", "mtia", "hpu"]
@@ -294,6 +306,7 @@ class profile:
             else:
                 self.kineto_activities.add(ProfilerActivity.CUDA)
         elif self.use_device == "xpu":
+<<<<<<< HEAD
             assert use_kineto and ProfilerActivity.XPU in _supported_activities(), (
                 "Legacy XPU profiling is not supported. Requires use_kineto=True on XPU devices."
             )
@@ -307,22 +320,49 @@ class profile:
             assert use_kineto and ProfilerActivity.HPU in _supported_activities(), (
                 "Legacy HPU profiling is not supported. Requires use_kineto=True on HPU devices."
             )
+=======
+            assert (
+                use_kineto and ProfilerActivity.XPU in _supported_activities()
+            ), "Legacy XPU profiling is not supported. Requires use_kineto=True on XPU devices."
+            self.kineto_activities.add(ProfilerActivity.XPU)
+        elif self.use_device == "mtia":
+            assert (
+                use_kineto and ProfilerActivity.MTIA in _supported_activities()
+            ), "Legacy MTIA profiling is not supported. Requires use_kineto=True on MTIA devices."
+            self.kineto_activities.add(ProfilerActivity.MTIA)
+        elif self.use_device == "hpu":
+            assert (
+                use_kineto and ProfilerActivity.HPU in _supported_activities()
+            ), "Legacy HPU profiling is not supported. Requires use_kineto=True on HPU devices."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.kineto_activities.add(ProfilerActivity.HPU)
         elif self.use_device is not None and self.use_device != "privateuseone":
             if (
                 not use_kineto
                 or ProfilerActivity.PrivateUse1 not in _supported_activities()
             ):
+<<<<<<< HEAD
                 assert self.use_cpu, (
                     "Legacy custombackend profiling requires use_cpu=True"
                 )
+=======
+                assert (
+                    self.use_cpu
+                ), "Legacy custombackend profiling requires use_cpu=True"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.profiler_kind = ProfilerState.KINETO_PRIVATEUSE1_FALLBACK
             else:
                 self.kineto_activities.add(ProfilerActivity.PrivateUse1)
 
+<<<<<<< HEAD
         assert len(self.kineto_activities) > 0, (
             "No activities specified for the profiler"
         )
+=======
+        assert (
+            len(self.kineto_activities) > 0
+        ), "No activities specified for the profiler"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def default_trace_id(self):
         # Generate a UUID
@@ -403,7 +443,11 @@ class profile:
         )
 
         # If we plan to accumulate events we should post process the function events
+<<<<<<< HEAD
         # right away to retain the state across multiple start/stop calls
+=======
+        # right away to retain the state across mulitple start/stop calls
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.acc_events:
             self._ensure_function_events()
         return False
@@ -586,10 +630,14 @@ class profile:
         device_corr_map: dict[int, list[FunctionEvent]] = {}
         max_evt_id = 0
         for kineto_event in result.events():
+<<<<<<< HEAD
             if (
                 _filter_name(kineto_event.name())
                 or getattr(kineto_event, "is_hidden_event", lambda: False)()
             ):
+=======
+            if _filter_name(kineto_event.name()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             rel_start_ns = kineto_event.start_ns() - trace_start_ns
             rel_end_ns = kineto_event.end_ns() - trace_start_ns
@@ -745,12 +793,20 @@ class record_function(_ContextDecorator):
         >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_AUTOGRAD_PROFILER)
         >>> x = torch.randn((1, 1), requires_grad=True)
         >>> with torch.autograd.profiler.profile() as prof:
+<<<<<<< HEAD
         ...     y = x**2
         ...     with torch.autograd.profiler.record_function(
         ...         "label-z"
         ...     ):  # label the block
         ...         z = y**3
         ...     y.backward()
+=======
+        ...     y = x ** 2
+        ...     with torch.autograd.profiler.record_function("label-z"): # label the block
+        ...         z = y ** 3
+        ...     y.backward()
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> # xdoctest: +IGNORE_WANT
         >>> # NOTE: some columns were removed for brevity
         >>> print(prof.key_averages().table(sort_by="self_cpu_time_total"))
@@ -857,7 +913,11 @@ class emit_itt:
     The Instrumentation and Tracing Technology (ITT) API enables your application to generate and
     control the collection of trace data during its execution across different Intel tools.
     This context manager is to annotate Intel(R) VTune Profiling trace. With help of this context manager,
+<<<<<<< HEAD
     you will be able to see labeled ranges in Intel(R) VTune Profiler GUI.
+=======
+    you will be able to see labled ranges in Intel(R) VTune Profiler GUI.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. warning:
         This context manager should not be called recursively, i.e. at most one

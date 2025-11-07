@@ -1143,7 +1143,11 @@ bool Node::isNondeterministic() const {
   if (!kind().is_aten()) {
     return false;
   }
+<<<<<<< HEAD
   // All aten ops are expected to have a schema. However this is left as a
+=======
+  // All aten ops are expecte to have a schema. However this is left as a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // warning instead of an assert to ensure that previous use cases do not
   // break.
   if (!schema) {
@@ -1648,7 +1652,11 @@ Block* Node::findCommonAncestorBlockWith(Node* n) {
     n2 = n2->owningBlock()->owningNode();
   }
 
+<<<<<<< HEAD
   // Now they are the same number of blocks from the graph block,
+=======
+  // Now they are the same numer of blocks from the graph block,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // recurse upwards, checking if they are on the same block
   while (true) {
     if (n1->owningBlock() == n2->owningBlock()) {

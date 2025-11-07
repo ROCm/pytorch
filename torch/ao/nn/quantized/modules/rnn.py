@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from typing import Any
 
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 
 
@@ -36,11 +40,19 @@ class LSTM(torch.ao.nn.quantizable.LSTM):
 
     _FLOAT_MODULE = torch.ao.nn.quantizable.LSTM  # type: ignore[assignment]
 
+<<<<<<< HEAD
     def _get_name(self) -> str:
         return "QuantizedLSTM"
 
     @classmethod
     def from_float(cls, *args: Any, **kwargs: Any) -> None:
+=======
+    def _get_name(self):
+        return "QuantizedLSTM"
+
+    @classmethod
+    def from_float(cls, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # The whole flow is float -> observed -> quantized
         # This class does observed -> quantized only
         raise NotImplementedError(
@@ -50,7 +62,11 @@ class LSTM(torch.ao.nn.quantizable.LSTM):
         )
 
     @classmethod
+<<<<<<< HEAD
     def from_observed(cls: type["LSTM"], other: torch.ao.nn.quantizable.LSTM) -> "LSTM":
+=======
+    def from_observed(cls, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(other, cls._FLOAT_MODULE)  # type: ignore[has-type]
         converted = torch.ao.quantization.convert(
             other, inplace=False, remove_qconfig=True

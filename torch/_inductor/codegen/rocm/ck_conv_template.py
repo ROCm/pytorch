@@ -2,6 +2,7 @@
 import copy
 import logging
 import random
+<<<<<<< HEAD
 from typing import Any
 from typing_extensions import override
 
@@ -9,6 +10,11 @@ from torch._inductor.virtualized import V
 
 from .rocm_template import ArgInfo
 
+=======
+
+from torch._inductor.virtualized import V
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 try:
     import ck4inductor  # type: ignore[import]
@@ -287,8 +293,11 @@ class CKGroupedConvFwdTemplate(CKTemplate):
 
                 using ConvolutionForwardSpecialization = ck::tensor_operation::device::ConvolutionForwardSpecialization;
 
+<<<<<<< HEAD
                 using OutElementOp = PassThrough;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 namespace ck {
                 namespace utils {
                 namespace conv {
@@ -612,6 +621,7 @@ class CKGroupedConvFwdTemplate(CKTemplate):
             right_pads_0,
             right_pads_1,
         )
+<<<<<<< HEAD
 
     @override
     def get_runtime_arg_info(self) -> list[ArgInfo]:
@@ -623,3 +633,5 @@ class CKGroupedConvFwdTemplate(CKTemplate):
         Helper method to retrieve runtime args from generate kwargs
         """
         return []
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

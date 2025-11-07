@@ -2,9 +2,18 @@ import enum
 import types
 from typing import Optional, overload
 
+<<<<<<< HEAD
 from torch._dynamo.guards import GuardManagerWrapper
 from torch._dynamo.types import DynamoCallback, DynamoGuardCompleteHook, DynamoGuardHook
 from torch._guards import CompileId
+=======
+from torch._dynamo.types import (
+    DynamoCallback,
+    DynamoGuardCompleteHook,
+    DynamoGuardHook,
+    GuardFn,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def set_eval_frame(callback: DynamoCallback) -> DynamoCallback: ...
 def set_skip_guard_eval_unsafe(value: bool) -> bool: ...
@@ -22,6 +31,7 @@ def raise_sigtrap() -> None: ...
 
 class _CacheEntry:
     def check_fn(self, *args: object, **kwargs: object) -> bool: ...
+<<<<<<< HEAD
     def update_diff_guard_root_manager(self) -> None: ...
     code: types.CodeType
     compile_id: CompileId
@@ -36,6 +46,13 @@ class _ExtraState:
     def invalidate(
         self, cache_entry: _CacheEntry, guard_manager: GuardManagerWrapper
     ) -> None: ...
+=======
+    code: types.CodeType
+    next: _CacheEntry | None
+
+class _ExtraState:
+    def invalidate(self, cache_entry: _CacheEntry, guard_manager: object) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _FrameAction(enum.IntEnum):
     DEFAULT = 0
@@ -61,7 +78,11 @@ class _PyInterpreterFrame:
     f_globals: dict[str, object]
     f_builtins: dict[str, object]
     f_lasti: int
+<<<<<<< HEAD
     f_lineno: int
+=======
+    f_lineo: int
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     f_back: types.FrameType
     # A tuple containing cell objects captured by this frame.
     closure: tuple[types.CellType]
@@ -72,9 +93,15 @@ py_opcode_caches: list[int]
 
 def code_framelocals_names(code: types.CodeType) -> tuple[str]: ...
 def _load_precompile_entry(
+<<<<<<< HEAD
     code: types.CodeType,
     guard_manager: GuardManagerWrapper,
     dynamo_code: types.CodeType,
 ) -> None: ...
 def _reset_precompile_entries(code: types.CodeType) -> None: ...
 def _debug_get_precompile_entries(code: types.CodeType) -> list[_PrecompileEntry]: ...
+=======
+    code: types.CodeType, guard_manager: GuardFn, dynamo_code: types.CodeType
+) -> None: ...
+def _reset_precompile_entries(code: types.CodeType) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

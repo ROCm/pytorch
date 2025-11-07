@@ -1,11 +1,23 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Device abstraction layer for TorchDynamo and Inductor backends.
 
 This module provides a unified interface for different hardware backends (CUDA, XPU,
+<<<<<<< HEAD
 CPU, MPS, MTIA) through a common device interface. Key components include:
 
 - DeviceInterface: Base class defining the common API for all device types
 - Device-specific implementations: CudaInterface, XpuInterface, CpuInterface, MpsInterface, MtiaInterface
+=======
+CPU, MPS) through a common device interface. Key components include:
+
+- DeviceInterface: Base class defining the common API for all device types
+- Device-specific implementations: CudaInterface, XpuInterface, CpuInterface, MpsInterface
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - Device registration system for managing available backends
 - Worker APIs for multi-processing scenarios
 - Stream and event management across different devices
@@ -17,10 +29,16 @@ specialized implementations for each hardware backend's unique features.
 
 import inspect
 import time
+<<<<<<< HEAD
 from collections import namedtuple
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, Callable, Literal, Optional, Union
+=======
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -43,17 +61,29 @@ class DeviceInterface:
     """
 
     class device:
+<<<<<<< HEAD
         def __new__(cls, device: torch.types.Device) -> Any:
             raise NotImplementedError
 
     class Event:
         def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+=======
+        def __new__(cls, device: torch.types.Device):
+            raise NotImplementedError
+
+    class Event:
+        def __new__(cls, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise NotImplementedError(
                 "Event should be inherited from torch.Event, otherwise, it couldn't be captured by dynamo."
             )
 
     class Stream:
+<<<<<<< HEAD
         def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+=======
+        def __new__(cls, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise NotImplementedError(
                 "Stream should be inherited from torch.Stream, otherwise, it couldn't be captured by dynamo."
             )
@@ -67,7 +97,11 @@ class DeviceInterface:
         """
 
         @staticmethod
+<<<<<<< HEAD
         def set_device(device: int) -> None:
+=======
+        def set_device(device: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise NotImplementedError
 
         @staticmethod
@@ -75,6 +109,7 @@ class DeviceInterface:
             raise NotImplementedError
 
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: torch.types.Device = None) -> Any:
             raise NotImplementedError
 
@@ -84,6 +119,17 @@ class DeviceInterface:
 
     @staticmethod
     def set_device(device: torch.types.Device) -> None:
+=======
+        def get_device_properties(device: torch.types.Device = None):
+            raise NotImplementedError
+
+    @staticmethod
+    def current_device():
+        raise NotImplementedError
+
+    @staticmethod
+    def set_device(device: torch.types.Device):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     @staticmethod
@@ -95,7 +141,11 @@ class DeviceInterface:
         raise NotImplementedError
 
     @staticmethod
+<<<<<<< HEAD
     def device_count() -> int:
+=======
+    def device_count():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     @staticmethod
@@ -103,6 +153,7 @@ class DeviceInterface:
         raise NotImplementedError
 
     @staticmethod
+<<<<<<< HEAD
     def stream(stream: torch.Stream) -> Any:
         raise NotImplementedError
 
@@ -116,6 +167,21 @@ class DeviceInterface:
 
     @staticmethod
     def _set_stream_by_id(stream_id: int, device_index: int, device_type: int) -> None:
+=======
+    def stream(stream: torch.Stream):
+        raise NotImplementedError
+
+    @staticmethod
+    def current_stream():
+        raise NotImplementedError
+
+    @staticmethod
+    def set_stream(stream: torch.Stream):
+        raise NotImplementedError
+
+    @staticmethod
+    def _set_stream_by_id(stream_id: int, device_index: int, device_type: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     @staticmethod
@@ -123,6 +189,7 @@ class DeviceInterface:
         raise NotImplementedError
 
     @staticmethod
+<<<<<<< HEAD
     def synchronize(device: torch.types.Device = None) -> None:
         raise NotImplementedError
 
@@ -136,6 +203,21 @@ class DeviceInterface:
 
     @staticmethod
     def is_bf16_supported(including_emulation: bool = False) -> bool:
+=======
+    def synchronize(device: torch.types.Device = None):
+        raise NotImplementedError
+
+    @classmethod
+    def get_device_properties(cls, device: torch.types.Device = None):
+        return cls.Worker.get_device_properties(device)
+
+    @staticmethod
+    def get_compute_capability(device: torch.types.Device = None):
+        raise NotImplementedError
+
+    @staticmethod
+    def is_bf16_supported(including_emulation: bool = False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
     @classmethod
@@ -187,11 +269,19 @@ class DeviceGuard:
         self.idx = index
         self.prev_idx = -1
 
+<<<<<<< HEAD
     def __enter__(self) -> None:
         if self.idx is not None:
             self.prev_idx = self.device_interface.exchange_device(self.idx)
 
     def __exit__(self, type: Any, value: Any, traceback: Any) -> Literal[False]:
+=======
+    def __enter__(self):
+        if self.idx is not None:
+            self.prev_idx = self.device_interface.exchange_device(self.idx)
+
+    def __exit__(self, type: Any, value: Any, traceback: Any):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.idx is not None:
             self.idx = self.device_interface.maybe_exchange_device(self.prev_idx)
         return False
@@ -207,7 +297,11 @@ class CudaInterface(DeviceInterface):
 
     class Worker:
         @staticmethod
+<<<<<<< HEAD
         def set_device(device: int) -> None:
+=======
+        def set_device(device: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             caching_worker_current_devices["cuda"] = device
 
         @staticmethod
@@ -217,7 +311,11 @@ class CudaInterface(DeviceInterface):
             return torch.cuda.current_device()
 
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: torch.types.Device = None) -> Any:
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if device is not None:
                 if isinstance(device, str):
                     device = torch.device(device)
@@ -246,8 +344,13 @@ class CudaInterface(DeviceInterface):
     synchronize = staticmethod(torch.cuda.synchronize)
     get_device_properties = staticmethod(torch.cuda.get_device_properties)  # type: ignore[assignment]
     get_raw_stream = staticmethod(get_cuda_stream)  # type: ignore[assignment, arg-type]
+<<<<<<< HEAD
     exchange_device = staticmethod(torch.cuda._exchange_device)  # type: ignore[arg-type, has-type]
     maybe_exchange_device = staticmethod(torch.cuda._maybe_exchange_device)  # type: ignore[arg-type, has-type]
+=======
+    exchange_device = staticmethod(torch.cuda._exchange_device)  # type: ignore[arg-type]
+    maybe_exchange_device = staticmethod(torch.cuda._maybe_exchange_device)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     memory_allocated = staticmethod(torch.cuda.memory_allocated)
     is_bf16_supported = staticmethod(torch.cuda.is_bf16_supported)  # type: ignore[arg-type]
 
@@ -257,7 +360,11 @@ class CudaInterface(DeviceInterface):
         return torch.cuda.is_available()
 
     @staticmethod
+<<<<<<< HEAD
     def get_compute_capability(device: torch.types.Device = None) -> Union[int, str]:
+=======
+    def get_compute_capability(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch.version.hip is None:
             major, min = torch.cuda.get_device_capability(device)
             return major * 10 + min
@@ -288,6 +395,7 @@ class CudaInterface(DeviceInterface):
             raise RuntimeError("triton not built with the 'nvidia' backend")
 
 
+<<<<<<< HEAD
 get_mtia_stream: Optional[Callable[[int], int]]
 if torch.mtia._is_compiled():
     from torch._C import _mtia_getCurrentRawStream as get_mtia_stream
@@ -369,6 +477,8 @@ class MtiaInterface(DeviceInterface):
             raise RuntimeError("triton not built with the 'mtia' backend")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 get_xpu_stream: Optional[Callable[[int], int]]
 if torch.xpu._is_compiled():
     from torch._C import _xpu_getCurrentRawStream as get_xpu_stream
@@ -383,7 +493,11 @@ class XpuInterface(DeviceInterface):
 
     class Worker:
         @staticmethod
+<<<<<<< HEAD
         def set_device(device: int) -> None:
+=======
+        def set_device(device: int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             caching_worker_current_devices["xpu"] = device
 
         @staticmethod
@@ -393,7 +507,11 @@ class XpuInterface(DeviceInterface):
             return torch.xpu.current_device()
 
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: torch.types.Device = None) -> Any:
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if device is not None:
                 if isinstance(device, str):
                     device = torch.device(device)
@@ -432,7 +550,11 @@ class XpuInterface(DeviceInterface):
         return torch.xpu.is_available()
 
     @staticmethod
+<<<<<<< HEAD
     def get_compute_capability(device: torch.types.Device = None) -> Any:
+=======
+    def get_compute_capability(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cc = torch.xpu.get_device_capability(device)
         return cc
 
@@ -445,7 +567,11 @@ class XpuInterface(DeviceInterface):
         return True
 
     @staticmethod
+<<<<<<< HEAD
     def raise_if_triton_unavailable(device: torch.types.Device = None) -> None:
+=======
+    def raise_if_triton_unavailable(evice: torch.types.Device = None) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import triton.backends
 
         if "intel" not in triton.backends.backends:
@@ -459,6 +585,7 @@ class CpuDeviceProperties:
 
 class CpuInterface(DeviceInterface):
     class Event(torch.Event):
+<<<<<<< HEAD
         def __init__(self, enable_timing: bool = True) -> None:
             self.time = 0.0
 
@@ -466,13 +593,26 @@ class CpuInterface(DeviceInterface):
             return (end_event.time - self.time) * 1000
 
         def record(self, stream: Any = None) -> None:
+=======
+        def __init__(self, enable_timing=True):
+            self.time = 0.0
+
+        def elapsed_time(self, end_event) -> float:
+            return (end_event.time - self.time) * 1000
+
+        def record(self, stream=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.time = time.perf_counter()
 
     class Worker:
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(
             device: torch.types.Device = None,
         ) -> CpuDeviceProperties:
+=======
+        def get_device_properties(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             import multiprocessing
 
             cpu_count = multiprocessing.cpu_count()
@@ -483,7 +623,11 @@ class CpuInterface(DeviceInterface):
         return True
 
     @staticmethod
+<<<<<<< HEAD
     def is_bf16_supported(including_emulation: bool = False) -> bool:
+=======
+    def is_bf16_supported(including_emulation: bool = False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
 
     @staticmethod
@@ -491,6 +635,7 @@ class CpuInterface(DeviceInterface):
         return ""
 
     @staticmethod
+<<<<<<< HEAD
     def get_raw_stream(device_idx: Any) -> int:
         return 0
 
@@ -500,6 +645,17 @@ class CpuInterface(DeviceInterface):
 
     @staticmethod
     def synchronize(device: torch.types.Device = None) -> None:
+=======
+    def get_raw_stream(device_idx) -> int:
+        return 0
+
+    @staticmethod
+    def current_device():
+        return 0
+
+    @staticmethod
+    def synchronize(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass
 
     @staticmethod
@@ -532,7 +688,11 @@ class MpsInterface(DeviceInterface):
         return torch.backends.mps.is_available()
 
     @staticmethod
+<<<<<<< HEAD
     def current_device() -> int:
+=======
+    def current_device():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return 0
 
     @staticmethod
@@ -540,11 +700,16 @@ class MpsInterface(DeviceInterface):
         return ""
 
     @staticmethod
+<<<<<<< HEAD
     def synchronize(device: torch.types.Device = None) -> None:
+=======
+    def synchronize(device: torch.types.Device = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.mps.synchronize()
 
     class Worker:
         @staticmethod
+<<<<<<< HEAD
         def get_device_properties(device: torch.types.Device = None) -> Any:
             return namedtuple("MPSProperties", ["multi_processor_count"])(
                 torch.backends.mps.get_core_count()  # type: ignore[arg-type]
@@ -552,6 +717,13 @@ class MpsInterface(DeviceInterface):
 
         @staticmethod
         def current_device() -> int:
+=======
+        def get_device_properties(device: torch.types.Device = None):
+            return {}
+
+        @staticmethod
+        def current_device():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return 0
 
 
@@ -561,7 +733,11 @@ _device_initialized = False
 
 def register_interface_for_device(
     device: Union[str, torch.device], device_interface: type[DeviceInterface]
+<<<<<<< HEAD
 ) -> None:
+=======
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(device, torch.device):
         device = device.type
     device_interfaces[device] = device_interface
@@ -583,7 +759,11 @@ def get_registered_device_interfaces() -> Iterable[tuple[str, type[DeviceInterfa
     return device_interfaces.items()
 
 
+<<<<<<< HEAD
 def init_device_reg() -> None:
+=======
+def init_device_reg():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global _device_initialized
     register_interface_for_device("cuda", CudaInterface)
     for i in range(torch.cuda.device_count()):
@@ -593,10 +773,13 @@ def init_device_reg() -> None:
     for i in range(torch.xpu.device_count()):
         register_interface_for_device(f"xpu:{i}", XpuInterface)
 
+<<<<<<< HEAD
     register_interface_for_device("mtia", MtiaInterface)
     for i in range(torch.mtia.device_count()):
         register_interface_for_device(f"mtia:{i}", MtiaInterface)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     register_interface_for_device("cpu", CpuInterface)
     register_interface_for_device("mps", MpsInterface)
 

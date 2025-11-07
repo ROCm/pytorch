@@ -24,7 +24,11 @@ struct integer_iterator {
   using pointer = I*;
   using reference = I&;
 
+<<<<<<< HEAD
   explicit constexpr integer_iterator(I val) : value(val) {}
+=======
+  explicit constexpr integer_iterator(I value) : value(value) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   constexpr I operator*() const {
     return value;

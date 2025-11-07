@@ -73,7 +73,11 @@ class TestFullyShardGradientScaler(FSDPTest):
             opt.param_groups[0]["params"][0].grad._local_tensor[0, 0].fill_(
                 float("inf")
             )
+<<<<<<< HEAD
         initial_grad = opt.param_groups[0]["params"][0].grad.to_local().clone()
+=======
+        inital_grad = opt.param_groups[0]["params"][0].grad.to_local().clone()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         scaler.unscale_(opt)
         for found_inf in scaler._per_optimizer_states[id(opt)][
@@ -85,7 +89,11 @@ class TestFullyShardGradientScaler(FSDPTest):
             OptState.UNSCALED.value,
         )
         unscaled_grad = opt.param_groups[0]["params"][0].grad.to_local().clone()
+<<<<<<< HEAD
         self.assertEqual(unscaled_grad, initial_grad * inv_scale)
+=======
+        self.assertEqual(unscaled_grad, inital_grad * inv_scale)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         initial_scale = scaler.get_scale()
         initial_state = copy.copy(opt.state)
 

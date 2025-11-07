@@ -140,7 +140,11 @@ struct TORCH_API VmapPhysicalView {
   // mapping a physical tensor to a new logical tensor (BatchedTensor)
   VmapPhysicalToLogicalMap getPhysicalToLogicalMap() const;
 
+<<<<<<< HEAD
   // Maps a logical shape to a physical shape by prepending the batch
+=======
+  // Maps a logical shape to a physical shape by pre-pending the batch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // sizes to the logical shape.
   VmapDimVector getPhysicalShape(IntArrayRef logical_shape) const;
 

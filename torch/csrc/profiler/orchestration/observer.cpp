@@ -21,8 +21,11 @@ ExperimentalConfig::ExperimentalConfig(
     bool disable_external_correlation,
     bool profile_all_threads,
     bool capture_overload_names,
+<<<<<<< HEAD
     bool record_python_gc_info,
     std::string custom_profiler_config,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool adjust_timestamps)
     : profiler_metrics{std::move(profiler_metrics)},
       profiler_measure_per_kernel{profiler_measure_per_kernel},
@@ -33,8 +36,11 @@ ExperimentalConfig::ExperimentalConfig(
       disable_external_correlation{disable_external_correlation},
       profile_all_threads{profile_all_threads},
       capture_overload_names{capture_overload_names},
+<<<<<<< HEAD
       record_python_gc_info{record_python_gc_info},
       custom_profiler_config(std::move(custom_profiler_config)),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       adjust_timestamps{adjust_timestamps} {}
 
 /*explicit*/ ExperimentalConfig::operator bool() const {

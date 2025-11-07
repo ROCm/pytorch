@@ -1,11 +1,19 @@
 # mypy: allow-untyped-defs
 from collections.abc import Sequence
+<<<<<<< HEAD
 from typing import Any, Optional, Union
+=======
+from typing import Any, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
 import torch
+<<<<<<< HEAD
 from torch._prims_common import make_channels_last_strides_for, StrideType
+=======
+from torch._prims_common import make_channels_last_strides_for
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 
 from .ir import (
@@ -14,7 +22,10 @@ from .ir import (
     FlexibleLayout,
     get_device_type,
     ir_node_to_tensor,
+<<<<<<< HEAD
     IRNode,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_contiguous_storage_and_layout,
     Layout,
     may_convert_to_optional,
@@ -22,7 +33,10 @@ from .ir import (
     MultiOutputLayout,
     MutationOutput,
     NoneLayout,
+<<<<<<< HEAD
     ShapeAsConstantBuffer,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorBox,
 )
 from .utils import convert_shape_to_inductor, pad_listlike, SUPPORTED_MKLDNN_DEVICES
@@ -177,7 +191,11 @@ def _prepare_convolution_fusion_create(
     if (
         dynamic_shapes or get_device_type(x) == "xpu"
     ) and is_contiguous_storage_and_layout(x):
+<<<<<<< HEAD
         output_stride: StrideType = FlexibleLayout.contiguous_strides(output_size)
+=======
+        output_stride = FlexibleLayout.contiguous_strides(output_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Currently we don't support channel last for the situation that stride of input's batch dim is 0,
     # eg. input_size = (1, 1280, 64, 64), but input_stride=(0, 1, 81920, 1280).
     # So we use NCHW hear instead.
@@ -513,13 +531,17 @@ class ConvolutionTransposeUnary(ExternKernelAlloc):
         inputs,
         constant_args=(),
     ) -> None:
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             layout,
             inputs,
             constant_args,
             None,
             op_overload=torch.ops.mkldnn._convolution_transpose_pointwise.default,
+<<<<<<< HEAD
             cpp_kernel_name=f"aoti_torch_{self.device_type}_mkldnn__convolution_transpose_pointwise",
         )
 
@@ -527,6 +549,13 @@ class ConvolutionTransposeUnary(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name="aoti_torch_cpu_mkldnn__convolution_transpose_pointwise",
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
 
     @classmethod
@@ -593,7 +622,10 @@ class QConvPointWisePT2E(ExternKernelAlloc):
             - const_args is: [bias, stride, padding, dilation, groups, x_scale, x_zp, o_scale, o_zp,
               fp32_output, unary_attr, unary_scalars, unary_algorithm]
         """
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.has_bias = len(inputs) == 5
         super().__init__(
             layout,
@@ -601,6 +633,7 @@ class QConvPointWisePT2E(ExternKernelAlloc):
             constant_args,
             None,
             op_overload=torch.ops.onednn.qconv_pointwise.default,
+<<<<<<< HEAD
             cpp_kernel_name=f"aoti_torch_{self.device_type}__qconv_pointwise_tensor",
         )
 
@@ -608,6 +641,13 @@ class QConvPointWisePT2E(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name="aoti_torch_cpu__qconv_pointwise_tensor",
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
         if isinstance(self.layout, Layout):
             self.codegen_size_asserts(wrapper)
@@ -616,8 +656,13 @@ class QConvPointWisePT2E(ExternKernelAlloc):
     def create(
         cls,
         qx: "TensorBox",
+<<<<<<< HEAD
         x_scale: Union["ShapeAsConstantBuffer", "TensorBox"],
         x_zero_point: Union["ShapeAsConstantBuffer", "TensorBox"],
+=======
+        x_scale: "TensorBox",
+        x_zero_point: "TensorBox",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qw: "TensorBox",  # qw
         w_scale: "TensorBox",
         w_zero_point: "TensorBox",
@@ -652,7 +697,11 @@ class QConvPointWisePT2E(ExternKernelAlloc):
             groups,
             transposed,
             output_padding,
+<<<<<<< HEAD
             [x_scale, x_zero_point, w_scale, w_zero_point],  # type: ignore[list-item]
+=======
+            [x_scale, x_zero_point, w_scale, w_zero_point],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # swap padding and stride to align with functional conv arg order
         if bias is None:
@@ -700,7 +749,10 @@ class QConvPointWiseBinaryPT2E(ExternKernelAlloc):
             - const_args [b, stride, padding, dilation, groups, o_scale, o_zp,
              output_dtype, accum_scale, accum_zp, binary_attr, alpha, unary_attr, unary_scalars, unary_algorithm]
         """
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.has_bias = len(inputs) == 8
         self.idx_for_inplace_sum = 6
         super().__init__(
@@ -709,6 +761,7 @@ class QConvPointWiseBinaryPT2E(ExternKernelAlloc):
             constant_args,
             None,
             op_overload=torch.ops.onednn.qconv2d_pointwise.binary,
+<<<<<<< HEAD
             cpp_kernel_name=(
                 f"aoti_torch_{self.device_type}__qconv2d_pointwise_binary_tensor"
             ),
@@ -718,12 +771,23 @@ class QConvPointWiseBinaryPT2E(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name=("aoti_torch_cpu__qconv2d_pointwise_binary_tensor"),
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
         if isinstance(self.layout, Layout):
             self.codegen_size_asserts(wrapper)
 
     def get_mutation_names(self) -> Sequence[str]:
+<<<<<<< HEAD
         return [self.input_name(self.idx_for_inplace_sum)]
+=======
+        return [self.inputs[self.idx_for_inplace_sum].get_name()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_unbacked_symbol_defs(self) -> OrderedSet[sympy.Symbol]:
         return OrderedSet()
@@ -845,10 +909,17 @@ class MKLPackedLinear(ExternKernelAlloc):
         else:
             constant_args.insert(0, None)
 
+<<<<<<< HEAD
         device = x.get_device()
         assert device is not None
         return MKLPackedLinear(
             layout=FixedLayout(device, x.get_dtype(), output_size, output_stride),
+=======
+        return MKLPackedLinear(
+            layout=FixedLayout(
+                x.get_device(), x.get_dtype(), output_size, output_stride
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inputs=inputs,
             constant_args=constant_args,
         )
@@ -861,13 +932,17 @@ class LinearUnary(ExternKernelAlloc):
         inputs,
         constant_args=(),
     ) -> None:
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             layout,
             inputs,
             constant_args,
             None,
             op_overload=torch.ops.mkldnn._linear_pointwise.default,
+<<<<<<< HEAD
             cpp_kernel_name=f"aoti_torch_{self.device_type}__linear_pointwise",
         )
 
@@ -875,6 +950,13 @@ class LinearUnary(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name="aoti_torch_cpu__linear_pointwise",
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
 
     @classmethod
@@ -893,12 +975,18 @@ class LinearUnary(ExternKernelAlloc):
         else:
             constant_args.insert(0, None)
 
+<<<<<<< HEAD
         device = x.get_device()
         assert device is not None
 
         packed = LinearUnary(
             layout=FixedLayout(
                 device=device,
+=======
+        packed = LinearUnary(
+            layout=FixedLayout(
+                device=x.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dtype=x.get_dtype(),
                 size=output_size,
             ),
@@ -920,13 +1008,17 @@ class LinearBinary(ExternKernelAlloc):
         inputs,
         constant_args=(),
     ) -> None:
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             layout,
             inputs,
             constant_args,
             None,
             op_overload=torch.ops.mkldnn._linear_pointwise.binary,
+<<<<<<< HEAD
             cpp_kernel_name=f"aoti_torch_{self.device_type}__linear_pointwise_binary",
         )
 
@@ -934,6 +1026,13 @@ class LinearBinary(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name="aoti_torch_cpu__linear_pointwise_binary",
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
 
     @classmethod
@@ -953,11 +1052,17 @@ class LinearBinary(ExternKernelAlloc):
         else:
             constant_args.insert(0, B)
 
+<<<<<<< HEAD
         device = x.get_device()
         assert device is not None
         packed = LinearBinary(
             layout=FixedLayout(
                 device=device,
+=======
+        packed = LinearBinary(
+            layout=FixedLayout(
+                device=x.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dtype=x.get_dtype(),
                 size=output_size,
             ),
@@ -988,7 +1093,10 @@ class QLinearPointwisePT2E(ExternKernelAlloc):
             - const_args is: [bias, x_scale, x_zp, o_scale, o_zp,
               fp32_output, unary_attr, unary_scalars, unary_algorithm]
         """
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.has_bias = has_bias
         super().__init__(
             layout,
@@ -996,6 +1104,7 @@ class QLinearPointwisePT2E(ExternKernelAlloc):
             constant_args,
             None,
             op_overload=(torch.ops.onednn.qlinear_pointwise.tensor),
+<<<<<<< HEAD
             cpp_kernel_name=(
                 f"aoti_torch_{self.device_type}__qlinear_pointwise_tensor"
             ),
@@ -1005,6 +1114,13 @@ class QLinearPointwisePT2E(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name=("aoti_torch_cpu__qlinear_pointwise_tensor"),
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
 
         if isinstance(self.layout, Layout):
@@ -1076,7 +1192,10 @@ class QLinearPointwiseBinaryPT2E(ExternKernelAlloc):
             - const_args is: [bias, o_scale, o_zp,
               fp32_output, binary_attr, alpha, unary_attr, unary_scalars, unary_algorithm]
         """
+<<<<<<< HEAD
         self.device_type = get_device_type(inputs[0])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.has_bias = has_bias
         self.idx_for_inplace_sum = 6
         super().__init__(
@@ -1085,6 +1204,7 @@ class QLinearPointwiseBinaryPT2E(ExternKernelAlloc):
             constant_args,
             None,
             op_overload=(torch.ops.onednn.qlinear_pointwise.binary_tensor),
+<<<<<<< HEAD
             cpp_kernel_name=f"aoti_torch_{self.device_type}__qlinear_pointwise_binary_tensor",
         )
 
@@ -1092,6 +1212,13 @@ class QLinearPointwiseBinaryPT2E(ExternKernelAlloc):
         wrapper.include_extra_header(
             f"torch/csrc/inductor/aoti_torch/c/shim_{self.device_type}.h"
         )
+=======
+            cpp_kernel_name="aoti_torch_cpu__qlinear_pointwise_binary_tensor",
+        )
+
+    def codegen(self, wrapper):
+        wrapper.include_extra_header("torch/csrc/inductor/aoti_torch/c/shim_cpu.h")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().codegen(wrapper)
         if isinstance(self.layout, Layout):
             self.codegen_size_asserts(wrapper)
@@ -1099,9 +1226,13 @@ class QLinearPointwiseBinaryPT2E(ExternKernelAlloc):
     def get_mutation_names(self) -> Sequence[str]:
         binary_post_op = self.constant_args[-5]
         if binary_post_op == "sum":
+<<<<<<< HEAD
             input = self.inputs[self.idx_for_inplace_sum]
             assert isinstance(input, IRNode)
             return [input.get_name()]
+=======
+            return [self.inputs[self.idx_for_inplace_sum].get_name()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return []
 
@@ -1252,10 +1383,15 @@ class MkldnnRnnLayer(ExternKernelAlloc):
             train,
         ]
 
+<<<<<<< HEAD
         device = x.get_device()
         assert device is not None
         packed = MkldnnRnnLayer(
             MultiOutputLayout(device=device),
+=======
+        packed = MkldnnRnnLayer(
+            MultiOutputLayout(device=x.get_device()),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inputs=inputs,
             constant_args=constant_args,
         )
@@ -1276,7 +1412,11 @@ class MkldnnRnnLayer(ExternKernelAlloc):
         output_ir = [
             MultiOutput(
                 FixedLayout(
+<<<<<<< HEAD
                     x.get_device(),  # type: ignore[arg-type]
+=======
+                    x.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     x.get_dtype(),
                     output_size,
                     output_stride,

@@ -23,7 +23,11 @@ class TestAliasAnalysis(JitTestCase):
         graph = parse_ir(graph_str)
         alias_db = graph.alias_db()
         split_node = graph.findNode("aten::split")
+<<<<<<< HEAD
         # split input enters wildcard set, list initialized as containing wildcard set
+=======
+        # split input enters wildcard set, list initalized as containing wildcard set
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(
             alias_db.may_contain_alias(next(split_node.inputs()), split_node.output())
         )

@@ -4,7 +4,10 @@ import logging
 import re
 import traceback
 import unittest
+<<<<<<< HEAD
 import unittest.mock
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from functools import lru_cache
 
@@ -13,7 +16,11 @@ import torch._dynamo
 import torch._dynamo.config
 import torch._dynamo.test_case
 import torch.utils._pytree as python_pytree
+<<<<<<< HEAD
 from torch._dynamo.exc import ResumePrologueTracingError, Unsupported
+=======
+from torch._dynamo.exc import Unsupported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._dynamo.testing import skipIfNotPy312
 from torch._dynamo.utils import counters
 from torch.testing._internal.common_utils import (
@@ -47,7 +54,11 @@ class GenericCtxMgr:
         pass
 
 
+<<<<<<< HEAD
 class ErrorMessagesTest(LoggingTestCase):
+=======
+class GraphBreakMessagesTest(LoggingTestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_shape_operator(self):
         def fn():
             return torch.nonzero(torch.rand([10, 10]))
@@ -62,7 +73,10 @@ Dynamic shape operator
 
   Developer debug context: aten.nonzero.default
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0036.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -84,7 +98,10 @@ Dynamic shape operator (no meta kernel)
 
   Developer debug context: aten.linalg_lstsq.default
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0037.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -107,7 +124,10 @@ Unsupported Tensor.item() call with capture_scalar_outputs=False
 
   Developer debug context: call_method TensorVariable() item () {}
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0124.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -131,7 +151,10 @@ Data dependent operator
 
   Developer debug context: aten.equal.default
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0033.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -159,7 +182,10 @@ sort with non-constant keys
 
   Developer debug context: TensorVariable()
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0207.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -181,11 +207,17 @@ Unsupported method call
   Hint: Avoid calling `zip.__iter__` in your code.
   Hint: Please report an issue to PyTorch.
   Hint: Dynamo does not fully support tracing builtin iterators (e.g. `map`, `zip`, `enumerate`) passed in from uncompiled to compiled regions (e.g. `torch.compile(fn)(enumerate(...))`). This can happen unintentionally if a previous graph break happens with a builtin iterator in the local scope.
+<<<<<<< HEAD
   Hint: List/dict comprehensions in Python <= 3.11 result in implicit function calls, which Dynamo cannot trace as a top level frame. Possible workarounds are (1) use a loop instead of a comprehension, (2) fix any graph breaks in the function above the comprehension, (3) wrap the comprehension in a function, or (4) use Python 3.12+.
 
   Developer debug context: call_method UserDefinedObjectVariable(zip) __iter__ [] {}
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0156.html
+=======
+
+  Developer debug context: call_method UserDefinedObjectVariable(zip) __iter__ () {}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -210,11 +242,17 @@ Unsupported method call
   Hint: Please report an issue to PyTorch.
   Hint: Consider moving the creation of dict view object (e.g. `dict.keys()`, `dict.items()`,) to the compiled region, instead of passing it as an input to the compiled region.
   Hint: Dynamo does not fully support tracing builtin iterators (e.g. `map`, `zip`, `enumerate`) passed in from uncompiled to compiled regions (e.g. `torch.compile(fn)(enumerate(...))`). This can happen unintentionally if a previous graph break happens with a builtin iterator in the local scope.
+<<<<<<< HEAD
   Hint: List/dict comprehensions in Python <= 3.11 result in implicit function calls, which Dynamo cannot trace as a top level frame. Possible workarounds are (1) use a loop instead of a comprehension, (2) fix any graph breaks in the function above the comprehension, (3) wrap the comprehension in a function, or (4) use Python 3.12+.
 
   Developer debug context: call_method UserDefinedObjectVariable(dict_items) __iter__ [] {}
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0156.html
+=======
+
+  Developer debug context: call_method UserDefinedObjectVariable(dict_items) __iter__ () {}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -238,7 +276,10 @@ Unsupported function call
 
   Developer debug context: call_function UserDefinedObjectVariable(zip) [] {}
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0147.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -262,7 +303,10 @@ Unsupported context manager
 
   Developer debug context: Attempted SETUP_WITH/BEFORE_WITH on ConstantVariable(int: 3)
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0142.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -290,10 +334,14 @@ Backend compiler exception
     Exception:test
     Traceback:
       File "test_error_messages.py", line N, in fn
+<<<<<<< HEAD
         return x + 1
 
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0219.html""",
+=======
+        return x + 1""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_unsupported_builtin(self):
@@ -312,7 +360,10 @@ Failed to trace builtin operator
 
   Developer debug context: builtin print [<class 'torch._dynamo.variables.constant.ConstantVariable'>] False
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0059.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -338,7 +389,10 @@ Attempted to call function marked as skipped
 
   Developer debug context: module: unittest.case, qualname: skip, skip reason: <missing reason>
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0007.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -360,7 +414,10 @@ Attempted to call function marked as skipped
 
   Developer debug context: module: torch._dynamo.decorators, qualname: disable, skip reason: <missing reason>
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0007.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -389,7 +446,10 @@ Attempted to inline function marked as skipped
 
   Developer debug context: qualname: skip, name: skip, filename: `case.py`, skip reason: skipped according trace_rules.lookup unittest
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0008.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -411,7 +471,10 @@ Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -432,7 +495,10 @@ Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{'msg': ConstantVariable(str: 'test graph break')}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -454,7 +520,10 @@ Attempted to call function marked as skipped
 
   Developer debug context: module: _warnings, qualname: warn, skip reason: <missing reason>
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0007.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -482,8 +551,12 @@ Attempted to call function marked as skipped
   Hint: Consider using torch.utils._pytree - https://github.com/pytorch/pytorch/blob/main/torch/utils/_pytree.py
 
   Developer debug context: module: optree._C, qualname: PyCapsule.flatten, skip reason: <missing reason>
+<<<<<<< HEAD
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0007.html""",
+=======
+""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @scoped_load_inline
@@ -519,6 +592,7 @@ Attempted to call function marked as skipped
         first_graph_break = next(iter(counters["graph_break"].keys()))
 
         first_graph_break = re.sub(r"mylib(_v\d+)?", "mylib", first_graph_break)
+<<<<<<< HEAD
         # HACK: this patches around the fact that PyBind11 improperly sets the
         # __qualname__ attribute on functions and methods; see
         # https://github.com/pybind/pybind11/issues/5774.  This should be removed if
@@ -526,6 +600,8 @@ Attempted to call function marked as skipped
         first_graph_break = re.sub(
             r"pybind11_detail_function_record_v[^ .]+", "PyCapsule", first_graph_break
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertExpectedInline(
             first_graph_break,
@@ -536,8 +612,12 @@ Attempted to call function marked as skipped
   Hint: If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
 
   Developer debug context: module: mylib, qualname: PyCapsule.foobar, skip reason: <missing reason>
+<<<<<<< HEAD
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0007.html""",
+=======
+""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         cpp_source = """
@@ -589,7 +669,10 @@ Dynamic slicing with Tensor arguments
 
   Developer debug context: SliceVariable start: ConstantVariable(NoneType: None), stop: TensorVariable(), step: ConstantVariable(NoneType: None)
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0038.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -609,9 +692,14 @@ Observed exception
   Hint: Dynamo has detected that tracing the code will result in an error when running in eager. Please double check that your code doesn't contain a similar error when actually running eager/uncompiled.
   Hint: It may be possible to write Dynamo tracing rules for this code. Please report an issue to PyTorch if you encounter this graph break often and it is causing performance issues.
 
+<<<<<<< HEAD
   Developer debug context: raised exception RuntimeError([ConstantVariable(str: 'test')])
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0088.html
+=======
+  Developer debug context: raised exception ExceptionVariable(<class 'RuntimeError'>)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -637,7 +725,10 @@ Uninitialized nn.Module
 
   Developer debug context: Foo
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0119.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -666,7 +757,10 @@ Unsupported nn.Module attribute type
 
   Developer debug context: nn.Module subclass: Foo, name: attr, attribute type: module
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0161.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -696,7 +790,10 @@ Graph break under GenericContextWrappingVariable
 
   Developer debug context: Active generic context managers: [GenericContextWrappingVariable(GenericCtxMgr), GenericContextWrappingVariable(GenericCtxMgr)]
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0066.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -711,8 +808,12 @@ Call to `torch._dynamo.graph_break()`
   Hint: Remove the `torch._dynamo.graph_break()` call.
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
+<<<<<<< HEAD
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html""",
+=======
+""",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_load_build_class(self):
@@ -733,7 +834,10 @@ LOAD_BUILD_CLASS bytecode not supported
 
   Developer debug context:
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0075.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -766,7 +870,10 @@ Missing bytecode handler
   Hint: It may be possible to write Dynamo tracing rules for this code. Please report an issue to PyTorch if you encounter this graph break often and it is causing performance issues.
 
   Developer debug context: GET_AITER with args (<torch._dynamo.symbolic_convert.InstructionTranslator object at 0xmem_addr>, Instruction(GET_AITER)
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0082.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -790,14 +897,23 @@ from user code:
             lambda: torch.compile(fn, backend="eager", fullgraph=True)(),
             """\
 Reconstruction failure
+<<<<<<< HEAD
   Explanation: Dynamo has no bytecode reconstruction implemented for sourceless variable UserMethodVariable(<function ErrorMessagesTest.test_reconstruction_failure.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo)).
+=======
+  Explanation: Dynamo has no bytecode reconstruction implemented for sourceless variable UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo)).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Hint: If Dynamo is attempting to trace a return statement and your code is attempting to return a variable that Dynamo cannot reconstruct, then remove it from the return statement.
   Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
   Hint: Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't have reconstruction rules may be fundamentally unreconstructable.
 
+<<<<<<< HEAD
   Developer debug context: UserMethodVariable(<function ErrorMessagesTest.test_reconstruction_failure.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo))
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0092.html
+=======
+  Developer debug context: UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -833,7 +949,10 @@ Graph Break Reason: Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 User code traceback:
   File "test_error_messages.py", line N, in test_reconstruction_failure_gb
     torch.compile(fn, backend="eager")()
@@ -846,14 +965,23 @@ User code traceback:
             post_munge(munge_exc(records[1].exc_info[1], suppress_suffix=True, skip=0)),
             """\
 Reconstruction failure
+<<<<<<< HEAD
   Explanation: Dynamo has no bytecode reconstruction implemented for sourceless variable UserMethodVariable(<function ErrorMessagesTest.test_reconstruction_failure_gb.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo)).
+=======
+  Explanation: Dynamo has no bytecode reconstruction implemented for sourceless variable UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure_gb.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo)).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Hint: If Dynamo is attempting to trace a return statement and your code is attempting to return a variable that Dynamo cannot reconstruct, then remove it from the return statement.
   Hint: This graph break may have been caused by an earlier graph break. Resolving the earlier graph break may resolve this one.
   Hint: Report an issue to PyTorch if you need reconstrtuction support. Note that objects that don't have reconstruction rules may be fundamentally unreconstructable.
 
+<<<<<<< HEAD
   Developer debug context: UserMethodVariable(<function ErrorMessagesTest.test_reconstruction_failure_gb.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo))
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0092.html
+=======
+  Developer debug context: UserMethodVariable(<function GraphBreakMessagesTest.test_reconstruction_failure_gb.<locals>.Foo.meth at 0xmem_addr>, UserDefinedObjectVariable(Foo))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -882,7 +1010,10 @@ NotImplementedError/UnsupportedFakeTensorException when running FX node
 
   Developer debug context:
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0087.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -906,7 +1037,10 @@ Data-dependent branching
 
   Developer debug context: attempted to jump with TensorVariable()
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0170.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -973,7 +1107,10 @@ Data-dependent assertion failed (cannot compile partial graph)
 
   Developer debug context: value: ConstantVariable(bool: False)
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0034.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -1017,7 +1154,10 @@ torch._dynamo.exc.Unsupported: Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -1070,7 +1210,10 @@ torch._dynamo.exc.Unsupported: Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in fn
@@ -1106,7 +1249,10 @@ Graph Break Reason: Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 User code traceback:
   File "test_error_messages.py", line N, in test_nested_compile_user_frames
     torch.compile(fn, backend="eager")(torch.randn(3))
@@ -1220,7 +1366,10 @@ Graph Break Reason: Call to `torch._dynamo.graph_break()`
 
   Developer debug context: Called `torch._dynamo.graph_break()` with args `[]`, kwargs `{}`
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0025.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 User code traceback:
   File "test_error_messages.py", line N, in test_graph_break_traceback_collapsed_resume_frames
     f1(torch.randn(3))
@@ -1305,12 +1454,20 @@ call to a lru_cache wrapped function at: test_error_messages.py:N
             lambda: outer(f, torch.randn(3)),
             """\
 Skip calling `torch.compiler.disable()`d function
+<<<<<<< HEAD
   Explanation: Skip calling function `<function ErrorMessagesTest.test_disable_message.<locals>.f at 0xmem_addr>` since it was wrapped with `torch.compiler.disable` (reason: None)
   Hint: Remove the `torch.compiler.disable` call
 
   Developer debug context: <function ErrorMessagesTest.test_disable_message.<locals>.f at 0xmem_addr>
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0098.html
+=======
+  Explanation: Skip calling function `<function GraphBreakMessagesTest.test_disable_message.<locals>.f at 0xmem_addr>` since it was wrapped with `torch.compiler.disable` (reason: None)
+  Hint: Remove the `torch.compiler.disable` call
+
+  Developer debug context: <function GraphBreakMessagesTest.test_disable_message.<locals>.f at 0xmem_addr>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in outer
@@ -1327,12 +1484,20 @@ from user code:
             lambda: outer(g, torch.randn(3)),
             """\
 Skip calling `torch.compiler.disable()`d function
+<<<<<<< HEAD
   Explanation: Skip calling function `<function ErrorMessagesTest.test_disable_message.<locals>.g at 0xmem_addr>` since it was wrapped with `torch.compiler.disable` (reason: test message)
   Hint: Remove the `torch.compiler.disable` call
 
   Developer debug context: <function ErrorMessagesTest.test_disable_message.<locals>.g at 0xmem_addr>
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0098.html
+=======
+  Explanation: Skip calling function `<function GraphBreakMessagesTest.test_disable_message.<locals>.g at 0xmem_addr>` since it was wrapped with `torch.compiler.disable` (reason: test message)
+  Hint: Remove the `torch.compiler.disable` call
+
+  Developer debug context: <function GraphBreakMessagesTest.test_disable_message.<locals>.g at 0xmem_addr>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in outer
@@ -1358,7 +1523,10 @@ Unsupported function call (delayed)
 
   Developer debug context: source: LocalSource(local_name='fn', is_input=True, dynamism=None, is_derefed_cell_contents=False)
 
+<<<<<<< HEAD
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0148.html
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from user code:
    File "test_error_messages.py", line N, in outer
@@ -1366,6 +1534,7 @@ from user code:
             post_munge=post_munge,
         )
 
+<<<<<<< HEAD
     # Test that errors while tracing resume function prologues do not get suppressed
     def test_graph_break_in_buggy_resume_prologue(self):
         import torch._dynamo.bytecode_transformation as bt
@@ -1408,6 +1577,8 @@ from user code:
             ):
                 fn(torch.randn(3))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

@@ -4,7 +4,10 @@ ciflow_push_tags:
 - ciflow/binaries
 - ciflow/binaries_libtorch
 - ciflow/binaries_wheel
+<<<<<<< HEAD
 - ciflow/triton_binaries
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - ciflow/inductor
 - ciflow/inductor-periodic
 - ciflow/inductor-rocm
@@ -22,20 +25,29 @@ ciflow_push_tags:
 - ciflow/rocm
 - ciflow/rocm-mi300
 - ciflow/s390
+<<<<<<< HEAD
 - ciflow/riscv64
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - ciflow/slow
 - ciflow/trunk
 - ciflow/unstable
 - ciflow/xpu
+<<<<<<< HEAD
 - ciflow/vllm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - ciflow/torchbench
 - ciflow/op-benchmark
 - ciflow/pull
 - ciflow/h100
 - ciflow/h100-distributed
+<<<<<<< HEAD
 - ciflow/win-arm64
 - ciflow/h100-symm-mem
 - ciflow/h100-cutlass-backend
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 retryable_workflows:
 - pull
 - trunk

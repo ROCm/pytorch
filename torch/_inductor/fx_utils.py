@@ -1,5 +1,8 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import contextlib
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import operator
 from collections import defaultdict
 from typing import Any, Callable, Optional
@@ -89,7 +92,10 @@ class FakeTensorUpdater:
         return (node, node.target, id(node.args), id(node.kwargs))
 
     def incremental_update(self):
+<<<<<<< HEAD
         """Update FakeTensors on self.graph. We will try to do the minimum amount of work."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         existing_storages: defaultdict[Optional[int], int] = defaultdict(int)
         for node in self.graph.nodes:
             existing_storages[get_node_storage(node)] += 1
@@ -97,15 +103,23 @@ class FakeTensorUpdater:
         def is_intlist_same(new, old):
             return statically_known_true(sym_eq(new, old))
 
+<<<<<<< HEAD
         def is_fake_tensor_same(new, old, *, node):
+=======
+        def is_fake_tensor_same(new, old):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if type(new) != type(old):
                 return False
             if isinstance(new, (list, tuple)):
                 if len(new) != len(old):
                     return False
                 return all(
+<<<<<<< HEAD
                     is_fake_tensor_same(new_i, old_i, node=node)
                     for new_i, old_i in zip(new, old)
+=======
+                    is_fake_tensor_same(new_i, old_i) for new_i, old_i in zip(new, old)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             if new is None:
                 return old is None
@@ -135,6 +149,7 @@ class FakeTensorUpdater:
             if get_storage(new) == get_storage(old):
                 return True
 
+<<<<<<< HEAD
             def any_user_may_alias(node):
                 if not isinstance(node.meta["val"], torch.Tensor):
                     # analysis too complicated on lists, can support in the future
@@ -190,6 +205,14 @@ class FakeTensorUpdater:
             ):
                 return True
 
+=======
+            # This is the case where it returns a completely fresh storage that's used nowhere else.
+            if (
+                existing_storages[get_storage(old)] == 1
+                and get_storage(new) not in existing_storages
+            ):
+                return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         def should_process_node(node):
@@ -201,16 +224,22 @@ class FakeTensorUpdater:
             return node.op == "call_function" and (
                 isinstance(node.target, torch._ops.OpOverload)
                 or node.target == operator.getitem
+<<<<<<< HEAD
                 or node.target
                 == torch._inductor.fx_passes.reinplace._generalized_scatter
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         to_process = OrderedSet[int]()
         for node in self.graph.nodes:
+<<<<<<< HEAD
             # NB: Be very careful about skipping nodes (via continues) here
             # and ask for a careful review when changing this code. The
             # consequence for incorrect FakeTensor metadata is difficult-to-debug
             # silent incorrectness.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (
                 self.hash_node(node) in self.processed_hashes
                 and id(node) not in to_process
@@ -225,9 +254,14 @@ class FakeTensorUpdater:
                 continue
             with V.fake_mode, enable_python_dispatcher():
                 new_fake_tensor = node.target(*args, **kwargs)
+<<<<<<< HEAD
 
             if "val" in node.meta and is_fake_tensor_same(
                 new_fake_tensor, node.meta["val"], node=node
+=======
+            if "val" in node.meta and is_fake_tensor_same(
+                new_fake_tensor, node.meta["val"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 continue
 
@@ -314,7 +348,11 @@ def is_node_realized(node: torch.fx.Node) -> bool:
 
 
 def count_flops_fx(node: torch.fx.Node) -> Optional[int]:
+<<<<<<< HEAD
     if not countable_fx(node) or isinstance(node.target, str):
+=======
+    if isinstance(node.target, str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
     with FakeTensorMode(allow_non_fake_inputs=True):
         success, args, kwargs = get_fake_args_kwargs(node)

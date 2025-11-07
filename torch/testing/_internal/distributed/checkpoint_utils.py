@@ -3,7 +3,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
 import io
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 import shutil
 import tempfile
@@ -158,6 +161,7 @@ def with_temp_dir(
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     return wrapper
+<<<<<<< HEAD
 
 
 def with_checkpoint_logging(
@@ -191,3 +195,5 @@ def with_checkpoint_logging(
             target_logger.setLevel(original_level)
 
     return wrapper
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

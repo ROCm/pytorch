@@ -4,7 +4,10 @@
 Utility function to facilitate testing.
 
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import contextlib
 import gc
 import operator
@@ -168,7 +171,11 @@ def assert_equal(actual, desired, err_msg="", verbose=True):
 
     Examples
     --------
+<<<<<<< HEAD
     >>> np.testing.assert_equal([4, 5], [4, 6])
+=======
+    >>> np.testing.assert_equal([4,5], [4,6])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
         ...
     AssertionError:
@@ -299,12 +306,17 @@ def print_assert_equal(test_string, actual, desired):
 
     Examples
     --------
+<<<<<<< HEAD
     >>> np.testing.print_assert_equal(
     ...     "Test XYZ of func xyz", [0, 1], [0, 1]
     ... )  # doctest: +SKIP
     >>> np.testing.print_assert_equal(
     ...     "Test XYZ of func xyz", [0, 1], [0, 2]
     ... )  # doctest: +SKIP
+=======
+    >>> np.testing.print_assert_equal('Test XYZ of func xyz', [0, 1], [0, 1])  # doctest: +SKIP
+    >>> np.testing.print_assert_equal('Test XYZ of func xyz', [0, 1], [0, 2])  # doctest: +SKIP
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
     ...
     AssertionError: Test XYZ of func xyz failed
@@ -382,9 +394,14 @@ def assert_almost_equal(actual, desired, decimal=7, err_msg="", verbose=True):
      ACTUAL: 2.3333333333333
      DESIRED: 2.33333334
 
+<<<<<<< HEAD
     >>> assert_almost_equal(
     ...     np.array([1.0, 2.3333333333333]), np.array([1.0, 2.33333334]), decimal=9
     ... )
+=======
+    >>> assert_almost_equal(np.array([1.0,2.3333333333333]),
+    ...                     np.array([1.0,2.33333334]), decimal=9)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
         ...
     AssertionError:
@@ -493,6 +510,7 @@ def assert_approx_equal(actual, desired, significant=7, err_msg="", verbose=True
 
     Examples
     --------
+<<<<<<< HEAD
     >>> np.testing.assert_approx_equal(
     ...     0.12345677777777e-20, 0.1234567e-20
     ... )  # doctest: +SKIP
@@ -506,6 +524,13 @@ def assert_approx_equal(actual, desired, significant=7, err_msg="", verbose=True
     ...     0.12345672e-20,  # doctest: +SKIP
     ...     significant=8,
     ... )
+=======
+    >>> np.testing.assert_approx_equal(0.12345677777777e-20, 0.1234567e-20)  # doctest: +SKIP
+    >>> np.testing.assert_approx_equal(0.12345670e-20, 0.12345671e-20,  # doctest: +SKIP
+    ...                                significant=8)
+    >>> np.testing.assert_approx_equal(0.12345670e-20, 0.12345672e-20,  # doctest: +SKIP
+    ...                                significant=8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
         ...
     AssertionError:
@@ -515,7 +540,11 @@ def assert_approx_equal(actual, desired, significant=7, err_msg="", verbose=True
 
     the evaluated condition that raises the exception is
 
+<<<<<<< HEAD
     >>> abs(0.12345670e-20 / 1e-21 - 0.12345672e-20 / 1e-21) >= 10 ** -(8 - 1)
+=======
+    >>> abs(0.12345670e-20/1e-21 - 0.12345672e-20/1e-21) >= 10**-(8-1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     True
 
     """
@@ -790,16 +819,27 @@ def assert_array_equal(x, y, err_msg="", verbose=True, *, strict=False):
     --------
     The first assert does not raise an exception:
 
+<<<<<<< HEAD
     >>> np.testing.assert_array_equal(
     ...     [1.0, 2.33333, np.nan], [np.exp(0), 2.33333, np.nan]
     ... )
+=======
+    >>> np.testing.assert_array_equal([1.0,2.33333,np.nan],
+    ...                               [np.exp(0),2.33333, np.nan])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Use `assert_allclose` or one of the nulp (number of floating point values)
     functions for these cases instead:
 
+<<<<<<< HEAD
     >>> np.testing.assert_allclose(
     ...     [1.0, np.pi, np.nan], [1, np.sqrt(np.pi) ** 2, np.nan], rtol=1e-10, atol=0
     ... )
+=======
+    >>> np.testing.assert_allclose([1.0,np.pi,np.nan],
+    ...                            [1, np.sqrt(np.pi)**2, np.nan],
+    ...                            rtol=1e-10, atol=0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     As mentioned in the Notes section, `assert_array_equal` has special
     handling for scalars. Here the test checks that each value in `x` is 3:
@@ -824,7 +864,11 @@ def assert_array_equal(x, y, err_msg="", verbose=True, *, strict=False):
     The `strict` parameter also ensures that the array data types match:
 
     >>> x = np.array([2, 2, 2])
+<<<<<<< HEAD
     >>> y = np.array([2.0, 2.0, 2.0], dtype=np.float32)
+=======
+    >>> y = np.array([2., 2., 2.], dtype=np.float32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> np.testing.assert_array_equal(x, y, strict=True)
     Traceback (most recent call last):
         ...
@@ -896,11 +940,19 @@ def assert_array_almost_equal(x, y, decimal=6, err_msg="", verbose=True):
     --------
     the first assert does not raise an exception
 
+<<<<<<< HEAD
     >>> np.testing.assert_array_almost_equal([1.0, 2.333, np.nan], [1.0, 2.333, np.nan])
 
     >>> np.testing.assert_array_almost_equal(
     ...     [1.0, 2.33333, np.nan], [1.0, 2.33339, np.nan], decimal=5
     ... )
+=======
+    >>> np.testing.assert_array_almost_equal([1.0,2.333,np.nan],
+    ...                                      [1.0,2.333,np.nan])
+
+    >>> np.testing.assert_array_almost_equal([1.0,2.33333,np.nan],
+    ...                                      [1.0,2.33339,np.nan], decimal=5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
         ...
     AssertionError:
@@ -912,9 +964,14 @@ def assert_array_almost_equal(x, y, decimal=6, err_msg="", verbose=True):
      x: torch.ndarray([1.0000, 2.3333,    nan], dtype=float64)
      y: torch.ndarray([1.0000, 2.3334,    nan], dtype=float64)
 
+<<<<<<< HEAD
     >>> np.testing.assert_array_almost_equal(
     ...     [1.0, 2.33333, np.nan], [1.0, 2.33333, 5], decimal=5
     ... )
+=======
+    >>> np.testing.assert_array_almost_equal([1.0,2.33333,np.nan],
+    ...                                      [1.0,2.33333, 5], decimal=5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
         ...
     AssertionError:
@@ -1070,8 +1127,13 @@ def assert_string_equal(actual, desired):
 
     Examples
     --------
+<<<<<<< HEAD
     >>> np.testing.assert_string_equal("abc", "abc")  # doctest: +SKIP
     >>> np.testing.assert_string_equal("abc", "abcd")  # doctest: +SKIP
+=======
+    >>> np.testing.assert_string_equal('abc', 'abc')  # doctest: +SKIP
+    >>> np.testing.assert_string_equal('abc', 'abcd')  # doctest: +SKIP
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
     ...
@@ -1357,11 +1419,19 @@ def assert_array_almost_equal_nulp(x, y, nulp=1):
 
     Examples
     --------
+<<<<<<< HEAD
     >>> x = np.array([1.0, 1e-10, 1e-20])
     >>> eps = np.finfo(x.dtype).eps
     >>> np.testing.assert_array_almost_equal_nulp(x, x * eps / 2 + x)  # doctest: +SKIP
 
     >>> np.testing.assert_array_almost_equal_nulp(x, x * eps + x)  # doctest: +SKIP
+=======
+    >>> x = np.array([1., 1e-10, 1e-20])
+    >>> eps = np.finfo(x.dtype).eps
+    >>> np.testing.assert_array_almost_equal_nulp(x, x*eps/2 + x)  # doctest: +SKIP
+
+    >>> np.testing.assert_array_almost_equal_nulp(x, x*eps + x)  # doctest: +SKIP
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Traceback (most recent call last):
       ...
     AssertionError: X and Y are not equal to 1 ULP (max is 2)
@@ -1420,7 +1490,11 @@ def assert_array_max_ulp(a, b, maxulp=1, dtype=None):
 
     Examples
     --------
+<<<<<<< HEAD
     >>> a = np.linspace(0.0, 1.0, 100)
+=======
+    >>> a = np.linspace(0., 1., 100)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> res = np.testing.assert_array_max_ulp(a, np.arcsin(np.sin(a)))  # doctest: +SKIP
 
     """
@@ -1578,7 +1652,11 @@ def assert_warns(warning_class, *args, **kwargs):
     >>> import warnings
     >>> def deprecated_func(num):
     ...     warnings.warn("Please upgrade", DeprecationWarning)
+<<<<<<< HEAD
     ...     return num * num
+=======
+    ...     return num*num
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     >>> with np.testing.assert_warns(DeprecationWarning):
     ...     assert deprecated_func(4) == 16
     >>> # or passing a func
@@ -1679,6 +1757,7 @@ def _gen_alignment_data(dtype=float32, type="binary", max_size=24):
                 yield out, inp(), ufmt % (o, o, s, dtype, "out of place")
                 d = inp()
                 yield d, d, ufmt % (o, o, s, dtype, "in place")
+<<<<<<< HEAD
                 yield (
                     out[1:],
                     inp()[:-1],
@@ -1702,6 +1781,21 @@ def _gen_alignment_data(dtype=float32, type="binary", max_size=24):
                         dtype,
                         "out of place",
                     ),
+=======
+                yield out[1:], inp()[:-1], ufmt % (
+                    o + 1,
+                    o,
+                    s - 1,
+                    dtype,
+                    "out of place",
+                )
+                yield out[:-1], inp()[1:], ufmt % (
+                    o,
+                    o + 1,
+                    s - 1,
+                    dtype,
+                    "out of place",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 yield inp()[:-1], inp()[1:], ufmt % (o, o + 1, s - 1, dtype, "aliased")
                 yield inp()[1:], inp()[:-1], ufmt % (o + 1, o, s - 1, dtype, "aliased")
@@ -1717,6 +1811,7 @@ def _gen_alignment_data(dtype=float32, type="binary", max_size=24):
                 yield d, d, inp2(), bfmt % (o, o, o, s, dtype, "in place1")
                 d = inp2()
                 yield d, inp1(), d, bfmt % (o, o, o, s, dtype, "in place2")
+<<<<<<< HEAD
                 yield (
                     out[1:],
                     inp1()[:-1],
@@ -1800,6 +1895,55 @@ def _gen_alignment_data(dtype=float32, type="binary", max_size=24):
                         dtype,
                         "aliased",
                     ),
+=======
+                yield out[1:], inp1()[:-1], inp2()[:-1], bfmt % (
+                    o + 1,
+                    o,
+                    o,
+                    s - 1,
+                    dtype,
+                    "out of place",
+                )
+                yield out[:-1], inp1()[1:], inp2()[:-1], bfmt % (
+                    o,
+                    o + 1,
+                    o,
+                    s - 1,
+                    dtype,
+                    "out of place",
+                )
+                yield out[:-1], inp1()[:-1], inp2()[1:], bfmt % (
+                    o,
+                    o,
+                    o + 1,
+                    s - 1,
+                    dtype,
+                    "out of place",
+                )
+                yield inp1()[1:], inp1()[:-1], inp2()[:-1], bfmt % (
+                    o + 1,
+                    o,
+                    o,
+                    s - 1,
+                    dtype,
+                    "aliased",
+                )
+                yield inp1()[:-1], inp1()[1:], inp2()[:-1], bfmt % (
+                    o,
+                    o + 1,
+                    o,
+                    s - 1,
+                    dtype,
+                    "aliased",
+                )
+                yield inp1()[:-1], inp1()[:-1], inp2()[1:], bfmt % (
+                    o,
+                    o,
+                    o + 1,
+                    s - 1,
+                    dtype,
+                    "aliased",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
 
@@ -1880,10 +2024,16 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     --------
     >>> import warnings
     >>> with np.testing.clear_and_catch_warnings(  # doctest: +SKIP
+<<<<<<< HEAD
     ...     modules=[np.core.fromnumeric]
     ... ):
     ...     warnings.simplefilter("always")
     ...     warnings.filterwarnings("ignore", module="np.core.fromnumeric")
+=======
+    ...         modules=[np.core.fromnumeric]):
+    ...     warnings.simplefilter('always')
+    ...     warnings.filterwarnings('ignore', module='np.core.fromnumeric')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ...     # do something that raises a warning but ignore those in
     ...     # np.core.fromnumeric
     """
@@ -1981,8 +2131,11 @@ class suppress_warnings:
 
         sup = np.testing.suppress_warnings()
         sup.filter(module=np.ma.core)  # module must match exactly
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @sup
         def some_function():
             # do something which causes a warning in np.ma.core

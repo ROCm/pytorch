@@ -403,12 +403,18 @@ class Unpickler:
                     func not in _get_allowed_globals().values()
                     and func not in _get_user_allowed_globals().values()
                 ):
+<<<<<<< HEAD
                     error_msg = (
                         f"Trying to call reduce for unrecognized function {func}"
                     )
                     if hasattr(func, "__self__"):
                         error_msg += f" which belongs to {func.__self__}"
                     raise UnpicklingError(error_msg)
+=======
+                    raise UnpicklingError(
+                        f"Trying to call reduce for unrecognized function {func}"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 result = func(*args)
                 if func in torch._tensor_classes and "sparse" in func.__module__:
                     _sparse_tensors_to_validate.append(result)
@@ -520,7 +526,11 @@ class Unpickler:
             elif key[0] == BINPERSID[0]:
                 pid = self.stack.pop()
                 # Only allow persistent load of storage
+<<<<<<< HEAD
                 if type(pid) is not tuple and type(pid) is not int:
+=======
+                if type(pid) is not tuple and not type(pid) is not int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise UnpicklingError(
                         f"persistent_load id must be tuple or int, but got {type(pid)}"
                     )

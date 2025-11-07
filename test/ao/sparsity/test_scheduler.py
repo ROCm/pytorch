@@ -188,7 +188,11 @@ class TestCubicScheduler(TestCase):
         self.assertEqual(
             self._get_sparsity_levels(sparsifier),
             self.sorted_sparse_levels,
+<<<<<<< HEAD
             msg="Sparsity level is not reaching the target level after delta_t * n steps ",
+=======
+            msg="Sparsity level is not reaching the target level afer delta_t * n steps ",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 

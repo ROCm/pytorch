@@ -7,7 +7,10 @@
 #include <algorithm>
 #include <iterator>
 #include <numeric>
+<<<<<<< HEAD
 #include <vector>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/Dispatch.h>
 #include <ATen/Parallel.h>
@@ -648,10 +651,17 @@ _vec_softmax(
   parallel_for(
       0, outer_size * inner_size, 0, [&](int64_t begin, int64_t end) {
         int64_t idx = begin;
+<<<<<<< HEAD
         std::vector<float> temp_vec_input(dim_size * vectorized_step);
         std::vector<float> temp_vec_output(dim_size * vectorized_step);
         float* temp_vec_input_data = temp_vec_input.data();
         float* temp_vec_output_data = temp_vec_output.data();
+=======
+        std::unique_ptr<float[]> temp_vec_input(new float[dim_size*vectorized_step]());
+        std::unique_ptr<float[]> temp_vec_output(new float[dim_size*vectorized_step]());
+        float* temp_vec_input_data = temp_vec_input.get();
+        float* temp_vec_output_data = temp_vec_output.get();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         while (idx < end) {
           int64_t outer_idx = idx / inner_size;
           int64_t inner_idx = idx % inner_size;

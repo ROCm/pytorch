@@ -210,6 +210,7 @@ class set_grad_enabled(_DecoratorContextManager):
 
 
 class inference_mode(_DecoratorContextManager):
+<<<<<<< HEAD
     r"""Context manager that enables or disables inference mode.
 
     InferenceMode is analogous to :class:`~no_grad` and should be used
@@ -221,11 +222,24 @@ class inference_mode(_DecoratorContextManager):
     recorded by autograd.
 
     This context manager is thread-local; it does not affect computation
+=======
+    r"""Context-manager that enables or disables inference mode.
+
+    InferenceMode is a context manager analogous to :class:`~no_grad`
+    to be used when you are certain your operations will have no interactions
+    with autograd (e.g., model training). Code run under this mode gets better
+    performance by disabling view tracking and version counter bumps. Note that
+    unlike some other mechanisms that locally enable or disable grad,
+    entering inference_mode also disables to :ref:`forward-mode AD <forward-mode-ad>`.
+
+    This context manager is thread local; it will not affect computation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     in other threads.
 
     Also functions as a decorator.
 
     .. note::
+<<<<<<< HEAD
         Inference mode is one of several mechanisms that can locally enable
         or disable gradients. See :ref:`locally-disable-grad-doc` for a
         comparison. If avoiding the use of tensors created in inference mode
@@ -241,6 +255,16 @@ class inference_mode(_DecoratorContextManager):
         mode (bool or function): Either a boolean flag to enable or disable
             inference mode, or a Python function to decorate with inference
             mode enabled.
+=======
+        Inference mode is one of several mechanisms that can enable or
+        disable gradients locally see :ref:`locally-disable-grad-doc` for
+        more information on how they compare.
+
+    Args:
+        mode (bool or function): Either a boolean flag whether to enable or
+            disable inference mode or a Python function to decorate with
+            inference mode enabled
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Example::
         >>> # xdoctest: +REQUIRES(env:TORCH_DOCTEST_AUTOGRAD)
@@ -250,7 +274,11 @@ class inference_mode(_DecoratorContextManager):
         ...     y = x * x
         >>> y.requires_grad
         False
+<<<<<<< HEAD
         >>> # xdoctest: +SKIP("want string isn't quite right")
+=======
+        >>> # xdoctest: +SKIP("want string isnt quite right")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>> y._version
         Traceback (most recent call last):
         File "<stdin>", line 1, in <module>

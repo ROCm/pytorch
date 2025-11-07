@@ -876,7 +876,11 @@ def _fold_conv_bn_qat(m: GraphModule) -> GraphModule:
             m, F.conv_transpose2d, _quantized_conv2d_bn_example_inputs, is_cuda=is_cuda
         )
 
+<<<<<<< HEAD
     # remove in place add from batchnorm tracking training stats
+=======
+    # remove in place add from batchnorm tracking traning stats
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node in m.graph.nodes:
         if (
             node.target == torch.ops.aten.add_.Tensor

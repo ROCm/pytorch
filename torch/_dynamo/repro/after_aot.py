@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Utilities for reproducing and debugging issues in PyTorch's Dynamo AOT compilation.
 
@@ -17,8 +22,11 @@ This is primarily used by PyTorch developers and researchers to debug issues in
 the Dynamo AOT compilation pipeline, particularly for the Inductor backend.
 """
 
+<<<<<<< HEAD
 from __future__ import annotations
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import argparse
 import copy
 import functools
@@ -30,6 +38,7 @@ import subprocess
 import sys
 import textwrap
 import uuid
+<<<<<<< HEAD
 from importlib import import_module
 from tempfile import TemporaryFile
 from typing import Any, Callable, IO, Optional, TYPE_CHECKING, Union
@@ -51,6 +60,14 @@ except ImportError:
         pass
 
 
+=======
+from collections.abc import Sequence
+from importlib import import_module
+from tempfile import TemporaryFile
+from typing import Any, Callable, TYPE_CHECKING, Union
+from typing_extensions import Unpack
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch
 import torch.fx as fx
 import torch.nn as nn
@@ -75,10 +92,15 @@ from torch._dynamo.debug_utils import (
 )
 from torch._dynamo.utils import clone_inputs, counters, same
 from torch._environment import is_fbcode
+<<<<<<< HEAD
 from torch._higher_order_ops.triton_kernel_wrap import kernel_side_table
 from torch._inductor.cpp_builder import normalize_path_separator
 from torch._library.fake_class_registry import FakeScriptObject
 from torch._ops import OpOverload
+=======
+from torch._inductor.output_code import OutputCode
+from torch._library.fake_class_registry import FakeScriptObject
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.fx.experimental.symbolic_shapes import (
     fx_placeholder_targets,
@@ -90,10 +112,14 @@ from .. import config
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Sequence
 
     from torch._inductor.compile_fx import _CompileFxCallable, _CompileFxKwargs
     from torch._inductor.output_code import OutputCode
+=======
+    from torch._inductor.compile_fx import _CompileFxCallable, _CompileFxKwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.utils import InputType
 
 
@@ -109,9 +135,15 @@ use_buck = is_fbcode()
 
 
 def wrap_compiler_debug(
+<<<<<<< HEAD
     unconfigured_compiler_fn: _CompileFxCallable,
     compiler_name: str,
 ) -> _CompileFxCallable:
+=======
+    unconfigured_compiler_fn: "_CompileFxCallable",
+    compiler_name: str,
+) -> "_CompileFxCallable":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Minifier for Fx Graph modules after Aot Autograd has finished. We wrap both
     forward and backward call separately with the backend compiler_fn - like
@@ -123,8 +155,13 @@ def wrap_compiler_debug(
     @functools.wraps(unconfigured_compiler_fn)
     def debug_wrapper(
         gm: torch.fx.GraphModule,
+<<<<<<< HEAD
         example_inputs: Sequence[InputType],
         **kwargs: Unpack[_CompileFxKwargs],
+=======
+        example_inputs: Sequence["InputType"],
+        **kwargs: Unpack["_CompileFxKwargs"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> OutputCode:
         from torch._subclasses import FakeTensorMode
 
@@ -164,7 +201,11 @@ def wrap_compiler_debug(
         # We may run regular PyTorch compute that may trigger Dynamo, do NOT
         # recursively attempt to accuracy minify in that case!
         def deferred_for_real_inputs(
+<<<<<<< HEAD
             real_inputs: Sequence[InputType], **_kwargs: object
+=======
+            real_inputs: Sequence["InputType"], **_kwargs: object
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) -> Any:
             # This is a bit obscure: if we recursively try to accuracy minify
             # the SAME function, this would trigger.  But most of the time
@@ -176,7 +217,11 @@ def wrap_compiler_debug(
             with config.patch(repro_after=None):
                 return inner_debug_fn(real_inputs)
 
+<<<<<<< HEAD
         def inner_debug_fn(real_inputs: Sequence[InputType]) -> Any:
+=======
+        def inner_debug_fn(real_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """
             Aot Autograd fw_compiler and bw_compiler can have fake tensors. So,
             example_inputs can be fake tensors. We can call compiler_fn (which is
@@ -205,7 +250,11 @@ def wrap_compiler_debug(
                     )
                 failed = not same_two_models(
                     gm,
+<<<<<<< HEAD
                     inner_compiled_fn,  # type: ignore[arg-type]
+=======
+                    inner_compiled_fn,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     real_inputs,
                     only_fwd=True,
                     ignore_non_fp=config.repro_ignore_non_fp,
@@ -269,7 +318,11 @@ def wrap_compiler_debug(
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
+<<<<<<< HEAD
 def maybe_fbcode_instructions() -> str:
+=======
+def maybe_fbcode_instructions():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if is_fbcode():
         extra_deps_formatted = "\n".join([f'        "{dep}",' for dep in extra_deps])
         if len(extra_deps_formatted) > 0:
@@ -302,6 +355,7 @@ python_binary(
 
 
 def generate_compiler_repro_string(
+<<<<<<< HEAD
     gm: torch.fx.GraphModule,
     args: Sequence[Any],
     *,
@@ -332,6 +386,10 @@ import triton.language as tl
         """
         ).strip()
 
+=======
+    gm, args, *, stable_output=False, save_dir=None, stable_hash=False
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     model_str = textwrap.dedent(
         f"""
 {generate_env_vars_string(stable_output=stable_output)}
@@ -341,8 +399,11 @@ import torch.fx as fx
 from torch._dynamo.testing import rand_strided
 from math import inf
 import torch._inductor.inductor_prims
+<<<<<<< HEAD
 {distributed_imports}
 {triton_imports}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 {generate_config_string(stable_output=stable_output)}
 
@@ -351,7 +412,11 @@ isolate_fails_code_str = None
 {extra_imports}
 
 {maybe_fbcode_instructions()}
+<<<<<<< HEAD
      """
+=======
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     if not stable_output:
         model_str += f"# torch version: {torch.version.__version__}\n"
@@ -361,6 +426,7 @@ isolate_fails_code_str = None
             model_str += f"# torch git version: {torch.version.git_version}\n\n\n"
         model_str += _cuda_system_info_comment()
 
+<<<<<<< HEAD
     kernel_side_table_prefix = (
         "torch._higher_order_ops.triton_kernel_wrap.kernel_side_table"
     )
@@ -420,6 +486,16 @@ isolate_fails_code_str = None
     # Extract from graph placeholders and their corresponding arguments
     placeholder_targets = fx_placeholder_targets(gm)
     for placeholder, arg in zip(placeholder_targets, args):
+=======
+    model_str += NNModuleToString.convert(gm)
+
+    # get hint shape/stride when dynamic shape enabled
+    def hint_if_symint(x):
+        return tuple(i.node.hint if isinstance(i, torch.SymInt) else i for i in x)
+
+    writer = InputWriter(save_dir, stable_hash=stable_hash)
+    for placeholder, arg in zip(fx_placeholder_targets(gm), args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(arg, (int, torch.SymInt)):
             writer.symint(placeholder, arg)
         elif isinstance(arg, torch.Tensor):
@@ -428,6 +504,7 @@ isolate_fails_code_str = None
         elif arg is None:
             writer.const(placeholder)
         else:
+<<<<<<< HEAD
             writer.unsupported(placeholder, arg)
 
         # Extract symbolic variables from the same arguments
@@ -454,12 +531,20 @@ isolate_fails_code_str = None
     load_args_lines = writer.lines()
     load_args_code = "\n".join(load_args_lines)
     model_str += load_args_code + "\n"
+=======
+            # It's better to produce a slightly wrong repro string than none
+            # at all
+            writer.unsupported(placeholder, arg)
+
+    model_str += "\n".join(writer.lines()) + "\n"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     model_str += "mod = Repro()\n"
     return model_str
 
 
 def save_graph_repro(
+<<<<<<< HEAD
     fd: IO[Any],
     gm: torch.fx.GraphModule,
     args: Sequence[Any],
@@ -473,6 +558,21 @@ def save_graph_repro(
     check_str: Optional[str] = None,
     stable_hash: bool = False,
 ) -> None:
+=======
+    fd,
+    gm,
+    args,
+    compiler_name,
+    *,
+    stable_output=False,
+    save_dir=None,
+    command="run",
+    accuracy=None,
+    tracing_mode=None,
+    check_str=None,
+    stable_hash=False,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if any(
         isinstance(arg, torch.fx.experimental._backward_state.BackwardState)
         for arg in args
@@ -482,6 +582,7 @@ def save_graph_repro(
         )
         return
 
+<<<<<<< HEAD
     if save_dir is not None:
         save_dir = normalize_path_separator(save_dir)
 
@@ -493,6 +594,8 @@ def save_graph_repro(
         for node in gm.graph.nodes
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fd.write(
         generate_compiler_repro_string(
             gm,
@@ -500,7 +603,10 @@ def save_graph_repro(
             stable_output=stable_output,
             save_dir=save_dir,
             stable_hash=stable_hash,
+<<<<<<< HEAD
             has_distributed_ops=has_distributed_ops,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     )
     if accuracy is None:
@@ -513,6 +619,7 @@ def save_graph_repro(
             tracing_mode = "symbolic"
     fd.write("if __name__ == '__main__':\n")
     fd.write("    from torch._dynamo.repro.after_aot import run_repro\n")
+<<<<<<< HEAD
 
     # Add distributed initialization before run_repro if needed
     if has_distributed_ops:
@@ -527,6 +634,8 @@ def save_graph_repro(
             "    )\n"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     fd.write(
         f"    with torch.no_grad():\n"
         f"        run_repro(mod, load_args, accuracy={accuracy!r}, command={command!r}, "
@@ -537,6 +646,7 @@ def save_graph_repro(
         f"        # mod(*args)"
     )
 
+<<<<<<< HEAD
     # Add distributed cleanup after run_repro
     if has_distributed_ops:
         fd.write("\n    dist.destroy_process_group()\n")
@@ -549,6 +659,10 @@ def dump_compiler_graph_state(
     *,
     accuracy: Optional[Union[str, bool]] = None,
 ) -> None:
+=======
+
+def dump_compiler_graph_state(gm, args, compiler_name, *, accuracy=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     subdir = os.path.join(minifier_dir(), "checkpoints")
     if not os.path.exists(subdir):
         os.makedirs(subdir, exist_ok=True)
@@ -576,9 +690,13 @@ def dump_compiler_graph_state(
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
+<<<<<<< HEAD
 def dump_to_minify(
     gm: torch.fx.GraphModule, args: Sequence[Any], compiler_name: str
 ) -> None:
+=======
+def dump_to_minify(gm, args, compiler_name: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     out = io.StringIO()
     # TODO: factor this out
     subdir = os.path.join(minifier_dir(), "checkpoints")
@@ -589,6 +707,7 @@ def dump_to_minify(
 
 
 def isolate_fails(
+<<<<<<< HEAD
     fx_g: torch.fx.GraphModule,
     args: Sequence[Any],
     compiler_name: str,
@@ -598,6 +717,17 @@ def isolate_fails(
     tracing_mode: Optional[str] = None,
     check_str: Optional[str] = None,
 ) -> bool:
+=======
+    fx_g,
+    args,
+    compiler_name: str,
+    env=None,
+    save_dir=None,
+    accuracy=None,
+    tracing_mode=None,
+    check_str=None,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if env is None:
         env = {}
     subdir = os.path.join(os.getcwd(), "isolate")
@@ -653,16 +783,24 @@ def isolate_fails(
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
+<<<<<<< HEAD
 def inductor_fails(
     fx_g: torch.fx.GraphModule, args: Sequence[Any], check_str: Optional[str] = None
 ) -> bool:
+=======
+def inductor_fails(fx_g, args, check_str=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     has_cuda = False
     for arg in args:
         if isinstance(arg, torch.Tensor) and arg.is_cuda:
             has_cuda = True
             break
 
+<<<<<<< HEAD
     def sync() -> None:
+=======
+    def sync():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if has_cuda:
             # Ensures that segfaults are surfaced
             torch.cuda.synchronize()
@@ -692,6 +830,7 @@ def inductor_fails(
 
 
 def inductor_accuracy_fails(
+<<<<<<< HEAD
     fx_g: torch.fx.GraphModule,
     args: Sequence[Any],
     check_str: Optional[str] = None,
@@ -699,12 +838,21 @@ def inductor_accuracy_fails(
     require_fp64: bool = False,
     ignore_non_fp: bool = False,
 ) -> bool:
+=======
+    fx_g, args, check_str=None, *, require_fp64=False, ignore_non_fp=False
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.compile_fx import compile_fx_inner
 
     return backend_aot_accuracy_fails(
         fx_g,
+<<<<<<< HEAD
         args,  # type: ignore[arg-type]
         compile_fx_inner,  # type: ignore[arg-type]
+=======
+        args,
+        compile_fx_inner,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         require_fp64=require_fp64,
         ignore_non_fp=ignore_non_fp,
     )
@@ -718,9 +866,13 @@ backend_aot_accuracy_fails = functools.partial(backend_accuracy_fails, only_fwd=
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
+<<<<<<< HEAD
 def repro_common(
     options: Any, mod: nn.Module, load_args: Any
 ) -> tuple[torch.fx.GraphModule, Sequence[Any]]:
+=======
+def repro_common(options, mod, load_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Invariant for graphs we generate with the repro script
     assert not any(mod.named_parameters())
     for n, b in mod.named_buffers():
@@ -763,7 +915,11 @@ def repro_common(
     return mod, args
 
 
+<<<<<<< HEAD
 ACCURACY_FAILS: dict[str, Callable[[torch.fx.GraphModule, Any], bool]] = {
+=======
+ACCURACY_FAILS: dict[str, Callable[[nn.Module, Any], bool]] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "": inductor_fails,
     # This might look inverted but it's not.  strict_accuracy means "we will
     # minify any time we see anything that diverges", whereas accuracy is more
@@ -776,7 +932,11 @@ ACCURACY_FAILS: dict[str, Callable[[torch.fx.GraphModule, Any], bool]] = {
 }
 
 
+<<<<<<< HEAD
 def repro_minifier_query(options: Any, mod: nn.Module, load_args: Any) -> None:
+=======
+def repro_minifier_query(options, mod, load_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mod, args = repro_common(options, mod, load_args)
     fail_fn = functools.partial(
         ACCURACY_FAILS[options.accuracy],
@@ -788,7 +948,11 @@ def repro_minifier_query(options: Any, mod: nn.Module, load_args: Any) -> None:
         sys.exit(0)
 
 
+<<<<<<< HEAD
 def repro_minify(options: Any, mod: nn.Module, load_args: Any) -> None:
+=======
+def repro_minify(options, mod, load_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from functorch.compile import minifier
 
     mod, args = repro_common(options, mod, load_args)
@@ -825,7 +989,11 @@ def repro_minify(options: Any, mod: nn.Module, load_args: Any) -> None:
     )
 
 
+<<<<<<< HEAD
 def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
+=======
+def repro_analyze(options, mod, load_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.compile_fx import compile_fx_inner
     from torch._inductor.hooks import intermediate_hook
 
@@ -843,7 +1011,11 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
 
     known_names = set()
 
+<<<<<<< HEAD
     def save_hook(name: str, val: Any) -> None:
+=======
+    def save_hook(name, val):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         known_names.add(name)
         if not options.skip_saving_inductor_intermediates:
             writer.write_tensor(os.path.join("inductor", name), val)
@@ -860,10 +1032,17 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
         tqdm(desc="Saving inductor intermediates", total=total) as pbar,
     ):
         assert not isinstance(compiled, str)
+<<<<<<< HEAD
         compiled(new_args)  # type: ignore[arg-type]
         assert not new_args
 
     def compare_tuples(tuple1: tuple[Any], tuple2: tuple[Any]) -> Optional[str]:
+=======
+        compiled(new_args)
+        assert not new_args
+
+    def compare_tuples(tuple1, tuple2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         diff_indices = [i for i in range(len(tuple1)) if tuple1[i] != tuple2[i]]
         diff_values = [(tuple1[i], tuple2[i]) for i in diff_indices]
 
@@ -872,7 +1051,11 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
         else:
             return " and ".join(f"{a} != {b}" for a, b in diff_values)
 
+<<<<<<< HEAD
     def check_hook(name: str, val: Any) -> None:
+=======
+    def check_hook(name, val):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         meta = writer.compute_tensor_metadata(val)
         meta2 = reader.read_tensor_metadata(os.path.join("inductor", name))
         reason = compare_tuples(meta, meta2)
@@ -886,6 +1069,7 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
             intermediate_hook(check_hook),
             tqdm(desc="Checking inductor determinism", total=total) as pbar,
         ):
+<<<<<<< HEAD
             compiled(new_args)  # type: ignore[arg-type]
             assert not new_args
 
@@ -895,6 +1079,17 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
             self.subdir = subdir
 
         def run_node(self, n: torch.fx.Node) -> Any:
+=======
+            compiled(new_args)
+            assert not new_args
+
+    class WriterInterp(fx.Interpreter):
+        def __init__(self, mod, subdir) -> None:
+            super().__init__(mod)
+            self.subdir = subdir
+
+        def run_node(self, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             r = super().run_node(n)
             name = n.name
             if name in known_names:
@@ -905,13 +1100,21 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
     # NB: the module cast doesn't actually do anything, since there are no
     # parameters/buffers on the module
     if not options.skip_saving_float64_intermediates:
+<<<<<<< HEAD
         new_mod, new_args = cast_to_fp64(copy.deepcopy(mod), clone_inputs(args))  # type: ignore[arg-type]
+=======
+        new_mod, new_args = cast_to_fp64(copy.deepcopy(mod), clone_inputs(args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with tqdm(desc="Saving float64 intermediates", total=total) as pbar:
             WriterInterp(new_mod, "float64").boxed_run(new_args)
         assert not new_args
 
     class ExactReaderInterp(fx.Interpreter):
+<<<<<<< HEAD
         def run_node(self, n: torch.fx.Node) -> Any:
+=======
+        def run_node(self, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             r = super().run_node(n)
             name = n.name
             if name in known_names:
@@ -926,7 +1129,11 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
     # TODO: check eager determinism
 
     if not options.skip_check_deterministic:
+<<<<<<< HEAD
         new_mod, new_args = cast_to_fp64(copy.deepcopy(mod), clone_inputs(args))  # type: ignore[arg-type]
+=======
+        new_mod, new_args = cast_to_fp64(copy.deepcopy(mod), clone_inputs(args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with tqdm(desc="Checking float64 determinism", total=total) as pbar:
             ExactReaderInterp(new_mod).boxed_run(new_args)
             assert not new_args
@@ -934,7 +1141,11 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
     # Now that we've saved everything, interp through the eager graph
     # and do comparisons
     class ReaderInterp(fx.Interpreter):
+<<<<<<< HEAD
         def run_node(self, n: torch.fx.Node) -> Any:
+=======
+        def run_node(self, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             r = super().run_node(n)
             name = n.name
             if name in known_names:
@@ -942,7 +1153,11 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
                 float64 = reader.read_tensor(os.path.join("float64", name))
                 logged = False
 
+<<<<<<< HEAD
                 def log_error(msg: str, *args: Any) -> None:
+=======
+                def log_error(msg, *args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     nonlocal logged
                     logged = True
                     pbar.write(f"DIVERGED at {name}: {msg % args}")
@@ -964,6 +1179,7 @@ def repro_analyze(options: Any, mod: nn.Module, load_args: Any) -> None:
     assert not args
 
 
+<<<<<<< HEAD
 def repro_get_args(
     options: Any, mod: nn.Module, load_args: Any
 ) -> tuple[torch.fx.GraphModule, list[Any]]:
@@ -972,6 +1188,14 @@ def repro_get_args(
 
 
 def repro_run(options: Any, mod: nn.Module, load_args: Any) -> None:
+=======
+def repro_get_args(options, mod, load_args):
+    mod, args = repro_common(options, mod, load_args)
+    return mod, args
+
+
+def repro_run(options, mod, load_args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.compile_fx import compile_fx_inner
 
     mod, args = repro_common(options, mod, load_args)
@@ -986,7 +1210,11 @@ def repro_run(options: Any, mod: nn.Module, load_args: Any) -> None:
         # seems counterintuitive
         if not same_two_models(
             mod,
+<<<<<<< HEAD
             compiled,  # type: ignore[arg-type]
+=======
+            compiled,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             args,
             only_fwd=True,
             ignore_non_fp=config.repro_ignore_non_fp,
@@ -1008,6 +1236,7 @@ def repro_run(options: Any, mod: nn.Module, load_args: Any) -> None:
 
 # TODO: lazily load the inputs or something, rather than cloning them
 def run_repro(
+<<<<<<< HEAD
     mod: nn.Module,
     load_args: Any,
     *,
@@ -1019,6 +1248,19 @@ def run_repro(
     check_str: Optional[str] = None,
     **kwargs: Any,
 ) -> Any:
+=======
+    mod,
+    load_args,
+    *,
+    command="run",
+    accuracy: Union[bool, str] = "",
+    save_dir=None,
+    tracing_mode=None,
+    patch_code=None,
+    check_str=None,
+    **kwargs,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for k in kwargs:
         log.warning(
             "Unrecognized kwarg %s; perhaps this repro was made on a newer version of PyTorch",
@@ -1051,7 +1293,11 @@ default settings on this script:
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
+<<<<<<< HEAD
     def common_flags(parser: argparse.ArgumentParser) -> None:
+=======
+    def common_flags(parser):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         accuracy_group = parser.add_mutually_exclusive_group()
         accuracy_group.add_argument(
             "--no-accuracy",

@@ -699,6 +699,7 @@ class LazyModuleKwArgs(LazyModuleMixin, torch.nn.Module):
         return self.layer(x, y=y)
 
 
+<<<<<<< HEAD
 class LazyModuleBadInferParams(LazyModuleMixin, torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -710,6 +711,8 @@ class LazyModuleBadInferParams(LazyModuleMixin, torch.nn.Module):
         return self.layer(x, y=y)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LazyParentModule(LazyModuleMixin, torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -1665,6 +1668,7 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
         exp_res = m(x, y)
         self.assertTrue(torch.allclose(exp_res, opt_m(x, y)))
 
+<<<<<<< HEAD
     def test_lazy_module_bad_params(self):
         m = LazyModuleBadInferParams()
         x = [torch.rand([5, 5])] * 3
@@ -1691,6 +1695,8 @@ class NNModuleTests(torch._dynamo.test_case.TestCase):
         with self.assertRaises(AttributeError):
             exp_res = opt_m(x, y)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # RuntimeError: SymIntArrayRef expected to contain only concrete integers
     @expectedFailureDynamic
     def test_lazy_module_speculation_log_divergence(self):
@@ -2024,7 +2030,11 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         # Check order of _modules
         def fn(x):
             for idx, p in enumerate(mod.modules()):
+<<<<<<< HEAD
                 # Something silly to force dependency on the order
+=======
+                # Something silly to force depedency on the order
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 x += coeffs_for_mod[p] * coeffs[idx]
             for idx, p in enumerate(mod.named_modules()):
                 x += coeffs_for_mod[p[1]] * coeffs[idx]
@@ -3422,6 +3432,7 @@ class OptimizedModuleTest(torch._dynamo.test_case.TestCase):
         compiled_mod = torch.compile(mod, backend="eager")
         compiled_mod(x)
 
+<<<<<<< HEAD
     def test_trace_delattr(self):
         TMP_PREFIX = "_tmp_"
 
@@ -3479,6 +3490,11 @@ devices = ["cuda", "hpu", "xpu"]
 instantiate_device_type_tests(
     NNModuleTestsDevice, globals(), only_for=devices, allow_xpu=True
 )
+=======
+
+devices = ["cuda", "hpu"]
+instantiate_device_type_tests(NNModuleTestsDevice, globals(), only_for=devices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

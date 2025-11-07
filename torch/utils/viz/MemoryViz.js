@@ -1724,6 +1724,7 @@ body.on('drop', () => {
 selection_to_div[''] = body
   .append('div')
   .text(
+<<<<<<< HEAD
     'Drag and drop or select a file to load a local snapshot. No data from the snapshot is uploaded.',
   );
 
@@ -1746,6 +1747,11 @@ const fileInput = body.append('input')
     selected_change();                       // refresh the UI
   });
 
+=======
+    'Drag and drop a file to load a local snapshot. No data from the snapshot is uploaded.',
+  );
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 let next_unique_n = 1;
 function add_snapshot(name, loader) {
   if (name in snapshot_to_loader) {

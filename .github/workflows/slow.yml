@@ -18,9 +18,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}-${{ github.event_name == 'schedule' }}-${{ github.event.schedule }}
   cancel-in-progress: true
 
+<<<<<<< HEAD
 permissions:
   id-token: write
   contents: read
+=======
+permissions: read-all
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 jobs:
   llm-td:
@@ -41,7 +45,11 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.9
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -78,14 +86,24 @@ jobs:
       test-matrix: ${{ needs.linux-jammy-cuda12_8-py3_10-gcc11-sm86-build.outputs.test-matrix }}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-jammy-py3_10-clang12-build:
     name: linux-jammy-py3.10-clang12
+=======
+  linux-jammy-py3_9-clang12-build:
+    name: linux-jammy-py3.9-clang12
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
     with:
       runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+<<<<<<< HEAD
       build-environment: linux-jammy-py3.10-clang12
       docker-image-name: ci-image:pytorch-linux-jammy-py3.10-clang12
+=======
+      build-environment: linux-jammy-py3.9-clang12
+      docker-image-name: ci-image:pytorch-linux-jammy-py3.9-clang12
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       test-matrix: |
         { include: [
           { config: "slow", shard: 1, num_shards: 2, runner: "linux.2xlarge" },
@@ -93,6 +111,7 @@ jobs:
         ]}
     secrets: inherit
 
+<<<<<<< HEAD
   linux-jammy-py3_10-clang12-test:
     name: linux-jammy-py3.10-clang12
     uses: ./.github/workflows/_linux-test.yml
@@ -103,6 +122,18 @@ jobs:
       build-environment: linux-jammy-py3.10-clang12
       docker-image: ${{ needs.linux-jammy-py3_10-clang12-build.outputs.docker-image }}
       test-matrix: ${{ needs.linux-jammy-py3_10-clang12-build.outputs.test-matrix }}
+=======
+  linux-jammy-py3_9-clang12-test:
+    name: linux-jammy-py3.9-clang12
+    uses: ./.github/workflows/_linux-test.yml
+    needs:
+      - linux-jammy-py3_9-clang12-build
+      - target-determination
+    with:
+      build-environment: linux-jammy-py3.9-clang12
+      docker-image: ${{ needs.linux-jammy-py3_9-clang12-build.outputs.docker-image }}
+      test-matrix: ${{ needs.linux-jammy-py3_9-clang12-build.outputs.test-matrix }}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     secrets: inherit
 
   linux-jammy-rocm-py3_10-build:

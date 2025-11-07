@@ -700,7 +700,11 @@ class TestConverter(TestCase):
                 else:
                     return self.w + self.m2(x)
 
+<<<<<<< HEAD
         # Super nested, parameters need to be lifted
+=======
+        # Super nested, parameters neeed to lifted
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # multiple times.
         class SuperNestedM(torch.nn.Module):
             def __init__(self) -> None:
@@ -755,7 +759,11 @@ class TestConverter(TestCase):
                 else:
                     return self.linear(self.m2(x))
 
+<<<<<<< HEAD
         # Super nested, parameters need to be lifted
+=======
+        # Super nested, parameters neeed to lifted
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # multiple times.
         class SuperNestedM1(torch.nn.Module):
             def __init__(self, dim: int) -> None:
@@ -771,7 +779,11 @@ class TestConverter(TestCase):
                     return self.linear(self.m2(x))
 
         # Super nested, even the input needs to be
+<<<<<<< HEAD
         # lifted recursively due to value propagation optimization.
+=======
+        # lifted recursively due to value propogation optimiztaion.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class SuperNestedM2(torch.nn.Module):
             def __init__(self, dim: int) -> None:
                 super().__init__()
@@ -911,7 +923,11 @@ class TestConverter(TestCase):
                 return x + x
 
             # Meta function of the custom op.
+<<<<<<< HEAD
             @torch.library.register_fake(
+=======
+            @torch.library.impl_abstract(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "mylib::foo",
                 lib=lib,
             )
@@ -1448,11 +1464,15 @@ class TestConverter(TestCase):
             ep_out, _ = pytree.tree_flatten(ep.module()(*inp))
             self._check_tensor_list_equal(orig_out, ep_out)
 
+<<<<<<< HEAD
     # qnnpack/xnnpack not supported on s390x.
     # it is required by
     # torch.ops.prepacked.linear_clamp_prepack
     # and
     # torch.ops.prepacked.linear_clamp_run
+=======
+    # qnnpack not supported on s390x
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @xfailIfS390X
     def test_ts2ep_convert_quantized_model_with_opcontext(self):
         class M(torch.nn.Module):
@@ -1471,12 +1491,15 @@ class TestConverter(TestCase):
         inp = (torch.randn(1, 10),)
         self._check_equal_ts_ep_converter(m, inp, ["script"])
 
+<<<<<<< HEAD
     # qnnpack/xnnpack not supported on s390x.
     # it is required by
     # torch.ops.prepacked.linear_clamp_prepack
     # and
     # torch.ops.prepacked.linear_clamp_run
     @xfailIfS390X
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_ts2ep_convert_quantized_model_with_opcontext_and_constant(self):
         class M(torch.nn.Module):
             def __init__(self, linear_op):

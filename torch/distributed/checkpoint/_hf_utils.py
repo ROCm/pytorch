@@ -41,16 +41,24 @@ DCP_SHARDING_INFO_KEY = "DCP_SHARDING_INFO"
 FORMAT_KEY = "format"
 FORMAT_VALUE = "pt"
 
+<<<<<<< HEAD
 NUM_BYTES_FOR_HEADER_LEN = 8
 
 SHARDED_DIR_NAME = "sharded"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dataclass
 class _HFStorageInfo:
     """This is the per entry storage info."""
 
     relative_path: str
+<<<<<<< HEAD
+=======
+    offset: int
+    length: int
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shape: torch.Size
     dtype: torch.dtype
 
@@ -82,11 +90,20 @@ def _get_safetensors_file_metadata(file_bytes: io.IOBase) -> tuple[Any, int]:
     # and follows their documentation on how their files are serialized
     # https://huggingface.co/docs/safetensors/index#format
 
+<<<<<<< HEAD
     header_len_bytes = file_bytes.read(NUM_BYTES_FOR_HEADER_LEN)
     header_len = struct.unpack("<Q", header_len_bytes)[0]
     header_json = file_bytes.read(header_len)
     metadata = json.loads(header_json)
     return (metadata, header_len + NUM_BYTES_FOR_HEADER_LEN)
+=======
+    num_bytes_for_header_len = 8
+    header_len_bytes = file_bytes.read(num_bytes_for_header_len)
+    header_len = struct.unpack("<Q", header_len_bytes)[0]
+    header_json = file_bytes.read(header_len)
+    metadata = json.loads(header_json)
+    return (metadata, header_len + num_bytes_for_header_len)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_dtype(dtype_str: str) -> torch.dtype:

@@ -32,9 +32,13 @@ inline namespace CPU_CAPABILITY {
     static constexpr size_type size() {                                       \
       return vl;                                                              \
     }                                                                         \
+<<<<<<< HEAD
     Vectorized() {                                                            \
       values = svdup_n_s##bit(0);                                             \
     }                                                                         \
+=======
+    Vectorized() {}                                                           \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Vectorized(svint##bit##_t v) : values(v) {}                               \
     Vectorized(int##bit##_t val) {                                            \
       values = svdup_n_s##bit(val);                                           \

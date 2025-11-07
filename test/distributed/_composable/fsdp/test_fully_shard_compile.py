@@ -299,6 +299,7 @@ val.shape: {[node.meta["val"].shape for node in aliased_graph_inputs]},
 
     def _reinplace_all_gather_with_optional_checks(self, fwd_fullgraph):
         def _run_with_checks(graph, orig_fn):
+<<<<<<< HEAD
             if self.world_size > 1:
                 self.assertGreater(
                     _count_op_in_graph(
@@ -313,6 +314,14 @@ val.shape: {[node.meta["val"].shape for node in aliased_graph_inputs]},
                     ),
                     0,
                 )
+=======
+            self.assertGreater(
+                _count_op_in_graph(
+                    graph, torch.ops._c10d_functional.all_gather_into_tensor.default
+                ),
+                0,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             orig_fn(graph)
 
@@ -323,6 +332,7 @@ val.shape: {[node.meta["val"].shape for node in aliased_graph_inputs]},
                 0,
             )
 
+<<<<<<< HEAD
             if self.world_size > 1:
                 self.assertGreater(
                     _count_op_in_graph(
@@ -339,6 +349,14 @@ val.shape: {[node.meta["val"].shape for node in aliased_graph_inputs]},
                     ),
                     0,
                 )
+=======
+            self.assertGreater(
+                _count_op_in_graph(
+                    graph, torch.ops._c10d_functional.all_gather_into_tensor_out.default
+                ),
+                0,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if fwd_fullgraph:
             return mock.patch.object(
@@ -566,8 +584,12 @@ Unsupported Tensor.backward() call
   Hint: This graph break is fundamental - it is unlikely that Dynamo will ever be able to trace through your code. Consider finding a workaround.
 
   Developer debug context: call_method TensorVariable() backward () {}
+<<<<<<< HEAD
 
  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0123.html""",  # noqa: B950
+=======
+""",  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 else:
                     self.assertGreater(len(counters["graph_break"]), 1)
@@ -1110,7 +1132,10 @@ Unsupported Tensor.backward() call
                     pass
                 file_check.run(bwd_code)
 
+<<<<<<< HEAD
     @unittest.skip('"Traceable FSDP2" is not being maintained anymore.')
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfRocm
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     # TODO: native_dropout causes CUDA IMA error, need to figure out why
@@ -1118,7 +1143,10 @@ Unsupported Tensor.backward() call
     def test_transformer_backend_inductor_fullgraph_True(self):
         self._test_transformer_backend_inductor_fullgraph_True()
 
+<<<<<<< HEAD
     @unittest.skip('"Traceable FSDP2" is not being maintained anymore.')
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfRocm
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     # TODO: native_dropout causes CUDA IMA error, need to figure out why

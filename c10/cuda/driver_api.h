@@ -53,8 +53,12 @@
 #define C10_LIBCUDA_DRIVER_API_OPTIONAL(_) \
   _(cuMulticastAddDevice, 12030)           \
   _(cuMulticastBindMem, 12030)             \
+<<<<<<< HEAD
   _(cuMulticastCreate, 12030)              \
   _(cuMulticastUnbind, 12030)
+=======
+  _(cuMulticastCreate, 12030)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 #define C10_LIBCUDA_DRIVER_API_OPTIONAL(_)
 #endif
@@ -67,12 +71,15 @@
   _(nvmlDeviceGetComputeRunningProcesses) \
   _(nvmlSystemGetCudaDriverVersion_v2)
 
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && (CUDA_VERSION >= 12040)
 #define C10_NVML_DRIVER_API_OPTIONAL(_) _(nvmlDeviceGetGpuFabricInfoV)
 #else
 #define C10_NVML_DRIVER_API_OPTIONAL(_)
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace c10::cuda {
 
 struct DriverAPI {
@@ -81,7 +88,10 @@ struct DriverAPI {
   C10_LIBCUDA_DRIVER_API_REQUIRED(CREATE_MEMBER_VERSIONED)
   C10_LIBCUDA_DRIVER_API_OPTIONAL(CREATE_MEMBER_VERSIONED)
   C10_NVML_DRIVER_API(CREATE_MEMBER)
+<<<<<<< HEAD
   C10_NVML_DRIVER_API_OPTIONAL(CREATE_MEMBER)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #undef CREATE_MEMBER_VERSIONED
 #undef CREATE_MEMBER
 

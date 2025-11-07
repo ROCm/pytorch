@@ -98,11 +98,19 @@ dlrm,pass,0
 
 
 
+<<<<<<< HEAD
 doctr_det_predictor,pass,3
 
 
 
 doctr_reco_predictor,pass,1
+=======
+doctr_det_predictor,pass,5
+
+
+
+doctr_reco_predictor,pass,4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -138,7 +146,11 @@ hf_Bert_large,pass,0
 
 
 
+<<<<<<< HEAD
 hf_BigBird,pass,25
+=======
+hf_BigBird,pass,24
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -158,7 +170,11 @@ hf_Longformer,pass,4
 
 
 
+<<<<<<< HEAD
 hf_Reformer,pass,8
+=======
+hf_Reformer,pass,5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -210,7 +226,11 @@ mobilenet_v2,pass,0
 
 
 
+<<<<<<< HEAD
 mobilenet_v2_quantized_qat,pass,3
+=======
+mobilenet_v2_quantized_qat,pass,2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -274,7 +294,11 @@ resnet50,pass,0
 
 
 
+<<<<<<< HEAD
 resnet50_quantized_qat,pass,3
+=======
+resnet50_quantized_qat,pass,2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 

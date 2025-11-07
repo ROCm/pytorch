@@ -371,10 +371,14 @@ class TORCH_API Dispatcher final {
 
 #ifdef FBCODE_CAFFE2
   static bool profilingOperatorEvents();
+<<<<<<< HEAD
   static void fireOpStartUSDT(
       at::RecordFunction::schema_ref_t schema_ref,
       std::vector<void*>& argsAddresses,
       std::vector<const char*>& argsTypes);
+=======
+  static void fireOpStartUSDT(at::RecordFunction::schema_ref_t schema_ref);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static void fireOpEndUSDT(at::RecordFunction::schema_ref_t schema_ref);
 #endif // FBCODE_CAFFE2
 
@@ -798,6 +802,7 @@ C10_ALWAYS_INLINE_UNLESS_MOBILE Return Dispatcher::call(
 
 #ifdef FBCODE_CAFFE2
   if (profilingOperatorEvents()) {
+<<<<<<< HEAD
     std::vector<void*> argsAddresses = {(void*)(&args)...};
     std::vector<const char*> argsTypes = {(typeid(args).name())...};
     struct FireOpRAII {
@@ -807,12 +812,22 @@ C10_ALWAYS_INLINE_UNLESS_MOBILE Return Dispatcher::call(
           std::vector<const char*>& argsTypes)
           : schema_ref_(schema_ref) {
         fireOpStartUSDT(schema_ref, argsAddresses, argsTypes);
+=======
+    struct FireOpRAII {
+      FireOpRAII(at::RecordFunction::schema_ref_t schema_ref)
+          : schema_ref_(schema_ref) {
+        fireOpStartUSDT(schema_ref);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       ~FireOpRAII() {
         fireOpEndUSDT(schema_ref_);
       }
       at::RecordFunction::schema_ref_t schema_ref_;
+<<<<<<< HEAD
     } event(op.schema(), argsAddresses, argsTypes);
+=======
+    } event(op.schema());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return kernel.template call<Return, Args...>(
         op, dispatchKeySet, std::forward<Args>(args)...);
   } else {

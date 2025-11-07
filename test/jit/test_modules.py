@@ -21,7 +21,11 @@ class TestModules(JitTestCase):
         """
 
         # torch.nn.Linear has a __constants__ attribute defined
+<<<<<<< HEAD
         # and initialized to a list.
+=======
+        # and intialized to a list.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Net(torch.nn.Linear):
             x: torch.jit.Final[int]
 
